@@ -1,0 +1,10 @@
+[
+    {
+        "model": "boranga.proposalapprovergroup",
+        "fields":
+        {
+            "name":"Default Group",
+            "default": true
+        }
+    }
+]
