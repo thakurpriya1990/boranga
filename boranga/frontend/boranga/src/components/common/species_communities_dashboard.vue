@@ -311,7 +311,7 @@ export default {
                         mRender:function(data,type,full){
                             return full.lodgement_number;
                         },
-                        data: "id, lodgement_number"
+                        name: "id, lodgement_number"
                     },
                     {
 						data: "application_type",
@@ -350,9 +350,9 @@ export default {
                         name: "assigned_officer__first_name, assigned_officer__last_name",
                     },
                     {
-                        data: '',
+                        data: "application_type", // data should not be empty
                         mRender:function (data,type,full) {
-                            let links = '';
+                            let links = "";
                             if (!vm.is_external){
                                 /*if(vm.check_assessor(full) && full.can_officer_process)*/
                                 if(full.assessor_process){   
@@ -376,7 +376,6 @@ export default {
 
                             return links;
                         },
-                        name: '',
                         searchable: false,
                         orderable: false
                     }
