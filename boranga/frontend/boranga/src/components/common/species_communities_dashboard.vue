@@ -1,72 +1,97 @@
 <template id="proposal_dashboard">
-    <div class="row">
+   <!-- <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Applications <small v-if="is_external">View existing applications and lodge new ones</small>
+            <div class="panel panel-default"> 
+                 <div class="panel-heading">
+                     <h3 class="panel-title"><h3>Species and Communities</h3><small v-if="is_external">View existing applications and lodge new ones</small> 
                         <a :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
                             <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                         </a>
                     </h3>
-                </div>
-                <div class="panel-body collapse in" :id="pBody">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="">Group Name</label>
-                                <select class="form-control" v-model="filterProposalStatus">
-                                    <option value="All">All</option>
-                                    <option v-for="s in group_types" :value="s">{{s}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="">Scientific Name</label>
-                                <select class="form-control" v-model="filterProposalStatus">
-                                    <option value="All">All</option>
-                                    <option v-for="s in approval_status" :value="s">{{s}}</option>
-                                </select>
-                            </div>
-                        </div>
+                </div> -->
 
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="">Non-current Name</label>
-                                <select class="form-control" v-model="filterApplicationType">
-                                    <option value="All">All</option>
-                                    <option v-for="s in application_types" :value="s">{{s}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="">Status</label>
-                                <select class="form-control" v-model="filterApplicationType">
-                                    <option value="All">All</option>
-                                    <option v-for="s in application_types" :value="s">{{s}}</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div v-if="is_external" class="col-md-6">
-                            <router-link  style="margin-top:25px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">New Application</router-link>
-                        </div>
-                    </div>
+                <!-- <div class="panel-body collapse in" :id="pBody"> -->
+                <FormSection v-bind:label="filterSpecies" Index="species_and_communities">
                     <div class="row">
-                        <div class="col-lg-12">
-                            <datatable v-if="level=='external'" ref="proposal_datatable" :id="datatable_id" :dtOptions="proposal_ex_options" :dtHeaders="proposal_ex_headers"/>
-                            <datatable v-else ref="proposal_datatable" :id="datatable_id" :dtOptions="proposal_options" :dtHeaders="proposal_headers"/>
-                        </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="">Species/Community</label>
+                                    <select class="form-control" v-model="filterSpecies">
+                                    <!-- <select class="form-control"> -->
+                                        <option value="Flora">Flora</option>
+                                        <option value="Fauna">Fauna</option>
+                                        <option value="Community">Community</option>
+                                        <!-- <option v-for="s in group_types" :value="s">{{s}}</option> -->
+                                    </select>
+                                </div>
+                            </div>
                     </div>
-                </div>
-            </div>
+                    <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="">Group Name</label>
+                                    <select class="form-control" v-model="filterProposalStatus">
+                                        <option value="All">All</option>
+                                        <option v-for="s in group_types" :value="s">{{s}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="">Scientific Name</label>
+                                    <select class="form-control" v-model="filterProposalStatus">
+                                        <option value="All">All</option>
+                                        <option v-for="s in approval_status" :value="s">{{s}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="">Non-current Name</label>
+                                    <select class="form-control" v-model="filterApplicationType">
+                                        <option value="All">All</option>
+                                        <option v-for="s in application_types" :value="s">{{s}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="">Status</label>
+                                    <select class="form-control" v-model="filterApplicationType">
+                                        <option value="All">All</option>
+                                        <option v-for="s in application_types" :value="s">{{s}}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div v-if="is_external" class="col-md-6">
+                                <router-link  style="margin-top:25px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">New Application</router-link>
+                            </div>
+                        </div>
+                    </CollapsibleFilters>
+
+                    <div class="row">
+                    <div class="col-lg-12">
+                        <datatable
+                                ref="proposal_datatable"
+                                :id="datatable_id"
+                                :dtOptions="datatable_options"
+                                :dtHeaders="datatable_headers"
+                            />
+                    </div>
+                    </div>
+                </FormSection>
+                <!-- </div> -->
+<!--            </div>
         </div>
-    </div>
+    </div> -->
 </template>
 <script>
 import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
+import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
+import FormSection from '@/components/forms/section_toggle.vue'
 import Vue from 'vue'
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
@@ -96,15 +121,19 @@ export default {
         return {
             pBody: 'pBody' + vm._uid,
             datatable_id: 'proposal-datatable-'+vm._uid,
+     
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
-            // Filters for Proposals
+            
+            // selected values for filtering
+            filterSpecies: '',
             filterApplicationType: 'All',
             filterProposalStatus: 'All',
             filterProposalLodgedFrom: '',
             filterProposalLodgedTo: '',
             filterProposalSubmitter: 'All',
+
             dateFormat: 'DD/MM/YYYY',
             datepickerOptions:{
                 format: 'DD/MM/YYYY',
@@ -113,11 +142,7 @@ export default {
                 keepInvalid:true,
                 allowInputToggle:true
             },
-            // application_types:[
-            //     {value:'T Class', name:'T Class'},
-            //     {value:'Filming', name:'Filming'},
-            //     {value:'Event', name:'Event'},
-            // ],
+            // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'Under Review'},
@@ -141,291 +166,30 @@ export default {
             ],
             proposal_submitters: [],
             proposal_status: [],
-            proposal_ex_headers:[
-                "Number","Licence Type","Submitter","Applicant","Status","Lodged on","Action"
-            ],
-            proposal_ex_options:{
-                autoWidth: false,
-                language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
-                },
-                responsive: true,
-                serverSide: true,
-                order: [
-                    [0, 'desc']
-                ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
-                ajax: {
-                    "url": vm.url,
-                    "dataSrc": 'data',
 
-                    // adding extra GET params for Custom filtering
-                    "data": function ( d ) {
-                        d.date_from = vm.filterProposalLodgedFrom != '' && vm.filterProposalLodgedFrom != null ? moment(vm.filterProposalLodgedFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        d.date_to = vm.filterProposalLodgedTo != '' && vm.filterProposalLodgedTo != null ? moment(vm.filterProposalLodgedTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-        		    }
-                },
-                dom: 'lBfrtip',
-                buttons:[
-                'excel', 'csv',],
-                columns: [
-                    {
-                        data: "id",
-                        mRender:function(data,type,full){
-                            return full.lodgement_number;
-                        },
-                        name: "id, lodgement_number",
-                    },
-                    {
-						data: "application_type",
-						name: "application_type__name"
-					},
-                    {
-                        data: "submitter",
-                        mRender:function (data,type,full) {
-                            if (data) {
-                                return `${data.first_name} ${data.last_name}`;
-                            }
-                            return ''
-                        },
-                        name: "submitter__email",
-                    },
-                    {
-                        data: "applicant",
-                        name: "org_applicant__organisation__name, proxy_applicant__email, proxy_applicant__first_name, proxy_applicant__last_name"
-                    },
-                    {
-                        data: "customer_status",
-                        //mRender:function(data,type,full){
-                        //    return vm.level == 'internal' ? full.processing_status: data; //Fix the issue with External dashboard Status dropdown shoing internal statuses.
-                        //},
-                        name: "customer_status",
-                    },
-                    {
-                        data: "lodgement_date",
-                        mRender:function (data,type,full) {
-                            return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
-                        },
-                        searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
-                    },
-                    {
-                        data: "",
-                        mRender:function (data,type,full) {
-                            let links = '';
-                            if (!vm.is_external){
-                                /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                                if(full.assessor_process){
-                                    links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;
-                            }
-                                else{
-                                    links +=  `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
-                                }
-                            }
-                            else{
-                                if (full.can_user_edit) {
-                                    links +=  `<a href='/external/proposal/${full.id}'>Continue</a><br/>`;
-                                    links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
-                                }
-                                else if (full.can_user_view) {
-                                    links +=  `<a href='/external/proposal/${full.id}'>View</a><br/>`;
-                                }
-                                if (full.customer_status=='Awaiting Payment' && !full.fee_paid) {
-                                    links +=  `<a href='/filming_fee/${full.id}'>Make Payment</a><br/>`;
-                                    links +=  `<a href='/cols/payments/awaiting-payment-pdf/${full.id}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp Pending Invoice</a><br/>`;
-                                }
-                            }
-                            if (full.fee_invoice_reference && full.proposal_type!='Amendment'){
-                                if (full.application_type=='Filming') {
-                                    links +=  `<a href='/cols/payments/invoice-filmingfee-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
-                                } else {
-                                    links +=  `<a href='/cols/payments/invoice-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
-                                }
-                            }
-                            return links;
-                        },
-                        name: '',
-                        searchable: false,
-                        orderable: false
-                    }
-
-                ],
-                processing: true,
-                /*
-                initComplete: function () {
-                    // Grab submitters from the data in the table
-                    var submittersColumn = vm.$refs.proposal_datatable.vmDataTable.columns(2);
-                    submittersColumn.data().unique().sort().each( function ( d, j ) {
-                        var submitters = [];
-                        $.each(d,(index,s) => {
-                            if (!submitters.find(submitter => submitter.email == s.email) || submitters.length == 0){
-                                submitters.push({
-                                    'email':s.email,
-                                    'search_term': `${s.first_name} ${s.last_name} (${s.email})`
-                                });
-                            }
-                        });
-                        vm.proposal_submitters = submitters;
-                    });
-                    // Grab Status from the data in the table
-                    var statusColumn = vm.$refs.proposal_datatable.vmDataTable.columns(4);
-                    statusColumn.data().unique().sort().each( function ( d, j ) {
-                        let statusTitles = [];
-                        $.each(d,(index,a) => {
-                            a != null && statusTitles.indexOf(a) < 0 ? statusTitles.push(a): '';
-                        })
-                        vm.proposal_status = statusTitles;
-                    });
-                }
-                */
-            },
-            proposal_headers:[
-                "Number","Licence Type","Submitter","Applicant","Status","Lodged on","Assigned Officer","Action",
-            ],
-            proposal_options:{
-                autoWidth: false,
-                language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
-                },
-                responsive: true,
-                serverSide: true,
-                order: [
-                    [0, 'desc']
-                ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
-                ajax: {
-                    "url": vm.url,
-                    "dataSrc": 'data',
-
-                    // adding extra GET params for Custom filtering
-                    "data": function ( d ) {
-                        d.date_from = vm.filterProposalLodgedFrom != '' && vm.filterProposalLodgedFrom != null ? moment(vm.filterProposalLodgedFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        d.date_to = vm.filterProposalLodgedTo != '' && vm.filterProposalLodgedTo != null ? moment(vm.filterProposalLodgedTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-        		    }
-                },
-                dom: 'lBfrtip',
-                buttons:[
-                'excel', 'csv', ],
-                columns: [
-                    {
-                        data: "id",
-                        mRender:function(data,type,full){
-                            return full.lodgement_number;
-                        },
-                        name: "id, lodgement_number"
-                    },
-                    {
-						data: "application_type",
-						name: "application_type__name"
-					},
-                    {
-                        data: "submitter",
-                        mRender:function (data,type,full) {
-                            if (data) {
-                                return `${data.first_name} ${data.last_name}`;
-                            }
-                            return ''
-                        },
-                        name: "submitter__email",
-                    },
-                    {
-                        data: "applicant",
-                        name: "org_applicant__organisation__name, proxy_applicant__email, proxy_applicant__first_name, proxy_applicant__last_name"
-                    },
-                    {
-                        data: "processing_status",
-                        //mRender:function(data,type,full){
-                        //    return vm.level == 'external' ? full.customer_status: data;
-                        //},
-                        name: "processing_status",
-                    },
-                    {
-                        data: "lodgement_date",
-                        mRender:function (data,type,full) {
-                            return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
-                        },
-                        searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
-                    },
-                    {
-                        data: "assigned_officer",
-                        name: "assigned_officer__first_name, assigned_officer__last_name",
-                    },
-                    {
-                        data: "application_type", // data should not be empty
-                        mRender:function (data,type,full) {
-                            let links = "";
-                            if (!vm.is_external){
-                                /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                                if(full.assessor_process){   
-                                        links +=  `<a href='/internal/species_communities/${full.id}'>Process</a><br/>`;    
-                                }
-                                else{
-                                    links +=  `<a href='/internal/species_communities/${full.id}'>View</a><br/>`;
-                                }
-                            }
-                            else{
-                                if (full.can_user_edit) {
-                                    links +=  `<a href='/external/species_communities/${full.id}'>Continue</a><br/>`;
-                                    links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
-                                }
-                                else if (full.can_user_view) {
-                                    links +=  `<a href='/external/species_communities/${full.id}'>View</a><br/>`;
-                                }
-                            }
-
-                            links +=  `<a href='/internal/species_communities/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranag demo
-
-                            return links;
-                        },
-                        searchable: false,
-                        orderable: false
-                    }
-
-                ],
-                processing: true,
-                /*
-                initComplete: function () {
-                    // Grab submitters from the data in the table
-                    var submittersColumn = vm.$refs.proposal_datatable.vmDataTable.columns(2);
-                    submittersColumn.data().unique().sort().each( function ( d, j ) {
-                        var submitters = [];
-                        $.each(d,(index,s) => {
-                            if (!submitters.find(submitter => submitter.email == s.email) || submitters.length == 0){
-                                submitters.push({
-                                    'email':s.email,
-                                    'search_term': `${s.first_name} ${s.last_name} (${s.email})`
-                                });
-                            }
-                        });
-                        vm.proposal_submitters = submitters;
-                    });
-                    // Grab Status from the data in the table
-                    var statusColumn = vm.$refs.proposal_datatable.vmDataTable.columns(4);
-                    statusColumn.data().unique().sort().each( function ( d, j ) {
-                        let statusTitles = [];
-                        $.each(d,(index,a) => {
-                            a != null && statusTitles.indexOf(a) < 0 ? statusTitles.push(a): '';
-                        })
-                        vm.proposal_status = statusTitles;
-                    });
-
-                    // Fix the table rendering columns
-                    vm.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
-                }
-                */
-            }
         }
     },
     components:{
-        datatable
+        datatable,
+        CollapsibleFilters,
+        FormSection,
     },
     watch:{
         filterProposalSubmitter: function(){
-            //this.$refs.proposal_datatable.vmDataTable.draw();
             let vm = this;
-            if (vm.filterProposalSubmitter!= 'All') {
+            vm.$refs.proposal_datatable.vmDataTable.draw(); // This calls ajax() backend call.  This line is enough to search?  Do we need following lines...?
+            /*if (vm.filterProposalSubmitter!= 'All') {
                 vm.$refs.proposal_datatable.vmDataTable.columns(2).search(vm.filterProposalSubmitter).draw();
             } else {
                 vm.$refs.proposal_datatable.vmDataTable.columns(2).search('').draw();
+            }*/
+        },
+        filterSpecies: function() {
+            let vm = this;
+            if (vm.filterSpecies!= 'All') {
+                vm.$refs.proposal_datatable.vmDataTable.columns(4).search(vm.filterSpecies).draw();
+            } else {
+                vm.$refs.proposal_datatable.vmDataTable.columns(4).search('').draw();
             }
         },
         filterProposalStatus: function() {
@@ -449,16 +213,276 @@ export default {
         },
         filterProposalLodgedTo: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
-        }
+        },
+        filterApplied: function(){
+            if (this.$refs.collapsible_filters){
+                // Collapsible component exists
+                this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+            }
+        },
     },
     computed: {
+        filterApplied: function(){
+            if(this.filterApplicationType.toLowerCase() === 'all' && this.filterProposalStatus.toLowerCase() === 'all' && this.filterProposalLodgedFrom.toLowerCase() === '' && this.filterProposalLodgedTo.toLowerCase() === ''){
+                return false
+            } else {
+                return true
+            }
+        },
         is_external: function(){
             return this.level == 'external';
+        },
+        is_internal: function() {
+            return this.level == 'internal'
         },
         is_referral: function(){
             return this.level == 'referral';
         },
-        
+        datatable_headers: function(){
+            if (this.is_external){
+                return ['id', 'Number', 'Licence Type', 'Submitter', 'Applicant', 'Status', 'Lodged on', 'Action']
+            }
+            if (this.is_internal){
+                return ['id', 'Number', 'Licence Type', 'Submitter', 'Applicant', 'Status', 'Lodged on', 'Assigned Officer', 'Action']
+            }
+        },
+        column_id: function(){
+            return {
+                // 1. ID
+                data: "id",
+                orderable: false,
+                searchable: false,
+                visible: false,
+                'render': function(data, type, full){
+                    console.log(full)
+                    return full.id
+                }
+            }
+        },
+        column_lodgement_number: function(){
+            return {
+                // 2. Lodgement Number
+                data: "id",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    return full.lodgement_number
+                },
+                name: "id, lodgement_number",
+            }
+        },
+        column_application_type: function(){
+            return {
+                // 3. Application Type
+                data: "application_type",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    return full.application_type
+                },
+                name: "application_type__name",
+            }
+        },
+        column_submitter: function(){
+            return {
+                // 4. Submitter
+                data: "submitter",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if(data.first_name){
+                        return `${data.first_name} ${data.last_name}`;
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "submitter__email",
+            }
+        },
+        column_applicant: function(){
+            return {
+                // 5. Applicant
+                data: "applicant",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if(full.applicant){
+                        return full.applicant;
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "org_applicant__organisation__name, proxy_applicant__email, proxy_applicant__first_name, proxy_applicant__last_name",
+            }
+        },
+        column_status: function(){
+            return {
+                // 6. Status
+                data: "processing_status",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if(full.processing_status){
+                        return full.processing_status;
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "processing_status",
+            }
+        },
+        column_lodged_on: function(){
+            return {
+                // 7. Lodged on
+                data: "lodgement_date",
+                orderable: true,
+                searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.lodgement_date){
+                        return moment(full.lodgement_date).format('DD/MM/YYYY');
+                    }
+                    // Should not reach here
+                    return ''
+                }
+            }
+        },
+        column_assigned_officer: function(){
+            return {
+                // 8. Assigned Officer
+                data: "assigned_officer",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.assigned_officer){
+                        return full.assigned_officer;
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "assigned_officer__first_name,assigned_officer__last_name",
+            }
+        },
+        column_action: function(){
+            let vm = this
+            return {
+                // 9. Action
+                data: "id",
+                orderable: false,
+                searchable: false,
+                visible: true,
+                'render': function(data, type, full){
+                    let links = "";
+                    if (!vm.is_external){
+                        /*if(vm.check_assessor(full) && full.can_officer_process)*/
+                        if(full.assessor_process){   
+                                links +=  `<a href='/internal/species_communities/${full.id}'>Process</a><br/>`;    
+                        }
+                        else{
+                            links +=  `<a href='/internal/species_communities/${full.id}'>View</a><br/>`;
+                        }
+                    }
+                    else{
+                        if (full.can_user_edit) {
+                            links +=  `<a href='/external/species_communities/${full.id}'>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
+                        }
+                        else if (full.can_user_view) {
+                            links +=  `<a href='/external/species_communities/${full.id}'>View</a>`;
+                        }
+                    }
+
+                    links +=  `<a href='/internal/species_communities/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
+
+                    return links;
+                }
+            }
+        },
+        datatable_options: function(){
+            let vm = this
+
+            let columns = []
+            let search = null
+            let buttons = []
+            if(vm.is_external){
+                columns = [
+                    vm.column_id,
+                    vm.column_lodgement_number,
+                    vm.column_application_type,
+                    vm.column_submitter,
+                    vm.column_applicant,
+                    vm.column_status,
+                    vm.column_lodged_on,
+                    vm.column_action,
+                ]
+                search = false
+                buttons = []
+            }
+            if(vm.is_internal){
+                columns = [
+                    vm.column_id,
+                    vm.column_lodgement_number,
+                    vm.column_application_type,
+                    vm.column_submitter,
+                    vm.column_applicant,
+                    vm.column_status,
+                    vm.column_lodged_on,
+                    vm.column_assigned_officer,
+                    vm.column_action,
+                ]
+                search = true
+                buttons = [
+                    {
+                        extend: 'excel',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'csv',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                ]
+            }
+
+            return {
+                autoWidth: false,
+                language: {
+                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                },
+                //lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                responsive: true,
+                serverSide: true,
+                searching: search,
+                ajax: {
+                    "url": vm.url,
+                    "dataSrc": 'data',
+
+                    // adding extra GET params for Custom filtering
+                    "data": function ( d ) {
+                        d.date_from = vm.filterProposalLodgedFrom != '' && vm.filterProposalLodgedFrom != null ? moment(vm.filterProposalLodgedFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
+                        d.date_to = vm.filterProposalLodgedTo != '' && vm.filterProposalLodgedTo != null ? moment(vm.filterProposalLodgedTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
+                    }
+                },
+                dom: 'lBfrtip',
+                //buttons:[ ],
+                buttons: buttons,
+
+                columns: columns,
+                processing: true,
+                initComplete: function() {
+                },
+            }
+        }
+    
     },
     methods:{
         make_payment: function(fee_invoice_reference){
@@ -478,7 +502,9 @@ export default {
                 form.submit();
             }
         },
-
+        collapsible_component_mounted: function(){
+            this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+        },
 
         fetchFilterLists: function(){
             let vm = this;
