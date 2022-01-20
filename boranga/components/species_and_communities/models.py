@@ -14,7 +14,7 @@ class GroupType(models.Model):
     Is:
     - Enumeration (GroupTypes)
     """
-    name = models.CharField(max_length=4,
+    name = models.CharField(max_length=128,
                             choices=[('flora', 'Flora'), ('fauna', 'Fauna'), ('community', 'Community')],
                             default='1',)
 
@@ -187,8 +187,7 @@ class Species(models.Model):
     - Table
     """
     group_type = models.ForeignKey(GroupType,
-                                   on_delete=models.CASCADE,
-                                   primary_key=True,)
+                                   on_delete=models.CASCADE)
     scientific_name = models.CharField(max_length=128,
                                        default="None")
     common_name = models.CharField(max_length=128,
@@ -196,8 +195,7 @@ class Species(models.Model):
     name_currency = models.CharField(max_length=512,
                                      default="None")
     conservation_status = models.OneToOneField(ConservationStatus,
-                                               on_delete=models.CASCADE,
-                                               primary_key=True,)
+                                               on_delete=models.CASCADE)
     # community many to many
     region = models.IntegerField(default=-1)  # TODO: reuse DBCA
     district = models.IntegerField(default=-1)  # TODO: reuse DBCA
