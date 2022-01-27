@@ -62,7 +62,9 @@ module.exports = {
     compliances_paginated_external: "/api/compliance_paginated/compliances_external/?format=datatables",
     proposals_paginated_internal:   "/api/proposal_paginated/proposals_internal/?format=datatables",
     referrals_paginated_internal:   "/api/proposal_paginated/referrals_internal/?format=datatables",
-    species_communities_paginated_internal: "/api/proposal_paginated/species_communities_internal/?format=datatables",
+    species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
+    scientific_names_dict:"/api/scientific_names_dict",
+    group_types_dict:"/api/group_types_dict",
 
     //filter_list:                    "/api/proposal_paginated/filter_list.json",
     filter_list:                    "/api/proposal/filter_list.json",
