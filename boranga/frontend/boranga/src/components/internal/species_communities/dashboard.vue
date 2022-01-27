@@ -16,7 +16,7 @@ export default {
         let vm = this;
         return {
             //approvals_url: api_endpoints.approvals_paginated_external,
-            species_communities_url: api_endpoints.species_communities_paginated_internal,
+            species_communities_url: api_endpoints.species_paginated_internal,
         }
     
     },

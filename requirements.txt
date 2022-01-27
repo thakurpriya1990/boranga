@@ -1,5 +1,5 @@
 git+https://github.com/xzzy/webtemplate.git#egg=webtemplate_dbca
-git+git://github.com/dbca-wa/dbca-utils@1.1.1#egg=dbca-utils
+git+https://github.com/dbca-wa/dbca-utils@1.1.1#egg=dbca-utils
 psycopg2-binary==2.8.5
 Django==3.2.4
 django-extensions==1.9.8
@@ -59,3 +59,6 @@ django-phonenumber-field==5.2.0
 gevent==21.1.2
 whitenoise==5.3.0
 django-multiselectfield==0.1.12
+# Needed for shell_plus crash issue
+jedi==0.17.2
+parso==0.7.1
