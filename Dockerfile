@@ -45,7 +45,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 #COPY libgeos.py.patch /app/
 #RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
 #RUN rm /app/libgeos.py.patch
-
+ 
 COPY cron /etc/cron.d/dockercron
 COPY startup.sh /
 RUN service rsyslog start
@@ -56,6 +56,7 @@ RUN service cron start
 RUN chmod 755 /startup.sh
 COPY gunicorn.ini manage.py ./
 RUN touch /app/.env
+COPY .git ./.git
 COPY boranga ./boranga
 #RUN mkdir /app/boranga/cache/
 #RUN chmod 777 /app/boranga/cache/
