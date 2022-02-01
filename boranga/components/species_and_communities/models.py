@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 from django.db.models.deletion import CASCADE
 
@@ -14,15 +15,17 @@ class GroupType(models.Model):
     Is:
     - Enumeration (GroupTypes)
     """
+    GROUP_TYPES = [('flora', 'Flora'), ('fauna', 'Fauna'), ('community', 'Community')]
+    group_type_id = models.IntegerField(default=-1)
     name = models.CharField(max_length=128,
-                            choices=[('flora', 'Flora'), ('fauna', 'Fauna'), ('community', 'Community')],
-                            default='1',)
+                            choices=GROUP_TYPES,
+                            default=GROUP_TYPES[1],)
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.name)
+        return self.get_name_display()
 
 
 class ConservationList(models.Model):
@@ -139,10 +142,10 @@ class Taxonomy(models.Model):
     - Communities
     Is:
     - Table
-    """
+    """    
     taxon = models.CharField(max_length=512,
                              default="None")  # flora and fauna, name
-    taxon_id = models.IntegerField()  # flora and fauna, name
+    taxon_id = models.IntegerField(default=-1)  # flora and fauna, name
 
     previous_name = models.CharField(max_length=512,
                                      default="None")
@@ -238,7 +241,6 @@ class Community(models.Model):
     district = models.IntegerField(default=-1)  # TODO: reuse DBCA
 
     species = models.ManyToManyField(Species, blank=False)
-    conservation_status = models.ForeignKey(to=ConservationStatus, on_delete=CASCADE)
 
     class Meta:
         app_label = 'boranga'
@@ -267,7 +269,7 @@ class SpeciesDocument(models.Model):
                                 default="None")
     document_description = models.CharField(max_length=1024,
                                             default="None")
-    date_time = models.DateField()
+    date_time = models.DateField(default=datetime.date.today)
 
     species = models.ManyToManyField(Species, blank=False)
 
