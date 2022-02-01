@@ -63,8 +63,10 @@ module.exports = {
     proposals_paginated_internal:   "/api/proposal_paginated/proposals_internal/?format=datatables",
     referrals_paginated_internal:   "/api/proposal_paginated/referrals_internal/?format=datatables",
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
+    communities_paginated_internal: "/api/communities_paginated/communities_internal/?format=datatables",
     scientific_names_dict:"/api/scientific_names_dict",
     group_types_dict:"/api/group_types_dict",
+    community_filter_dict:"/api/community_filter_dict",
 
     //filter_list:                    "/api/proposal_paginated/filter_list.json",
     filter_list:                    "/api/proposal/filter_list.json",

@@ -20,7 +20,7 @@ from boranga.components.main import api as main_api
 from boranga.components.proposals import api as proposal_api
 from boranga.components.approvals import api as approval_api
 from boranga.components.compliances import api as compliances_api
-from boranga.components.species_and_communities import api as species_api
+from boranga.components.species_and_communities import api as species_communities_api
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 
 # API patterns
@@ -47,7 +47,8 @@ router.register(r'global_settings', main_api.GlobalSettingsViewSet)
 router.register(r'assessments', proposal_api.ProposalAssessmentViewSet)
 router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 router.register(r'questions', main_api.QuestionViewSet)
-router.register(r'species_paginated',species_api.SpeciesPaginatedViewSet)
+router.register(r'species_paginated',species_communities_api.SpeciesPaginatedViewSet)
+router.register(r'communities_paginated',species_communities_api.CommunitiesPaginatedViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
@@ -64,8 +65,9 @@ api_patterns = [
     url(r'^api/compliance_amendment_reason_choices',compliances_api.ComplianceAmendmentReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
     url(r'^api/search_keywords',proposal_api.SearchKeywordsView.as_view(),name='search_keywords'),
     url(r'^api/search_reference',proposal_api.SearchReferenceView.as_view(),name='search_reference'),
-    url(r'^api/scientific_names_dict',species_api.GetScientificNameDict.as_view(),name='get-scientific-names-dict'),
-    url(r'^api/group_types_dict',species_api.GetGroupTypeDict.as_view(),name='get-group-types-dict'),
+    url(r'^api/scientific_names_dict',species_communities_api.GetScientificNameDict.as_view(),name='get-scientific-names-dict'),
+    url(r'^api/group_types_dict',species_communities_api.GetGroupTypeDict.as_view(),name='get-group-types-dict'),
+    url(r'^api/community_filter_dict',species_communities_api.GetCommunityFilterDict.as_view(),name='get-community-filter-dict'),
 
     #url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
 

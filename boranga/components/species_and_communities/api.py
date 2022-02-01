@@ -28,9 +28,11 @@ from boranga.components.species_and_communities.models import (
     ConservationCategory,
     ConservationCriteria,
     Taxonomy,
+    Community,
 )
 from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
+    ListCommunitiesSerializer,
 )
 
 import logging
@@ -38,15 +40,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class GetGroupTypeDict(views.APIView):
-    renderer_classes = [JSONRenderer, ]
-
+    
     def get(self, request, format=None):
-        group_type_list = []
-        group_types = GroupType.objects.all().order_by('name')
-        if group_types:
-            for g in group_types:
-                group_type_list.append({'key': g.id,'value': g.name})
-        return Response(group_type_list)
+        return Response(GroupType.GROUP_TYPES)
 
 class GetScientificNameDict(views.APIView):
     renderer_classes = [JSONRenderer, ]
@@ -61,9 +57,24 @@ class GetScientificNameDict(views.APIView):
                     name_list.append({'species_id': s.id,'scientific_name': s.scientific_name,'common_name':s.common_name})
         return Response(name_list)
 
+class GetCommunityFilterDict(views.APIView):
+    renderer_classes = [JSONRenderer, ]
+
+    def get(self, request, format=None):
+        community_list = []
+        communities = Community.objects.all()
+        if communities:
+            for community in communities:
+                community_list.append({
+                    'id': community.id,
+                    'community_id': community.community_id,
+                    'community_name':community.community_name,
+                    'community_status':community.community_status
+                    })
+        return Response(community_list)
+
 class SpeciesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        print(request.GET)
         total_count = queryset.count()
         # filter_group_type
         filter_group_type = request.GET.get('filter_group_type')
@@ -123,4 +134,67 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
         self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesSerializer(result_page, context={'request': request}, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
+
+class CommunitiesFilterBackend(DatatablesFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        total_count = queryset.count()
+        # filter_community_id
+        filter_community_id = request.GET.get('filter_community_id')
+        if filter_community_id and not filter_community_id.lower() == 'all':
+            queryset = queryset.filter(community_id=filter_community_id)
+        # filter_community_name
+        filter_community_name = request.GET.get('filter_community_name')
+        if filter_community_name and not filter_community_name.lower() == 'all':
+            queryset = queryset.filter(community_name=filter_community_name)
+        # filter_community_status
+        filter_community_status = request.GET.get('filter_community_status')
+        if filter_community_status and not filter_community_status.lower() == 'all':
+            queryset = queryset.filter(community_status=filter_community_status)
+
+        getter = request.query_params.get
+        fields = self.get_fields(getter)
+        ordering = self.get_ordering(getter, fields)
+        queryset = queryset.order_by(*ordering)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        try:
+            queryset = super(CommunitiesFilterBackend, self).filter_queryset(request, queryset, view)
+        except Exception as e:
+            print(e)
+        setattr(view, '_datatables_total_count', total_count)
+        return queryset
+
+class CommunitiesRenderer(DatatablesRenderer):
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+            data['recordsTotal'] = renderer_context['view']._datatables_total_count
+        return super(CommunitiesRenderer, self).render(data, accepted_media_type, renderer_context)
+
+class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
+    filter_backends = (CommunitiesFilterBackend,)
+    pagination_class = DatatablesPageNumberPagination
+    renderer_classes = (CommunitiesRenderer,)
+    queryset = Community.objects.none()
+    serializer_class = ListCommunitiesSerializer
+    page_size = 10
+
+    def get_queryset(self):
+        #request_user = self.request.user
+        qs = Community.objects.none()
+
+        if is_internal(self.request):
+            qs = Community.objects.all()
+
+        return qs
+
+    @list_route(methods=['GET',], detail=False)
+    def communities_internal(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListCommunitiesSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
