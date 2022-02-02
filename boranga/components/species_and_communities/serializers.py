@@ -5,6 +5,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
 from boranga.components.species_and_communities.models import(
 	GroupType,
 	Species,
+	Community,
 	ConservationList,
 	ConservationStatus,
 	ConservationCategory,
@@ -23,6 +24,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField()
 	family = serializers.SerializerMethodField()
 	genera = serializers.SerializerMethodField()
+	phylogenetic_group = serializers.SerializerMethodField()
 	conservation_status = serializers.SerializerMethodField()
 	class Meta:
 		model = Species
@@ -34,6 +36,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'taxonomy',
 			    'family',
 			    'genera',
+			    'phylogenetic_group',
+			    'region',
 			    'district',
 			    'conservation_status',
 			    'processing_status',
@@ -46,6 +50,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'taxonomy',
 			    'family',
 			    'genera',
+			    'phylogenetic_group',
+			    'region',
 			    'district',
 			    'conservation_status',
 			    'processing_status',
@@ -61,10 +67,35 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
 	def get_genera(self,obj):
 		if obj.taxonomy:
-				return obj.taxonomy.genus
+			return obj.taxonomy.genus
+		return None
+
+	def get_phylogenetic_group(self,obj):
+		if obj.taxonomy:
+			return obj.taxonomy.phylogenetic_group
 		return None
 
 	def get_conservation_status(self,obj):
 		if obj.conservation_status:
 			return obj.conservation_status.conservation_list.name
 		return None
+
+class ListCommunitiesSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Community
+		fields = (
+			    'id',
+			    'community_id',
+			    'community_name',
+			    'community_status',
+			    'region',
+			    'district',
+			)
+		datatables_always_serialize = (
+                'id',
+			    'community_id',
+			    'community_name',
+			    'community_status',
+			    'region',
+			    'district',
+			)
