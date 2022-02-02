@@ -16,7 +16,7 @@ class GroupType(models.Model):
     - Enumeration (GroupTypes)
     """
     GROUP_TYPES = [('flora', 'Flora'), ('fauna', 'Fauna'), ('community', 'Community')]
-    group_type_id = models.IntegerField(default=-1)
+    group_type_id = models.IntegerField(default=-1) # TODO: check if this is required and correct
     name = models.CharField(max_length=128,
                             choices=GROUP_TYPES,
                             default=GROUP_TYPES[1],)
