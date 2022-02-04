@@ -1,4 +1,4 @@
-<template> -->
+<template>
     <div :class="classCompute" id="userInfo">
       <div class="col-sm-12">
         <div v-if="showCompletion" class="row">

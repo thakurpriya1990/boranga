@@ -1,8 +1,5 @@
 import InternalDashboard from '../dashboard.vue'
 import Search from '../search.vue'
-import OrgAccessTable from '../organisations/dashboard.vue'
-import OrgAccess from '../organisations/access.vue'
-import Organisation from '../organisations/manage.vue'
 import User from '../users/manage.vue'
 import Proposal from '../proposals/proposal.vue'
 import ProposalCompare from '../proposals/proposal_compare.vue'
@@ -17,7 +14,6 @@ import PaymentOrder from '@/components/common/tclass/payment_order.vue'
 //import ParkBookingDash from '@/components/common/parkbookings_dashboard.vue'
 import Reports from '@/components/reports/reports.vue'
 import ParkEntryFeesDashboard from '../park_entry_fees_dashboard.vue'
-import DistrictProposal from '../district_proposals/district_proposal.vue'
 import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
 import SpeciesCommunities from '../species_communities/species_communities.vue'
 export default
@@ -93,33 +89,6 @@ export default
         },
 
         {
-            path: 'organisations',
-            component: {
-                render(c)
-                {
-                    return c('router-view')
-                }
-            },
-            children: [
-                {
-                    path: 'access',
-                    component: OrgAccessTable,
-                    name:"org-access-dash"
-                },
-                {
-                    path: 'access/:access_id',
-                    component: OrgAccess,
-                    name:"org-access"
-                },
-                {
-                    path: ':org_id',
-                    component: Organisation,
-                    name:"internal-org-detail"
-                },
-
-            ]
-        },
-        {
             path: 'users',
             component: {
                 render(c)
@@ -162,11 +131,6 @@ export default
                             path: 'referral/:referral_id',
                             component: Referral,
                             name:"internal-referral"
-                        },
-                        {
-                            path: 'district_proposal/:district_proposal_id',
-                            component: DistrictProposal,
-                            name:"internal-district-proposal"
                         },
                     ]
                 },
