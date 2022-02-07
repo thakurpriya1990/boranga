@@ -375,9 +375,9 @@ export default {
         CommsLogs,
         MoreReferrals,
         CompleteReferral,
-        ProposalTClass,
+        /*ProposalTClass,
         ProposalFilming,
-        ProposalEvent,
+        ProposalEvent,*/
         Requirements,
         Assessment
     },
