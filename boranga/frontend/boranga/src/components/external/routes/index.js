@@ -4,8 +4,8 @@ import Proposal from '../proposal.vue'
 import ProposalApply from '../proposal_apply.vue'
 import ProposalSubmit from '../proposal_submit.vue'
 import Organisation from '../organisations/manage.vue'
-import Compliance from '../compliances/access.vue'
-import ComplianceSubmit from '../compliances/submit.vue'
+//import Compliance from '../compliances/access.vue'
+//import ComplianceSubmit from '../compliances/submit.vue'
 import Approval from '../approvals/approval.vue'
 import PaymentOrder from '@/components/common/tclass/payment_order.vue'
 import PaymentDash from '@/components/common/payments_dashboard.vue'
@@ -29,6 +29,7 @@ export default
             path: 'organisations/manage/:org_id',
             component: Organisation
         },
+	    /*
         {
             path: 'compliance/:compliance_id',
             component: Compliance
@@ -38,6 +39,7 @@ export default
             component: ComplianceSubmit,
             name:"submit_compliance"
         },
+	*/
         {
             path: 'approval/:approval_id',
             component: Approval,

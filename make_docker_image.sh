@@ -1,6 +1,6 @@
 #!/bin/bash
 ## sole parameter is an integer indicating incremental daily version
-## git branch --set-upstream-to=origin/dev dev	
+## git branch --set-upstream-to=origin/dev dev  
 
 if [ $# -lt 2 ]; then
     echo "ERROR: Must specify <github branch> and <integer indicating incremental daily version> e.g."

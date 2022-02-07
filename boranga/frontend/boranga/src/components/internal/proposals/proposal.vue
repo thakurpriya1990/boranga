@@ -337,7 +337,7 @@
                     <div class="">
                         <div class="row">
                             <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
-                                <ProposalTClass ref="tclass" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass>
+                                <!--ProposalTClass ref="tclass" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass-->
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                                     <input type='hidden' name="proposal_id" :value="1" />
@@ -378,9 +378,11 @@ import ApprovalScreen from './proposal_approval.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import MoreReferrals from '@common-utils/more_referrals.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
+/*
 import ProposalTClass from '@/components/form_tclass.vue'
 import ProposalFilming from '@/components/form_filming.vue'
 import ProposalEvent from '@/components/form_event.vue'
+*/
 import OnHold from './proposal_onhold.vue'
 import WithQAOfficer from './proposal_qaofficer.vue'
 import FilmingDistrictProposalsTable from '@common-utils/filming_district_proposals_table.vue'
@@ -467,7 +469,7 @@ export default {
     },
     components: {
         Proposal,
-        ProposalTClass,
+        //ProposalTClass,
         datatable,
         ProposedDecline,
         AmendmentRequest,
@@ -476,9 +478,11 @@ export default {
         ApprovalScreen,
         CommsLogs,
         MoreReferrals,
+	/*
         ProposalTClass,
         ProposalFilming,
         ProposalEvent,
+	*/
         OnHold,
         WithQAOfficer,
         FilmingDistrictProposalsTable
