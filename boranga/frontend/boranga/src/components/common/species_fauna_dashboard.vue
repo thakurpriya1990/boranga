@@ -1,5 +1,5 @@
 <template id="species_fauna_dashboard">
-    <div>
+    <FormSection label="FAUNA" >
         <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
             <div class="row">
                 <div class="col-md-3">
@@ -84,16 +84,16 @@
         </CollapsibleFilters>
 
         <div class="row">
-        <div class="col-lg-12">
-            <datatable
-                    ref="fauna_datatable"
-                    :id="datatable_id"
-                    :dtOptions="datatable_options"
-                    :dtHeaders="datatable_headers"
-                />
+            <div class="col-lg-12">
+                <datatable
+                        ref="fauna_datatable"
+                        :id="datatable_id"
+                        :dtOptions="datatable_options"
+                        :dtHeaders="datatable_headers"
+                    />
+            </div>
         </div>
-        </div>
-    </div>
+    </FormSection>
 </template>
 <script>
 import "babel-polyfill"
@@ -540,14 +540,14 @@ export default {
         },
         fetchProfile: function(){
             let vm = this;
-            Vue.http.get(api_endpoints.profile).then((response) => {
+            /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
                               
             },(error) => {
                 console.log(error);
                 
-            })
+            })*/
         },
 
         check_assessor: function(proposal){

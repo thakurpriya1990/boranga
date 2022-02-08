@@ -40,9 +40,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 class GetGroupTypeDict(views.APIView):
+    renderer_classes = [JSONRenderer, ]
     
     def get(self, request, format=None):
-        return Response(GroupType.GROUP_TYPES)
+        group_type_list = []
+        group_types = GroupType.objects.all()
+        if group_types:
+            for group in group_types:
+                group_type_list.append(group.name)
+        return Response(group_type_list)
 
 class GetScientificNameDict(views.APIView):
     renderer_classes = [JSONRenderer, ]

@@ -1,5 +1,5 @@
 <template id="communities_dashboard">
-    <div>
+    <FormSection label="COMMUNITY" >
         <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
             <div class="row">
                 <div class="col-md-3">
@@ -78,7 +78,7 @@
                 />
         </div>
         </div>
-    </div>
+    </FormSection>
 </template>
 <script>
 import "babel-polyfill"
@@ -507,14 +507,14 @@ export default {
         },
         fetchProfile: function(){
             let vm = this;
-            Vue.http.get(api_endpoints.profile).then((response) => {
+            /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
                               
             },(error) => {
                 console.log(error);
                 
-            })
+            })*/
         },
 
         check_assessor: function(proposal){
