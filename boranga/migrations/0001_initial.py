@@ -912,12 +912,19 @@ class Migration(migrations.Migration):
             name='Community',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+<<<<<<< HEAD
                 ('community_name', models.CharField(default='None', max_length=2048)),
+=======
+                ('community_name', models.CharField(default='None', max_length=128)),
+>>>>>>> dev
                 ('community_id', models.IntegerField(default=-1)),
                 ('community_status', models.CharField(default='None', max_length=128)),
                 ('region', models.IntegerField(default=-1)),
                 ('district', models.IntegerField(default=-1)),
+<<<<<<< HEAD
                 ('group_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='boranga.grouptype')),
+=======
+>>>>>>> dev
                 ('species', models.ManyToManyField(to='boranga.Species')),
             ],
         ),

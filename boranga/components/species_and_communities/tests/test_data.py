@@ -249,14 +249,13 @@ def create_species_flora():
 
                     group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[0][0])
                     flora = Species.objects.create(common_name=flora_row[7],
-                                                group_type=group_type,
-                                                scientific_name = flora_row[6],
-                                                conservation_status = conservation_status,
-                                                region = randrange(500),
-                                                district = randrange(100),
-                                                image = "path/to/flora.jpg",
-                                                taxonomy = taxonomy
-
+                                                   group_type=group_type,
+                                                   scientific_name = flora_row[6],
+                                                   conservation_status = conservation_status,
+                                                   region = randrange(500),
+                                                   district = randrange(100),
+                                                   image = "path/to/flora.jpg",
+                                                   taxonomy = taxonomy
                     )
 
                     species_id = flora.id
