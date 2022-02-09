@@ -232,7 +232,10 @@ class Community(models.Model):
     Is:
     - Table
     """
-    community_name = models.CharField(max_length=128,
+
+    group_type = models.ForeignKey(GroupType,
+                                   on_delete=models.CASCADE)
+    community_name = models.CharField(max_length=2048,
                                       default="None")
     community_id = models.IntegerField(default=-1)
     community_status = models.CharField(max_length=128,
