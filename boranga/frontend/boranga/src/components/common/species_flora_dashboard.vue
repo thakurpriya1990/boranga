@@ -1,125 +1,99 @@
-<template id="species_communities_dashboard">
-   <!-- <div class="row">
-        <div class="col-sm-12">
-            <div class="panel panel-default"> 
-                 <div class="panel-heading">
-                     <h3 class="panel-title"><h3>Species and Communities</h3><small v-if="is_external">View existing applications and lodge new ones</small> 
-                        <a :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
-                            <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                        </a>
-                    </h3>
-                </div> -->
-
-                <!-- <div class="panel-body collapse in" :id="pBody"> -->
-                <FormSection v-bind:label="filterGroupType" Index="species_and_communities">
-                    <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Group Type</label>
-                                    <select class="form-control" v-model="filterGroupType">
-                                        <option v-for="g in group_types" :value="g.key">{{g.value}}</option>
-                                    </select>
-                                </div>
-                            </div>
+<template id="species_flora_dashboard">
+    <div>
+        <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Name ID:</label>
+                        <select class="form-control">
+                            <option value="All">All</option>
+                        </select>
                     </div>
-                    <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Name ID:</label>
-                                    <select class="form-control">
-                                        <option value="All">All</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Scientific Name:</label>
-                                    <select class="form-control" v-model="filterScientificName">
-                                        <option value="All">All</option>
-                                        <option v-for="species in species_list" :value="species.scientific_name">{{species.scientific_name}}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Common Name:</label>
-                                    <select class="form-control" v-model="filterCommonName">
-                                        <option value="All">All</option>
-                                        <option v-for="species in species_list" :value="species.common_name">{{species.common_name}}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">WA Conservation Status:</label>
-                                    <select class="form-control">
-                                        <option value="All">All</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Family:</label>
-                                    <select class="form-control">
-                                        <option value="All">All</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Genera:</label>
-                                    <select class="form-control">
-                                        <option value="All">All</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Workflow Status:</label>
-                                    <select class="form-control">
-                                        <option value="All">All</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Region:</label>
-                                    <select class="form-control">
-                                        <option value="All">All</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">District:</label>
-                                    <select class="form-control">
-                                        <option value="All">All</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div v-if="is_external" class="col-md-6">
-                                <router-link  style="margin-top:25px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">New Application</router-link>
-                            </div>
-                        </div>
-                    </CollapsibleFilters>
-
-                    <div class="row">
-                    <div class="col-lg-12">
-                        <datatable
-                                ref="flora_datatable"
-                                :id="datatable_id"
-                                :dtOptions="datatable_options"
-                                :dtHeaders="datatable_headers"
-                            />
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Scientific Name:</label>
+                        <select class="form-control" v-model="filterScientificName">
+                            <option value="All">All</option>
+                            <option v-for="species in species_list" :value="species.scientific_name">{{species.scientific_name}}</option>
+                        </select>
                     </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Common Name:</label>
+                        <select class="form-control" v-model="filterCommonName">
+                            <option value="All">All</option>
+                            <option v-for="species in species_list" :value="species.common_name">{{species.common_name}}</option>
+                        </select>
                     </div>
-                </FormSection>
-                <!-- </div> -->
-<!--            </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">WA Conservation Status:</label>
+                        <select class="form-control">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Family:</label>
+                        <select class="form-control">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Genera:</label>
+                        <select class="form-control">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Workflow Status:</label>
+                        <select class="form-control">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Region:</label>
+                        <select class="form-control">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">District:</label>
+                        <select class="form-control">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div v-if="is_external" class="col-md-6">
+                    <router-link  style="margin-top:25px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">New Application</router-link>
+                </div>
+            </div>
+        </CollapsibleFilters>
+
+        <div class="row">
+        <div class="col-lg-12">
+            <datatable
+                    ref="flora_datatable"
+                    :id="datatable_id"
+                    :dtOptions="datatable_options"
+                    :dtHeaders="datatable_headers"
+                />
         </div>
-    </div> -->
+        </div>
+    </div>
 </template>
 <script>
 import "babel-polyfill"
@@ -135,7 +109,7 @@ import {
     helpers
 }from '@/utils/hooks'
 export default {
-    name: 'SpeciesCommunitiesTable',
+    name: 'SpeciesFloraTable',
     props: {
         level:{
             type: String,
@@ -145,7 +119,7 @@ export default {
                 return options.indexOf(val) != -1 ? true: false;
             }
         },
-        url:{
+        group_type_name:{
             type: String,
             required: true
         },
@@ -153,17 +127,18 @@ export default {
     data() {
         let vm = this;
         return {
-            //pBody: 'pBody' + vm._uid,
-            datatable_id: 'species_communities-datatable-'+vm._uid,
+            datatable_id: 'species_flora-datatable-'+vm._uid,
      
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
             
             // selected values for filtering
-            filterGroupType: '',
             filterScientificName: null,
             filterCommonName: null,
+
+            //Filter list for scientific name and common name
+            species_list: [],
             
             // filtering options
             external_status:[
@@ -187,8 +162,7 @@ export default {
                 {value: 'discarded', name: 'Discarded'},
                 {value: 'awaiting_payment', name: 'Awaiting Payment'},
             ],
-            group_types: [],
-            species_list: [],
+            
             proposal_status: [],
 
         }
@@ -199,12 +173,6 @@ export default {
         FormSection,
     },
     watch:{
-        filterGroupType: function() {
-            let vm = this;
-        },
-        /*filterProposalStatus: function() {
-            let vm = this;
-        },*/
         filterScientificName: function(){
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
@@ -239,10 +207,10 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['id', 'Number', 'Scientific Name', 'Common Name','WA Conservation Status', 'Genera', 'District','Workflow Status', 'Action']
+                return ['id', 'Number', 'Scientific Name', 'Common Name','WA Conservation Status', 'Genera', 'Region', 'District','Workflow Status', 'Action']
             }
             if (this.is_internal){
-                return ['id', 'Number', 'Scientific Name', 'Common Name','WA Conservation Status', 'Genera', 'District','Workflow Status', 'Action']
+                return ['id', 'Number', 'Scientific Name', 'Common Name','WA Conservation Status', 'Genera', 'Region', 'District','Workflow Status', 'Action']
             }
         },
         column_id: function(){
@@ -253,7 +221,6 @@ export default {
                 searchable: false,
                 visible: false,
                 'render': function(data, type, full){
-                    console.log(full)
                     return full.id
                 }
             }
@@ -335,9 +302,26 @@ export default {
                 name: "genera",
             }
         },
+        column_region: function(){
+            return {
+                // 7. Region
+                data: "region",
+                orderable: true,
+                searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.region){
+                        return full.region
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "region",
+            }
+        },
         column_district: function(){
             return {
-                // 7. District
+                // 8. District
                 data: "district",
                 orderable: true,
                 searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
@@ -354,7 +338,7 @@ export default {
         },
         column_workflow_status: function(){
             return {
-                // 8. Workflow Status
+                // 9. Workflow Status
                 data: "processing_status",
                 orderable: true,
                 searchable: true,
@@ -372,7 +356,7 @@ export default {
         column_action: function(){
             let vm = this
             return {
-                // 9. Action
+                // 10. Action
                 data: "id",
                 orderable: false,
                 searchable: false,
@@ -418,6 +402,7 @@ export default {
                     vm.column_common_name,
                     vm.column_wa_conservation_status,
                     vm.column_genera,
+                    vm.column_region,
                     vm.column_district,
                     vm.column_workflow_status,
                     vm.column_action,
@@ -433,6 +418,7 @@ export default {
                     vm.column_common_name,
                     vm.column_wa_conservation_status,
                     vm.column_genera,
+                    vm.column_region,
                     vm.column_district,
                     vm.column_workflow_status,
                     vm.column_action,
@@ -464,14 +450,14 @@ export default {
                 serverSide: true,
                 searching: search,
                 ajax: {
-                    "url": vm.url,
+                    "url": api_endpoints.species_paginated_internal,
                     "dataSrc": 'data',
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
                         d.filter_scientific_name = vm.filterScientificName;
                         d.filter_common_name = vm.filterCommonName;
-                        d.filter_group_type = 'flora';
+                        d.filter_group_type = vm.group_type_name;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -495,13 +481,7 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-            //vm.$http.get('/api/list_proposal/filter_list/').then((response) => {
-            vm.$http.get(api_endpoints.group_types_dict).then((response) => {
-                vm.group_types= response.body;
-                },(error) => {
-                console.log(error);
-            })
-            vm.$http.get(api_endpoints.scientific_names_dict+ '?group_type_name=flora').then((response) => {
+            vm.$http.get(api_endpoints.scientific_names_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.species_list= response.body;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;

@@ -14,14 +14,15 @@ fi
 
 APP_ROOT=boranga
 GIT_BRANCH=$1
-BUILD_TAG=dbcawa/$APP_ROOT:v$(date +%Y.%m.%d).$2
-git checkout $GIT_BRANCH &&
-git pull &&
-cd $APP_ROOT/frontend/$APP_ROOT/
-npm run build &&
-cd ../../../ &&
-source venv/bin/activate &&
-./manage.py collectstatic --no-input &&
+#BUILD_TAG=dbcawa/$APP_ROOT:v$(date +%Y.%m.%d).$2
+BUILD_TAG=thakurpriya1990/$APP_ROOT:v$(date +%Y.%m.%d).$2
+#git checkout $GIT_BRANCH &&
+#git pull &&
+#cd $APP_ROOT/frontend/$APP_ROOT/
+#npm run build &&
+#cd ../../../ &&
+#source venv/bin/activate &&
+#./manage.py collectstatic --no-input &&
 docker image build $NO_CACHE --tag $BUILD_TAG . &&
 echo $BUILD_TAG &&
 docker push $BUILD_TAG
