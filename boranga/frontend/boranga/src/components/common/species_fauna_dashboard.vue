@@ -1,5 +1,6 @@
 <template id="species_fauna_dashboard">
     <FormSection label="FAUNA" >
+        <div @click="testRedraw">testRedraw</div>
         <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
             <div class="row">
                 <div class="col-md-3">
@@ -87,10 +88,10 @@
             <div class="col-lg-12">
                 <datatable
                         ref="fauna_datatable"
-                        :id="datatable_id"
+                        :id="datatable_fauna_id"
                         :dtOptions="datatable_options"
                         :dtHeaders="datatable_headers"
-                    />
+                />
             </div>
         </div>
     </FormSection>
@@ -127,7 +128,7 @@ export default {
     data() {
         let vm = this;
         return {
-            datatable_id: 'species_fauna-datatable-'+vm._uid,
+            datatable_fauna_id: 'species_fauna-datatable-'+vm._uid,
      
             //Profile to check if user has access to process Proposal
             profile: {},
@@ -474,6 +475,9 @@ export default {
     
     },
     methods:{
+        testRedraw: function(){
+            this.$refs.fauna_datatable.vmDataTable.draw()
+        },
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
@@ -590,7 +594,7 @@ export default {
             vm.initialiseSearch();
             vm.addEventListeners();
         });
-    }
+    },
 }
 </script>
 <style scoped>

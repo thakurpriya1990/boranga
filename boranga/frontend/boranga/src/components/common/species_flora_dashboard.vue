@@ -84,14 +84,14 @@
         </CollapsibleFilters>
 
         <div class="row">
-        <div class="col-lg-12">
-            <datatable
-                    ref="flora_datatable"
-                    :id="datatable_id"
-                    :dtOptions="datatable_options"
-                    :dtHeaders="datatable_headers"
+            <div class="col-lg-12">
+                <datatable
+                        ref="flora_datatable"
+                        :id="datatable_id"
+                        :dtOptions="datatable_options"
+                        :dtHeaders="datatable_headers"
                 />
-        </div>
+            </div>
         </div>
     </FormSection>
 </template>
