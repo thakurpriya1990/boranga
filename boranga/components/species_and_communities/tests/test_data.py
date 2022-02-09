@@ -10,23 +10,24 @@ from boranga.components.species_and_communities.models import Species, GroupType
     ConservationPlan, Distribution, ConservationAttributes
 
 def create_test_data():
-    print('----------------------------------------------------')
-    print('--------------ADDING TEST DATA----------------------')
-    print('----------------------------------------------------')
-    create_group_types()
+    # print('----------------------------------------------------')
+    # print('--------------ADDING TEST DATA----------------------')
+    # print('----------------------------------------------------')
+    # create_group_types()
     # create_species_fauna()
     # create_species_flora()
-    create_community()
+    # create_community()
+    pass
 
 def create_group_types():
     try:
-        flora_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[0][0])
-        fauna_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[1][0])
-        community_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[2][0])
+        flora_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[0][0])[0]
+        fauna_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[1][0])[0]
+        community_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[2][0])[0]
 
-        flora_group_type[0].save()
-        fauna_group_type[0].save()
-        community_group_type[0].save()
+        flora_group_type.save()
+        fauna_group_type.save()
+        community_group_type.save()
     except Exception as e:
         print("create_group_types falied: ", e)
         print("-----")
@@ -47,11 +48,14 @@ def create_community():
             if index >= data_row:
                 try:
                     community_name = community_row[1]
+
+                    # Don't want it if the name is empty
+                    if not community_name: continue
                     community_id = randrange(1000)
                     community_status = "Safe"
                     region = randrange(100)
                     district = randrange(200)
-                    group_type=GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[2][0])[0],
+                    group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[2][0])
                     community = Community.objects.create(group_type=group_type,
                                                          community_name=community_name,
                                                          community_id=community_id,
@@ -110,8 +114,9 @@ def create_species_fauna():
                                                     phylogenetic_group=phylogenetic_group,
                                                     name_authority=name_authority,)
 
+                    group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[1][0])
                     fauna = Species.objects.create(common_name=fauna_row[7],
-                                                group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[1][0]),
+                                                group_type=group_type,
                                                 scientific_name = fauna_row[6],
                                                 conservation_status = conservation_status,
                                                 region = randrange(500),
@@ -242,8 +247,9 @@ def create_species_flora():
                                                     phylogenetic_group=phylogenetic_group,
                                                     name_authority=name_authority,)
 
+                    group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[0][0])
                     flora = Species.objects.create(common_name=flora_row[7],
-                                                group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[0][0]),
+                                                group_type=group_type,
                                                 scientific_name = flora_row[6],
                                                 conservation_status = conservation_status,
                                                 region = randrange(500),
