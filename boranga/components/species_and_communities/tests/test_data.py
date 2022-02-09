@@ -10,10 +10,71 @@ def create_test_data():
     print('----------------------------------------------------')
     print('--------------ADDING TEST DATA----------------------')
     print('----------------------------------------------------')
+    create_group_types()
     create_species_fauna()
-    create_species_fauna_no_community()
     create_species_flora()
-    create_species_flora_no_community()
+    create_community()
+
+def create_group_types():
+    try:
+        flora_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[0][0])[0]
+        fauna_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[1][0])[0]
+        community_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[2][0])[0]
+
+        flora_group_type.save()
+        fauna_group_type.save()
+        community_group_type.save()
+    except Exception as e:
+        print("create_group_types falied: ", e)
+        print("-----")
+
+def create_community():
+    """
+    This will take a fauna data file, create a community entry and save to the database. It will also randomly select a fauna and flora
+    to be added to the Community that is created. It is surrounded by try/except
+    so if row fails, that row can be recorded as faulty and saved to a file for examination.
+    """
+    row_failed = False
+    failed_rows = []
+    data_row = 1
+
+    with open('/home/graeme/workspace/boranga/boranga/components/species_and_communities/tests/communities.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        for index, community_row in enumerate(reader):
+            if index >= data_row:
+                try:
+                    community_name = community_row[1]
+
+                    # Don't want it if the name is empty
+                    if not community_name: continue
+                    community_id = randrange(1000)
+                    community_status = "Safe"
+                    region = randrange(100)
+                    district = randrange(200)
+                    group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[2][0])
+                    community = Community.objects.create(group_type=group_type,
+                                                         community_name=community_name,
+                                                         community_id=community_id,
+                                                         community_status=community_status,
+                                                         region=region,
+                                                         district=district,)
+                    # Pick a random fauna to add to community
+                    fauna_size = len(Species.objects.filter(group_type__name=GroupType.GROUP_TYPES[1][0]))
+                    fauna = Species.objects.get(group_type__name=GroupType.GROUP_TYPES[1][0], id=randrange(fauna_size))
+                    community.species.add(fauna)
+                    # Pick a random flora to add to community
+                    flora_size = len(Species.objects.filter(group_type__name=GroupType.GROUP_TYPES[0][0]))
+                    flora = Species.objects.get(group_type__name=GroupType.GROUP_TYPES[0][0], id=randrange(flora_size))
+                    community.species.add(fauna)
+                    
+                except Exception as e:
+                    row_failed = True
+                    failed_rows.append(community_row)
+                    print('{}: {}'.format(e, community_row))
+                    # could write falied_rows to file.
+
+                if not row_failed:
+                    community.save()
 
 def create_species_fauna():
 
