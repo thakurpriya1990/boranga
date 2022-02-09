@@ -10,14 +10,13 @@ from boranga.components.species_and_communities.models import Species, GroupType
     ConservationPlan, Distribution, ConservationAttributes
 
 def create_test_data():
-    # print('----------------------------------------------------')
-    # print('--------------ADDING TEST DATA----------------------')
-    # print('----------------------------------------------------')
-    # create_group_types()
-    # create_species_fauna()
-    # create_species_flora()
-    # create_community()
-    pass
+    print('----------------------------------------------------')
+    print('--------------ADDING TEST DATA----------------------')
+    print('----------------------------------------------------')
+    create_group_types()
+    create_species_fauna()
+    create_species_flora()
+    create_community()
 
 def create_group_types():
     try:
