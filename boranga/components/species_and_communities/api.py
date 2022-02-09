@@ -14,6 +14,7 @@ from boranga import settings
 from django.core.cache import cache
 from django.urls import reverse
 from django.shortcuts import redirect
+from boranga.components.species_and_communities.tests.test_data import create_test_data
 from boranga.helpers import is_customer, is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -42,6 +43,7 @@ logger = logging.getLogger(__name__)
 class GetGroupTypeDict(views.APIView):
     
     def get(self, request, format=None):
+        create_test_data()
         return Response(GroupType.GROUP_TYPES)
 
 class GetScientificNameDict(views.APIView):
