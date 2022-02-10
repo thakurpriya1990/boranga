@@ -1,5 +1,5 @@
 <template id="communities_dashboard">
-    <FormSection label="COMMUNITY" >
+    <FormSection label="Community" >
         <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
             <div class="row">
                 <div class="col-md-3">
@@ -248,13 +248,31 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if(full.community_name){
-                        return full.community_name
-                    }
-                    // Should not reach here
-                    return ''
+                'render': function(value, type){
+                        var ellipsis = '...',
+                                truncated = _.truncate(value, {
+                                    length: 25,
+                                    omission: ellipsis,
+                                    separator: ' '
+                                }),
+                                result = '<span>' + truncated + '</span>',
+                                popTemplate = _.template('<a href="#" ' +
+                                    'role="button" ' +
+                                    'data-toggle="popover" ' +
+                                    'data-trigger="click" ' +
+                                    'data-placement="top auto"' +
+                                    'data-html="true" ' +
+                                    'data-content="<%= text %>" ' +
+                                    '>more</a>');
+                            if (_.endsWith(truncated, ellipsis)) {
+                                result += popTemplate({
+                                    text: value
+                                });
+                            }
+                            //return result;
+                            return type=='export' ? value : result;
                 },
+                'createdCell': helpers.dtPopoverCellFn,
                 name: "community_name",
             }
         },
@@ -395,8 +413,8 @@ export default {
                     {
                         extend: 'excel',
                         exportOptions: {
-                            columns: ':visible'
-                        }
+                            columns: ':visible',
+                        },
                     },
                     {
                         extend: 'csv',
@@ -422,9 +440,10 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
-                        d.filter_common_id = vm.filterCommonId;
+                        d.filter_community_id = vm.filterCommunityId;
                         d.filter_community_name = vm.filterCommunityName;
                         d.filter_community_status = vm.filterCommunityStatus;
+                        d.filter_group_type = vm.group_type_name;
                         d.is_internal = vm.is_internal;
                     }
                 },

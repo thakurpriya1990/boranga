@@ -1,48 +1,33 @@
 <template>
 <div class="container" id="internalDash">
     <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-        <li v-if="showFlora" class="nav-item">
-            <a class="nav-link active" id="pills-flora-tab" data-toggle="pill" href="#pills-flora" role="tab" aria-controls="pills-flora" aria-selected="true">
+        <li v-if="showFloraTab" class="nav-item">
+            <a class="nav-link active" id="pills-flora-tab" data-toggle="pill" href="#pills-flora" role="tab" aria-controls="pills-flora" aria-selected="true" @click="load_group_datatable('flora')">
               Flora
             </a>
         </li>
-        <li v-if='showFauna' class="nav-item">
-            <a class="nav-link" id="pills-fauna-tab" data-toggle="pill" href="#pills-fauna" role="tab" aria-controls="pills-fauna" aria-selected="false">
+        <li v-if='showFaunaTab' class="nav-item">
+            <a class="nav-link" id="pills-fauna-tab" data-toggle="pill" href="#pills-fauna" role="tab" aria-controls="pills-fauna" aria-selected="false" @click="load_group_datatable('fauna')">
               Fauna
             </a>
         </li>
-        <li v-if='showCommunity' class="nav-item">
-            <a class="nav-link" id="pills-community-tab" data-toggle="pill" href="#pills-community" role="tab" aria-controls="pills-community" aria-selected="false">
+        <li v-if='showCommunityTab' class="nav-item">
+            <a class="nav-link" id="pills-community-tab" data-toggle="pill" href="#pills-community" role="tab" aria-controls="pills-community" aria-selected="false" @click="load_group_datatable('community')">
             Communities
             </a>
         </li>
     </ul>
     <div class="tab-content" id="pills-tabContent">
-        <div class="tab-pane fade" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-            <SpeciesFloraDashTable level="internal" :group_type_name="'flora'"/>
+        <div v-if="isFlora" class="tab-pane fade" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
+            <SpeciesFloraDashTable v-if="isFlora" level="internal" :group_type_name="filterGroupType"/>
         </div>
-        <div class="tab-pane fade" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-             <SpeciesFaunaDashTable level="internal" :group_type_name="'fauna'"/>
+        <div v-if="isFauna" class="tab-pane fade" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
+             <SpeciesFaunaDashTable v-if="isFauna" level="internal" :group_type_name="filterGroupType"/>
         </div>
-        <div class="tab-pane fade" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-            <CommunitiesDashTable level="internal" :group_type_name="'community'"/>
+        <div v-if="isCommunity" class="tab-pane fade" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
+            <CommunitiesDashTable v-if='isCommunity' level="internal" :group_type_name="filterGroupType"/>
         </div>
     </div>
-    <!-- <FormSection v-bind:label="filterGroupType.toUpperCase()" >
-        <div class="row">
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="">Group Type</label>
-                    <select class="form-control" v-model="filterGroupType">
-                        <option v-for="group in group_types" :value="group[0]" >{{group[1]}}</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <SpeciesFloraDashTable v-if='is_flora' level="internal" :group_type_name="filterGroupType"/>
-        <SpeciesFaunaDashTable v-if='is_fauna' level="internal" :group_type_name="filterGroupType"/>
-        <CommunitiesDashTable v-if='is_community' level="internal" :group_type_name="filterGroupType"/>
-    </FormSection> -->
 </div>
 </template>
 <script>
@@ -61,7 +46,7 @@ export default {
         let vm = this;
         return {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
-            filterGroupType: 'fauna', 
+            filterGroupType: 'flora',  // TODO : need to set to default user preferance as cannot call click event of Tab onload
             group_types: [],
         }
     
@@ -74,20 +59,33 @@ export default {
         FormSection,
     },
     computed: {
-        showFlora: function(){
+        /*------properties to show the user authenticated Tabs only-----------*/
+        showFloraTab: function(){
             return this.group_types.includes('flora');
         },
-        showFauna: function(){
+        showFaunaTab: function(){
             return this.group_types.includes('fauna');
         },
-        showCommunity: function(){
+        showCommunityTab: function(){
             return this.group_types.includes('community');
         },
+        /*---------------------------------------------------------------------*/
+        /*---------properties to load group related vue components-------------*/
+        isFlora: function(){
+            return this.filterGroupType == 'flora';
+        },
+        isFauna: function(){
+            return this.filterGroupType == 'fauna';
+        },
+        isCommunity: function(){
+            return this.filterGroupType == 'community';
+        },
+        /*---------------------------------------------------------------------*/
     },
     methods: {
         set_tabs: function(){
             let vm = this;
-            /* set user preference tab by default on load of dashboard */
+            /* set user preference tab by default on load of dashboard (Note: doesn't affect on the load group component)*/
             if(vm.user_preference === 'flora'){
                 $('#pills-tab a[href="#pills-flora"]').tab('show');
             }
@@ -97,7 +95,19 @@ export default {
             if(vm.user_preference === 'community'){
                 $('#pills-tab a[href="#pills-community"]').tab('show');
             }
-        }
+        },
+        load_group_datatable: function(grouptype){
+            /*----------to set the  filterGroupType to load the particular component only----------*/
+            if(grouptype === 'flora'){
+                this.filterGroupType = 'flora';
+            }
+            else if(grouptype === 'fauna'){
+                this.filterGroupType = 'fauna';
+            }
+            else if(grouptype === 'community'){
+                this.filterGroupType = 'community';
+            }
+        },
     },
     created: function () {
         this.$http.get(api_endpoints.group_types_dict).then((response) => {

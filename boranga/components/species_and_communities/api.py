@@ -145,6 +145,10 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
 class CommunitiesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
+        # filter_group_type
+        # filter_group_type = request.GET.get('filter_group_type')
+        # if filter_group_type:
+        #     queryset = queryset.filter(group_type__name=filter_group_type)
         # filter_community_id
         filter_community_id = request.GET.get('filter_community_id')
         if filter_community_id and not filter_community_id.lower() == 'all':
