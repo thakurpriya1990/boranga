@@ -13,13 +13,28 @@ def create_test_data():
     print('----------------------------------------------------')
     print('--------------ADDING TEST DATA----------------------')
     print('----------------------------------------------------')
-    # create_species_fauna()
-    # create_species_flora()
-    # create_community()
+    create_group_types()
+    create_species_fauna()
+    create_species_flora()
+    create_community()
+
+def create_group_types():
+    try:
+        flora_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[0][0])[0]
+        fauna_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[1][0])[0]
+        community_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[2][0])[0]
+
+        flora_group_type.save()
+        fauna_group_type.save()
+        community_group_type.save()
+    except Exception as e:
+        print("create_group_types falied: ", e)
+        print("-----")
 
 def create_community():
     """
-    This will take a fauna data file, create a species entry and save to the database. It is surrounded by try/except
+    This will take a fauna data file, create a community entry and save to the database. It will also randomly select a fauna and flora
+    to be added to the Community that is created. It is surrounded by try/except
     so if row fails, that row can be recorded as faulty and saved to a file for examination.
     """
     row_failed = False
@@ -32,16 +47,20 @@ def create_community():
             if index >= data_row:
                 try:
                     community_name = community_row[1]
+
+                    # Don't want it if the name is empty
+                    if not community_name: continue
                     community_id = randrange(1000)
                     community_status = "Safe"
                     region = randrange(100)
                     district = randrange(200)
-                    conservation_status = "Priority"
-                    community = Community.objects.create(community_name=community_name,
-                                                        community_id=community_id,
-                                                        community_status=community_status,
-                                                        region=region,
-                                                        district=district,)
+                    group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[2][0])
+                    community = Community.objects.create(group_type=group_type,
+                                                         community_name=community_name,
+                                                         community_id=community_id,
+                                                         community_status=community_status,
+                                                         region=region,
+                                                         district=district,)
                     # Pick a random fauna to add to community
                     fauna_size = len(Species.objects.filter(group_type__name=GroupType.GROUP_TYPES[1][0]))
                     fauna = Species.objects.get(group_type__name=GroupType.GROUP_TYPES[1][0], id=randrange(fauna_size))
@@ -81,8 +100,6 @@ def create_species_fauna():
                                                                             conservation_category=conservation_category,
                                                                             conservation_criteria=conservation_criteria)
 
-                    group_type = GroupType.objects.create(name=GroupType.GROUP_TYPES[1][0])
-
                     taxon = fauna_row[6]
                     taxon_id = randrange(5000)
                     family = fauna_row[6]
@@ -96,8 +113,9 @@ def create_species_fauna():
                                                     phylogenetic_group=phylogenetic_group,
                                                     name_authority=name_authority,)
 
+                    group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[1][0])
                     fauna = Species.objects.create(common_name=fauna_row[7],
-                                                group_type = group_type,
+                                                group_type=group_type,
                                                 scientific_name = fauna_row[6],
                                                 conservation_status = conservation_status,
                                                 region = randrange(500),
@@ -186,7 +204,6 @@ def create_species_fauna():
                     conservation_category.save()
                     conservation_criteria.save()
                     conservation_status.save()
-                    group_type.save()
                     taxonomy.save()
                     fauna.save()
                     species_document
@@ -216,8 +233,6 @@ def create_species_flora():
                                                                             conservation_category=conservation_category,
                                                                             conservation_criteria=conservation_criteria)
 
-                    group_type = GroupType.objects.create(name=GroupType.GROUP_TYPES[0][0])
-
                     taxon = flora_row[6]
                     taxon_id = randrange(5000)
                     family = flora_row[6]
@@ -231,15 +246,15 @@ def create_species_flora():
                                                     phylogenetic_group=phylogenetic_group,
                                                     name_authority=name_authority,)
 
+                    group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[0][0])
                     flora = Species.objects.create(common_name=flora_row[7],
-                                                group_type = group_type,
-                                                scientific_name = flora_row[6],
-                                                conservation_status = conservation_status,
-                                                region = randrange(500),
-                                                district = randrange(100),
-                                                image = "path/to/flora.jpg",
-                                                taxonomy = taxonomy
-
+                                                   group_type=group_type,
+                                                   scientific_name = flora_row[6],
+                                                   conservation_status = conservation_status,
+                                                   region = randrange(500),
+                                                   district = randrange(100),
+                                                   image = "path/to/flora.jpg",
+                                                   taxonomy = taxonomy
                     )
 
                     species_id = flora.id
@@ -321,7 +336,6 @@ def create_species_flora():
                     conservation_category.save()
                     conservation_criteria.save()
                     conservation_status.save()
-                    group_type.save()
                     taxonomy.save()
                     flora.save()
                     species_document

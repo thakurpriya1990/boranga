@@ -1,58 +1,59 @@
 <template lang="html">
     <div class="container">
-        <div class="col-sm-12"><div class="row">
+        <div class="col-sm-12">
+            <div class="row">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Park Entry Fees
+                            <a :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody"></a>
+                        </h3>
+                    </div>
+                    <div class="panel-body collapse in" :id="pBody">
+                        <form method="post" name="new_payment" @submit.prevent="submit()" novalidate>
+                            <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
 
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Park Entry Fees
-                        <a :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody"></a>
-                    </h3>
-                </div>
-                <div class="panel-body collapse in" :id="pBody">
-                    <form method="post" name="new_payment" @submit.prevent="submit()" novalidate>
-                        <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
+                            <div id="error" v-if="errors.length > 0" style="margin: 10px; padding: 5px; color: red; border:1px solid red;">
+                                <b>Please correct errors in row(s):</b>
+                                <ul>
+                                    <li v-for="error in errors">
+                                        {{error.name}}: {{ error.label }}
+                                    </li>
+                                </ul>
+                            </div>
 
-                        <div id="error" v-if="errors.length > 0" style="margin: 10px; padding: 5px; color: red; border:1px solid red;">
-                            <b>Please correct errors in row(s):</b>
-                            <ul>
-                                <li v-for="error in errors">
-                                    {{error.name}}: {{ error.label }}
-                                </li>
-                            </ul>
-                        </div>
+                            <label>Licence</label><v-select :options="licences" @change="proposal_parks()" v-model="selected_licence" :clearable="false"/>
+                            <OrderTable ref="order_table" :expiry_date="selected_licence.expiry_date" :disabled="!parks_available" :headers="headers" :options="parks" name="payment" label="" id="id_payment" />
 
-                        <label>Licence</label><v-select :options="licences" @change="proposal_parks()" v-model="selected_licence" :clearable="false"/>
-                        <OrderTable ref="order_table" :expiry_date="selected_licence.expiry_date" :disabled="!parks_available" :headers="headers" :options="parks" name="payment" label="" id="id_payment" />
+                            <div v-if="selected_licence.org_applicant==null">
+                                <!-- Individual applicants must pay using Credit Card -->
+                                <button :disabled="!parks_available" class="btn btn-primary pull-right" type="submit" style="margin-top:5px;">Proceed to Payment</button>
+                            </div>
+                            <div v-else class="dropdown" style="float: right;">
+                            <button :disabled="!parks_available" class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" name="payment_method" value="credit_card">
+                                Proceed
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <button class="dropdown-item" type="submit">Pay by Credit Card</button><br>
+                                <span v-if="selected_licence.bpay_allowed">
+                                    <button class="dropdown-item" @click="payment_method='bpay'" type="submit">Pay by BPAY</button><br>
+                                </span>
+                                <span v-if="selected_licence.monthly_invoicing_allowed">
+                                    <!--<button  class="dropdown-item" @click="submit_monthly_invoicing">Monthly Invoicing</button>-->
+                                    <button type="submit" class="dropdown-item" @click="payment_method='monthly_invoicing'">Monthly Invoicing</button>
+                                </span>
+                                <span v-if="selected_licence.other_allowed">
+                                    <button type="submit" class="dropdown-item" @click="payment_method='other'">Record Payment</button>
+                                </span>
+                            </div>
+                            </div>
 
-                        <div v-if="selected_licence.org_applicant==null">
-                            <!-- Individual applicants must pay using Credit Card -->
-                            <button :disabled="!parks_available" class="btn btn-primary pull-right" type="submit" style="margin-top:5px;">Proceed to Payment</button>
-                        </div>
-                        <div v-else class="dropdown" style="float: right;">
-                          <button :disabled="!parks_available" class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" name="payment_method" value="credit_card">
-                            Proceed
-                          </button>
-                          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <button class="dropdown-item" type="submit">Pay by Credit Card</button><br>
-                            <span v-if="selected_licence.bpay_allowed">
-                                <button class="dropdown-item" @click="payment_method='bpay'" type="submit">Pay by BPAY</button><br>
-                            </span>
-                            <span v-if="selected_licence.monthly_invoicing_allowed">
-                                <!--<button  class="dropdown-item" @click="submit_monthly_invoicing">Monthly Invoicing</button>-->
-                                <button type="submit" class="dropdown-item" @click="payment_method='monthly_invoicing'">Monthly Invoicing</button>
-                            </span>
-                            <span v-if="selected_licence.other_allowed">
-                                <button type="submit" class="dropdown-item" @click="payment_method='other'">Record Payment</button>
-                            </span>
-                          </div>
-                        </div>
+                            <button type="submit" class="dropdown-item" @click="payment_method='existing_invoice'">Existing invoice</button>
 
-                        <button type="submit" class="dropdown-item" @click="payment_method='existing_invoice'">Existing invoice</button>
-
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div></div>
+        </div>
     </div>
 </template>
 

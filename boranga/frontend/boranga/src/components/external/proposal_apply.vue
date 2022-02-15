@@ -15,13 +15,7 @@
                         <div class="panel-body collapse in" :id="pBody">
 
                             <div class="col-sm-12">
-                                <!-- <label>Do you apply </label> </br> -->
                                 <div class="form-group" v-if="!isLoading">
-                                    <!-- <div class="radio">
-                                        <label>
-                                            <input type="radio"  name="behalf_of_org" v-model="org_applicant" value="yourself"> On behalf of yourself
-                                        </label>
-                                    </div> -->
                                     <div v-if="profile.boranga_organisations.length > 0">
                                         <label>Do you apply </label> </br>
                                         <div v-for="org in profile.boranga_organisations" class="radio">
@@ -32,51 +26,12 @@
                                               <input type="radio" name="behalf_of_org" v-model="org_applicant"  :value="org.id"> On behalf of {{org.name}} (as a Consultant)
                                             </label>
                                         </div>
-                                        <!--
-                                        <div class="radio">
-                                            <label class="radio-inline">
-                                              <input type="radio" name="behalf_of_org" v-model="behalf_of"  value="other" > On behalf of an organisation (as an authorised agent)
-                                            </label>
-                                        </div>
-                                        -->
                                     </div>
                                     <div v-else>
                                         <p style="color:red"> You cannot start a new application as you have not linked yourself to any organisation yet. Please go to your account page in the Options menu to link your self to an organisation.</p>
                                     </div>
                                 </div>
                             </div>
-                            <!--
-                            <div v-if="behalf_of == 'other'" class="col-sm-12">
-                                <div class="row">
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label">Organisation</label>
-                                        <input type="text" class="form-control" name="first_name" placeholder="" v-model="agent.organisation">
-                                    </div>
-                                    <div class="form-group col-sm-1"></div>
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >ABN / ACN</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.abn">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >Organisation contact given name(s)</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.given_names">
-                                    </div>
-                                    <div class="form-group col-sm-1"></div>
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >Orgnisation contact surname</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.surname">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >Organisation contact email address</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.email">
-                                    </div>
-                                </div>
-                            </div>
-                            -->
                         </div>
                     </div>
 
@@ -104,8 +59,6 @@
                             </div>
 
                             <div class="" v-show="has_event_proposals()">
-                                <!-- <p style="color:red;"> An event application already exists in the system: </p>
-                                <p style="color:red;"> {{ event_proposals() }}</p> -->
                                 <div>
                                     <label for="" class="control-label" >Prefill application with details from previously approved event </label>
                                     <div class="col-sm-12">
@@ -206,7 +159,6 @@
 									</div>
 								</div>
                             </div>
-
                         </div>
                     </div>
 
@@ -214,23 +166,6 @@
                         <p style="color:red;"> An active application already exists in the system: </p>
                         <p style="color:red;"> {{ active_proposals() }}</p>
                     </div>
-                    <!-- <div class="col-sm-12" v-show="has_event_proposals()"> -->
-                        <!-- <p style="color:red;"> An event application already exists in the system: </p>
-                        <p style="color:red;"> {{ event_proposals() }}</p> -->
-                        <!-- <div>
-                                <label for="" class="control-label" >Copy from </label>
-                                <div class="col-sm-12">
-                                    <div class="form-group">
-                                        <select class="form-control" style="width:40%" v-model="selected_copy_from" >
-                                            <option value="" selected disabled>Select Event Licence to copy from*</option>
-                                            <option v-for="proposal in event_proposals()" :value="proposal.current_proposal">
-                                                {{ proposal.current_proposal__event_activity__event_name }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                    </div> -->
                     <div class="col-sm-12">
                         <button v-if="!creatingProposal" :disabled="isDisabled() || has_active_proposals()" @click.prevent="submit()" class="btn btn-primary pull-right">Continue</button>
                         <button v-else disabled class="pull-right btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Creating</button>

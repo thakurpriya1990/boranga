@@ -12,7 +12,7 @@
                     <div class="">
                         <div class="row">
                             <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
-                                <!--ProposalTClass v-if="proposal && proposal.application_type==application_type_tclass" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode"></ProposalTClass-->
+                                <ProposalTClass v-if="proposal && proposal.application_type==application_type_tclass" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode"></ProposalTClass>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                                     <input type='hidden' name="proposal_id" :value="1" />
@@ -53,11 +53,9 @@ import ApprovalScreen from './proposal_approval.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import MoreReferrals from '@common-utils/more_referrals.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
-/*
 import ProposalTClass from '@/components/form_tclass.vue'
 import ProposalFilming from '@/components/form_filming.vue'
 import ProposalEvent from '@/components/form_event.vue'
-*/
 import OnHold from './proposal_onhold.vue'
 import WithQAOfficer from './proposal_qaofficer.vue'
 import {
@@ -135,7 +133,7 @@ export default {
     },
     components: {
         Proposal,
-        //ProposalTClass,
+        ProposalTClass,
         datatable,
         ProposedDecline,
         AmendmentRequest,
@@ -144,11 +142,9 @@ export default {
         ApprovalScreen,
         CommsLogs,
         MoreReferrals,
-	/*
         ProposalTClass,
         ProposalFilming,
         ProposalEvent,
-	*/
         OnHold,
         WithQAOfficer,
     },
