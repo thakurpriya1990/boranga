@@ -14,8 +14,9 @@ fi
 
 APP_ROOT=boranga
 GIT_BRANCH=$1
-#BUILD_TAG=dbcawa/$APP_ROOT:v$(date +%Y.%m.%d).$2
-BUILD_TAG=thakurpriya1990/$APP_ROOT:v$(date +%Y.%m.%d).$2
+BUILD_TAG=dbcawa/$APP_ROOT:v$(date +%Y.%m.%d).$2
+#BUILD_TAG=graememuller/$APP_ROOT:v$(date +%Y.%m.%d).$2
+#BUILD_TAG=ghcr.io/GraemeMuller/$APP_ROOT:v$(date +%Y.%m.%d).$2
 #git checkout $GIT_BRANCH &&
 #git pull &&
 #cd $APP_ROOT/frontend/$APP_ROOT/

@@ -31,12 +31,7 @@
                                         <input type="text" class="form-control" name="pre_event_name"  v-model="park.activities">
                                     </div>
                                 </div>
-                               </div> 
                             </div>
-
-                           
-                           
-
                             <div class="form-group">
                                 <div class="row">
                                     <div class="col-sm-3">
@@ -45,13 +40,16 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
-                                            <FileField2 ref="filefield" :uploaded_documents="park.pre_event_park_documents" :delete_url="delete_url" :proposal_id="park_id" isRepeatable="true" name="pre_event_park_file" @refreshFromResponse="refreshFromResponse"/>
+                                            <FileField2 ref="filefield" :uploaded_documents="park.pre_event_park_documents" 
+                                                                        :delete_url="delete_url" 
+                                                                        :proposal_id="park_id" 
+                                                                        isRepeatable="true" 
+                                                                        name="pre_event_park_file" 
+                                                                        @refreshFromResponse="refreshFromResponse"></FileField2>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
-                                                     
                         </div>
                     </form>
                 </div>
