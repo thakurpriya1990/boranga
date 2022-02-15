@@ -67,3 +67,4 @@ HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget
 CMD ["/startup.sh"]
 #CMD ["gunicorn", "parkstay.wsgi", "--bind", ":8080", "--config", "gunicorn.ini"]
 
+LABEL org.opencontainers.image.source="https://github.com/GraemeMuller/boranga"

@@ -1,64 +1,64 @@
 <template lang="html">
     <div>
-      <div class="col-sm-12">
+        <div class="col-sm-12">
 
-        <!--<div v-if="uploaded_documents.length>0" class="form-group">-->
-        <div v-if="has_uploaded_docs" class="form-group">
-            <div class="row">
-                <div class="col-sm-6">
-                    <label class="control-label pull-left"  for="Name">Uploaded Documents</label>
-                </div>
-                <div class="col-sm-6">
-                    <div class="input-group date" ref="due_date" style="width: 70%;">
-                        <div v-for="v in uploaded_documents" class="row">
-                            <span>
-                                <a :href="v._file" target="_blank">{{v.name}}</a> &nbsp;
-                                <a @click="delete_document(v)" class="fa fa-trash-o" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
-                            </span>
+            <!--<div v-if="uploaded_documents.length>0" class="form-group">-->
+            <div v-if="has_uploaded_docs" class="form-group">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label class="control-label pull-left"  for="Name">Uploaded Documents</label>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="input-group date" ref="due_date" style="width: 70%;">
+                            <div v-for="v in uploaded_documents" class="row">
+                                <span>
+                                    <a :href="v._file" target="_blank">{{v.name}}</a> &nbsp;
+                                    <a @click="delete_document(v)" class="fa fa-trash-o" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="form-group">
-            <div class="row">
-                <div class="col-sm-12">
-                    <div v-for="n in repeat">
-                        <div v-if="isRepeatable || (!isRepeatable && num_documents()==0)">
-                            <span class="btn btn-link btn-file">
-                                <input :name="name" type="file" class="form-control" :data-que="n" :accept="fileTypes" @change="handleChange($event)" :required="isRequired"/>
-                                <u>Attach Document</u>
-                            </span>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div v-for="n in repeat">
+                            <div v-if="isRepeatable || (!isRepeatable && num_documents()==0)">
+                                <span class="btn btn-link btn-file">
+                                    <input :name="name" type="file" class="form-control" :data-que="n" :accept="fileTypes" @change="handleChange($event)" :required="isRequired"/>
+                                    <u>Attach Document</u>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="form-group">
-            <div class="row">
-                <!--
-                <div class="col-sm-3">
-                    <label v-if="label" :id="id" :num_files="num_documents()">{{label}}</label>
-                </div>
-                -->
-                <div class="col-sm-9">
-                    <div v-if="files">
-                        <div v-for="v in files">
-                            <p>
-                                <!--File: <a target="_blank">{{v.name}}</a> &nbsp;-->
-                                File:{{v.name}} &nbsp;
-                                <a @click="pop_file(v)" class="fa fa-trash-o" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
-                            </p>
+            <div class="form-group">
+                <div class="row">
+                    <!--
+                    <div class="col-sm-3">
+                        <label v-if="label" :id="id" :num_files="num_documents()">{{label}}</label>
+                    </div>
+                    -->
+                    <div class="col-sm-9">
+                        <div v-if="files">
+                            <div v-for="v in files">
+                                <p>
+                                    <!--File: <a target="_blank">{{v.name}}</a> &nbsp;-->
+                                    File:{{v.name}} &nbsp;
+                                    <a @click="pop_file(v)" class="fa fa-trash-o" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <span v-if="show_spinner"><i class='fa fa-2x fa-spinner fa-spin'></i></span>
         </div>
-
-        <span v-if="show_spinner"><i class='fa fa-2x fa-spinner fa-spin'></i></span>
-
     </div>
 </template>
 
