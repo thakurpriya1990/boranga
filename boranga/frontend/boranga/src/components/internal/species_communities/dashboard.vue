@@ -19,13 +19,19 @@
     </ul>
     <div class="tab-content" id="pills-tabContent">
         <div v-if="isFlora" class="tab-pane fade" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-            <SpeciesFloraDashTable v-if="isFlora" level="internal" :group_type_name="filterGroupType"/>
+            <FormSection label="Flora" >
+                <SpeciesFloraDashTable v-if="isFlora" level="internal" :group_type_name="filterGroupType" :url="species_url" />
+            </FormSection>
         </div>
         <div v-if="isFauna" class="tab-pane fade" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-             <SpeciesFaunaDashTable v-if="isFauna" level="internal" :group_type_name="filterGroupType"/>
+            <FormSection label="Fauna" >
+                <SpeciesFaunaDashTable v-if="isFauna" level="internal" :group_type_name="filterGroupType" :url="species_url"/>
+            </FormSection>
         </div>
         <div v-if="isCommunity" class="tab-pane fade" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-            <CommunitiesDashTable v-if='isCommunity' level="internal" :group_type_name="filterGroupType"/>
+            <FormSection label="Community" >
+                <CommunitiesDashTable v-if='isCommunity' level="internal" :group_type_name="filterGroupType" :url="community_url" />
+            </FormSection>
         </div>
     </div>
 </div>
@@ -48,6 +54,8 @@ export default {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
             filterGroupType: 'flora',  // TODO : need to set to default user preferance as cannot call click event of Tab onload
             group_types: [],
+            species_url: api_endpoints.species_paginated_internal,
+            community_url: api_endpoints.communities_paginated_internal,
         }
     
     },

@@ -1,5 +1,5 @@
 <template id="communities_dashboard">
-    <FormSection label="Community" >
+    <div>
         <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
             <div class="row">
                 <div class="col-md-3">
@@ -15,7 +15,7 @@
                     <div class="form-group">
                         <label for="">Community Name:</label>
                         <select class="form-control" v-model="filterCommunityName">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                             <option v-for="community in communities_list" :value="community.community_name">{{community.community_name}}</option>
                         </select>
                     </div>
@@ -24,7 +24,7 @@
                     <div class="form-group">
                         <label for="">Community Status:</label>
                         <select class="form-control" v-model="filterCommunityStatus">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                             <option v-for="community in communities_list" :value="community.community_status">{{community.community_status}}</option>
                         </select>
                     </div>
@@ -41,7 +41,7 @@
                     <div class="form-group">
                         <label for="">Workflow Status:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
                     <div class="form-group">
                         <label for="">Region:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                     <div class="form-group">
                         <label for="">District:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -78,7 +78,7 @@
                 />
         </div>
         </div>
-    </FormSection>
+    </div>
 </template>
 <script>
 import "babel-polyfill"
@@ -108,6 +108,10 @@ export default {
             type: String,
             required: true
         },
+        url:{
+            type: String,
+            required: true
+        },
     },
     data() {
         let vm = this;
@@ -119,9 +123,9 @@ export default {
             is_payment_admin: false,
             
             // selected values for filtering
-            filterCommunityId: null,
-            filterCommunityName: null,
-            filterCommunityStatus: null,
+            filterCommunityId: 'all',
+            filterCommunityName: 'all',
+            filterCommunityStatus: 'all',
 
             //Filter list for Community select box
             communities_list: [],
@@ -180,9 +184,7 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if((this.filterCommunityId === null || this.filterCommunityId === 'all') && 
-                (this.filterCommunityName === null || this.filterCommunityName.toLowerCase() === 'all') && 
-                (this.filterCommunityStatus === null || this.filterCommunityStatus.toLowerCase() === 'all')){
+            if(this.filterCommunityId === 'all' && this.filterCommunityName === 'all' && this.filterCommunityStatus === 'all'){
                 return false
             } else {
                 return true
@@ -435,7 +437,7 @@ export default {
                 serverSide: true,
                 searching: search,
                 ajax: {
-                    "url": api_endpoints.communities_paginated_internal,
+                    "url": this.url,
                     "dataSrc": 'data',
 
                     // adding extra GET params for Custom filtering
