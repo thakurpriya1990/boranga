@@ -23,7 +23,7 @@
             {% bootstrap_css %}
                 <link type="text/css" href="{% static 'boranga/css/base.css' %}" rel="stylesheet">
             {% if not dev %}
-	    <link rel="stylesheet" href="{% static 'boranga_vue/static/css/app.css' %}?v={{build_tag}}">
+        <link rel="stylesheet" href="{% static 'boranga_vue/static/css/app.css' %}?v={{build_tag}}">
             {% endif %}
             {% block extra_css %}
             {% endblock %}
@@ -137,15 +137,15 @@
                                                 {% endfor %}
                                                 <li role="separator" class="divider"></li>
 
-						{% comment %}
+                        {% comment %}
                                                 {% for org in request.user.boranga_organisations.all %}
                                                     <li><a href="/external/organisations/manage/{{org.id}}">Manage {{ org.organisation.name}}</a></li>
                                                 {% endfor %}
-						{% endcomment %}
+                        {% endcomment %}
 
-						{% comment %}
-						<li><a href="{% url 'accounts:logout' %}?next=/">Logout</a></li>
-						{% endcomment %}
+                        {% comment %}
+                        <li><a href="{% url 'accounts:logout' %}?next=/">Logout</a></li>
+                        {% endcomment %}
                                             </ul>
                                         </li>
                                     {% endif %}
@@ -177,10 +177,10 @@
 
         {% endblock %}
 
-		{% if system_maintenance_due %}
-		    <div class="alert alert-warning">
-		    	<strong>Notice!</strong> System will be down for maintenance between {{ system_maintenance_due }}
-		    </div>
+        {% if system_maintenance_due %}
+            <div class="alert alert-warning">
+                <strong>Notice!</strong> System will be down for maintenance between {{ system_maintenance_due }}
+            </div>
         {% endif %}
 
         {% block content %}
@@ -190,9 +190,14 @@
         {% if not dev %}
             <!--<script type="text/javascript" src="https://static.dpaw.wa.gov.au/static/cdnjs/ajax/libs/jquery/2.1.2/jquery.min.js"></script>
             <script type="text/javascript" src="https://static.dpaw.wa.gov.au/static/cdnjs/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
-	<script type="text/javascript" src="{% static 'boranga_vue/static/js/manifest.js' %}?v={{build_tag}}"></script>
-	<script type="text/javascript" src="{% static 'boranga_vue/static/js/vendor.js' %}?v={{build_tag}}"></script>
-	<script type="text/javascript" src="{% static 'boranga_vue/static/js/app.js' %}?v={{build_tag}}"></script>
+    <script type="text/javascript" src="{% static 'boranga_vue/static/js/manifest.js' %}?v={{build_tag}}"></script>
+    <script type="text/javascript" src="{% static 'boranga_vue/static/js/vendor.js' %}?v={{build_tag}}"></script>
+            {% if app_build_url %}
+                <script type="text/javascript" src="{{ app_build_url }}"></script>
+            {% else %}
+    <script type="text/javascript" src="{% static 'boranga_vue/js/app.js' %}?v={{build_tag}}"></script>
+            {% endif %}
+
         {% else %}
             <script type="text/javascript" src="{{ dev_url }}"></script>
         {% endif %}
