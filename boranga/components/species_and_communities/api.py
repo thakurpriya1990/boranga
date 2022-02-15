@@ -40,8 +40,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 class GetGroupTypeDict(views.APIView):
-    renderer_classes = [JSONRenderer, ]
-    
     def get(self, request, format=None):
         group_type_list = []
         group_types = GroupType.objects.all()
@@ -51,8 +49,6 @@ class GetGroupTypeDict(views.APIView):
         return Response(group_type_list)
 
 class GetScientificNameDict(views.APIView):
-    renderer_classes = [JSONRenderer, ]
-
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
         name_list = []
@@ -64,8 +60,6 @@ class GetScientificNameDict(views.APIView):
         return Response(name_list)
 
 class GetCommunityFilterDict(views.APIView):
-    renderer_classes = [JSONRenderer, ]
-
     def get(self, request, format=None):
         community_list = []
         communities = Community.objects.all()

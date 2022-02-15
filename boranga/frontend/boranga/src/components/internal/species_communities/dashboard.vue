@@ -107,13 +107,13 @@ export default {
         load_group_datatable: function(grouptype){
             /*----------to set the  filterGroupType to load the particular component only----------*/
             if(grouptype === 'flora'){
-                this.filterGroupType = 'flora';
+                this.filterGroupType = grouptype;
             }
             else if(grouptype === 'fauna'){
-                this.filterGroupType = 'fauna';
+                this.filterGroupType = grouptype;
             }
             else if(grouptype === 'community'){
-                this.filterGroupType = 'community';
+                this.filterGroupType = grouptype;
             }
         },
     },
