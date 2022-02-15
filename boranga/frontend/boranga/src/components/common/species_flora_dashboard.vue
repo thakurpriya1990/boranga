@@ -6,15 +6,15 @@
                     <div class="form-group">
                         <label for="">Name ID:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Scientific Name:</label>
-                        <select class="form-control" v-model="filterScientificName">
-                            <option value="All">All</option>
+                        <select class="form-control" v-model="filterFloraScientificName">
+                            <option value="all">All</option>
                             <option v-for="species in species_list" :value="species.scientific_name">{{species.scientific_name}}</option>
                         </select>
                     </div>
@@ -23,7 +23,7 @@
                     <div class="form-group">
                         <label for="">Common Name:</label>
                         <select class="form-control" v-model="filterCommonName">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                             <option v-for="species in species_list" :value="species.common_name">{{species.common_name}}</option>
                         </select>
                     </div>
@@ -32,7 +32,7 @@
                     <div class="form-group">
                         <label for="">WA Conservation Status:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -40,7 +40,7 @@
                     <div class="form-group">
                         <label for="">Family:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -48,7 +48,7 @@
                     <div class="form-group">
                         <label for="">Genera:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -64,7 +64,7 @@
                     <div class="form-group">
                         <label for="">Region:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
                     <div class="form-group">
                         <label for="">District:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -84,14 +84,14 @@
         </CollapsibleFilters>
 
         <div class="row">
-        <div class="col-lg-12">
-            <datatable
-                    ref="flora_datatable"
-                    :id="datatable_id"
-                    :dtOptions="datatable_options"
-                    :dtHeaders="datatable_headers"
+            <div class="col-lg-12">
+                <datatable
+                        ref="flora_datatable"
+                        :id="datatable_id"
+                        :dtOptions="datatable_options"
+                        :dtHeaders="datatable_headers"
                 />
-        </div>
+            </div>
         </div>
     </div>
 </template>
@@ -123,6 +123,15 @@ export default {
             type: String,
             required: true
         },
+        url:{
+            type: String,
+            required: true
+        },
+        filterFloraScientificName_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraScientificName',
+        },
     },
     data() {
         let vm = this;
@@ -134,8 +143,9 @@ export default {
             is_payment_admin: false,
             
             // selected values for filtering
-            filterScientificName: null,
-            filterCommonName: null,
+            filterFloraScientificName: sessionStorage.getItem(this.filterFloraScientificName_cache) ? 
+                                sessionStorage.getItem(this.filterFloraScientificName_cache) : 'all',
+            filterCommonName: 'all',
 
             //Filter list for scientific name and common name
             species_list: [],
@@ -173,9 +183,10 @@ export default {
         FormSection,
     },
     watch:{
-        filterScientificName: function(){
+        filterFloraScientificName: function(){
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFloraScientificName_cache, vm.filterFloraScientificName);  
         },
         filterCommonName: function() {
             let vm = this;
@@ -190,7 +201,7 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if((this.filterScientificName === null || this.filterScientificName.toLowerCase() === 'all') && (this.filterCommonName === null || this.filterCommonName.toLowerCase() === 'all')){
+            if(this.filterFloraScientificName === 'all' && this.filterCommonName === 'all'){
                 return false
             } else {
                 return true
@@ -245,9 +256,31 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    return full.scientific_name
+                'render': function(value, type){
+                        var ellipsis = '...',
+                                truncated = _.truncate(value, {
+                                    length: 25,
+                                    omission: ellipsis,
+                                    separator: ' '
+                                }),
+                                result = '<span>' + truncated + '</span>',
+                                popTemplate = _.template('<a href="#" ' +
+                                    'role="button" ' +
+                                    'data-toggle="popover" ' +
+                                    'data-trigger="click" ' +
+                                    'data-placement="top auto"' +
+                                    'data-html="true" ' +
+                                    'data-content="<%= text %>" ' +
+                                    '>more</a>');
+                            if (_.endsWith(truncated, ellipsis)) {
+                                result += popTemplate({
+                                    text: value
+                                });
+                            }
+                            //return result;
+                            return type=='export' ? value : result;
                 },
+                'createdCell': helpers.dtPopoverCellFn,
                 name: "scientific_name",
             }
         },
@@ -428,7 +461,7 @@ export default {
                     {
                         extend: 'excel',
                         exportOptions: {
-                            columns: ':visible'
+                            columns: ':visible',
                         }
                     },
                     {
@@ -450,14 +483,14 @@ export default {
                 serverSide: true,
                 searching: search,
                 ajax: {
-                    "url": api_endpoints.species_paginated_internal,
+                    "url": this.url,
                     "dataSrc": 'data',
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
-                        d.filter_scientific_name = vm.filterScientificName;
-                        d.filter_common_name = vm.filterCommonName;
                         d.filter_group_type = vm.group_type_name;
+                        d.filter_scientific_name = vm.filterFloraScientificName;
+                        d.filter_common_name = vm.filterCommonName;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -488,7 +521,6 @@ export default {
             },(error) => {
                 console.log(error);
             })
-            //console.log(vm.regions);
         },
 
         discardProposal:function (proposal_id) {
@@ -540,14 +572,14 @@ export default {
         },
         fetchProfile: function(){
             let vm = this;
-            Vue.http.get(api_endpoints.profile).then((response) => {
+            /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
                               
             },(error) => {
                 console.log(error);
                 
-            })
+            })*/
         },
 
         check_assessor: function(proposal){

@@ -40,13 +40,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 class GetGroupTypeDict(views.APIView):
-    
     def get(self, request, format=None):
-        return Response(GroupType.GROUP_TYPES)
+        group_type_list = []
+        group_types = GroupType.objects.all()
+        if group_types:
+            for group in group_types:
+                group_type_list.append(group.name)
+        return Response(group_type_list)
 
 class GetScientificNameDict(views.APIView):
-    renderer_classes = [JSONRenderer, ]
-
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
         name_list = []
@@ -58,8 +60,6 @@ class GetScientificNameDict(views.APIView):
         return Response(name_list)
 
 class GetCommunityFilterDict(views.APIView):
-    renderer_classes = [JSONRenderer, ]
-
     def get(self, request, format=None):
         community_list = []
         communities = Community.objects.all()
@@ -139,6 +139,10 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
 class CommunitiesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
+        # filter_group_type
+        # filter_group_type = request.GET.get('filter_group_type')
+        # if filter_group_type:
+        #     queryset = queryset.filter(group_type__name=filter_group_type)
         # filter_community_id
         filter_community_id = request.GET.get('filter_community_id')
         if filter_community_id and not filter_community_id.lower() == 'all':

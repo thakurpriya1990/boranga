@@ -15,7 +15,7 @@
                     <div class="form-group">
                         <label for="">Community Name:</label>
                         <select class="form-control" v-model="filterCommunityName">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                             <option v-for="community in communities_list" :value="community.community_name">{{community.community_name}}</option>
                         </select>
                     </div>
@@ -24,7 +24,7 @@
                     <div class="form-group">
                         <label for="">Community Status:</label>
                         <select class="form-control" v-model="filterCommunityStatus">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                             <option v-for="community in communities_list" :value="community.community_status">{{community.community_status}}</option>
                         </select>
                     </div>
@@ -41,7 +41,7 @@
                     <div class="form-group">
                         <label for="">Workflow Status:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
                     <div class="form-group">
                         <label for="">Region:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                     <div class="form-group">
                         <label for="">District:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
                 </div>
@@ -108,6 +108,10 @@ export default {
             type: String,
             required: true
         },
+        url:{
+            type: String,
+            required: true
+        },
     },
     data() {
         let vm = this;
@@ -119,9 +123,9 @@ export default {
             is_payment_admin: false,
             
             // selected values for filtering
-            filterCommunityId: null,
-            filterCommunityName: null,
-            filterCommunityStatus: null,
+            filterCommunityId: 'all',
+            filterCommunityName: 'all',
+            filterCommunityStatus: 'all',
 
             //Filter list for Community select box
             communities_list: [],
@@ -180,9 +184,7 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if((this.filterCommunityId === null || this.filterCommunityId === 'all') && 
-                (this.filterCommunityName === null || this.filterCommunityName.toLowerCase() === 'all') && 
-                (this.filterCommunityStatus === null || this.filterCommunityStatus.toLowerCase() === 'all')){
+            if(this.filterCommunityId === 'all' && this.filterCommunityName === 'all' && this.filterCommunityStatus === 'all'){
                 return false
             } else {
                 return true
@@ -248,13 +250,31 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if(full.community_name){
-                        return full.community_name
-                    }
-                    // Should not reach here
-                    return ''
+                'render': function(value, type){
+                        var ellipsis = '...',
+                                truncated = _.truncate(value, {
+                                    length: 25,
+                                    omission: ellipsis,
+                                    separator: ' '
+                                }),
+                                result = '<span>' + truncated + '</span>',
+                                popTemplate = _.template('<a href="#" ' +
+                                    'role="button" ' +
+                                    'data-toggle="popover" ' +
+                                    'data-trigger="click" ' +
+                                    'data-placement="top auto"' +
+                                    'data-html="true" ' +
+                                    'data-content="<%= text %>" ' +
+                                    '>more</a>');
+                            if (_.endsWith(truncated, ellipsis)) {
+                                result += popTemplate({
+                                    text: value
+                                });
+                            }
+                            //return result;
+                            return type=='export' ? value : result;
                 },
+                'createdCell': helpers.dtPopoverCellFn,
                 name: "community_name",
             }
         },
@@ -395,8 +415,8 @@ export default {
                     {
                         extend: 'excel',
                         exportOptions: {
-                            columns: ':visible'
-                        }
+                            columns: ':visible',
+                        },
                     },
                     {
                         extend: 'csv',
@@ -417,14 +437,15 @@ export default {
                 serverSide: true,
                 searching: search,
                 ajax: {
-                    "url": api_endpoints.communities_paginated_internal,
+                    "url": this.url,
                     "dataSrc": 'data',
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
-                        d.filter_common_id = vm.filterCommonId;
+                        d.filter_community_id = vm.filterCommunityId;
                         d.filter_community_name = vm.filterCommunityName;
                         d.filter_community_status = vm.filterCommunityStatus;
+                        d.filter_group_type = vm.group_type_name;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -507,14 +528,14 @@ export default {
         },
         fetchProfile: function(){
             let vm = this;
-            Vue.http.get(api_endpoints.profile).then((response) => {
+            /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
                               
             },(error) => {
                 console.log(error);
                 
-            })
+            })*/
         },
 
         check_assessor: function(proposal){
