@@ -29,6 +29,7 @@ from ledger_api_client.country_models import Country
 from datetime import datetime, timedelta, date
 from boranga.components.proposals.utils import save_proponent_data,save_assessor_data, proposal_submit
 from boranga.components.proposals.models import searchKeyWords, search_reference, ProposalUserAction
+from boranga.components.species_and_communities.tests.test_data import create_test_data
 from boranga.utils import missing_required_fields
 from boranga.components.main.utils import check_db_connection
 
@@ -103,7 +104,7 @@ from rest_framework.filters import BaseFilterBackend
 
 import logging
 logger = logging.getLogger(__name__)
-
+#create_test_data()
 
 class GetProposalType(views.APIView):
     renderer_classes = [JSONRenderer, ]

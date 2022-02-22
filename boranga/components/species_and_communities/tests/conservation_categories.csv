@@ -1,0 +1,69 @@
+code,label
+    CR,Critically endangered fauna (S1)
+    P1,Priority 1
+    PD,Presumed Totally Destroyed
+    P1,Priority 1
+    EN,Endangered fauna (S2)
+    P2,Priority 2
+    P2,Priority 2
+    CR,Critically Endangered
+    VU,Vulnerable fauna (S3)
+    P3,Priority 3
+    P3,Priority 3
+    EN,Endangered
+    EX,Presumed extinct fauna (S4)
+    P4,Priority 4
+    P4,Priority 4
+    VU,Vulnerable
+    P5,Priority 5
+    LR,Lower Risk
+    IA,Migratory birds under international agreement (S5)
+    CD,Conservation dependent fauna (S6)
+    DD,Data Deficient
+    NE,Not Evaluated
+    OS,Other specially protected fauna (S7)
+    P5,Priority 5
+    SP,Rare or otherwise in need of special protection
+    P,Priority
+    T,(Threatened) Rare or is likely to become extinct (S1)
+    X,Presumed extinct (S2)
+    I,Migratory birds under international agreement (S3)
+    S,Other specially protected fauna (S4)
+    CO,Collapsed
+    CR,Critically Endangered
+    EN,Endangered
+    VU,Vulnerable
+    NT,Near Threatened
+    LC,Least Concern
+    DD,Data Deficient
+    NE,Not Evaluated
+    EX,Extinct
+    EW,Extinct in the Wild
+    CR,Critically Endangered
+    EN,Endangered
+    VU,Vulnerable
+    NT,Near Threatened
+    LC,Least Concern
+    DD,Data Deficient
+    NE,Not Evaluated
+    EX,Extinct
+    EW,Extinct in the Wild
+    CR,Critically Endangered
+    EN,Endangered
+    VU,Vulnerable
+    EX,Extinct
+    CR,Critically Endangered
+    EN,Endangered
+    VU,Vulnerable
+    MA,Marine
+    MI,Migratory
+    CT,Cetacean
+    EX,Extinct
+    EW,Extinct in the Wild
+    CR,Critically Endangered
+    EN,Endangered
+    VU,Vulnerable
+    CD,Conservation Dependent
+    SP,Specially Protected
+    E,Extant (S1)
+    X,Presumed extinct (S2)
