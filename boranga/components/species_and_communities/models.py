@@ -80,8 +80,8 @@ class RegionDistrict(models.Model):
 
     class Meta:
         app_label = 'boranga'
-        verbose_name = 'CM_Region District'
-        verbose_name_plural = 'CM_Region Districts'
+        verbose_name = 'boranga_Region District'
+        verbose_name_plural = 'boranga_Region Districts'
 
     def __str__(self):
         return self.get_district_display()
