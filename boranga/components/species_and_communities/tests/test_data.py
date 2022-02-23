@@ -3,9 +3,11 @@ import csv
 from random import randrange
 
 # Create your tests here.
-from boranga.components.species_and_communities.models import NameAuthority, RegionDistrict, Species, GroupType, ConservationStatus, ConservationList, \
+from boranga.components.species_and_communities.models import DISTRICT_SWAN_COASTAL, REGION_CHOICES, REGION_SOUTH_WEST, District, DocumentCategory, NameAuthority, Region, Species, GroupType, ConservationStatus, ConservationList, \
     ConservationCategory, ConservationCriteria, Taxonomy, Community, SpeciesDocument, ConservationThreat, \
     ConservationPlan, Distribution, ConservationAttributes, ThreatCategory
+
+save_to_database = True
 
 def create_test_data():
     print('----------------------------------------------------')
@@ -20,8 +22,12 @@ def create_test_data():
 
 def create_region_district():
     try:
-        region_district = RegionDistrict.objects.get_or_create(id=666, district="Neverland")[0]
-        region_district.save()
+        region = Region.objects.get_or_create(name=REGION_SOUTH_WEST)[0]
+        district = District.objects.get_or_create(name=DISTRICT_SWAN_COASTAL, region=region)[0]
+        
+        if save_to_database:
+            region.save()
+            district.save()
     except Exception as e:
         print("create_region_district falied: ", e)
         print("-----")
@@ -32,9 +38,10 @@ def create_group_types():
         fauna_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[1][0])[0]
         community_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[2][0])[0]
 
-        flora_group_type.save()
-        fauna_group_type.save()
-        community_group_type.save()
+        if save_to_database:
+            flora_group_type.save()
+            fauna_group_type.save()
+            community_group_type.save()
     except Exception as e:
         print("create_group_types falied: ", e)
         print("-----")
@@ -42,7 +49,9 @@ def create_group_types():
 def create_region_name_authority():
     try:
         name_authority = NameAuthority.objects.get_or_create(name="WA Museum")
-        name_authority.save()
+
+        if save_to_database:
+            name_authority.save()
     except Exception as e:
         print("create_region_name_authority falied: ", e)
         print("-----")
@@ -68,14 +77,15 @@ def create_community():
                     if not community_name: continue
                     community_id = randrange(1000)
                     community_status = "Safe"
-                    region_district = RegionDistrict.objects.get_or_create(id=666, district="Neverland")[0]
                     group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[2][0])
+                    region = Region.objects.get(name=REGION_SOUTH_WEST)
+                    district = District.objects.get(name=DISTRICT_SWAN_COASTAL)
                     community = Community.objects.create(group_type=group_type,
                                                          community_name=community_name,
                                                          community_id=community_id,
                                                          community_status=community_status,
-                                                         region=region_district,
-                                                         district=region_district,)
+                                                         region=region,
+                                                         district=district,)
                     # Pick a random fauna to add to community
                     fauna_size = len(Species.objects.filter(group_type__name=GroupType.GROUP_TYPES[1][0]))
                     fauna = Species.objects.get(group_type__name=GroupType.GROUP_TYPES[1][0], id=randrange(fauna_size))
@@ -91,7 +101,7 @@ def create_community():
                     print('create_community - {}: {}'.format(e, community_row))
                     # could write falied_rows to file.
 
-                if not row_failed:
+                if not row_failed and save_to_database:
                     community.save()
 
 def create_species_fauna():
@@ -128,14 +138,15 @@ def create_species_fauna():
                                                        genus=genus,
                                                        phylogenetic_group=phylogenetic_group,
                                                        name_authority=name_authority,)
-                    region_district = RegionDistrict.objects.get_or_create(id=666, district="Neverland")[0]
+                    region = Region.objects.get(name=REGION_SOUTH_WEST)
+                    district = District.objects.get(name=DISTRICT_SWAN_COASTAL)
                     group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[1][0])
                     fauna = Species.objects.create(common_name=fauna_row[7],
                                                    group_type=group_type,
                                                    scientific_name = fauna_row[6],
                                                    conservation_status = conservation_status,
-                                                   region=region_district,
-                                                   district=region_district,
+                                                   region=region,
+                                                   district=district,
                                                    image = "path/to/fauna.jpg",
                                                    taxonomy = taxonomy)
 
@@ -144,6 +155,8 @@ def create_species_fauna():
                     species_document = SpeciesDocument.objects.create(document=document,
                                                                       document_description=document_description,)
                     species_document.species.add(fauna)
+                    document_category = DocumentCategory.objects.create(name="Fauna_C1",
+                                                                        species_document=species_document)
 
                     threat_category = ThreatCategory.objects.get_or_create(name="Killer Robots")[0]
                     threat_description = fauna_row[3]
@@ -160,8 +173,8 @@ def create_species_fauna():
                     _type = "Regular"
                     comment = "{} is a fauna plan.".format(fauna_row[8])
                     source = "WA Museum"
-                    conservation_plans = ConservationPlan.objects.create(region=region_district,
-                                                                         district=region_district,
+                    conservation_plans = ConservationPlan.objects.create(region=region,
+                                                                         district=district,
                                                                          type=_type,
                                                                          comment=comment,
                                                                          source=source,)
@@ -203,7 +216,7 @@ def create_species_fauna():
                         print('create_species_fauna - {}: {}'.format(e, fauna_row))
                     # could write falied_rows to file.
 
-                if not row_failed:
+                if not row_failed and save_to_database:
                     conservation_list.save()
                     conservation_category.save()
                     conservation_criteria.save()
@@ -252,13 +265,14 @@ def create_species_flora():
                                                        name_authority=name_authority,)
 
                     group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[0][0])
-                    region_district = RegionDistrict.objects.get_or_create(id=666, district="Neverland")[0]
+                    region = Region.objects.get(name=REGION_SOUTH_WEST)
+                    district = District.objects.get(name=DISTRICT_SWAN_COASTAL)                    
                     flora = Species.objects.create(common_name=flora_row[7],
                                                    group_type=group_type,
                                                    scientific_name = flora_row[6],
                                                    conservation_status = conservation_status,
-                                                   region=region_district,
-                                                   district=region_district,
+                                                   region=region,
+                                                   district=district,
                                                    image = "path/to/flora.jpg",
                                                    taxonomy = taxonomy
                     )
@@ -271,6 +285,8 @@ def create_species_flora():
                     species_document = SpeciesDocument.objects.create(document=document,
                                                                       document_description=document_description,)
                     species_document.species.add(flora)
+                    document_category = DocumentCategory.objects.create(name="Flora_C1",
+                                                                        species_document=species_document)
 
                     threat_category = ThreatCategory.objects.get_or_create(name="Killer Robots")[0]
                     threat_description = flora_row[3]
@@ -287,8 +303,8 @@ def create_species_flora():
                     _type = "Regular"
                     comment = "{} is a fauna plan.".format(flora_row[8])
                     source = "WA Museum"
-                    conservation_plans = ConservationPlan.objects.create(region=region_district,
-                                                                         district=region_district,
+                    conservation_plans = ConservationPlan.objects.create(region=region,
+                                                                         district=district,
                                                                          type=_type,
                                                                          comment=comment,
                                                                          source=source,)
@@ -329,14 +345,15 @@ def create_species_flora():
                     print('create_species_flora - {}: {}'.format(e, flora_row))
                     # could write falied_rows to file.
 
-                if not row_failed:
+                if not row_failed and save_to_database:
                     conservation_list.save()
                     conservation_category.save()
                     conservation_criteria.save()
                     conservation_status.save()
                     taxonomy.save()
                     flora.save()
-                    species_document
+                    species_document.save()
+                    document_category.save()
                     conservation_threat.save()
                     conservation_plans.save()
                     distribution.save()

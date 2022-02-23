@@ -77,7 +77,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
 	def get_conservation_status(self,obj):
 		if obj.conservation_status:
-			return obj.conservation_status.conservation_list.name
+			return obj.conservation_status.conservation_list.code
 		return None
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
