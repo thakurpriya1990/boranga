@@ -73,6 +73,7 @@ INSTALLED_APPS += [
     'reset_migrations',
     'ckeditor',
     'multiselectfield',
+    'import_export',
     'ledger_api_client',
 ]
 
