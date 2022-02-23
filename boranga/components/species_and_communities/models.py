@@ -449,7 +449,7 @@ class Species(models.Model):
                                        default="None")
     common_name = models.CharField(max_length=128,
                                    default="None")
-    name_currency = models.CharField(max_length=512,
+    name_currency = models.CharField(max_length=16,
                                      default="None") # is it the current name? yes or no
     conservation_status = models.OneToOneField(ConservationStatus,
                                                on_delete=models.CASCADE)
