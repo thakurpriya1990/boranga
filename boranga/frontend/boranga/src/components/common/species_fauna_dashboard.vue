@@ -4,18 +4,10 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Name ID:</label>
-                        <select class="form-control">
-                            <option value="all">All</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
                         <label for="">Scientific Name:</label>
                         <select class="form-control" v-model="filterScientificName">
                             <option value="all">All</option>
-                            <option v-for="species in species_list" :value="species.scientific_name">{{species.scientific_name}}</option>
+                            <option v-for="species in species_data_list" :value="species.scientific_name">{{species.scientific_name}}</option>
                         </select>
                     </div>
                 </div>
@@ -24,13 +16,13 @@
                         <label for="">Common Name:</label>
                         <select class="form-control" v-model="filterCommonName">
                             <option value="all">All</option>
-                            <option v-for="species in species_list" :value="species.common_name">{{species.common_name}}</option>
+                            <option v-for="species in species_data_list" :value="species.common_name">{{species.common_name}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">WA Conservation Status:</label>
+                        <label for="">Phylo Group:</label>
                         <select class="form-control">
                             <option value="all">All</option>
                         </select>
@@ -46,7 +38,15 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Phylo Group:</label>
+                        <label for="">Genera:</label>
+                        <select class="form-control">
+                            <option value="all">All</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">WA Conservation Status:</label>
                         <select class="form-control">
                             <option value="all">All</option>
                         </select>
@@ -103,7 +103,6 @@ import FormSection from '@/components/forms/section_toggle.vue'
 import Vue from 'vue'
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
-//require("babel-polyfill"); /* only one of 'import' or 'require' is necessary */
 import {
     api_endpoints,
     helpers
@@ -148,7 +147,9 @@ export default {
             filterCommonName: 'all',
 
             //Filter list for scientific name and common name
-            species_list: [],
+            filterListsSpecies: {},
+            species_data_list: [],
+            conservation_status_list: [],
             
             // filtering options
             external_status:[
@@ -218,15 +219,14 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['id', 'Number', 'Scientific Name', 'Common Name','WA Conservation Status', 'Phylo Group', 'Region', 'District','Workflow Status', 'Action']
+                return ['id', 'Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera','WA Conservation Status','Workflow Status', 'Region', 'District', 'Action']
             }
             if (this.is_internal){
-                return ['id', 'Number', 'Scientific Name', 'Common Name','WA Conservation Status', 'Phylo Group', 'Region', 'District','Workflow Status', 'Action']
+                return ['id', 'Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera','WA Conservation Status','Workflow Status', 'Region', 'District', 'Action']
             }
         },
         column_id: function(){
             return {
-                // 1. ID
                 data: "id",
                 orderable: false,
                 searchable: false,
@@ -238,7 +238,6 @@ export default {
         },
         column_number: function(){
             return {
-                // 2. Number
                 data: "id",
                 orderable: true,
                 searchable: true,
@@ -251,7 +250,6 @@ export default {
         },
         column_scientific_name: function(){
             return {
-                // 3. Scientific Name
                 data: "scientific_name",
                 orderable: true,
                 searchable: true,
@@ -286,7 +284,6 @@ export default {
         },
         column_common_name: function(){
             return {
-                // 4. Common Name
                 data: "common_name",
                 orderable: true,
                 searchable: true,
@@ -301,9 +298,92 @@ export default {
                 name: "common_name",
             }
         },
+        column_phylogenetic_group: function(){
+            return {
+                data: "phylogenetic_group",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(value, type){
+                        var ellipsis = '...',
+                                truncated = _.truncate(value, {
+                                    length: 25,
+                                    omission: ellipsis,
+                                    separator: ' '
+                                }),
+                                result = '<span>' + truncated + '</span>',
+                                popTemplate = _.template('<a href="#" ' +
+                                    'role="button" ' +
+                                    'data-toggle="popover" ' +
+                                    'data-trigger="click" ' +
+                                    'data-placement="top auto"' +
+                                    'data-html="true" ' +
+                                    'data-content="<%= text %>" ' +
+                                    '>more</a>');
+                            if (_.endsWith(truncated, ellipsis)) {
+                                result += popTemplate({
+                                    text: value
+                                });
+                            }
+                            //return result;
+                            return type=='export' ? value : result;
+                },
+                'createdCell': helpers.dtPopoverCellFn,
+                name: "phylogenetic_group",
+            }
+        },
+        column_family: function(){
+            return {
+                data: "family",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(value, type){
+                        var ellipsis = '...',
+                                truncated = _.truncate(value, {
+                                    length: 25,
+                                    omission: ellipsis,
+                                    separator: ' '
+                                }),
+                                result = '<span>' + truncated + '</span>',
+                                popTemplate = _.template('<a href="#" ' +
+                                    'role="button" ' +
+                                    'data-toggle="popover" ' +
+                                    'data-trigger="click" ' +
+                                    'data-placement="top auto"' +
+                                    'data-html="true" ' +
+                                    'data-content="<%= text %>" ' +
+                                    '>more</a>');
+                            if (_.endsWith(truncated, ellipsis)) {
+                                result += popTemplate({
+                                    text: value
+                                });
+                            }
+                            //return result;
+                            return type=='export' ? value : result;
+                },
+                'createdCell': helpers.dtPopoverCellFn,
+                name: "family",
+            }
+        },
+        column_genera: function(){
+            return {
+                data: "genera",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if(full.genera){
+                        return full.genera;
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "genera",
+            }
+        },
         column_wa_conservation_status: function(){
             return {
-                // 5. Conservation Status
                 data: "conservation_status",
                 orderable: true,
                 searchable: true,
@@ -318,26 +398,24 @@ export default {
                 name: "conservation_status",
             }
         },
-        column_phylogenetic_group: function(){
+        column_workflow_status: function(){
             return {
-                // 6. Phylo Group
-                data: "phylogenetic_group",
+                data: "processing_status",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.phylogenetic_group){
-                        return full.phylogenetic_group;
+                    if (full.processing_status){
+                        return full.processing_status;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "phylogenetic_group",
+                name: "processing_status",
             }
         },
         column_region: function(){
             return {
-                // 7. Region
                 data: "region",
                 orderable: true,
                 searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
@@ -354,7 +432,6 @@ export default {
         },
         column_district: function(){
             return {
-                // 7. District
                 data: "district",
                 orderable: true,
                 searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
@@ -369,27 +446,9 @@ export default {
                 name: "district",
             }
         },
-        column_workflow_status: function(){
-            return {
-                // 8. Workflow Status
-                data: "processing_status",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.processing_status){
-                        return full.processing_status;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "processing_status",
-            }
-        },
         column_action: function(){
             let vm = this
             return {
-                // 9. Action
                 data: "id",
                 orderable: false,
                 searchable: false,
@@ -433,11 +492,13 @@ export default {
                     vm.column_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
-                    vm.column_wa_conservation_status,
                     vm.column_phylogenetic_group,
+                    vm.column_family,
+                    vm.column_genera,
+                    vm.column_wa_conservation_status,
+                    vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_workflow_status,
                     vm.column_action,
                 ]
                 search = false
@@ -449,11 +510,13 @@ export default {
                     vm.column_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
-                    vm.column_wa_conservation_status,
                     vm.column_phylogenetic_group,
+                    vm.column_family,
+                    vm.column_genera,
+                    vm.column_wa_conservation_status,
+                    vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_workflow_status,
                     vm.column_action,
                 ]
                 search = true
@@ -514,14 +577,14 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-            vm.$http.get(api_endpoints.scientific_names_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
-                vm.species_list= response.body;
+             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
+                vm.filterListsSpecies = response.body;
+                vm.species_data_list = vm.filterListsSpecies.species_data_list;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
                 console.log(error);
             })
-            //console.log(vm.regions);
         },
 
         discardProposal:function (proposal_id) {

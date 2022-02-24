@@ -26,6 +26,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 	genera = serializers.SerializerMethodField()
 	phylogenetic_group = serializers.SerializerMethodField()
 	conservation_status = serializers.SerializerMethodField()
+	region = serializers.SerializerMethodField()
+	district = serializers.SerializerMethodField()
 	class Meta:
 		model = Species
 		fields = (
@@ -80,7 +82,19 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			return obj.conservation_status.conservation_list.code
 		return None
 
+	def get_region(self,obj):
+		if obj.region:
+			return obj.region.name
+		return None
+
+	def get_district(self,obj):
+		if obj.district:
+			return obj.district.name
+		return None
+
 class ListCommunitiesSerializer(serializers.ModelSerializer):
+	region = serializers.SerializerMethodField()
+	district = serializers.SerializerMethodField()
 	class Meta:
 		model = Community
 		fields = (
@@ -99,3 +113,13 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			    'region',
 			    'district',
 			)
+
+	def get_region(self,obj):
+		if obj.region:
+			return obj.region.name
+		return None
+
+	def get_district(self,obj):
+		if obj.district:
+			return obj.district.name
+		return None

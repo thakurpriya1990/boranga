@@ -1,5 +1,6 @@
 import traceback
 import pytz
+import json
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -12,6 +13,7 @@ from datetime import datetime
 from ledger_api_client.settings_base import TIME_ZONE
 from boranga import settings
 from django.core.cache import cache
+from django.http import HttpResponse
 from django.urls import reverse
 from django.shortcuts import redirect
 from boranga.helpers import is_customer, is_internal
@@ -29,6 +31,8 @@ from boranga.components.species_and_communities.models import (
     ConservationCriteria,
     Taxonomy,
     Community,
+    Region,
+    District,
 )
 from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
@@ -48,16 +52,23 @@ class GetGroupTypeDict(views.APIView):
                 group_type_list.append(group.name)
         return Response(group_type_list)
 
-class GetScientificNameDict(views.APIView):
+class GetSpeciesFilterDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
-        name_list = []
+        species_data_list = []
         if group_type:
             species = Species.objects.filter(group_type__name=group_type)
             if species:
-                for s in species:
-                    name_list.append({'species_id': s.id,'scientific_name': s.scientific_name,'common_name':s.common_name})
-        return Response(name_list)
+                for specimen in species:
+                    species_data_list.append({'species_id': specimen.id,
+                        'scientific_name': specimen.scientific_name,
+                        'common_name':specimen.common_name
+                        });
+        res_json = {
+        "species_data_list":species_data_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
 
 class GetCommunityFilterDict(views.APIView):
     def get(self, request, format=None):
@@ -72,6 +83,29 @@ class GetCommunityFilterDict(views.APIView):
                     'community_status':community.community_status
                     })
         return Response(community_list)
+
+class GetRegionDistrictFilterDict(views.APIView):
+    def get(self, request, format=None):
+        region_list = []
+        regions = Region.objects.all()
+        if regions:
+            for region in regions:
+                region_list.append({'id': region.id,
+                    'name': region.name,
+                    });
+        district_list = []
+        districts = District.objects.all()
+        if districts:
+            for district in districts:
+                district_list.append({'id': district.id,
+                    'name': district.name,
+                    });
+        res_json = {
+        "region_list":region_list,
+        "district_list":district_list
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
 
 class SpeciesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):

@@ -29,14 +29,14 @@
                         </select>
                     </div>
                 </div>
-                <!-- <div class="col-md-3">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="">WA Conservation Status:</label>
                         <select class="form-control">
-                            <option value="All">All</option>
+                            <option value="all">All</option>
                         </select>
                     </div>
-                </div> -->
+                </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Workflow Status:</label>
@@ -88,7 +88,6 @@ import FormSection from '@/components/forms/section_toggle.vue'
 import Vue from 'vue'
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
-//require("babel-polyfill"); /* only one of 'import' or 'require' is necessary */
 import {
     api_endpoints,
     helpers
@@ -201,15 +200,14 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['id','Number', 'Community Id' ,'Community Name', 'Community Status', 'Region', 'District','Workflow Status', 'Action']
+                return ['id','Number', 'Community Id' ,'Community Name', 'Community Status', 'WA Conservation Status','Workflow Status', 'Region', 'District', 'Action']
             }
             if (this.is_internal){
-                return ['id','Number', 'Community Id' ,'Community Name', 'Community Status', 'Region', 'District','Workflow Status', 'Action']
+                return ['id','Number', 'Community Id' ,'Community Name', 'Community Status', 'WA Conservation Status','Workflow Status', 'Region', 'District', 'Action']
             }
         },
         column_id: function(){
             return {
-                // 1. ID
                 data: "id",
                 orderable: false,
                 searchable: false,
@@ -221,7 +219,6 @@ export default {
         },
         column_number: function(){
             return {
-                // 2. Number
                 data: "id",
                 orderable: true,
                 searchable: true,
@@ -294,6 +291,38 @@ export default {
                 name: "community_status",
             }
         },
+        column_wa_conservation_status: function(){
+            return {
+                data: "community_status",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if(full.community_status){
+                        return full.community_status;
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "community_status",
+            }
+        },
+        column_workflow_status: function(){
+            return {
+                data: "community_status",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.processing_status){
+                        return full.processing_status;
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "community_status",
+            }
+        },
         column_region: function(){
             return {
                 data: "region",
@@ -324,22 +353,6 @@ export default {
                     return ''
                 },
                 name: "district",
-            }
-        },
-        column_workflow_status: function(){
-            return {
-                data: "community_status",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.processing_status){
-                        return full.processing_status;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "community_status",
             }
         },
         column_action: function(){
@@ -390,9 +403,10 @@ export default {
                     vm.column_community_id,
                     vm.column_community_name,
                     vm.column_community_status,
+                    vm.column_wa_conservation_status,
+                    vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_workflow_status,
                     vm.column_action,
                 ]
                 search = false
@@ -405,9 +419,10 @@ export default {
                     vm.column_community_id,
                     vm.column_community_name,
                     vm.column_community_status,
+                    vm.column_wa_conservation_status,
+                    vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_workflow_status,
                     vm.column_action,
                 ]
                 search = true
