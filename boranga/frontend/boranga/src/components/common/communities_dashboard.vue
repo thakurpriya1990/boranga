@@ -48,16 +48,18 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterCommunityRegion">
                             <option value="all">All</option>
+                            <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">District:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterCommunityDistrict">
                             <option value="all">All</option>
+                            <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -69,14 +71,14 @@
         </CollapsibleFilters>
 
         <div class="row">
-        <div class="col-lg-12">
-            <datatable
-                    ref="communities_datatable"
-                    :id="datatable_id"
-                    :dtOptions="datatable_options"
-                    :dtHeaders="datatable_headers"
-                />
-        </div>
+            <div class="col-lg-12">
+                <datatable
+                        ref="communities_datatable"
+                        :id="datatable_id"
+                        :dtOptions="datatable_options"
+                        :dtHeaders="datatable_headers"
+                    />
+            </div>
         </div>
     </div>
 </template>
@@ -111,6 +113,16 @@ export default {
             type: String,
             required: true
         },
+        filterCommunityRegion_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityRegion',
+        },
+        filterCommunityDistrict_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityDistrict',
+        },
     },
     data() {
         let vm = this;
@@ -125,9 +137,16 @@ export default {
             filterCommunityId: 'all',
             filterCommunityName: 'all',
             filterCommunityStatus: 'all',
+            filterCommunityRegion: sessionStorage.getItem(this.filterCommunityRegion_cache) ? 
+                                sessionStorage.getItem(this.filterCommunityRegion_cache) : 'all',
+            filterCommunityDistrict: sessionStorage.getItem(this.filterCommunityDistrict_cache) ? 
+                                sessionStorage.getItem(this.filterCommunityDistrict_cache) : 'all',
 
             //Filter list for Community select box
             communities_list: [],
+            filterRegionDistrict: {},
+            region_list: [],
+            district_list: [],
             
             // filtering options
             external_status:[
@@ -174,6 +193,16 @@ export default {
             let vm = this;
             vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
         },
+        filterCommunityRegion: function(){
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCommunityRegion_cache, vm.filterCommunityRegion);
+        },
+        filterCommunityDistrict: function(){
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCommunityDistrict_cache, vm.filterCommunityDistrict);
+        },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
                 // Collapsible component exists
@@ -183,7 +212,8 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCommunityId === 'all' && this.filterCommunityName === 'all' && this.filterCommunityStatus === 'all'){
+            if(this.filterCommunityId === 'all' && this.filterCommunityName === 'all' && this.filterCommunityStatus === 'all' && 
+                this.filterCommunityRegion === 'all' && this.filterCommunityDistrict === 'all'){
                 return false
             } else {
                 return true
@@ -461,6 +491,8 @@ export default {
                         d.filter_community_name = vm.filterCommunityName;
                         d.filter_community_status = vm.filterCommunityStatus;
                         d.filter_group_type = vm.group_type_name;
+                        d.filter_region = vm.filterCommunityRegion;
+                        d.filter_district = vm.filterCommunityDistrict;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -491,7 +523,13 @@ export default {
             },(error) => {
                 console.log(error);
             })
-            //console.log(vm.regions);
+            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
+                vm.filterRegionDistrict= response.body;
+                vm.region_list= vm.filterRegionDistrict.region_list;
+                vm.district_list= vm.filterRegionDistrict.district_list;
+            },(error) => {
+                console.log(error);
+            })
         },
 
         discardProposal:function (proposal_id) {

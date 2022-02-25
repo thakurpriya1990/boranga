@@ -5,7 +5,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Scientific Name:</label>
-                        <select class="form-control" v-model="filterScientificName">
+                        <select class="form-control" v-model="filterFaunaScientificName">
                             <option value="all">All</option>
                             <option v-for="species in species_data_list" :value="species.scientific_name">{{species.scientific_name}}</option>
                         </select>
@@ -14,7 +14,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Common Name:</label>
-                        <select class="form-control" v-model="filterCommonName">
+                        <select class="form-control" v-model="filterFaunaCommonName">
                             <option value="all">All</option>
                             <option v-for="species in species_data_list" :value="species.common_name">{{species.common_name}}</option>
                         </select>
@@ -63,16 +63,18 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFaunaRegion">
                             <option value="all">All</option>
+                            <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">District:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFaunaDistrict">
                             <option value="all">All</option>
+                            <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -126,10 +128,25 @@ export default {
             type: String,
             required: true
         },
-        filterScientificName_cache: {
+        filterFaunaScientificName_cache: {
             type: String,
             required: false,
-            default: 'filterScientificName',
+            default: 'filterFaunaScientificName',
+        },
+        filterFaunaCommonName_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaCommonName',
+        },
+        filterFaunaRegion_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaRegion',
+        },
+        filterFaunaDistrict_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaDistrict',
         },
     },
     data() {
@@ -142,15 +159,24 @@ export default {
             is_payment_admin: false,
             
             // selected values for filtering
-            filterScientificName: sessionStorage.getItem(this.filterScientificName_cache) ? 
-                                sessionStorage.getItem(this.filterScientificName_cache) : 'all',
-            filterCommonName: 'all',
+            filterFaunaScientificName: sessionStorage.getItem(this.filterFaunaScientificName_cache) ? 
+                                sessionStorage.getItem(this.filterFaunaScientificName_cache) : 'all',
+            filterFaunaCommonName: sessionStorage.getItem(this.filterFaunaCommonName_cache) ? 
+                                sessionStorage.getItem(this.filterFaunaCommonName_cache) : 'all',
+            filterFaunaRegion: sessionStorage.getItem(this.filterFaunaRegion_cache) ? 
+                                sessionStorage.getItem(this.filterFaunaRegion_cache) : 'all',
+            filterFaunaDistrict: sessionStorage.getItem(this.filterFaunaDistrict_cache) ? 
+                                sessionStorage.getItem(this.filterFaunaDistrict_cache) : 'all',
+
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
             species_data_list: [],
             conservation_status_list: [],
-            
+            filterRegionDistrict: {},
+            region_list: [],
+            district_list: [],
+
             // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
@@ -184,14 +210,25 @@ export default {
         FormSection,
     },
     watch:{
-        filterScientificName: function(){
+        filterFaunaScientificName: function(){
             let vm = this;
             vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
-            sessionStorage.setItem(vm.filterScientificName_cache, vm.filterScientificName);
+            sessionStorage.setItem(vm.filterFaunaScientificName_cache, vm.filterFaunaScientificName);
         },
-        filterCommonName: function() {
+        filterFaunaCommonName: function() {
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
+            sessionStorage.setItem(vm.filterFaunaCommonName_cache, vm.filterFaunaCommonName);
+        },
+        filterFaunaRegion: function(){
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaRegion_cache, vm.filterFaunaRegion);
+        },
+        filterFaunaDistrict: function(){
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaDistrict_cache, vm.filterFaunaDistrict);
         },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
@@ -202,7 +239,8 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterScientificName === 'all' && this.filterCommonName === 'all'){
+            if(this.filterFaunaScientificName === 'all' && this.filterCommonName === 'all' && this.filterFaunaRegion === 'all' && 
+                this.filterFaunaDistrict === 'all'){
                 return false
             } else {
                 return true
@@ -552,8 +590,10 @@ export default {
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
                         d.filter_group_type = vm.group_type_name;
-                        d.filter_scientific_name = vm.filterScientificName;
+                        d.filter_scientific_name = vm.filterFaunaScientificName;
                         d.filter_common_name = vm.filterCommonName;
+                        d.filter_region = vm.filterFaunaRegion;
+                        d.filter_district = vm.filterFaunaDistrict;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -577,11 +617,18 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
+            vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.species_data_list = vm.filterListsSpecies.species_data_list;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
+            },(error) => {
+                console.log(error);
+            })
+            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
+                vm.filterRegionDistrict= response.body;
+                vm.region_list= vm.filterRegionDistrict.region_list;
+                vm.district_list= vm.filterRegionDistrict.district_list;
             },(error) => {
                 console.log(error);
             })

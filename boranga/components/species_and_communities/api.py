@@ -62,10 +62,21 @@ class GetSpeciesFilterDict(views.APIView):
                 for specimen in species:
                     species_data_list.append({'species_id': specimen.id,
                         'scientific_name': specimen.scientific_name,
-                        'common_name':specimen.common_name
+                        'common_name':specimen.common_name,
+                        'family':specimen.taxonomy.family,
+                        'phylogenetic_group':specimen.taxonomy.phylogenetic_group,
+                        'genus':specimen.taxonomy.genus,
                         });
+        conservation_status_list = []
+        conservation_statuses = ConservationStatus.objects.all()
+        if conservation_statuses:
+            for choice in conservation_statuses:
+                conservation_status_list.append({'id': choice.conservation_list_id,
+                    'code': choice.conservation_list.code,
+                    });    
         res_json = {
         "species_data_list":species_data_list,
+        "conservation_status_list":conservation_status_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
@@ -122,6 +133,19 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         filter_common_name = request.GET.get('filter_common_name')
         if filter_common_name and not filter_common_name.lower() == 'all':
             queryset = queryset.filter(common_name=filter_common_name)
+        
+        filter_conservation_status = request.GET.get('filter_conservation_status')
+        if filter_conservation_status and not filter_conservation_status.lower() == 'all':
+            queryset = queryset.filter(conservation_status_id=filter_conservation_status)
+            print(queryset)
+
+        filter_region = request.GET.get('filter_region')
+        if filter_region and not filter_region.lower() == 'all':
+            queryset = queryset.filter(region=filter_region)
+
+        filter_district = request.GET.get('filter_district')
+        if filter_district and not filter_district.lower() == 'all':
+            queryset = queryset.filter(district=filter_district)
 
         getter = request.query_params.get
         fields = self.get_fields(getter)
@@ -173,22 +197,34 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
 class CommunitiesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
+        
         # filter_group_type
-        # filter_group_type = request.GET.get('filter_group_type')
-        # if filter_group_type:
-        #     queryset = queryset.filter(group_type__name=filter_group_type)
-        # filter_community_id
+        filter_group_type = request.GET.get('filter_group_type')
+        if filter_group_type:
+            queryset = queryset.filter(group_type__name=filter_group_type)
+        
+        #filter_community_id
         filter_community_id = request.GET.get('filter_community_id')
         if filter_community_id and not filter_community_id.lower() == 'all':
             queryset = queryset.filter(community_id=filter_community_id)
+
         # filter_community_name
         filter_community_name = request.GET.get('filter_community_name')
         if filter_community_name and not filter_community_name.lower() == 'all':
             queryset = queryset.filter(community_name=filter_community_name)
+
         # filter_community_status
         filter_community_status = request.GET.get('filter_community_status')
         if filter_community_status and not filter_community_status.lower() == 'all':
             queryset = queryset.filter(community_status=filter_community_status)
+
+        filter_region = request.GET.get('filter_region')
+        if filter_region and not filter_region.lower() == 'all':
+            queryset = queryset.filter(region=filter_region)
+
+        filter_district = request.GET.get('filter_district')
+        if filter_district and not filter_district.lower() == 'all':
+            queryset = queryset.filter(district=filter_district)
 
         getter = request.query_params.get
         fields = self.get_fields(getter)

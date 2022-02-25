@@ -39,8 +39,9 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">WA Conservation Status:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFloraConservationStatus">
                             <option value="all">All</option>
+                            <option v-for="status in conservation_status_list" :value="status.id">{{status.code}}</option>
                         </select>
                     </div>
                 </div>
@@ -55,7 +56,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFloraRegion">
                             <option value="all">All</option>
                             <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
                         </select>
@@ -64,7 +65,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">District:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFloraDistrict">
                             <option value="all">All</option>
                             <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
                         </select>
@@ -125,6 +126,21 @@ export default {
             required: false,
             default: 'filterFloraScientificName',
         },
+        filterFloraConservationStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraConservationStatus',
+        },
+        filterFloraRegion_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraRegion',
+        },
+        filterFloraDistrict_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraDistrict',
+        },
     },
     data() {
         let vm = this;
@@ -139,6 +155,12 @@ export default {
             filterFloraScientificName: sessionStorage.getItem(this.filterFloraScientificName_cache) ? 
                                 sessionStorage.getItem(this.filterFloraScientificName_cache) : 'all',
             filterCommonName: 'all',
+            filterFloraConservationStatus: sessionStorage.getItem(this.filterFloraConservationStatus_cache) ? 
+                                sessionStorage.getItem(this.filterFloraConservationStatus_cache) : 'all',
+            filterFloraRegion: sessionStorage.getItem(this.filterFloraRegion_cache) ? 
+                                sessionStorage.getItem(this.filterFloraRegion_cache) : 'all',
+            filterFloraDistrict: sessionStorage.getItem(this.filterFloraDistrict_cache) ? 
+                                sessionStorage.getItem(this.filterFloraDistrict_cache) : 'all',
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
@@ -190,6 +212,21 @@ export default {
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
         },
+        filterFloraConservationStatus: function() {
+            let vm = this;
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterFloraConservationStatus_cache, vm.filterFloraConservationStatus);
+        },
+        filterFloraRegion: function(){
+            let vm = this;
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFloraRegion_cache, vm.filterFloraRegion);
+        },
+        filterFloraDistrict: function(){
+            let vm = this;
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFloraDistrict_cache, vm.filterFloraDistrict);
+        },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
                 // Collapsible component exists
@@ -199,7 +236,8 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterFloraScientificName === 'all' && this.filterCommonName === 'all'){
+            if(this.filterFloraScientificName === 'all' && this.filterCommonName === 'all' && this.filterFloraConservationStatus === 'all' && 
+                this.filterFloraRegion === 'all' && this.filterFloraDistrict === 'all'){
                 return false
             } else {
                 return true
@@ -535,6 +573,9 @@ export default {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_scientific_name = vm.filterFloraScientificName;
                         d.filter_common_name = vm.filterCommonName;
+                        d.filter_conservation_status = vm.filterFloraConservationStatus;
+                        d.filter_region = vm.filterFloraRegion;
+                        d.filter_district = vm.filterFloraDistrict;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -561,6 +602,7 @@ export default {
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.species_data_list = vm.filterListsSpecies.species_data_list;
+                vm.conservation_status_list = vm.filterListsSpecies.conservation_status_list;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
