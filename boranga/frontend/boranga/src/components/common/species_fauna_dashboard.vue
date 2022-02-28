@@ -239,7 +239,7 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterFaunaScientificName === 'all' && this.filterCommonName === 'all' && this.filterFaunaRegion === 'all' && 
+            if(this.filterFaunaScientificName === 'all' && this.filterFaunaCommonName === 'all' && this.filterFaunaRegion === 'all' && 
                 this.filterFaunaDistrict === 'all'){
                 return false
             } else {
@@ -591,7 +591,7 @@ export default {
                     "data": function ( d ) {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_scientific_name = vm.filterFaunaScientificName;
-                        d.filter_common_name = vm.filterCommonName;
+                        d.filter_common_name = vm.filterFaunaCommonName;
                         d.filter_region = vm.filterFaunaRegion;
                         d.filter_district = vm.filterFaunaDistrict;
                         d.is_internal = vm.is_internal;
