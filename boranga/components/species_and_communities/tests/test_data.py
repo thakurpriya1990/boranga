@@ -1,10 +1,11 @@
 
 import csv
+from dis import dis
 from random import randrange
 
 # Create your tests here.
 from boranga.components.species_and_communities.models import DISTRICT_SWAN_COASTAL, REGION_CHOICES, REGION_SOUTH_WEST, District, DocumentCategory, NameAuthority, Region, Species, GroupType, ConservationStatus, ConservationList, \
-    ConservationCategory, ConservationCriteria, Taxonomy, Community, SpeciesDocument, ConservationThreat, \
+    ConservationCategory, ConservationCriteria, SpeciesAttributes, Taxonomy, Community, SpeciesDocument, ConservationThreat, \
     ConservationPlan, Distribution, ConservationAttributes, ThreatCategory
 
 save_to_database = True
@@ -19,6 +20,7 @@ def create_test_data():
     # create_species_fauna()
     # create_species_flora()
     # create_community()
+    # create_species_attributes()
 
 def create_region_district():
     try:
@@ -54,6 +56,31 @@ def create_region_name_authority():
             name_authority.save()
     except Exception as e:
         print("create_region_name_authority falied: ", e)
+        print("-----")
+
+def create_species_attributes():
+    try:
+        for species in Species.objects.all():
+            print(species.common_name)
+            name_reference = "{}_attribute_name_reference".format(species.common_name)
+            genetic = "{}_attribute_genetic".format(species.common_name)
+            biology = "{}_attribute_biology".format(species.common_name)
+            ecology = "{}_attribute_ecology".format(species.common_name)
+            fire = "{}_attribute_fire".format(species.common_name)
+            disease = "{}_attribute_disease".format(species.common_name)
+
+            species_attributes = SpeciesAttributes.objects.get_or_create(name_reference=name_reference,
+                                                                         genetic=genetic,
+                                                                         biology=biology,
+                                                                         ecology=ecology,
+                                                                         fire=fire,
+                                                                         disease=disease,
+                                                                         species=species)
+
+            if save_to_database:
+                species_attributes[0].save()
+    except Exception as e:
+        print("create_species_attributes falied: ", e)
         print("-----")
 
 def create_community():
