@@ -171,16 +171,22 @@ export default {
             // selected values for filtering
             filterFloraScientificName: sessionStorage.getItem(this.filterFloraScientificName_cache) ? 
                                     sessionStorage.getItem(this.filterFloraScientificName_cache) : 'all',
+
             filterFloraCommonName: sessionStorage.getItem(this.filterFloraCommonName_cache) ? 
                                     sessionStorage.getItem(this.filterFloraCommonName_cache) : 'all',
+
             filterFloraFamily: sessionStorage.getItem(this.filterFloraFamily_cache) ? 
                                 sessionStorage.getItem(this.filterFloraFamily_cache) : 'all',
+
             filterFloraGenus: sessionStorage.getItem(this.filterFloraGenus_cache) ? 
                                 sessionStorage.getItem(this.filterFloraGenus_cache) : 'all',
+
             filterFloraConservationStatus: sessionStorage.getItem(this.filterFloraConservationStatus_cache) ? 
                                     sessionStorage.getItem(this.filterFloraConservationStatus_cache) : 'all',
+
             filterFloraRegion: sessionStorage.getItem(this.filterFloraRegion_cache) ? 
                                     sessionStorage.getItem(this.filterFloraRegion_cache) : 'all',
+
             filterFloraDistrict: sessionStorage.getItem(this.filterFloraDistrict_cache) ? 
                                     sessionStorage.getItem(this.filterFloraDistrict_cache) : 'all',
 

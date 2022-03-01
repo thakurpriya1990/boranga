@@ -113,6 +113,21 @@ export default {
             type: String,
             required: true
         },
+        filterCommunityId_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityId',
+        },
+        filterCommunityName_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityName',
+        },
+        filterCommunityStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityStatus',
+        },
         filterCommunityRegion_cache: {
             type: String,
             required: false,
@@ -134,13 +149,20 @@ export default {
             is_payment_admin: false,
             
             // selected values for filtering
-            filterCommunityId: 'all',
-            filterCommunityName: 'all',
-            filterCommunityStatus: 'all',
+            filterCommunityId: sessionStorage.getItem(this.filterCommunityId_cache) ? 
+                                sessionStorage.getItem(this.filterCommunityId_cache) : 'all',
+
+            filterCommunityName: sessionStorage.getItem(this.filterCommunityName_cache) ? 
+                                    sessionStorage.getItem(this.filterCommunityName_cache) : 'all',
+
+            filterCommunityStatus: sessionStorage.getItem(this.filterCommunityStatus_cache) ? 
+                                    sessionStorage.getItem(this.filterCommunityStatus_cache) : 'all',
+
             filterCommunityRegion: sessionStorage.getItem(this.filterCommunityRegion_cache) ? 
-                                sessionStorage.getItem(this.filterCommunityRegion_cache) : 'all',
+                                    sessionStorage.getItem(this.filterCommunityRegion_cache) : 'all',
+
             filterCommunityDistrict: sessionStorage.getItem(this.filterCommunityDistrict_cache) ? 
-                                sessionStorage.getItem(this.filterCommunityDistrict_cache) : 'all',
+                                        sessionStorage.getItem(this.filterCommunityDistrict_cache) : 'all',
 
             //Filter list for Community select box
             communities_list: [],
@@ -184,14 +206,17 @@ export default {
         filterCommunityId: function(){
             let vm = this;
             vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterCommunityId_cache, vm.filterCommunityId);
         },
         filterCommunityName: function() {
             let vm = this;
             vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterCommunityName_cache, vm.filterCommunityName);
         },
         filterCommunityStatus: function() {
             let vm = this;
             vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterCommunityStatus_cache, vm.filterCommunityStatus);
         },
         filterCommunityRegion: function(){
             let vm = this;
@@ -212,8 +237,11 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCommunityId === 'all' && this.filterCommunityName === 'all' && this.filterCommunityStatus === 'all' && 
-                this.filterCommunityRegion === 'all' && this.filterCommunityDistrict === 'all'){
+            if(this.filterCommunityId === 'all' && 
+                this.filterCommunityName === 'all' && 
+                this.filterCommunityStatus === 'all' && 
+                this.filterCommunityRegion === 'all' && 
+                this.filterCommunityDistrict === 'all'){
                 return false
             } else {
                 return true

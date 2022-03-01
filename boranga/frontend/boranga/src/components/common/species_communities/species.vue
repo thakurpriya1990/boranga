@@ -256,16 +256,10 @@ export default {
         data:function () {
             let vm = this;
             return{
-                pBody: 'pBody'+vm._uid,
                 distributionBody: 'distributionBody'+vm._uid,
                 taxonomyBody: 'taxonomyBody'+vm._uid,
                 conservationAttributesBody: 'conservationAttributesBody'+vm._uid,
                 conservationStatusBody: 'conservationStatusBody'+vm._uid,
-                iBody: 'iBody'+vm._uid,
-                mBody: 'mBody'+vm._uid,
-                oBody: 'oBody'+vm._uid,
-                cBody: 'cBody'+vm._uid,
-                dBody: 'dBody'+vm._uid,
                 values:null,
                 accreditation_choices:[],
                 accreditation_type:[],
