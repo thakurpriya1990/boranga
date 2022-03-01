@@ -23,32 +23,37 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Phylo Group:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFaunaPhylogeneticGroup">
                             <option value="all">All</option>
+                            <option v-for="species in species_data_list" :value="species.phylogenetic_group">
+                                {{species.phylogenetic_group}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Family:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFaunaFamily">
                             <option value="all">All</option>
+                            <option v-for="species in species_data_list" :value="species.family">{{species.family}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Genera:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFaunaGenus">
                             <option value="all">All</option>
+                            <option v-for="species in species_data_list" :value="species.genus">{{species.genus}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">WA Conservation Status:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFaunaConservationStatus">
                             <option value="all">All</option>
+                            <option v-for="status in conservation_status_list" :value="status.id">{{status.code}}</option>
                         </select>
                     </div>
                 </div>
@@ -138,6 +143,26 @@ export default {
             required: false,
             default: 'filterFaunaCommonName',
         },
+        filterFaunaPhylogeneticGroup_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaPhylogeneticGroup',
+        },
+        filterFaunaFamily_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaFamily',
+        },
+        filterFaunaGenus_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaGenus',
+        },
+        filterFaunaConservationStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaConservationStatus',
+        },
         filterFaunaRegion_cache: {
             type: String,
             required: false,
@@ -160,13 +185,28 @@ export default {
             
             // selected values for filtering
             filterFaunaScientificName: sessionStorage.getItem(this.filterFaunaScientificName_cache) ? 
-                                sessionStorage.getItem(this.filterFaunaScientificName_cache) : 'all',
+                                        sessionStorage.getItem(this.filterFaunaScientificName_cache) : 'all',
+
             filterFaunaCommonName: sessionStorage.getItem(this.filterFaunaCommonName_cache) ? 
-                                sessionStorage.getItem(this.filterFaunaCommonName_cache) : 'all',
+                                    sessionStorage.getItem(this.filterFaunaCommonName_cache) : 'all',
+
+            filterFaunaPhylogeneticGroup: sessionStorage.getItem(this.filterFaunaPhylogeneticGroup_cache) ? 
+                                            sessionStorage.getItem(this.filterFaunaPhylogeneticGroup_cache) : 'all',
+
+            filterFaunaFamily: sessionStorage.getItem(this.filterFaunaFamily_cache) ? 
+                                sessionStorage.getItem(this.filterFaunaFamily_cache) : 'all',
+
+            filterFaunaGenus: sessionStorage.getItem(this.filterFaunaGenus_cache) ? 
+                                sessionStorage.getItem(this.filterFaunaGenus_cache) : 'all',
+
+            filterFaunaConservationStatus: sessionStorage.getItem(this.filterFaunaConservationStatus_cache) ? 
+                                            sessionStorage.getItem(this.filterFaunaConservationStatus_cache) : 'all',
+
             filterFaunaRegion: sessionStorage.getItem(this.filterFaunaRegion_cache) ? 
                                 sessionStorage.getItem(this.filterFaunaRegion_cache) : 'all',
+
             filterFaunaDistrict: sessionStorage.getItem(this.filterFaunaDistrict_cache) ? 
-                                sessionStorage.getItem(this.filterFaunaDistrict_cache) : 'all',
+                                    sessionStorage.getItem(this.filterFaunaDistrict_cache) : 'all',
 
 
             //Filter list for scientific name and common name
@@ -220,6 +260,26 @@ export default {
             vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
             sessionStorage.setItem(vm.filterFaunaCommonName_cache, vm.filterFaunaCommonName);
         },
+        filterFaunaPhylogeneticGroup: function() {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
+            sessionStorage.setItem(vm.filterFaunaPhylogeneticGroup_cache, vm.filterFaunaPhylogeneticGroup);
+        },
+        filterFaunaFamily: function() {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaFamily_cache, vm.filterFaunaFamily);  
+        },
+        filterFaunaGenus: function() {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaGenus_cache, vm.filterFaunaGenus);  
+        },
+        filterFaunaConservationStatus: function() {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterFaunaConservationStatus_cache, vm.filterFaunaConservationStatus);
+        },
         filterFaunaRegion: function(){
             let vm = this;
             vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
@@ -239,7 +299,13 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterFaunaScientificName === 'all' && this.filterFaunaCommonName === 'all' && this.filterFaunaRegion === 'all' && 
+            if(this.filterFaunaScientificName === 'all' && 
+                this.filterFaunaCommonName === 'all' && 
+                this.filterFaunaPhylogeneticGroup === 'all' && 
+                this.filterFaunaConservationStatus === 'all' &&
+                this.filterFaunaFamily === 'all' && 
+                this.filterFaunaGenus === 'all' && 
+                this.filterFaunaRegion === 'all' && 
                 this.filterFaunaDistrict === 'all'){
                 return false
             } else {
@@ -406,18 +472,18 @@ export default {
         },
         column_genera: function(){
             return {
-                data: "genera",
+                data: "genus",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.genera){
-                        return full.genera;
+                    if(full.genus){
+                        return full.genus;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "genera",
+                name: "genus",
             }
         },
         column_wa_conservation_status: function(){
@@ -592,6 +658,10 @@ export default {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_scientific_name = vm.filterFaunaScientificName;
                         d.filter_common_name = vm.filterFaunaCommonName;
+                        d.filter_phylogenetic_group = vm.filterFaunaPhylogeneticGroup;
+                        d.filter_family = vm.filterFaunaFamily;
+                        d.filter_genus = vm.filterFaunaGenus;
+                        d.filter_conservation_status = vm.filterFaunaConservationStatus;
                         d.filter_region = vm.filterFaunaRegion;
                         d.filter_district = vm.filterFaunaDistrict;
                         d.is_internal = vm.is_internal;
@@ -620,6 +690,7 @@ export default {
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.species_data_list = vm.filterListsSpecies.species_data_list;
+                vm.conservation_status_list = vm.filterListsSpecies.conservation_status_list;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {

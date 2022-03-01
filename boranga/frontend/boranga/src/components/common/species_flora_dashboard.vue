@@ -14,7 +14,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Common Name:</label>
-                        <select class="form-control" v-model="filterCommonName">
+                        <select class="form-control" v-model="filterFloraCommonName">
                             <option value="all">All</option>
                             <option v-for="species in species_data_list" :value="species.common_name">{{species.common_name}}</option>
                         </select>
@@ -23,16 +23,18 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Family:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFloraFamily">
                             <option value="all">All</option>
+                            <option v-for="species in species_data_list" :value="species.family">{{species.family}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Genera:</label>
-                        <select class="form-control">
+                        <select class="form-control" v-model="filterFloraGenus">
                             <option value="all">All</option>
+                            <option v-for="species in species_data_list" :value="species.genus">{{species.genus}}</option>
                         </select>
                     </div>
                 </div>
@@ -126,6 +128,21 @@ export default {
             required: false,
             default: 'filterFloraScientificName',
         },
+        filterFloraCommonName_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraCommonName',
+        },
+        filterFloraFamily_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraFamily',
+        },
+        filterFloraGenus_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraGenus',
+        },
         filterFloraConservationStatus_cache: {
             type: String,
             required: false,
@@ -153,14 +170,19 @@ export default {
             
             // selected values for filtering
             filterFloraScientificName: sessionStorage.getItem(this.filterFloraScientificName_cache) ? 
-                                sessionStorage.getItem(this.filterFloraScientificName_cache) : 'all',
-            filterCommonName: 'all',
+                                    sessionStorage.getItem(this.filterFloraScientificName_cache) : 'all',
+            filterFloraCommonName: sessionStorage.getItem(this.filterFloraCommonName_cache) ? 
+                                    sessionStorage.getItem(this.filterFloraCommonName_cache) : 'all',
+            filterFloraFamily: sessionStorage.getItem(this.filterFloraFamily_cache) ? 
+                                sessionStorage.getItem(this.filterFloraFamily_cache) : 'all',
+            filterFloraGenus: sessionStorage.getItem(this.filterFloraGenus_cache) ? 
+                                sessionStorage.getItem(this.filterFloraGenus_cache) : 'all',
             filterFloraConservationStatus: sessionStorage.getItem(this.filterFloraConservationStatus_cache) ? 
-                                sessionStorage.getItem(this.filterFloraConservationStatus_cache) : 'all',
+                                    sessionStorage.getItem(this.filterFloraConservationStatus_cache) : 'all',
             filterFloraRegion: sessionStorage.getItem(this.filterFloraRegion_cache) ? 
-                                sessionStorage.getItem(this.filterFloraRegion_cache) : 'all',
+                                    sessionStorage.getItem(this.filterFloraRegion_cache) : 'all',
             filterFloraDistrict: sessionStorage.getItem(this.filterFloraDistrict_cache) ? 
-                                sessionStorage.getItem(this.filterFloraDistrict_cache) : 'all',
+                                    sessionStorage.getItem(this.filterFloraDistrict_cache) : 'all',
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
@@ -208,9 +230,20 @@ export default {
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraScientificName_cache, vm.filterFloraScientificName);  
         },
-        filterCommonName: function() {
+        filterFloraCommonName: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFloraCommonName_cache, vm.filterFloraCommonName);  
+        },
+        filterFloraFamily: function() {
+            let vm = this;
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFloraFamily_cache, vm.filterFloraFamily);  
+        },
+        filterFloraGenus: function() {
+            let vm = this;
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFloraGenus_cache, vm.filterFloraGenus);  
         },
         filterFloraConservationStatus: function() {
             let vm = this;
@@ -236,8 +269,13 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterFloraScientificName === 'all' && this.filterCommonName === 'all' && this.filterFloraConservationStatus === 'all' && 
-                this.filterFloraRegion === 'all' && this.filterFloraDistrict === 'all'){
+            if(this.filterFloraScientificName === 'all' && 
+                this.filterFloraCommonName === 'all' && 
+                this.filterFloraFamily === 'all' && 
+                this.filterFloraGenus === 'all' && 
+                this.filterFloraConservationStatus === 'all' && 
+                this.filterFloraRegion === 'all' && 
+                this.filterFloraDistrict === 'all'){
                 return false
             } else {
                 return true
@@ -369,7 +407,7 @@ export default {
         },
         column_genera: function(){
             return {
-                data: "genera",
+                data: "genus",
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -398,7 +436,7 @@ export default {
                             return type=='export' ? value : result;
                 },
                 'createdCell': helpers.dtPopoverCellFn,
-                name: "genera",
+                name: "genus",
             }
         },
         column_wa_conservation_status: function(){
@@ -572,7 +610,9 @@ export default {
                     "data": function ( d ) {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_scientific_name = vm.filterFloraScientificName;
-                        d.filter_common_name = vm.filterCommonName;
+                        d.filter_common_name = vm.filterFloraCommonName;
+                        d.filter_family = vm.filterFloraFamily;
+                        d.filter_genus = vm.filterFloraGenus;
                         d.filter_conservation_status = vm.filterFloraConservationStatus;
                         d.filter_region = vm.filterFloraRegion;
                         d.filter_district = vm.filterFloraDistrict;

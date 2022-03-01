@@ -23,7 +23,7 @@ logger = logging.getLogger('boranga')
 class ListSpeciesSerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField()
 	family = serializers.SerializerMethodField()
-	genera = serializers.SerializerMethodField()
+	genus = serializers.SerializerMethodField()
 	phylogenetic_group = serializers.SerializerMethodField()
 	conservation_status = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
@@ -37,7 +37,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'common_name',
 			    'taxonomy',
 			    'family',
-			    'genera',
+			    'genus',
 			    'phylogenetic_group',
 			    'region',
 			    'district',
@@ -51,7 +51,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'common_name',
 			    'taxonomy',
 			    'family',
-			    'genera',
+			    'genus',
 			    'phylogenetic_group',
 			    'region',
 			    'district',
@@ -67,7 +67,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			return obj.taxonomy.family
 		return None
 
-	def get_genera(self,obj):
+	def get_genus(self,obj):
 		if obj.taxonomy:
 			return obj.taxonomy.genus
 		return None

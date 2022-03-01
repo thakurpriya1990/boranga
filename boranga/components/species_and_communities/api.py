@@ -133,12 +133,23 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         filter_common_name = request.GET.get('filter_common_name')
         if filter_common_name and not filter_common_name.lower() == 'all':
             queryset = queryset.filter(common_name=filter_common_name)
+
+        filter_phylogenetic_group = request.GET.get('filter_phylogenetic_group')
+        if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
+            queryset = queryset.filter(taxonomy__phylogenetic_group=filter_phylogenetic_group)
+        
+        filter_family = request.GET.get('filter_family')
+        if filter_family and not filter_family.lower() == 'all':
+            queryset = queryset.filter(taxonomy__family=filter_family)
+
+        filter_genus = request.GET.get('filter_genus')
+        if filter_genus and not filter_genus.lower() == 'all':
+            queryset = queryset.filter(taxonomy__genus=filter_genus)
         
         filter_conservation_status = request.GET.get('filter_conservation_status')
         if filter_conservation_status and not filter_conservation_status.lower() == 'all':
             queryset = queryset.filter(conservation_status_id=filter_conservation_status)
-            print(queryset)
-
+        
         filter_region = request.GET.get('filter_region')
         if filter_region and not filter_region.lower() == 'all':
             queryset = queryset.filter(region=filter_region)
