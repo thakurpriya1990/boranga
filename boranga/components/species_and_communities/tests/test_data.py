@@ -119,12 +119,6 @@ def create_name_authority():
 
 def create_species_attributes():
     print('--------------Starting {}'.format('create_species_attributes'))
-        create_species_fauna()
-    except Exception as e:
-        logger.debug("FAILED create_region_name_authority failed: ", e)
-
-def create_species_attributes():
-    print('--------------Starting {}'.format('create_species_attributes'))
     try:
         for species in Species.objects.all():
             name_reference = "{}_attribute_name_reference".format(species.common_name)
