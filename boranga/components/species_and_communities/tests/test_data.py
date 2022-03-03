@@ -8,21 +8,26 @@ from boranga.components.species_and_communities.models import DISTRICT_SWAN_COAS
     ConservationCategory, ConservationCriteria, SpeciesAttributes, Taxonomy, Community, SpeciesDocument, ConservationThreat, \
     ConservationPlan, Distribution, ConservationAttributes, ThreatCategory
 
+import logging
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+logging.basicConfig(#file="/home/graeme/workspace/boranga/boranga/components/species_and_communities/tests/debug.log",
+                    format='create_test_data: %(message)s',
+                    filemode='w')
+logger = logging.getLogger()
+
 save_to_database = True
 
 def create_test_data():
     print('----------------------------------------------------')
     print('--------------ADDING TEST DATA----------------------')
     print('----------------------------------------------------')
-    # create_group_types()
-    # create_region_district()
-    # create_region_name_authority()
-    # create_species_fauna()
-    # create_species_flora()
-    # create_community()
-    # create_species_attributes()
+    
+    create_group_types()
+
 
 def create_region_district():
+    print('--------------Starting {}'.format('create_region_district'))
     try:
         region = Region.objects.get_or_create(name=REGION_SOUTH_WEST)[0]
         district = District.objects.get_or_create(name=DISTRICT_SWAN_COASTAL, region=region)[0]
@@ -30,11 +35,13 @@ def create_region_district():
         if save_to_database:
             region.save()
             district.save()
+        print('--------------     Completed {}'.format('create_region_district'))
+        create_region_name_authority()
     except Exception as e:
-        print("create_region_district falied: ", e)
-        print("-----")
+        logger.debug("FAILED create_region_district failed: ", e)
 
 def create_group_types():
+    print('--------------Starting {}'.format('create_group_types'))
     try:
         flora_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[0][0])[0]
         fauna_group_type = GroupType.objects.get_or_create(name=GroupType.GROUP_TYPES[1][0])[0]
@@ -44,21 +51,63 @@ def create_group_types():
             flora_group_type.save()
             fauna_group_type.save()
             community_group_type.save()
+        print('--------------     Completed {}'.format('create_group_types'))
+        create_region_district()
     except Exception as e:
-        print("create_group_types falied: ", e)
-        print("-----")
+        logger.debug("FAILED create_group_types failed: ", e)
 
 def create_region_name_authority():
+    print('--------------Starting {}'.format('create_region_name_authority'))
     try:
         name_authority = NameAuthority.objects.get_or_create(name="WA Museum")
 
         if save_to_database:
-            name_authority.save()
+            name_authority[0].save()
+        print('--------------     Completed {}'.format('create_group_types'))
+        create_species_fauna()
     except Exception as e:
-        print("create_region_name_authority falied: ", e)
+        logger.debug("FAILED create_region_name_authority failed: ", e)
+
+def create_species_attributes():
+    print('--------------Starting {}'.format('create_species_attributes'))
+    try:
+        for species in Species.objects.all():
+            name_reference = "{}_attribute_name_reference".format(species.common_name)
+            genetic = "{}_attribute_genetic".format(species.common_name)
+            biology = "{}_attribute_biology".format(species.common_name)
+            ecology = "{}_attribute_ecology".format(species.common_name)
+            fire = "{}_attribute_fire".format(species.common_name)
+            disease = "{}_attribute_disease".format(species.common_name)
+
+            species_attributes = SpeciesAttributes.objects.get_or_create(name_reference=name_reference,
+                                                                         genetic=genetic,
+                                                                         biology=biology,
+                                                                         ecology=ecology,
+                                                                         fire=fire,
+                                                                         disease=disease,
+                                                                         species=species)
+
+            if save_to_database:
+                species_attributes[0].save()
+        print('--------------     Completed {}'.format(create_species_attributes))
+    except Exception as e:
+        logger.debug("FAILED create_species_attributes failed: ", e)
+
+def create_region_name_authority():
+    print('--------------Starting {}'.format(create_region_name_authority))
+    try:
+        name_authority = NameAuthority.objects.get_or_create(name="WA Museum")[0]
+
+        if save_to_database:
+            name_authority.save()
+        print('--------------Completed {}'.format(create_group_types))
+        create_species_fauna()
+    except Exception as e:
+        print("create_region_name_authority failed: ", e)
         print("-----")
 
 def create_species_attributes():
+    print('--------------Starting {}'.format(create_species_attributes))
     try:
         for species in Species.objects.all():
             print(species.common_name)
@@ -79,8 +128,9 @@ def create_species_attributes():
 
             if save_to_database:
                 species_attributes[0].save()
+        print('--------------Completed {}'.format(create_species_attributes))
     except Exception as e:
-        print("create_species_attributes falied: ", e)
+        print("create_species_attributes failed: ", e)
         print("-----")
 
 def create_community():
@@ -89,6 +139,7 @@ def create_community():
     to be added to the Community that is created. It is surrounded by try/except
     so if row fails, that row can be recorded as faulty and saved to a file for examination.
     """
+    print('--------------Starting {}'.format('create_community'))
     row_failed = False
     failed_rows = []
     data_row = 1
@@ -121,21 +172,23 @@ def create_community():
                     flora_size = len(Species.objects.filter(group_type__name=GroupType.GROUP_TYPES[0][0]))
                     flora = Species.objects.get(group_type__name=GroupType.GROUP_TYPES[0][0], id=randrange(flora_size))
                     community.species.add(flora)
-                    
                 except Exception as e:
                     row_failed = True
                     failed_rows.append(community_row)
-                    print('create_community - {}: {}'.format(e, community_row))
-                    # could write falied_rows to file.
+                    logger.debug("FAILED create_community failed: ", e)
+                    # could write failed_rows to file.
 
                 if not row_failed and save_to_database:
                     community.save()
+    print('--------------     Completed {}'.format('create_community'))
+    create_species_attributes()
 
-def create_species_fauna():
+def create_species_fauna():        
     """
     This will take a fauna data file, create a species entry and save to the database. It is surrounded by try/except
     so if row fails, that row can be recorded as faulty and saved to a file for examination.
     """
+    print('--------------Starting {}'.format('create_species_fauna'))
     row_failed = False
     failed_rows = []
 
@@ -239,9 +292,7 @@ def create_species_fauna():
                 except Exception as e:
                     row_failed = True
                     failed_rows.append(fauna_row)
-                    if "list index out of range" not in str(e):
-                        print('create_species_fauna - {}: {}'.format(e, fauna_row))
-                    # could write falied_rows to file.
+                    logger.debug('FAILED create_species_fauna - {}: {}'.format(e, fauna_row))
 
                 if not row_failed and save_to_database:
                     conservation_list.save()
@@ -256,7 +307,11 @@ def create_species_fauna():
                     distribution.save()
                     conservation_attributes.save()
 
+    print('--------------     Completed {}'.format('create_species_fauna'))
+    create_species_flora()
+
 def create_species_flora():
+    print('--------------Starting {}'.format('create_species_flora'))
     """
     This will take a flora data file, create a species entry and save to the database. It is surrounded by try/except
     so if row fails, that row can be recorded as faulty and saved to a file for examination.
@@ -304,9 +359,6 @@ def create_species_flora():
                                                    taxonomy = taxonomy
                     )
 
-                    species_id = flora.id
-                    category_id = conservation_category.id
-                    status = flora_row[4]
                     document = "{}.pdf".format(flora_row[5])
                     document_description = "{}.pdf".format(flora_row[5])
                     species_document = SpeciesDocument.objects.create(document=document,
@@ -369,8 +421,8 @@ def create_species_flora():
                 except Exception as e:
                     row_failed = True
                     failed_rows.append(flora_row)
-                    print('create_species_flora - {}: {}'.format(e, flora_row))
-                    # could write falied_rows to file.
+                    logger.debug('create_species_flora - {}: {}'.format(e, flora_row))
+                    # could write failed_rows to file.
 
                 if not row_failed and save_to_database:
                     conservation_list.save()
@@ -380,9 +432,9 @@ def create_species_flora():
                     taxonomy.save()
                     flora.save()
                     species_document.save()
-                    document_category.save()
                     conservation_threat.save()
                     conservation_plans.save()
                     distribution.save()
-                    conservation_attributes.save()
+    print('--------------     Completed {}'.format('create_species_flora'))
+    create_community()
 
