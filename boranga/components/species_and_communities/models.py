@@ -663,7 +663,6 @@ class SpeciesDocument(models.Model):
                                           on_delete=models.CASCADE)
     species = models.ForeignKey(Species, 
                                 blank=False, 
-                                blank=False,
                                 default=None,
                                 on_delete=models.CASCADE)
 
