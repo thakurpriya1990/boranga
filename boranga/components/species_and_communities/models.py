@@ -69,6 +69,7 @@ REGION_CHOICES = (
 class Region(models.Model):
     name = models.CharField(choices=REGION_CHOICES, 
                             unique=True,
+                            default=None,
                             max_length=64)
 
     class Meta:
@@ -344,6 +345,21 @@ class ConservationCriteria(models.Model):
         return str(self.code)
 
 
+class ConservationChangeCode(models.Model):
+    """
+    When the conservation status of a species is changed, it can be for a number of reasons. 
+    These reasons are represented by change codes.
+    """
+    code = models.CharField(max_length=32,
+                            default="None")
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.code)
+
+
 class ConservationStatus(models.Model):
     """
     Several lists with different attributes
@@ -351,6 +367,7 @@ class ConservationStatus(models.Model):
     NB: Different lists has different different entries
     mainly interest in wa but must accomodte comm as well
     Has a:
+    - ConservationChangeCode
     - ConservationList
     - ConservationCategory
     - ConservationCriteria
@@ -360,11 +377,15 @@ class ConservationStatus(models.Model):
     Is:
     - Table
     """
+    change_code = models.ForeignKey(ConservationChangeCode, 
+                                    on_delete=models.CASCADE)
     conservation_list = models.OneToOneField(ConservationList,
                                              on_delete=models.CASCADE,
                                              primary_key=True,)
-    conservation_category = models.ForeignKey(ConservationCategory, on_delete=models.CASCADE)
-    conservation_criteria = models.ForeignKey(ConservationCriteria, on_delete=models.CASCADE)
+    conservation_category = models.ForeignKey(ConservationCategory, 
+                                              on_delete=models.CASCADE)
+    conservation_criteria = models.ForeignKey(ConservationCriteria, 
+                                              on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'boranga'
@@ -423,6 +444,23 @@ class Taxonomy(models.Model):
         return str(self.taxon)  # TODO: is the most appropriate?
 
 
+class Contact(models.Model):
+    """
+    Hold the contact details for a person.
+    """
+    first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32)
+    role = models.CharField(max_length=32)
+    phone = models.CharField(max_length=32)
+    email = models.EmailField()
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return '{}, {}'.format(self.last_name, self.first_name)
+
+
 class Species(models.Model):
     """
     Forms the basis for a Species and Communities record.
@@ -454,8 +492,10 @@ class Species(models.Model):
                                                on_delete=models.CASCADE)
     # community many to many
     region = models.ForeignKey(Region, 
+                               default=None,
                                on_delete=models.CASCADE)
     district = models.ForeignKey(District, 
+                                 default=None,
                                  on_delete=models.CASCADE)
     image = models.CharField(max_length=512,
                              default="None")
@@ -473,6 +513,55 @@ class Species(models.Model):
 
     def __str__(self):
         return str(self.taxonomy.taxon)  # TODO: is the most appropriate?
+
+
+class CommitteeMeeting(models.Model):
+    """
+    A change in conservation status for a species is executed during Committee Meetings. 
+    It is necessary to capture these changes and the meetings that caused the change. 
+
+    Has a:
+    - Contact
+    """
+    attendees = models.ManyToManyField(Contact,
+                                       blank=False)
+    date = models.DateField()
+    location = models.CharField(max_length=128)
+    species = models.ManyToManyField(Species,
+                                     blank=False)
+                                
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.date)
+
+
+class SpeciesAttributes(models.Model):
+    """
+    Do no know what this is but is required for SpeciesDocuments
+    """
+    name_reference = models.CharField(max_length=128,
+                                      default="None")
+    genetic = models.CharField(max_length=128,
+                               default="None")
+    biology = models.CharField(max_length=128,
+                               default="None")
+    ecology = models.CharField(max_length=128,
+                               default="None")
+    fire = models.CharField(max_length=128,
+                            default="None")
+    disease = models.CharField(max_length=128,
+                               default="None")
+
+    species = models.ForeignKey(Species, blank=False, 
+                                on_delete=models.CASCADE)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name_reference)  # TODO: is the most appropriate?
 
 
 class Source(models.Model):
@@ -501,6 +590,8 @@ class Community(models.Model):
     Is:
     - Table
     """
+    conservation_status = models.OneToOneField(ConservationStatus,
+                                            on_delete=models.CASCADE)
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
     community_name = models.CharField(max_length=2048,
@@ -509,8 +600,10 @@ class Community(models.Model):
     community_status = models.CharField(max_length=128,
                                         default="None")
     region = models.ForeignKey(Region, 
+                               default=None,
                                on_delete=models.CASCADE)
     district = models.ForeignKey(District, 
+                                 default=None,
                                  on_delete=models.CASCADE)
 
     species = models.ManyToManyField(Species, blank=False)
@@ -520,33 +613,6 @@ class Community(models.Model):
 
     def __str__(self):
         return str("{}: {}".format(self.community_id, self.community_name))
-
-
-class SpeciesDocument(models.Model):
-    """
-    Meta-data associated with a document relevant to a Species.
-
-    Has a:
-    - DocumentCategory
-    Used by:
-    - Species
-    - Communities:
-    Is:
-    - Table
-    """
-    document = models.CharField(max_length=512,                 
-                                default="None") # document file name without path
-    document_description = models.CharField(max_length=1024,
-                                            default="None")
-    date_time = models.DateField(default=datetime.date.today)
-
-    species = models.ManyToManyField(Species, blank=False)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.document)
 
 
 class DocumentCategory(models.Model):
@@ -566,14 +632,45 @@ class DocumentCategory(models.Model):
     """
     name = models.CharField(max_length=128,
                             default="None")
-    species_document = models.ForeignKey(to=SpeciesDocument, 
-                                         on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.name)
+        return str(self.document)
+                                    
+
+class SpeciesDocument(models.Model):
+    """
+    Meta-data associated with a document relevant to a Species.
+
+    Has a:
+    - DocumentCategory
+    Used by:
+    - Species
+    - Communities:
+    Is:
+    - Table
+    """
+    document = models.CharField(max_length=512,                 
+                                default="None") # document file name without path
+    document_description = models.CharField(max_length=1024,
+                                            default="None")
+    date_time = models.DateField(default=datetime.date.today)
+
+    document_category = models.ForeignKey(DocumentCategory, 
+                                          default="None",
+                                          on_delete=models.CASCADE)
+    species = models.ForeignKey(Species, 
+                                blank=False, 
+                                default=None,
+                                on_delete=models.CASCADE)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.document)
 
 
 class ThreatCategory(models.Model):
@@ -633,8 +730,10 @@ class ConservationPlan(models.Model):
     - Table
     """
     region = models.ForeignKey(Region, 
+                               default=None,
                                on_delete=models.CASCADE)
     district = models.ForeignKey(District, 
+                                 default=None,
                                  on_delete=models.CASCADE)
     type = models.CharField(max_length=512,
                             default="None")
