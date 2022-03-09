@@ -7,7 +7,9 @@
                         <label for="">Community ID:</label>
                         <select class="form-control" v-model="filterCommunityId">
                             <option value="all">All</option>
-                            <option v-for="community in communities_list" :value="community.community_id">{{community.community_id}}</option>
+                            <option v-for="community in communities_data_list" :value="community.community_id">
+                                {{community.community_id}}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -16,7 +18,9 @@
                         <label for="">Community Name:</label>
                         <select class="form-control" v-model="filterCommunityName">
                             <option value="all">All</option>
-                            <option v-for="community in communities_list" :value="community.community_name">{{community.community_name}}</option>
+                            <option v-for="community in communities_data_list" :value="community.community_name">
+                                {{community.community_name}}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -25,15 +29,27 @@
                         <label for="">Community Status:</label>
                         <select class="form-control" v-model="filterCommunityStatus">
                             <option value="all">All</option>
-                            <option v-for="community in communities_list" :value="community.community_status">{{community.community_status}}</option>
+                            <option v-for="community in communities_data_list" :value="community.community_status">
+                                {{community.community_status}}
+                            </option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">WA Conservation Status:</label>
-                        <select class="form-control">
+                        <label for="">Conservation List:</label>
+                        <select class="form-control" v-model="filterCommunityConservationList">
                             <option value="all">All</option>
+                            <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Conservation Category:</label>
+                        <select class="form-control" v-model="filterCommunityConservationCategory">
+                            <option value="all">All</option>
+                            <option v-for="list in conservation_category_list" :value="list.id">{{list.code}}</option>
                         </select>
                     </div>
                 </div>
@@ -128,6 +144,16 @@ export default {
             required: false,
             default: 'filterCommunityStatus',
         },
+        filterCommunityConservationList_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityConservationList',
+        },
+        filterCommunityConservationCategory_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityConservationCategory',
+        },
         filterCommunityRegion_cache: {
             type: String,
             required: false,
@@ -158,6 +184,12 @@ export default {
             filterCommunityStatus: sessionStorage.getItem(this.filterCommunityStatus_cache) ? 
                                     sessionStorage.getItem(this.filterCommunityStatus_cache) : 'all',
 
+            filterCommunityConservationList: sessionStorage.getItem(this.filterCommunityConservationList_cache) ? 
+                                    sessionStorage.getItem(this.filterCommunityConservationList_cache) : 'all',
+
+            filterCommunityConservationCategory: sessionStorage.getItem(this.filterCommunityConservationCategory_cache) ? 
+                                    sessionStorage.getItem(this.filterCommunityConservationCategory_cache) : 'all',
+
             filterCommunityRegion: sessionStorage.getItem(this.filterCommunityRegion_cache) ? 
                                     sessionStorage.getItem(this.filterCommunityRegion_cache) : 'all',
 
@@ -165,7 +197,10 @@ export default {
                                         sessionStorage.getItem(this.filterCommunityDistrict_cache) : 'all',
 
             //Filter list for Community select box
-            communities_list: [],
+            filterListsCommunities: {},
+            communities_data_list: [],
+            conservation_list_dict: [],
+            conservation_category_list: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
@@ -218,6 +253,16 @@ export default {
             vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCommunityStatus_cache, vm.filterCommunityStatus);
         },
+        filterCommunityConservationList: function() {
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterCommunityConservationList_cache, vm.filterCommunityConservationList);
+        },
+        filterCommunityConservationCategory: function() {
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterCommunityConservationCategory_cache, vm.filterCommunityConservationCategory);
+        },
         filterCommunityRegion: function(){
             let vm = this;
             vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
@@ -240,6 +285,8 @@ export default {
             if(this.filterCommunityId === 'all' && 
                 this.filterCommunityName === 'all' && 
                 this.filterCommunityStatus === 'all' && 
+                this.filterCommunityConservationList === 'all' && 
+                this.filterCommunityConservationCategory === 'all' && 
                 this.filterCommunityRegion === 'all' && 
                 this.filterCommunityDistrict === 'all'){
                 return false
@@ -258,10 +305,12 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['id','Number', 'Community Id' ,'Community Name', 'Community Status', 'WA Conservation Status','Workflow Status', 'Region', 'District', 'Action']
+                return ['id','Number', 'Community Id' ,'Community Name', 'Community Status', 'Conservation List' ,  
+                            'Conservation Category', 'Action', 'Workflow Status', 'Region', 'District']
             }
             if (this.is_internal){
-                return ['id','Number', 'Community Id' ,'Community Name', 'Community Status', 'WA Conservation Status','Workflow Status', 'Region', 'District', 'Action']
+                return ['id','Number', 'Community Id' ,'Community Name', 'Community Status', 'Conservation List',  
+                            'Conservation Category', 'Action', 'Workflow Status', 'Region', 'District']
             }
         },
         column_id: function(){
@@ -293,9 +342,31 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    return full.community_id
+                'render': function(value, type){
+                        var ellipsis = '...',
+                                truncated = _.truncate(value, {
+                                    length: 25,
+                                    omission: ellipsis,
+                                    separator: ' '
+                                }),
+                                result = '<span>' + truncated + '</span>',
+                                popTemplate = _.template('<a href="#" ' +
+                                    'role="button" ' +
+                                    'data-toggle="popover" ' +
+                                    'data-trigger="click" ' +
+                                    'data-placement="top auto"' +
+                                    'data-html="true" ' +
+                                    'data-content="<%= text %>" ' +
+                                    '>more</a>');
+                            if (_.endsWith(truncated, ellipsis)) {
+                                result += popTemplate({
+                                    text: value
+                                });
+                            }
+                            //return result;
+                            return type=='export' ? value : result;
                 },
+                'createdCell': helpers.dtPopoverCellFn,
                 name: "community_id",
             }
         },
@@ -339,30 +410,100 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if(full.community_status){
-                        return full.community_status;
-                    }
-                    // Should not reach here
-                    return ''
+                'render': function(value, type){
+                        var ellipsis = '...',
+                                truncated = _.truncate(value, {
+                                    length: 25,
+                                    omission: ellipsis,
+                                    separator: ' '
+                                }),
+                                result = '<span>' + truncated + '</span>',
+                                popTemplate = _.template('<a href="#" ' +
+                                    'role="button" ' +
+                                    'data-toggle="popover" ' +
+                                    'data-trigger="click" ' +
+                                    'data-placement="top auto"' +
+                                    'data-html="true" ' +
+                                    'data-content="<%= text %>" ' +
+                                    '>more</a>');
+                            if (_.endsWith(truncated, ellipsis)) {
+                                result += popTemplate({
+                                    text: value
+                                });
+                            }
+                            //return result;
+                            return type=='export' ? value : result;
                 },
+                'createdCell': helpers.dtPopoverCellFn,
                 name: "community_status",
             }
         },
-        column_wa_conservation_status: function(){
+        column_conservation_list: function(){
             return {
-                data: "community_status",
+                data: "conservation_list",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if(full.community_status){
-                        return full.community_status;
-                    }
-                    // Should not reach here
-                    return ''
+                'render': function(value, type){
+                        var ellipsis = '...',
+                                truncated = _.truncate(value, {
+                                    length: 25,
+                                    omission: ellipsis,
+                                    separator: ' '
+                                }),
+                                result = '<span>' + truncated + '</span>',
+                                popTemplate = _.template('<a href="#" ' +
+                                    'role="button" ' +
+                                    'data-toggle="popover" ' +
+                                    'data-trigger="click" ' +
+                                    'data-placement="top auto"' +
+                                    'data-html="true" ' +
+                                    'data-content="<%= text %>" ' +
+                                    '>more</a>');
+                            if (_.endsWith(truncated, ellipsis)) {
+                                result += popTemplate({
+                                    text: value
+                                });
+                            }
+                            //return result;
+                            return type=='export' ? value : result;
                 },
-                name: "community_status",
+                'createdCell': helpers.dtPopoverCellFn,
+                name: "conservation_list",
+            }
+        },
+        column_conservation_category: function(){
+            return {
+                data: "conservation_category",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(value, type){
+                        var ellipsis = '...',
+                                truncated = _.truncate(value, {
+                                    length: 25,
+                                    omission: ellipsis,
+                                    separator: ' '
+                                }),
+                                result = '<span>' + truncated + '</span>',
+                                popTemplate = _.template('<a href="#" ' +
+                                    'role="button" ' +
+                                    'data-toggle="popover" ' +
+                                    'data-trigger="click" ' +
+                                    'data-placement="top auto"' +
+                                    'data-html="true" ' +
+                                    'data-content="<%= text %>" ' +
+                                    '>more</a>');
+                            if (_.endsWith(truncated, ellipsis)) {
+                                result += popTemplate({
+                                    text: value
+                                });
+                            }
+                            //return result;
+                            return type=='export' ? value : result;
+                },
+                'createdCell': helpers.dtPopoverCellFn,
+                name: "conservation_category",
             }
         },
         column_workflow_status: function(){
@@ -461,11 +602,12 @@ export default {
                     vm.column_community_id,
                     vm.column_community_name,
                     vm.column_community_status,
-                    vm.column_wa_conservation_status,
+                    vm.column_conservation_list,
+                    vm.column_conservation_category,
+                    vm.column_action,
                     vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_action,
                 ]
                 search = false
                 buttons = []
@@ -477,11 +619,12 @@ export default {
                     vm.column_community_id,
                     vm.column_community_name,
                     vm.column_community_status,
-                    vm.column_wa_conservation_status,
+                    vm.column_conservation_list,
+                    vm.column_conservation_category,
+                    vm.column_action,
                     vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_action,
                 ]
                 search = true
                 buttons = [
@@ -505,7 +648,7 @@ export default {
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
                 },
-                //lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: search,
@@ -518,6 +661,8 @@ export default {
                         d.filter_community_id = vm.filterCommunityId;
                         d.filter_community_name = vm.filterCommunityName;
                         d.filter_community_status = vm.filterCommunityStatus;
+                        d.filter_conservation_list = vm.filterCommunityConservationList;
+                        d.filter_conservation_category = vm.filterCommunityConservationCategory;
                         d.filter_group_type = vm.group_type_name;
                         d.filter_region = vm.filterCommunityRegion;
                         d.filter_district = vm.filterCommunityDistrict;
@@ -525,7 +670,6 @@ export default {
                     }
                 },
                 dom: 'lBfrtip',
-                //buttons:[ ],
                 buttons: buttons,
 
                 columns: columns,
@@ -544,8 +688,11 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-            vm.$http.get(api_endpoints.community_filter_dict).then((response) => {
-                vm.communities_list= response.body;
+            vm.$http.get(api_endpoints.community_filter_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
+                vm.filterListsCommunities= response.body;
+                vm.communities_data_list= vm.filterListsCommunities.community_data_list;
+                vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
+                vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {

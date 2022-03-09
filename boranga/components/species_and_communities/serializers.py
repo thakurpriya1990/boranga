@@ -26,6 +26,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 	genus = serializers.SerializerMethodField()
 	phylogenetic_group = serializers.SerializerMethodField()
 	conservation_status = serializers.SerializerMethodField()
+	conservation_list = serializers.SerializerMethodField()
+	conservation_category = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
 	district = serializers.SerializerMethodField()
 	class Meta:
@@ -42,6 +44,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'region',
 			    'district',
 			    'conservation_status',
+			    'conservation_list',
+			    'conservation_category',
 			    'processing_status',
 			)
 		datatables_always_serialize = (
@@ -56,8 +60,10 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'region',
 			    'district',
 			    'conservation_status',
+			    'conservation_list',
+			    'conservation_category',
 			    'processing_status',
-			)
+			)	
 
 	def get_group_type(self,obj):
 		return obj.group_type.name
@@ -82,6 +88,16 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			return obj.conservation_status.conservation_list.code
 		return None
 
+	def get_conservation_list(self,obj):
+		if obj.conservation_status:
+			return obj.conservation_status.conservation_list.code
+		return None
+
+	def get_conservation_category(self,obj):
+		if obj.conservation_status:
+			return obj.conservation_status.conservation_category.code
+		return None
+
 	def get_region(self,obj):
 		if obj.region:
 			return obj.region.name
@@ -93,6 +109,9 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 		return None
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
+	conservation_status = serializers.SerializerMethodField()
+	conservation_list = serializers.SerializerMethodField()
+	conservation_category = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
 	district = serializers.SerializerMethodField()
 	class Meta:
@@ -102,6 +121,9 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			    'community_id',
 			    'community_name',
 			    'community_status',
+			    'conservation_status',
+			    'conservation_list',
+			    'conservation_category',
 			    'region',
 			    'district',
 			)
@@ -110,9 +132,27 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			    'community_id',
 			    'community_name',
 			    'community_status',
+			    'conservation_status',
+			    'conservation_list',
+			    'conservation_category',
 			    'region',
 			    'district',
 			)
+
+	def get_conservation_status(self,obj):
+		if obj.conservation_status:
+			return obj.conservation_status.conservation_list.code
+		return None
+
+	def get_conservation_list(self,obj):
+		if obj.conservation_status:
+			return obj.conservation_status.conservation_list.code
+		return None
+
+	def get_conservation_category(self,obj):
+		if obj.conservation_status:
+			return obj.conservation_status.conservation_category.code
+		return None
 
 	def get_region(self,obj):
 		if obj.region:
