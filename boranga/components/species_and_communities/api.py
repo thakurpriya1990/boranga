@@ -1,5 +1,6 @@
 import traceback
 import pytz
+import json
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -12,6 +13,7 @@ from datetime import datetime
 from ledger_api_client.settings_base import TIME_ZONE
 from boranga import settings
 from django.core.cache import cache
+from django.http import HttpResponse
 from django.urls import reverse
 from django.shortcuts import redirect
 from boranga.helpers import is_customer, is_internal
@@ -29,6 +31,8 @@ from boranga.components.species_and_communities.models import (
     ConservationCriteria,
     Taxonomy,
     Community,
+    Region,
+    District,
 )
 from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
@@ -48,30 +52,104 @@ class GetGroupTypeDict(views.APIView):
                 group_type_list.append(group.name)
         return Response(group_type_list)
 
-class GetScientificNameDict(views.APIView):
+class GetSpeciesFilterDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
-        name_list = []
+        species_data_list = []
         if group_type:
             species = Species.objects.filter(group_type__name=group_type)
             if species:
-                for s in species:
-                    name_list.append({'species_id': s.id,'scientific_name': s.scientific_name,'common_name':s.common_name})
-        return Response(name_list)
+                for specimen in species:
+                    species_data_list.append({
+                        'species_id': specimen.id,
+                        'scientific_name': specimen.scientific_name,
+                        'common_name':specimen.common_name,
+                        'family':specimen.taxonomy.family,
+                        'phylogenetic_group':specimen.taxonomy.phylogenetic_group,
+                        'genus':specimen.taxonomy.genus,
+                        });
+        conservation_list_dict = []
+        conservation_lists = ConservationStatus.objects.all()
+        if conservation_lists:
+            for choice in conservation_lists:
+                conservation_list_dict.append({'id': choice.conservation_list_id,
+                    'code': choice.conservation_list.code,
+                    });
+
+        conservation_category_list = []
+        conservation_categories = ConservationCategory.objects.all()
+        if conservation_categories:
+            for choice in conservation_categories:
+                conservation_category_list.append({'id': choice.id,
+                    'code': choice.code,
+                    });
+        res_json = {
+        "species_data_list":species_data_list,
+        "conservation_list_dict":conservation_list_dict,
+        "conservation_category_list":conservation_category_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
 
 class GetCommunityFilterDict(views.APIView):
     def get(self, request, format=None):
-        community_list = []
-        communities = Community.objects.all()
-        if communities:
-            for community in communities:
-                community_list.append({
-                    'id': community.id,
-                    'community_id': community.community_id,
-                    'community_name':community.community_name,
-                    'community_status':community.community_status
-                    })
-        return Response(community_list)
+        group_type = request.GET.get('group_type_name','')
+        community_data_list = []
+        if group_type:
+            communities = Community.objects.filter(group_type__name=group_type)
+            if communities:
+                for community in communities:
+                    community_data_list.append({
+                        'id': community.id,
+                        'community_id': community.community_id,
+                        'community_name':community.community_name,
+                        'community_status':community.community_status
+                        });
+        conservation_list_dict = []
+        conservation_lists = ConservationStatus.objects.all()
+        if conservation_lists:
+            for choice in conservation_lists:
+                conservation_list_dict.append({'id': choice.conservation_list_id,
+                    'code': choice.conservation_list.code,
+                    });
+
+        conservation_category_list = []
+        conservation_categories = ConservationCategory.objects.all()
+        if conservation_categories:
+            for choice in conservation_categories:
+                conservation_category_list.append({'id': choice.id,
+                    'code': choice.code,
+                    });
+        res_json = {
+        "community_data_list":community_data_list,
+        "conservation_list_dict":conservation_list_dict,
+        "conservation_category_list":conservation_category_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+
+class GetRegionDistrictFilterDict(views.APIView):
+    def get(self, request, format=None):
+        region_list = []
+        regions = Region.objects.all()
+        if regions:
+            for region in regions:
+                region_list.append({'id': region.id,
+                    'name': region.name,
+                    });
+        district_list = []
+        districts = District.objects.all()
+        if districts:
+            for district in districts:
+                district_list.append({'id': district.id,
+                    'name': district.name,
+                    });
+        res_json = {
+        "region_list":region_list,
+        "district_list":district_list
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
 
 class SpeciesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -88,6 +166,34 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         filter_common_name = request.GET.get('filter_common_name')
         if filter_common_name and not filter_common_name.lower() == 'all':
             queryset = queryset.filter(common_name=filter_common_name)
+
+        filter_phylogenetic_group = request.GET.get('filter_phylogenetic_group')
+        if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
+            queryset = queryset.filter(taxonomy__phylogenetic_group=filter_phylogenetic_group)
+        
+        filter_family = request.GET.get('filter_family')
+        if filter_family and not filter_family.lower() == 'all':
+            queryset = queryset.filter(taxonomy__family=filter_family)
+
+        filter_genus = request.GET.get('filter_genus')
+        if filter_genus and not filter_genus.lower() == 'all':
+            queryset = queryset.filter(taxonomy__genus=filter_genus)
+        
+        filter_conservation_list = request.GET.get('filter_conservation_list')
+        if filter_conservation_list and not filter_conservation_list.lower() == 'all':
+            queryset = queryset.filter(conservation_status__conservation_list=filter_conservation_list)
+
+        filter_conservation_category = request.GET.get('filter_conservation_category')
+        if filter_conservation_category and not filter_conservation_category.lower() == 'all':
+            queryset = queryset.filter(conservation_status__conservation_category=filter_conservation_category)
+        
+        filter_region = request.GET.get('filter_region')
+        if filter_region and not filter_region.lower() == 'all':
+            queryset = queryset.filter(region=filter_region)
+
+        filter_district = request.GET.get('filter_district')
+        if filter_district and not filter_district.lower() == 'all':
+            queryset = queryset.filter(district=filter_district)
 
         getter = request.query_params.get
         fields = self.get_fields(getter)
@@ -139,22 +245,42 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
 class CommunitiesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
+        
         # filter_group_type
-        # filter_group_type = request.GET.get('filter_group_type')
-        # if filter_group_type:
-        #     queryset = queryset.filter(group_type__name=filter_group_type)
-        # filter_community_id
+        filter_group_type = request.GET.get('filter_group_type')
+        if filter_group_type:
+            queryset = queryset.filter(group_type__name=filter_group_type)
+        
+        #filter_community_id
         filter_community_id = request.GET.get('filter_community_id')
         if filter_community_id and not filter_community_id.lower() == 'all':
             queryset = queryset.filter(community_id=filter_community_id)
+
         # filter_community_name
         filter_community_name = request.GET.get('filter_community_name')
         if filter_community_name and not filter_community_name.lower() == 'all':
             queryset = queryset.filter(community_name=filter_community_name)
+
         # filter_community_status
         filter_community_status = request.GET.get('filter_community_status')
         if filter_community_status and not filter_community_status.lower() == 'all':
             queryset = queryset.filter(community_status=filter_community_status)
+
+        filter_conservation_list = request.GET.get('filter_conservation_list')
+        if filter_conservation_list and not filter_conservation_list.lower() == 'all':
+            queryset = queryset.filter(conservation_status__conservation_list=filter_conservation_list)
+
+        filter_conservation_category = request.GET.get('filter_conservation_category')
+        if filter_conservation_category and not filter_conservation_category.lower() == 'all':
+            queryset = queryset.filter(conservation_status__conservation_category=filter_conservation_category)
+
+        filter_region = request.GET.get('filter_region')
+        if filter_region and not filter_region.lower() == 'all':
+            queryset = queryset.filter(region=filter_region)
+
+        filter_district = request.GET.get('filter_district')
+        if filter_district and not filter_district.lower() == 'all':
+            queryset = queryset.filter(district=filter_district)
 
         getter = request.query_params.get
         fields = self.get_fields(getter)
