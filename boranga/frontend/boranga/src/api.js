@@ -56,6 +56,9 @@ module.exports = {
     proposal_pre_event_parks:"/api/proposal_pre_event_parks.json",
     proposal_events_trails:"/api/proposal_events_trails.json",
 
+    // Species and Communities Documents
+    species_documents_paginated: "/api/species_documents_paginated/?format=datatables",
+
     // used in internal and external dashboards
     proposals_paginated_external:   "/api/proposal_paginated/proposals_external/?format=datatables",
     approvals_paginated_external:   "/api/approval_paginated/approvals_external/?format=datatables",

@@ -1184,29 +1184,29 @@ export default {
         });
     },
     beforeRouteEnter: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}/internal_proposal.json`).then(res => {
-              next(vm => {
-                vm.proposal = res.body;
-                vm.original_proposal = helpers.copyObject(res.body);
-                vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
+        //   Vue.http.get(`/api/proposal/${to.params.proposal_id}/internal_proposal.json`).then(res => {
+        //       next(vm => {
+        //         vm.proposal = res.body;
+        //         vm.original_proposal = helpers.copyObject(res.body);
+        //         vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
                 
-              });
-            },
-            err => {
-              console.log(err);
-            });
+        //       });
+        //     },
+        //     err => {
+        //       console.log(err);
+        //     });
     },
     beforeRouteUpdate: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
-              next(vm => {
-                vm.proposal = res.body;
-                vm.original_proposal = helpers.copyObject(res.body);
+        //   Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
+        //       next(vm => {
+        //         vm.proposal = res.body;
+        //         vm.original_proposal = helpers.copyObject(res.body);
                 
-              });
-            },
-            err => {
-              console.log(err);
-            });
+        //       });
+        //     },
+        //     err => {
+        //       console.log(err);
+        //     });
     }
 }
 </script>

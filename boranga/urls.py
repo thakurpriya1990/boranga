@@ -49,6 +49,7 @@ router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 router.register(r'questions', main_api.QuestionViewSet)
 router.register(r'species_paginated',species_communities_api.SpeciesPaginatedViewSet)
 router.register(r'communities_paginated',species_communities_api.CommunitiesPaginatedViewSet)
+router.register(r'species_documents_paginated', species_communities_api.SpeciesDocumentsViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),

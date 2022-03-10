@@ -7,7 +7,7 @@
                         <label for="">Scientific Name:</label>
                         <select class="form-control" v-model="filterFaunaScientificName">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.scientific_name">{{species.scientific_name}}</option>
+                            <option v-for="species in species_data_list" :value="species.scientific_name" v-bind:key="species.id">{{species.scientific_name}}</option>
                         </select>
                     </div>
                 </div>
@@ -16,7 +16,7 @@
                         <label for="">Common Name:</label>
                         <select class="form-control" v-model="filterFaunaCommonName">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.common_name">{{species.common_name}}</option>
+                            <option v-for="species in species_data_list" :value="species.common_name" v-bind:key="species.id">{{species.common_name}}</option>
                         </select>
                     </div>
                 </div>
@@ -25,7 +25,7 @@
                         <label for="">Phylo Group:</label>
                         <select class="form-control" v-model="filterFaunaPhylogeneticGroup">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.phylogenetic_group">
+                            <option v-for="species in species_data_list" :value="species.phylogenetic_group" v-bind:key="species.id">
                                 {{species.phylogenetic_group}}</option>
                         </select>
                     </div>
@@ -35,7 +35,7 @@
                         <label for="">Family:</label>
                         <select class="form-control" v-model="filterFaunaFamily">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.family">{{species.family}}</option>
+                            <option v-for="species in species_data_list" :value="species.family" v-bind:key="species.id">{{species.family}}</option>
                         </select>
                     </div>
                 </div>
@@ -44,7 +44,7 @@
                         <label for="">Genera:</label>
                         <select class="form-control" v-model="filterFaunaGenus">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.genus">{{species.genus}}</option>
+                            <option v-for="species in species_data_list" :value="species.genus" v-bind:key="species.id">{{species.genus}}</option>
                         </select>
                     </div>
                 </div>
@@ -53,7 +53,7 @@
                         <label for="">Conservation List:</label>
                         <select class="form-control" v-model="filterFaunaConservationList">
                             <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
+                            <option v-for="list in conservation_list_dict" :value="list.id" v-bind:key="list.id">{{list.code}}</option>
                         </select>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
                         <label for="">Conservation Category:</label>
                         <select class="form-control" v-model="filterFaunaConservationCategory">
                             <option value="all">All</option>
-                            <option v-for="list in conservation_category_list" :value="list.id">{{list.code}}</option>
+                            <option v-for="list in conservation_category_list" :value="list.id" v-bind:key="list.id">{{list.code}}</option>
                         </select>
                     </div>
                 </div>
@@ -79,7 +79,7 @@
                         <label for="">Region:</label>
                         <select class="form-control" v-model="filterFaunaRegion">
                             <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
+                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">{{region.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
                         <label for="">District:</label>
                         <select class="form-control" v-model="filterFaunaDistrict">
                             <option value="all">All</option>
-                            <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
+                            <option v-for="district in district_list" :value="district.id" v-bind:key="district.id">{{district.name}}</option>
                         </select>
                     </div>
                 </div>
