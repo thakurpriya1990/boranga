@@ -33,7 +33,6 @@ router.register(r'approval_paginated',approval_api.ApprovalPaginatedViewSet)
 router.register(r'compliance_paginated',compliances_api.CompliancePaginatedViewSet)
 router.register(r'referrals',proposal_api.ReferralViewSet)
 router.register(r'approvals',approval_api.ApprovalViewSet)
-router.register(r'compliances',compliances_api.ComplianceViewSet)
 router.register(r'proposal_requirements',proposal_api.ProposalRequirementViewSet)
 router.register(r'proposal_standard_requirements',proposal_api.ProposalStandardRequirementViewSet)
 router.register(r'organisation_requests',org_api.OrganisationRequestsViewSet)
@@ -43,26 +42,23 @@ router.register(r'users',users_api.UserViewSet)
 router.register(r'amendment_request',proposal_api.AmendmentRequestViewSet)
 router.register(r'compliance_amendment_request',compliances_api.ComplianceAmendmentRequestViewSet)
 router.register(r'global_settings', main_api.GlobalSettingsViewSet)
-#router.register(r'application_types', main_api.ApplicationTypeViewSet)
 router.register(r'assessments', proposal_api.ProposalAssessmentViewSet)
 router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 router.register(r'questions', main_api.QuestionViewSet)
 router.register(r'species_paginated',species_communities_api.SpeciesPaginatedViewSet)
 router.register(r'communities_paginated',species_communities_api.CommunitiesPaginatedViewSet)
+router.register(r'species_documents_paginated',species_communities_api.SpeciesDocumentsViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
     url(r'^api/countries$', users_api.GetCountries.as_view(), name='get-countries'),
     url(r'^api/department_users$', users_api.DepartmentUserList.as_view(), name='department-users-list'),
     url(r'^api/filtered_users$', users_api.UserListFilterView.as_view(), name='filtered_users'),
-    #url(r'^api/filtered_organisations$', org_api.OrganisationListFilterView.as_view(), name='filtered_organisations'),
-    url(r'^api/filtered_payments$', approval_api.ApprovalPaymentFilterViewSet.as_view(), name='filtered_payments'),
     url(r'^api/proposal_type$', proposal_api.GetProposalType.as_view(), name='get-proposal-type'),
     url(r'^api/empty_list$', proposal_api.GetEmptyList.as_view(), name='get-empty-list'),
     url(r'^api/organisation_access_group_members',org_api.OrganisationAccessGroupMembers.as_view(),name='organisation-access-group-members'),
     url(r'^api/',include(router.urls)),
     url(r'^api/amendment_request_reason_choices',proposal_api.AmendmentRequestReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
-    url(r'^api/compliance_amendment_reason_choices',compliances_api.ComplianceAmendmentReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
     url(r'^api/search_keywords',proposal_api.SearchKeywordsView.as_view(),name='search_keywords'),
     url(r'^api/search_reference',proposal_api.SearchReferenceView.as_view(),name='search_reference'),
     url(r'^api/filter_lists_species',species_communities_api.GetSpeciesFilterDict.as_view(),name='get-filter_lists_species'),

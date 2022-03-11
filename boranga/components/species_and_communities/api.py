@@ -35,6 +35,7 @@ from boranga.components.species_and_communities.models import (
     District,
 )
 from boranga.components.species_and_communities.serializers import (
+    ListSpeciesDocumentsSerializer,
     ListSpeciesSerializer,
     ListCommunitiesSerializer,
 )
@@ -215,6 +216,12 @@ class SpeciesRenderer(DatatablesRenderer):
             data['recordsTotal'] = renderer_context['view']._datatables_total_count
         return super(SpeciesRenderer, self).render(data, accepted_media_type, renderer_context)
 
+class SpeciesDocumentsRenderer(DatatablesRenderer):
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+            data['recordsTotal'] = renderer_context['view']._datatables_total_count
+        return super(SpeciesRenderer, self).render(data, accepted_media_type, renderer_context)
+
 class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (SpeciesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
@@ -327,4 +334,34 @@ class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
         self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(result_page, context={'request': request}, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
+
+
+
+class SpeciesDocumentsViewSet(viewsets.ModelViewSet):
+    print('------------hi graeme-------------')
+    filter_backends = (SpeciesFilterBackend,)
+    pagination_class = DatatablesPageNumberPagination
+    renderer_classes = (SpeciesDocumentsRenderer,)
+    queryset = Species.objects.none()
+    serializer_class = ListSpeciesDocumentsSerializer
+    page_size = 10
+
+    def get_queryset(self, request):
+        request.GET.get('species_id')
+        qs = Species.objects.none()
+
+        if is_internal(self.request):
+            qs = Species.objects.all()
+
+        return qs
+
+    @list_route(methods=['GET',], detail=False)
+    def species_documents_internal(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListSpeciesSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
