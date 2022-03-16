@@ -257,3 +257,4 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     region = serializers.CharField(source='region.name', read_only=True)
     district = serializers.CharField(source='district.name', read_only=True)
     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+

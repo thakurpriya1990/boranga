@@ -129,6 +129,7 @@ class GetCommunityFilterDict(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
 
+
 class GetRegionDistrictFilterDict(views.APIView):
     def get(self, request, format=None):
         region_list = []
