@@ -8,7 +8,7 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="pills-documents-tab" data-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false">
+                <a class="nav-link" id="pills-documents-tab" data-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false" >
                   Documents
                 </a>
               </li>
@@ -121,12 +121,12 @@
             },
             eventListener: function(){
               let vm=this;
-              $('a[href="#pills-activities-land"]').on('shown.bs.tab', function (e) {
-                vm.$refs.activities_land.$refs.vehicles_table.$refs.vehicle_datatable.vmDataTable.columns.adjust().responsive.recalc();
-              });
-              $('a[href="#pills-activities-marine"]').on('shown.bs.tab', function (e) {
-                vm.$refs.activities_marine.$refs.vessel_table.$refs.vessel_datatable.vmDataTable.columns.adjust().responsive.recalc();
-              });
+              // $('a[href="#pills-activities-land"]').on('shown.bs.tab', function (e) {
+              //   vm.$refs.activities_land.$refs.vehicles_table.$refs.vehicle_datatable.vmDataTable.columns.adjust().responsive.recalc();
+              // });
+              // $('a[href="#pills-activities-marine"]').on('shown.bs.tab', function (e) {
+              //   vm.$refs.activities_marine.$refs.vessel_table.$refs.vessel_datatable.vmDataTable.columns.adjust().responsive.recalc();
+              // });
             },
 
         },

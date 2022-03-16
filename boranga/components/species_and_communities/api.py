@@ -236,6 +236,7 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
         serializer = ListSpeciesSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
 
+
 class CommunitiesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()

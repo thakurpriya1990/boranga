@@ -1180,16 +1180,16 @@ export default {
             });
     },
     beforeRouteUpdate: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
-              next(vm => {
-                vm.proposal = res.body;
-                vm.original_proposal = helpers.copyObject(res.body);
+        //   Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
+        //       next(vm => {
+        //         vm.proposal = res.body;
+        //         vm.original_proposal = helpers.copyObject(res.body);
                 
-              });
-            },
-            err => {
-              console.log(err);
-            });
+        //       });
+        //     },
+        //     err => {
+        //       console.log(err);
+        //     });
     }
 }
 </script>

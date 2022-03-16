@@ -26,7 +26,6 @@
             </div>                
         </div>
     </div>
-
 </div>
 </template>
 
@@ -62,10 +61,16 @@ export default {
         methods:{
 
         },
-        mounted: function(){
-            let vm = this;
-        }
-    }
+        created: function () {
+            console.log('HERE------------------------------------')
+            this.$http.get(api_endpoints.species_documents_paginated).then((response) => {
+                this.group_types= response.body;
+                console.log('CALLLED')
+                },(error) => {
+                console.log(error);
+            });
+    },
+}
 </script>
 
 <style lang="css" scoped>
@@ -95,16 +100,33 @@ export default {
         vertical-align: bottom;
     }
     fieldset.scheduler-border {
-    border: 1px groove #ddd !important;
-    padding: 0 1.4em 1.4em 1.4em !important;
-    margin: 0 0 1.5em 0 !important;
-    -webkit-box-shadow:  0px 0px 0px 0px #000;
-            box-shadow:  0px 0px 0px 0px #000;
+        border: 1px groove #ddd !important;
+        padding: 0 1.4em 1.4em 1.4em !important;
+        margin: 0 0 1.5em 0 !important;
+        -webkit-box-shadow:  0px 0px 0px 0px #000;
+                box-shadow:  0px 0px 0px 0px #000;
     }
     legend.scheduler-border {
-    width:inherit; /* Or auto */
-    padding:0 10px; /* To give a bit of padding on the left and right */
-    border-bottom:none;
+        width:inherit; /* Or auto */
+        padding:0 10px; /* To give a bit of padding on the left and right */
+        border-bottom:none;
     }
+    .plus-button {
+        background-color: #337ab7;
+        border: none;
+        /* border-radius: 50px; */
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        /* width: 150px;  */
+        height: 35px;
+        vertical-align: bottom;
+    }
+
+
+
 </style>
 

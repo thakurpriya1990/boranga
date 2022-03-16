@@ -233,7 +233,6 @@ export default {
             }, 100 );
         });
         this.$nextTick(() => {
-
         });
     }
 }
