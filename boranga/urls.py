@@ -29,6 +29,7 @@ router.register(r'species_paginated', species_communities_api.SpeciesPaginatedVi
 router.register(r'communities_paginated', species_communities_api.CommunitiesPaginatedViewSet)
 router.register(r'species_documents_paginated', species_communities_api.SpeciesDocumentsViewSet)
 router.register(r'proposal', proposal_api.ProposalViewSet)
+router.register(r'species_data', species_communities_api.SpeciesDataViewSet)
 # router.register(r'organisations',org_api.OrganisationViewSet)
 # router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 # router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)

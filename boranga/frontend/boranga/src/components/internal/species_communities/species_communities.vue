@@ -181,11 +181,11 @@
                                             <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Enter Requirements</button><br/>
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <!-- <div class="row">
                                         <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="amendmentRequest()">Request Amendment</button><br/>
-                                        </div>
-                                    </div>
+                                        </div> -->
+                                    <!-- </div> -->
                                     <div class="row">
                                         <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="proposedDecline()">Propose to Decline</button>
@@ -346,7 +346,7 @@
         </div>
         </div>
         <ProposedDecline ref="proposed_decline" :processing_status="proposal.processing_status" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
-        <AmendmentRequest ref="amendment_request" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
+        <!-- <AmendmentRequest ref="amendment_request" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest> -->
         <ProposedApproval ref="proposed_approval" :processing_status="proposal.processing_status" :proposal_id="proposal.id" :proposal_type='proposal.proposal_type' :isApprovalLevelDocument="isApprovalLevelDocument" @refreshFromResponse="refreshFromResponse"/>
     </div>
 </template>
@@ -354,7 +354,7 @@
 import Proposal from '../../form.vue'
 import Vue from 'vue'
 import ProposedDecline from './proposal_proposed_decline.vue'
-import AmendmentRequest from './amendment_request.vue'
+// import AmendmentRequest from './amendment_request.vue'
 import Requirements from './proposal_requirements.vue'
 import ProposedApproval from './proposed_issuance.vue'
 import ApprovalScreen from './proposal_approval.vue'
@@ -448,7 +448,7 @@ export default {
         Proposal,
         datatable,
         ProposedDecline,
-        AmendmentRequest,
+        // AmendmentRequest,
         Requirements,
         ProposedApproval,
         ApprovalScreen,
@@ -681,16 +681,16 @@ export default {
             },err=>{
             });
         },
-        amendmentRequest: function(){
-            this.save_wo();
-            let values = '';
-            $('.deficiency').each((i,d) => {
-                values +=  $(d).val() != '' ? `Question - ${$(d).data('question')}\nDeficiency - ${$(d).val()}\n\n`: '';
-            }); 
-            this.$refs.amendment_request.amendment.text = values;
+        // amendmentRequest: function(){
+        //     this.save_wo();
+        //     let values = '';
+        //     $('.deficiency').each((i,d) => {
+        //         values +=  $(d).val() != '' ? `Question - ${$(d).data('question')}\nDeficiency - ${$(d).val()}\n\n`: '';
+        //     }); 
+        //     this.$refs.amendment_request.amendment.text = values;
             
-            this.$refs.amendment_request.isModalOpen = true;
-        },
+        //     this.$refs.amendment_request.isModalOpen = true;
+        // },
         onHold: function(){
             this.save_wo();
             this.$refs.on_hold.isModalOpen = true;
@@ -1167,35 +1167,30 @@ export default {
         });
     },
     beforeRouteEnter: function(to, from, next) {
-        console.log('------------------------------------')
-        console.log(to)
-        console.log(from)
-        console.log(next)
-        console.log('------------------------------------')
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}/internal_proposal.json`).then(res => {
+        // Vue.http.get(`/api/proposal/${to.params.proposal_id}/internal_proposal.json`).then(res => {
+          Vue.http.get(`/api/species_data/species_data_internal/`).then(res => {
               next(vm => {
                 vm.proposal = res.body;
                 vm.original_proposal = helpers.copyObject(res.body);
                 vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                
               });
             },
             err => {
               console.log(err);
             });
     },
-    // beforeRouteUpdate: function(to, from, next) {
-    //       Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
-    //           next(vm => {
-    //             vm.proposal = res.body;
-    //             vm.original_proposal = helpers.copyObject(res.body);
+    beforeRouteUpdate: function(to, from, next) {
+          Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
+              next(vm => {
+                vm.proposal = res.body;
+                vm.original_proposal = helpers.copyObject(res.body);
                 
-    //           });
-    //         },
-    //         err => {
-    //           console.log(err);
-    //         });
-    // }
+              });
+            },
+            err => {
+              console.log(err);
+            });
+    }
 }
 </script>
 <style scoped>

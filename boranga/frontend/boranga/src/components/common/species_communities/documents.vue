@@ -3,6 +3,7 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
+                <h3>{{proposal}}</h3>
                 <h3 class="panel-title">Document History <small></small>
                     <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="lBody">
                         <span class="glyphicon glyphicon-chevron-up pull-right"></span>
@@ -83,14 +84,13 @@ export default {
     .plus-button {
         background-color: #337ab7;
         border: none;
-        /* border-radius: 50px; */
+        border-radius: 5px;
         color: white;
         text-align: center;
         text-decoration: none;
         display: inline-block;
         font-size: 16px;
         margin: 4px 2px;
-        /* width: 150px;  */
         height: 35px;
         vertical-align: bottom;
     }

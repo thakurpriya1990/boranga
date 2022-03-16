@@ -109,9 +109,6 @@
         },
         computed:{
           applicantType: function(){
-            console.log('+++++++++++++++++++++++++++++++')
-            console.log(this.proposal)
-            console.log('+++++++++++++++++++++++++++++++')
             return this.proposal.applicant_type;
         },
         },
