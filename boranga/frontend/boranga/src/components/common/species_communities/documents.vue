@@ -17,9 +17,7 @@
                         <div class="form-group">
                             <div class="row">
                                 <button class="plus-button" type="button">Add Document</button><br>
-                                DocumentsDashboard
                                 <DocumentsDashboard level="internal" :url="species_documents_url" /><br>
-                                DocumentsDashboard
                             </div>
                         </div> 
                     </div>

@@ -1,18 +1,5 @@
 <template lang="html">
     <div>
-        <!-- <div class="col-md-3" >
-            <div class="panel panel-default fixed">
-              <div class="panel-heading">
-                <h5>Sections</h5>
-              </div>
-              <div class="panel-body" style="padding:0">
-                  <ul class="list-group" id="scrollspy-section" style="margin-bottom:0">
-
-                  </ul>
-              </div>
-            </div>
-        </div> -->
-
         <div class="col-md-12">
             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
               <li class="nav-item">
@@ -69,14 +56,6 @@
     import ManagementPlans from '@/components/common/species_communities/management_plans.vue'
     import RelatedItems from '@/components/common/species_communities/related_items.vue'
 
-//    import Profile from '@/components/user/profile.vue'
-//    import Organisation from '@/components/external/organisations/manage.vue'
-//    import Applicant from '@/components/common/tclass/applicant.vue'
-//    import Assessment from '@/components/common/tclass/assessment.vue'
-//    import ActivitiesLand from '@/components/common/tclass/activities_land.vue'
-//    import ActivitiesMarine from '@/components/common/tclass/activities_marine.vue'
-//    import OtherDetails from '@/components/common/tclass/other_details.vue'
-//    import OnlineTraining from '@/components/common/tclass/online_training.vue'
     export default {
         props:{
             proposal:{
@@ -130,6 +109,9 @@
         },
         computed:{
           applicantType: function(){
+            console.log('+++++++++++++++++++++++++++++++')
+            console.log(this.proposal)
+            console.log('+++++++++++++++++++++++++++++++')
             return this.proposal.applicant_type;
         },
         },
@@ -138,7 +120,7 @@
                 let vm = this;
 
                 /* set Applicant tab Active */
-                $('#pills-tab a[href="#pills-species"]').tab('show');
+                $('#pills-tab a[href="#pills-documents"]').tab('show');
             },
             eventListener: function(){
               let vm=this;
@@ -156,9 +138,6 @@
             vm.set_tabs();
             vm.form = document.forms.new_proposal;
             vm.eventListener();
-            //window.addEventListener('beforeunload', vm.leaving);
-            //indow.addEventListener('onblur', vm.leaving);
-
         }
  
     }

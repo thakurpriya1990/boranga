@@ -1,38 +1,22 @@
-import traceback
-import pytz
 import json
-from django.db.models import Q
-from django.db import transaction
-from django.core.exceptions import ValidationError
-from rest_framework import viewsets, serializers, status, views
-from rest_framework.decorators import action as detail_route, renderer_classes
+from rest_framework import viewsets, views
 from rest_framework.decorators import action as list_route
 from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
-from datetime import datetime
 from ledger_api_client.settings_base import TIME_ZONE
-from boranga import settings
-from django.core.cache import cache
 from django.http import HttpResponse
-from django.urls import reverse
-from django.shortcuts import redirect
-from boranga.helpers import is_customer, is_internal
+from boranga.helpers import is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.renderers import DatatablesRenderer
-from copy import deepcopy
-from django.shortcuts import render, redirect, get_object_or_404
 from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
-    ConservationList,
     ConservationStatus,
     ConservationCategory,
-    ConservationCriteria,
-    Taxonomy,
     Community,
     Region,
     District,
+    SpeciesDocument,
 )
 from boranga.components.species_and_communities.serializers import (
     ListSpeciesDocumentsSerializer,
@@ -44,6 +28,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class GetGroupTypeDict(views.APIView):
     def get(self, request, format=None):
         group_type_list = []
@@ -52,6 +37,7 @@ class GetGroupTypeDict(views.APIView):
             for group in group_types:
                 group_type_list.append(group.name)
         return Response(group_type_list)
+
 
 class GetSpeciesFilterDict(views.APIView):
     def get(self, request, format=None):
@@ -92,6 +78,7 @@ class GetSpeciesFilterDict(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
 
+
 class GetCommunityFilterDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
@@ -129,6 +116,7 @@ class GetCommunityFilterDict(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
 
+
 class GetRegionDistrictFilterDict(views.APIView):
     def get(self, request, format=None):
         region_list = []
@@ -151,6 +139,7 @@ class GetRegionDistrictFilterDict(views.APIView):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
+
 
 class SpeciesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -210,17 +199,13 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
+
 class SpeciesRenderer(DatatablesRenderer):
     def render(self, data, accepted_media_type=None, renderer_context=None):
         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
             data['recordsTotal'] = renderer_context['view']._datatables_total_count
         return super(SpeciesRenderer, self).render(data, accepted_media_type, renderer_context)
 
-class SpeciesDocumentsRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(SpeciesRenderer, self).render(data, accepted_media_type, renderer_context)
 
 class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (SpeciesFilterBackend,)
@@ -303,11 +288,13 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
+
 class CommunitiesRenderer(DatatablesRenderer):
     def render(self, data, accepted_media_type=None, renderer_context=None):
         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
             data['recordsTotal'] = renderer_context['view']._datatables_total_count
         return super(CommunitiesRenderer, self).render(data, accepted_media_type, renderer_context)
+
 
 class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (CommunitiesFilterBackend,)
@@ -337,31 +324,37 @@ class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
 
+class SpeciesDocumentsRenderer(DatatablesRenderer):
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+            data['recordsTotal'] = renderer_context['view']._datatables_total_count
+        return super(SpeciesDocumentsRenderer, self).render(data, accepted_media_type, renderer_context)
+
 
 class SpeciesDocumentsViewSet(viewsets.ModelViewSet):
-    print('------------hi graeme-------------')
+    print('------------hi graeme-------------', )
     filter_backends = (SpeciesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     renderer_classes = (SpeciesDocumentsRenderer,)
-    queryset = Species.objects.none()
+    queryset = SpeciesDocument.objects.none()
     serializer_class = ListSpeciesDocumentsSerializer
     page_size = 10
 
     def get_queryset(self, request):
-        request.GET.get('species_id')
-        qs = Species.objects.none()
-
-        if is_internal(self.request):
-            qs = Species.objects.all()
+        qs = SpeciesDocument.objects.all() 
 
         return qs
 
     @list_route(methods=['GET',], detail=False)
     def species_documents_internal(self, request, *args, **kwargs):
+        species = request.GET.get('species_id')
+
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
-
+        print('------------hi graeme 22222-------------')   
+        print(' {}'.format(qs))
         self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesSerializer(result_page, context={'request': request}, many=True)
+
         return self.paginator.get_paginated_response(serializer.data)

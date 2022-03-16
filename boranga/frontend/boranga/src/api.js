@@ -28,8 +28,8 @@ module.exports = {
     regions:"/api/regions.json",
 
     // Used in internal and external dashboards
-    proposals_paginated_internal:   "/api/proposal_paginated/proposals_internal/?format=datatables",
-    referrals_paginated_internal:   "/api/proposal_paginated/referrals_internal/?format=datatables",
+    // proposals_paginated_internal:   "/api/proposal_paginated/proposals_internal/?format=datatables",
+    // referrals_paginated_internal:   "/api/proposal_paginated/referrals_internal/?format=datatables",
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
     communities_paginated_internal: "/api/communities_paginated/communities_internal/?format=datatables",
     species_documents_paginated_internal: "/api/species_documents_paginated/species_documents_internal/?format=datatables",

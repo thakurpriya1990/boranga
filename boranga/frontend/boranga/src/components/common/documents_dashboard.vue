@@ -19,9 +19,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
-import {
-    api_endpoints,
-} 
+import api_endpoints
 from '@/utils/hooks'
 export default {
     name: 'SpeciesDocumentsTable',
@@ -44,11 +42,7 @@ export default {
     },
     computed: {
         datatable_headers: function() {
-            if (this.is_external){
-                return ['Document', 'Description',]
-            }
-            if (this.is_internal){
-                return ['Number', 'Category', 'Document', 'Description', 'Date', 'Action']
+            return ['Number', 'Category', 'Document', 'Description', 'Date', 'Action']
                 // These are yet to be sourced
                 // Name Reference
                 // Genetic
@@ -56,7 +50,6 @@ export default {
                 // Ecology
                 // Fire
                 // Disease
-            }
         },
         column_number: function() {
             return {
@@ -64,115 +57,113 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, record){
-                    if(false){
+                'render': function(data, type, record) {
+                    if(record.id){
                         return record.id;
                     }
-                    // Dummy data for now
-                    return 'DBCA-0000001'
+                    // Should not reach here
+                    return 'XX'
                 },
                 name: "id",
             }
         },
-        column_category: function(){
+        column_document_category: function(){
             return {
-                data: "conservation_status",
+                data: "document_category",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, record){
-                    if(full.conservation_status){
-                        return full.conservation_status;
+                    if(full.document_category){
+                        return full.document_category;
                     }
                     // Should not reach here
-                    return ''
+                    return 'XX'
                 },
-                name: "conservation_status",
+                name: "document_category",
             }
         },
         column_document: function(){
             return {
-                data: "conservation_status",
+                data: "document",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, record){
-                    if(full.conservation_status){
-                        return full.conservation_status;
+                    if(full.document){
+                        return full.document;
                     }
                     // Should not reach here
-                    return ''
+                    return 'XX'
                 },
-                name: "conservation_status",
+                name: "document",
             }
         },
-        column_description: function(){
+        column_document_description: function(){
             return {
-                // 3. Scientific Name
-                data: "scientific_name",
+                data: "document_description",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(value, type){
-                        var ellipsis = '...',
-                                truncated = _.truncate(value, {
-                                    length: 25,
-                                    omission: ellipsis,
-                                    separator: ' '
-                                }),
-                                result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
-                                    'role="button" ' +
-                                    'data-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-content="<%= text %>" ' +
-                                    '>more</a>');
-                            if (_.endsWith(truncated, ellipsis)) {
-                                result += popTemplate({
-                                    text: value
-                                });
-                            }
-                            //return result;
-                            return type=='export' ? value : result;
+                'render': function(data, type, record){
+                    if(full.document_description){
+                        return full.document_description;
+                    }
+                    // Should not reach here
+                    return 'XX'
                 },
-                'createdCell': helpers.dtPopoverCellFn,
-                name: "scientific_name",
+                name: "document_description",
             }
         },
-        column_date: function(){
+        column_date_time: function(){
             return {
-                // 4. Common Name
-                data: "common_name",
+                data: "date_time",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.common_name){
-                        return full.common_name
+                    if(full.date_time){
+                        return full.date_time
                     }
                     // Should not reach here
-                    return ''
+                    return 'XX'
                 },
-                name: "common_name",
+                name: "date_time",
             }
         },
         column_action: function(){
+            let vm = this
             return {
-                // 5. Conservation Status
-                data: "conservation_status",
-                orderable: true,
-                searchable: true,
+                // 9. Action
+                data: "id",
+                orderable: false,
+                searchable: false,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.conservation_status){
-                        return full.conservation_status;
+                    let links = "";
+                    if (!vm.is_external){
+                        /*if(vm.check_assessor(full) && full.can_officer_process)*/
+                        if(full.assessor_process){   
+                                links +=  `<a href='/internal/species_communities/${full.id}'>Process</a><br/>`;    
+                        }
+                        else{
+                            links +=  `<a href='/internal/species_communities/${full.id}'>View</a><br/>`;
+                        }
                     }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status",
+                    else{
+                        if (full.can_user_edit) {
+                            links +=  `<a href='/external/species_communities/${full.id}'>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
+                        }
+                        else if (full.can_user_view) {
+                            links +=  `<a href='/external/species_communities/${full.id}'>View</a>`;
+                        }
+                    }
+
+                    links +=  `<a href='/internal/species_communities/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
+
+                    return links;
+                }
             }
         },
         datatable_options: function(){
@@ -181,39 +172,30 @@ export default {
             let columns = []
             let search = null
             let buttons = []
-            if(vm.is_external){
-                columns = [
-                    vm.column_document,
-                    vm.column_description,
-                ]
-                search = false
-                buttons = []
-            }
-            if(vm.is_internal){
-                columns = [
-                    vm.column_number,
-                    vm.column_category,
-                    vm.column_document,
-                    vm.column_description,
-                    vm.column_date,
-                    vm.column_action,
-                ]
-                search = true
-                buttons = [
-                    {
-                        extend: 'excel',
-                        exportOptions: {
-                            columns: ':visible',
-                        }
-                    },
-                    {
-                        extend: 'csv',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    },
-                ]
-            }
+
+            columns = [
+                vm.column_number,
+                vm.column_document_category,
+                vm.column_document,
+                vm.column_document_description,
+                vm.column_date_time,
+                vm.column_action,
+            ]
+            search = true
+            buttons = [
+                {
+                    extend: 'excel',
+                    exportOptions: {
+                        columns: ':visible',
+                    }
+                },
+                {
+                    extend: 'csv',
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                },
+            ]
 
             return {
                 autoWidth: false,
@@ -226,16 +208,10 @@ export default {
                 ajax: {
                     "url": this.url,
                     "dataSrc": 'data',
-
-                    // adding extra GET params for Custom filtering
-                    "data": function ( d ) {
-                        d.is_internal = vm.is_internal;
-                    }
                 },
                 dom: 'lBfrtip',
                 //buttons:[ ],
                 buttons: buttons,
-
                 columns: columns,
                 processing: true,
                 initComplete: function() {

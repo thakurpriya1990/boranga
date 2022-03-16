@@ -70,14 +70,6 @@
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Referrals</strong><br/>
                                     <div class="form-group">
-
-                                        <!--
-                                        <select :disabled="!canLimitedAction" ref="department_users" class="form-control">
-                                            <option value="null"></option>
-                                            <option v-for="user in department_users" :value="user.email">{{user.name}}</option>
-                                        </select>
-                                        -->
-
                                         <select :disabled="!canLimitedAction" ref="referral_recipient_groups" class="form-control">
                                             <option value="null"></option>
                                             <option v-for="group in referral_recipient_groups" :value="group">{{group}}</option>
@@ -205,12 +197,6 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <!--
-                                        <div v-if="isQAOfficerAssessmentCompleted" class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="true" @click.prevent="withQAOfficer()">Completed: {{QAOfficerAssessmentCompletedBy}}</button>
-                                        </div>
-                                        -->
-
                                         <div v-if="isQAOfficerAssessmentCompleted" class="col-sm-12">
                                             <div class="col-sm-12">
                                                 <div class="separator"></div>
@@ -231,7 +217,6 @@
                                                 </tr>
                                             </table>
                                         </div>
-
                                         <div v-else class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="withQAOfficer()">Send to QA Officer</button>
                                         </div>
@@ -280,7 +265,6 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <!-- v-if="!proposal.proposed_decline_status" -->
                                         <div class="col-sm-12" >
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="issueProposal()">Approve</button><br/>
                                         </div>
@@ -340,7 +324,7 @@
                                 <ProposalSpeciesCommunities ref="species_communities" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode"></ProposalSpeciesCommunities>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
-                                    <input type='hidden' name="proposal_id" :value="1" />
+                                    <input type='hidden' name="species_id" :value="1" />
                                     <div class="row" style="margin-bottom: 50px">
                                       <div class="navbar navbar-fixed-bottom" v-if="hasAssessorMode" style="background-color: #f5f5f5;">
                                         <div class="navbar-inner">
@@ -378,7 +362,6 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import MoreReferrals from '@common-utils/more_referrals.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
-//import ProposalTClass from '@/components/form_tclass.vue'
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import {
     api_endpoints,
@@ -1184,6 +1167,11 @@ export default {
         });
     },
     beforeRouteEnter: function(to, from, next) {
+        console.log('------------------------------------')
+        console.log(to)
+        console.log(from)
+        console.log(next)
+        console.log('------------------------------------')
           Vue.http.get(`/api/proposal/${to.params.proposal_id}/internal_proposal.json`).then(res => {
               next(vm => {
                 vm.proposal = res.body;
@@ -1196,18 +1184,18 @@ export default {
               console.log(err);
             });
     },
-    beforeRouteUpdate: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
-              next(vm => {
-                vm.proposal = res.body;
-                vm.original_proposal = helpers.copyObject(res.body);
+    // beforeRouteUpdate: function(to, from, next) {
+    //       Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
+    //           next(vm => {
+    //             vm.proposal = res.body;
+    //             vm.original_proposal = helpers.copyObject(res.body);
                 
-              });
-            },
-            err => {
-              console.log(err);
-            });
-    }
+    //           });
+    //         },
+    //         err => {
+    //           console.log(err);
+    //         });
+    // }
 }
 </script>
 <style scoped>
