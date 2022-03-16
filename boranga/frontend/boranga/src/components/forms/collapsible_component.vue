@@ -3,11 +3,10 @@
         <div class="toggle_filters_wrapper">
             <div data-toggle="collapse" :data-target="'#' + target_elem_id" :id="button_elem_id" class="toggle_filters_button collapsed" @click="toggle_filters_button_clicked">
                 <div class="toggle_filters_icon">
+                    <i v-if="display_icon" title="filter(s) applied" class="fa fa-exclamation-circle fa-lg filter_warning_icon"></i>
                     <i :id="chevron_elem_id" class="rotate_icon fa fa-chevron-down"></i>
                 </div>
-                <i v-if="display_icon" title="filter(s) applied" class="fa fa-exclamation-circle fa-2x filter_warning_icon"></i>
             </div>
-
             <div class="collapse" :id="target_elem_id">
                 <slot></slot>
             </div>
@@ -77,6 +76,7 @@ export default {
 }
 .filter_warning_icon {
     color: #ffc107;
+
 }
 .toggle_filters_icon {
     margin: 0 0 0 0.5em;
