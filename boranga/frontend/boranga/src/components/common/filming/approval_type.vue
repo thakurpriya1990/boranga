@@ -77,8 +77,6 @@ p<template lang="html">
 </template>
 
 <script>
-require("select2/dist/css/select2.min.css");
-require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
     export default {
         props:{
             proposal:{

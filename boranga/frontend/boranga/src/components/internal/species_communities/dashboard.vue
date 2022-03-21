@@ -18,7 +18,7 @@
         </li>
     </ul>
     <div class="tab-content" id="pills-tabContent">
-        <div v-if="isFlora" class="tab-pane fade" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
+        <div v-if="isFlora" class="tab-pane fade show active" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
             <FormSection label="Flora" >
                 <SpeciesFloraDashTable v-if="isFlora" level="internal" :group_type_name="filterGroupType" :url="species_url" />
             </FormSection>
@@ -130,9 +130,19 @@ export default {
 }
 </script>
 
-<style type="text/css" scoped>
-     .nav-item {
-        background-color: rgb(200,200,200,0.8) !important;
+<style lang="css" scoped>
+    .section{
+        text-transform: capitalize;
+    }
+    .list-group{
+        margin-bottom: 0;
+    }
+    .fixed-top{
+        position: fixed;
+        top:56px;
+    }
+
+    .nav-item {
         margin-bottom: 2px;
     }
 
@@ -147,4 +157,15 @@ export default {
       border: 1px solid #888888;
     }
 
+    .nav-pills .nav-link {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 0.5em;
+        border-top-right-radius: 0.5em;
+        margin-right: 0.25em;
+    }
+    .nav-pills .nav-link {
+        background: lightgray;
+    }
 </style>
+

@@ -1,0 +1,20 @@
+{% load users %}
+{% load utils %}
+{% load static %}
+{% is_internal as is_internal_login %}
+
+<ul class="nav navbar-expand-lg navbar-light">
+{% if is_internal_login %}
+<li class="nav-item"><a class="nav-link" href="/internal/species-communities">
+    <div style="inline"><img src="{% static 'boranga/img/dpaw_small.png' %}">Species and Communities</div></a>
+</li>
+<li class="nav-item"><a class="nav-link" href="/internal/species-communities">Conservation Status</a></li>
+<li class="nav-item"><a class="nav-link" href="/internal/species-communities">Conservation Plans</a></li>
+<li class="nav-item"><a class="nav-link" href="/internal/species-communities">Occurrences</a></li>
+<li class="nav-item"><a class="nav-link" href="/internal/species-communities">Translocations</a></li>
+
+<li class="nav-item"><a class="nav-link" href="/internal/organisations/access">User Access</a></li>
+
+{% else %}
+{% endif %}
+</ul>

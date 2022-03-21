@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser, EmailUserRO
+from ledger_api_client.managed_models import SystemGroup
 from django.conf import settings
 from django.core.cache import cache
+
+from boranga.settings import GROUP_NAME_ASSESSOR, GROUP_NAME_APPROVER
 
 import logging
 logger = logging.getLogger(__name__)
@@ -33,8 +36,22 @@ def belongs_to(user, group_name):
 #    return 'EmailAuth' in request.session.get('_auth_user_backend')
 
 def is_boranga_admin(request):
+    #import ipdb; ipdb.set_trace()
     #logger.info('settings.ADMIN_GROUP: {}'.format(settings.ADMIN_GROUP))
     return request.user.is_authenticated and (belongs_to(request.user, settings.ADMIN_GROUP) or request.user.is_superuser)
+
+def is_assessor(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
+    return True if user_id in assessor_group.get_system_group_member_ids() else False
+
+
+def is_approver(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+    return True if user_id in assessor_group.get_system_group_member_ids() else False
 
 def in_dbca_domain(request):
     user = request.user
