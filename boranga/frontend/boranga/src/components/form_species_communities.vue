@@ -16,27 +16,32 @@
         <div class="col-md-12">
             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
               <li class="nav-item">
-                <a class="nav-link active" id="pills-species-tab" data-toggle="pill" href="#pills-species" role="tab" aria-controls="pills-species" aria-selected="true">
+                <!-- <a class="nav-link active" id="pills-species-tab" data-toggle="pill" href="#pills-species" role="tab" aria-controls="pills-species" aria-selected="true"> -->
+                <button class="nav-link active" id="pills-species-tab" data-bs-toggle="pill" data-bs-target="#pills-species" role="tab" aria-controls="pills-species" aria-selected="true">
                   Species
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="pills-documents-tab" data-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false">
+                <!-- <a class="nav-link" id="pills-documents-tab" data-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false"> -->
+                <button class="nav-link" id="pills-documents-tab" data-bs-toggle="pill" data-bs-target="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false">
                   Documents
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="pills-conservation-tab" data-toggle="pill" href="#pills-conservation" role="tab" aria-controls="pills-conservation" aria-selected="false">
+                <!-- <a class="nav-link" id="pills-conservation-tab" data-toggle="pill" href="#pills-conservation" role="tab" aria-controls="pills-conservation" aria-selected="false"> -->
+                <button class="nav-link" id="pills-conservation-tab" data-bs-toggle="pill" data-bs-target="#pills-conservation" role="tab" aria-controls="pills-conservation" aria-selected="false">
                   Conservation
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="pills-management-plans-tab" data-toggle="pill" href="#pills-management-plans" role="tab" aria-controls="pills-management-plans" aria-selected="false">
+                <!-- <a class="nav-link" id="pills-management-plans-tab" data-toggle="pill" href="#pills-management-plans" role="tab" aria-controls="pills-management-plans" aria-selected="false"> -->
+                <button class="nav-link" id="pills-management-plans-tab" data-bs-toggle="pill" data-bs-target="#pills-management-plans" role="tab" aria-controls="pills-management-plans" aria-selected="false">
                   Management Plans
                 </a>
               </li>
               <li v-if="is_internal" class="nav-item" id="li-relate-items">
-                <a class="nav-link" id="pills-related-items-tab" data-toggle="pill" href="#pills-related-items" role="tab" aria-controls="pills-related-items" aria-selected="false">
+                <!-- <a class="nav-link" id="pills-related-items-tab" data-toggle="pill" href="#pills-related-items" role="tab" aria-controls="pills-related-items" aria-selected="false"> -->
+                <button class="nav-link" id="pills-related-items-tab" data-bs-toggle="pill" data-bs-target="#pills-related-items" role="tab" aria-controls="pills-related-items" aria-selected="false">
                   Related Items
                 </a>
               </li>

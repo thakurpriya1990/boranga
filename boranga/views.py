@@ -103,7 +103,7 @@ class InternalProposalView(DetailView):
         return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
 
 
-@login_required(login_url='ds_home')
+@login_required(login_url='home')
 def first_time(request):
     context = {}
     if request.method == 'POST':

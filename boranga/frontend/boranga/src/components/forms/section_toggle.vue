@@ -15,7 +15,6 @@
 
 <script>
 import uuid from 'uuid';
-
 export default {
     name:"FormSection",
     props: {

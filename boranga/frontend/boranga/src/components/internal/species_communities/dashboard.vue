@@ -18,18 +18,18 @@
         </li>
     </ul>
     <div class="tab-content" id="pills-tabContent">
-        <div v-if="isFlora" class="tab-pane fade" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-            <FormSection label="Flora" >
+        <div v-if="isFlora" class="tab-pane fade show active" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
+            <FormSection :formCollapse="false" label="Flora" Index="flora">
                 <SpeciesFloraDashTable v-if="isFlora" level="internal" :group_type_name="filterGroupType" :url="species_url" />
             </FormSection>
         </div>
         <div v-if="isFauna" class="tab-pane fade" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-            <FormSection label="Fauna" >
+            <FormSection :formCollapse="false" label="Fauna" Index="fauna">
                 <SpeciesFaunaDashTable v-if="isFauna" level="internal" :group_type_name="filterGroupType" :url="species_url"/>
             </FormSection>
         </div>
         <div v-if="isCommunity" class="tab-pane fade" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-            <FormSection label="Community" >
+            <FormSection :formCollapse="false" label="Community" Index="community">
                 <CommunitiesDashTable v-if='isCommunity' level="internal" :group_type_name="filterGroupType" :url="community_url" />
             </FormSection>
         </div>
@@ -130,9 +130,19 @@ export default {
 }
 </script>
 
-<style type="text/css" scoped>
-     .nav-item {
-        background-color: rgb(200,200,200,0.8) !important;
+<style lang="css" scoped>
+    .section{
+        text-transform: capitalize;
+    }
+    .list-group{
+        margin-bottom: 0;
+    }
+    .fixed-top{
+        position: fixed;
+        top:56px;
+    }
+
+    .nav-item {
         margin-bottom: 2px;
     }
 
@@ -147,4 +157,15 @@ export default {
       border: 1px solid #888888;
     }
 
+    .nav-pills .nav-link {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 0.5em;
+        border-top-right-radius: 0.5em;
+        margin-right: 0.25em;
+    }
+    .nav-pills .nav-link {
+        background: lightgray;
+    }
 </style>
+
