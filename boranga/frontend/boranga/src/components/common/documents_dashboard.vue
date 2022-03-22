@@ -1,6 +1,5 @@
 <template id="species_documents_dashboard">
     <div>
-        This is the dashboard
         <div class="row">
             <div class="col-lg-12">
                 <datatable
@@ -19,11 +18,21 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
-import api_endpoints
-from '@/utils/hooks'
+import {
+    api_endpoints,
+    helpers
+} from '@/utils/hooks'
 export default {
     name: 'SpeciesDocumentsTable',
     props: {
+        level:{
+            type: String,
+            required: true,
+            validator:function(val) {
+                let options = ['internal','referral','external'];
+                return options.indexOf(val) != -1 ? true: false;
+            }
+        },
         url:{
             type: String,
             required: true
@@ -41,31 +50,18 @@ export default {
     watch:{
     },
     computed: {
-        datatable_headers: function() {
-            return ['Number', 'Category', 'Document', 'Description', 'Date', 'Action']
-                // These are yet to be sourced
-                // Name Reference
-                // Genetic
-                // Biology
-                // Ecology
-                // Fire
-                // Disease
+        is_external: function(){
+            return this.level == 'external';
         },
-        column_number: function() {
-            return {
-                data: "id",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, record) {
-                    if(record.id){
-                        return record.id;
-                    }
-                    // Should not reach here
-                    return 'XX'
-                },
-                name: "id",
-            }
+        is_internal: function() {
+            return this.level == 'internal'
+        },
+        is_referral: function(){
+            return this.level == 'referral';
+        },
+
+        datatable_headers: function() {
+            return ['Category', 'Document', 'Description', 'Date', 'Action', 'number', 'name_reference', 'genetic', 'biology', 'ecology', 'fire', 'disease']
         },
         column_document_category: function(){
             return {
@@ -73,9 +69,9 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, record){
-                    if(full.document_category){
-                        return full.document_category;
+                'render': function(data, type, species_document_obj){
+                    if(species_document_obj.document_category){
+                        return species_document_obj.document_category;
                     }
                     // Should not reach here
                     return 'XX'
@@ -88,14 +84,32 @@ export default {
                 data: "document",
                 orderable: true,
                 searchable: true,
-                visible: true,
-                'render': function(data, type, record){
-                    if(full.document){
-                        return full.document;
+                'render': function(value, type){
+                    var ellipsis = '...',
+                        truncated = _.truncate(value, {
+                            length: 30,
+                            omission: ellipsis,
+                            separator: ' '
+                        }),
+                        result = '<span>' + truncated + '</span>',
+                        popTemplate = _.template('<a href="#" ' +
+                            'role="button" ' +
+                            'data-toggle="popover" ' +
+                            'data-trigger="click" ' +
+                            'data-placement="top auto"' +
+                            'data-html="true" ' +
+                            'data-content="<%= text %>" ' +
+                            '>more</a>');
+                    if (_.endsWith(truncated, ellipsis)) {
+                        result += popTemplate({
+                            text: value
+                        });
                     }
-                    // Should not reach here
-                    return 'XX'
+                    //return result;
+                    return type=='export' ? value : result;
                 },
+                'createdCell': helpers.dtPopoverCellFn,
+
                 name: "document",
             }
         },
@@ -105,13 +119,31 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, record){
-                    if(full.document_description){
-                        return full.document_description;
+                'render': function(value, type){
+                    var ellipsis = '...',
+                        truncated = _.truncate(value, {
+                            length: 30,
+                            omission: ellipsis,
+                            separator: ' '
+                        }),
+                        result = '<span>' + truncated + '</span>',
+                        popTemplate = _.template('<a href="#" ' +
+                            'role="button" ' +
+                            'data-toggle="popover" ' +
+                            'data-trigger="click" ' +
+                            'data-placement="top auto"' +
+                            'data-html="true" ' +
+                            'data-content="<%= text %>" ' +
+                            '>more</a>');
+                    if (_.endsWith(truncated, ellipsis)) {
+                        result += popTemplate({
+                            text: value
+                        });
                     }
-                    // Should not reach here
-                    return 'XX'
+                    //return result;
+                    return type=='export' ? value : result;
                 },
+                'createdCell': helpers.dtPopoverCellFn,
                 name: "document_description",
             }
         },
@@ -121,9 +153,9 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if(full.date_time){
-                        return full.date_time
+                'render': function(data, type, species_document_obj){
+                    if(species_document_obj.date_time){
+                        return species_document_obj.date_time
                     }
                     // Should not reach here
                     return 'XX'
@@ -134,37 +166,155 @@ export default {
         column_action: function(){
             let vm = this
             return {
-                // 9. Action
                 data: "id",
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function(data, type, full){
+                'render': function(data, type, species_document_obj){
                     let links = "";
+                    species_document_obj.assessor_process = true      // TODO: handle properly
+                    species_document_obj.can_user_edit = true         // TODO: handle properly
+                    species_document_obj.can_user_view = true         // TODO: handle properly
                     if (!vm.is_external){
-                        /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                        if(full.assessor_process){   
-                                links +=  `<a href='/internal/species_communities/${full.id}'>Process</a><br/>`;    
+                        if(species_document_obj.assessor_process){   
+                                links +=  `<a href='/internal/species_communities/${species_document_obj.id}'>Process</a><br/>`;    
                         }
                         else{
-                            links +=  `<a href='/internal/species_communities/${full.id}'>View</a><br/>`;
+                            links +=  `<a href='/internal/species_communities/${species_document_obj.id}'>View</a><br/>`;
                         }
                     }
                     else{
-                        if (full.can_user_edit) {
-                            links +=  `<a href='/external/species_communities/${full.id}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
+                        if (species_document_obj.can_user_edit) {
+                            links +=  `<a href='/external/species_communities/${species_document_obj.id}'>Continue</a><br/>`;
+                            links +=  `<a href='#${species_document_obj.id}' data-discard-proposal='${species_document_obj.id}'>Discard</a><br/>`;
                         }
-                        else if (full.can_user_view) {
-                            links +=  `<a href='/external/species_communities/${full.id}'>View</a>`;
+                        else if (species_document_obj.can_user_view) {
+                            links +=  `<a href='/external/species_communities/${species_document_obj.id}'>View</a>`;
                         }
                     }
 
-                    links +=  `<a href='/internal/species_communities/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
+                    links +=  `<a href='/internal/species_communities/${species_document_obj.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
 
                     return links;
                 }
             }
+        },
+        column_number: function(){
+            return {
+                data: "number",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, species_document_obj){
+                    if(species_document_obj){
+                        return species_document_obj.id
+                    }
+                    // Should not reach here
+                    return 'XX'
+                },
+                name: "number",
+            }
+        },
+        column_name_reference: function(){
+            return {
+                data: "name_reference",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, species_document_obj){
+                    if(species_document_obj.name_reference){
+                        return species_document_obj.name_reference
+                    }
+                    // Should not reach here
+                    return "XX"
+                },
+                name: "name_reference",
+            }
+        },
+        column_genetic: function(){
+            return {
+                data: "genetic",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, species_document_obj){
+
+                    if(species_document_obj.genetic){
+                        return species_document_obj.genetic
+                    }
+                    // Should not reach here
+                    return 'XX'
+                },
+                name: "genetic",
+            }
+        },
+        column_biology: function(){
+            return {
+                data: "biology",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, species_document_obj){
+
+                    if(species_document_obj.biology){
+                        return species_document_obj.biology
+                    }
+                    // Should not reach here
+                    return 'XX'
+                },
+                name: "biology",
+            }   
+        },
+        column_ecology: function(){
+            return {
+                data: "ecology",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, species_document_obj){
+
+                    if(species_document_obj.ecology){
+                        return species_document_obj.ecology
+                    }
+                    // Should not reach here
+                    return 'XX'
+                },
+                name: "ecology",
+            }  
+        },
+        column_fire: function(){
+            return {
+                data: "fire",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, species_document_obj){
+
+                    if(species_document_obj.fire){
+                        return species_document_obj.fire
+                    }
+                    // Should not reach here
+                    return 'XX'
+                },
+                name: "fire",
+            }  
+        },
+        column_disease: function(){
+            return {
+                data: "disease",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, species_document_obj){
+
+                    if(species_document_obj.disease){
+                        return species_document_obj.disease
+                    }
+                    // Should not reach here
+                    return 'XX'
+                },
+                name: "disease",
+            } 
         },
         datatable_options: function(){
             let vm = this
@@ -174,12 +324,18 @@ export default {
             let buttons = []
 
             columns = [
-                vm.column_number,
                 vm.column_document_category,
                 vm.column_document,
                 vm.column_document_description,
                 vm.column_date_time,
                 vm.column_action,
+                vm.column_number,
+                vm.column_name_reference,
+                vm.column_genetic,
+                vm.column_biology,
+                vm.column_ecology,
+                vm.column_fire,
+                vm.column_disease,
             ]
             search = true
             buttons = [
@@ -215,7 +371,6 @@ export default {
                 columns: columns,
                 processing: true,
                 initComplete: function() {
-
                 },
             }
         }

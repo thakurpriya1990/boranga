@@ -32,8 +32,6 @@ module.exports = {
     // referrals_paginated_internal:   "/api/proposal_paginated/referrals_internal/?format=datatables",
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
     communities_paginated_internal: "/api/communities_paginated/communities_internal/?format=datatables",
-    species_documents_paginated_internal: "/api/species_documents_paginated/species_documents_internal/?format=datatables",
-    species_data: "api/species_data/species_data_internal/?format=datatables",
 
     filter_lists_species:"/api/filter_lists_species",
     group_types_dict:"/api/group_types_dict",

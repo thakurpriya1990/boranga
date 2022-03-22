@@ -1167,10 +1167,10 @@ export default {
         });
     },
     beforeRouteEnter: function(to, from, next) {
-        // Vue.http.get(`/api/proposal/${to.params.proposal_id}/internal_proposal.json`).then(res => {
-          Vue.http.get(`/api/species_data/species_data_internal/`).then(res => {
+          Vue.http.get(`/docs_api/species_data/species_data_internal/${to.params.proposal_id}`).then(res => {
               next(vm => {
                 vm.proposal = res.body;
+                console.log(res.body)
                 vm.original_proposal = helpers.copyObject(res.body);
                 vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
               });

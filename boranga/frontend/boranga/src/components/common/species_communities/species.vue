@@ -1,15 +1,15 @@
 <template lang="html">
     <div id="species">
         <FormSection label="Distribution" Index="distribution">
-            <div class="row form-group">
+            <!-- <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
                 <div class="col-sm-9">
                     <input :disabled="proposal.readonly" type="text" class="form-control" id="department_file_numbers" placeholder="" v-model="some_species_data"/>
                 </div>
-            </div>
+            </div> -->
         </FormSection>
         <FormSection label="Taxonomy" Index="taxonomy">
-            <div class="row form-group">
+            <!-- <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Taxon Id:</label>
                 <div class="col-sm-9">
                     <input :disabled="proposal.readonly" type="text" class="form-control" id="taxon_id" placeholder="" v-model="some_species_data"/>
@@ -68,13 +68,13 @@
                 <div class="col-sm-9">
                     <input :disabled="proposal.readonly" type="textarea" style="width: 70%;" class="form-control" id="community_description" placeholder="" v-model="some_species_data"/>
                 </div>
-            </div>
+            </div> -->
         </FormSection>
         <FormSection label="Conservation Attributes" Index="conservation_attributes">
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">General Management Advice:</label>
                 <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="general_management_advice" placeholder="" v-model="some_species_data"/>
+                    <!-- <input :disabled="proposal.readonly" type="text" class="form-control" id="general_management_advice" placeholder="" v-model="some_species_data"/> -->
                 </div>
             </div>
         </FormSection>
@@ -122,7 +122,7 @@ export default {
                 useCurrent:false,
                 keepInvalid:true,
                 allowInputToggle:true,
-                some_species_data: null,
+                // some_species_data: null,
             },
             }
         },

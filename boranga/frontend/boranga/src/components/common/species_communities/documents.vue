@@ -3,7 +3,7 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3>{{proposal}}</h3>
+                <h3>{{proposal.species_id}}</h3>
                 <h3 class="panel-title">Document History <small></small>
                     <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="lBody">
                         <span class="glyphicon glyphicon-chevron-up pull-right"></span>
@@ -46,7 +46,8 @@ export default {
         data:function () {
             let vm = this;
             return {
-                species_documents_url: api_endpoints.species_documents_paginated_internal,
+                species_documents_url: "/docs_api/species_documents/species_documents_list?species_id=" + this.proposal.species_id,
+                lBody: 'lBody' + vm._uid,
             }
         },
         components: {
@@ -62,14 +63,8 @@ export default {
 
         },
         created: function () {
-            console.log('HERE------------------------------------')
-            this.$http.get(api_endpoints.species_documents_paginated).then((response) => {
-                this.group_types= response.body;
-                console.log('CALLLED')
-                },(error) => {
-                console.log(error);
-            });
-    },
+
+         },
 }
 </script>
 
