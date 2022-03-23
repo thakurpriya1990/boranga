@@ -637,7 +637,7 @@ class DocumentCategory(models.Model):
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.document)
+        return str(self.name)
                                     
 
 class SpeciesDocument(models.Model):
@@ -665,6 +665,38 @@ class SpeciesDocument(models.Model):
                                 blank=False, 
                                 default=None,
                                 on_delete=models.CASCADE)
+
+    @property
+    def species_attributes(self):
+        return SpeciesAttributes.objects.get(species=self.species)
+
+    @property
+    def species_number(self):
+        return self.id
+
+    @property
+    def species_name_reference(self):
+        return self.species_attributes.name_reference
+
+    @property
+    def species_number(self):
+        return self.species_attributes.genetic
+
+    @property
+    def species_number(self):
+        return self.species_attributes.biology
+
+    @property
+    def species_number(self):
+        return self.species_attributes.ecology
+
+    @property
+    def species_number(self):
+        return self.species_attributes.fire
+
+    @property
+    def species_number(self):
+        return self.species_attributes.disease
 
     class Meta:
         app_label = 'boranga'
