@@ -13,11 +13,18 @@
             </div>
             <div class="panel-body collapse in" :id="lBody">
                 <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
+                    <div clas="form-horizontal col-sm-12 borderDecoration">
                         
                         <div class="form-group">
                             <div class="row">
-                                <button class="plus-button" type="button">Add Document</button><br>
+                                <div>
+                                    <button type="button" class="btn btn-primary plus-button" @click="showModal">
+                                        Add Document
+                                    </button>
+                                </div>
+                                <div>
+                                    <AddSpeciesDocument ref="modal" v-show="isModalVisible" @close="closeModal" :species="proposal"/>
+                                </div>
                                 <DocumentsDashboard level="internal" :url="species_documents_url" /><br>
                             </div>
                         </div> 
@@ -30,12 +37,8 @@
 </template>
 
 <script>
+import AddSpeciesDocument from '@common-utils/add_species_document_form.vue'
 import DocumentsDashboard from '@common-utils/documents_dashboard.vue'
-import {
-  api_endpoints,
-  helpers
-}
-from '@/utils/hooks'
 export default {
         props:{
             proposal:{
@@ -48,10 +51,13 @@ export default {
             return {
                 species_documents_url: "/docs_api/species_documents/species_documents_list?species_id=" + this.proposal.species_id,
                 lBody: 'lBody' + vm._uid,
-            }
+                isModalVisible: false,
+                
+            };
         },
         components: {
             DocumentsDashboard,
+            AddSpeciesDocument,
         },
         computed: {
 
@@ -60,7 +66,12 @@ export default {
 
         },
         methods:{
-
+            showModal() {
+                this.isModalVisible = true;
+            },
+            closeModal() {
+                this.isModalVisible = false;
+            },
         },
         created: function () {
 
@@ -107,21 +118,8 @@ export default {
         border-bottom:none;
     }
     .plus-button {
-        background-color: #337ab7;
-        border: none;
-        /* border-radius: 50px; */
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        /* width: 150px;  */
-        height: 35px;
-        vertical-align: bottom;
+        margin-left: 10px;
+        margin-bottom: 20px;;
     }
-
-
-
 </style>
 
