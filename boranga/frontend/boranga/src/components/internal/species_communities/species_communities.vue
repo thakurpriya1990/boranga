@@ -1,8 +1,8 @@
 <template lang="html">
     <div v-if="proposal" class="container" id="internalProposal">
       <div class="row" style="padding-bottom: 50px;">
-        <h3>Application: {{ proposal.lodgement_number }}</h3>
-        <h4>Application Type: {{proposal.proposal_type }}</h4>
+        <h3>{{ speciesObj.id }} - {{speciesObj.scientific_name }}</h3>
+        <h4>{{speciesObj.conservation_category }}</h4>
         <div v-if="!comparing" class="col-md-3">
             <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url" :disable_add_entry="false"/>
             <div class="row" v-if="canSeeSubmission">
@@ -337,7 +337,7 @@
                     <div class="">
                         <div class="row">
                             <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
-                                <ProposalSpeciesCommunities ref="species_communities" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode"></ProposalSpeciesCommunities>
+                                <ProposalSpeciesCommunities ref="species_communities" :proposal="proposal" :species="speciesObj" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode"></ProposalSpeciesCommunities>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                                     <input type='hidden' name="proposal_id" :value="1" />
@@ -394,6 +394,7 @@ export default {
             addressBody: 'addressBody'+vm._uid,
             contactsBody: 'contactsBody'+vm._uid,
             "proposal": null,
+            "speciesObj":null,
             "original_proposal": null,
             "loading": [],
             selected_referral: '',
@@ -450,10 +451,10 @@ export default {
             },
             contacts_table: null,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comms_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/add_comms_log'),
-            logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/action_log'),
-            district_proposals_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/district_proposals'),
+            comms_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/comms_log'),
+            comms_add_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/add_comms_log'),
+            logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/action_log'),
+            district_proposals_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/district_proposals'),
             panelClickersInitialised: false,
             sendingReferral: false,
             comparing: false,
@@ -1184,10 +1185,11 @@ export default {
         });
     },
     beforeRouteEnter: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}/internal_proposal.json`).then(res => {
+          Vue.http.get(`/api/species/${to.params.species_id}/internal_species.json`).then(res => {
               next(vm => {
-                vm.proposal = res.body;
-                vm.original_proposal = helpers.copyObject(res.body);
+                vm.proposal = res.body.proposal_obj;  //--temp proposal_obj
+                vm.speciesObj = res.body.species_obj; //--temp species_obj
+                vm.original_proposal = helpers.copyObject(res.body.proposal_obj);  //--temp proposal_obj
                 vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
                 
               });
@@ -1197,7 +1199,7 @@ export default {
             });
     },
     beforeRouteUpdate: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
+          Vue.http.get(`/api/proposal/${to.params.species_id}.json`).then(res => {
               next(vm => {
                 vm.proposal = res.body;
                 vm.original_proposal = helpers.copyObject(res.body);

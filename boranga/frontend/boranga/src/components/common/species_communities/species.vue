@@ -1,72 +1,109 @@
 <template lang="html">
     <div id="species">
-        <FormSection label="Distribution" Index="distribution">
-            <div class="row form-group">
-                <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
-                <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="department_file_numbers" placeholder="" v-model="some_species_data"/>
-                </div>
-            </div>
-        </FormSection>
         <FormSection label="Taxonomy" Index="taxonomy">
-            <div class="row form-group">
-                <label for="" class="col-sm-3 control-label">Taxon Id:</label>
-                <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="taxon_id" placeholder="" v-model="some_species_data"/>
-                </div>
-            </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Previous Name:</label>
                 <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="previous_name" placeholder="" v-model="some_species_data"/>
-                </div>
-            </div>
-            <div class="row form-group">
-                <label for="" class="col-sm-3 control-label">Common Name:</label>
-                <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="common_name" placeholder="" v-model="some_species_data"/>
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="previous_name" placeholder="" 
+                    v-model="species.previous_name"/>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Family:</label>
                 <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="family" placeholder="" v-model="some_species_data"/>
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="family" placeholder="" 
+                    v-model="species.family"/>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Genus:</label>
                 <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="genus" placeholder="" v-model="some_species_data"/>
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="genus" placeholder="" 
+                    v-model="species.genus"/>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Phylogenetic Group:</label>
                 <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="phylogenetic_group" placeholder="" v-model="some_species_data"/>
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="phylogenetic_group" placeholder="" v-model="species.phylogenetic_group"/>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Name Authority:</label>
                 <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="name_authority" placeholder="" v-model="some_species_data"/>
-                </div>
-            </div>
-             <div class="row form-group">
-                <label for="" class="col-sm-3 control-label">Community Id:</label>
-                <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="community_id" placeholder="" v-model="some_species_data"/>
-                </div>
-            </div>
-             <div class="row form-group">
-                <label for="" class="col-sm-3 control-label">Community Number:</label>
-                <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="community_number" placeholder="" v-model="some_species_data"/>
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="name_authority" placeholder="" 
+                    v-model="species.name_authority"/>
                 </div>
             </div>
             <div class="row form-group">
-                <label for="" class="col-sm-3 control-label">Community Description:</label>
+                <label for="" class="col-sm-3 control-label">Common Name:</label>
                 <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="textarea" style="width: 70%;" class="form-control" id="community_description" placeholder="" v-model="some_species_data"/>
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="common_name" placeholder="" 
+                    v-model="species.common_name"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Taxon Id:</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="taxon_id" placeholder="" 
+                    v-model="species.taxonomy"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Comments:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="proposal.readonly" class="form-control" id="comment" placeholder=""/>
+                </div>
+            </div>
+        </FormSection>
+        <FormSection label="Distribution" Index="distribution">
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Region:</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="region" placeholder="" 
+                    v-model="species.region"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">District:</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="district" placeholder="" 
+                    v-model="species.district"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Number of Occurrences:</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="no_of_occurrences" placeholder="" 
+                    v-model="species.taxonomy"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Extent of Occurrence:</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="extent_of_occurrence" placeholder="" 
+                    v-model="species.taxonomy"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(Actual):</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="area_of_occupancy_actual" placeholder="" 
+                    v-model="species.taxonomy"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(2km x 2km):</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="area_of_occupany" placeholder="" 
+                    v-model="species.taxonomy"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Number of IUCN Locations:</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="no_of_iucn_locations" placeholder="" 
+                    v-model="species.taxonomy"/>
                 </div>
             </div>
         </FormSection>
@@ -74,7 +111,33 @@
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">General Management Advice:</label>
                 <div class="col-sm-9">
-                    <input :disabled="proposal.readonly" type="text" class="form-control" id="general_management_advice" placeholder="" v-model="some_species_data"/>
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="general_management_advice" placeholder=""/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Biological Attributes:</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="biological_attributes" placeholder=""/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Specific Survey Advice:</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="specific_survey_advice" placeholder=""/>
+                </div>
+            </div>
+        </FormSection>
+        <FormSection label="" Index="">
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="department_file_numbers" placeholder="" />
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Last data curation date: </label>
+                <div class="col-sm-9">
+                    <input :disabled="proposal.readonly" type="text" class="form-control" id="department_file_numbers" placeholder="" />
                 </div>
             </div>
         </FormSection>
@@ -99,15 +162,15 @@ export default {
             proposal:{
                 type: Object,
                 required:true
-            }
+            },
+            species:{
+                type: Object,
+                required:true
+            },
         },
         data:function () {
             let vm = this;
             return{
-                distributionBody: 'distributionBody'+vm._uid,
-                taxonomyBody: 'taxonomyBody'+vm._uid,
-                conservationAttributesBody: 'conservationAttributesBody'+vm._uid,
-                conservationStatusBody: 'conservationStatusBody'+vm._uid,
                 values:null,
                 accreditation_choices:[],
                 accreditation_type:[],
@@ -122,7 +185,6 @@ export default {
                 useCurrent:false,
                 keepInvalid:true,
                 allowInputToggle:true,
-                some_species_data: null,
             },
             }
         },
@@ -403,6 +465,9 @@ export default {
     width:inherit; /* Or auto */
     padding:0 10px; /* To give a bit of padding on the left and right */
     border-bottom:none;
+    }
+    input[type=text], select {
+        width: 100%;
     }
 </style>
 

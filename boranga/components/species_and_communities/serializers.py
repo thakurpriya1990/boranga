@@ -169,7 +169,8 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     #documents_url = serializers.SerializerMethodField()
     group_type = serializers.SerializerMethodField()
-    group_type = serializers.SerializerMethodField()
+    previous_name = serializers.SerializerMethodField()
+    name_authority = serializers.SerializerMethodField()
     family = serializers.SerializerMethodField()
     genus = serializers.SerializerMethodField()
     phylogenetic_group = serializers.SerializerMethodField()
@@ -188,6 +189,8 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			    'scientific_name',
 			    'common_name',
 			    'taxonomy',
+			    'previous_name',
+			    'name_authority',
 			    'family',
 			    'genus',
 			    'phylogenetic_group',
@@ -214,6 +217,11 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             return obj.taxonomy.family
         return None
 
+    def get_previous_name(self,obj):
+        if obj.taxonomy:
+            return obj.taxonomy.previous_name
+        return None
+
     def get_genus(self,obj):
     	if obj.taxonomy:
     		return obj.taxonomy.genus
@@ -223,6 +231,11 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     	if obj.taxonomy:
     		return obj.taxonomy.phylogenetic_group
     	return None
+
+    def get_name_authority(self,obj):
+        if obj.taxonomy:
+            return obj.taxonomy.name_authority.name
+        return None
 
     def get_conservation_status(self,obj):
     	if obj.conservation_status:

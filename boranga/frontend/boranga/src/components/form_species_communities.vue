@@ -43,19 +43,19 @@
             </ul>
             <div class="tab-content" id="pills-tabContent">
               <div class="tab-pane fade" id="pills-species" role="tabpanel" aria-labelledby="pills-species-tab">
-                <Species :proposal="proposal" id="proposalSpecies" :canEditActivities="canEditActivities" ref="species" :is_external="is_external"></Species>
+                <Species :proposal="proposal" :species="species" id="proposalSpecies" :canEditActivities="canEditActivities" ref="species" :is_external="is_external"></Species>
               </div>
               <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
-                <Documents :proposal="proposal" id="proposalDocuments" :canEditActivities="canEditActivities" ref="documents" :is_external="is_external"></Documents>
+                <Documents :proposal="proposal" :species="species" id="proposalDocuments" :canEditActivities="canEditActivities" ref="documents" :is_external="is_external"></Documents>
               </div>
               <div class="tab-pane fade" id="pills-conservation" role="tabpanel" aria-labelledby="pills-conservation-tab">
-                <Conservation :proposal="proposal" id="proposalConservation" :canEditActivities="canEditActivities" ref="conservation" :is_external="is_external"></Conservation>
+                <Conservation :proposal="proposal" :species="species" id="proposalConservation" :canEditActivities="canEditActivities" ref="conservation" :is_external="is_external"></Conservation>
               </div>
               <div class="tab-pane fade" id="pills-management-plans" role="tabpanel" aria-labelledby="pills-management-plans-tab">
-                <ManagementPlans :proposal="proposal" id="proposalManagementPlans" ref="management_plans"></ManagementPlans>
+                <ManagementPlans :proposal="proposal" :species="species" id="proposalManagementPlans" ref="management_plans"></ManagementPlans>
               </div>
               <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
-                <RelatedItems :proposal="proposal" id="proposalRelatedItems"></RelatedItems>
+                <RelatedItems :proposal="proposal" :species="species" id="proposalRelatedItems"></RelatedItems>
               </div>
             </div>
         </div>
@@ -69,17 +69,13 @@
     import ManagementPlans from '@/components/common/species_communities/management_plans.vue'
     import RelatedItems from '@/components/common/species_communities/related_items.vue'
 
-//    import Profile from '@/components/user/profile.vue'
-//    import Organisation from '@/components/external/organisations/manage.vue'
-//    import Applicant from '@/components/common/tclass/applicant.vue'
-//    import Assessment from '@/components/common/tclass/assessment.vue'
-//    import ActivitiesLand from '@/components/common/tclass/activities_land.vue'
-//    import ActivitiesMarine from '@/components/common/tclass/activities_marine.vue'
-//    import OtherDetails from '@/components/common/tclass/other_details.vue'
-//    import OnlineTraining from '@/components/common/tclass/online_training.vue'
     export default {
         props:{
             proposal:{
+                type: Object,
+                required:true
+            },
+            species:{
                 type: Object,
                 required:true
             },
@@ -144,9 +140,6 @@
               let vm=this;
               $('a[href="#pills-activities-land"]').on('shown.bs.tab', function (e) {
                 vm.$refs.activities_land.$refs.vehicles_table.$refs.vehicle_datatable.vmDataTable.columns.adjust().responsive.recalc();
-              });
-              $('a[href="#pills-activities-marine"]').on('shown.bs.tab', function (e) {
-                vm.$refs.activities_marine.$refs.vessel_table.$refs.vessel_datatable.vmDataTable.columns.adjust().responsive.recalc();
               });
             },
 
