@@ -117,7 +117,7 @@
                 let vm = this;
 
                 /* set Applicant tab Active */
-                $('#pills-tab a[href="#pills-documents"]').tab('show');
+                $('#pills-tab a[href="#pills-species"]').tab('show');
             },
             eventListener: function(){
               let vm=this;

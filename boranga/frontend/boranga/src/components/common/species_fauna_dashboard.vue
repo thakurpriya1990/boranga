@@ -634,7 +634,7 @@ export default {
                         }
                     }
 
-                    links +=  `<a href='/internal/species_communities/${full.scientific_name}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
+                    links +=  `<a href='/internal/species_communities/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
 
                     return links;
                 }
