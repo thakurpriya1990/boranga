@@ -182,7 +182,7 @@ export default
             },
             children: [
                 {
-                    path: ':proposal_id',
+                    path: ':species_id',
                     component: {
                         render(c)
                         {
