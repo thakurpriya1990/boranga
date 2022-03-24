@@ -38,7 +38,7 @@
 
 <script>
 import moment from 'moment'
-import datetimepicker from 'datetimepicker'
+//import datetimepicker from 'datetimepicker'
 import Comment from './comment.vue'
 import HelpText from './help_text.vue'
 import HelpTextUrl from './help_text_url.vue'

@@ -1,42 +1,66 @@
 <template>
-<div class="container" id="internalDash">
-    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-        <li v-if="showFloraTab" class="nav-item">
-            <a class="nav-link active" id="pills-flora-tab" data-toggle="pill" href="#pills-flora" role="tab" aria-controls="pills-flora" aria-selected="true" @click="load_group_datatable('flora')">
-              Flora
-            </a>
-        </li>
-        <li v-if='showFaunaTab' class="nav-item">
-            <a class="nav-link" id="pills-fauna-tab" data-toggle="pill" href="#pills-fauna" role="tab" aria-controls="pills-fauna" aria-selected="false" @click="load_group_datatable('fauna')">
-              Fauna
-            </a>
-        </li>
-        <li v-if='showCommunityTab' class="nav-item">
-            <a class="nav-link" id="pills-community-tab" data-toggle="pill" href="#pills-community" role="tab" aria-controls="pills-community" aria-selected="false" @click="load_group_datatable('community')">
-            Communities
-            </a>
-        </li>
-    </ul>
-    <div class="tab-content" id="pills-tabContent">
-        <div v-if="isFlora" class="tab-pane fade show active" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-            <FormSection :formCollapse="false" label="Flora" Index="flora">
-                <SpeciesFloraDashTable v-if="isFlora" level="internal" :group_type_name="filterGroupType" :url="species_url" />
-            </FormSection>
+    <div class="container" id="internalDash">
+
+        <ul class="nav nav-pills" id="pills-tab" role="tablist">
+            <li class="nav-item" role="tab">
+                <a
+                    class="nav-link"
+                    id="pills-flora-tab"
+                    data-bs-toggle="pill"
+                    href="#pills-flora"
+                    aria-controls="pills-flora"
+                    aria-selected="true"
+                    @click="set_active_tab('pills-flora')"
+                >Flora</a>
+            </li>
+            <li class="nav-item">
+                <a
+                    class="nav-link"
+                    id="pills-fauna-tab"
+                    data-bs-toggle="pill"
+                    href="#pills-fauna"
+                    aria-controls="pills-fauna"
+                    aria-selected="false"
+                    @click="set_active_tab('pills-fauna')"
+                >Fauna</a>
+            </li>
+            <li class="nav-item">
+                <a
+                    class="nav-link"
+                    id="pills-community-tab"
+                    data-bs-toggle="pill"
+                    href="#pills-community"
+                    aria-controls="pills-community"
+                    aria-selected="false"
+                    @click="set_active_tab('pills-community')"
+                >Communities</a>
+            </li>
+
+
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade show active" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
+                <FormSection :formCollapse="false" label="Flora" Index="flora">
+                    <SpeciesFloraDashTable level="internal" group_type_name="flora" :url="species_url" />
+                </FormSection>
+            </div>
+            <div class="tab-pane fade" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
+                <FormSection :formCollapse="false" label="Fauna" Index="fauna">
+                    <SpeciesFaunaDashTable level="internal" group_type_name="fauna" :url="species_url"/>
+                </FormSection>
+            </div>
+            <div class="tab-pane fade" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
+                <FormSection :formCollapse="false" label="Community" Index="community">
+                    <CommunitiesDashTable level="internal" group_type_name="community" :url="community_url"/>
+                </FormSection>
+            </div>
         </div>
-        <div v-if="isFauna" class="tab-pane fade" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-            <FormSection :formCollapse="false" label="Fauna" Index="fauna">
-                <SpeciesFaunaDashTable v-if="isFauna" level="internal" :group_type_name="filterGroupType" :url="species_url"/>
-            </FormSection>
-        </div>
-        <div v-if="isCommunity" class="tab-pane fade" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-            <FormSection :formCollapse="false" label="Community" Index="community">
-                <CommunitiesDashTable v-if='isCommunity' level="internal" :group_type_name="filterGroupType" :url="community_url" />
-            </FormSection>
-        </div>
+
     </div>
-</div>
 </template>
 <script>
+import datatable from '@/utils/vue/datatable.vue'
 import SpeciesFloraDashTable from '@common-utils/species_flora_dashboard.vue'
 import SpeciesFaunaDashTable from '@common-utils/species_fauna_dashboard.vue'
 import CommunitiesDashTable from '@common-utils/communities_dashboard.vue'
@@ -116,6 +140,17 @@ export default {
                 this.filterGroupType = grouptype;
             }
         },
+        set_active_tab: function(tab_href_name){
+            let elem = $('#pills-tab a[href="#' + tab_href_name + '"]')
+            let tab = bootstrap.Tab.getInstance(elem)
+            if(!tab)
+                tab = new bootstrap.Tab(elem)
+            tab.show()
+        },
+        set_active_tab2: function(tab_href_name){
+            var elem = document.querySelector('#pills-tab a[href="#' + tab_href_name + '"]')
+            bootstrap.Tab.getInstance(elem).show() 
+        },
     },
     created: function () {
         this.$http.get(api_endpoints.group_types_dict).then((response) => {
@@ -125,8 +160,18 @@ export default {
             });
     },
     updated: function () {
+        //this.set_active_tab('pills-community');
         this.set_tabs();
-    }
+    },
+    mounted: function () {
+        let vm = this
+
+        this.$nextTick(function(){
+            chevron_toggle.init();
+            //vm.set_active_tab('pills-flora')
+        })
+    },
+
 }
 </script>
 
@@ -157,6 +202,11 @@ export default {
       border: 1px solid #888888;
     }
 
+        .admin > div {
+          display: inline-block;
+          vertical-align: top;
+          margin-right: 1em;
+        }
     .nav-pills .nav-link {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
@@ -166,6 +216,9 @@ export default {
     }
     .nav-pills .nav-link {
         background: lightgray;
+    }
+    .nav-pills .nav-link.active {
+        background: gray;
     }
 </style>
 

@@ -1,19 +1,12 @@
 {% extends 'boranga/base.html' %}
 {% load static %}
-{% load users %}
-{% block extra_css %}
-{% endblock %}
-{% block extra_js %}
-    {{super}}
-{% endblock %}
-{% block requirements %}
-{% endblock %}
 
 {% block content %}
-    <div class="container-fluid" id="dashboard-table-container">
+    <div class="container-fluid" id="vue-root">
         {% block vue-component %}
         <div id="app"></div>
         {% endblock %}
 
     </div>
 {% endblock %}
+

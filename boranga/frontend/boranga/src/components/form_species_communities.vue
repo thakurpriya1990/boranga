@@ -14,40 +14,36 @@
         </div> -->
 
         <div class="col-md-12">
+
             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
               <li class="nav-item">
-                <!-- <a class="nav-link active" id="pills-species-tab" data-toggle="pill" href="#pills-species" role="tab" aria-controls="pills-species" aria-selected="true"> -->
-                <button class="nav-link active" id="pills-species-tab" data-bs-toggle="pill" data-bs-target="#pills-species" role="tab" aria-controls="pills-species" aria-selected="true">
+                <a class="nav-link" id="pills-species-tab" data-bs-toggle="pill" href="#pills-species" role="tab" aria-controls="pills-species" aria-selected="true">
                   Species
                 </a>
               </li>
               <li class="nav-item">
-                <!-- <a class="nav-link" id="pills-documents-tab" data-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false"> -->
-                <button class="nav-link" id="pills-documents-tab" data-bs-toggle="pill" data-bs-target="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false">
+                <a class="nav-link" id="pills-documents-tab" data-bs-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false">
                   Documents
                 </a>
               </li>
               <li class="nav-item">
-                <!-- <a class="nav-link" id="pills-conservation-tab" data-toggle="pill" href="#pills-conservation" role="tab" aria-controls="pills-conservation" aria-selected="false"> -->
-                <button class="nav-link" id="pills-conservation-tab" data-bs-toggle="pill" data-bs-target="#pills-conservation" role="tab" aria-controls="pills-conservation" aria-selected="false">
+                <a class="nav-link" id="pills-conservation-tab" data-bs-toggle="pill" href="#pills-conservation" role="tab" aria-controls="pills-conservation" aria-selected="false">
                   Conservation
                 </a>
               </li>
               <li class="nav-item">
-                <!-- <a class="nav-link" id="pills-management-plans-tab" data-toggle="pill" href="#pills-management-plans" role="tab" aria-controls="pills-management-plans" aria-selected="false"> -->
-                <button class="nav-link" id="pills-management-plans-tab" data-bs-toggle="pill" data-bs-target="#pills-management-plans" role="tab" aria-controls="pills-management-plans" aria-selected="false">
+                <a class="nav-link" id="pills-management-plans-tab" data-bs-toggle="pill" href="#pills-management-plans" role="tab" aria-controls="pills-management-plans" aria-selected="false">
                   Management Plans
                 </a>
               </li>
               <li v-if="is_internal" class="nav-item" id="li-relate-items">
-                <!-- <a class="nav-link" id="pills-related-items-tab" data-toggle="pill" href="#pills-related-items" role="tab" aria-controls="pills-related-items" aria-selected="false"> -->
-                <button class="nav-link" id="pills-related-items-tab" data-bs-toggle="pill" data-bs-target="#pills-related-items" role="tab" aria-controls="pills-related-items" aria-selected="false">
+                <a class="nav-link" id="pills-related-items-tab" data-bs-toggle="pill" href="#pills-related-items" role="tab" aria-controls="pills-related-items" aria-selected="false">
                   Related Items
                 </a>
               </li>
             </ul>
             <div class="tab-content" id="pills-tabContent">
-              <div class="tab-pane fade" id="pills-species" role="tabpanel" aria-labelledby="pills-species-tab">
+              <div class="tab-pane fade show active" id="pills-species" role="tabpanel" aria-labelledby="pills-species-tab">
                 <Species :proposal="proposal" id="proposalSpecies" :canEditActivities="canEditActivities" ref="species" :is_external="is_external"></Species>
               </div>
               <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
@@ -143,7 +139,7 @@
                 let vm = this;
 
                 /* set Applicant tab Active */
-                $('#pills-tab a[href="#pills-species"]').tab('show');
+                //$('#pills-tab a[href="#pills-species"]').tab('show');
             },
             eventListener: function(){
               let vm=this;
@@ -182,7 +178,6 @@
     }
 
     .nav-item {
-        background-color: rgb(200,200,200,0.8) !important;
         margin-bottom: 2px;
     }
 
@@ -197,10 +192,23 @@
       border: 1px solid #888888;
     }
 
-	.admin > div {
-	  display: inline-block;
-	  vertical-align: top;
-	  margin-right: 1em;
-	}
+        .admin > div {
+          display: inline-block;
+          vertical-align: top;
+          margin-right: 1em;
+        }
+    .nav-pills .nav-link {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 0.5em;
+        border-top-right-radius: 0.5em;
+        margin-right: 0.25em;
+    }
+    .nav-pills .nav-link {
+        background: lightgray;
+    }
+    .nav-pills .nav-link.active {
+        background: gray;
+    }
 </style>
 

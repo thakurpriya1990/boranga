@@ -341,30 +341,32 @@ export default {
                 searchable: true,
                 visible: true,
                 'render': function(value, type){
-                        var ellipsis = '...',
-                                truncated = _.truncate(value, {
-                                    length: 25,
-                                    omission: ellipsis,
-                                    separator: ' '
-                                }),
-                                result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
-                                    'role="button" ' +
-                                    'data-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-content="<%= text %>" ' +
-                                    '>more</a>');
-                            if (_.endsWith(truncated, ellipsis)) {
-                                result += popTemplate({
-                                    text: value
-                                });
-                            }
-                            //return result;
-                            return type=='export' ? value : result;
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
+//                        var ellipsis = '...',
+//                                truncated = _.truncate(value, {
+//                                    length: 25,
+//                                    omission: ellipsis,
+//                                    separator: ' '
+//                                }),
+//                                result = '<span>' + truncated + '</span>',
+//                                popTemplate = _.template('<a href="#" ' +
+//                                    'role="button" ' +
+//                                    'data-bs-toggle="popover" ' +
+//                                    'data-bs-trigger="focus" ' +
+//                                    'data-bs-placement="top auto"' +
+//                                    'data-bs-html="true" ' +
+//                                    'data-content="<%= text %>" ' +
+//                                    '>more</a>');
+//                            if (_.endsWith(truncated, ellipsis)) {
+//                                result += popTemplate({
+//                                    text: value
+//                                });
+//                            }
+//                            //return result;
+//                            return type=='export' ? value : result;
                 },
-                'createdCell': helpers.dtPopoverCellFn,
+                //'createdCell': helpers.dtPopoverCellFn,
                 name: "community_id",
             }
         },
@@ -375,30 +377,10 @@ export default {
                 searchable: true,
                 visible: true,
                 'render': function(value, type){
-                        var ellipsis = '...',
-                                truncated = _.truncate(value, {
-                                    length: 25,
-                                    omission: ellipsis,
-                                    separator: ' '
-                                }),
-                                result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
-                                    'role="button" ' +
-                                    'data-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-content="<%= text %>" ' +
-                                    '>more</a>');
-                            if (_.endsWith(truncated, ellipsis)) {
-                                result += popTemplate({
-                                    text: value
-                                });
-                            }
-                            //return result;
-                            return type=='export' ? value : result;
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
                 },
-                'createdCell': helpers.dtPopoverCellFn,
+                //'createdCell': helpers.dtPopoverCellFn,
                 name: "community_name",
             }
         },
@@ -409,30 +391,10 @@ export default {
                 searchable: true,
                 visible: true,
                 'render': function(value, type){
-                        var ellipsis = '...',
-                                truncated = _.truncate(value, {
-                                    length: 25,
-                                    omission: ellipsis,
-                                    separator: ' '
-                                }),
-                                result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
-                                    'role="button" ' +
-                                    'data-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-content="<%= text %>" ' +
-                                    '>more</a>');
-                            if (_.endsWith(truncated, ellipsis)) {
-                                result += popTemplate({
-                                    text: value
-                                });
-                            }
-                            //return result;
-                            return type=='export' ? value : result;
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
                 },
-                'createdCell': helpers.dtPopoverCellFn,
+                //'createdCell': helpers.dtPopoverCellFn,
                 name: "community_status",
             }
         },
@@ -443,30 +405,10 @@ export default {
                 searchable: true,
                 visible: true,
                 'render': function(value, type){
-                        var ellipsis = '...',
-                                truncated = _.truncate(value, {
-                                    length: 25,
-                                    omission: ellipsis,
-                                    separator: ' '
-                                }),
-                                result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
-                                    'role="button" ' +
-                                    'data-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-content="<%= text %>" ' +
-                                    '>more</a>');
-                            if (_.endsWith(truncated, ellipsis)) {
-                                result += popTemplate({
-                                    text: value
-                                });
-                            }
-                            //return result;
-                            return type=='export' ? value : result;
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
                 },
-                'createdCell': helpers.dtPopoverCellFn,
+                //'createdCell': helpers.dtPopoverCellFn,
                 name: "conservation_list",
             }
         },
@@ -477,30 +419,10 @@ export default {
                 searchable: true,
                 visible: true,
                 'render': function(value, type){
-                        var ellipsis = '...',
-                                truncated = _.truncate(value, {
-                                    length: 25,
-                                    omission: ellipsis,
-                                    separator: ' '
-                                }),
-                                result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
-                                    'role="button" ' +
-                                    'data-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-content="<%= text %>" ' +
-                                    '>more</a>');
-                            if (_.endsWith(truncated, ellipsis)) {
-                                result += popTemplate({
-                                    text: value
-                                });
-                            }
-                            //return result;
-                            return type=='export' ? value : result;
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
                 },
-                'createdCell': helpers.dtPopoverCellFn,
+                //'createdCell': helpers.dtPopoverCellFn,
                 name: "conservation_category",
             }
         },
@@ -628,17 +550,22 @@ export default {
                 buttons = [
                     {
                         extend: 'excel',
+                        text: '<i class="fa-solid fa-download"></i> Excel',
+                        className: 'btn btn-primary ml-2',
                         exportOptions: {
-                            columns: ':visible',
-                        },
+                            columns: ':visible'
+                        }
                     },
                     {
                         extend: 'csv',
+                        text: '<i class="fa-solid fa-download"></i> CSV',
+                        className: 'btn btn-primary',
                         exportOptions: {
                             columns: ':visible'
                         }
                     },
                 ]
+
             }
 
             return {
@@ -667,12 +594,16 @@ export default {
                         d.is_internal = vm.is_internal;
                     }
                 },
-                dom: 'lBfrtip',
+                //dom: 'lBfrtip',
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                     "<'row'<'col-sm-12'tr>>" +
+                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: buttons,
 
                 columns: columns,
                 processing: true,
                 initComplete: function() {
+                    helpers.enablePopovers();
                 },
             }
         }

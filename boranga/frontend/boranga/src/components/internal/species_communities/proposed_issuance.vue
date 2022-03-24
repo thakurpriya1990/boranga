@@ -1,86 +1,94 @@
 <template lang="html">
     <div id="proposedIssuanceApproval">
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
+            <!--template v-if="is_local">
+                proposed_issuance.vue
+            </template-->
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="approvalForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                        <VueAlert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></VueAlert>
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row modal-input-row">
                                     <div class="col-sm-3">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Start Date</label>
-                                        <label v-else class="control-label pull-left"  for="Name">Proposed Start Date</label>
+                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Decision</label>
+                                        <label v-else class="control-label pull-left"  for="Name">Proposed Decision</label>
                                     </div>
-                                    <div class="col-sm-9">
-                                        <div class="input-group date" ref="start_date" style="width: 70%;">
-                                            <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date">
-                                            <span class="input-group-addon">
-                                                <span class="glyphicon glyphicon-calendar"></span>
-                                            </span>
-                                        </div>
+                                    <div class="form-check col-sm-5">
+                                        <input 
+                                        type="radio" 
+                                        class="form-check-input"
+                                        name="approve_lease_licence" 
+                                        id="approve_lease_licence" 
+                                        value="approve_lease_licence" 
+                                        v-model="selectedDecision"
+                                        />
+                                        <label class="form-check-label" for="approve_lease_licence" style="font-weight:normal">Invite applicant to apply for a lease or licence</label>
                                     </div>
-                                </div>
-                                <div class="row" v-show="showstartDateError">
-                                    <alert  class="col-sm-12" type="danger"><strong>{{startDateErrorString}}</strong></alert>
-                    
+                                    <div class="form-check col-sm-4">
+                                        <input 
+                                        type="radio" 
+                                        class="form-check-input"
+                                        name="approve_competitive_process" 
+                                        id="approve_competitive_process" 
+                                        value="approve_competitive_process" 
+                                        v-model="selectedDecision"
+                                        />
+                                        <label class="form-check-label" for="approve_competitive_process" style="font-weight:normal">Start Competitive process</label>
+                                    </div>
                                 </div>
                             </div>
+
                             <div class="form-group">
-                                <div class="row">
-                                    <div class="col-sm-3">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Expiry Date</label>
-                                        <label v-else class="control-label pull-left"  for="Name">Proposed Expiry Date</label>
-                                    </div>
-                                    <div class="col-sm-9">
-                                        <div class="input-group date" ref="due_date" style="width: 70%;">
-                                            <!--<input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" ref="expiry_date" v-model="approval.expiry_date" :disabled="is_amendment">-->
-                                            <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" ref="expiry_date" v-model="approval.expiry_date">
-                                            <span class="input-group-addon">
-                                                <span class="glyphicon glyphicon-calendar"></span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row" v-show="showtoDateError">
-                                    <alert  class="col-sm-12" type="danger"><strong>{{toDateErrorString}}</strong></alert>
-                    
-                                </div>
-                                
-                            </div>
-                            <div class="form-group">
-                                <div class="row">
+                                <div class="row modal-input-row">
                                     <div class="col-sm-3">
                                         <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Details</label>
                                         <label v-else class="control-label pull-left"  for="Name">Proposed Details</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <textarea name="approval_details" class="form-control" style="width:70%;" v-model="approval.details"></textarea>
+                                        <!--textarea name="approval_details" class="form-control" style="width:70%;" v-model="approval.details"></textarea-->
+                                        <RichText
+                                        :proposalData="approval.details"
+                                        ref="approval_details"
+                                        id="approval_details"
+                                        :can_view_richtext_src=true
+                                        :key="proposedApprovalKey"
+                                        />
+
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row modal-input-row">
                                     <div class="col-sm-3">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">CC email</label>
-                                        <label v-else class="control-label pull-left"  for="Name">Proposed CC email</label>
+                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">BCC email</label>
+                                        <label v-else class="control-label pull-left"  for="Name">Proposed BCC email</label>
                                     </div>
                                     <div class="col-sm-9">
-                                            <input type="text" class="form-control" name="approval_cc" style="width:70%;" v-model="approval.cc_email">
+                                            <input type="text" class="form-control" name="approval_cc" style="width:70%;" ref="bcc_email" v-model="approval.cc_email">
                                     </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row modal-input-row">
+                                    <div class="col-sm-12">
+                                        <label v-if="submitter_email && applicant_email" class="control-label pull-left"  for="Name">After approving this proposal, approval will be emailed to {{submitter_email}} and {{applicant_email}}.</label>
+                                        <label v-else class="control-label pull-left"  for="Name">After approving this proposal, approval will be emailed to {{submitter_email}}.</label>
+                                    </div>
+                                    
                                 </div>
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
-
-            <p v-if="can_preview">Click <a href="#" @click.prevent="preview">here</a> to preview the licence document.</p>
+            <p v-if="can_preview">Click <a href="#" @click.prevent="preview">here</a> to preview the approval letter.</p>
 
             <div slot="footer">
-                <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
-                <button type="button" v-else class="btn btn-default" @click="ok">Ok</button>
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
+                <button type="button" v-if="issuingApproval" disabled class="btn btn-light" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
+                <button type="button" v-else class="btn btn-light" @click="ok">Ok</button>
+                <button type="button" class="btn btn-light" @click="cancel">Cancel</button>
             </div>
         </modal>
     </div>
@@ -89,13 +97,15 @@
 <script>
 //import $ from 'jquery'
 import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import {helpers,api_endpoints} from "@/utils/hooks.js"
+import VueAlert from '@vue-utils/alert.vue'
+import RichText from '@/components/forms/richtext.vue'
+import {helpers, api_endpoints} from "@/utils/hooks.js"
 export default {
     name:'Proposed-Approval',
     components:{
         modal,
-        alert
+        VueAlert,
+        RichText,
     },
     props:{
         proposal_id: {
@@ -109,11 +119,32 @@ export default {
         proposal_type: {
             type: String,
             required: true
-        }
+        },
+        isApprovalLevelDocument: {
+            type: Boolean,
+            required: true
+        },
+        submitter_email: {
+            type: String,
+            required: true
+        },
+        applicant_email: {
+            type: String,
+            //default: ''
+        },
+        proposedApprovalKey: {
+            type: String,
+            //default: ''
+        },
+        proposal: {
+            type: Object,
+            required: true,
+        },
     },
     data:function () {
         let vm = this;
         return {
+            selectedDecision: null,
             isModalOpen:false,
             form:null,
             approval: {},
@@ -135,12 +166,12 @@ export default {
                 keepInvalid:true,
                 allowInputToggle:true
             },
+            warningString: 'Please attach Level of Approval document before issuing Approval',
+            uuid: 0,
+            //is_local: helpers.is_local(),
         }
     },
     computed: {
-        csrf_token: function() {
-          return helpers.getCookie('csrftoken')
-        },
         showError: function() {
             var vm = this;
             return vm.errors;
@@ -154,43 +185,39 @@ export default {
             return vm.startDateError;
         },
         title: function(){
-            return this.processing_status == 'With Approver' ? 'Issue Licence' : 'Propose to issue licence';
+            return this.processing_status == 'With Approver' ? 'Issue Approval' : 'Propose to approve';
         },
         is_amendment: function(){
             return this.proposal_type == 'Amendment' ? true : false;
         },
+        csrf_token: function() {
+          return helpers.getCookie('csrftoken')
+        },
         can_preview: function(){
-            return (this.processing_status == 'With Approver' || 'With Assessor (Requirements)') && this.approval.start_date && this.approval.expiry_date ? true : false;
+            return this.processing_status == 'With Approver' ? true : false;
         },
         preview_licence_url: function() {
           return (this.proposal_id) ? `/preview/licence-pdf/${this.proposal_id}` : '';
         },
-        
 
     },
     methods:{
         preview:function () {
             let vm =this;
-
             let formData = new FormData(vm.form)
-
             // convert formData to json
             let jsonObject = {};
             for (const [key, value] of formData.entries()) {
                 jsonObject[key] = value;
             }
-
             vm.post_and_redirect(vm.preview_licence_url, {'csrfmiddlewaretoken' : vm.csrf_token, 'formData': JSON.stringify(jsonObject)});
         },
-
         post_and_redirect: function(url, postData) {
             /* http.post and ajax do not allow redirect from Django View (post method),
                this function allows redirect by mimicking a form submit.
-
                usage:  vm.post_and_redirect(vm.application_fee_url, {'csrfmiddlewaretoken' : vm.csrf_token});
             */
             var postFormStr = "<form method='POST' target='_blank' name='Preview Licence' action='" + url + "'>";
-
             for (var key in postData) {
                 if (postData.hasOwnProperty(key)) {
                     postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
@@ -201,7 +228,6 @@ export default {
             $('body').append(formElement);
             $(formElement).submit();
         },
-
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
@@ -216,12 +242,14 @@ export default {
             this.isModalOpen = false;
             this.approval = {};
             this.errors = false;
+            /*
             this.toDateError = false;
             this.startDateError = false;
             $('.has-error').removeClass('has-error');
             $(this.$refs.due_date).data('DateTimePicker').clear();
             $(this.$refs.start_date).data('DateTimePicker').clear();
             this.validation_form.resetForm();
+            */
         },
         fetchContact: function(id){
             let vm = this;
@@ -232,40 +260,43 @@ export default {
             } );
         },
         sendData:function(){
-            let vm = this;
-            vm.errors = false;
-            let approval = JSON.parse(JSON.stringify(vm.approval));
-            vm.issuingApproval = true;
-            if (vm.state == 'proposed_approval'){
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal_id+'/proposed_approval'),JSON.stringify(approval),{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        vm.issuingApproval = false;
-                        vm.close();
-                        vm.$emit('refreshFromResponse',response);
-                        vm.$router.push({ path: '/internal' }); //Navigate to dashboard page after Propose issue.
+            this.errors = false;
+            //let approval = JSON.parse(JSON.stringify(vm.approval));
+            this.approval.details = this.$refs.approval_details.detailsText;
+            this.approval.decision = this.selectedDecision;
+            this.issuingApproval = true;
+            this.$nextTick(() => {
+                if (this.state == 'proposed_approval'){
+                    this.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,this.proposal_id+'/proposed_approval'),this.approval,{
+                            //emulateJSON:true,
+                        }).then((response)=>{
+                            this.issuingApproval = false;
+                            this.close();
+                            this.$emit('refreshFromResponse',response);
+                            this.$router.push({ path: '/internal' }); //Navigate to dashboard page after Propose issue.
 
-                    },(error)=>{
-                        vm.errors = true;
-                        vm.issuingApproval = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
-            }
-            else if (vm.state == 'final_approval'){
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal_id+'/final_approval'),JSON.stringify(approval),{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        vm.issuingApproval = false;
-                        vm.close();
-                        vm.$emit('refreshFromResponse',response);
-                    },(error)=>{
-                        vm.errors = true;
-                        vm.issuingApproval = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
-            }
-            
+                        },(error)=>{
+                            this.errors = true;
+                            this.issuingApproval = false;
+                            this.errorString = helpers.apiVueResourceError(error);
+                        });
+                }
+                else if (this.state == 'final_approval'){
+                    this.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,this.proposal_id+'/final_approval'),this.approval,{
+                            //emulateJSON:true,
+                        }).then((response)=>{
+                            this.issuingApproval = false;
+                            this.close();
+                            this.$emit('refreshFromResponse',response);
+                        },(error)=>{
+                            this.errors = true;
+                            this.issuingApproval = false;
+                            this.errorString = helpers.apiVueResourceError(error);
+                        });
+                }
+            });
         },
+        /*
         addFormValidations: function() {
             let vm = this;
             vm.validation_form = $(vm.form).validate({
@@ -296,61 +327,27 @@ export default {
                 }
             });
        },
-       eventListeners:function () {
-            let vm = this;
-            // Initialise Date Picker
-            $(vm.$refs.due_date).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.due_date).on('dp.change', function(e){
-                if ($(vm.$refs.due_date).data('DateTimePicker').date()) {
-                    if ($(vm.$refs.due_date).data('DateTimePicker').date() < $(vm.$refs.start_date).data('DateTimePicker').date()){
-                        vm.toDateError = true;
-                        vm.toDateErrorString = 'Please select Expiry date that is after Start date';
-                        vm.approval.expiry_date = ""
-                    }
-                    else{
-                        vm.toDateError = false;
-                        vm.toDateErrorString = '';
-                        vm.approval.expiry_date =  e.date.format('DD/MM/YYYY');
-                    }
-                    //vm.approval.expiry_date =  e.date.format('DD/MM/YYYY');
-                }
-                else if ($(vm.$refs.due_date).data('date') === "") {
-                    vm.approval.expiry_date = "";
-                }
-             });
-            $(vm.$refs.start_date).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.start_date).on('dp.change', function(e){
-                if ($(vm.$refs.start_date).data('DateTimePicker').date()) {
-
-                    if (($(vm.$refs.due_date).data('DateTimePicker').date()!= null)&& ($(vm.$refs.due_date).data('DateTimePicker').date() < $(vm.$refs.start_date).data('DateTimePicker').date())){
-                        vm.startDateError = true;
-                        vm.startDateErrorString = 'Please select Start date that is before Expiry date';
-                        vm.approval.start_date = ""
-                    }
-                    else{
-                        vm.startDateError = false;
-                        vm.startDateErrorString = '';
-                        vm.approval.start_date =  e.date.format('DD/MM/YYYY');
-                    }
-
-                    //vm.approval.start_date =  e.date.format('DD/MM/YYYY');
-                }
-                else if ($(vm.$refs.start_date).data('date') === "") {
-                    vm.approval.start_date = "";
-                }
-             });
-       }
+       */
    },
-   mounted:function () {
+   created:function () {
         let vm =this;
         vm.form = document.forms.approvalForm;
-        vm.addFormValidations();
+        //this.approval = Object.assign({}, this.proposal.proposed_issuance_approval);
+        //vm.addFormValidations();
         this.$nextTick(()=>{
-            vm.eventListeners();
+            if (this.approval.decision) {
+                this.selectedDecision = this.approval.decision;
+            }
         });
    }
 }
 </script>
 
 <style lang="css">
+.modal-input-row {
+    margin-bottom: 20px;
+}
+.btn-light:hover {
+    background-color: lightgrey;
+}
 </style>

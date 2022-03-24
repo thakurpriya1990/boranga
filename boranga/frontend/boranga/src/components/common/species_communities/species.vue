@@ -152,7 +152,7 @@
 
 </div> -->
     <div id="species">
-        <FormSection label="Distribution" Index="distribution">
+        <FormSection :formCollapse="false" label="Distribution" Index="distribution">
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
                 <div class="col-sm-9">

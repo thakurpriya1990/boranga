@@ -24,13 +24,13 @@
             <link rel="stylesheet" href="{% static 'boranga_vue/static/css/app.css' %}?v={{build_tag}}">
         {% endblock %}
         {% block custom_js %}
-            <link rel="stylesheet" href="{% static 'boranga_vue/static/css/app.css' %}?v={{build_tag}}">
             <script language="javascript">
                     var env = {
                         "kmi_server_url": "{{ KMI_SERVER_URL }}"
                     }
 
             </script>
+
             {% if not dev %}
                 <script type="text/javascript" src="{% static 'boranga_vue/static/js/manifest.js' %}?v={{build_tag}}"></script>
                 <script type="text/javascript" src="{% static 'boranga_vue/static/js/vendor.js' %}?v={{build_tag}}"></script>
