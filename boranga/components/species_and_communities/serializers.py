@@ -313,6 +313,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class ConservationStatusSerializer(serializers.ModelSerializer):
+    conservation_status = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
     conservation_criteria = serializers.SerializerMethodField()
@@ -320,12 +321,18 @@ class ConservationStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConservationStatus
         fields = (
+        	'conservation_list_id',
+        	'conservation_status',
             'conservation_list',
             'conservation_category',
             'conservation_criteria',
         )
-        read_only_fields = ('conservation_list_id')
+        #read_only_fields = ('conservation_list')
 
+    def get_conservation_status(self,obj):
+    	if obj.conservation_list:
+    		return obj.conservation_list.code
+    	return None
     def get_conservation_list(self,obj):
     	if obj.conservation_list:
     		return obj.conservation_list.code

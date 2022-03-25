@@ -19,7 +19,7 @@
                                     <label class="control-label pull-left"  for="Name">Some documents data</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px; width:53% !important">
-                                    <input type="text" class="form-control" name="Some species data" placeholder="" :disabled="proposal.readonly" v-model="some_documents_data">
+                                    <input type="text" class="form-control" name="Some species data" placeholder="" :disabled="proposal.readonly" >
                                 </div>
                             </div>
                         </div> 
@@ -70,7 +70,7 @@ export default {
                 useCurrent:false,
                 keepInvalid:true,
                 allowInputToggle:true,
-                some_documents_data: null,
+                //some_documents_data: null,
             },
             }
         },
