@@ -146,7 +146,8 @@
         </FormSection>
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
             <div class="row form-group">
-                
+                <ConservationStatusDatatable :disabled="proposal.readonly" :species="species">
+                </ConservationStatusDatatable>
             </div>
         </FormSection>
     </div>
@@ -155,6 +156,7 @@
 <script>
 import Vue from 'vue' 
 import FormSection from '@/components/forms/section_toggle.vue'
+import ConservationStatusDatatable from '@/components/common/species_communities/species_conservation_status_datatable.vue'
 import {
   api_endpoints,
   helpers
@@ -193,6 +195,7 @@ export default {
         },
         components: {
             FormSection,
+            ConservationStatusDatatable,
         },
         computed: {
             deed_poll_url: function(){

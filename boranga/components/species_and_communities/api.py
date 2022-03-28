@@ -38,6 +38,7 @@ from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
     ListCommunitiesSerializer,
     InternalSpeciesSerializer,
+    ConservationStatusSerializer,
 )
 
 import logging
@@ -357,3 +358,20 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
         #return Response(d)
+
+    @detail_route(methods=['GET',], detail=True)
+    def get_conservation_status(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.conservation_status
+            serializer = ConservationStatusSerializer(qs, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))

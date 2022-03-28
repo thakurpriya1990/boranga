@@ -18,6 +18,7 @@ module.exports = {
     //countries: "https://restcountries.eu/rest/v1/?fullText=true",
     countries: '/api/countries',
     proposal_type:"/api/proposal_type",
+    species:"/api/species",
     proposals:"/api/proposal.json",
     proposal_park:"/api/proposal_park.json",
     proposal_submit:"/api/proposal_submit.json",
