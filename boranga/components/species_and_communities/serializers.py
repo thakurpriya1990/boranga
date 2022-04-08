@@ -11,6 +11,7 @@ from boranga.components.species_and_communities.models import(
 	ConservationCategory,
 	ConservationCriteria,
 	Taxonomy,
+	NameAuthority,
 	ConservationAttributes,
 	Distribution,
 	)
@@ -167,6 +168,36 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 		return None
 
 
+class NameAuthoritySerializer(serializers.ModelSerializer):
+	class Meta:
+		model = NameAuthority
+		fields = (
+			'id',
+			'name',
+			)
+
+
+class TaxonomySerializer(serializers.ModelSerializer):
+	name_authority_details = serializers.SerializerMethodField()
+	class Meta:
+		model = Taxonomy
+		fields = (
+			'id',
+			'taxon_id',
+			'taxon',
+			'previous_name',
+			'family',
+			'genus',
+			'phylogenetic_group',
+			'name_authority_details',
+			)
+
+	def get_name_authority_details(self,obj):
+		if obj.name_authority:
+			qs = NameAuthority.objects.get(id = obj.name_authority_id)
+			return NameAuthoritySerializer(qs).data
+
+
 class ConservationAttributesSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ConservationAttributes
@@ -196,17 +227,11 @@ class DistributionSerializer(serializers.ModelSerializer):
 
 class BaseSpeciesSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
-    group_type = serializers.SerializerMethodField()
-    previous_name = serializers.SerializerMethodField()
-    name_authority = serializers.SerializerMethodField()
-    family = serializers.SerializerMethodField()
-    genus = serializers.SerializerMethodField()
-    phylogenetic_group = serializers.SerializerMethodField()
-    conservation_status = serializers.SerializerMethodField()
-    conservation_list = serializers.SerializerMethodField()
-    conservation_category = serializers.SerializerMethodField()
+    group_type = serializers.SerializerMethodField(read_only=True)
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
+    conservation_status = serializers.SerializerMethodField()
+    taxonomy_details = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
     distribution = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
@@ -218,20 +243,15 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			    'group_type',
 			    'scientific_name',
 			    'common_name',
-			    'taxonomy',
-			    'previous_name',
-			    'name_authority',
-			    'family',
-			    'genus',
-			    'phylogenetic_group',
+			    'taxonomy_id',
 			    'region',
 			    'district',
+			    'conservation_status_id',
 			    'conservation_status',
-			    'conservation_list',
-			    'conservation_category',
 			    'processing_status',
 			    'readonly',
 			    'can_user_edit',
+			    'taxonomy_details',
 			    'conservation_attributes',
 			    'distribution',
 
@@ -244,45 +264,14 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     def get_group_type(self,obj):
         return obj.group_type.name
 
-    def get_family(self,obj):
-        if obj.taxonomy:
-            return obj.taxonomy.family
-        return None
-
-    def get_previous_name(self,obj):
-        if obj.taxonomy:
-            return obj.taxonomy.previous_name
-        return None
-
-    def get_genus(self,obj):
+    def get_taxonomy_details(self,obj):
     	if obj.taxonomy:
-    		return obj.taxonomy.genus
-    	return None
-
-    def get_phylogenetic_group(self,obj):
-    	if obj.taxonomy:
-    		return obj.taxonomy.phylogenetic_group
-    	return None
-
-    def get_name_authority(self,obj):
-        if obj.taxonomy:
-            return obj.taxonomy.name_authority.name
-        return None
+    		qs=Taxonomy.objects.get(id=obj.taxonomy_id)
+    		return TaxonomySerializer(qs).data
 
     def get_conservation_status(self,obj):
-    	if obj.conservation_status:
-    		return obj.conservation_status.conservation_list.code
-    	return None
-
-    def get_conservation_list(self,obj):
-    	if obj.conservation_status:
-    		return obj.conservation_status.conservation_list.code
-    	return None
-
-    def get_conservation_category(self,obj):
-    	if obj.conservation_status:
-    		return obj.conservation_status.conservation_category.code
-    	return None
+    	qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
+    	return [ConservationStatusSerializer(qs).data]
 
     def get_region(self,obj):
     	if obj.region:
@@ -312,11 +301,28 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
 
 
+class SaveSpeciesSerializer(BaseSpeciesSerializer):
+    region = serializers.CharField(source='region.name', read_only=True)
+    district = serializers.CharField(source='district.name', read_only=True)
+    class Meta:
+        model = Species
+        fields = ('id',
+			    'group_type',
+			    'scientific_name',
+			    'common_name',
+			    'processing_status',
+			    'readonly',
+			    'can_user_edit',
+			    )
+        read_only_fields=('id',)
+
+
 class ConservationStatusSerializer(serializers.ModelSerializer):
     conservation_status = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
     conservation_criteria = serializers.SerializerMethodField()
+    effective_status_date = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
@@ -326,7 +332,16 @@ class ConservationStatusSerializer(serializers.ModelSerializer):
             'conservation_list',
             'conservation_category',
             'conservation_criteria',
-        )
+            'effective_status_date',
+            )
+        datatables_always_serialize = (
+            'conservation_list_id',
+            'conservation_status',
+            'conservation_list',
+            'conservation_category',
+            'conservation_criteria',
+            'effective_status_date',
+			)
         #read_only_fields = ('conservation_list')
 
     def get_conservation_status(self,obj):
@@ -348,3 +363,7 @@ class ConservationStatusSerializer(serializers.ModelSerializer):
     	if obj.conservation_criteria:
     		return obj.conservation_criteria.code
     	return None
+
+    def get_effective_status_date(self,obj): #TODO add date in models 
+    	return None
+

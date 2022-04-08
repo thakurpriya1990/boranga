@@ -65,6 +65,7 @@ module.exports = {
     referrals_paginated_internal:   "/api/proposal_paginated/referrals_internal/?format=datatables",
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
     communities_paginated_internal: "/api/communities_paginated/communities_internal/?format=datatables",
+    conservation_status_paginated: "/api/conservation_status_paginated/get_conservation_status/?format=datatables",
     filter_lists_species:"/api/filter_lists_species",
     group_types_dict:"/api/group_types_dict",
     community_filter_dict:"/api/community_filter_dict",
