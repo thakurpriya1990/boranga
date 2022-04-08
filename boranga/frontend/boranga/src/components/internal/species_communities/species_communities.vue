@@ -1,10 +1,11 @@
 <template lang="html">
-    <div v-if="proposal" class="container" id="internalProposal">
+    <div v-if="species" class="container" id="internalSpecies">
       <div class="row" style="padding-bottom: 50px;">
         <h3>{{ species.id }} - {{species.scientific_name }}</h3>
         <h4>{{species.conservation_category }}</h4>
 
             <div v-if="!comparing" class="col-md-3">
+               <!-- TODO -->
                <CommsLogs
                     :comms_url="comms_url"
                     :logs_url="logs_url"
@@ -18,6 +19,7 @@
                     :lodgement_date="proposal.lodgement_date"
                     class="mt-2"
                 />
+                <!-- ----- -->
 
                 <!-- TODO
                 <Workflow
@@ -48,33 +50,28 @@
         <!--<div class="col-md-8">-->
         <div :class="class_ncols">
             <div class="row">
-                <template v-if="proposal.processing_status == 'With Approver' || isFinalised">
-                    <ApprovalScreen :proposal="proposal" @refreshFromResponse="refreshFromResponse"/>
-                </template>
-                <template v-if="proposal.can_view_district_table">
-                    <FilmingDistrictProposalsTable :proposal="proposal" @refreshFromResponse="refreshFromResponse" :url="district_proposals_url"/>
-                </template>
-                <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || ((proposal.processing_status == 'With Approver' || isFinalised) && showingRequirements)">
-                    <Requirements :proposal="proposal" @refreshRequirements="refreshRequirements"/>
-                </template>
                 <template>
                     <div class="">
                         <div class="row">
-                            <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
-                                <ProposalSpeciesCommunities ref="species_communities" :proposal="proposal" :species="species" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode"></ProposalSpeciesCommunities>
+                            <form :action="species_form_url" method="post" name="new_species" enctype="multipart/form-data">
+                                <ProposalSpeciesCommunities 
+                                    ref="species_communities" 
+                                    :proposal="proposal" 
+                                    :species="species" 
+                                    id="speciesStart" 
+                                    :canEditActivities="canEditActivities"  
+                                    :is_internal="true">
+                                </ProposalSpeciesCommunities>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
-                                    <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
-                                    <input type='hidden' name="proposal_id" :value="1" />
+                                    <input type='hidden' name="species_id" :value="1" />
                                     <div class="row" style="margin-bottom: 50px">
-                                      <div class="navbar navbar-fixed-bottom" v-if="hasAssessorMode" style="background-color: #f5f5f5;">
+                                      <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5;">
                                         <div class="navbar-inner">
-                                            <div v-if="hasAssessorMode" class="container">
                                             <p class="pull-right">
-                                                <button v-if="savingProposal" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
+                                                <!-- <button v-if="savingProposal" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
+                                                 --><button class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Submit</button>
                                             </p>
-                                            </div>
                                         </div>
                                       </div>
                                     </div>
@@ -85,28 +82,23 @@
             </div>
         </div>
         </div>
-        <ProposedDecline ref="proposed_decline" :processing_status="proposal.processing_status" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
-        <AmendmentRequest ref="amendment_request" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
-        <ProposedApproval ref="proposed_approval" :processing_status="proposal.processing_status" :proposal_id="proposal.id" :proposal_type='proposal.proposal_type' :isApprovalLevelDocument="isApprovalLevelDocument" @refreshFromResponse="refreshFromResponse"/>
     </div>
 </template>
 <script>
 //import Proposal from '../../form.vue'
 import Vue from 'vue'
-import ProposedDecline from './proposal_proposed_decline.vue'
+/*import ProposedDecline from './proposal_proposed_decline.vue'
 import AmendmentRequest from './amendment_request.vue'
 import Requirements from './proposal_requirements.vue'
 import ProposedApproval from './proposed_issuance.vue'
-import ApprovalScreen from './proposal_approval.vue'
+import ApprovalScreen from './proposal_approval.vue'*/
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 
-import MoreReferrals from '@common-utils/more_referrals.vue'
+//import MoreReferrals from '@common-utils/more_referrals.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
-//import ProposalTClass from '@/components/form_tclass.vue'
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import {
     api_endpoints,
@@ -114,94 +106,47 @@ import {
 }
 from '@/utils/hooks'
 export default {
-    name: 'InternalProposal',
+    name: 'InternalSpecies',
     data: function() {
         let vm = this;
         return {
-            detailsBody: 'detailsBody'+vm._uid,
-            addressBody: 'addressBody'+vm._uid,
-            contactsBody: 'contactsBody'+vm._uid,
             "proposal": null,
             "species":null,
             "original_proposal": null,
             "loading": [],
             selected_referral: '',
-            referral_text: '',
             approver_comment: '',
             form: null,
-            members: [],
             proposal_parks:null,
             department_users : [],
             referral_recipient_groups : [],
-            contacts_table_initialised: false,
             initialisedSelects: false,
             showingProposal:false,
             showingRequirements:false,
             savingProposal:false,
             changingStatus:false,
             requirementsComplete:true,
-            state_options: ['requirements','processing'],
-            contacts_table_id: vm._uid+'contacts-table',
-            contacts_options:{
-                language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
-                },
-                responsive: true,
-                ajax: {
-                    "url": vm.contactsURL,
-                    "dataSrc": ''
-                },
-                columns: [
-                    {
-                        title: 'Name',
-                        mRender:function (data,type,full) {
-                            return full.first_name + " " + full.last_name;
-                        }
-                    },
-                    {
-                        title: 'Phone',
-                        data:'phone_number'
-                    },
-                    {
-                        title: 'Mobile',
-                        data:'mobile_number'
-                    },
-                    {
-                        title: 'Fax',
-                        data:'fax_number'
-                    },
-                    {
-                        title: 'Email',
-                        data:'email'
-                    },
-                  ],
-                  processing: true,
-            },
-            contacts_table: null,
+            
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/comms_log'),
             comms_add_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/add_comms_log'),
             logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/action_log'),
             district_proposals_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/district_proposals'),
-            panelClickersInitialised: false,
-            sendingReferral: false,
             comparing: false,
-            sendingToDistrict: false,
-            sendingToKensington: false,
         }
     },
     components: {
         //Proposal,
         datatable,
-        ProposedDecline,
+        /*ProposedDecline,
         AmendmentRequest,
         Requirements,
         ProposedApproval,
-        ApprovalScreen,
+        MoreReferrals,
+        ApprovalScreen,*/
         CommsLogs,
         Submission,
         Workflow,
-        MoreReferrals,
         ProposalSpeciesCommunities,
     },
     filters: {
@@ -212,20 +157,11 @@ export default {
     watch: {
     },
     computed: {
-        history_url: function(){
-            return api_endpoints.site_url + '/history/filtered/' + this.proposal.id + '/?';
-        },
-        contactsURL: function(){
-            return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.organisations,this.proposal.org_applicant.id+'/contacts') : '';
-        },
-        referralListURL: function(){
-            return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.referrals,'datatable_list')+'?proposal='+this.proposal.id : '';
-        },
-        isLoading: function() {
-          return this.loading.length > 0
-        },
         csrf_token: function() {
           return helpers.getCookie('csrftoken')
+        },
+        species_form_url: function() {
+          return (this.species) ? `/api/species/${this.species.id}/species_save.json` : '';
         },
         proposal_form_url: function() {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
@@ -242,9 +178,6 @@ export default {
         canEditActivities: function(){
             return this.proposal && this.proposal.assessor_mode && this.proposal.assessor_mode.assessor_mode && this.proposal.can_edit_activities;
         },
-        canEditPeriod: function(){
-            return this.proposal && this.proposal.assessor_mode && this.proposal.assessor_mode.assessor_mode && this.proposal.can_edit_period;
-        },
         canAction: function(){
             if (this.proposal.processing_status == 'With Approver'){
                 return this.proposal && (this.proposal.processing_status == 'With Approver' || this.proposal.processing_status == 'With Assessor' || this.proposal.processing_status == 'With Assessor (Requirements)') && !this.isFinalised && !this.proposal.can_user_edit && (this.proposal.current_assessor.id == this.proposal.assigned_approver || this.proposal.assigned_approver == null ) && this.proposal.assessor_mode.assessor_can_assess? true : false;
@@ -253,25 +186,11 @@ export default {
                 return this.proposal && (this.proposal.processing_status == 'With QA Officer' || this.proposal.processing_status == 'On Hold' || this.proposal.processing_status == 'With Approver' || this.proposal.processing_status == 'With Assessor' || this.proposal.processing_status == 'With Assessor (Requirements)') && !this.isFinalised && !this.proposal.can_user_edit && (this.proposal.current_assessor.id == this.proposal.assigned_officer || this.proposal.assigned_officer == null ) && this.proposal.assessor_mode.assessor_can_assess? true : false;
             }
         },
-        canLimitedAction: function(){
-            if (this.proposal.processing_status == 'With Approver'){
-                return this.proposal && (this.proposal.processing_status == 'With Assessor' || this.proposal.processing_status == 'With Referral' || this.proposal.processing_status == 'With Assessor (Requirements)') && !this.isFinalised && !this.proposal.can_user_edit && (this.proposal.current_assessor.id == this.proposal.assigned_approver || this.proposal.assigned_approver == null ) && this.proposal.assessor_mode.assessor_can_assess? true : false;
-            }
-            else{
-                return this.proposal && (this.proposal.processing_status == 'With Assessor' || this.proposal.processing_status == 'With Referral' || this.proposal.processing_status == 'With Assessor (Requirements)') && !this.isFinalised && !this.proposal.can_user_edit && (this.proposal.current_assessor.id == this.proposal.assigned_officer || this.proposal.assigned_officer == null ) && this.proposal.assessor_mode.assessor_can_assess? true : false;
-            }
-        },
         canSeeSubmission: function(){
             return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
         },
         isApprovalLevelDocument: function(){
             return this.proposal && this.proposal.processing_status == 'With Approver' && this.proposal.approval_level != null && this.proposal.approval_level_document == null ? true : false;
-        },
-        isQAOfficerAssessmentCompleted: function(){
-            return this.proposal && this.proposal.qaofficer_referrals && this.proposal.qaofficer_referrals.length!=0 && this.proposal.qaofficer_referrals[0].processing_status == 'Completed' ? true : false;
-        },
-        QAOfficerAssessmentCompletedBy: function(){
-            return this.isQAOfficerAssessmentCompleted ? this.proposal.qaofficer_referrals[0].qaofficer : '';
         },
         class_ncols: function(){
             return this.comparing ? 'col-md-12' : 'col-md-8';
@@ -285,19 +204,8 @@ export default {
         application_type_event: function(){
           return api_endpoints.event;
         },
-        // requirementsComplete: function(){
-        //     return this.proposal.requirements_completed? this.proposal.requirements_completed: true;
-        // }
     },
     methods: {
-        initialiseOrgContactTable: function(){
-            let vm = this;
-            if (vm.proposal && !vm.contacts_table_initialised){
-                vm.contacts_options.ajax.url = helpers.add_endpoint_json(api_endpoints.organisations,vm.proposal.org_applicant.id+'/contacts');
-                vm.contacts_table = $('#'+vm.contacts_table_id).DataTable(vm.contacts_options);
-                vm.contacts_table_initialised = true;
-            }
-        },
         commaToNewline(s){
             return s.replace(/[,;]/g, '\n');
         },
@@ -359,76 +267,6 @@ export default {
             this.$refs.proposed_decline.decline = this.proposal.proposaldeclineddetails != null ? helpers.copyObject(this.proposal.proposaldeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
-        sendToDistricts: function(){
-            console.log('hello');
-            let vm = this;
-            //vm.save_wo();
-            let formData = new FormData(vm.form);
-            formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-            formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-            formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-            
-            vm.sendingToDistrict = true;
-            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-            
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/send_to_districts'))).then((response) => {
-                    vm.sendingToDistrict = false;
-                    vm.original_proposal = helpers.copyObject(response.body);
-                    vm.proposal = response.body;
-                    swal(
-                        'Sent',
-                        'The proposal has been sent to Districts',
-                        'success'
-                    )
-                }, (error) => {
-                    console.log(error);
-                    swal(
-                        'Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
-                    vm.sendingToDistrict = false;
-                });
-
-              
-            },err=>{
-            });
-        },
-        sendToKensington: function(){
-            console.log('hello');
-            let vm = this;
-            //vm.save_wo();
-            let formData = new FormData(vm.form);
-            formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-            formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-            formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-            
-            vm.sendingToKensington = true;
-            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-            
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/send_to_kensington'))).then((response) => {
-                    vm.sendingToKensington = false;
-                    vm.original_proposal = helpers.copyObject(response.body);
-                    vm.proposal = response.body;
-                    swal(
-                        'Sent',
-                        'The proposal has been sent to Kensington',
-                        'success'
-                    )
-                }, (error) => {
-                    console.log(error);
-                    swal(
-                        'Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
-                    vm.sendingToKensington = false;
-                });
-
-              
-            },err=>{
-            });
-        },
         amendmentRequest: function(){
             this.save_wo();
             let values = '';
@@ -439,38 +277,25 @@ export default {
             
             this.$refs.amendment_request.isModalOpen = true;
         },
-        onHold: function(){
-            this.save_wo();
-            this.$refs.on_hold.isModalOpen = true;
-        },
-        withQAOfficer: function(){
-            this.save_wo();
-            this.$refs.with_qa_officer.isModalOpen = true;
-        },
         save: function(e) {
-          let vm = this;
-          vm.savingProposal=true;
-          let formData = new FormData(vm.form);
-            formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-            formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-            formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-          vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-              swal(
+            let vm = this;
+            vm.savingProposal=true;
+            let payload = new Object();
+            Object.assign(payload, vm.species);
+            vm.$http.post(vm.species_form_url,payload).then(res=>{
+                swal(
                 'Saved',
-                'Your application has been saved',
+                'Your changes has been saved',
                 'success'
-              )
-              vm.savingProposal=false;
-          },err=>{
-            vm.savingProposal=false;
-          });
+                )
+                vm.savingProposal=false;
+            },err=>{
+                vm.savingProposal=false;
+            });
         },
         save_wo: function() {
             let vm = this;
             let formData = new FormData(vm.form);
-            formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-            formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-            formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
             vm.$http.post(vm.proposal_form_url,formData).then(res=>{
                 },err=>{
             });
@@ -597,9 +422,6 @@ export default {
             if(vm.proposal.processing_status == 'With Assessor' && status == 'with_assessor_requirements'){
                 vm.changingStatus=true;
             let formData = new FormData(vm.form);
-            formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-            formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-            formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
             vm.$http.post(vm.proposal_form_url,formData).then(res=>{ //save Proposal before changing status so that unsaved assessor data is saved.
             
             let data = {'status': status, 'approver_comment': vm.approver_comment}
@@ -786,52 +608,6 @@ export default {
                 vm.initialisedSelects = true;
             }
         },
-        sendReferral: function(){
-            let vm = this;
-            //vm.save_wo();
-            let formData = new FormData(vm.form);
-            formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-            formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-            formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-            
-            vm.sendingReferral = true;
-            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-            
-                let data = {'email_group':vm.selected_referral, 'text': vm.referral_text};
-                //vm.sendingReferral = true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assesor_send_referral')),JSON.stringify(data),{
-                    emulateJSON:true
-                }).then((response) => {
-                    vm.sendingReferral = false;
-                    vm.original_proposal = helpers.copyObject(response.body);
-                    vm.proposal = response.body;
-                    vm.fetchProposalParks(vm.proposal.id);
-                    // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                    swal(
-                        'Referral Sent',
-                        //'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
-                        // 'The referral has been sent to '+vm.referral_recipient_groups.find(d => d.email == vm.selected_referral).name,
-                        'The referral has been sent to '+vm.selected_referral,
-                        'success'
-                    )
-                    //$(vm.$refs.department_users).val(null).trigger("change");
-                    $(vm.$refs.referral_recipient_groups).val(null).trigger("change");
-                    vm.selected_referral = '';
-                    vm.referral_text = '';
-                }, (error) => {
-                    console.log(error);
-                    swal(
-                        'Referral Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
-                    vm.sendingReferral = false;
-                });
-
-              
-            },err=>{
-            });
-        },
         remindReferral:function(r){
             let vm = this;
             
@@ -854,51 +630,6 @@ export default {
                 )
             });
         },
-        resendReferral:function(r){
-            let vm = this;
-            
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/resend')).then(response => {
-                vm.original_proposal = helpers.copyObject(response.body);
-                vm.proposal = response.body;
-                vm.fetchProposalParks(vm.proposal.id);
-                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                swal(
-                    'Referral Resent',
-                    'The referral has been resent to '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Application Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        recallReferral:function(r){
-            let vm = this;
-            
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/recall')).then(response => {
-                vm.original_proposal = helpers.copyObject(response.body);
-                vm.proposal = response.body;
-                vm.fetchProposalParks(vm.proposal.id);
-                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                swal(
-                    'Referral Recall',
-                    'The referall has been recalled from '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Application Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        }
-        
     },
     mounted: function() {
         let vm = this;
@@ -911,7 +642,7 @@ export default {
         this.$nextTick(() => {
             //vm.initialiseSelects();
 
-            vm.form = document.forms.new_proposal;
+            vm.form = document.forms.new_species;
         });
     },
     beforeRouteEnter: function(to, from, next) {
@@ -921,7 +652,6 @@ export default {
                 vm.species = res.body.species_obj; //--temp species_obj
                 vm.original_proposal = helpers.copyObject(res.body.proposal_obj);  //--temp proposal_obj
                 vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                
               });
             },
             err => {

@@ -630,7 +630,8 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary ml-2',
                         exportOptions: {
-                            columns: ':visible'
+                            columns: ':visible',
+                            orthogonal: 'export' 
                         }
                     },
                     {
@@ -638,7 +639,8 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary',
                         exportOptions: {
-                            columns: ':visible'
+                            columns: ':visible',
+                            orthogonal: 'export' 
                         }
                     },
                 ]

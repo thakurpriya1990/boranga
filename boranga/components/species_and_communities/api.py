@@ -30,14 +30,23 @@ from boranga.components.species_and_communities.models import (
     ConservationCategory,
     ConservationCriteria,
     Taxonomy,
+    NameAuthority,
     Community,
     Region,
     District,
+    Distribution,
+    ConservationAttributes,
 )
 from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
     ListCommunitiesSerializer,
     InternalSpeciesSerializer,
+    SaveSpeciesSerializer,
+    ConservationStatusSerializer,
+    DistributionSerializer,
+    ConservationAttributesSerializer,
+    TaxonomySerializer,
+    NameAuthoritySerializer,
 )
 
 import logging
@@ -357,3 +366,56 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
         #return Response(d)
+
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def species_save(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                request_data = request.data
+                if(request_data.get('distribution')):
+                    distribution_instance = Distribution.objects.get(species_id=request.data.get('distribution').get('species_id'))
+                    serializer = DistributionSerializer(distribution_instance, data = request_data.get('distribution'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+
+                if(request_data.get('taxonomy_details')):
+                    taxonomy_instance = Taxonomy.objects.get(id=request.data.get('taxonomy_details').get('id'))
+                    serializer = TaxonomySerializer(taxonomy_instance, data = request_data.get('taxonomy_details'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+
+                if(request_data.get('taxonomy_details').get('name_authority_details')):
+                    name_authority_instance = NameAuthority.objects.get(id=request.data.get('taxonomy_details').get('name_authority_details').get('id'))
+                    serializer = NameAuthoritySerializer(name_authority_instance, data = request_data.get('taxonomy_details').get('name_authority_details'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+
+                if(request_data.get('conservation_attributes')):
+                    conservation_attributes_instance = ConservationAttributes.objects.get(species_id=request.data.get('conservation_attributes').get('species_id'))
+                    serializer = ConservationAttributesSerializer(conservation_attributes_instance, data = request_data.get('conservation_attributes'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+
+                serializer = SaveSpeciesSerializer(instance, data = request_data)
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    saved_instance = serializer.save()
+                    return_serializer = InternalSpeciesSerializer(instance=saved_instance, context={'request': request})
+                    #return Response(return_serializer.data)
+                    return Response()
+        
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
