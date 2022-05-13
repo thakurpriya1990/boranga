@@ -1,4 +1,4 @@
-<template id="species_conservation_status">
+<template id="species_community_conservation_status">
     <div>
             <datatable 
             ref="conservation_status_datatable" 
@@ -19,7 +19,7 @@ import datatable from '@/utils/vue/datatable.vue'
 export default {
     name: 'SpeciesConservationStatusDatatable',
     props: {
-        species:{
+        species_community:{
                 type: Object,
                 required:true
             },
@@ -28,7 +28,7 @@ export default {
         let vm = this;
         return {
 
-            datatable_id: 'species-conservation-status-datatable-'+vm._uid,
+            datatable_id: 'species_community-conservation-status-datatable-'+vm._uid,
             conservation_status_headers:[
                     "Conservation List",
                     "Conservation Category",
@@ -102,9 +102,9 @@ export default {
     methods:{
         constructConservationStatusTable: function(){
             this.$refs.conservation_status_datatable.vmDataTable.clear().draw();
-            if(this.species.conservation_status){
-                for(let i=0; i<this.species.conservation_status.length; i++){
-                    this.addConservationStatusToTable(this.species.conservation_status[i]);
+            if(this.species_community.conservation_status){
+                for(let i=0; i<this.species_community.conservation_status.length; i++){
+                    this.addConservationStatusToTable(this.species_community.conservation_status[i]);
                 }
             }
         },
@@ -120,7 +120,7 @@ export default {
     },
     created: function() {
         this.$nextTick(() => {
-            if(this.species.conservation_status){
+            if(this.species_community.conservation_status){
                 this.constructConservationStatusTable();
             }
         });
