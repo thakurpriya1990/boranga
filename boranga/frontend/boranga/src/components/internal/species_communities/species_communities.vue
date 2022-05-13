@@ -1,8 +1,8 @@
 <template lang="html">
-    <div v-if="species" class="container" id="internalSpecies">
+    <div v-if="species_community" class="container" id="internalSpeciesCommunity">
       <div class="row" style="padding-bottom: 50px;">
-        <h3>{{ species.id }} - {{species.scientific_name }}</h3>
-        <h4>{{species.conservation_category }}</h4>
+        <h3>{{ species_community.id }} - {{species_community.scientific_name }}</h3>
+        <h4>{{species_community.conservation_category }}</h4>
 
             <div v-if="!comparing" class="col-md-3">
                <!-- TODO -->
@@ -53,28 +53,36 @@
                 <template>
                     <div class="">
                         <div class="row">
-                            <form :action="species_form_url" method="post" name="new_species" enctype="multipart/form-data">
+                            <form :action="species_community_form_url" method="post" name="new_species" enctype="multipart/form-data">
                                 <ProposalSpeciesCommunities 
                                     ref="species_communities" 
                                     :proposal="proposal" 
-                                    :species="species" 
-                                    id="speciesStart" 
+                                    :species_community="species_community" 
+                                    id="speciesCommunityStart" 
                                     :canEditActivities="canEditActivities"  
                                     :is_internal="true">
                                 </ProposalSpeciesCommunities>
-                                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
-                                    <input type='hidden' name="species_id" :value="1" />
-                                    <div class="row" style="margin-bottom: 50px">
-                                      <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5;">
+                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
+                                <input type='hidden' name="species_community_id" :value="1" />
+                                <div class="row" style="margin-bottom: 50px">
+                                    <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5;">
                                         <div class="navbar-inner">
                                             <p class="pull-right">
-                                                <!-- <button v-if="savingProposal" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
+                                                <button v-if="savingSpecies" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                 --><button class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Submit</button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()" :disabled="saveExitSpecies || submitSpecies">Save and Continue</button>
+                                                
+                                                <button v-if="saveExitSpecies" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save_exit()" :disabled="savingSpecies || submitSpecies">Save and Exit</button>
+
+                                                <button v-if="submitSpecies" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="submit()" :disbaled="saveExitSpecies || savingSpecies">Submit</button>
                                             </p>
                                         </div>
-                                      </div>
                                     </div>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -106,12 +114,12 @@ import {
 }
 from '@/utils/hooks'
 export default {
-    name: 'InternalSpecies',
+    name: 'InternalSpeciesCommunity',
     data: function() {
         let vm = this;
         return {
             "proposal": null,
-            "species":null,
+            "species_community":null,
             "original_proposal": null,
             "loading": [],
             selected_referral: '',
@@ -123,15 +131,17 @@ export default {
             initialisedSelects: false,
             showingProposal:false,
             showingRequirements:false,
-            savingProposal:false,
+            savingSpecies:false,
+            saveExitSpecies: false,
+            submitSpecies: false,
             changingStatus:false,
             requirementsComplete:true,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comms_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/add_comms_log'),
-            logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/action_log'),
-            district_proposals_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_id+'/district_proposals'),
+            comms_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/comms_log'),
+            comms_add_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/add_comms_log'),
+            logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/action_log'),
+            district_proposals_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/district_proposals'),
             comparing: false,
         }
     },
@@ -160,8 +170,8 @@ export default {
         csrf_token: function() {
           return helpers.getCookie('csrftoken')
         },
-        species_form_url: function() {
-          return (this.species) ? `/api/species/${this.species.id}/species_save.json` : '';
+        species_community_form_url: function() {
+          return (this.species_community.group_type === "community") ? `/api/community/${this.species_community.id}/community_save.json`        : `/api/species/${this.species_community.id}/species_save.json`;
         },
         proposal_form_url: function() {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
@@ -277,21 +287,78 @@ export default {
             
             this.$refs.amendment_request.isModalOpen = true;
         },
-        save: function(e) {
+        save: async function() {
             let vm = this;
-            vm.savingProposal=true;
+            vm.savingSpecies=true;
             let payload = new Object();
-            Object.assign(payload, vm.species);
-            vm.$http.post(vm.species_form_url,payload).then(res=>{
+            Object.assign(payload, vm.species_community);
+            const res = await vm.$http.post(vm.species_community_form_url,payload);
+            if(res.ok){
                 swal(
-                'Saved',
-                'Your changes has been saved',
-                'success'
+                    'Saved',
+                    'Your changes has been saved',
+                    'success'
                 )
-                vm.savingProposal=false;
-            },err=>{
-                vm.savingProposal=false;
-            });
+                vm.savingSpecies=false;
+                return res;
+            }
+            else{
+                swal({
+                    title: "Please fix following errors before saving",
+                    text: err.bodyText,
+                    type:'error'
+                });
+                vm.savingSpecies=false;
+            }
+        },
+        save_exit: async function(){
+            let vm = this;
+            vm.saveExitSpecies=true;
+            const res = await this.save();
+            vm.saveExitSpecies=false;
+            // redirect back to dashboard
+            if (res.ok) {
+                vm.$router.push({
+                    name: 'internal-species-communities-dash'
+                });
+            }
+        },
+        submit: async function(){
+            let vm = this
+            vm.submitSpecies=true;
+            try {
+                await swal({
+                    title:"Edit Species",
+                    text: "Are you sure you want to submit the changes",
+                    type: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "submit"
+                })
+            } catch (cancel) {
+                vm.submitSpecies = false;
+                return;
+            }
+
+            if(vm.submitSpecies){
+                try {
+                    const res = await this.save();
+                    if (res.ok) {
+                        vm.$router.push({
+                          name: 'internal-species-communities-dash'
+                        });
+                    }
+                } catch(err) {
+                    console.log(err)
+                    console.log(typeof(err.body))
+                    await swal({
+                        title: 'Submit Error',
+                        html: helpers.formatError(err),
+                        type: "error",
+                    })
+                    vm.submitSpecies=false;
+                    //this.submitting = false;
+                }
+            }
         },
         save_wo: function() {
             let vm = this;
@@ -646,10 +713,11 @@ export default {
         });
     },
     beforeRouteEnter: function(to, from, next) {
-          Vue.http.get(`/api/species/${to.params.species_id}/internal_species.json`).then(res => {
+        if(to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna"){
+            Vue.http.get(`/api/species/${to.params.species_community_id}/internal_species.json`).then(res => {
               next(vm => {
                 vm.proposal = res.body.proposal_obj;  //--temp proposal_obj
-                vm.species = res.body.species_obj; //--temp species_obj
+                vm.species_community = res.body.species_obj; //--temp species_obj
                 vm.original_proposal = helpers.copyObject(res.body.proposal_obj);  //--temp proposal_obj
                 vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
               });
@@ -657,9 +725,24 @@ export default {
             err => {
               console.log(err);
             });
+        }
+        //------TODO get community object if received community id
+        else{
+            Vue.http.get(`/api/community/${to.params.species_community_id}/internal_community.json`).then(res => {
+              next(vm => {
+                vm.proposal = res.body.proposal_obj;  //--temp proposal_obj
+                vm.species_community = res.body.species_obj; //--temp species_obj
+                vm.original_proposal = helpers.copyObject(res.body.proposal_obj);  //--temp proposal_obj
+                vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
+              });
+            },
+            err => {
+              console.log(err);
+            });
+        }
     },
     beforeRouteUpdate: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.species_id}.json`).then(res => {
+          Vue.http.get(`/api/proposal/${to.params.species_community_id}.json`).then(res => {
               next(vm => {
                 vm.proposal = res.body;
                 vm.original_proposal = helpers.copyObject(res.body);

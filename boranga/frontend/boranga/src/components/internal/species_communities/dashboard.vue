@@ -2,16 +2,16 @@
     <div class="container" id="internalDash">
 
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
-            <li class="nav-item" role="tab">
+            <li class="nav-item">
                 <a
                     class="nav-link"
                     id="pills-flora-tab"
                     data-bs-toggle="pill"
                     href="#pills-flora"
+                    role="tab"
                     aria-controls="pills-flora"
                     aria-selected="true"
-                    @click="set_active_tab('pills-flora')"
-                >Flora</a>
+                >Flora</a><!-- @click="set_active_tab('pills-flora')" -->
             </li>
             <li class="nav-item">
                 <a
@@ -19,10 +19,10 @@
                     id="pills-fauna-tab"
                     data-bs-toggle="pill"
                     href="#pills-fauna"
+                    role="tab"
                     aria-controls="pills-fauna"
                     aria-selected="false"
-                    @click="set_active_tab('pills-fauna')"
-                >Fauna</a>
+                >Fauna</a><!-- @click="set_active_tab('pills-fauna')" -->
             </li>
             <li class="nav-item">
                 <a
@@ -30,29 +30,29 @@
                     id="pills-community-tab"
                     data-bs-toggle="pill"
                     href="#pills-community"
+                    role="tab"
                     aria-controls="pills-community"
                     aria-selected="false"
-                    @click="set_active_tab('pills-community')"
-                >Communities</a>
+                >Communities</a><!-- @click="set_active_tab('pills-community')" -->
             </li>
 
 
         </ul>
 
         <div class="tab-content" id="pills-tabContent">
-            <div class="tab-pane fade show active" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
+            <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
                 <FormSection :formCollapse="false" label="Flora" Index="flora">
-                    <SpeciesFloraDashTable level="internal" group_type_name="flora" :url="species_url" />
+                    <SpeciesFloraDashTable ref="flora_table" level="internal" group_type_name="flora" :url="species_url" />
                 </FormSection>
             </div>
-            <div class="tab-pane fade" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
+            <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
                 <FormSection :formCollapse="false" label="Fauna" Index="fauna">
-                    <SpeciesFaunaDashTable level="internal" group_type_name="fauna" :url="species_url"/>
+                    <SpeciesFaunaDashTable ref="fauna_table" level="internal" group_type_name="fauna" :url="species_url"/>
                 </FormSection>
             </div>
-            <div class="tab-pane fade" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
+            <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
                 <FormSection :formCollapse="false" label="Community" Index="community">
-                    <CommunitiesDashTable level="internal" group_type_name="community" :url="community_url"/>
+                    <CommunitiesDashTable ref="community_table" level="internal" group_type_name="community" :url="community_url"/>
                 </FormSection>
             </div>
         </div>
@@ -147,10 +147,9 @@ export default {
                 tab = new bootstrap.Tab(elem)
             tab.show()
         },
-        set_active_tab2: function(tab_href_name){
-            var elem = document.querySelector('#pills-tab a[href="#' + tab_href_name + '"]')
-            bootstrap.Tab.getInstance(elem).show() 
-        },
+        /*recalc_table: function(){
+            this.$refs.fauna_table.$refs.fauna_datatable.vmDataTable.columns.adjust().responsive.recalc();
+        }*/
     },
     created: function () {
         this.$http.get(api_endpoints.group_types_dict).then((response) => {
@@ -159,16 +158,23 @@ export default {
                 console.log(error);
             });
     },
-    updated: function () {
-        //this.set_active_tab('pills-community');
-        this.set_tabs();
-    },
     mounted: function () {
-        let vm = this
-
+        let vm = this;
         this.$nextTick(function(){
             chevron_toggle.init();
-            //vm.set_active_tab('pills-flora')
+            vm.set_active_tab('pills-'+vm.user_preference);
+            
+            /*$('#pills-flora-tab').on('shown.bs.tab', function (e){
+                console.log("pills-flora-tab")
+                vm.$refs.flora_table.$refs.flora_datatable.vmDataTable.columns.adjust().responsive.recalc();
+            });
+            $('#pills-fauna-tab').on('shown.bs.tab', function (e){
+                console.log("pills-fauna-tab")
+                vm.$refs.fauna_table.$refs.fauna_datatable.vmDataTable.columns.adjust().responsive.recalc();
+            });
+            $('#pills-community-tab').on('shown.bs.tab', function (e){
+                vm.$refs.community_table.$refs.community_datatable.vmDataTable.columns.adjust().responsive.recalc();
+            });*/
         })
     },
 
@@ -202,11 +208,11 @@ export default {
       border: 1px solid #888888;
     }
 
-        .admin > div {
-          display: inline-block;
-          vertical-align: top;
-          margin-right: 1em;
-        }
+    .admin > div {
+      display: inline-block;
+      vertical-align: top;
+      margin-right: 1em;
+    }
     .nav-pills .nav-link {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
@@ -221,4 +227,3 @@ export default {
         background: gray;
     }
 </style>
-

@@ -1,5 +1,6 @@
 import datetime
 from django.db import models
+from boranga.components.main.models import Document
 
 
 DISTRICT_PERTH_HILLS = 'PHS'
@@ -65,6 +66,10 @@ REGION_CHOICES = (
     (REGION_WARREN,'Warren'),
     (REGION_SOUTH_COAST,'South Coast')
 )
+
+def update_species_doc_filename(instance, filename):
+    return '{}/species/{}/species_documents/{}'.format(settings.MEDIA_APP_DIR, instance.species.id,filename)
+
 
 class Region(models.Model):
     name = models.CharField(choices=REGION_CHOICES, 
@@ -640,7 +645,7 @@ class DocumentCategory(models.Model):
         return str(self.document)
                                     
 
-class SpeciesDocument(models.Model):
+class SpeciesDocument(Document):
     """
     Meta-data associated with a document relevant to a Species.
 
@@ -652,19 +657,18 @@ class SpeciesDocument(models.Model):
     Is:
     - Table
     """
-    document = models.CharField(max_length=512,                 
-                                default="None") # document file name without path
-    document_description = models.CharField(max_length=1024,
-                                            default="None")
-    date_time = models.DateField(default=datetime.date.today)
-
+    _file = models.FileField(upload_to=update_species_doc_filename, max_length=512, default="None")
+    input_name = models.CharField(max_length=255,null=True,blank=True)
+    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history 
     document_category = models.ForeignKey(DocumentCategory, 
                                           default="None",
                                           on_delete=models.CASCADE)
     species = models.ForeignKey(Species, 
                                 blank=False, 
                                 default=None,
-                                on_delete=models.CASCADE)
+                                on_delete=models.CASCADE,
+                                related_name='species_documents')
 
     class Meta:
         app_label = 'boranga'

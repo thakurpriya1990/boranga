@@ -19,6 +19,7 @@ module.exports = {
     countries: '/api/countries',
     proposal_type:"/api/proposal_type",
     species:"/api/species",
+    community:"/api/community",
     proposals:"/api/proposal.json",
     proposal_park:"/api/proposal_park.json",
     proposal_submit:"/api/proposal_submit.json",

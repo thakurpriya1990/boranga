@@ -112,6 +112,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 		return None
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
+	group_type = serializers.SerializerMethodField()
 	conservation_status = serializers.SerializerMethodField()
 	conservation_list = serializers.SerializerMethodField()
 	conservation_category = serializers.SerializerMethodField()
@@ -121,6 +122,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 		model = Community
 		fields = (
 			    'id',
+			    'group_type',
 			    'community_id',
 			    'community_name',
 			    'community_status',
@@ -132,6 +134,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			)
 		datatables_always_serialize = (
                 'id',
+                'group_type',
 			    'community_id',
 			    'community_name',
 			    'community_status',
@@ -141,6 +144,9 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			    'region',
 			    'district',
 			)
+
+	def get_group_type(self,obj):
+		return obj.group_type.name
 
 	def get_conservation_status(self,obj):
 		if obj.conservation_status:
@@ -301,6 +307,63 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
 
 
+class BaseCommunitySerializer(serializers.ModelSerializer):
+	group_type = serializers.SerializerMethodField(read_only=True)
+	region = serializers.SerializerMethodField()
+	district = serializers.SerializerMethodField()
+	conservation_status = serializers.SerializerMethodField()
+	readonly = serializers.SerializerMethodField(read_only=True)
+	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+
+	class Meta:
+		model = Community
+		fields = (
+        	    'id',
+			    'group_type',
+			    'community_id',
+			    'community_name',
+			    'community_status',
+			    'region',
+			    'district',
+			    'conservation_status_id',
+			    'conservation_status',
+			    'readonly',
+			    'can_user_edit',
+
+                # tab field models
+                )
+
+	def get_readonly(self,obj):
+		return False
+
+	def get_group_type(self,obj):
+		return obj.group_type.name
+
+	def get_conservation_status(self,obj):
+		qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
+		return [ConservationStatusSerializer(qs).data]
+
+	def get_region(self,obj):
+		if obj.region:
+			return obj.region.name
+		return None
+
+	def get_district(self,obj):
+		if obj.district:
+			return obj.district.name
+		return None
+
+	def get_can_user_edit(self,obj):
+		return True
+
+
+class InternalCommunitySerializer(BaseCommunitySerializer):
+    region = serializers.CharField(source='region.name', read_only=True)
+    district = serializers.CharField(source='district.name', read_only=True)
+    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+
+
+
 class SaveSpeciesSerializer(BaseSpeciesSerializer):
     region = serializers.CharField(source='region.name', read_only=True)
     district = serializers.CharField(source='district.name', read_only=True)
@@ -314,7 +377,23 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
 			    'readonly',
 			    'can_user_edit',
 			    )
-        read_only_fields=('id',)
+        read_only_fields=('id','group_type')
+
+
+class SaveCommunitySerializer(BaseCommunitySerializer):
+    region = serializers.CharField(source='region.name', read_only=True)
+    district = serializers.CharField(source='district.name', read_only=True)
+    class Meta:
+        model = Community
+        fields = ('id',
+			    'group_type',
+			    'community_id',
+			    'community_name',
+			    'community_status',
+			    'readonly',
+			    'can_user_edit',
+			    )
+        read_only_fields=('id','group_type')
 
 
 class ConservationStatusSerializer(serializers.ModelSerializer):

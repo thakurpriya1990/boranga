@@ -3,7 +3,7 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Conservation <small></small>
+                <h3 class="panel-title">Conservation Plans <small></small>
                 <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="lBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                 </a>
@@ -16,7 +16,7 @@
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Some conservation data</label>
+                                    <label class="control-label pull-left"  for="Name">Some conservation plan data</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px; width:53% !important">
                                     <input type="text" class="form-control" name="Some species data" placeholder="" :disabled="proposal.readonly">
@@ -70,7 +70,7 @@ export default {
                 useCurrent:false,
                 keepInvalid:true,
                 allowInputToggle:true,
-                //some_conservation_data: null,
+                //some_mgtplan_data: null,
             },
             }
         },
