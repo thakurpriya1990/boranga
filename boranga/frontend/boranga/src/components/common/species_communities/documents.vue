@@ -4,25 +4,27 @@
             <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
-                    <button @click.prevent="addDocument()" style="margin-bottom:10px;float: right+;" class="btn btn-primary pull-right">
+                    <button @click.prevent="newDocument" style="margin-bottom:10px;" class="btn btn-primary pull-right">
                         Add Document
                     </button>
                 </div>
-
-                <!-- <datatable ref="documents_datatable" :id="'documents-datatable-'+_uid" :dtOptions="documents_options"
-                :dtHeaders="documents_headers"/> -->
+                <div>
+                    <datatable ref="documents_datatable" :id="'documents-datatable-'+_uid" :dtOptions="documents_options"
+                    :dtHeaders="documents_headers"/>
+                </div>
             </form>
-
         </FormSection>
+        <DocumentDetail ref="document_detail" :document_id="species_document_id" @refreshFromResponse="refreshFromResponse"></DocumentDetail>
     </div>
 </template>
 <script>
 import Vue from 'vue' 
 import datatable from '@vue-utils/datatable.vue';
+import DocumentDetail from './add_document.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
   api_endpoints,
-  helpers
+  helpers,
 }
 from '@/utils/hooks'
 
@@ -52,8 +54,15 @@ export default {
                         keepInvalid:true,
                         allowInputToggle:true,
                 },
+                new_document:{
+                    species: vm.species_community.id,
+                    input_name: 'species_doc',
+                    description: '',
+                    document_category: '',
+                },
+                species_document_id: '',
                 documents:[],
-                documents_headers:[],
+                documents_headers:['Number','Category','Document','Description','Date/Time','Action'],
                 documents_options:{
                     autowidth: false,
                     language:{
@@ -65,17 +74,87 @@ export default {
                         "dataSrc": ''
                     },
                     order: [],
-                    dom: 'lBfrtip',
+                    dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                     "<'row'<'col-sm-12'tr>>" +
+                     "<'d-flex align-items-center'<'me-auto'i>p>",
                     buttons:[
-                    'excel','csv', ],
+                        {
+                            extend: 'excel',
+                            text: '<i class="fa-solid fa-download"></i> Excel',
+                            className: 'btn btn-primary ml-2',
+                            exportOptions: {
+                                columns: ':visible',
+                                orthogonal: 'export' 
+                            }
+                        },
+                        {
+                            extend: 'csv',
+                            text: '<i class="fa-solid fa-download"></i> CSV',
+                            className: 'btn btn-primary',
+                            exportOptions: {
+                                columns: ':visible',
+                                orthogonal: 'export' 
+                            }
+                        },
+                    ],
                     columns: [
                         {
+                            data: "id",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                return full.id;
+                            },
 
-                        }
+                        },
+                        {
+                            data: "document_category_name",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                return full.document_category_name;
+                            },
+
+                        },
+                        {
+                            data: "name",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                let links='';
+                                links+='<a href="'+ full._file+'" target="_blank"><p>' + full.name + '</p></a>' ;
+                                return links;
+                            },
+
+                        },
+                        {
+                            data: "description",
+                            orderable: true,
+                            searchable: true,
+                            'render': function(value, type){
+                                let result = helpers.dtPopover(value, 30, 'hover');
+                                return type=='export' ? value : result;
+                            },
+                        },
+                        {
+                            data: "uploaded_date",
+                            mRender:function (data,type,full){
+                                return data != '' && data != null ? moment(data).format('DD/MM/YYYY HH:MM'):'';
+                            }
+                        },
+                        {
+                            data: "id",
+                            mRender:function (data,type,full){
+                                let links = '';
+                                links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
+                                links += `<a href='#' class="deleteDocument" data-id="${full.id}">Delete</a><br>`;
+                                return links;
+                            }
+                        },
                     ],
                     processing:true,
                     initComplete: function() {
-
+                        helpers.enablePopovers();
                     }, 
                 }
             }
@@ -83,19 +162,62 @@ export default {
         components: {
             FormSection,
             datatable,
+            DocumentDetail,
         },
         computed: {
+            /*newDocument : function() {
+                this.$refs.document_detail.isModalOpen = true;
+            },*/
+            
         },
         watch:{
             
         },
         methods:{
-            eventListeners:function (){
+            /*addDocument(){
+                this.$refs.document_detail.isModalOpen = true;
+            },*/
+            newDocument: function(){
                 let vm=this;
+                this.$refs.document_detail.document_id = '';
+                //this.$refs.edit_park.fetchPark(id);
+                var new_document_another={
+                    species: vm.species_community.id,
+                    input_name: 'species_doc',
+                    description: '',
+                    document_category: '',
+                }
+                this.$refs.document_detail.speciesDocument=new_document_another;
+                this.$refs.document_detail.uploaded_document=[];
+                this.$refs.document_detail.document_action='add';
+                this.$refs.document_detail.isModalOpen = true;
             },
+            editDocument: function(id){
+                this.$refs.document_detail.document_id = id;
+                this.$refs.document_detail.fetchSpeciesDocument(id);
+                this.$refs.document_detail.isModalOpen = true;
+            },
+            updatedDocuments(){
+                this.$refs.documents_datatable.vmDataTable.ajax.reload();
+            },
+            addEventListeners:function (){
+                let vm=this;
+                vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-edit-document]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-edit-document');
+                vm.editDocument(id);
+            });
+            },
+            refreshFromResponse: function(){
+                this.$refs.documents_datatable.vmDataTable.ajax.reload();
+        },
         },
         mounted: function(){
             let vm = this;
+            this.$nextTick(() => {
+                vm.addEventListeners();
+                //vm.initialiseSearch();
+        });
         }
     }
 </script>

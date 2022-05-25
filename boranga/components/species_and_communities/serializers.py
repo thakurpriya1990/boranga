@@ -14,6 +14,7 @@ from boranga.components.species_and_communities.models import(
 	NameAuthority,
 	ConservationAttributes,
 	Distribution,
+	SpeciesDocument,
 	)
 
 from boranga.components.users.serializers import UserSerializer
@@ -445,4 +446,46 @@ class ConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_effective_status_date(self,obj): #TODO add date in models 
     	return None
+
+
+class DocumentSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = SpeciesDocument
+		fields = ('id','name','_file')
+
+
+class SpeciesDocumentSerializer(serializers.ModelSerializer):
+	document_category_name = serializers.SerializerMethodField()
+	class Meta:
+		model = SpeciesDocument
+		fields = (
+			'id',
+			'species',
+			'name',
+			'_file',
+			'description',
+			'uploaded_date',
+			'document_category',
+			'document_category_name',
+		)
+		read_only_fields = ('id','document_category_name')
+
+	def get_document_category_name(self,obj):
+		if obj.document_category:
+			return obj.document_category.name
+
+
+class SaveSpeciesDocumentSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = SpeciesDocument
+		fields = (
+			'id',
+			'species',
+			'name',
+			'description',
+			'uploaded_date',
+			'document_category',
+			)
+
+
 

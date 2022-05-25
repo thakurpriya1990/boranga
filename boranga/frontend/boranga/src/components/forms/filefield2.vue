@@ -49,7 +49,7 @@
                                 <p>
                                     <!--File: <a target="_blank">{{v.name}}</a> &nbsp;-->
                                     File:{{v.name}} &nbsp;
-                                    <a @click="pop_file(v)" class="fa fa-trash-o" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
+                                    <a @click="pop_file(v)" class="bi bi-trash" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
                                 </p>
                             </div>
                         </div>

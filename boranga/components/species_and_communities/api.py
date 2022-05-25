@@ -36,6 +36,8 @@ from boranga.components.species_and_communities.models import (
     District,
     Distribution,
     ConservationAttributes,
+    DocumentCategory,
+    SpeciesDocument,
 )
 from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
@@ -49,6 +51,8 @@ from boranga.components.species_and_communities.serializers import (
     NameAuthoritySerializer,
     InternalCommunitySerializer,
     SaveCommunitySerializer,
+    SpeciesDocumentSerializer,
+    SaveSpeciesDocumentSerializer,
 )
 
 import logging
@@ -421,6 +425,24 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(methods=['GET',], detail=True)
+    def documents(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.species_documents.all()
+            qs = qs.order_by('-uploaded_date')
+            serializer = SpeciesDocumentSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise    
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
 
 class CommunityViewSet(viewsets.ModelViewSet):
     queryset = Community.objects.none()
@@ -500,4 +522,95 @@ class CommunityViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+
+class DocumentCategoryViewSet(viewsets.ModelViewSet):
+    queryset = DocumentCategory.objects.all()
+    #serializer_class = ClassificationSerializer
+
+    def get_queryset(self):
+        return DocumentCategory.objects.none()
+
+    @list_route(methods=['GET', ], detail = False)    
+    def document_category_choices(self, request, *args, **kwargs):
+        res_obj = [] 
+        for choice in DocumentCategory.objects.all():
+            res_obj.append({'id': choice.id, 'name': choice.name})
+        res_json = json.dumps(res_obj)
+        return HttpResponse(res_json, content_type='application/json')
+
+
+class SpeciesDocumentViewSet(viewsets.ModelViewSet):
+    queryset = SpeciesDocument.objects.all().order_by('id')
+    serializer_class = SpeciesDocumentSerializer
+
+    @detail_route(methods=['GET',], detail=True)
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.is_deleted = True
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    # @detail_route(methods=['POST',], detail=True)
+    # @renderer_classes((JSONRenderer,))
+    # def delete_document(self, request, *args, **kwargs):
+    #     try:
+    #         instance = self.get_object()
+    #         RequirementDocument.objects.get(id=request.data.get('id')).delete()
+    #         return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.requirement_documents.all()])
+    #     except serializers.ValidationError:
+    #         print(traceback.print_exc())
+    #         raise
+    #     except ValidationError as e:
+    #         print(traceback.print_exc())
+    #         raise serializers.ValidationError(repr(e.error_dict))
+    #     except Exception as e:
+    #         print(traceback.print_exc())
+    #         raise serializers.ValidationError(str(e))
+
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SaveSpeciesDocumentSerializer(instance, data=json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            instance.add_documents(request)
+            return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = SaveSpeciesDocumentSerializer(data= json.loads(request.data.get('data')))
+            import ipdb; ipdb.set_trace()
+            serializer.is_valid(raise_exception = True)
+            instance = serializer.save()
+            instance.add_documents(request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
 

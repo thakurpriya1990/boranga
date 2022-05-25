@@ -1,6 +1,9 @@
 import datetime
 from django.db import models
 from boranga.components.main.models import Document
+import json
+from django.db import models,transaction
+from django.conf import settings
 
 
 DISTRICT_PERTH_HILLS = 'PHS'
@@ -672,9 +675,28 @@ class SpeciesDocument(Document):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Species Document"
 
-    def __str__(self):
-        return str(self.document)
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                # if not data.get('update'):
+                #     documents_qs = self.filter(input_name='species_doc', visible=True)
+                #     documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    self._file=_file
+                    self.name=_file.name
+                    self.input_name = data['input_name']
+                    self.can_delete = True
+                    self.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
 
 
 class ThreatCategory(models.Model):
