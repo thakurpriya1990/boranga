@@ -1,11 +1,9 @@
 {% extends 'boranga/base.html' %}
 
-{% load bootstrap3 %}
-
 {% load static %}
 
 {% block extra_css %}
-    <link type="text/css" href="{% static 'wl/css/index.css' %}" rel="stylesheet">
+    {{super}}
 {% endblock %}
 
 {% block left_menu_items %}

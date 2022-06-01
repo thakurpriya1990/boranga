@@ -55,9 +55,10 @@ class DepartmentUserList(views.APIView):
         if not data:
             retrieve_department_users()
             data = cache.get('department_users')
+        data = retrieve_department_users()
         return Response(data)
 
-        serializer  = UserSerializer(request.user)
+        #serializer  = UserSerializer(request.user)
 
 class GetCountries(views.APIView):
     renderer_classes = [JSONRenderer,]

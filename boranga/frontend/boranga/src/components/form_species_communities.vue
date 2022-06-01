@@ -1,61 +1,89 @@
 <template lang="html">
     <div>
-        <!-- <div class="col-md-3" >
-            <div class="panel panel-default fixed">
-              <div class="panel-heading">
-                <h5>Sections</h5>
-              </div>
-              <div class="panel-body" style="padding:0">
-                  <ul class="list-group" id="scrollspy-section" style="margin-bottom:0">
-
-                  </ul>
-              </div>
-            </div>
-        </div> -->
-
         <div class="col-md-12">
+
             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
               <li class="nav-item">
-                <a class="nav-link active" id="pills-species-tab" data-toggle="pill" href="#pills-species" role="tab" aria-controls="pills-species" aria-selected="true">
-                  Species
+                <a class="nav-link" id="pills-species-tab" data-bs-toggle="pill" href="#pills-species" role="tab" aria-controls="pills-species" aria-selected="true">
+                  {{ species_community_label }}
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="pills-documents-tab" data-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false">
+                <a class="nav-link" id="pills-documents-tab" data-bs-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false">
                   Documents
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="pills-conservation-tab" data-toggle="pill" href="#pills-conservation" role="tab" aria-controls="pills-conservation" aria-selected="false">
-                  Conservation
+                <a class="nav-link" id="pills-threats-tab" data-bs-toggle="pill" href="#pills-threats" role="tab" aria-controls="pills-threats" aria-selected="false">
+                  Threats
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="pills-management-plans-tab" data-toggle="pill" href="#pills-management-plans" role="tab" aria-controls="pills-management-plans" aria-selected="false">
-                  Management Plans
+                <a class="nav-link" id="pills-conservation-plans-tab" data-bs-toggle="pill" href="#pills-conservation-plans" role="tab" aria-controls="pills-management-plans" aria-selected="false">
+                  Conservation Plans
                 </a>
               </li>
               <li v-if="is_internal" class="nav-item" id="li-relate-items">
-                <a class="nav-link" id="pills-related-items-tab" data-toggle="pill" href="#pills-related-items" role="tab" aria-controls="pills-related-items" aria-selected="false">
+                <a class="nav-link" id="pills-related-items-tab" data-bs-toggle="pill" href="#pills-related-items" role="tab" aria-controls="pills-related-items" aria-selected="false">
                   Related Items
                 </a>
               </li>
             </ul>
             <div class="tab-content" id="pills-tabContent">
-              <div class="tab-pane fade" id="pills-species" role="tabpanel" aria-labelledby="pills-species-tab">
-                <Species :proposal="proposal" id="proposalSpecies" :canEditActivities="canEditActivities" ref="species" :is_external="is_external"></Species>
+              <div class="tab-pane fade show active" id="pills-species" role="tabpanel" aria-labelledby="pills-species-tab">
+                <Community
+                    v-if="isCommunity"  
+                    :proposal="proposal" 
+                    :species_community="species_community" 
+                    id="speciesInformation" 
+                    :canEditActivities="canEditActivities" 
+                    ref="community_information" 
+                    :is_external="is_external">
+                </Community>
+                <Species
+                    v-else
+                    :proposal="proposal" 
+                    :species_community="species_community" 
+                    id="speciesInformation" 
+                    :canEditActivities="canEditActivities" 
+                    ref="species_information" 
+                    :is_external="is_external">
+                </Species>
               </div>
               <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
-                <Documents :proposal="proposal" id="proposalDocuments" :canEditActivities="canEditActivities" ref="documents" :is_external="is_external"></Documents>
+                <Documents 
+                    :proposal="proposal" 
+                    :species_community="species_community" 
+                    id="speciesDocuments" 
+                    :canEditActivities="canEditActivities" 
+                    ref="documents" 
+                    :is_external="is_external">
+                </Documents>
               </div>
-              <div class="tab-pane fade" id="pills-conservation" role="tabpanel" aria-labelledby="pills-conservation-tab">
-                <Conservation :proposal="proposal" id="proposalConservation" :canEditActivities="canEditActivities" ref="conservation" :is_external="is_external"></Conservation>
+              <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
+                <Threats 
+                    :proposal="proposal" 
+                    :species_community="species_community" 
+                    id="speciesThreats" 
+                    :canEditActivities="canEditActivities" 
+                    ref="threats" 
+                    :is_external="is_external">
+                </Threats>
               </div>
-              <div class="tab-pane fade" id="pills-management-plans" role="tabpanel" aria-labelledby="pills-management-plans-tab">
-                <ManagementPlans :proposal="proposal" id="proposalManagementPlans" ref="management_plans"></ManagementPlans>
+              <div class="tab-pane fade" id="pills-conservation-plans" role="tabpanel" aria-labelledby="pills-conservation-plans-tab">
+                <ConservationPlans 
+                    :proposal="proposal" 
+                    :species_community="species_community" 
+                    id="speciesConservationPlans" 
+                    ref="conservation_plans">
+                </ConservationPlans>
               </div>
               <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
-                <RelatedItems :proposal="proposal" id="proposalRelatedItems"></RelatedItems>
+                <RelatedItems 
+                    :proposal="proposal" 
+                    :species_community="species_community" 
+                    id="speciesRelatedItems">
+                </RelatedItems>
               </div>
             </div>
         </div>
@@ -64,22 +92,19 @@
 
 <script>
     import Species from '@/components/common/species_communities/species.vue'
+    import Community from '@/components/common/species_communities/community.vue'
     import Documents from '@/components/common/species_communities/documents.vue'
-    import Conservation from '@/components/common/species_communities/conservation.vue'
-    import ManagementPlans from '@/components/common/species_communities/management_plans.vue'
+    import Threats from '@/components/common/species_communities/threats.vue'
+    import ConservationPlans from '@/components/common/species_communities/conservation_plans.vue'
     import RelatedItems from '@/components/common/species_communities/related_items.vue'
 
-//    import Profile from '@/components/user/profile.vue'
-//    import Organisation from '@/components/external/organisations/manage.vue'
-//    import Applicant from '@/components/common/tclass/applicant.vue'
-//    import Assessment from '@/components/common/tclass/assessment.vue'
-//    import ActivitiesLand from '@/components/common/tclass/activities_land.vue'
-//    import ActivitiesMarine from '@/components/common/tclass/activities_marine.vue'
-//    import OtherDetails from '@/components/common/tclass/other_details.vue'
-//    import OnlineTraining from '@/components/common/tclass/online_training.vue'
     export default {
         props:{
             proposal:{
+                type: Object,
+                required:true
+            },
+            species_community:{
                 type: Object,
                 required:true
             },
@@ -118,35 +143,38 @@
         },
         data:function () {
             return{
-                values:null
+                values:null,
+                species_community_label: this.species_community.group_type === "community" ? "Community" : "Species",
             }
         },
         components: {
             Species,
+            Community,
             Documents,
-            Conservation,
-            ManagementPlans,
+            Threats,
+            ConservationPlans,
             RelatedItems,
         },
         computed:{
-          applicantType: function(){
-            return this.proposal.applicant_type;
-        },
+            applicantType: function(){
+                return this.proposal.applicant_type;
+            },
+            isCommunity: function(){
+                return this.species_community.group_type == "community"
+            },
+
         },
         methods:{
             set_tabs:function(){
                 let vm = this;
 
                 /* set Applicant tab Active */
-                $('#pills-tab a[href="#pills-species"]').tab('show');
+                //$('#pills-tab a[href="#pills-species"]').tab('show');
             },
             eventListener: function(){
               let vm=this;
               $('a[href="#pills-activities-land"]').on('shown.bs.tab', function (e) {
                 vm.$refs.activities_land.$refs.vehicles_table.$refs.vehicle_datatable.vmDataTable.columns.adjust().responsive.recalc();
-              });
-              $('a[href="#pills-activities-marine"]').on('shown.bs.tab', function (e) {
-                vm.$refs.activities_marine.$refs.vessel_table.$refs.vessel_datatable.vmDataTable.columns.adjust().responsive.recalc();
               });
             },
 
@@ -154,7 +182,7 @@
         mounted: function() {
             let vm = this;
             vm.set_tabs();
-            vm.form = document.forms.new_proposal;
+            vm.form = document.forms.new_species;
             vm.eventListener();
             //window.addEventListener('beforeunload', vm.leaving);
             //indow.addEventListener('onblur', vm.leaving);
@@ -177,7 +205,6 @@
     }
 
     .nav-item {
-        background-color: rgb(200,200,200,0.8) !important;
         margin-bottom: 2px;
     }
 
@@ -192,10 +219,23 @@
       border: 1px solid #888888;
     }
 
-	.admin > div {
-	  display: inline-block;
-	  vertical-align: top;
-	  margin-right: 1em;
-	}
+        .admin > div {
+          display: inline-block;
+          vertical-align: top;
+          margin-right: 1em;
+        }
+    .nav-pills .nav-link {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 0.5em;
+        border-top-right-radius: 0.5em;
+        margin-right: 0.25em;
+    }
+    .nav-pills .nav-link {
+        background: lightgray;
+    }
+    .nav-pills .nav-link.active {
+        background: gray;
+    }
 </style>
 

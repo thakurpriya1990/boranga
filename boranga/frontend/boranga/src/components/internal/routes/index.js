@@ -12,7 +12,7 @@ import ComplianceDash from '../compliances/dashboard.vue'
 import Compliance from '../compliances/access.vue'
 import Approval from '../approvals/approval.vue'
 //import PaymentOrder from '@/components/common/tclass/payment_order.vue'
-import PaymentOrder from '@/components/common/tclass/payment_order.vue'
+//import PaymentOrder from '@/components/common/tclass/payment_order.vue'
 //import PaymentDash from '@/components/common/payments_dashboard.vue'
 //import ParkBookingDash from '@/components/common/parkbookings_dashboard.vue'
 import Reports from '@/components/reports/reports.vue'
@@ -81,11 +81,11 @@ export default
             path: 'payment',
             component: ParkEntryFeesDashboard,
         },
-        {
+       /* {
             path: 'payment_order',
             component: PaymentOrder,
             name:"payment_order"
-        },
+        },*/
         {
             path:'reports',
             name:'reports',
@@ -182,7 +182,7 @@ export default
             },
             children: [
                 {
-                    path: ':proposal_id',
+                    path: ':species_community_id',
                     component: {
                         render(c)
                         {

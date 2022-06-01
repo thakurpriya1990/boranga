@@ -1,11 +1,14 @@
 <template lang="html">
     <div>
         <div class="toggle_filters_wrapper">
-            <div data-toggle="collapse" :data-target="'#' + target_elem_id" :id="button_elem_id" class="toggle_filters_button collapsed" @click="toggle_filters_button_clicked">
-                <div class="toggle_filters_icon">
-                    <i :id="chevron_elem_id" class="rotate_icon fa fa-chevron-down"></i>
+            <div data-bs-toggle="collapse" :data-bs-target="'#' + target_elem_id" :id="button_elem_id" class="toggle_filters_button collapsed d-flex align-items-center" @click="toggle_filters_button_clicked">
+                <div class="me-auto">{{ component_title }}</div>
+                <div class="">
+                    <i :id="warning_icon_id" :title="warning_icon_title" class="fa-solid fa-exclamation-circle fa-2x filter_warning_icon"></i>
                 </div>
-                <i v-if="display_icon" title="filter(s) applied" class="fa fa-exclamation-circle fa-2x filter_warning_icon"></i>
+                <div class="ml-2">
+                    <i :id="chevron_elem_id" class="rotate_icon fa-solid fa-chevron-down"></i>
+                </div>
             </div>
 
             <div class="collapse" :id="target_elem_id">
@@ -17,9 +20,15 @@
 
 <script>
 import uuid from 'uuid';
+
 export default {
     name:"CollapsibleComponent",
     props: {
+        component_title: {
+            type: String,
+            required: false,
+            default: '',
+        }
     },
     watch: {
         filters_expanded: function(){
@@ -36,29 +45,33 @@ export default {
             target_elem_id: 'target_elem_' + uuid(),
             button_elem_id: 'button_elem_' + uuid(),
             chevron_elem_id: 'chevron_elem_' + uuid(),
+            warning_icon_id: 'warning_elem_' + uuid(),
+            warning_icon_title: '',
             display_icon: false,
-            filters_expanded: false,
+            filters_expanded: null,
         }
-    },
-    computed:{
     },
     methods: {
         toggle_filters_button_clicked: function(e){
             // Bootstrap add a 'collapsed' class name to the element
-            this.filters_expanded = $('#' + this.button_elem_id).hasClass('collapsed')
+            let filters_expanded_when_clicked = $('#' + this.button_elem_id).hasClass('collapsed')
+            this.filters_expanded = !filters_expanded_when_clicked
         },
         show_warning_icon: function(show){
-            this.display_icon = show
+            let warning_icon = $('#' + this.warning_icon_id)
+            if (show){
+                warning_icon.css('opacity', 1)
+                this.warning_icon_title = 'filter(s) applied'
+            } else {
+                warning_icon.css('opacity', 0)
+                this.warning_icon_title = ''
+            }
         },
-    },
-    created: function() {
     },
     mounted: function() {
         this.$nextTick(function(){
             this.$emit('created')
         })
-    },
-    updated:function () {
     },
 }
 </script>
@@ -67,19 +80,14 @@ export default {
 .toggle_filters_wrapper {
     background: #efefee;
     padding: 0.5em;
-    margin: 0 0 0.5em 0;
     display: grid;
 }
 .toggle_filters_button {
     cursor: pointer;
-    display: flex;
-    flex-direction: row-reverse;
 }
 .filter_warning_icon {
     color: #ffc107;
-}
-.toggle_filters_icon {
-    margin: 0 0 0 0.5em;
+    transition: 0.5s;
 }
 .rotate_icon {
     transition: 0.5s;

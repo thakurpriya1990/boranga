@@ -4,7 +4,7 @@ from boranga.components.main.models import (
         CommunicationsLogEntry, 
         RequiredDocument, Question, GlobalSettings, ApplicationType,
         )
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser, EmailUserRO
 from datetime import datetime, date
 #from boranga.components.proposals.serializers import ProposalTypeSerializer
 
@@ -71,3 +71,24 @@ class BookingSettlementReportSerializer(serializers.Serializer):
 class OracleSerializer(serializers.Serializer):
     date = serializers.DateField(input_formats=['%d/%m/%Y','%Y-%m-%d'])
     override = serializers.BooleanField(default=False)
+
+    
+class EmailUserROSerializerForReferral(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    telephone = serializers.CharField(source='phone_number')
+    mobile_phone = serializers.CharField(source='mobile_number')
+
+    class Meta:
+        model = EmailUserRO
+        fields = (
+            'id',
+            'name',
+            'title',
+            'email',
+            'telephone',
+            'mobile_phone',
+        )
+
+    def get_name(self, user):
+        return user.get_full_name()
+

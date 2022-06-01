@@ -27,6 +27,8 @@ from ledger_api_client.urls import urlpatterns as ledger_patterns
 router = routers.DefaultRouter()
 router.register(r'organisations',org_api.OrganisationViewSet)
 router.register(r'proposal',proposal_api.ProposalViewSet)
+router.register(r'species',species_communities_api.SpeciesViewSet)
+router.register(r'community',species_communities_api.CommunityViewSet)
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)
 router.register(r'approval_paginated',approval_api.ApprovalPaginatedViewSet)
@@ -65,9 +67,10 @@ api_patterns = [
     url(r'^api/compliance_amendment_reason_choices',compliances_api.ComplianceAmendmentReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
     url(r'^api/search_keywords',proposal_api.SearchKeywordsView.as_view(),name='search_keywords'),
     url(r'^api/search_reference',proposal_api.SearchReferenceView.as_view(),name='search_reference'),
-    url(r'^api/scientific_names_dict',species_communities_api.GetScientificNameDict.as_view(),name='get-scientific-names-dict'),
+    url(r'^api/filter_lists_species',species_communities_api.GetSpeciesFilterDict.as_view(),name='get-filter_lists_species'),
     url(r'^api/group_types_dict',species_communities_api.GetGroupTypeDict.as_view(),name='get-group-types-dict'),
     url(r'^api/community_filter_dict',species_communities_api.GetCommunityFilterDict.as_view(),name='get-community-filter-dict'),
+    url(r'^api/region_district_filter_dict',species_communities_api.GetRegionDistrictFilterDict.as_view(),name='get-region_district_filter_dict'),
 
     #url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
 
@@ -84,7 +87,8 @@ urlpatterns = [
     #path('login/', login, name='login'),
     url(r'^logout/$', LogoutView.as_view(), {'next_page': '/'}, name='logout'),
     url(r'', include(api_patterns)),
-    url(r'^$', views.BorangaRoutingView.as_view(), name='ds_home'),
+    #url(r'^$', views.BorangaRoutingView.as_view(), name='ds_home'),
+    url(r'^$', views.BorangaRoutingView.as_view(), name='home'),
     url(r'^contact/', views.BorangaContactView.as_view(), name='ds_contact'),
     url(r'^further_info/', views.BorangaFurtherInformationView.as_view(), name='ds_further_info'),
     url(r'^internal/', views.InternalView.as_view(), name='internal'),

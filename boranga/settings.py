@@ -16,6 +16,11 @@ DISABLE_EMAIL = env('DISABLE_EMAIL', False)
 SHOW_TESTS_URL = env('SHOW_TESTS_URL', False)
 SHOW_DEBUG_TOOLBAR = env('SHOW_DEBUG_TOOLBAR', False)
 BUILD_TAG = env('BUILD_TAG', hashlib.md5(os.urandom(32)).hexdigest())  # URL of the Dev app.js served by webpack & express
+TEMPLATE_TITLE = 'Boranga System'
+LEDGER_TEMPLATE = 'bootstrap5'
+
+GROUP_NAME_ASSESSOR = 'ProposalAssessorGroup'
+GROUP_NAME_APPROVER = 'ProposalApproverGroup'
 
 
 if env('CONSOLE_EMAIL_BACKEND', False):
@@ -56,7 +61,7 @@ STATIC_URL = '/static/'
 
 INSTALLED_APPS += [
     #'reversion_compare',
-    'bootstrap3',
+    'webtemplate_dbca',
     'boranga',
     'boranga.components.main',
     'boranga.components.organisations',
@@ -73,6 +78,7 @@ INSTALLED_APPS += [
     'reset_migrations',
     'ckeditor',
     'multiselectfield',
+    'import_export',
     'ledger_api_client',
 ]
 
@@ -119,6 +125,9 @@ MIDDLEWARE_CLASSES = None
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'boranga', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'boranga','components','organisations', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'boranga','components','emails', 'templates'))
+
+TEMPLATES[0]['OPTIONS']['context_processors'].append('boranga.context_processors.config')
+
 del BOOTSTRAP3['css_url']
 #BOOTSTRAP3 = {
 #    'jquery_url': '//static.dpaw.wa.gov.au/static/libs/jquery/2.2.1/jquery.min.js',
@@ -218,3 +227,4 @@ LOGGING['loggers']['boranga'] = {
             'level': 'INFO'
         }
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
