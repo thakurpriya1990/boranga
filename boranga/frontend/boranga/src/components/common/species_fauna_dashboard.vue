@@ -560,23 +560,23 @@ export default {
                     if (!vm.is_external){
                         /*if(vm.check_assessor(full) && full.can_officer_process)*/
                         if(full.assessor_process){   
-                                links +=  `<a href='/internal/species_communities/${full.id}'>Process</a><br/>`;    
+                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Process</a><br/>`;    
                         }
                         else{
-                            links +=  `<a href='/internal/species_communities/${full.id}'>View</a><br/>`;
+                            links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a><br/>`;
                         }
                     }
                     else{
                         if (full.can_user_edit) {
-                            links +=  `<a href='/external/species_communities/${full.id}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
+                            links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
                         }
                         else if (full.can_user_view) {
-                            links +=  `<a href='/external/species_communities/${full.id}'>View</a>`;
+                            links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a>`;
                         }
                     }
 
-                    links +=  `<a href='/internal/species_communities/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
+                    links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
 
                     return links;
                 }
@@ -630,7 +630,8 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary ml-2',
                         exportOptions: {
-                            columns: ':visible'
+                            columns: ':visible',
+                            orthogonal: 'export' 
                         }
                     },
                     {
@@ -638,7 +639,8 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary',
                         exportOptions: {
-                            columns: ':visible'
+                            columns: ':visible',
+                            orthogonal: 'export' 
                         }
                     },
                 ]

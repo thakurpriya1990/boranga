@@ -182,7 +182,7 @@ export default
             },
             children: [
                 {
-                    path: ':species_id',
+                    path: ':species_community_id',
                     component: {
                         render(c)
                         {
