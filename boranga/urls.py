@@ -71,6 +71,7 @@ api_patterns = [
     url(r'^api/group_types_dict',species_communities_api.GetGroupTypeDict.as_view(),name='get-group-types-dict'),
     url(r'^api/community_filter_dict',species_communities_api.GetCommunityFilterDict.as_view(),name='get-community-filter-dict'),
     url(r'^api/region_district_filter_dict',species_communities_api.GetRegionDistrictFilterDict.as_view(),name='get-region_district_filter_dict'),
+    url(r'^api/name_authority_list',species_communities_api.GetNameAuthorityList.as_view(),name='get-name-authority-list'),
 
     #url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
 
