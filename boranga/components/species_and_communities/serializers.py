@@ -13,8 +13,9 @@ from boranga.components.species_and_communities.models import(
 	Taxonomy,
 	NameAuthority,
 	ConservationAttributes,
-	Distribution,
 	SpeciesDocument,
+	SpeciesDistribution,
+	CommunityDistribution,
 	)
 
 from boranga.components.users.serializers import UserSerializer
@@ -175,17 +176,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 		return None
 
 
-class NameAuthoritySerializer(serializers.ModelSerializer):
-	class Meta:
-		model = NameAuthority
-		fields = (
-			'id',
-			'name',
-			)
-
-
 class TaxonomySerializer(serializers.ModelSerializer):
-	name_authority_details = serializers.SerializerMethodField()
 	class Meta:
 		model = Taxonomy
 		fields = (
@@ -196,13 +187,23 @@ class TaxonomySerializer(serializers.ModelSerializer):
 			'family',
 			'genus',
 			'phylogenetic_group',
-			'name_authority_details',
+			'name_authority_id',
 			)
 
-	def get_name_authority_details(self,obj):
-		if obj.name_authority:
-			qs = NameAuthority.objects.get(id = obj.name_authority_id)
-			return NameAuthoritySerializer(qs).data
+class SaveTaxonomySerializer(serializers.ModelSerializer):
+	name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	class Meta:
+		model = Taxonomy
+		fields = (
+			'id',
+			'taxon_id',
+			'taxon',
+			'previous_name',
+			'family',
+			'genus',
+			'phylogenetic_group',
+			'name_authority_id',
+			)
 
 
 class ConservationAttributesSerializer(serializers.ModelSerializer):
@@ -217,14 +218,11 @@ class ConservationAttributesSerializer(serializers.ModelSerializer):
 			'comments',
 			)
 
-class DistributionSerializer(serializers.ModelSerializer):
+class SpeciesDistributionSerializer(serializers.ModelSerializer):
 	class Meta:
-		model = Distribution
+		model = SpeciesDistribution
 		fields = (
-			'species_id',
 			'department_file_numbers',
-			'community_original_area',
-			'community_original_area_accuracy',
 			'number_of_occurrences',
 			'extent_of_occurrences',
 			'area_of_occupancy',
@@ -235,8 +233,6 @@ class DistributionSerializer(serializers.ModelSerializer):
 class BaseSpeciesSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
-    region = serializers.SerializerMethodField()
-    district = serializers.SerializerMethodField()
     conservation_status = serializers.SerializerMethodField()
     taxonomy_details = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
@@ -251,8 +247,8 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			    'scientific_name',
 			    'common_name',
 			    'taxonomy_id',
-			    'region',
-			    'district',
+			    'region_id',
+			    'district_id',
 			    'conservation_status_id',
 			    'conservation_status',
 			    'processing_status',
@@ -261,6 +257,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			    'taxonomy_details',
 			    'conservation_attributes',
 			    'distribution',
+			    'last_data_curration_date',
 
                 # tab field models
                 )
@@ -278,17 +275,8 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     def get_conservation_status(self,obj):
     	qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
-    	return [ConservationStatusSerializer(qs).data]
-
-    def get_region(self,obj):
-    	if obj.region:
-    		return obj.region.name
-    	return None
-
-    def get_district(self,obj):
-    	if obj.district:
-    		return obj.district.name
-    	return None
+    	#return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+    	return ConservationStatusSerializer(qs).data
 
     def get_can_user_edit(self,obj):
     	return True
@@ -298,22 +286,33 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     	return ConservationAttributesSerializer(qs).data
 
     def get_distribution(self,obj):
-    	qs = Distribution.objects.get(species=obj)
-    	return DistributionSerializer(qs).data
+    	try:
+    	    qs = SpeciesDistribution.objects.get(species=obj)
+    	except:
+            qs = None
+    	return SpeciesDistributionSerializer(qs).data
 
 
 class InternalSpeciesSerializer(BaseSpeciesSerializer):
-    region = serializers.CharField(source='region.name', read_only=True)
-    district = serializers.CharField(source='district.name', read_only=True)
     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+
+
+class CommunityDistributionSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = CommunityDistribution
+		fields = (
+			'community_original_area',
+			'community_original_area_accuracy',
+			'community_original_area_reference',
+			)
 
 
 class BaseCommunitySerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField(read_only=True)
-	region = serializers.SerializerMethodField()
-	district = serializers.SerializerMethodField()
 	conservation_status = serializers.SerializerMethodField()
+	distribution = serializers.SerializerMethodField()
 	readonly = serializers.SerializerMethodField(read_only=True)
+	last_data_curration_date = serializers.DateField(required=False,allow_null=True)
 	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
 
 	class Meta:
@@ -323,13 +322,16 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 			    'group_type',
 			    'community_id',
 			    'community_name',
+			    'community_description',
 			    'community_status',
-			    'region',
-			    'district',
+			    'region_id',
+			    'district_id',
 			    'conservation_status_id',
 			    'conservation_status',
+			    'distribution',
 			    'readonly',
 			    'can_user_edit',
+			    'last_data_curration_date',
 
                 # tab field models
                 )
@@ -342,39 +344,38 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 	def get_conservation_status(self,obj):
 		qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
-		return [ConservationStatusSerializer(qs).data]
+		#return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+		return ConservationStatusSerializer(qs).data
 
-	def get_region(self,obj):
-		if obj.region:
-			return obj.region.name
-		return None
-
-	def get_district(self,obj):
-		if obj.district:
-			return obj.district.name
-		return None
+	def get_distribution(self,obj):
+		try:
+			qs = CommunityDistribution.objects.get(community=obj)
+		except:
+			qs = None
+		return CommunityDistributionSerializer(qs).data
 
 	def get_can_user_edit(self,obj):
 		return True
 
 
 class InternalCommunitySerializer(BaseCommunitySerializer):
-    region = serializers.CharField(source='region.name', read_only=True)
-    district = serializers.CharField(source='district.name', read_only=True)
     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
 
 
 
 class SaveSpeciesSerializer(BaseSpeciesSerializer):
-    region = serializers.CharField(source='region.name', read_only=True)
-    district = serializers.CharField(source='district.name', read_only=True)
+    region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+    district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     class Meta:
         model = Species
         fields = ('id',
 			    'group_type',
 			    'scientific_name',
 			    'common_name',
+			    'region_id',
+			    'district_id',
 			    'processing_status',
+			    'last_data_curration_date',
 			    'readonly',
 			    'can_user_edit',
 			    )
@@ -382,8 +383,8 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class SaveCommunitySerializer(BaseCommunitySerializer):
-    region = serializers.CharField(source='region.name', read_only=True)
-    district = serializers.CharField(source='district.name', read_only=True)
+    region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+    district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     class Meta:
         model = Community
         fields = ('id',
@@ -391,6 +392,9 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
 			    'community_id',
 			    'community_name',
 			    'community_status',
+			    'region_id',
+			    'district_id',
+			    'last_data_curration_date',
 			    'readonly',
 			    'can_user_edit',
 			    )

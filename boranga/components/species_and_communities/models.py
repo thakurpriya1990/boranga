@@ -402,6 +402,23 @@ class ConservationStatus(models.Model):
         return str(self.conservation_list)  # TODO: is the most appropriate?
 
 
+class Contact(models.Model):
+    """
+    Hold the contact details for a person.
+    """
+    first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32)
+    role = models.CharField(max_length=32)
+    phone = models.CharField(max_length=32)
+    email = models.EmailField()
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return '{}, {}'.format(self.last_name, self.first_name)
+
+
 class NameAuthority(models.Model):
     """
 
@@ -431,19 +448,19 @@ class Taxonomy(models.Model):
     - Table
     """    
     taxon = models.CharField(max_length=512,
-                             default="None")  # flora and fauna, name
-    taxon_id = models.IntegerField(default=-1)  # flora and fauna, name
+                             default="None", null=True, blank=True)  # flora and fauna, name
+    taxon_id = models.IntegerField(default=-1, null=True, blank=True)  # flora and fauna, name
 
     previous_name = models.CharField(max_length=512,
-                                     default="None")
+                                     default="None", null=True, blank=True)
     family = models.CharField(max_length=512,
-                              default="None")
+                              default="None", null=True, blank=True)
     genus = models.CharField(max_length=512,
-                             default="None")
+                             default="None", null=True, blank=True)
     phylogenetic_group = models.CharField(max_length=512,
-                                          default="None")
+                                          default="None", null=True, blank=True)
     name_authority = models.ForeignKey(NameAuthority,
-                                       on_delete=models.CASCADE)
+                                       on_delete=models.CASCADE,null=True,blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -452,30 +469,12 @@ class Taxonomy(models.Model):
         return str(self.taxon)  # TODO: is the most appropriate?
 
 
-class Contact(models.Model):
-    """
-    Hold the contact details for a person.
-    """
-    first_name = models.CharField(max_length=32)
-    last_name = models.CharField(max_length=32)
-    role = models.CharField(max_length=32)
-    phone = models.CharField(max_length=32)
-    email = models.EmailField()
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return '{}, {}'.format(self.last_name, self.first_name)
-
-
 class Species(models.Model):
     """
     Forms the basis for a Species and Communities record.
 
     Has a:
     - ConservationStatus
-    - Community
     - GroupType
     - SpeciesDocument
     - ConservationThreat
@@ -490,37 +489,117 @@ class Species(models.Model):
     """
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
+    image = models.CharField(max_length=512,
+                             default="None", null=True, blank=True)
     scientific_name = models.CharField(max_length=128,
-                                       default="None")
+                                       default="None", null=True, blank=True)
     common_name = models.CharField(max_length=128,
-                                   default="None")
+                                   default="None", null=True, blank=True)
     name_currency = models.CharField(max_length=16,
-                                     default="None") # is it the current name? yes or no
+                                     default="None", null=True, blank=True) # is it the current name? yes or no
+    taxonomy = models.OneToOneField(Taxonomy, on_delete=models.CASCADE, null=True, blank=True)
     conservation_status = models.OneToOneField(ConservationStatus,
-                                               on_delete=models.CASCADE)
-    # community many to many
+                                               on_delete=models.CASCADE, null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
-                               on_delete=models.CASCADE)
+                               on_delete=models.CASCADE, null=True, blank=True)
     district = models.ForeignKey(District, 
                                  default=None,
-                                 on_delete=models.CASCADE)
-    image = models.CharField(max_length=512,
-                             default="None")
+                                 on_delete=models.CASCADE, null=True, blank=True)
+    last_data_curration_date = models.DateField(blank =True, null=True)
     processing_status = models.CharField(max_length=512,
-                                         default="None")
-    # species_document foreign key
-    # conservation_threats foreign key
-    # conservation_plans many to many
-    taxonomy = models.OneToOneField(Taxonomy, on_delete=models.CASCADE,)
-    # distribution one to one
-    # conservation_attributes one to one
+                                         default="None", null=True, blank=True)
+    
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.id)  # TODO: is the most appropriate?
+
+
+class SpeciesDistribution(models.Model):
+    """
+    All the different locations where this species can be found.
+
+    Used by:
+    - Species
+    Is:
+    - Table
+    """
+    department_file_numbers = models.CharField(max_length=512,
+                                               default="None", null=True, blank=True)  # objective, legacy, list of things
+    number_of_occurrences = models.IntegerField(default=-1, null=True)
+    extent_of_occurrences = models.IntegerField(default=-1, null = True)
+    area_of_occupancy = models.IntegerField(default=-1, null=True)
+    number_of_iucn_locations = models.IntegerField(default=-1, null=True)
+    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_distribution")
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.taxonomy.taxon)  # TODO: is the most appropriate?
+        return str(self.id)  # TODO: is the most appropriate?
+
+
+class Community(models.Model):
+    """
+    A collection of 2 or more Species within a specific location.
+
+    Has a:
+    - ConservationStatus
+    - Species
+    Used by:
+    - N/A
+    Is:
+    - Table
+    """
+    group_type = models.ForeignKey(GroupType,
+                                   on_delete=models.CASCADE)
+    species = models.ManyToManyField(Species, null=True, blank=True)
+    community_id = models.IntegerField(default=-1, null=True, blank=True) # this will be the display name and will appear in filter list
+    community_name = models.CharField(max_length=2048,
+                                      default="None", null=True, blank=True)
+    community_status = models.CharField(max_length=128,
+                                        default="None", null=True, blank=True)
+    community_description = models.CharField(max_length=2048, default="None", null=True, blank=True)
+    region = models.ForeignKey(Region, 
+                               default=None,
+                               on_delete=models.CASCADE, null=True, blank=True)
+    district = models.ForeignKey(District, 
+                                 default=None,
+                                 on_delete=models.CASCADE, null=True, blank=True)
+    conservation_status = models.OneToOneField(ConservationStatus,
+                                            on_delete=models.CASCADE, null=True, blank=True)
+    last_data_curration_date = models.DateField(blank =True, null=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.community_id)
+
+
+class CommunityDistribution(models.Model):
+    """
+    All the different locations where this community can be found.
+
+    Used by:
+    - Communities
+    Is:
+    - Table
+    """
+    # Community Ecological Attributes
+    community_original_area = models.IntegerField(default=-1, null=True, blank=True)
+    community_original_area_accuracy = models.IntegerField(default=-1, null=True, blank=True)
+    community_original_area_reference = models.CharField(max_length=512,
+                                                         default="None", null=True, blank=True)
+    community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="community_distribution")
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.id)  # TODO: is the most appropriate?
 
 
 class CommitteeMeeting(models.Model):
@@ -586,52 +665,11 @@ class Source(models.Model):
         return str(self.name)
 
 
-class Community(models.Model):
-    """
-    A collection of 2 or more Species within a specific location.
-
-    Has a:
-    - ConservationStatus
-    - Species
-    Used by:
-    - N/A
-    Is:
-    - Table
-    """
-    conservation_status = models.OneToOneField(ConservationStatus,
-                                            on_delete=models.CASCADE)
-    group_type = models.ForeignKey(GroupType,
-                                   on_delete=models.CASCADE)
-    community_name = models.CharField(max_length=2048,
-                                      default="None")
-    community_id = models.IntegerField(default=-1) # this will be the display name and will appear in filter list
-    community_status = models.CharField(max_length=128,
-                                        default="None")
-    region = models.ForeignKey(Region, 
-                               default=None,
-                               on_delete=models.CASCADE)
-    district = models.ForeignKey(District, 
-                                 default=None,
-                                 on_delete=models.CASCADE)
-
-    species = models.ManyToManyField(Species, blank=False)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str("{}: {}".format(self.community_id, self.community_name))
-
-
 class DocumentCategory(models.Model):
     """
     This is particularly useful for organisation of documents e.g. preventing inappropriate documents being added
     to certain tables.
 
-    Has a:
-    - ConservationList
-    - ConservationCategory
-    - ConservationCriteria
     Used by:
     - Species
     - Communities
@@ -792,19 +830,19 @@ class ConservationAttributes(models.Model):
     - Table
     """
     general_management_advice = models.CharField(max_length=512,
-                                                 default="None")
+                                                 default="None", null=True, blank=True)
     ecological_attributes = models.CharField(max_length=512,
-                                             default="None")
+                                             default="None", null=True, blank=True)
     biological_attributes = models.CharField(max_length=512,
-                                             default="None")
+                                             default="None", null=True, blank=True)
     specific_survey_advice = models.CharField(max_length=512,
-                                              default="None")
+                                              default="None", null=True, blank=True)
 
     species = models.OneToOneField(Species,
                                    on_delete=models.CASCADE,
                                    primary_key=True,)
     comments = models.CharField(max_length=2048,
-                                default="None")
+                                default="None", null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -813,6 +851,7 @@ class ConservationAttributes(models.Model):
         return str(self.species.taxonomy.taxon)  # TODO: is the most appropriate?
 
 
+# TODO Should delete this model as not required 
 class Distribution(models.Model):
     """
     All the different locations where this species can be found.
@@ -829,17 +868,16 @@ class Distribution(models.Model):
     """
     department_file_numbers = models.CharField(max_length=512,
                                                default="None")  # objective, legacy, list of things
-    community_original_area = models.IntegerField(default=-1)
-    community_original_area_accuracy = models.IntegerField(default=-1)
     number_of_occurrences = models.IntegerField(default=-1)
     extent_of_occurrences = models.IntegerField(default=-1)
     area_of_occupancy = models.IntegerField(default=-1)
     number_of_iucn_locations = models.IntegerField(default=-1)
+    # Community Ecological Attributes
+    community_original_area = models.IntegerField(default=-1)
+    community_original_area_accuracy = models.IntegerField(default=-1)
     community_original_area_reference = models.CharField(max_length=512,
                                                          default="None")
-    species = models.OneToOneField(Species,
-                                   on_delete=models.CASCADE,
-                                   primary_key=True,)
+    species = models.OneToOneField(Species, on_delete=models.CASCADE, primary_key=True)
 
     class Meta:
         app_label = 'boranga'
