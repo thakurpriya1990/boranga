@@ -468,9 +468,11 @@ class SpeciesDocumentSerializer(serializers.ModelSerializer):
 			'name',
 			'_file',
 			'description',
+			'input_name',
 			'uploaded_date',
 			'document_category',
 			'document_category_name',
+			'visible',
 		)
 		read_only_fields = ('id','document_category_name')
 
@@ -487,6 +489,7 @@ class SaveSpeciesDocumentSerializer(serializers.ModelSerializer):
 			'species',
 			'name',
 			'description',
+			'input_name',
 			'uploaded_date',
 			'document_category',
 			)

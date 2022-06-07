@@ -82,7 +82,7 @@ export default {
         },
         document_action:{
             type: String,
-            default: 'edit'
+            required: true
         },
     },
     data:function () {
@@ -197,7 +197,7 @@ export default {
             //speciesDocument.input_name = 'species_doc';
             //speciesDocument.species_id = vm.species_community_id;
 
-            /*if (vm.speciesDocument.id){
+            if (vm.speciesDocument.id){
                 console.log(vm.speciesDocument.id+"update")
                 vm.updatingDocument = true;
                 //vm.$http.put(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id),JSON.stringify(requirement),{
@@ -206,15 +206,15 @@ export default {
                 vm.$http.put(helpers.add_endpoint_json(api_endpoints.species_documents,speciesDocument.id), formData,{
                         emulateJSON:true,
                     }).then((response)=>{
-                        vm.updatingRequirement = false;
+                        vm.updatingDocument = false;
                         vm.$parent.updatedDocuments();
                         vm.close();
                     },(error)=>{
                         vm.errors = true;
                         vm.errorString = helpers.apiVueResourceError(error);
-                        vm.updatingRequirement = false;
+                        vm.updatingDocument = false;
                     });
-            } else {*/
+            } else {
                 console.log(vm.speciesDocument.id+"add")
                 vm.addingDocument = true;
                 //vm.$http.post(api_endpoints.proposal_requirements,JSON.stringify(requirement),{
@@ -231,7 +231,7 @@ export default {
                         vm.addingDocument = false;
                         vm.errorString = helpers.apiVueResourceError(error);
                     });
-            //}
+            }
         },
        eventListeners:function () {
             let vm = this;

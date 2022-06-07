@@ -43,13 +43,6 @@ export default {
                 uuid:0,
                 panelBody: "species-documents-"+vm._uid,
                 values:null,
-                datepickerOptions:{
-                        format: 'DD/MM/YYYY',
-                        showClear:true,
-                        useCurrent:false,
-                        keepInvalid:true,
-                        allowInputToggle:true,
-                },
                 new_document:{
                     species: vm.species_community.id,
                     input_name: 'species_doc',
@@ -99,7 +92,12 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.id;
+                                if(full.visible){
+                                    return full.id;
+                                }
+                                else{
+                                    return '<s>'+ full.id + '</s>'
+                                }
                             },
 
                         },
@@ -108,7 +106,12 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.document_category_name;
+                                if(full.visible){
+                                    return full.document_category_name;
+                                }
+                                else{
+                                    return '<s>'+ full.document_category_name + '</s>'
+                                }
                             },
 
                         },
@@ -118,7 +121,11 @@ export default {
                             searchable: true,
                             mRender: function(data,type,full){
                                 let links='';
-                                links+='<a href="'+ full._file+'" target="_blank"><p>' + full.name + '</p></a>' ;
+                                if(full.visible){
+                                    links+='<a href="'+ full._file+'" target="_blank"><p>' + full.name + '</p></a>' ;
+                                }else{
+                                    links+='<s>'+ full.name +'</s>';
+                                }
                                 return links;
                             },
 
@@ -127,15 +134,23 @@ export default {
                             data: "description",
                             orderable: true,
                             searchable: true,
-                            'render': function(value, type){
+                            'render': function(value, type, full){
                                 let result = helpers.dtPopover(value, 30, 'hover');
-                                return type=='export' ? value : result;
+                                if(full.visible){
+                                    return type=='export' ? value : result;
+                                }else{
+                                    return type=='export' ? value : '<s>'+ result + '</s>';
+                                }
                             },
                         },
                         {
                             data: "uploaded_date",
                             mRender:function (data,type,full){
-                                return data != '' && data != null ? moment(data).format('DD/MM/YYYY HH:MM'):'';
+                                if(full.visible){
+                                    return data != '' && data != null ? moment(data).format('DD/MM/YYYY HH:MM'):'';
+                                }else{
+                                    return data != '' && data != null ? '<s>'+ moment(data).format('DD/MM/YYYY HH:MM') + '</s>':'';
+                                }
                             }
                         },
                         {
@@ -143,7 +158,12 @@ export default {
                             mRender:function (data,type,full){
                                 let links = '';
                                 links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                links += `<a href='#' class="deleteDocument" data-id="${full.id}">Delete</a><br>`;
+                                if(full.visible){
+                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                }
+                                else{
+                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                }
                                 return links;
                             }
                         },
@@ -190,8 +210,58 @@ export default {
             },
             editDocument: function(id){
                 this.$refs.document_detail.document_id = id;
+                this.$refs.document_detail.document_action='edit';
                 this.$refs.document_detail.fetchSpeciesDocument(id);
                 this.$refs.document_detail.isModalOpen = true;
+            },
+            discardDocument:function (id) {
+                let vm = this;
+                swal({
+                    title: "Remove Document",
+                    text: "Are you sure you want to remove this Document?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: 'Remove Document',
+                    confirmButtonColor:'#d9534f'
+                }).then(() => {
+                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.species_documents,id+'/discard'))
+                    .then((response) => {
+                        swal(
+                            'Discarded',
+                            'Your document has been removed',
+                            'success'
+                        )
+                        vm.$refs.documents_datatable.vmDataTable.ajax.reload();
+                    }, (error) => {
+                        console.log(error);
+                    });
+                },(error) => {
+
+                });
+            },
+            reinstateDocument:function (id) {
+                let vm = this;
+                swal({
+                    title: "Reinstate Document",
+                    text: "Are you sure you want to Reinstate this Document?",
+                    type: "question",
+                    showCancelButton: true,
+                    confirmButtonText: 'Reinstate Document',
+                }).then(() => {
+                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.species_documents,id+'/reinstate'))
+                    .then((response) => {
+                        swal(
+                            'Reinstated',
+                            'Your document has been reinstated',
+                            'success'
+                        )
+                        vm.$refs.documents_datatable.vmDataTable.ajax.reload();
+                    }, (error) => {
+                        console.log(error);
+                    });
+                },(error) => {
+
+                });
             },
             updatedDocuments(){
                 this.$refs.documents_datatable.vmDataTable.ajax.reload();
@@ -199,10 +269,22 @@ export default {
             addEventListeners:function (){
                 let vm=this;
                 vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-edit-document]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-edit-document');
-                vm.editDocument(id);
-            });
+                    e.preventDefault();
+                    var id = $(this).attr('data-edit-document');
+                    vm.editDocument(id);
+                });
+                // External Discard listener
+                vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-discard-document]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-discard-document');
+                    vm.discardDocument(id);
+                });
+                // External Reinstate listener
+                vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-reinstate-document]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-reinstate-document');
+                    vm.reinstateDocument(id);
+                });
             },
             refreshFromResponse: function(){
                 this.$refs.documents_datatable.vmDataTable.ajax.reload();

@@ -528,7 +528,25 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
     def discard(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            instance.is_deleted = True
+            instance.visible = False
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
@@ -575,7 +593,6 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             serializer = SaveSpeciesDocumentSerializer(data= json.loads(request.data.get('data')))
-            import ipdb; ipdb.set_trace()
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
             instance.add_documents(request)
