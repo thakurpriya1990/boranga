@@ -4,8 +4,8 @@
 
             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
               <li class="nav-item">
-                <a class="nav-link" id="pills-species-tab" data-bs-toggle="pill" href="#pills-species" role="tab" aria-controls="pills-species" aria-selected="true">
-                  {{ species_community_label }}
+                <a class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="true">
+                  Profile
                 </a>
               </li>
               <li class="nav-item">
@@ -30,49 +30,40 @@
               </li>
             </ul>
             <div class="tab-content" id="pills-tabContent">
-              <div class="tab-pane fade show active" id="pills-species" role="tabpanel" aria-labelledby="pills-species-tab">
+              <div class="tab-pane fade show active" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
                 <Community
                     v-if="isCommunity"  
-                    :proposal="proposal" 
                     :species_community="species_community" 
                     id="speciesInformation" 
-                    :canEditActivities="canEditActivities" 
                     ref="community_information" 
                     :is_external="is_external">
                 </Community>
                 <Species
                     v-else
-                    :proposal="proposal" 
                     :species_community="species_community" 
                     id="speciesInformation" 
-                    :canEditActivities="canEditActivities" 
                     ref="species_information" 
                     :is_external="is_external">
                 </Species>
               </div>
               <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
                 <Documents 
-                    :proposal="proposal" 
                     :species_community="species_community" 
                     id="speciesDocuments" 
-                    :canEditActivities="canEditActivities" 
                     ref="documents" 
                     :is_external="is_external">
                 </Documents>
               </div>
               <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
                 <Threats 
-                    :proposal="proposal" 
                     :species_community="species_community" 
                     id="speciesThreats" 
-                    :canEditActivities="canEditActivities" 
                     ref="threats" 
                     :is_external="is_external">
                 </Threats>
               </div>
               <div class="tab-pane fade" id="pills-conservation-plans" role="tabpanel" aria-labelledby="pills-conservation-plans-tab">
                 <ConservationPlans 
-                    :proposal="proposal" 
                     :species_community="species_community" 
                     id="speciesConservationPlans" 
                     ref="conservation_plans">
@@ -80,7 +71,6 @@
               </div>
               <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems 
-                    :proposal="proposal" 
                     :species_community="species_community" 
                     id="speciesRelatedItems">
                 </RelatedItems>
@@ -91,8 +81,8 @@
 </template>
 
 <script>
-    import Species from '@/components/common/species_communities/species.vue'
-    import Community from '@/components/common/species_communities/community.vue'
+    import Species from '@/components/common/species_communities/species_profile.vue'
+    import Community from '@/components/common/species_communities/community_profile.vue'
     import Documents from '@/components/common/species_communities/documents.vue'
     import Threats from '@/components/common/species_communities/threats.vue'
     import ConservationPlans from '@/components/common/species_communities/conservation_plans.vue'
@@ -100,17 +90,9 @@
 
     export default {
         props:{
-            proposal:{
-                type: Object,
-                required:true
-            },
             species_community:{
                 type: Object,
                 required:true
-            },
-            canEditActivities:{
-              type: Boolean,
-              default: true
             },
             is_external:{
               type: Boolean,
@@ -120,31 +102,10 @@
               type: Boolean,
               default: false
             },
-            is_referral:{
-              type: Boolean,
-              default: false
-            },
-            hasReferralMode:{
-                type:Boolean,
-                default: false
-            },
-            hasAssessorMode:{
-                type:Boolean,
-                default: false
-            },
-            referral:{
-                type: Object,
-                required:false
-            },
-            proposal_parks:{
-                type:Object,
-                default:null
-            },
         },
         data:function () {
             return{
                 values:null,
-                species_community_label: this.species_community.group_type === "community" ? "Community" : "Species",
             }
         },
         components: {
@@ -156,9 +117,6 @@
             RelatedItems,
         },
         computed:{
-            applicantType: function(){
-                return this.proposal.applicant_type;
-            },
             isCommunity: function(){
                 return this.species_community.group_type == "community"
             },
@@ -169,13 +127,10 @@
                 let vm = this;
 
                 /* set Applicant tab Active */
-                //$('#pills-tab a[href="#pills-species"]').tab('show');
+                //$('#pills-tab a[href="#pills-profile"]').tab('show');
             },
             eventListener: function(){
               let vm=this;
-              $('a[href="#pills-activities-land"]').on('shown.bs.tab', function (e) {
-                vm.$refs.activities_land.$refs.vehicles_table.$refs.vehicle_datatable.vmDataTable.columns.adjust().responsive.recalc();
-              });
             },
 
         },

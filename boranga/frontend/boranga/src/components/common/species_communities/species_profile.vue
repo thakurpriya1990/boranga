@@ -31,8 +31,11 @@
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Name Authority:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="name_authority" placeholder="" 
-                    v-model="species_community.taxonomy_details.name_authority_details.name"/>
+                    <select :disabled="species_community.readonly" class="form-control" v-model="species_community.taxonomy_details.name_authority_id">
+                        <option v-for="option in name_authority_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
                 </div>
             </div>
             <div class="row form-group">
@@ -61,47 +64,53 @@
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="region" placeholder="" 
-                    v-model="species_community.region"/>
+                    <select :disabled="species_community.readonly" class="form-control" @change="filterDistrict($event)" v-model="species_community.region_id">
+                        <option v-for="option in region_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="district" placeholder="" 
-                    v-model="species_community.district"/>
+                    <select :disabled="species_community.readonly" class="form-control" v-model="species_community.district_id">
+                        <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Number of Occurrences:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="no_of_occurrences" placeholder="" v-model="species_community.distribution.number_of_occurrences"/>
+                    <input :disabled="species_community.readonly" type="number" class="form-control" id="no_of_occurrences" placeholder="" v-model="species_community.distribution.number_of_occurrences"/>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Extent of Occurrence:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="extent_of_occurrence" 
+                    <input :disabled="species_community.readonly" type="number" class="form-control" id="extent_of_occurrence" 
                     placeholder="" v-model="species_community.distribution.extent_of_occurrences"/>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(Actual):</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="area_of_occupancy_actual" placeholder="" v-model="species_community.distribution.area_of_occupancy"/>
+                    <input :disabled="species_community.readonly" type="number" class="form-control" id="area_of_occupancy_actual" placeholder="" v-model="species_community.distribution.area_of_occupancy"/>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(2km x 2km):</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="area_of_occupany" placeholder="" 
+                    <input :disabled="species_community.readonly" type="number" class="form-control" id="area_of_occupany" placeholder="" 
                     v-model="species_community.distribution.area_of_occupancy"/>
                 </div>
             </div>
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Number of IUCN Locations:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="no_of_iucn_locations" 
+                    <input :disabled="species_community.readonly" type="number" class="form-control" id="no_of_iucn_locations" 
                     placeholder="" v-model="species_community.distribution.number_of_iucn_locations"/>
                 </div>
             </div>
@@ -126,14 +135,15 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
+        <!-- TODO Conservation status needed to be in the related items Tab -->
+        <!-- <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
             <div class="row form-group">
                 <div class="col-sm-12">
                     <ConservationStatusDatatable :disabled="species_community.readonly" :species_community="species_community">
                     </ConservationStatusDatatable>
             </div>
             </div>
-        </FormSection>
+        </FormSection> -->
         <FormSection :formCollapse="false" label="" Index="">
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
@@ -141,15 +151,11 @@
                     <input :disabled="species_community .readonly" type="text" class="form-control" id="department_file_numbers" placeholder="" v-model="species_community.distribution.department_file_numbers"/>
                 </div>
             </div>
-            <!-- TODO get the all data curation date -->
             <div class="row form-group">
-                <label for="" class="col-sm-3 control-label">Last data curation date: </label>
-                <div class="col-sm-9 input-groyp date" ref="dataCurationDatePicker">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="data_curation_date" 
-                    placeholder="DD/MM/YYYY" />
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
+                <label for="" class="col-sm-3 control-label">Last data curration date: </label>
+                <div class="col-sm-9">
+                    <input :disabled="species_community.readonly" type="date" class="form-control" name="last_data_curration_date" 
+                    ref="last_data_curration_date" @change="checkDate()" v-model="species_community.last_data_curration_date" />
                 </div>
             </div>
         </FormSection>
@@ -168,10 +174,6 @@ from '@/utils/hooks'
 export default {
         name: 'Species',
         props:{
-            proposal:{
-                type: Object,
-                required:true
-            },
             species_community:{
                 type: Object,
                 required:true
@@ -187,7 +189,10 @@ export default {
                     keepInvalid:true,
                     allowInputToggle:true,
                 },
-                
+                name_authority_list: [],
+                region_list: [],
+                district_list: [],
+                filtered_district_list: [],
             }
         },
         components: {
@@ -199,17 +204,65 @@ export default {
         watch:{
         },
         methods:{
+            filterDistrict: function(event) {
+                this.$nextTick(() => {
+                    if(event){
+                      this.species_community.district_id=null; //-----to remove the previous selection
+                    }
+                    this.filtered_district_list=[];
+                    this.filtered_district_list=[{
+                      id:null,
+                      name:"",
+                      region_id:null,
+                    }];
+                    //---filter districts as per region selected
+                    for(let choice of this.district_list){
+                        if(choice.region_id === this.species_community.region_id)
+                        {
+                          this.filtered_district_list.push(choice);
+                        }
+                    }
+                });
+            },
+            checkDate: function(){
+                let vm=this;
+                if(vm.$refs.last_data_curration_date.value){
+                    vm.species_community.last_data_curration_date = vm.$refs.last_data_curration_date.value;
+                }
+                else{
+                    vm.species_community.last_data_curration_date=null;
+                }
+            },
             eventListeners:function (){
                 let vm=this;
 
                 var date= new Date()
                 var today= new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-                //$(vm.$refs.accreditation_expiry).datetimepicker(vm.datepickerOptions);
-                },
+            },
+        },
+        created: async function() {
+            let vm=this;
+            const nameAuthorityResponse = await Vue.http.get('/api/name_authority_list/');
+            vm.name_authority_list = nameAuthorityResponse.body;
+            vm.name_authority_list.splice(0,0,
+                {
+                    id: "",
+                    name: "",
+                });
+            const response = await Vue.http.get('/api/region_district_filter_dict/');
+            vm.filterRegionDistrict= response.body;
+            vm.region_list= vm.filterRegionDistrict.region_list;
+            vm.district_list= vm.filterRegionDistrict.district_list;
+            vm.region_list.splice(0,0,
+            {
+                id: null,
+                name: null,
+            });
+            this.filterDistrict();
         },
         mounted: function(){
             let vm = this;
+
         }
     }
 </script>

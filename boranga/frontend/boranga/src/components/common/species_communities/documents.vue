@@ -30,10 +30,6 @@ from '@/utils/hooks'
 export default {
         name: 'InternalSpeciesDocuments',
         props:{
-            proposal:{
-                type: Object,
-                required:true
-            },
             species_community:{
                 type: Object,
                 required:true
