@@ -12,9 +12,21 @@
                                       <label class="control-label pull-left">Document Category</label>
                                     </div>
                                     <div class="col-sm-9">
-                                      <select class="form-control" v-model="speciesDocument.document_category">
+                                      <select class="form-control" v-model="documentObj.document_category" @change="filterSubCategory($event)">
                                         <option  v-for="category in documentCategories" :value="category.id" v-bind:key="category.id">
                                           {{ category.name }} 
+                                        </option>
+                                      </select>
+                                    </div>
+                                </div>
+                                <div class="row modal-input-row">
+                                    <div class="col-sm-3">
+                                      <label class="control-label pull-left">Document Sub Category</label>
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <select class="form-control" v-model="documentObj.document_sub_category">
+                                        <option  v-for="sub_category in filteredDocumentSubCategories" :value="sub_category.id" v-bind:key="sub_category.id">
+                                          {{ sub_category.name }} 
                                         </option>
                                       </select>
                                     </div>
@@ -24,8 +36,17 @@
                                       <label class="control-label pull-left">Description</label>
                                     </div>
                                     <div class="col-sm-9">
-                                      <textarea class="form-control" v-model="speciesDocument.description">
+                                      <textarea class="form-control" v-model="documentObj.description">
                                       </textarea>                                
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3">
+                                        <label for="" class="control-label pull-left">Date/Time: </label>
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <input disabled type="datetime-local" class="form-control" name="uploaded_date" 
+                                        ref="uploaded_date" v-model="documentObj.uploaded_date" />
                                     </div>
                                 </div>
                                 <div class="row">
@@ -46,7 +67,7 @@
                 </div>
             </div>
             <div slot="footer">
-                <template v-if="document_id">
+                <template v-if="document_id"> 
                     <button type="button" v-if="updatingDocument" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinnner fa-spin"></i> Updating</button>
                     <button type="button" v-else class="btn btn-default" @click="ok">Update</button>
                 </template>
@@ -75,12 +96,8 @@ export default {
         modal,
         alert
     },
-    props:{
-        document_id: {
-            type: String,
-            required: true
-        },
-        document_action:{
+    props: {
+        url:{
             type: String,
             required: true
         },
@@ -90,16 +107,14 @@ export default {
         return {
             isModalOpen:false,
             form:null,
-            speciesDocument: Object,
+            document_id: String,
+            document_action: String,
+            //speciesDocument: Object,
+            documentObj: Object,
             uploaded_document: [],
-            /*speciesDocument: {
-                id: '',
-                species_id: vm.species_community_id,
-                input_name: 'species_doc',
-                description: '',
-                document_category: '',
-            },*/
             documentCategories: [],
+            documentSubCategories: [],
+            filteredDocumentSubCategories: [],
             addingDocument: false,
             updatingDocument: false,
             validation_form: null,
@@ -108,13 +123,6 @@ export default {
             errorString: '',
             successString: '',
             success:false,
-            datepickerOptions:{
-                format: 'DD/MM/YYYY',
-                showClear:true,
-                useCurrent:false,
-                keepInvalid:true,
-                allowInputToggle:true
-            },
             validDate: false,
         }
     },
@@ -136,18 +144,45 @@ export default {
     },
     methods:{
         refreshFromResponse: function(updated_docs){
-            //this.speciesDocument= updated_docs;
+            //this.documentObj= updated_docs;
         },
-        /*initialiseRequirement: function(){
-            this.requirement = {
-                due_date: '',
-                standard: true,
-                recurrence: false,
-                recurrence_pattern: '1',
-                proposal: vm.proposal_id,
-                referral_group:vm.referral_group
-            }
-        },*/
+        filterSubCategory: function(event) {
+            this.$nextTick(() => {
+                if(event){
+                   this.documentObj.document_sub_category=null; //-----to remove the previous selection
+                }
+                this.filteredDocumentSubCategories=[];
+                this.filteredDocumentSubCategories=[{
+                  id:null,
+                  name:"",
+                  category_id:null,
+                }];
+                //---filter sub categories as per category selected
+                for(let choice of this.documentSubCategories){
+                    if(choice.category_id === this.documentObj.document_category)
+                    {
+                      this.filteredDocumentSubCategories.push(choice);
+                    }
+                }
+            });
+        },
+        fetchSubCategory: function(category_id) {
+            this.$nextTick(() => {
+                this.filteredDocumentSubCategories=[];
+                this.filteredDocumentSubCategories=[{
+                  id:null,
+                  name:"",
+                  category_id:null,
+                }];
+                //---filter sub categories as per category selected
+                for(let choice of this.documentSubCategories){
+                    if(choice.category_id === category_id)
+                    {
+                      this.filteredDocumentSubCategories.push(choice);
+                    }
+                }
+            });
+        },
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
@@ -161,28 +196,29 @@ export default {
         },
         close:function () {
             this.isModalOpen = false;
-            this.speciesDocument = {};
+            this.documentObj = {};
             this.$refs.filefield.files = [{file:null, name:''}];
             this.$refs.filefield.reset_files();
             this.errors = false;
             $('.has-error').removeClass('has-error');
             //this.documentForm.resetForm();
         },
-        fetchSpeciesDocument: function(vid) {
+        /*fetchSpeciesDocument: function(vid) {
             let vm=this;
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.species_documents,vid)).then((res) => {
-                      vm.speciesDocument=res.body; 
-                      vm.uploaded_document = [res.body];
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.species_documents,vid)).then((response) => {
+                      vm.documentObj=response.body; 
+                      vm.documentObj.uploaded_date =  response.body.uploaded_date != null && response.body.uploaded_date != undefined ? moment(response.body.uploaded_date).format('yyyy-MM-DDTHH:mm'): '';
+                      vm.uploaded_document = [response.body];
                       
                 },
               err => { 
                         console.log(err);
                   });
-        },
+        },*/
         sendData:function(){
             let vm = this;
             vm.errors = false;
-            let speciesDocument = JSON.parse(JSON.stringify(vm.speciesDocument));
+            let documentObj = JSON.parse(JSON.stringify(vm.documentObj));
             let formData = new FormData()
 
             // Add files to formData
@@ -193,17 +229,13 @@ export default {
                 var name = 'file-' + idx;
                 formData.append(name, file, filename);
             });
-            speciesDocument.num_files = files.length;
-            //speciesDocument.input_name = 'species_doc';
-            //speciesDocument.species_id = vm.species_community_id;
-
-            if (vm.speciesDocument.id){
-                console.log(vm.speciesDocument.id+"update")
+            documentObj.num_files = files.length;
+            
+            if (vm.documentObj.id){
                 vm.updatingDocument = true;
                 //vm.$http.put(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id),JSON.stringify(requirement),{
-                //requirement.update = true;
-                formData.append('data', JSON.stringify(speciesDocument));
-                vm.$http.put(helpers.add_endpoint_json(api_endpoints.species_documents,speciesDocument.id), formData,{
+                formData.append('data', JSON.stringify(documentObj));
+                vm.$http.put(helpers.add_endpoint_json(vm.url,documentObj.id), formData,{
                         emulateJSON:true,
                     }).then((response)=>{
                         vm.updatingDocument = false;
@@ -215,12 +247,10 @@ export default {
                         vm.updatingDocument = false;
                     });
             } else {
-                console.log(vm.speciesDocument.id+"add")
                 vm.addingDocument = true;
                 //vm.$http.post(api_endpoints.proposal_requirements,JSON.stringify(requirement),{
-                //requirement.update = false;
-                formData.append('data', JSON.stringify(speciesDocument));
-                vm.$http.post(api_endpoints.species_documents, formData,{
+                formData.append('data', JSON.stringify(documentObj));
+                vm.$http.post(vm.url, formData,{
                         emulateJSON:true,
                     }).then((response)=>{
                         vm.addingDocument = false;
@@ -235,16 +265,6 @@ export default {
         },
        eventListeners:function () {
             let vm = this;
-            // Initialise Date Picker
-           /* $(vm.$refs.due_date).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.due_date).on('dp.change', function(e){
-                if ($(vm.$refs.due_date).data('DateTimePicker').date()) {
-                    vm.requirement.due_date =  e.date.format('DD/MM/YYYY');
-                }
-                else if ($(vm.$refs.due_date).data('date') === "") {
-                    vm.requirement.due_date = "";
-                }
-             });*/
         }
    },
    created: async function () {
@@ -257,6 +277,12 @@ export default {
               id: "", 
               name: "",
             });
+        // documentSubCategories
+        let returned_sub_categories = await this.$http.get('/api/document_sub_categories/document_sub_category_choices/');
+        Object.assign(this.documentSubCategories, returned_sub_categories.body);
+        // blank entry allows user to clear selection
+   
+        this.filterSubCategory();
    },
    mounted:function () {
         let vm =this;
@@ -264,7 +290,7 @@ export default {
         this.$nextTick(()=>{
             vm.eventListeners();
         });
-        //vm.speciesDocument = vm.$refs.filefield.uploaded_documents;
+        //vm.uploaded_document = vm.$refs.filefield.uploaded_documents;
    }
 }
 </script>

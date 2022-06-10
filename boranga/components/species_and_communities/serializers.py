@@ -14,6 +14,7 @@ from boranga.components.species_and_communities.models import(
 	NameAuthority,
 	ConservationAttributes,
 	SpeciesDocument,
+	CommunityDocument,
 	SpeciesDistribution,
 	CommunityDistribution,
 	)
@@ -460,6 +461,7 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 class SpeciesDocumentSerializer(serializers.ModelSerializer):
 	document_category_name = serializers.SerializerMethodField()
+	document_sub_category_name = serializers.SerializerMethodField()
 	class Meta:
 		model = SpeciesDocument
 		fields = (
@@ -472,13 +474,19 @@ class SpeciesDocumentSerializer(serializers.ModelSerializer):
 			'uploaded_date',
 			'document_category',
 			'document_category_name',
+			'document_sub_category',
+			'document_sub_category_name',
 			'visible',
 		)
 		read_only_fields = ('id','document_category_name')
 
 	def get_document_category_name(self,obj):
 		if obj.document_category:
-			return obj.document_category.name
+			return obj.document_category.document_category_name
+
+	def get_document_sub_category_name(self,obj):
+		if obj.document_sub_category:
+			return obj.document_sub_category.document_sub_category_name
 
 
 class SaveSpeciesDocumentSerializer(serializers.ModelSerializer):
@@ -492,7 +500,50 @@ class SaveSpeciesDocumentSerializer(serializers.ModelSerializer):
 			'input_name',
 			'uploaded_date',
 			'document_category',
+			'document_sub_category',
 			)
 
 
+class CommunityDocumentSerializer(serializers.ModelSerializer):
+	document_category_name = serializers.SerializerMethodField()
+	document_sub_category_name = serializers.SerializerMethodField()
+	class Meta:
+		model = CommunityDocument
+		fields = (
+			'id',
+			'community',
+			'name',
+			'_file',
+			'description',
+			'input_name',
+			'uploaded_date',
+			'document_category',
+			'document_category_name',
+			'document_sub_category',
+			'document_sub_category_name',
+			'visible',
+		)
+		read_only_fields = ('id','document_category_name')
 
+	def get_document_category_name(self,obj):
+		if obj.document_category:
+			return obj.document_category.document_category_name
+
+	def get_document_sub_category_name(self,obj):
+		if obj.document_sub_category:
+			return obj.document_sub_category.document_sub_category_name
+
+
+class SaveCommunityDocumentSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = CommunityDocument
+		fields = (
+			'id',
+			'community',
+			'name',
+			'description',
+			'input_name',
+			'uploaded_date',
+			'document_category',
+			'document_sub_category',
+			)
