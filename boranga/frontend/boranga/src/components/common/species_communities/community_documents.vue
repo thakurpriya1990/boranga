@@ -1,5 +1,5 @@
 <template lang="html">
-    <div id="species_documents">
+    <div id="community_documents">
         <FormSection :formCollapse="false" label="Documents" Index="documents">
             <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
             <form class="form-horizontal" action="index.html" method="post">
@@ -14,7 +14,7 @@
                 </div>
             </form>
         </FormSection>
-        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="species_document_url"></DocumentDetail>
+        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="community_document_url"></DocumentDetail>
     </div>
 </template>
 <script>
@@ -30,7 +30,7 @@ from '@/utils/hooks'
 
 
 export default {
-        name: 'SpeciesDocuments',
+        name: 'CommunityDocuments',
         props:{
             species_community:{
                 type: Object,
@@ -41,9 +41,9 @@ export default {
             let vm = this;
             return{
                 uuid:0,
-                panelBody: "species-documents-"+vm._uid,
+                panelBody: "community-documents-"+vm._uid,
                 values:null,
-                species_document_url: api_endpoints.species_documents,
+                community_document_url: api_endpoints.community_documents,
                 documents_headers:['Number','Category', 'Sub Category','Document','Action','Description','Date/Time'],
                 documents_options:{
                     autowidth: false,
@@ -52,7 +52,7 @@ export default {
                     },
                     responsive: true,
                     ajax:{
-                        "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/documents'),
+                        "url": helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/documents'),
                         "dataSrc": ''
                     },
                     order: [],
@@ -199,8 +199,8 @@ export default {
                 this.$refs.document_detail.document_id = '';
                 //this.$refs.edit_park.fetchPark(id);
                 var new_document_another={
-                    species: vm.species_community.id,
-                    input_name: 'species_doc',
+                    community: vm.species_community.id,
+                    input_name: 'community_doc',
                     description: '',
                     document_category: '',
                     document_sub_category: '',
@@ -215,13 +215,12 @@ export default {
                 let vm=this;
                 this.$refs.document_detail.document_id = id;
                 this.$refs.document_detail.document_action='edit';
-                Vue.http.get(helpers.add_endpoint_json(api_endpoints.species_documents,id)).then((response) => {
+                Vue.http.get(helpers.add_endpoint_json(api_endpoints.community_documents,id)).then((response) => {
                       this.$refs.document_detail.documentObj=response.body; 
                       this.$refs.document_detail.documentObj.uploaded_date =  response.body.uploaded_date != null && response.body.uploaded_date != undefined ? moment(response.body.uploaded_date).format('yyyy-MM-DDTHH:mm'): '';
                       this.$refs.document_detail.uploaded_document = [response.body];
-                      //-----this method is called as it wasn't fetching subcategory
+                        //-----this method is called as it wasn't fetching subcategory
                       this.$refs.document_detail.fetchSubCategory(response.body.document_category);
-                          
                     },
                   err => { 
                             console.log(err);
@@ -239,7 +238,7 @@ export default {
                     confirmButtonText: 'Remove Document',
                     confirmButtonColor:'#d9534f'
                 }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.species_documents,id+'/discard'))
+                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/discard'))
                     .then((response) => {
                         swal(
                             'Discarded',
@@ -263,7 +262,7 @@ export default {
                     showCancelButton: true,
                     confirmButtonText: 'Reinstate Document',
                 }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.species_documents,id+'/reinstate'))
+                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/reinstate'))
                     .then((response) => {
                         swal(
                             'Reinstated',

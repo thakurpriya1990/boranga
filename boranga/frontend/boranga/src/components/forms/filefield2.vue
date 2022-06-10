@@ -49,7 +49,7 @@
                                 <p>
                                     <!--File: <a target="_blank">{{v.name}}</a> &nbsp;-->
                                     File:{{v.name}} &nbsp;
-                                    <a @click="pop_file(v)" class="fa fa-trash-o" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
+                                    <a @click="pop_file(v)" class="bi bi-trash" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
                                 </p>
                             </div>
                         </div>
@@ -122,7 +122,7 @@ export default {
             return helpers.getCookie('csrftoken')
         },
         has_uploaded_docs: function() {
-          return this.uploaded_documents ? true : false;
+          return this.uploaded_documents.length>0 ? true : false;
         }
     },
 

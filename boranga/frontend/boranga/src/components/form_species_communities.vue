@@ -34,7 +34,7 @@
                 <Community
                     v-if="isCommunity"  
                     :species_community="species_community" 
-                    id="speciesInformation" 
+                    id="communityInformation" 
                     ref="community_information" 
                     :is_external="is_external">
                 </Community>
@@ -47,12 +47,20 @@
                 </Species>
               </div>
               <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
-                <Documents 
+                <CommunityDocuments 
+                    v-if="isCommunity"
+                    :species_community="species_community" 
+                    id="communityDocuments" 
+                    ref="community_documents" 
+                    :is_external="is_external">
+                </CommunityDocuments>
+                <SpeciesDocuments 
+                    v-else
                     :species_community="species_community" 
                     id="speciesDocuments" 
-                    ref="documents" 
+                    ref="species_documents" 
                     :is_external="is_external">
-                </Documents>
+                </SpeciesDocuments>
               </div>
               <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
                 <Threats 
@@ -83,7 +91,8 @@
 <script>
     import Species from '@/components/common/species_communities/species_profile.vue'
     import Community from '@/components/common/species_communities/community_profile.vue'
-    import Documents from '@/components/common/species_communities/documents.vue'
+    import SpeciesDocuments from '@/components/common/species_communities/documents.vue'
+    import CommunityDocuments from '@/components/common/species_communities/community_documents.vue'
     import Threats from '@/components/common/species_communities/threats.vue'
     import ConservationPlans from '@/components/common/species_communities/conservation_plans.vue'
     import RelatedItems from '@/components/common/species_communities/related_items.vue'
@@ -111,7 +120,8 @@
         components: {
             Species,
             Community,
-            Documents,
+            SpeciesDocuments,
+            CommunityDocuments,
             Threats,
             ConservationPlans,
             RelatedItems,

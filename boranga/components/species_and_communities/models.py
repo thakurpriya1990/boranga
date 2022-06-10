@@ -1,6 +1,9 @@
 import datetime
 from django.db import models
 from boranga.components.main.models import Document
+import json
+from django.db import models,transaction
+from django.conf import settings
 
 
 DISTRICT_PERTH_HILLS = 'PHS'
@@ -69,6 +72,9 @@ REGION_CHOICES = (
 
 def update_species_doc_filename(instance, filename):
     return '{}/species/{}/species_documents/{}'.format(settings.MEDIA_APP_DIR, instance.species.id,filename)
+
+def update_community_doc_filename(instance, filename):
+    return '{}/community/{}/community_documents/{}'.format(settings.MEDIA_APP_DIR, instance.community.id,filename)
 
 
 class Region(models.Model):
@@ -668,19 +674,42 @@ class DocumentCategory(models.Model):
     to certain tables.
 
     Used by:
-    - Species
-    - Communities
+    - DocumentSubCategory
+    - SpeciesDocument
+    - CommunityDocument
     Is:
     - Table
     """
-    name = models.CharField(max_length=128,
-                            default="None")
+    document_category_name = models.CharField(max_length=128, unique=True)
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.document)
+        return str(self.document_category_name)
+
+
+class DocumentSubCategory(models.Model):
+    """
+    This is particularly useful for organisation of sub documents e.g. preventing inappropriate documents being added
+    to certain tables.
+
+    Used by:
+    - SpeciesDocument
+    - CommunityDocument
+    Is:
+    - Table
+    """
+    document_category = models.ForeignKey(DocumentCategory, 
+                                          on_delete=models.CASCADE,
+                                          related_name='document_sub_categories')
+    document_sub_category_name = models.CharField(max_length=128, unique=True,)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.document_sub_category_name)
                                     
 
 class SpeciesDocument(Document):
@@ -688,19 +717,26 @@ class SpeciesDocument(Document):
     Meta-data associated with a document relevant to a Species.
 
     Has a:
-    - DocumentCategory
-    Used by:
     - Species
-    - Communities:
+    - DocumentCategory
+    - DocumentSubCategoty
+    Used for:
+    - Species
     Is:
     - Table
     """
+    document_number = models.CharField(max_length=9, blank=True, default='')
     _file = models.FileField(upload_to=update_species_doc_filename, max_length=512, default="None")
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history 
     document_category = models.ForeignKey(DocumentCategory, 
-                                          default="None",
+                                          null=True,
+                                          blank=True,
+                                          on_delete=models.CASCADE)
+    document_sub_category = models.ForeignKey(DocumentSubCategory, 
+                                          null=True,
+                                          blank=True,
                                           on_delete=models.CASCADE)
     species = models.ForeignKey(Species, 
                                 blank=False, 
@@ -710,9 +746,100 @@ class SpeciesDocument(Document):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Species Document"
 
-    def __str__(self):
-        return str(self.document)
+    def save(self, *args, **kwargs):
+        super(SpeciesDocument, self).save(*args,**kwargs)
+        if self.document_number == '':
+            new_document_id = 'D{0:06d}'.format(self.pk)
+            self.document_number = new_document_id
+            self.save()
+
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                # if not data.get('update'):
+                #     documents_qs = self.filter(input_name='species_doc', visible=True)
+                #     documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    self._file=_file
+                    self.name=_file.name
+                    self.input_name = data['input_name']
+                    self.can_delete = True
+                    self.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
+
+
+class CommunityDocument(Document):
+    """
+    Meta-data associated with a document relevant to a Community.
+
+    Has a:
+    - Community
+    - DocumentCategory
+    - DocumentSubCategory
+    Used for:
+    - Community:
+    Is:
+    - Table
+    """
+    document_number = models.CharField(max_length=9, blank=True, default='')
+    _file = models.FileField(upload_to=update_community_doc_filename, max_length=512, default="None")
+    input_name = models.CharField(max_length=255,null=True,blank=True)
+    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history 
+    document_category = models.ForeignKey(DocumentCategory, 
+                                          null=True,
+                                          blank=True,
+                                          on_delete=models.CASCADE)
+    document_sub_category = models.ForeignKey(DocumentSubCategory, 
+                                          null=True,
+                                          blank=True,
+                                          on_delete=models.CASCADE)
+    community = models.ForeignKey(Community, 
+                                blank=False, 
+                                default=None,
+                                on_delete=models.CASCADE,
+                                related_name='community_documents')
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Community Document"
+
+    def save(self, *args, **kwargs):
+        super(SpeciesDocument, self).save(*args,**kwargs)
+        if self.document_number == '':
+            new_document_id = 'D{0:06d}'.format(self.pk)
+            self.document_number = new_document_id
+            self.save()
+    
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                # if not data.get('update'):
+                #     documents_qs = self.filter(input_name='species_doc', visible=True)
+                #     documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    self._file=_file
+                    self.name=_file.name
+                    self.input_name = data['input_name']
+                    self.can_delete = True
+                    self.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
 
 
 class ThreatCategory(models.Model):
