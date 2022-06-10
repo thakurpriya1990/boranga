@@ -81,16 +81,16 @@ export default {
                     ],
                     columns: [
                         {
-                            data: "id",
+                            data: "document_number",
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
                                 if(full.visible)
                                 {
-                                    return full.id;
+                                    return full.document_number;
                                 }
                                 else{
-                                    return '<s>'+ full.id + '</s>'
+                                    return '<s>'+ full.document_number + '</s>'
                                 }
                             },
 

@@ -725,6 +725,7 @@ class SpeciesDocument(Document):
     Is:
     - Table
     """
+    document_number = models.CharField(max_length=9, blank=True, default='')
     _file = models.FileField(upload_to=update_species_doc_filename, max_length=512, default="None")
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
@@ -746,6 +747,13 @@ class SpeciesDocument(Document):
     class Meta:
         app_label = 'boranga'
         verbose_name = "Species Document"
+
+    def save(self, *args, **kwargs):
+        super(SpeciesDocument, self).save(*args,**kwargs)
+        if self.document_number == '':
+            new_document_id = 'D{0:06d}'.format(self.pk)
+            self.document_number = new_document_id
+            self.save()
 
     def add_documents(self, request):
         with transaction.atomic():
@@ -771,7 +779,7 @@ class SpeciesDocument(Document):
 
 class CommunityDocument(Document):
     """
-    Meta-data associated with a document relevant to a Species.
+    Meta-data associated with a document relevant to a Community.
 
     Has a:
     - Community
@@ -782,6 +790,7 @@ class CommunityDocument(Document):
     Is:
     - Table
     """
+    document_number = models.CharField(max_length=9, blank=True, default='')
     _file = models.FileField(upload_to=update_community_doc_filename, max_length=512, default="None")
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
@@ -804,6 +813,13 @@ class CommunityDocument(Document):
         app_label = 'boranga'
         verbose_name = "Community Document"
 
+    def save(self, *args, **kwargs):
+        super(SpeciesDocument, self).save(*args,**kwargs)
+        if self.document_number == '':
+            new_document_id = 'D{0:06d}'.format(self.pk)
+            self.document_number = new_document_id
+            self.save()
+    
     def add_documents(self, request):
         with transaction.atomic():
             try:

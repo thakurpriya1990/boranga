@@ -466,6 +466,7 @@ class SpeciesDocumentSerializer(serializers.ModelSerializer):
 		model = SpeciesDocument
 		fields = (
 			'id',
+			'document_number',
 			'species',
 			'name',
 			'_file',
@@ -478,7 +479,7 @@ class SpeciesDocumentSerializer(serializers.ModelSerializer):
 			'document_sub_category_name',
 			'visible',
 		)
-		read_only_fields = ('id','document_category_name')
+		read_only_fields = ('id','document_number','document_category_name')
 
 	def get_document_category_name(self,obj):
 		if obj.document_category:
@@ -511,6 +512,7 @@ class CommunityDocumentSerializer(serializers.ModelSerializer):
 		model = CommunityDocument
 		fields = (
 			'id',
+			'document_number',
 			'community',
 			'name',
 			'_file',
@@ -523,7 +525,7 @@ class CommunityDocumentSerializer(serializers.ModelSerializer):
 			'document_sub_category_name',
 			'visible',
 		)
-		read_only_fields = ('id','document_category_name')
+		read_only_fields = ('id','document_number','document_category_name')
 
 	def get_document_category_name(self,obj):
 		if obj.document_category:
