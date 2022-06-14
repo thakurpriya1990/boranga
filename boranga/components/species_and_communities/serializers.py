@@ -5,6 +5,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
 from boranga.components.species_and_communities.models import(
 	GroupType,
 	Species,
+	SpeciesLogEntry,
 	Community,
 	ConservationList,
 	ConservationStatus,
@@ -21,6 +22,7 @@ from boranga.components.species_and_communities.models import(
 
 from boranga.components.users.serializers import UserSerializer
 from boranga.components.users.serializers import UserAddressSerializer, DocumentSerializer
+from boranga.components.main.serializers import CommunicationLogEntrySerializer
 from rest_framework import serializers
 from django.db.models import Q
 
@@ -40,6 +42,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 		model = Species
 		fields = (
 			    'id',
+			    'species_number',
 			    'group_type',
 			    'scientific_name',
 			    'common_name',
@@ -56,6 +59,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			)
 		datatables_always_serialize = (
                 'id',
+                'species_number',
                 'group_type',
 			    'scientific_name',
 			    'common_name',
@@ -125,6 +129,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 		model = Community
 		fields = (
 			    'id',
+			    'community_number',
 			    'group_type',
 			    'community_id',
 			    'community_name',
@@ -137,6 +142,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			)
 		datatables_always_serialize = (
                 'id',
+                'community_number',
                 'group_type',
 			    'community_id',
 			    'community_name',
@@ -244,6 +250,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
         model = Species
         fields = (
                 'id',
+                'species_number',
 			    'group_type',
 			    'scientific_name',
 			    'common_name',
@@ -320,6 +327,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 		model = Community
 		fields = (
         	    'id',
+        	    'community_number',
 			    'group_type',
 			    'community_id',
 			    'community_name',
@@ -549,3 +557,16 @@ class SaveCommunityDocumentSerializer(serializers.ModelSerializer):
 			'document_category',
 			'document_sub_category',
 			)
+
+
+class SpeciesLogEntrySerializer(CommunicationLogEntrySerializer):
+    documents = serializers.SerializerMethodField()
+    class Meta:
+        model = SpeciesLogEntry
+        fields = '__all__'
+        read_only_fields = (
+            'customer',
+        )
+
+    def get_documents(self,obj):
+        return [[d.name,d._file.url] for d in obj.documents.all()]

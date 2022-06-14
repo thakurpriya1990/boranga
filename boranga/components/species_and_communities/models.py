@@ -1,6 +1,10 @@
 import datetime
 from django.db import models
-from boranga.components.main.models import Document
+from boranga.components.main.models import (
+    CommunicationsLogEntry, 
+    UserAction,
+    Document
+    )
 import json
 from django.db import models,transaction
 from django.conf import settings
@@ -75,6 +79,12 @@ def update_species_doc_filename(instance, filename):
 
 def update_community_doc_filename(instance, filename):
     return '{}/community/{}/community_documents/{}'.format(settings.MEDIA_APP_DIR, instance.community.id,filename)
+
+def update_species_comms_log_filename(instance, filename):
+    return '{}/species/{}/communications/{}'.format(settings.MEDIA_APP_DIR, instance.log_entry.species.id,filename)
+
+def update_community_comms_log_filename(instance, filename):
+    return '{}/community/{}/communications/{}'.format(settings.MEDIA_APP_DIR, instance.log_entry.community.id,filename)
 
 
 class Region(models.Model):
@@ -490,6 +500,7 @@ class Species(models.Model):
     Is:
     - Table
     """
+    species_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
     image = models.CharField(max_length=512,
@@ -518,6 +529,41 @@ class Species(models.Model):
 
     def __str__(self):
         return str(self.id)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        super(Species, self).save(*args,**kwargs)
+        if self.species_number == '':
+            new_species_id = 'S{0:06d}'.format(self.pk)
+            self.species_number = new_species_id
+            self.save()
+
+    @property
+    def reference(self):
+        return '{}-{}'.format(self.species_number,self.species_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
+
+
+class SpeciesLogDocument(Document):
+    log_entry = models.ForeignKey('SpeciesLogEntry',related_name='documents', on_delete=models.CASCADE)
+    _file = models.FileField(upload_to=update_species_comms_log_filename, max_length=512)
+
+    class Meta:
+        app_label = 'boranga'
+
+
+class SpeciesLogEntry(CommunicationsLogEntry):
+    species = models.ForeignKey(Species, related_name='comms_logs', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{} - {}'.format(self.reference, self.subject)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def save(self, **kwargs):
+        # save the application reference if the reference not provided
+        if not self.reference:
+            self.reference = self.species.reference
+        super(SpeciesLogEntry, self).save(**kwargs)
 
 
 class SpeciesDistribution(models.Model):
@@ -556,6 +602,7 @@ class Community(models.Model):
     Is:
     - Table
     """
+    community_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
     species = models.ManyToManyField(Species, null=True, blank=True)
@@ -580,6 +627,41 @@ class Community(models.Model):
 
     def __str__(self):
         return str(self.community_id)
+
+    def save(self, *args, **kwargs):
+        super(Community, self).save(*args,**kwargs)
+        if self.community_number == '':
+            new_community_id = 'C{0:06d}'.format(self.pk)
+            self.community_number = new_community_id
+            self.save()
+
+    @property
+    def reference(self):
+        return '{}-{}'.format(self.community_number)
+
+
+class CommunityLogDocument(Document):
+    log_entry = models.ForeignKey('CommunityLogEntry',related_name='documents', on_delete=models.CASCADE)
+    _file = models.FileField(upload_to=update_community_comms_log_filename, max_length=512)
+
+    class Meta:
+        app_label = 'boranga'
+
+
+class CommunityLogEntry(CommunicationsLogEntry):
+    community = models.ForeignKey(Community, related_name='comms_logs', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{} - {}'.format(self.reference, self.subject)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def save(self, **kwargs):
+        # save the application reference if the reference not provided
+        if not self.reference:
+            self.reference = self.species.reference
+        super(CommunityLogEntry, self).save(**kwargs)
 
 
 class CommunityDistribution(models.Model):

@@ -346,14 +346,14 @@ export default {
         },
         column_number: function(){
             return {
-                data: "id",
+                data: "species_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    return full.id
+                    return full.species_number
                 },
-                name: "id",
+                name: "species_number",
             }
         },
         column_scientific_name: function(){

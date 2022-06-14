@@ -324,14 +324,14 @@ export default {
         },
         column_number: function(){
             return {
-                data: "id",
+                data: "community_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    return full.id
+                    return full.community_number
                 },
-                name: "id",
+                name: "community_number",
             }
         },
         column_community_id: function(){
