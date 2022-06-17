@@ -17,6 +17,7 @@ from boranga.components.species_and_communities.models import(
 	CommunityDocument,
 	SpeciesDistribution,
 	CommunityDistribution,
+	ConservationThreat,
 	)
 
 from boranga.components.users.serializers import UserSerializer
@@ -479,7 +480,7 @@ class SpeciesDocumentSerializer(serializers.ModelSerializer):
 			'document_sub_category_name',
 			'visible',
 		)
-		read_only_fields = ('id','document_number','document_category_name')
+		read_only_fields = ('id','document_number')
 
 	def get_document_category_name(self,obj):
 		if obj.document_category:
@@ -525,7 +526,7 @@ class CommunityDocumentSerializer(serializers.ModelSerializer):
 			'document_sub_category_name',
 			'visible',
 		)
-		read_only_fields = ('id','document_number','document_category_name')
+		read_only_fields = ('id','document_number')
 
 	def get_document_category_name(self,obj):
 		if obj.document_category:
@@ -548,4 +549,65 @@ class SaveCommunityDocumentSerializer(serializers.ModelSerializer):
 			'uploaded_date',
 			'document_category',
 			'document_sub_category',
+			)
+
+
+class ConservationThreatSerializer(serializers.ModelSerializer):
+	threat_category_name = serializers.SerializerMethodField()
+	current_impact_name = serializers.SerializerMethodField()
+	potential_impact_name = serializers.SerializerMethodField()
+	potential_threat_onset_name = serializers.SerializerMethodField()
+	class Meta:
+		model = ConservationThreat
+		fields = (
+			'id',
+			'threat_number',
+			'threat_category',
+			'threat_category_name',
+			'threat_agent',
+			'current_impact',
+			'current_impact_name',
+			'potential_impact',
+			'potential_impact_name',
+			'potential_threat_onset',
+			'potential_threat_onset_name',
+			'comment',
+			'date_observed',
+			'source',
+			'species',
+			'community',
+		)
+		read_only_fields = ('id','threat_number',)
+
+	def get_threat_category_name(self,obj):
+		if obj.threat_category:
+			return obj.threat_category.name
+
+	def get_current_impact_name(self,obj):
+		if obj.current_impact:
+			return obj.current_impact.name
+
+	def get_potential_impact_name(self,obj):
+		if obj.potential_impact:
+			return obj.potential_impact.name
+
+	def get_potential_threat_onset_name(self,obj):
+		if obj.potential_threat_onset:
+			return obj.potential_threat_onset.name
+
+
+class SaveConservationThreatSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = ConservationThreat
+		fields = (
+			'id',
+			'species',
+			'community',
+			'threat_category',
+			'threat_agent',
+			'comment',
+			'current_impact',
+			'potential_impact',
+			'potential_threat_onset',
+			'date_observed',
 			)
