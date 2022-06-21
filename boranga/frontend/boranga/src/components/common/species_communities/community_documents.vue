@@ -142,8 +142,8 @@ export default {
                             data: "id",
                             mRender:function (data,type,full){
                                 let links = '';
-                                links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
                                 if(full.visible){
+                                    links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
                                     links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
                                 }
                                 else{
