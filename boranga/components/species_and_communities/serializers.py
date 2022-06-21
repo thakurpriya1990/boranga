@@ -576,6 +576,7 @@ class ConservationThreatSerializer(serializers.ModelSerializer):
 			'source',
 			'species',
 			'community',
+			'visible',
 		)
 		read_only_fields = ('id','threat_number',)
 

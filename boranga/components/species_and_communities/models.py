@@ -933,6 +933,7 @@ class ConservationThreat(models.Model):
     comment = models.CharField(max_length=512,
                                default="None")
     date_observed = models.DateField(blank =True, null=True)
+    visible = models.BooleanField(default=True) # to prevent deletion, hidden and still be available in history
 
 
     class Meta:

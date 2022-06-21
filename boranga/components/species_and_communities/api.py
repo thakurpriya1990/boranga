@@ -787,9 +787,9 @@ class ThreatCategoryViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return ThreatCategory.objects.none()
 
-    @list_route(methods=['GET', ], detail = False)    
+    @list_route(methods=['GET', ], detail = False)
     def threat_category_choices(self, request, *args, **kwargs):
-        res_obj = [] 
+        res_obj = []
         for choice in ThreatCategory.objects.all():
             res_obj.append({'id': choice.id, 'name': choice.name})
         res_json = json.dumps(res_obj)
@@ -802,9 +802,9 @@ class CurrentImpactViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return CurrentImpact.objects.none()
 
-    @list_route(methods=['GET', ], detail = False)    
+    @list_route(methods=['GET', ], detail = False)
     def current_impact_choices(self, request, *args, **kwargs):
-        res_obj = [] 
+        res_obj = []
         for choice in CurrentImpact.objects.all():
             res_obj.append({'id': choice.id, 'name': choice.name})
         res_json = json.dumps(res_obj)
@@ -832,9 +832,9 @@ class PotentialThreatOnsetViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return PotentialThreatOnset.objects.none()
 
-    @list_route(methods=['GET', ], detail = False)    
+    @list_route(methods=['GET', ], detail = False)
     def potential_threat_onset_choices(self, request, *args, **kwargs):
-        res_obj = [] 
+        res_obj = []
         for choice in PotentialThreatOnset.objects.all():
             res_obj.append({'id': choice.id, 'name': choice.name})
         res_json = json.dumps(res_obj)
@@ -845,58 +845,41 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
     queryset = ConservationThreat.objects.all().order_by('id')
     serializer_class = ConservationThreatSerializer
 
-    # @detail_route(methods=['GET',], detail=True)
-    # def discard(self, request, *args, **kwargs):
-    #     try:
-    #         instance = self.get_object()
-    #         instance.visible = False
-    #         instance.save()
-    #         serializer = self.get_serializer(instance)
-    #         return Response(serializer.data)
-    #     except serializers.ValidationError:
-    #         print(traceback.print_exc())
-    #         raise
-    #     except ValidationError as e:
-    #         print(traceback.print_exc())
-    #         raise serializers.ValidationError(repr(e.error_dict))
-    #     except Exception as e:
-    #         print(traceback.print_exc())
-    #         raise serializers.ValidationError(str(e))
+    @detail_route(methods=['GET',], detail=True)
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = False
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
-    # @detail_route(methods=['GET',], detail=True)
-    # def reinstate(self, request, *args, **kwargs):
-    #     try:
-    #         instance = self.get_object()
-    #         instance.visible = True
-    #         instance.save()
-    #         serializer = self.get_serializer(instance)
-    #         return Response(serializer.data)
-    #     except serializers.ValidationError:
-    #         print(traceback.print_exc())
-    #         raise
-    #     except ValidationError as e:
-    #         print(traceback.print_exc())
-    #         raise serializers.ValidationError(repr(e.error_dict))
-    #     except Exception as e:
-    #         print(traceback.print_exc())
-    #         raise serializers.ValidationError(str(e))
-
-    # @detail_route(methods=['POST',], detail=True)
-    # @renderer_classes((JSONRenderer,))
-    # def delete_document(self, request, *args, **kwargs):
-    #     try:
-    #         instance = self.get_object()
-    #         RequirementDocument.objects.get(id=request.data.get('id')).delete()
-    #         return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.requirement_documents.all()])
-    #     except serializers.ValidationError:
-    #         print(traceback.print_exc())
-    #         raise
-    #     except ValidationError as e:
-    #         print(traceback.print_exc())
-    #         raise serializers.ValidationError(repr(e.error_dict))
-    #     except Exception as e:
-    #         print(traceback.print_exc())
-    #         raise serializers.ValidationError(str(e))
+    @detail_route(methods=['GET',], detail=True)
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
     def update(self, request, *args, **kwargs):
         try:

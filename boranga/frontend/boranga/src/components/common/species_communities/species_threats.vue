@@ -85,7 +85,12 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.threat_number;
+                                if(full.visible){
+                                    return full.threat_number;
+                                }
+                                else{
+                                    return '<s>'+ full.threat_number + '</s>'
+                                }
                             },
 
                         },
@@ -94,7 +99,12 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.threat_category_name;
+                                if(full.visible){
+                                    return full.threat_category_name;
+                                }
+                                else{
+                                    return '<s>'+ full.threat_category_name + '</s>'
+                                }
                             },
 
                         },
@@ -103,28 +113,37 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.source;
+                                if(full.visible){
+                                    return full.source;
+                                }
+                                else{
+                                    return '<s>'+ full.source + '</s>'
+                                }
                             },
 
                         },
                         {
                             data: "date_observed",
                             mRender:function (data,type,full){
-                                return data != '' && data != null ? moment(data).format('DD/MM/YYYY'):'';
+                                if(full.visible){
+                                    return data != '' && data != null ? moment(data).format('DD/MM/YYYY'):'';
+                                }
+                                else{
+                                    return data != '' && data != null ? '<s>'+ moment(data).format('DD/MM/YYYY'):'' + '</s>'
+                                }
                             }
                         },
                         {
                             data: "id",
                             mRender:function (data,type,full){
                                 let links = '';
-                                links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                /*if(full.visible){
-                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                if(full.visible){
+                                    links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
                                 }
                                 else{
-                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
-                                }*/
+                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                                }
                                 return links;
                             }
                         },
@@ -133,7 +152,12 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.threat_agent;
+                                if(full.visible){
+                                    return full.threat_agent;
+                                }
+                                else{
+                                    return '<s>'+ full.threat_agent + '</s>'
+                                }
                             },
 
                         },
@@ -143,7 +167,12 @@ export default {
                             searchable: true,
                             'render': function(value, type, full){
                                 let result = helpers.dtPopover(value, 30, 'hover');
-                                return type=='export' ? value : result;
+                                if(full.visible){
+                                    return type=='export' ? value : result;
+                                }
+                                else{
+                                    return type=='export' ? '<s>' + value + '</s>' : '<s>' + result + '</s>';
+                                }
                             },
                         },
                         {
@@ -151,7 +180,12 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.current_impact_name;
+                                if(full.visible){
+                                    return full.current_impact_name;
+                                }
+                                else{
+                                    return '<s>'+ full.current_impact_name + '</s>'
+                                }
                             },
 
                         },
@@ -160,7 +194,12 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.potential_impact_name;
+                                if(full.visible){
+                                    return full.potential_impact_name;
+                                }
+                                else{
+                                    return '<s>'+ full.potential_impact_name + '</s>'
+                                }
                             },
                         },
                     ],
@@ -214,7 +253,7 @@ export default {
                       });
                 this.$refs.threat_detail.isModalOpen = true;
             },
-            /*discardThreat:function (id) {
+            discardThreat:function (id) {
                 let vm = this;
                 swal({
                     title: "Remove Threat",
@@ -224,7 +263,7 @@ export default {
                     confirmButtonText: 'Remove Threat',
                     confirmButtonColor:'#d9534f'
                 }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.species_documents,id+'/discard'))
+                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/discard'))
                     .then((response) => {
                         swal(
                             'Discarded',
@@ -239,30 +278,30 @@ export default {
 
                 });
             },
-            /*reinstateDocument:function (id) {
+            reinstateThreat:function (id) {
                 let vm = this;
                 swal({
-                    title: "Reinstate Document",
-                    text: "Are you sure you want to Reinstate this Document?",
+                    title: "Reinstate Threat",
+                    text: "Are you sure you want to Reinstate this Threat?",
                     type: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Reinstate Document',
+                    confirmButtonText: 'Reinstate Threat',
                 }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.species_documents,id+'/reinstate'))
+                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/reinstate'))
                     .then((response) => {
                         swal(
                             'Reinstated',
-                            'Your document has been reinstated',
+                            'Your threat has been reinstated',
                             'success'
                         )
-                        vm.$refs.documents_datatable.vmDataTable.ajax.reload();
+                        vm.$refs.threats_datatable.vmDataTable.ajax.reload();
                     }, (error) => {
                         console.log(error);
                     });
                 },(error) => {
 
                 });
-            },*/
+            },
             updatedThreats(){
                 this.$refs.threats_datatable.vmDataTable.ajax.reload();
             },
@@ -280,11 +319,11 @@ export default {
                     vm.discardThreat(id);
                 });
                 // External Reinstate listener
-                /*vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-reinstate-document]', function(e) {
+                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-reinstate-threat]', function(e) {
                     e.preventDefault();
                     var id = $(this).attr('data-reinstate-threat');
                     vm.reinstateThreat(id);
-                });*/
+                });
             },
             refreshFromResponse: function(){
                 this.$refs.threats_datatable.vmDataTable.ajax.reload();
@@ -294,7 +333,6 @@ export default {
             let vm = this;
             this.$nextTick(() => {
                 vm.addEventListeners();
-                //vm.initialiseSearch();
         });
         }
     }
