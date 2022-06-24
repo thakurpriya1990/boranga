@@ -3,24 +3,19 @@
         <div class="col-md-12">
 
             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-              <li class="nav-item">
+              <li v-if="is_internal" class="nav-item">
                 <a class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="true">
                   Profile
                 </a>
               </li>
-              <li class="nav-item">
+              <li v-if="is_internal" class="nav-item">
                 <a class="nav-link" id="pills-documents-tab" data-bs-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false">
                   Documents
                 </a>
               </li>
-              <li class="nav-item">
+              <li v-if="is_internal" class="nav-item">
                 <a class="nav-link" id="pills-threats-tab" data-bs-toggle="pill" href="#pills-threats" role="tab" aria-controls="pills-threats" aria-selected="false">
                   Threats
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="pills-conservation-plans-tab" data-bs-toggle="pill" href="#pills-conservation-plans" role="tab" aria-controls="pills-management-plans" aria-selected="false">
-                  Conservation Plans
                 </a>
               </li>
               <li v-if="is_internal" class="nav-item" id="li-relate-items">
@@ -36,14 +31,14 @@
                     :species_community="species_community" 
                     id="communityInformation" 
                     ref="community_information" 
-                    :is_external="is_external">
+                    :is_internal="is_internal">
                 </Community>
                 <Species
                     v-else
                     :species_community="species_community" 
                     id="speciesInformation" 
                     ref="species_information" 
-                    :is_external="is_external">
+                    :is_internal="is_internal">
                 </Species>
               </div>
               <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
@@ -52,30 +47,31 @@
                     :species_community="species_community" 
                     id="communityDocuments" 
                     ref="community_documents" 
-                    :is_external="is_external">
+                    :is_internal="is_internal">
                 </CommunityDocuments>
                 <SpeciesDocuments 
                     v-else
                     :species_community="species_community" 
                     id="speciesDocuments" 
                     ref="species_documents" 
-                    :is_external="is_external">
+                    :is_internal="is_internal">
                 </SpeciesDocuments>
               </div>
               <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
-                <Threats 
+                <CommunityThreats 
+                    v-if="isCommunity"
+                    :species_community="species_community" 
+                    id="communityThreats" 
+                    ref="community_threats" 
+                    :is_internal="is_internal">
+                </CommunityThreats>
+                <SpeciesThreats
+                    v-else 
                     :species_community="species_community" 
                     id="speciesThreats" 
-                    ref="threats" 
-                    :is_external="is_external">
-                </Threats>
-              </div>
-              <div class="tab-pane fade" id="pills-conservation-plans" role="tabpanel" aria-labelledby="pills-conservation-plans-tab">
-                <ConservationPlans 
-                    :species_community="species_community" 
-                    id="speciesConservationPlans" 
-                    ref="conservation_plans">
-                </ConservationPlans>
+                    ref="species_threats" 
+                    :is_internal="is_internal">
+                </SpeciesThreats>
               </div>
               <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems 
@@ -93,8 +89,8 @@
     import Community from '@/components/common/species_communities/community_profile.vue'
     import SpeciesDocuments from '@/components/common/species_communities/documents.vue'
     import CommunityDocuments from '@/components/common/species_communities/community_documents.vue'
-    import Threats from '@/components/common/species_communities/threats.vue'
-    import ConservationPlans from '@/components/common/species_communities/conservation_plans.vue'
+    import SpeciesThreats from '@/components/common/species_communities/species_threats.vue'
+    import CommunityThreats from '@/components/common/species_communities/community_threats.vue'
     import RelatedItems from '@/components/common/species_communities/related_items.vue'
 
     export default {
@@ -122,8 +118,8 @@
             Community,
             SpeciesDocuments,
             CommunityDocuments,
-            Threats,
-            ConservationPlans,
+            SpeciesThreats,
+            CommunityThreats,
             RelatedItems,
         },
         computed:{

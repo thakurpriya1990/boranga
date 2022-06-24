@@ -896,7 +896,7 @@ class CommunityDocument(Document):
         verbose_name = "Community Document"
 
     def save(self, *args, **kwargs):
-        super(SpeciesDocument, self).save(*args,**kwargs)
+        super(CommunityDocument, self).save(*args,**kwargs)
         if self.document_number == '':
             new_document_id = 'D{0:06d}'.format(self.pk)
             self.document_number = new_document_id
@@ -928,8 +928,58 @@ class ThreatCategory(models.Model):
     """
     # e.g. mechnical disturbance
     """
-    name = models.CharField(max_length=128,
-                            default="None")
+    name = models.CharField(max_length=128, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
+class CurrentImpact(models.Model):
+    """
+    # don't know the data yet
+
+    Used by:
+    - ConservationThreat
+
+    """
+    name = models.CharField(max_length=100, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
+class PotentialImpact(models.Model):
+    """
+    # don't know the data yet
+    
+    Used by:
+    - ConservationThreat
+
+    """
+    name = models.CharField(max_length=100, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
+class PotentialThreatOnset(models.Model):
+    """
+    # don't know the data yet
+    
+    Used by:
+    - ConservationThreat
+
+    """
+    name = models.CharField(max_length=100, blank=False, unique=True)
 
     class Meta:
         app_label = 'boranga'
@@ -940,33 +990,53 @@ class ThreatCategory(models.Model):
 
 class ConservationThreat(models.Model):
     """
-    Threat for a species in a particular location.
+    Threat for a species and community in a particular location.
 
     NB: Maybe make many to many
 
     Has a:
-    - N/A
-    Used by:
+    - species
+    - community
+    Used for:
     - Species
+    - Community
     Is:
     - Table
     """
+    species = models.ForeignKey(Species, on_delete=models.CASCADE, null=True, blank=True , related_name="species_threats")
+    community = models.ForeignKey(Community, on_delete=models.CASCADE, null=True, blank=True, related_name="community_threats")
+    threat_number = models.CharField(max_length=9, blank=True, default='')
     threat_category = models.ForeignKey(ThreatCategory, on_delete=models.CASCADE)
-    threat_description = models.CharField(max_length=512,
+    threat_agent = models.CharField(max_length=512,
                                           default="None")
+    current_impact = models.ForeignKey(CurrentImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    potential_impact = models.ForeignKey(PotentialImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    potential_threat_onset = models.ForeignKey(PotentialThreatOnset, on_delete=models.SET_NULL, default=None, null=True, blank=True)
     comment = models.CharField(max_length=512,
                                default="None")
-    document = models.CharField(max_length=1024,
-                                default="None")
-    source = models.CharField(max_length=1024,
-                              default="None") # from species or occurrence_threat -> species level
-    species = models.ForeignKey(Species, on_delete=models.CASCADE)
+    date_observed = models.DateField(blank =True, null=True)
+    visible = models.BooleanField(default=True) # to prevent deletion, hidden and still be available in history
+
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.threat_category)  # TODO: is the most appropriate?
+        return str(self.id)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        super(ConservationThreat, self).save(*args,**kwargs)
+        if self.threat_number == '':
+            new_threat_id = 'T{0:06d}'.format(self.pk)
+            self.threat_number = new_threat_id
+            self.save()
+
+    @property
+    def source(self):
+        if self.species:
+            return self.species.id
+        elif self.community:
+            return self.community.id
 
 
 class ConservationPlan(models.Model):

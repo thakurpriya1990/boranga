@@ -41,6 +41,11 @@ from boranga.components.species_and_communities.models import (
     DocumentSubCategory,
     SpeciesDocument,
     CommunityDocument,
+    ThreatCategory,
+    CurrentImpact,
+    PotentialImpact,
+    PotentialThreatOnset,
+    ConservationThreat,
 )
 from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
@@ -61,6 +66,8 @@ from boranga.components.species_and_communities.serializers import (
     SaveSpeciesDocumentSerializer,
     SaveCommunityDocumentSerializer,
     SpeciesLogEntrySerializer,
+    ConservationThreatSerializer,
+    SaveConservationThreatSerializer,
 )
 
 import logging
@@ -490,7 +497,25 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
-            raise    
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def threats(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.species_threats.all()
+            qs = qs.order_by('-date_observed')
+            serializer = ConservationThreatSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
@@ -614,7 +639,25 @@ class CommunityViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
-            raise    
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def threats(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.community_threats.all()
+            qs = qs.order_by('-date_observed')
+            serializer = ConservationThreatSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
@@ -820,6 +863,138 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
             instance.add_documents(request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+class ThreatCategoryViewSet(viewsets.ModelViewSet):
+    queryset = ThreatCategory.objects.all()
+
+    def get_queryset(self):
+        return ThreatCategory.objects.none()
+
+    @list_route(methods=['GET', ], detail = False)
+    def threat_category_choices(self, request, *args, **kwargs):
+        res_obj = []
+        for choice in ThreatCategory.objects.all():
+            res_obj.append({'id': choice.id, 'name': choice.name})
+        res_json = json.dumps(res_obj)
+        return HttpResponse(res_json, content_type='application/json')
+
+
+class CurrentImpactViewSet(viewsets.ModelViewSet):
+    queryset = CurrentImpact.objects.all()
+
+    def get_queryset(self):
+        return CurrentImpact.objects.none()
+
+    @list_route(methods=['GET', ], detail = False)
+    def current_impact_choices(self, request, *args, **kwargs):
+        res_obj = []
+        for choice in CurrentImpact.objects.all():
+            res_obj.append({'id': choice.id, 'name': choice.name})
+        res_json = json.dumps(res_obj)
+        return HttpResponse(res_json, content_type='application/json')
+
+
+class PotentialImpactViewSet(viewsets.ModelViewSet):
+    queryset = PotentialImpact.objects.all()
+
+    def get_queryset(self):
+        return PotentialImpact.objects.none()
+
+    @list_route(methods=['GET', ], detail = False)    
+    def potential_impact_choices(self, request, *args, **kwargs):
+        res_obj = [] 
+        for choice in PotentialImpact.objects.all():
+            res_obj.append({'id': choice.id, 'name': choice.name})
+        res_json = json.dumps(res_obj)
+        return HttpResponse(res_json, content_type='application/json')
+
+
+class PotentialThreatOnsetViewSet(viewsets.ModelViewSet):
+    queryset = PotentialThreatOnset.objects.all()
+
+    def get_queryset(self):
+        return PotentialThreatOnset.objects.none()
+
+    @list_route(methods=['GET', ], detail = False)
+    def potential_threat_onset_choices(self, request, *args, **kwargs):
+        res_obj = []
+        for choice in PotentialThreatOnset.objects.all():
+            res_obj.append({'id': choice.id, 'name': choice.name})
+        res_json = json.dumps(res_obj)
+        return HttpResponse(res_json, content_type='application/json')
+
+
+class ConservationThreatViewSet(viewsets.ModelViewSet):
+    queryset = ConservationThreat.objects.all().order_by('id')
+    serializer_class = ConservationThreatSerializer
+
+    @detail_route(methods=['GET',], detail=True)
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = False
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SaveConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = SaveConservationThreatSerializer(data= json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception = True)
+            instance = serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
