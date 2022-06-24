@@ -282,16 +282,18 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     		return TaxonomySerializer(qs).data
 
     def get_conservation_status(self,obj):
-    	qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
-    	#return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
-    	return ConservationStatusSerializer(qs).data
+    	if obj.conservation_status:
+	    	qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
+	    	#return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+	    	return ConservationStatusSerializer(qs).data
 
     def get_can_user_edit(self,obj):
     	return True
 
     def get_conservation_attributes(self,obj):
-    	qs = ConservationAttributes.objects.get(species=obj)
-    	return ConservationAttributesSerializer(qs).data
+    	if obj.species_conservation_attributes:
+	    	qs = obj.species_conservation_attributes
+	    	return ConservationAttributesSerializer(qs).data
 
     def get_distribution(self,obj):
     	try:
@@ -368,7 +370,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 
 class InternalCommunitySerializer(BaseCommunitySerializer):
-    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Community model depending on customer status
 
 
 
@@ -389,6 +391,18 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
 			    'can_user_edit',
 			    )
         read_only_fields=('id','group_type')
+
+
+class CreateSpeciesSerializer(BaseSpeciesSerializer):
+    group_type_id = serializers.IntegerField(required=True, write_only= True);
+    class Meta:
+        model = Species
+        fields = ('id',
+			    'group_type_id',
+			    )
+        read_only_fields = (
+            'id',
+            )
 
 
 class SaveCommunitySerializer(BaseCommunitySerializer):

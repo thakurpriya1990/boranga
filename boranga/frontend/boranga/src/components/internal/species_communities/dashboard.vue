@@ -11,7 +11,8 @@
                     role="tab"
                     aria-controls="pills-flora"
                     aria-selected="true"
-                >Flora</a><!-- @click="set_active_tab('pills-flora')" -->
+                    @click="set_active_tab('pills-flora','flora')"
+                >Flora</a>
             </li>
             <li class="nav-item">
                 <a
@@ -22,6 +23,7 @@
                     role="tab"
                     aria-controls="pills-fauna"
                     aria-selected="false"
+                    @click="set_active_tab('pills-fauna','fauna')"
                 >Fauna</a><!-- @click="set_active_tab('pills-fauna')" -->
             </li>
             <li class="nav-item">
@@ -33,6 +35,7 @@
                     role="tab"
                     aria-controls="pills-community"
                     aria-selected="false"
+                    @click="set_active_tab('pills-community','community')"
                 >Communities</a><!-- @click="set_active_tab('pills-community')" -->
             </li>
 
@@ -42,7 +45,7 @@
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
                 <FormSection :formCollapse="false" label="Flora" Index="flora">
-                    <SpeciesFloraDashTable ref="flora_table" level="internal" group_type_name="flora" :url="species_url" />
+                    <SpeciesFloraDashTable ref="flora_table" level="internal" group_type_name="flora" :group_type_id="getGroupId" :url="species_url" />
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
@@ -78,6 +81,7 @@ export default {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
             filterGroupType: 'flora',  // TODO : need to set to default user preferance as cannot call click event of Tab onload
             group_types: [],
+            group_name: null,
             species_url: api_endpoints.species_paginated_internal,
             community_url: api_endpoints.communities_paginated_internal,
         }
@@ -113,6 +117,14 @@ export default {
             return this.filterGroupType == 'community';
         },
         /*---------------------------------------------------------------------*/
+        getGroupId: function(){
+            for(var i=0; i<this.group_types.length; i++){
+                if(this.group_name === this.group_types[i].name){
+                    return this.group_types[i].id;
+                }
+            }
+        }
+
     },
     methods: {
         set_tabs: function(){
@@ -140,7 +152,8 @@ export default {
                 this.filterGroupType = grouptype;
             }
         },
-        set_active_tab: function(tab_href_name){
+        set_active_tab: function(tab_href_name, group_name){
+            this.group_name=group_name;
             let elem = $('#pills-tab a[href="#' + tab_href_name + '"]')
             let tab = bootstrap.Tab.getInstance(elem)
             if(!tab)
@@ -162,7 +175,8 @@ export default {
         let vm = this;
         this.$nextTick(function(){
             chevron_toggle.init();
-            vm.set_active_tab('pills-'+vm.user_preference);
+            vm.set_active_tab('pills-'+vm.user_preference, vm.user_preference);
+            this.getGroupId;
             
             /*$('#pills-flora-tab').on('shown.bs.tab', function (e){
                 console.log("pills-flora-tab")

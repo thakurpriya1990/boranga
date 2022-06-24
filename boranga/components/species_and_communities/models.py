@@ -1006,13 +1006,8 @@ class ConservationAttributes(models.Model):
     """
     Additional meta-data particularly of use to administration.
 
-    Has a:
-    - ConservationList
-    - ConservationCategory
-    - ConservationCriteria
     Used by:
     - Species
-    - Communities
     Is:
     - Table
     """
@@ -1025,9 +1020,7 @@ class ConservationAttributes(models.Model):
     specific_survey_advice = models.CharField(max_length=512,
                                               default="None", null=True, blank=True)
 
-    species = models.OneToOneField(Species,
-                                   on_delete=models.CASCADE,
-                                   primary_key=True,)
+    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_conservation_attributes")
     comments = models.CharField(max_length=2048,
                                 default="None", null=True, blank=True)
 
@@ -1035,7 +1028,7 @@ class ConservationAttributes(models.Model):
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.species.taxonomy.taxon)  # TODO: is the most appropriate?
+        return str(self.id)  # TODO: is the most appropriate?
 
 
 # TODO Should delete this model as not required 

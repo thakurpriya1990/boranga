@@ -47,6 +47,7 @@ from boranga.components.species_and_communities.serializers import (
     ListCommunitiesSerializer,
     InternalSpeciesSerializer,
     SaveSpeciesSerializer,
+    CreateSpeciesSerializer,
     ConservationStatusSerializer,
     SpeciesDistributionSerializer,
     ConservationAttributesSerializer,
@@ -72,7 +73,8 @@ class GetGroupTypeDict(views.APIView):
         group_types = GroupType.objects.all()
         if group_types:
             for group in group_types:
-                group_type_list.append(group.name)
+                #group_type_list.append(group.name)
+                group_type_list.append({'id': group.id,'name':group.name});
         return Response(group_type_list)
 
 class GetSpeciesFilterDict(views.APIView):
@@ -406,7 +408,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 if(request_data.get('taxonomy_details')):
                     taxonomy_instance = Taxonomy.objects.get(id=instance.taxonomy_id)
                     serializer = SaveTaxonomySerializer(taxonomy_instance, data = request_data.get('taxonomy_details'))
-                    serializer.is_valid(raise_exception=True)
+                    serializer.is_valid0(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
 
@@ -429,6 +431,50 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise
         except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                request_data = request.data
+                serializer = CreateSpeciesSerializer(data=request_data)
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    new_instance = serializer.save()
+                    new_returned = serializer.data
+
+                    # create ConservationAttributes for new instance
+                    data={
+                        'species': instance.id
+                    }
+                    serializer=ConservationAttributesSerializer(data=data)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+
+                    # create SpeciesDistribution for new instance
+                    serializer=SpeciesDistributionSerializer(data=data)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+
+                    # create SpeciesDistribution for new instance
+                    serializer=SpeciesDistributionSerializer(data=data)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                    
+                    headers = self.get_success_headers(serializer.data)
+                    return Response(
+                        new_returned,
+                        status=status.HTTP_201_CREATED,
+                        headers=headers
+                    )
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
@@ -474,7 +520,6 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     def add_comms_log(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                import ipdb; ipdb.set_trace()
                 instance = self.get_object()
                 mutable=request.data._mutable
                 request.data._mutable=True

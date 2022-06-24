@@ -7,12 +7,12 @@
             <div v-if="!comparing" class="col-md-3">
                <!-- TODO -->
 
-               <CommsLogs
+               <!-- <CommsLogs
                     :comms_url="comms_url"
                     :logs_url="logs_url"
                     :comms_add_url="comms_add_url"
                     :disable_add_entry="false"
-                />
+                /> -->
 
                <!--  <Submission v-if="canSeeSubmission"
                     :submitter_first_name="submitter_first_name"
