@@ -2,6 +2,21 @@
     <div id="community">
         <FormSection :formCollapse="false" label="Taxonomy" Index="taxonomy">
             <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Species:</label>
+                <div class="col-sm-9">
+                    <select style="width:100%;" class="form-control input-sm" multiple ref="species_select" v-model="species_community.species" >
+                        <option v-for="s in species_list" :value="s.id">{{s.id}} - {{s.scientific_name}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Community ID:</label>
+                <div class="col-sm-9">
+                    <input :disabled="species_community.readonly" type="text" class="form-control" id="community_id" placeholder=""
+                     v-model="species_community.community_id"/>
+                </div>
+            </div>
+            <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Community Name:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="species_community.readonly" type="text" class="form-control" id="community_name" placeholder=""
@@ -97,6 +112,9 @@ import {
   helpers
 }
 from '@/utils/hooks'
+require("select2/dist/css/select2.min.css");
+require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
+
 export default {
         name: 'Community',
         props:{
@@ -115,6 +133,7 @@ export default {
                     keepInvalid:true,
                     allowInputToggle:true,
                 },
+                species_list: [],
                 region_list: [],
                 district_list: [],
                 filtered_district_list: [],
@@ -167,6 +186,9 @@ export default {
         },
         created: async function() {
             let vm=this;
+            //-----fetch species_list
+            const res = await Vue.http.get('/api/species/species_list.json');
+            vm.species_list= res.body.data;
             const response = await Vue.http.get('/api/region_district_filter_dict/');
             vm.filterRegionDistrict= response.body;
             vm.region_list= vm.filterRegionDistrict.region_list;
@@ -180,6 +202,22 @@ export default {
         },
         mounted: function(){
             let vm = this;
+
+            // Initialise select2 for Species
+            $(vm.$refs.species_select).select2({
+                "theme": "bootstrap-5",
+                allowClear: true,
+                placeholder:"Select Species",
+                multiple: true,
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.species = selected.val();
+            }).
+            on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.species = selected.val();
+            });
         }
     }
 </script>

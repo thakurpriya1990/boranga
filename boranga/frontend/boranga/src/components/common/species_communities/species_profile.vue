@@ -39,6 +39,13 @@
                 </div>
             </div>
             <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Scientific Name:</label>
+                <div class="col-sm-9">
+                    <input :disabled="species_community.readonly" type="text" class="form-control" id="scientific_name" placeholder="" 
+                    v-model="species_community.scientific_name"/>
+                </div>
+            </div>
+            <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Common Name:</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="text" class="form-control" id="common_name" placeholder="" 

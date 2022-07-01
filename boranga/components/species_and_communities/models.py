@@ -446,42 +446,6 @@ class NameAuthority(models.Model):
         return str(self.name)
 
 
-class Taxonomy(models.Model):
-    """
-    Description from wacensus, to get the main name then fill in everything else
-
-    Has a:
-    - ConservationList
-    - ConservationCategory
-    - ConservationCriteria
-    Used by:
-    - Species
-    - Communities
-    Is:
-    - Table
-    """    
-    taxon = models.CharField(max_length=512,
-                             default="None", null=True, blank=True)  # flora and fauna, name
-    taxon_id = models.IntegerField(default=-1, null=True, blank=True)  # flora and fauna, name
-
-    previous_name = models.CharField(max_length=512,
-                                     default="None", null=True, blank=True)
-    family = models.CharField(max_length=512,
-                              default="None", null=True, blank=True)
-    genus = models.CharField(max_length=512,
-                             default="None", null=True, blank=True)
-    phylogenetic_group = models.CharField(max_length=512,
-                                          default="None", null=True, blank=True)
-    name_authority = models.ForeignKey(NameAuthority,
-                                       on_delete=models.CASCADE,null=True,blank=True)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.taxon)  # TODO: is the most appropriate?
-
-
 class Species(models.Model):
     """
     Forms the basis for a Species and Communities record.
@@ -511,7 +475,7 @@ class Species(models.Model):
                                    default="None", null=True, blank=True)
     name_currency = models.CharField(max_length=16,
                                      default="None", null=True, blank=True) # is it the current name? yes or no
-    taxonomy = models.OneToOneField(Taxonomy, on_delete=models.CASCADE, null=True, blank=True)
+    #taxonomy = models.OneToOneField(Taxonomy, on_delete=models.CASCADE, null=True, blank=True)
     conservation_status = models.OneToOneField(ConservationStatus,
                                                on_delete=models.CASCADE, null=True, blank=True)
     region = models.ForeignKey(Region, 
@@ -528,7 +492,7 @@ class Species(models.Model):
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        return '{}-{}'.format(self.species_number,self.scientific_name)
 
     def save(self, *args, **kwargs):
         super(Species, self).save(*args,**kwargs)
@@ -540,6 +504,43 @@ class Species(models.Model):
     @property
     def reference(self):
         return '{}-{}'.format(self.species_number,self.species_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
+
+
+class Taxonomy(models.Model):
+    """
+    Description from wacensus, to get the main name then fill in everything else
+
+    Has a:
+    - ConservationList
+    - ConservationCategory
+    - ConservationCriteria
+    Used by:
+    - Species
+    - Communities
+    Is:
+    - Table
+    """
+    taxon = models.CharField(max_length=512,
+                             default="None", null=True, blank=True)  # flora and fauna, name
+    taxon_id = models.IntegerField(default=-1, null=True, blank=True)  # flora and fauna, name
+
+    previous_name = models.CharField(max_length=512,
+                                     default="None", null=True, blank=True)
+    family = models.CharField(max_length=512,
+                              default="None", null=True, blank=True)
+    genus = models.CharField(max_length=512,
+                             default="None", null=True, blank=True)
+    phylogenetic_group = models.CharField(max_length=512,
+                                          default="None", null=True, blank=True)
+    name_authority = models.ForeignKey(NameAuthority,
+                                       on_delete=models.CASCADE,null=True,blank=True)
+    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_taxonomy")
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.taxon)  # TODO: is the most appropriate?
 
 
 class SpeciesLogDocument(Document):
@@ -606,12 +607,10 @@ class Community(models.Model):
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
     species = models.ManyToManyField(Species, null=True, blank=True)
-    community_id = models.IntegerField(default=-1, null=True, blank=True) # this will be the display name and will appear in filter list
-    community_name = models.CharField(max_length=2048,
-                                      default="None", null=True, blank=True)
-    community_status = models.CharField(max_length=128,
-                                        default="None", null=True, blank=True)
-    community_description = models.CharField(max_length=2048, default="None", null=True, blank=True)
+    community_id = models.CharField(max_length=200, null=True, blank=True)
+    community_name = models.CharField(max_length=2048, null=True, blank=True)
+    community_status = models.CharField(max_length=128, null=True, blank=True)
+    community_description = models.CharField(max_length=2048, null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
