@@ -1,26 +1,26 @@
 <template lang="html">
     <div v-if="species_community" class="container" id="internalSpeciesCommunity">
       <div class="row" style="padding-bottom: 50px;">
-        <h3>{{ species_community.id }} - {{display_name }}</h3>
+        <h3>{{ display_number }} - {{display_name }}</h3>
         <h4>{{species_community.conservation_status.conservation_category }}</h4>
 
             <div v-if="!comparing" class="col-md-3">
                <!-- TODO -->
+
                <!-- <CommsLogs
                     :comms_url="comms_url"
                     :logs_url="logs_url"
                     :comms_add_url="comms_add_url"
                     :disable_add_entry="false"
-                />
+                /> -->
 
-                <Submission v-if="canSeeSubmission"
+               <!--  <Submission v-if="canSeeSubmission"
                     :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name"
                     :lodgement_date="proposal.lodgement_date"
                     class="mt-2"
                 /> -->
-                <!-- ----- -->
-
+                
                 <!-- TODO
                 <Workflow
                     ref='workflow'
@@ -65,19 +65,24 @@
                                 <div class="row" style="margin-bottom: 50px">
                                     <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5;">
                                         <div class="navbar-inner">
-                                            <p class="pull-right">
-                                                <button v-if="savingSpecies" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()" :disabled="saveExitSpecies || submitSpecies">Save and Continue</button>
-                                                
-                                                <button v-if="saveExitSpecies" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save_exit()" :disabled="savingSpecies || submitSpecies">Save and Exit</button>
+                                            <div class="container">
+                                                <p class="pull-right">
+                                                    <button v-if="savingSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
+                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                    <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                    @click.prevent="save()" :disabled="saveExitSpeciesCommunity || submitSpeciesCommunity">Save and Continue</button>
+                                                    
+                                                    <button v-if="saveExitSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
+                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                    <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                    @click.prevent="save_exit()" :disabled="savingSpeciesCommunity || submitSpeciesCommunity">Save and Exit</button>
 
-                                                <button v-if="submitSpecies" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="submit()" :disbaled="saveExitSpecies || savingSpecies">Submit</button>
-                                            </p>
+                                                    <button v-if="submitSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
+                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                    <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                    @click.prevent="submit()" :disbaled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -112,14 +117,14 @@ export default {
         return {
             "species_community":null,
             form: null,
-            savingSpecies:false,
-            saveExitSpecies: false,
-            submitSpecies: false,
+            savingSpeciesCommunity:false,
+            saveExitSpeciesCommunity: false,
+            submitSpeciesCommunity: false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            /*comms_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/add_comms_log'),
-            logs*/_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/action_log'),
+            comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/comms_log'),
+            comms_add_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/add_comms_log'),
+            //logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/action_log'),
             comparing: false,
         }
     },
@@ -144,6 +149,10 @@ export default {
         species_community_form_url: function() {
           return (this.species_community.group_type === "community") ? `/api/community/${this.species_community.id}/community_save.json`        : `/api/species/${this.species_community.id}/species_save.json`;
         },
+        display_number: function() {
+            return (this.species_community.group_type === "community") ? this.species_community.community_number : 
+                this.species_community.species_number;
+        },
         display_name: function() {
             return (this.species_community.group_type === "community") ? this.species_community.community_id : this.species_community.scientific_name;
         },
@@ -157,7 +166,7 @@ export default {
         },
         save: async function() {
             let vm = this;
-            vm.savingSpecies=true;
+            vm.savingSpeciesCommunity=true;
             let payload = new Object();
             Object.assign(payload, vm.species_community);
             const res = await vm.$http.post(vm.species_community_form_url,payload);
@@ -167,7 +176,7 @@ export default {
                     'Your changes has been saved',
                     'success'
                 )
-                vm.savingSpecies=false;
+                vm.savingSpeciesCommunity=false;
                 return res;
             }
             else{
@@ -176,14 +185,14 @@ export default {
                     text: err.bodyText,
                     type:'error'
                 });
-                vm.savingSpecies=false;
+                vm.savingSpeciesCommunity=false;
             }
         },
         save_exit: async function(){
             let vm = this;
-            vm.saveExitSpecies=true;
+            vm.saveExitSpeciesCommunity=true;
             const res = await this.save();
-            vm.saveExitSpecies=false;
+            vm.saveExitSpeciesCommunity=false;
             // redirect back to dashboard
             if (res.ok) {
                 vm.$router.push({
@@ -193,7 +202,7 @@ export default {
         },
         submit: async function(){
             let vm = this
-            vm.submitSpecies=true;
+            vm.submitSpeciesCommunity=true;
             try {
                 await swal({
                     title:"Edit Species",
@@ -203,11 +212,11 @@ export default {
                     confirmButtonText: "submit"
                 })
             } catch (cancel) {
-                vm.submitSpecies = false;
+                vm.submitSpeciesCommunity = false;
                 return;
             }
 
-            if(vm.submitSpecies){
+            if(vm.submitSpeciesCommunity){
                 try {
                     const res = await this.save();
                     if (res.ok) {
@@ -223,7 +232,7 @@ export default {
                         html: helpers.formatError(err),
                         type: "error",
                     })
-                    vm.submitSpecies=false;
+                    vm.submitSpeciesCommunity=false;
                     //this.submitting = false;
                 }
             }

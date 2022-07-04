@@ -178,7 +178,7 @@ export default
                 render(c)
                 {
                     return c('router-view')
-                }
+                },
             },
             children: [
                 {
@@ -187,7 +187,7 @@ export default
                         render(c)
                         {
                             return c('router-view')
-                        }
+                        },
                     },
                     children: [
                         {

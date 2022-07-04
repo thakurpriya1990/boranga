@@ -11,7 +11,8 @@
                     role="tab"
                     aria-controls="pills-flora"
                     aria-selected="true"
-                >Flora</a><!-- @click="set_active_tab('pills-flora')" -->
+                    @click="set_active_tab('pills-flora','flora')"
+                >Flora</a>
             </li>
             <li class="nav-item">
                 <a
@@ -22,7 +23,8 @@
                     role="tab"
                     aria-controls="pills-fauna"
                     aria-selected="false"
-                >Fauna</a><!-- @click="set_active_tab('pills-fauna')" -->
+                    @click="set_active_tab('pills-fauna','fauna')"
+                >Fauna</a>
             </li>
             <li class="nav-item">
                 <a
@@ -33,7 +35,8 @@
                     role="tab"
                     aria-controls="pills-community"
                     aria-selected="false"
-                >Communities</a><!-- @click="set_active_tab('pills-community')" -->
+                    @click="set_active_tab('pills-community','community')"
+                >Communities</a>
             </li>
 
 
@@ -42,17 +45,20 @@
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
                 <FormSection :formCollapse="false" label="Flora" Index="flora">
-                    <SpeciesFloraDashTable ref="flora_table" level="internal" group_type_name="flora" :url="species_url" />
+                    <SpeciesFloraDashTable v-if="isFlora" ref="flora_table" level="internal" :group_type_name="group_name" 
+                    :group_type_id="getGroupId" :url="species_url" />
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
                 <FormSection :formCollapse="false" label="Fauna" Index="fauna">
-                    <SpeciesFaunaDashTable ref="fauna_table" level="internal" group_type_name="fauna" :url="species_url"/>
+                    <SpeciesFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal" :group_type_name="group_name" 
+                    :group_type_id="getGroupId" :url="species_url"/>
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
                 <FormSection :formCollapse="false" label="Community" Index="community">
-                    <CommunitiesDashTable ref="community_table" level="internal" group_type_name="community" :url="community_url"/>
+                    <CommunitiesDashTable v-if="isCommunity" ref="community_table" level="internal" :group_type_name="group_name" 
+                    :group_type_id="getGroupId" :url="community_url"/>
                 </FormSection>
             </div>
         </div>
@@ -76,8 +82,9 @@ export default {
         let vm = this;
         return {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
-            filterGroupType: 'flora',  // TODO : need to set to default user preferance as cannot call click event of Tab onload
+            //filterGroupType: 'flora',  // TODO : need to set to default user preferance as cannot call click event of Tab onload
             group_types: [],
+            group_name: null,
             species_url: api_endpoints.species_paginated_internal,
             community_url: api_endpoints.communities_paginated_internal,
         }
@@ -104,15 +111,23 @@ export default {
         /*---------------------------------------------------------------------*/
         /*---------properties to load group related vue components-------------*/
         isFlora: function(){
-            return this.filterGroupType == 'flora';
+            return this.group_name == 'flora';
         },
         isFauna: function(){
-            return this.filterGroupType == 'fauna';
+            return this.group_name == 'fauna';
         },
         isCommunity: function(){
-            return this.filterGroupType == 'community';
+            return this.group_name == 'community';
         },
         /*---------------------------------------------------------------------*/
+        getGroupId: function(){
+            for(var i=0; i<this.group_types.length; i++){
+                if(this.group_name === this.group_types[i].name){
+                    return this.group_types[i].id;
+                }
+            }
+        }
+
     },
     methods: {
         set_tabs: function(){
@@ -128,8 +143,7 @@ export default {
                 $('#pills-tab a[href="#pills-community"]').tab('show');
             }
         },
-        load_group_datatable: function(grouptype){
-            /*----------to set the  filterGroupType to load the particular component only----------*/
+        /*load_group_datatable: function(grouptype){
             if(grouptype === 'flora'){
                 this.filterGroupType = grouptype;
             }
@@ -139,8 +153,9 @@ export default {
             else if(grouptype === 'community'){
                 this.filterGroupType = grouptype;
             }
-        },
-        set_active_tab: function(tab_href_name){
+        },*/
+        set_active_tab: function(tab_href_name, group_name){
+            this.group_name=group_name;
             let elem = $('#pills-tab a[href="#' + tab_href_name + '"]')
             let tab = bootstrap.Tab.getInstance(elem)
             if(!tab)
@@ -162,19 +177,8 @@ export default {
         let vm = this;
         this.$nextTick(function(){
             chevron_toggle.init();
-            vm.set_active_tab('pills-'+vm.user_preference);
-            
-            /*$('#pills-flora-tab').on('shown.bs.tab', function (e){
-                console.log("pills-flora-tab")
-                vm.$refs.flora_table.$refs.flora_datatable.vmDataTable.columns.adjust().responsive.recalc();
-            });
-            $('#pills-fauna-tab').on('shown.bs.tab', function (e){
-                console.log("pills-fauna-tab")
-                vm.$refs.fauna_table.$refs.fauna_datatable.vmDataTable.columns.adjust().responsive.recalc();
-            });
-            $('#pills-community-tab').on('shown.bs.tab', function (e){
-                vm.$refs.community_table.$refs.community_datatable.vmDataTable.columns.adjust().responsive.recalc();
-            });*/
+            vm.set_active_tab('pills-'+vm.user_preference, vm.user_preference);
+            this.getGroupId;
         })
     },
 

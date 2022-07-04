@@ -25,7 +25,7 @@
                         <label for="">Family:</label>
                         <select class="form-control" v-model="filterFloraFamily">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.family">{{species.family}}</option>
+                            <option v-for="species in species_taxonomy_list" :value="species.family">{{species.family}}</option>
                         </select>
                     </div>
                 </div>
@@ -34,7 +34,7 @@
                         <label for="">Genera:</label>
                         <select class="form-control" v-model="filterFloraGenus">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.genus">{{species.genus}}</option>
+                            <option v-for="species in species_taxonomy_list" :value="species.genus">{{species.genus}}</option>
                         </select>
                     </div>
                 </div>
@@ -83,8 +83,9 @@
                     </div>
                 </div>
 
-                <div v-if="is_external" class="col-md-6">
-                    <router-link  style="margin-top:25px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">New Application</router-link>
+                <div v-if="newFloraVisibility" class="col-md-3 pull-right">
+                <button @click.prevent="createFlora"
+                    class="btn btn-primary pull-right">New Flora</button>
                 </div>
             </div>
         </CollapsibleFilters>
@@ -131,6 +132,11 @@ export default {
         group_type_name:{
             type: String,
             required: true
+        },
+        group_type_id:{
+            type: Number,
+            required: true,
+            default:0
         },
         url:{
             type: String,
@@ -214,6 +220,7 @@ export default {
             //Filter list for scientific name and common name
             filterListsSpecies: {},
             species_data_list: [],
+            species_taxonomy_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
             filterRegionDistrict: {},
@@ -323,6 +330,13 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
+        newFloraVisibility: function() {
+            let visibility = false;
+            if (this.is_internal) {
+                visibility = true;
+            }
+            return visibility;
+        },
         datatable_headers: function(){
             if (this.is_external){
                 return ['id', 'Number', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Action','Conservation List', 
@@ -346,14 +360,14 @@ export default {
         },
         column_number: function(){
             return {
-                data: "id",
+                data: "species_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    return full.id
+                    return full.species_number
                 },
-                name: "id",
+                name: "species_number",
             }
         },
         column_scientific_name: function(){
@@ -590,21 +604,6 @@ export default {
                     vm.column_district,
                 ]
                 search = true
-//                buttons = [
-//                    {
-//                        extend: 'excel',
-//                        exportOptions: {
-//                            //columns: [0,1],
-//                            columns: ':visible'
-//                        }
-//                    },
-//                    {
-//                        extend: 'csv',
-//                        exportOptions: {
-//                            columns: ':visible'
-//                        }
-//                    },
-//                ]
                 buttons = [ 
                     { 
                         extend: 'excel', 
@@ -681,6 +680,7 @@ export default {
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.species_data_list = vm.filterListsSpecies.species_data_list;
+                vm.species_taxonomy_list = vm.filterListsSpecies.species_taxonomy_list;
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
@@ -696,7 +696,29 @@ export default {
                 console.log(error);
             })
         },
-
+        createFlora: async function () {
+            let newFloraId = null
+            try {
+                    const createUrl = api_endpoints.species+"/";
+                    let payload = new Object();
+                    payload.group_type_id = this.group_type_id
+                    let savedFlora = await Vue.http.post(createUrl, payload);
+                    if (savedFlora) {
+                        newFloraId = savedFlora.body.id;
+                    }
+                }
+            catch (err) {
+                console.log(err);
+                if (this.is_internal) {
+                    return err;
+                }
+            }
+            this.$router.push({
+                name: 'internal-species-communities',
+                params: {species_community_id: newFloraId},
+                query: {group_type_name: this.group_type_name},
+                });
+        },
         discardProposal:function (proposal_id) {
             let vm = this;
             swal({

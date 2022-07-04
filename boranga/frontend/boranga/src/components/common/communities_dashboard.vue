@@ -80,8 +80,9 @@
                     </div>
                 </div>
 
-                <div v-if="is_external" class="col-md-6">
-                    <router-link  style="margin-top:25px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">New Application</router-link>
+                <div v-if="newCommunityVisibility" class="col-md-3 pull-right">
+                <button @click.prevent="createCommunity"
+                    class="btn btn-primary pull-right">New Community</button>
                 </div>
             </div>
         </CollapsibleFilters>
@@ -122,6 +123,11 @@ export default {
         group_type_name:{
             type: String,
             required: true
+        },
+        group_type_id:{
+            type: Number,
+            required: true,
+            default: 0
         },
         url:{
             type: String,
@@ -301,6 +307,13 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
+        newCommunityVisibility: function() {
+            let visibility = false;
+            if (this.is_internal) {
+                visibility = true;
+            }
+            return visibility;
+        },
         datatable_headers: function(){
             if (this.is_external){
                 return ['id','Number', 'Community Id' ,'Community Name', 'Community Status', 'Conservation List' ,  
@@ -324,14 +337,14 @@ export default {
         },
         column_number: function(){
             return {
-                data: "id",
+                data: "community_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    return full.id
+                    return full.community_number
                 },
-                name: "id",
+                name: "community_number",
             }
         },
         column_community_id: function(){
@@ -636,6 +649,29 @@ export default {
             },(error) => {
                 console.log(error);
             })
+        },
+        createCommunity: async function () {
+            let newCommunityId = null
+            try {
+                    const createUrl = api_endpoints.community+"/";
+                    let payload = new Object();
+                    payload.group_type_id = this.group_type_id
+                    let savedCommunity = await Vue.http.post(createUrl, payload);
+                    if (savedCommunity) {
+                        newCommunityId = savedCommunity.body.id;
+                    }
+                }
+            catch (err) {
+                console.log(err);
+                if (this.is_internal) {
+                    return err;
+                }
+            }
+            this.$router.push({
+                name: 'internal-species-communities',
+                params: {species_community_id: newCommunityId},
+                query: {group_type_name: this.group_type_name},
+                });
         },
 
         discardProposal:function (proposal_id) {

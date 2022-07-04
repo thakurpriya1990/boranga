@@ -105,3 +105,6 @@ npm locks
 #boranga/static/boranga_vue/static/*
 
 git_history_recent
+
+*.csv
+*.xls*
