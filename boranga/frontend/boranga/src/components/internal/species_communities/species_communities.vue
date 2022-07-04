@@ -1,26 +1,26 @@
 <template lang="html">
     <div v-if="species_community" class="container" id="internalSpeciesCommunity">
       <div class="row" style="padding-bottom: 50px;">
-        <h3>{{ species_community.id }} - {{display_name }}</h3>
+        <h3>{{ display_number }} - {{display_name }}</h3>
         <h4>{{species_community.conservation_status.conservation_category }}</h4>
 
             <div v-if="!comparing" class="col-md-3">
                <!-- TODO -->
+
                <!-- <CommsLogs
                     :comms_url="comms_url"
                     :logs_url="logs_url"
                     :comms_add_url="comms_add_url"
                     :disable_add_entry="false"
-                />
+                /> -->
 
-                <Submission v-if="canSeeSubmission"
+               <!--  <Submission v-if="canSeeSubmission"
                     :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name"
                     :lodgement_date="proposal.lodgement_date"
                     class="mt-2"
                 /> -->
-                <!-- ----- -->
-
+                
                 <!-- TODO
                 <Workflow
                     ref='workflow'
@@ -122,9 +122,9 @@ export default {
             submitSpeciesCommunity: false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            /*comms_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/add_comms_log'),
-            logs*/_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/action_log'),
+            comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/comms_log'),
+            comms_add_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/add_comms_log'),
+            //logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/action_log'),
             comparing: false,
         }
     },
@@ -148,6 +148,10 @@ export default {
         },
         species_community_form_url: function() {
           return (this.species_community.group_type === "community") ? `/api/community/${this.species_community.id}/community_save.json`        : `/api/species/${this.species_community.id}/species_save.json`;
+        },
+        display_number: function() {
+            return (this.species_community.group_type === "community") ? this.species_community.community_number : 
+                this.species_community.species_number;
         },
         display_name: function() {
             return (this.species_community.group_type === "community") ? this.species_community.community_id : this.species_community.scientific_name;

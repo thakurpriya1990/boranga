@@ -5,6 +5,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
 from boranga.components.species_and_communities.models import(
 	GroupType,
 	Species,
+	SpeciesLogEntry,
 	Community,
 	ConservationList,
 	ConservationStatus,
@@ -22,6 +23,7 @@ from boranga.components.species_and_communities.models import(
 
 from boranga.components.users.serializers import UserSerializer
 from boranga.components.users.serializers import UserAddressSerializer, DocumentSerializer
+from boranga.components.main.serializers import CommunicationLogEntrySerializer
 from rest_framework import serializers
 from django.db.models import Q
 
@@ -41,10 +43,10 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 		model = Species
 		fields = (
 			    'id',
+			    'species_number',
 			    'group_type',
 			    'scientific_name',
 			    'common_name',
-			    'taxonomy',
 			    'family',
 			    'genus',
 			    'phylogenetic_group',
@@ -57,10 +59,10 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			)
 		datatables_always_serialize = (
                 'id',
+                'species_number',
                 'group_type',
 			    'scientific_name',
 			    'common_name',
-			    'taxonomy',
 			    'family',
 			    'genus',
 			    'phylogenetic_group',
@@ -76,19 +78,25 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 		return obj.group_type.name
 
 	def get_family(self,obj):
-		if obj.taxonomy:
-			return obj.taxonomy.family
-		return None
+		try:
+			taxonomy = Taxonomy.objects.get(species=obj)
+			return taxonomy.family
+		except Taxonomy.DoesNotExist:
+			return None
 
 	def get_genus(self,obj):
-		if obj.taxonomy:
-			return obj.taxonomy.genus
-		return None
+		try:
+			taxonomy = Taxonomy.objects.get(species=obj)
+			return taxonomy.genus
+		except Taxonomy.DoesNotExist:
+			return None
 
 	def get_phylogenetic_group(self,obj):
-		if obj.taxonomy:
-			return obj.taxonomy.phylogenetic_group
-		return None
+		try:
+			taxonomy = Taxonomy.objects.get(species=obj)
+			return taxonomy.phylogenetic_group
+		except Taxonomy.DoesNotExist:
+			return None
 
 	def get_conservation_status(self,obj):
 		if obj.conservation_status:
@@ -126,6 +134,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 		model = Community
 		fields = (
 			    'id',
+			    'community_number',
 			    'group_type',
 			    'community_id',
 			    'community_name',
@@ -138,6 +147,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			)
 		datatables_always_serialize = (
                 'id',
+                'community_number',
                 'group_type',
 			    'community_id',
 			    'community_name',
@@ -212,6 +222,7 @@ class ConservationAttributesSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ConservationAttributes
 		fields = (
+			'id',
 			'species_id',
 			'general_management_advice',
 			'ecological_attributes',
@@ -245,10 +256,10 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
         model = Species
         fields = (
                 'id',
+                'species_number',
 			    'group_type',
 			    'scientific_name',
 			    'common_name',
-			    'taxonomy_id',
 			    'region_id',
 			    'district_id',
 			    'conservation_status_id',
@@ -271,21 +282,29 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
         return obj.group_type.name
 
     def get_taxonomy_details(self,obj):
-    	if obj.taxonomy:
-    		qs=Taxonomy.objects.get(id=obj.taxonomy_id)
+    	try:
+    		qs = Taxonomy.objects.get(species=obj)
     		return TaxonomySerializer(qs).data
+    	except Taxonomy.DoesNotExist:
+    		return TaxonomySerializer().data
 
     def get_conservation_status(self,obj):
-    	qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
-    	#return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
-    	return ConservationStatusSerializer(qs).data
+        if obj.conservation_status:
+            qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
+        else:
+        	qs = None
+        return ConservationStatusSerializer(qs).data
+        #return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
     def get_can_user_edit(self,obj):
     	return True
 
     def get_conservation_attributes(self,obj):
-    	qs = ConservationAttributes.objects.get(species=obj)
-    	return ConservationAttributesSerializer(qs).data
+        try:
+            qs = ConservationAttributes.objects.get(species=obj)
+            return ConservationAttributesSerializer(qs).data
+        except ConservationAttributes.DoesNotExist:
+            return ConservationAttributesSerializer().data
 
     def get_distribution(self,obj):
     	try:
@@ -299,7 +318,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
 
 
-class CommunityDistributionSerializer(serializers.ModelSerializer):
+class CommunityDistributionSerializer(serializers.ModelSerializer): 
 	class Meta:
 		model = CommunityDistribution
 		fields = (
@@ -309,7 +328,14 @@ class CommunityDistributionSerializer(serializers.ModelSerializer):
 			)
 
 
+class SpeciesSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Species
+		fields = ('id','scientific_name',)
+
+
 class BaseCommunitySerializer(serializers.ModelSerializer):
+	species = serializers.SerializerMethodField()
 	group_type = serializers.SerializerMethodField(read_only=True)
 	conservation_status = serializers.SerializerMethodField()
 	distribution = serializers.SerializerMethodField()
@@ -321,6 +347,8 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 		model = Community
 		fields = (
         	    'id',
+        	    'community_number',
+        	    'species',
 			    'group_type',
 			    'community_id',
 			    'community_name',
@@ -338,6 +366,9 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
                 # tab field models
                 )
 
+	def get_species(self,obj):
+		return [s.id for s in obj.species.all()]
+	
 	def get_readonly(self,obj):
 		return False
 
@@ -345,9 +376,12 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 		return obj.group_type.name
 
 	def get_conservation_status(self,obj):
-		qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
-		#return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+		if obj.conservation_status:
+			qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
+		else:
+			qs = None
 		return ConservationStatusSerializer(qs).data
+		#return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
 	def get_distribution(self,obj):
 		try:
@@ -361,7 +395,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 
 class InternalCommunitySerializer(BaseCommunitySerializer):
-    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Community model depending on customer status
 
 
 
@@ -384,6 +418,18 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
         read_only_fields=('id','group_type')
 
 
+class CreateSpeciesSerializer(BaseSpeciesSerializer):
+    group_type_id = serializers.IntegerField(required=True, write_only= True);
+    class Meta:
+        model = Species
+        fields = ('id',
+			    'group_type_id',
+			    )
+        read_only_fields = (
+            'id',
+            )
+
+
 class SaveCommunitySerializer(BaseCommunitySerializer):
     region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
@@ -401,6 +447,18 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
 			    'can_user_edit',
 			    )
         read_only_fields=('id','group_type')
+
+
+class CreateCommunitySerializer(BaseCommunitySerializer):
+    group_type_id = serializers.IntegerField(required=True, write_only= True);
+    class Meta:
+        model = Community
+        fields = ('id',
+			    'group_type_id',
+			    )
+        read_only_fields = (
+            'id',
+            )
 
 
 class ConservationStatusSerializer(serializers.ModelSerializer):
@@ -550,6 +608,19 @@ class SaveCommunityDocumentSerializer(serializers.ModelSerializer):
 			'document_category',
 			'document_sub_category',
 			)
+
+
+class SpeciesLogEntrySerializer(CommunicationLogEntrySerializer):
+    documents = serializers.SerializerMethodField()
+    class Meta:
+        model = SpeciesLogEntry
+        fields = '__all__'
+        read_only_fields = (
+            'customer',
+        )
+
+    def get_documents(self,obj):
+        return [[d.name,d._file.url] for d in obj.documents.all()]
 
 
 class ConservationThreatSerializer(serializers.ModelSerializer):

@@ -51,7 +51,9 @@ from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
     ListCommunitiesSerializer,
     InternalSpeciesSerializer,
+    SpeciesSerializer,
     SaveSpeciesSerializer,
+    CreateSpeciesSerializer,
     ConservationStatusSerializer,
     SpeciesDistributionSerializer,
     ConservationAttributesSerializer,
@@ -60,10 +62,12 @@ from boranga.components.species_and_communities.serializers import (
     InternalCommunitySerializer,
     CommunityDistributionSerializer,
     SaveCommunitySerializer,
+    CreateCommunitySerializer,
     SpeciesDocumentSerializer,
     CommunityDocumentSerializer,
     SaveSpeciesDocumentSerializer,
     SaveCommunityDocumentSerializer,
+    SpeciesLogEntrySerializer,
     ConservationThreatSerializer,
     SaveConservationThreatSerializer,
 )
@@ -78,7 +82,8 @@ class GetGroupTypeDict(views.APIView):
         group_types = GroupType.objects.all()
         if group_types:
             for group in group_types:
-                group_type_list.append(group.name)
+                #group_type_list.append(group.name)
+                group_type_list.append({'id': group.id,'name':group.name});
         return Response(group_type_list)
 
 class GetSpeciesFilterDict(views.APIView):
@@ -93,9 +98,20 @@ class GetSpeciesFilterDict(views.APIView):
                         'species_id': specimen.id,
                         'scientific_name': specimen.scientific_name,
                         'common_name':specimen.common_name,
-                        'family':specimen.taxonomy.family,
-                        'phylogenetic_group':specimen.taxonomy.phylogenetic_group,
-                        'genus':specimen.taxonomy.genus,
+                        # 'family':Taxonomy.objects.get(species=specimen).family,
+                        # 'phylogenetic_group':Taxonomy.objects.get(species=specimen).family.phylogenetic_group,
+                        # 'genus':Taxonomy.objects.get(species=specimen).family.genus,
+                        });
+        species_taxonomy_list = []
+        if group_type:
+            taxonomies = Taxonomy.objects.filter(species__group_type__name=group_type)
+            if taxonomies:
+                for taxon in taxonomies:
+                    species_taxonomy_list.append({
+                        'id': taxon.id,
+                        'family': taxon.family,
+                        'phylogenetic_group':taxon.phylogenetic_group,
+                        'genus':taxon.genus,
                         });
         conservation_list_dict = []
         conservation_lists = ConservationStatus.objects.all()
@@ -114,6 +130,7 @@ class GetSpeciesFilterDict(views.APIView):
                     });
         res_json = {
         "species_data_list":species_data_list,
+        "species_taxonomy_list":species_taxonomy_list,
         "conservation_list_dict":conservation_list_dict,
         "conservation_category_list":conservation_category_list,
         }
@@ -210,15 +227,15 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
 
         filter_phylogenetic_group = request.GET.get('filter_phylogenetic_group')
         if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
-            queryset = queryset.filter(taxonomy__phylogenetic_group=filter_phylogenetic_group)
+            queryset = queryset.filter(species_taxonomy__phylogenetic_group=filter_phylogenetic_group)
         
         filter_family = request.GET.get('filter_family')
         if filter_family and not filter_family.lower() == 'all':
-            queryset = queryset.filter(taxonomy__family=filter_family)
+            queryset = queryset.filter(species_taxonomy__family=filter_family)
 
         filter_genus = request.GET.get('filter_genus')
         if filter_genus and not filter_genus.lower() == 'all':
-            queryset = queryset.filter(taxonomy__genus=filter_genus)
+            queryset = queryset.filter(species_taxonomy__genus=filter_genus)
         
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
@@ -395,6 +412,17 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         return HttpResponse(res_json, content_type='application/json')
         #return Response(d)
 
+    @detail_route(methods=['GET',], detail=False)
+    @renderer_classes((JSONRenderer,))
+    def species_list(self, request, *args, **kwargs):
+        qs= Species.objects.all()
+        serializer = SpeciesSerializer(qs, many=True)
+        res_json = {
+         "data":serializer.data
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
     def species_save(self, request, *args, **kwargs):
@@ -410,14 +438,14 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                         serializer.save()
 
                 if(request_data.get('taxonomy_details')):
-                    taxonomy_instance = Taxonomy.objects.get(id=instance.taxonomy_id)
+                    taxonomy_instance, created = Taxonomy.objects.get_or_create(species=instance)
                     serializer = SaveTaxonomySerializer(taxonomy_instance, data = request_data.get('taxonomy_details'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
 
                 if(request_data.get('conservation_attributes')):
-                    conservation_attributes_instance = ConservationAttributes.objects.get(species_id=instance)
+                    conservation_attributes_instance, created = ConservationAttributes.objects.get_or_create(species=instance)
                     serializer = ConservationAttributesSerializer(conservation_attributes_instance, data = request_data.get('conservation_attributes'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
@@ -435,6 +463,50 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise
         except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                request_data = request.data
+                serializer = CreateSpeciesSerializer(data=request_data)
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    new_instance = serializer.save()
+                    new_returned = serializer.data
+
+                    # create ConservationAttributes for new instance
+                    data={
+                        'species': new_instance.id
+                    }
+                    serializer=TaxonomySerializer(data=data)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+
+                    # create SpeciesDistribution for new instance
+                    serializer=ConservationAttributesSerializer(data=data)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+
+                    # create SpeciesDistribution for new instance
+                    serializer=SpeciesDistributionSerializer(data=data)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                    
+                    headers = self.get_success_headers(serializer.data)
+                    return Response(
+                        new_returned,
+                        status=status.HTTP_201_CREATED,
+                        headers=headers
+                    )
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
@@ -466,6 +538,56 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             qs = qs.order_by('-date_observed')
             serializer = ConservationThreatSerializer(qs,many=True, context={'request':request})
             return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def comms_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.comms_logs.all()
+            serializer = SpeciesLogEntrySerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def add_comms_log(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                mutable=request.data._mutable
+                request.data._mutable=True
+                request.data['species'] = u'{}'.format(instance.id)
+                request.data['staff'] = u'{}'.format(request.user.id)
+                request.data._mutable=mutable
+                serializer = SpeciesLogEntrySerializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                comms = serializer.save()
+                # Save the files
+                for f in request.FILES:
+                    document = comms.documents.create()
+                    document.name = str(request.FILES[f])
+                    document._file = request.FILES[f]
+                    document.save()
+                # End Save Documents
+
+                return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -508,6 +630,13 @@ class CommunityViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 instance = self.get_object()
                 request_data = request.data
+                if(request_data.get('species')):
+                    species = request_data.get('species')
+                    instance.species.clear()  # first clear all the species set relatedM:M to community instance
+                    for species_id in species:
+                        species_instance = Species.objects.get(pk=species_id)
+                        instance.species.add(species_instance)
+
                 if(request_data.get('distribution')):
                     distribution_instance, created = CommunityDistribution.objects.get_or_create(community=instance)
                     serializer = CommunityDistributionSerializer(distribution_instance, data = request_data.get('distribution'))
@@ -527,6 +656,41 @@ class CommunityViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise
         except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                request_data = request.data
+                serializer = CreateCommunitySerializer(data=request_data)
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    new_instance = serializer.save()
+                    new_returned = serializer.data
+
+                    # create ConservationAttributes for new instance
+                    data={
+                        'community': new_instance.id
+                    }
+                    # create CommunityDistribution for new instance
+                    serializer=CommunityDistributionSerializer(data=data)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                    
+                    headers = self.get_success_headers(serializer.data)
+                    return Response(
+                        new_returned,
+                        status=status.HTTP_201_CREATED,
+                        headers=headers
+                    )
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
