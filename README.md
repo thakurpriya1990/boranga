@@ -14,7 +14,7 @@
      
 ## Create a DB
 ```
- jawaidm@jawaidm:/var/www/pipsim$ sudo -u postgres psql
+ docker@docker:/var/www/pipsim$ sudo -u postgres psql
  psql (12.9 (Ubuntu 12.9-0ubuntu0.20.04.1))
  Type "help" for help.
 
