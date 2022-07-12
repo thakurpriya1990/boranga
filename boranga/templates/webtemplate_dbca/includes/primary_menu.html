@@ -3,10 +3,9 @@
 {% load static %}
 {% is_internal as is_internal_login %}
 
-<ul class="nav navbar-expand-lg navbar-light">
 {% if is_internal_login %}
 <li class="nav-item"><a class="nav-link" href="/internal/species-communities">
-    <div style="inline"><img src="{% static 'boranga/img/dpaw_small.png' %}">Species & Communities</div></a>
+    <div style="inline">Species & Communities</div></a>
 </li>
 <li class="nav-item"><a class="nav-link" href="/internal/species-communities">Conservation Status</a></li>
 <li class="nav-item"><a class="nav-link" href="/internal/species-communities">Conservation Plans</a></li>
@@ -16,4 +15,3 @@
 
 {% else %}
 {% endif %}
-</ul>
