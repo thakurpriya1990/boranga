@@ -4,12 +4,7 @@ MAINTAINER asi@dbca.wa.gov.au
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBUG=True
 ENV TZ=Australia/Perth
-ENV EMAIL_HOST="smtp.corporateict.domain"
-ENV DEFAULT_FROM_EMAIL='no-reply@dbca.wa.gov.au'
-ENV NOTIFICATION_EMAIL='jawaid.mushtaq@dbca.wa.gov.au'
-ENV NON_PROD_EMAIL='jawaid.mushtaq@dbca.wa.gov.au'
-ENV PRODUCTION_EMAIL=False
-ENV EMAIL_INSTANCE='DEV'
+ENV PRODUCTION_EMAIL=True
 ENV SECRET_KEY="ThisisNotRealKey"
 ENV SITE_PREFIX='qml-dev'
 ENV SITE_DOMAIN='dbca.wa.gov.au'
@@ -67,4 +62,4 @@ HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget
 CMD ["/startup.sh"]
 #CMD ["gunicorn", "parkstay.wsgi", "--bind", ":8080", "--config", "gunicorn.ini"]
 
-LABEL org.opencontainers.image.source="https://github.com/GraemeMuller/boranga"
+LABEL org.opencontainers.image.source="https://github.com/dbca-wa/boranga"

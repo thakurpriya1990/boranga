@@ -28,12 +28,10 @@
                         <h3>
                             Access to {{system_name}}
                         </h3>
-                        {% bootstrap_messages %}
                         <form method="post" action=" url "social:complete" backend="email" ">
                             {% csrf_token %}
-                            {% bootstrap_form form %}
                             <div id="submit-container">
-                                {% bootstrap_button 'Submit' button_class='btn-primary' %}
+                                % bootstrap_button 'Submit' button_class='btn-primary' %
                             </div>
                         </form>
                         <p>Submit your email to login or start the new-user registration process.</p>
