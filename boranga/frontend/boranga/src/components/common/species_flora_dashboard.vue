@@ -41,9 +41,10 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation List:</label>
-                        <select class="form-control" v-model="filterFloraConservationList">
+                        <select class="form-control" v-model="filterFloraConservationList" 
+                        @change="filterConservationCategory($event)">
                             <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
+                            <option v-for="list in conservation_list_dict" :value="list.id" v-bind:key="list.id">{{list.code}}</option>
                         </select>
                     </div>
                 </div>
@@ -52,7 +53,7 @@
                         <label for="">Conservation Category:</label>
                         <select class="form-control" v-model="filterFloraConservationCategory">
                             <option value="all">All</option>
-                            <option v-for="list in conservation_category_list" :value="list.id">{{list.code}}</option>
+                            <option v-for="list in filtered_conservation_category_list" :value="list.id" v-bind:key="list.id">{{list.code}}</option>
                         </select>
                     </div>
                 </div>
@@ -223,6 +224,7 @@ export default {
             species_taxonomy_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
+            filtered_conservation_category_list: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
@@ -673,7 +675,6 @@ export default {
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
-
         fetchFilterLists: function(){
             let vm = this;
             //large FilterList of Species Values object
@@ -683,6 +684,7 @@ export default {
                 vm.species_taxonomy_list = vm.filterListsSpecies.species_taxonomy_list;
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
+                vm.filterConservationCategory();
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
@@ -695,6 +697,22 @@ export default {
             },(error) => {
                 console.log(error);
             })
+        },
+        //-------filter category dropdown dependent on conservation_list selected
+        filterConservationCategory: function(event) {
+                this.$nextTick(() => {
+                    if(event){
+                      this.filterFloraConservationCategory='all'; //-----to remove the previous selection
+                    }
+                    this.filtered_conservation_category_list=[];
+                    //---filter conservation_categories as per cons_list selected
+                    for(let choice of this.conservation_category_list){
+                        if(choice.conservation_list_id.toString() === this.filterFloraConservationList.toString())
+                        {
+                          this.filtered_conservation_category_list.push(choice);
+                        }
+                    }
+                });
         },
         createFlora: async function () {
             let newFloraId = null
@@ -803,11 +821,10 @@ export default {
         },
     },
 
-
     mounted: function(){
-        this.fetchFilterLists();
-        this.fetchProfile();
         let vm = this;
+        vm.fetchFilterLists();
+        vm.fetchProfile();
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {

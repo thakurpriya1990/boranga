@@ -1,5 +1,5 @@
 <template>
-    <div class="container" id="internalDash">
+    <div class="container" id="internalConservationStatusDash">
 
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
             <li class="nav-item">
@@ -42,32 +42,38 @@
 
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-                <FormSection :formCollapse="false" label="Flora" Index="flora">
-                    <SpeciesFloraDashTable v-if="isFlora" ref="flora_table" level="internal" :group_type_name="group_name" 
-                    :group_type_id="getGroupId" :url="species_url" />
+                <FormSection :formCollapse="false" label="Conservation Status - Flora" Index="flora">
+                    <ConservationStatusFloraDashTable v-if="isFlora" ref="flora_table" level="internal" 
+                    :group_type_name="group_name" 
+                    :group_type_id="getGroupId" 
+                    :url="species_cs_url" />
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-                <FormSection :formCollapse="false" label="Fauna" Index="fauna">
-                    <SpeciesFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal" :group_type_name="group_name" 
-                    :group_type_id="getGroupId" :url="species_url"/>
+                <FormSection :formCollapse="false" label="Conservation Status - Fauna" Index="fauna">
+                    <ConservationStatusFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal" 
+                    :group_type_name="group_name" 
+                    :group_type_id="getGroupId" 
+                    :url="species_cs_url"/>
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-                <FormSection :formCollapse="false" label="Community" Index="community">
-                    <CommunitiesDashTable v-if="isCommunity" ref="community_table" level="internal" :group_type_name="group_name" 
-                    :group_type_id="getGroupId" :url="community_url"/>
+                <FormSection :formCollapse="false" label="Conservation Status - Community" Index="community">
+                    <ConservationStatusCommunityDashTable v-if="isCommunity" ref="community_table" level="internal" 
+                    :group_type_name="group_name" 
+                    :group_type_id="getGroupId" 
+                    :url="community_cs_url"/>
                 </FormSection>
             </div>
         </div>
-        
+
     </div>
 </template>
 <script>
 import datatable from '@/utils/vue/datatable.vue'
-import SpeciesFloraDashTable from '@common-utils/species_flora_dashboard.vue'
-import SpeciesFaunaDashTable from '@common-utils/species_fauna_dashboard.vue'
-import CommunitiesDashTable from '@common-utils/communities_dashboard.vue'
+import ConservationStatusFloraDashTable from '@common-utils/conservation_status_flora_dashboard.vue'
+import ConservationStatusFaunaDashTable from '@common-utils/conservation_status_fauna_dashboard.vue'
+import ConservationStatusCommunityDashTable from '@common-utils/conservation_status_community_dashboard.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
 import {
   api_endpoints,
@@ -75,24 +81,23 @@ import {
 }
 from '@/utils/hooks'
 export default {
-    name: 'InternalSpeciesCommunitiesDashboard',
+    name: 'InternalConservationStatusDashboard',
     data() {
         let vm = this;
         return {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
-            //filterGroupType: 'flora',  // TODO : need to set to default user preferance as cannot call click event of Tab onload
             group_types: [],
             group_name: null,
-            species_url: api_endpoints.species_paginated_internal,
-            community_url: api_endpoints.communities_paginated_internal,
+            species_cs_url: api_endpoints.species_conservation_status_paginated_internal,
+            community_cs_url: api_endpoints.community_conservation_status_paginated_internal,
         }
     
     },
     watch: {},
     components: {
-        SpeciesFloraDashTable,
-        SpeciesFaunaDashTable,
-        CommunitiesDashTable,
+        ConservationStatusFloraDashTable,
+        ConservationStatusFaunaDashTable,
+        ConservationStatusCommunityDashTable,
         FormSection,
     },
     computed: {
@@ -128,19 +133,6 @@ export default {
 
     },
     methods: {
-        set_tabs: function(){
-            let vm = this;
-            /* set user preference tab by default on load of dashboard (Note: doesn't affect on the load group component)*/
-            if(vm.user_preference === 'flora'){
-                $('#pills-tab a[href="#pills-flora"]').tab('show');
-            }
-            if(vm.user_preference === 'fauna'){
-                $('#pills-tab a[href="#pills-fauna"]').tab('show');
-            }
-            if(vm.user_preference === 'community'){
-                $('#pills-tab a[href="#pills-community"]').tab('show');
-            }
-        },
         /*load_group_datatable: function(grouptype){
             if(grouptype === 'flora'){
                 this.filterGroupType = grouptype;

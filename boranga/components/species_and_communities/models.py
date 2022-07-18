@@ -122,6 +122,7 @@ class GroupType(models.Model):
     - N/A
     Used by:
     - Species
+    - Community
     Is:
     - Enumeration (GroupTypes)
     """
@@ -135,284 +136,6 @@ class GroupType(models.Model):
 
     def __str__(self):
         return self.get_name_display()
-
-
-class ConservationList(models.Model):
-    """
-
-    NB: Can have multiple lists per species
-    WAPEC	    WA Priority Ecological Community List
-    DBCA_RLE	Pre-BCA DBCA precursor to IUCN RLE
-    WAPS	    WA Priority Species List
-    SPFN	    Wildlife Conservation (Specially Protected Fauna) Notice, Schedules
-    IUCN_RLE	IUCN Red List of Ecosystems
-    IUCN2012	IUCN Red List Categories and Criteria v3.1(2001) 2nd edition (2012)
-    IUCN2001	IUCN Red List Categories and Criteria v3.1(2001)
-    EPBC	    Environment Protection and Biodiversity Conservation Act 1999
-    IUCN1994	IUCN Red List Categories v2.3 (1994)
-    WAWCA	    Wildlife Conservation Act 1950, Gazettal notice listing
-
-    Has a:
-    - N/A
-    Used by:
-    - ConservationStatus
-    Is:
-    - TBD
-    """
-    code = models.CharField(max_length=64,
-                            default="None")
-    label = models.CharField(max_length=1024,
-                            default="None")
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.code)
-
-
-class ConservationCategory(models.Model):
-    """
-    CR	Critically endangered fauna (S1)
-    P1	Priority 1
-    PD	Presumed Totally Destroyed
-    P1	Priority 1
-    EN	Endangered fauna (S2)
-    P2	Priority 2
-    P2	Priority 2
-    CR	Critically Endangered
-    VU	Vulnerable fauna (S3)
-    P3	Priority 3
-    P3	Priority 3
-    EN	Endangered
-    EX	Presumed extinct fauna (S4)
-    P4	Priority 4
-    P4	Priority 4
-    VU	Vulnerable
-    P5	Priority 5
-    LR	Lower Risk
-    IA	Migratory birds under international agreement (S5)
-    CD	Conservation dependent fauna (S6)
-    DD	Data Deficient
-    NE	Not Evaluated
-    OS	Other specially protected fauna (S7)
-    P5	Priority 5
-    SP	Rare or otherwise in need of special protection
-    P	Priority
-    T	(Threatened) Rare or is likely to become extinct (S1)
-    X	Presumed extinct (S2)
-    I	Migratory birds under international agreement (S3)
-    S	Other specially protected fauna (S4)
-    CO	Collapsed
-    CR	Critically Endangered
-    EN	Endangered
-    VU	Vulnerable
-    NT	Near Threatened
-    LC	Least Concern
-    DD	Data Deficient
-    NE	Not Evaluated
-    EX	Extinct
-    EW	Extinct in the Wild
-    CR	Critically Endangered
-    EN	Endangered
-    VU	Vulnerable
-    NT	Near Threatened
-    LC	Least Concern
-    DD	Data Deficient
-    NE	Not Evaluated
-    EX	Extinct
-    EW	Extinct in the Wild
-    CR	Critically Endangered
-    EN	Endangered
-    VU	Vulnerable
-    EX	Extinct
-    CR	Critically Endangered
-    EN	Endangered
-    VU	Vulnerable
-    MA	Marine
-    MI	Migratory
-    CT	Cetacean
-    EX	Extinct
-    EW	Extinct in the Wild
-    CR	Critically Endangered
-    EN	Endangered
-    VU	Vulnerable
-    CD	Conservation Dependent
-    SP	Specially Protected
-    E	Extant (S1)
-    X	Presumed extinct (S2)
-
-    Has a:
-    - N/A
-    Used by:
-    - ConservationStatus
-    Is:
-    - TBD
-    """
-    code = models.CharField(max_length=64,
-                            default="None")
-    label = models.CharField(max_length=1024,
-                            default="None")
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.code)
-
-
-class ConservationCriteria(models.Model):
-    """
-    Justification for listing as threatened (IUCN-how everything is defined)
-    A
-    Ai
-    Aii
-    B
-    Bi
-    Bii
-    Biii
-    C
-    A1
-    A2a
-    A2b
-    A3
-    B1ai
-    B1aii
-    B1aiii
-    B1b
-    B1c
-    B2ai
-    B2aii
-    B2aiii
-    B2b
-    B2c
-    B3
-    C1
-    C2a
-    C2b
-    C3
-    D1
-    D2a
-    D2b
-    D3
-    E
-    A1a
-    A1b
-    A1c
-    A1d
-    A1e
-    A2c
-    A2d
-    A2e
-    A3b
-    A3c
-    A3d
-    A3e
-    A4a
-    A4b
-    A4c
-    A4d
-    A4e
-    B1a
-    B1b(i)
-    B1b(ii)
-    B1b(iii)
-    B1b(iv)
-    B1b(v)
-    B1c(i)
-    B1c(ii)
-    B1c(iii)
-    B1c(iv)
-    B2a
-    B2b(i)
-    B2b(ii)
-    B2b(iii)
-    B2b(iv)
-    B2b(v)
-    B2c(i)
-    B2c(ii)
-    B2c(iii)
-    B2c(iv)
-    C2a(i)
-    C2a(ii)
-    D
-    D2
-    Criterion 1
-    Criterion 2
-    Criterion 3
-    Criterion 4
-    Criterion 5
-    B1
-    B2d
-    B2e
-    B3a
-    B3b
-    B3c
-    B3d
-    NB: may have multiple of these per species
-    Has a:
-    - N/A
-    Used by:
-    - ConservationStatus
-    Is:
-    - TBD
-    """
-    code = models.CharField(max_length=64)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.code)
-
-
-class ConservationChangeCode(models.Model):
-    """
-    When the conservation status of a species is changed, it can be for a number of reasons. 
-    These reasons are represented by change codes.
-    """
-    code = models.CharField(max_length=32,
-                            default="None")
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.code)
-
-
-class ConservationStatus(models.Model):
-    """
-    Several lists with different attributes
-
-    NB: Different lists has different different entries
-    mainly interest in wa but must accomodte comm as well
-    Has a:
-    - ConservationChangeCode
-    - ConservationList
-    - ConservationCategory
-    - ConservationCriteria
-    Used by:
-    - Species
-    - Communities
-    Is:
-    - Table
-    """
-    change_code = models.ForeignKey(ConservationChangeCode, 
-                                    on_delete=models.CASCADE)
-    conservation_list = models.OneToOneField(ConservationList,
-                                             on_delete=models.CASCADE,
-                                             primary_key=True,)
-    conservation_category = models.ForeignKey(ConservationCategory, 
-                                              on_delete=models.CASCADE)
-    conservation_criteria = models.ForeignKey(ConservationCriteria, 
-                                              on_delete=models.CASCADE)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.conservation_list)  # TODO: is the most appropriate?
 
 
 class Contact(models.Model):
@@ -476,8 +199,8 @@ class Species(models.Model):
     name_currency = models.CharField(max_length=16,
                                      default="None", null=True, blank=True) # is it the current name? yes or no
     #taxonomy = models.OneToOneField(Taxonomy, on_delete=models.CASCADE, null=True, blank=True)
-    conservation_status = models.OneToOneField(ConservationStatus,
-                                               on_delete=models.CASCADE, null=True, blank=True)
+    #conservation_status = models.OneToOneField(ConservationStatus,
+    #                                           on_delete=models.CASCADE, null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
@@ -596,7 +319,7 @@ class Community(models.Model):
     A collection of 2 or more Species within a specific location.
 
     Has a:
-    - ConservationStatus
+    - GroupType
     - Species
     Used by:
     - N/A
@@ -617,8 +340,8 @@ class Community(models.Model):
     district = models.ForeignKey(District, 
                                  default=None,
                                  on_delete=models.CASCADE, null=True, blank=True)
-    conservation_status = models.OneToOneField(ConservationStatus,
-                                            on_delete=models.CASCADE, null=True, blank=True)
+    #conservation_status = models.OneToOneField(ConservationStatus,
+    #                                       on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
 
     class Meta:

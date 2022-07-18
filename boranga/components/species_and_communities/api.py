@@ -25,10 +25,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
-    ConservationList,
-    ConservationStatus,
-    ConservationCategory,
-    ConservationCriteria,
     Taxonomy,
     NameAuthority,
     Community,
@@ -47,6 +43,14 @@ from boranga.components.species_and_communities.models import (
     PotentialThreatOnset,
     ConservationThreat,
 )
+from boranga.components.conservation_status.models import(
+    ConservationCategory,
+    ConservationCriteria,
+    ConservationChangeCode,
+    SpeciesConservationStatus,
+    CommunityConservationStatus,
+    ConservationList,
+)
 from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
     ListCommunitiesSerializer,
@@ -54,7 +58,6 @@ from boranga.components.species_and_communities.serializers import (
     SpeciesSerializer,
     SaveSpeciesSerializer,
     CreateSpeciesSerializer,
-    ConservationStatusSerializer,
     SpeciesDistributionSerializer,
     ConservationAttributesSerializer,
     TaxonomySerializer,
@@ -72,9 +75,7 @@ from boranga.components.species_and_communities.serializers import (
     SaveConservationThreatSerializer,
 )
 
-import logging
-
-logger = logging.getLogger(__name__)
+                            
 
 class GetGroupTypeDict(views.APIView):
     def get(self, request, format=None):
@@ -86,7 +87,20 @@ class GetGroupTypeDict(views.APIView):
                 group_type_list.append({'id': group.id,'name':group.name});
         return Response(group_type_list)
 
-class GetSpeciesFilterDict(views.APIView):
+
+class GetScientificName(views.APIView):
+    def get(self, request, format=None):
+        #private_moorings = request.GET.get('private_moorings')
+        search_term = request.GET.get('term', '')
+        if search_term:
+            if search_term:
+                data = Species.objects.filter(scientific_name__icontains=search_term).values('id', 'scientific_name')[:10]
+            data_transform = [{'id': species['id'], 'text': species['scientific_name']} for species in data]
+            return Response({"results": data_transform})
+        return Response()
+        
+
+class GetSpeciesFilterDict(views.APIView): 
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
         species_data_list = []
@@ -114,19 +128,21 @@ class GetSpeciesFilterDict(views.APIView):
                         'genus':taxon.genus,
                         });
         conservation_list_dict = []
-        conservation_lists = ConservationStatus.objects.all()
+        conservation_lists = ConservationList.objects.filter(applies_to_species=True)
         if conservation_lists:
             for choice in conservation_lists:
-                conservation_list_dict.append({'id': choice.conservation_list_id,
-                    'code': choice.conservation_list.code,
+                conservation_list_dict.append({'id': choice.id,
+                    'code': choice.code,
                     });
-
+ 
         conservation_category_list = []
         conservation_categories = ConservationCategory.objects.all()
         if conservation_categories:
             for choice in conservation_categories:
-                conservation_category_list.append({'id': choice.id,
+                conservation_category_list.append({
+                    'id': choice.id,
                     'code': choice.code,
+                    'conservation_list_id': choice.conservation_list_id,
                     });
         res_json = {
         "species_data_list":species_data_list,
@@ -152,19 +168,21 @@ class GetCommunityFilterDict(views.APIView):
                         'community_status':community.community_status
                         });
         conservation_list_dict = []
-        conservation_lists = ConservationStatus.objects.all()
+        conservation_lists = ConservationList.objects.filter(applies_to_communities=True)
         if conservation_lists:
             for choice in conservation_lists:
-                conservation_list_dict.append({'id': choice.conservation_list_id,
-                    'code': choice.conservation_list.code,
+                conservation_list_dict.append({'id': choice.id,
+                    'code': choice.code,
                     });
-
+ 
         conservation_category_list = []
         conservation_categories = ConservationCategory.objects.all()
         if conservation_categories:
             for choice in conservation_categories:
-                conservation_category_list.append({'id': choice.id,
+                conservation_category_list.append({
+                    'id': choice.id,
                     'code': choice.code,
+                    'conservation_list_id': choice.conservation_list_id,
                     });
         res_json = {
         "community_data_list":community_data_list,

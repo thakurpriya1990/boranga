@@ -19,6 +19,7 @@ import Reports from '@/components/reports/reports.vue'
 import ParkEntryFeesDashboard from '../park_entry_fees_dashboard.vue'
 import DistrictProposal from '../district_proposals/district_proposal.vue'
 import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
+import ConservationStatusDash from '../conservation_status/dashboard.vue'
 import SpeciesCommunities from '../species_communities/species_communities.vue'
 export default
 {
@@ -45,6 +46,11 @@ export default
             path: 'species-communities',
             component: SpeciesCommunitiesDash,
             name:"internal-species-communities-dash"
+        },
+        {
+            path: 'conservation-status',
+            component: ConservationStatusDash,
+            name:"internal-conservation_status-dash"
         },
         {
             path: 'approval/:approval_id',
