@@ -66,6 +66,7 @@ INSTALLED_APPS += [
     'boranga.components.main',
     'boranga.components.organisations',
     'boranga.components.species_and_communities',
+    'boranga.components.conservation_status',
     'boranga.components.users',
     'boranga.components.proposals',
     'boranga.components.approvals',

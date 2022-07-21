@@ -4,14 +4,17 @@
 {% is_internal as is_internal_login %}
 
 {% if is_internal_login %}
-<li class="nav-item"><a class="nav-link" href="/internal/species-communities">
-    <div style="inline">Species & Communities</div></a>
-</li>
-<li class="nav-item"><a class="nav-link" href="/internal/species-communities">Conservation Status</a></li>
-<li class="nav-item"><a class="nav-link" href="/internal/species-communities">Conservation Plans</a></li>
-<li class="nav-item"><a class="nav-link" href="/internal/species-communities">Occurrences</a></li>
+    <li class="nav-item"><a class="nav-link" href="/internal/species-communities">
+        <div style="inline">Species & Communities</div></a>
+    </li>
+    <li class="nav-item"><a class="nav-link" href="/internal/conservation-status">Conservation Status</a></li>
+    <li class="nav-item"><a class="nav-link" href="/internal/species-communities">Conservation Plans</a></li>
+    <li class="nav-item"><a class="nav-link" href="/internal/species-communities">Occurrences</a></li>
 
-<li class="nav-item"><a class="nav-link" href="/internal/organisations/access">User Access</a></li>
+    <li class="nav-item"><a class="nav-link" href="/internal/organisations/access">User Access</a></li>
 
 {% else %}
+    <li class="nav-item"><a class="nav-link" href="/external/conservation-status">Conservation Status</a></li>
+    <li class="nav-item"><a class="nav-link" href="/external/species-communities">Occurrences</a></li>
 {% endif %}
+

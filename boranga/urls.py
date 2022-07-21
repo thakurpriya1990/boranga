@@ -21,6 +21,7 @@ from boranga.components.proposals import api as proposal_api
 from boranga.components.approvals import api as approval_api
 from boranga.components.compliances import api as compliances_api
 from boranga.components.species_and_communities import api as species_communities_api
+from boranga.components.conservation_status import api as conservation_status_api
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 
 # API patterns
@@ -60,6 +61,8 @@ router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 router.register(r'questions', main_api.QuestionViewSet)
 router.register(r'species_paginated',species_communities_api.SpeciesPaginatedViewSet)
 router.register(r'communities_paginated',species_communities_api.CommunitiesPaginatedViewSet)
+router.register(r'species_conservation_status_paginated',conservation_status_api.SpeciesConservationStatusPaginatedViewSet)
+router.register(r'community_conservation_status_paginated',conservation_status_api.CommunityConservationStatusPaginatedViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
@@ -81,6 +84,7 @@ api_patterns = [
     url(r'^api/community_filter_dict',species_communities_api.GetCommunityFilterDict.as_view(),name='get-community-filter-dict'),
     url(r'^api/region_district_filter_dict',species_communities_api.GetRegionDistrictFilterDict.as_view(),name='get-region_district_filter_dict'),
     url(r'^api/name_authority_list',species_communities_api.GetNameAuthorityList.as_view(),name='get-name-authority-list'),
+    url(r'^api/scientific_name_lookup$', species_communities_api.GetScientificName.as_view(), name='get-scientific_name'),
 
     #url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
 

@@ -1,4 +1,5 @@
 import ExternalDashboard from '../dashboard.vue'
+import ExternalConservationStatusDash from '../conservation_status/dashboard.vue'
 import Proposal from '../proposal.vue'
 //import CommercialOperatorLicence from '../commercial_operator_licence.vue'
 import ProposalApply from '../proposal_apply.vue'
@@ -20,10 +21,15 @@ export default
         }
     },
     children: [
-        {
+        /*{
             path: '/',
             component: ExternalDashboard,
             name: 'external-proposals-dash'
+        },*/
+        {
+            path: '/',
+            component: ExternalConservationStatusDash,
+            name:"external-conservation_status-dash"
         },
         {
             path: 'organisations/manage/:org_id',
