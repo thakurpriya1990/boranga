@@ -300,7 +300,7 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
     page_size = 10
 
     def get_queryset(self):
-        #request_user = self.request.user
+        request_user = self.request.user
         qs = Species.objects.none()
 
         if is_internal(self.request):

@@ -84,9 +84,9 @@
                     </div>
                 </div>
 
-                <div v-if="newFaunaVisibility" class="col-md-3 pull-right">
+                <div v-if="addFaunaCSVisibility" class="col-md-3 pull-right">
                 <button @click.prevent="createFauna"
-                    class="btn btn-primary pull-right">New Fauna</button>
+                    class="btn btn-primary pull-right">Add Conservation Status</button>
                 </div>
             </div>
         </CollapsibleFilters>
@@ -332,7 +332,7 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
-        newFaunaVisibility: function() {
+        addFaunaCSVisibility: function() {
             let visibility = false;
             if (this.is_internal) {
                 visibility = true;

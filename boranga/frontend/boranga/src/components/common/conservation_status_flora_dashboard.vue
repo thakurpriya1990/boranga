@@ -91,9 +91,9 @@
                     </div>
                 </div>
 
-                <div v-if="newFloraVisibility" class="col-md-3 pull-right">
+                <div v-if="addFloraCSVisibility" class="col-md-3 pull-right">
                 <button @click.prevent="createFlora"
-                    class="btn btn-primary pull-right">New Flora</button>
+                    class="btn btn-primary pull-right">Add Conservation Satus</button>
                 </div>
             </div>
         </CollapsibleFilters>
@@ -342,7 +342,7 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
-        newFloraVisibility: function() {
+        addFloraCSVisibility: function() {
             let visibility = false;
             if (this.is_internal) {
                 visibility = true;

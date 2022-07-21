@@ -1,5 +1,5 @@
 <template>
-    <div class="container" id="internalConservationStatusDash">
+    <div class="container" id="externalConservationStatusDash">
 
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
             <li class="nav-item">
@@ -81,7 +81,7 @@ import {
 }
 from '@/utils/hooks'
 export default {
-    name: 'InternalConservationStatusDashboard',
+    name: 'ExternalConservationStatusDashboard',
     data() {
         let vm = this;
         return {

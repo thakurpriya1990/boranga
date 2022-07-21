@@ -199,8 +199,6 @@ class Species(models.Model):
     name_currency = models.CharField(max_length=16,
                                      default="None", null=True, blank=True) # is it the current name? yes or no
     #taxonomy = models.OneToOneField(Taxonomy, on_delete=models.CASCADE, null=True, blank=True)
-    #conservation_status = models.OneToOneField(ConservationStatus,
-    #                                           on_delete=models.CASCADE, null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
@@ -218,6 +216,7 @@ class Species(models.Model):
         return '{}-{}'.format(self.species_number,self.scientific_name)
 
     def save(self, *args, **kwargs):
+        # Prefix "S" char to species_number.
         super(Species, self).save(*args,**kwargs)
         if self.species_number == '':
             new_species_id = 'S{0:06d}'.format(self.pk)
@@ -351,6 +350,7 @@ class Community(models.Model):
         return str(self.community_id)
 
     def save(self, *args, **kwargs):
+        # Prefix "C" char to community_number.
         super(Community, self).save(*args,**kwargs)
         if self.community_number == '':
             new_community_id = 'C{0:06d}'.format(self.pk)
@@ -553,6 +553,7 @@ class SpeciesDocument(Document):
         verbose_name = "Species Document"
 
     def save(self, *args, **kwargs):
+        # Prefix "D" char to document_number.
         super(SpeciesDocument, self).save(*args,**kwargs)
         if self.document_number == '':
             new_document_id = 'D{0:06d}'.format(self.pk)
@@ -618,6 +619,7 @@ class CommunityDocument(Document):
         verbose_name = "Community Document"
 
     def save(self, *args, **kwargs):
+        # Prefix "D" char to document_number.
         super(CommunityDocument, self).save(*args,**kwargs)
         if self.document_number == '':
             new_document_id = 'D{0:06d}'.format(self.pk)

@@ -81,9 +81,9 @@
                     </div>
                 </div>
 
-                <div v-if="newCSCommunityVisibility" class="col-md-3 pull-right">
+                <div v-if="addCommunityCSVisibility" class="col-md-3 pull-right">
                 <button @click.prevent="createCSCommunity"
-                    class="btn btn-primary pull-right">New Community</button>
+                    class="btn btn-primary pull-right">Add Conservation Status</button>
                 </div>
             </div>
         </CollapsibleFilters>
@@ -309,7 +309,7 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
-        newCSCommunityVisibility: function() {
+        addCommunityCSVisibility: function() {
             let visibility = false;
             if (this.is_internal) {
                 visibility = true;
