@@ -31,7 +31,10 @@ from boranga.components.approvals.email import (
 from boranga.utils import search_keys, search_multiple_keys
 from boranga.helpers import is_customer
 #from boranga.components.approvals.email import send_referral_email_notification
+from django.core.files.storage import FileSystemStorage
 
+
+private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
 def update_approval_doc_filename(instance, filename):
     return '{}/proposals/{}/approvals/{}'.format(settings.MEDIA_APP_DIR, instance.approval.current_proposal.id,filename)
@@ -42,7 +45,7 @@ def update_approval_comms_log_filename(instance, filename):
 
 class ApprovalDocument(Document):
     approval = models.ForeignKey('Approval',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_approval_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_approval_doc_filename, max_length=512,  storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
     def delete(self):
@@ -586,7 +589,7 @@ class ApprovalLogEntry(CommunicationsLogEntry):
 
 class ApprovalLogDocument(Document):
     log_entry = models.ForeignKey('ApprovalLogEntry',related_name='documents', null=True, on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_approval_comms_log_filename, null=True, max_length=512)
+    _file = models.FileField(upload_to=update_approval_comms_log_filename, null=True, max_length=512,  storage=private_storage)
 
     class Meta:
         app_label = 'boranga'

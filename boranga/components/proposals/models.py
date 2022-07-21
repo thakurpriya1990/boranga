@@ -48,7 +48,8 @@ import csv
 import time
 from multiselectfield import MultiSelectField
 
-
+from django.core.files.storage import FileSystemStorage
+private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
 import logging
 logger = logging.getLogger(__name__)
@@ -227,7 +228,7 @@ class DefaultDocument(Document):
 
 class ProposalDocument(Document):
     proposal = models.ForeignKey('Proposal',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_proposal_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_proposal_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     can_hide= models.BooleanField(default=False) # after initial submit, document cannot be deleted but can be hidden
@@ -239,7 +240,7 @@ class ProposalDocument(Document):
 
 class OnHoldDocument(Document):
     proposal = models.ForeignKey('Proposal',related_name='onhold_documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_onhold_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_onhold_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
@@ -251,7 +252,7 @@ class OnHoldDocument(Document):
 #Documents on Activities(land)and Activities(Marine) tab for T-Class related to required document questions
 class ProposalRequiredDocument(Document):
     proposal = models.ForeignKey('Proposal',related_name='required_documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_proposal_required_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_proposal_required_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     required_doc = models.ForeignKey('RequiredDocument',related_name='proposals', on_delete=models.CASCADE)
@@ -268,7 +269,7 @@ class ProposalRequiredDocument(Document):
 
 class QAOfficerDocument(Document):
     proposal = models.ForeignKey('Proposal',related_name='qaofficer_documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_qaofficer_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_qaofficer_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
@@ -298,7 +299,7 @@ class ReferralDocument(Document):
 
 class RequirementDocument(Document):
     requirement = models.ForeignKey('ProposalRequirement',related_name='requirement_documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_requirement_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_requirement_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
@@ -2028,7 +2029,7 @@ class ApplicationFeeDiscount(RevisionedMixin):
 
 class ProposalLogDocument(Document):
     log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_proposal_comms_log_filename, max_length=512)
+    _file = models.FileField(upload_to=update_proposal_comms_log_filename, max_length=512, storage=private_storage)
 
     class Meta:
         app_label = 'boranga'
