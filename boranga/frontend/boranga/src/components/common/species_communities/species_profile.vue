@@ -151,7 +151,7 @@
             </div>
             </div>
         </FormSection> -->
-        <FormSection :formCollapse="false" label="" Index="">
+        <FormSection :formCollapse="false" label="General" Index="general">
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
                 <div class="col-sm-9">

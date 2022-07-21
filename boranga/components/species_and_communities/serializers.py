@@ -7,10 +7,6 @@ from boranga.components.species_and_communities.models import(
 	Species,
 	SpeciesLogEntry,
 	Community,
-	ConservationList,
-	ConservationStatus,
-	ConservationCategory,
-	ConservationCriteria,
 	Taxonomy,
 	NameAuthority,
 	ConservationAttributes,
@@ -20,6 +16,14 @@ from boranga.components.species_and_communities.models import(
 	CommunityDistribution,
 	ConservationThreat,
 	)
+from boranga.components.conservation_status.models import(
+    SpeciesConservationStatus,
+    CommunityConservationStatus,
+    )
+from boranga.components.conservation_status.serializers import(
+    SpeciesConservationStatusSerializer,
+    CommunityConservationStatusSerializer,
+    )
 
 from boranga.components.users.serializers import UserSerializer
 from boranga.components.users.serializers import UserAddressSerializer, DocumentSerializer
@@ -34,7 +38,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 	family = serializers.SerializerMethodField()
 	genus = serializers.SerializerMethodField()
 	phylogenetic_group = serializers.SerializerMethodField()
-	conservation_status = serializers.SerializerMethodField()
+	#conservation_status = serializers.SerializerMethodField()
 	conservation_list = serializers.SerializerMethodField()
 	conservation_category = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
@@ -52,7 +56,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'phylogenetic_group',
 			    'region',
 			    'district',
-			    'conservation_status',
+			    #'conservation_status',
 			    'conservation_list',
 			    'conservation_category',
 			    'processing_status',
@@ -68,7 +72,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'phylogenetic_group',
 			    'region',
 			    'district',
-			    'conservation_status',
+			    #'conservation_status',
 			    'conservation_list',
 			    'conservation_category',
 			    'processing_status',
@@ -98,20 +102,28 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 		except Taxonomy.DoesNotExist:
 			return None
 
-	def get_conservation_status(self,obj):
-		if obj.conservation_status:
-			return obj.conservation_status.conservation_list.code
-		return None
+	# def get_conservation_status(self,obj):
+	# 	try:
+	# 		conservation_status = SpeciesConservationStatus.objects.get(species=obj)
+	# 		return conservation_status.conservation_list.code
+	# 	except SpeciesConservationStatus.DoesNotExist:
+	# 		return None
 
 	def get_conservation_list(self,obj):
-		if obj.conservation_status:
-			return obj.conservation_status.conservation_list.code
-		return None
+		try:
+			# need to show only WA_list species
+			conservation_status = SpeciesConservationStatus.objects.get(species=obj ,conservation_list__applies_to_wa=True) # need to show only WA_list species
+			return conservation_status.conservation_list.code
+		except SpeciesConservationStatus.DoesNotExist:
+			return None
 
 	def get_conservation_category(self,obj):
-		if obj.conservation_status:
-			return obj.conservation_status.conservation_category.code
-		return None
+		try:
+			# need to show only WA_list species
+			conservation_status = SpeciesConservationStatus.objects.get(species=obj, conservation_list__applies_to_wa=True)
+			return conservation_status.conservation_category.code
+		except SpeciesConservationStatus.DoesNotExist:
+			return None
 
 	def get_region(self,obj):
 		if obj.region:
@@ -125,7 +137,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField()
-	conservation_status = serializers.SerializerMethodField()
+	#conservation_status = serializers.SerializerMethodField()
 	conservation_list = serializers.SerializerMethodField()
 	conservation_category = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
@@ -139,7 +151,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			    'community_id',
 			    'community_name',
 			    'community_status',
-			    'conservation_status',
+			    #'conservation_status',
 			    'conservation_list',
 			    'conservation_category',
 			    'region',
@@ -152,7 +164,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			    'community_id',
 			    'community_name',
 			    'community_status',
-			    'conservation_status',
+			    #'conservation_status',
 			    'conservation_list',
 			    'conservation_category',
 			    'region',
@@ -162,20 +174,26 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 	def get_group_type(self,obj):
 		return obj.group_type.name
 
-	def get_conservation_status(self,obj):
-		if obj.conservation_status:
-			return obj.conservation_status.conservation_list.code
-		return None
+	# def get_conservation_status(self,obj):
+	# 	try:
+	# 		conservation_status = CommunityConservationStatus.objects.get(community=obj)
+	# 		return conservation_status.conservation_list.code
+	# 	except CommunityConservationStatus.DoesNotExist:
+	# 		return None
 
 	def get_conservation_list(self,obj):
-		if obj.conservation_status:
-			return obj.conservation_status.conservation_list.code
-		return None
+		try:
+			conservation_status = CommunityConservationStatus.objects.get(community=obj) # TODO need to show only WA_list species
+			return conservation_status.conservation_list.code
+		except CommunityConservationStatus.DoesNotExist:
+			return None
 
 	def get_conservation_category(self,obj):
-		if obj.conservation_status:
-			return obj.conservation_status.conservation_category.code
-		return None
+		try:
+			conservation_status = CommunityConservationStatus.objects.get(community=obj)
+			return conservation_status.conservation_category.code
+		except CommunityConservationStatus.DoesNotExist:
+			return None
 
 	def get_region(self,obj):
 		if obj.region:
@@ -262,7 +280,6 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			    'common_name',
 			    'region_id',
 			    'district_id',
-			    'conservation_status_id',
 			    'conservation_status',
 			    'processing_status',
 			    'readonly',
@@ -289,12 +306,12 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     		return TaxonomySerializer().data
 
     def get_conservation_status(self,obj):
-        if obj.conservation_status:
-            qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
-        else:
-        	qs = None
-        return ConservationStatusSerializer(qs).data
-        #return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+        try:
+        	qs = SpeciesConservationStatus.objects.get(species=obj , conservation_list__applies_to_wa=True)
+        	return SpeciesConservationStatusSerializer(qs).data
+        except SpeciesConservationStatus.DoesNotExist:
+        	return SpeciesConservationStatusSerializer().data
+        	#return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
     def get_can_user_edit(self,obj):
     	return True
@@ -356,7 +373,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 			    'community_status',
 			    'region_id',
 			    'district_id',
-			    'conservation_status_id',
 			    'conservation_status',
 			    'distribution',
 			    'readonly',
@@ -376,12 +392,12 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 		return obj.group_type.name
 
 	def get_conservation_status(self,obj):
-		if obj.conservation_status:
-			qs = ConservationStatus.objects.get(conservation_list=obj.conservation_status)
-		else:
-			qs = None
-		return ConservationStatusSerializer(qs).data
-		#return [ConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+		try:
+			qs = CommunityConservationStatus.objects.get(community=obj , conservation_list__applies_to_wa=True)
+			return CommunityConservationStatusSerializer(qs).data
+		except CommunityConservationStatus.DoesNotExist:
+			return CommunityConservationStatusSerializer().data
+			#return [CommunityConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
 	def get_distribution(self,obj):
 		try:
@@ -459,57 +475,6 @@ class CreateCommunitySerializer(BaseCommunitySerializer):
         read_only_fields = (
             'id',
             )
-
-
-class ConservationStatusSerializer(serializers.ModelSerializer):
-    conservation_status = serializers.SerializerMethodField()
-    conservation_list = serializers.SerializerMethodField()
-    conservation_category = serializers.SerializerMethodField()
-    conservation_criteria = serializers.SerializerMethodField()
-    effective_status_date = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ConservationStatus
-        fields = (
-            'conservation_list_id',
-            'conservation_status',
-            'conservation_list',
-            'conservation_category',
-            'conservation_criteria',
-            'effective_status_date',
-            )
-        datatables_always_serialize = (
-            'conservation_list_id',
-            'conservation_status',
-            'conservation_list',
-            'conservation_category',
-            'conservation_criteria',
-            'effective_status_date',
-			)
-        #read_only_fields = ('conservation_list')
-
-    def get_conservation_status(self,obj):
-        if obj.conservation_list:
-            return obj.conservation_list.code
-        return None
-
-    def get_conservation_list(self,obj):
-    	if obj.conservation_list:
-    		return obj.conservation_list.code
-    	return None
-
-    def get_conservation_category(self,obj):
-    	if obj.conservation_category:
-    		return obj.conservation_category.code
-    	return None
-
-    def get_conservation_criteria(self,obj):
-    	if obj.conservation_criteria:
-    		return obj.conservation_criteria.code
-    	return None
-
-    def get_effective_status_date(self,obj): #TODO add date in models 
-    	return None
 
 
 class DocumentSerializer(serializers.ModelSerializer):

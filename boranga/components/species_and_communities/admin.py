@@ -1,21 +1,21 @@
 from django.contrib.gis import admin
 from import_export.admin import ImportExportMixin
 from django.db.models import Q
-from boranga.components.species_and_communities.models import ConservationCategory, ConservationCriteria, ConservationList, District, DocumentCategory, NameAuthority, Region, Source, ThreatCategory, DocumentSubCategory
+from boranga.components.species_and_communities.models import District, DocumentCategory, NameAuthority, Region, Source, ThreatCategory, DocumentSubCategory
 
 
 # The following allow Import/Export of large lists from file.
-class ConservationListAdmin(ImportExportMixin, admin.ModelAdmin):
-    list_display = ['code', 'label']
-admin.site.register(ConservationList, ConservationListAdmin)
+# class ConservationListAdmin(ImportExportMixin, admin.ModelAdmin):
+#     list_display = ['code', 'label']
+# admin.site.register(ConservationList, ConservationListAdmin)
 
-class ConservationCategoryAdmin(ImportExportMixin, admin.ModelAdmin):
-    list_display = ['code', 'label']
-admin.site.register(ConservationCategory, ConservationCategoryAdmin)
+# class ConservationCategoryAdmin(ImportExportMixin, admin.ModelAdmin):
+#     list_display = ['code', 'label']
+# admin.site.register(ConservationCategory, ConservationCategoryAdmin)
 
-class ConservationCriteriaAdmin(ImportExportMixin, admin.ModelAdmin):
-    list_display = ['code']
-admin.site.register(ConservationCriteria, ConservationCriteriaAdmin)
+# class ConservationCriteriaAdmin(ImportExportMixin, admin.ModelAdmin):
+#     list_display = ['code']
+# admin.site.register(ConservationCriteria, ConservationCriteriaAdmin)
 
 @admin.register(DocumentSubCategory)
 class DocumentSubCategoryAdmin(admin.ModelAdmin):
