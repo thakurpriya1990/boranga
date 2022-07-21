@@ -32,8 +32,13 @@ from boranga.components.compliances.email import (
                         )
 from ledger_api_client.ledger_models import Invoice
 
+from django.core.files.storage import FileSystemStorage
+private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+
 import logging
 logger = logging.getLogger(__name__)
+
+
 
 #class Compliance(models.Model):
 class Compliance(RevisionedMixin):
@@ -253,7 +258,7 @@ def update_proposal_complaince_filename(instance, filename):
 
 class ComplianceDocument(Document):
     compliance = models.ForeignKey('Compliance',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_proposal_complaince_filename, max_length=512)
+    _file = models.FileField(upload_to=update_proposal_complaince_filename, max_length=512, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
     def delete(self):
@@ -310,7 +315,7 @@ def update_compliance_comms_log_filename(instance, filename):
 
 class ComplianceLogDocument(Document):
     log_entry = models.ForeignKey('ComplianceLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_compliance_comms_log_filename, max_length=512)
+    _file = models.FileField(upload_to=update_compliance_comms_log_filename, max_length=512, storage=private_storage)
 
     class Meta:
         app_label = 'boranga'

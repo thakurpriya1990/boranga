@@ -30,6 +30,10 @@ from boranga.components.organisations.emails import (
                         send_organisation_request_link_email_notification,
 
             )
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+
 
 #@python_2_unicode_compatible
 class Organisation(models.Model):
@@ -596,7 +600,7 @@ def update_organisation_comms_log_filename(instance, filename):
 
 class OrganisationLogDocument(Document):
     log_entry = models.ForeignKey('OrganisationLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_organisation_comms_log_filename, max_length=512)
+    _file = models.FileField(upload_to=update_organisation_comms_log_filename, max_length=512, storage=private_storage)
 
     class Meta:
         app_label = 'boranga'
@@ -631,7 +635,7 @@ class OrganisationRequest(models.Model):
     requester = models.IntegerField() #EmailUserRO
     #assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='org_request_assignee', on_delete=models.SET_NULL)
     assigned_officer = models.IntegerField() #EmailUserRO
-    identification = models.FileField(upload_to='organisation/requests/%Y/%m/%d', max_length=512, null=True, blank=True)
+    identification = models.FileField(upload_to='organisation/requests/%Y/%m/%d', max_length=512, null=True, blank=True, storage=private_storage)
     status = models.CharField(max_length=100,choices=STATUS_CHOICES, default="with_assessor")
     lodgement_date = models.DateTimeField(auto_now_add=True)
     role = models.CharField(max_length=100,choices=ROLE_CHOICES, default="employee")
@@ -793,7 +797,7 @@ def update_organisation_request_comms_log_filename(instance, filename):
 
 class OrganisationRequestLogDocument(Document):
     log_entry = models.ForeignKey('OrganisationRequestLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_organisation_request_comms_log_filename, max_length=512)
+    _file = models.FileField(upload_to=update_organisation_request_comms_log_filename, max_length=512, storage=private_storage)
 
     class Meta:
         app_label = 'boranga'

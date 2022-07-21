@@ -10,7 +10,9 @@ from django.core.exceptions import ValidationError
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, BaseAddress#, RevisionedMixin
 #from django.contrib.postgres.fields.jsonb import JSONField
 from django.db.models import JSONField
-
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
 ## TODO: remove ledger models
 

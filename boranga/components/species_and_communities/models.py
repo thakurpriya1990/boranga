@@ -8,7 +8,9 @@ from boranga.components.main.models import (
 import json
 from django.db import models,transaction
 from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 
+private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
 DISTRICT_PERTH_HILLS = 'PHS'
 DISTRICT_SWAN_COASTAL = 'SWC'
@@ -267,7 +269,7 @@ class Taxonomy(models.Model):
 
 class SpeciesLogDocument(Document):
     log_entry = models.ForeignKey('SpeciesLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_species_comms_log_filename, max_length=512)
+    _file = models.FileField(upload_to=update_species_comms_log_filename, max_length=512, storage=private_storage)
 
     class Meta:
         app_label = 'boranga'
@@ -364,7 +366,7 @@ class Community(models.Model):
 
 class CommunityLogDocument(Document):
     log_entry = models.ForeignKey('CommunityLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_community_comms_log_filename, max_length=512)
+    _file = models.FileField(upload_to=update_community_comms_log_filename, max_length=512, storage=private_storage)
 
     class Meta:
         app_label = 'boranga'
@@ -530,7 +532,7 @@ class SpeciesDocument(Document):
     - Table
     """
     document_number = models.CharField(max_length=9, blank=True, default='')
-    _file = models.FileField(upload_to=update_species_doc_filename, max_length=512, default="None")
+    _file = models.FileField(upload_to=update_species_doc_filename, max_length=512, default="None", storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history 
@@ -596,7 +598,7 @@ class CommunityDocument(Document):
     - Table
     """
     document_number = models.CharField(max_length=9, blank=True, default='')
-    _file = models.FileField(upload_to=update_community_doc_filename, max_length=512, default="None")
+    _file = models.FileField(upload_to=update_community_doc_filename, max_length=512, default="None", storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history 
