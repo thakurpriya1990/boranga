@@ -86,21 +86,21 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			taxonomy = Taxonomy.objects.get(species=obj)
 			return taxonomy.family
 		except Taxonomy.DoesNotExist:
-			return None
+			return ''
 
 	def get_genus(self,obj):
 		try:
 			taxonomy = Taxonomy.objects.get(species=obj)
 			return taxonomy.genus
 		except Taxonomy.DoesNotExist:
-			return None
+			return ''
 
 	def get_phylogenetic_group(self,obj):
 		try:
 			taxonomy = Taxonomy.objects.get(species=obj)
 			return taxonomy.phylogenetic_group
 		except Taxonomy.DoesNotExist:
-			return None
+			return ''
 
 	# def get_conservation_status(self,obj):
 	# 	try:
@@ -115,7 +115,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			conservation_status = SpeciesConservationStatus.objects.get(species=obj ,conservation_list__applies_to_wa=True) # need to show only WA_list species
 			return conservation_status.conservation_list.code
 		except SpeciesConservationStatus.DoesNotExist:
-			return None
+			return ''
 
 	def get_conservation_category(self,obj):
 		try:
@@ -123,17 +123,17 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			conservation_status = SpeciesConservationStatus.objects.get(species=obj, conservation_list__applies_to_wa=True)
 			return conservation_status.conservation_category.code
 		except SpeciesConservationStatus.DoesNotExist:
-			return None
+			return ''
 
 	def get_region(self,obj):
 		if obj.region:
 			return obj.region.name
-		return None
+		return ''
 
 	def get_district(self,obj):
 		if obj.district:
 			return obj.district.name
-		return None
+		return ''
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField()
@@ -186,24 +186,24 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			conservation_status = CommunityConservationStatus.objects.get(community=obj) # TODO need to show only WA_list species
 			return conservation_status.conservation_list.code
 		except CommunityConservationStatus.DoesNotExist:
-			return None
+			return ''
 
 	def get_conservation_category(self,obj):
 		try:
 			conservation_status = CommunityConservationStatus.objects.get(community=obj)
 			return conservation_status.conservation_category.code
 		except CommunityConservationStatus.DoesNotExist:
-			return None
+			return ''
 
 	def get_region(self,obj):
 		if obj.region:
 			return obj.region.name
-		return None
+		return ''
 
 	def get_district(self,obj):
 		if obj.district:
 			return obj.district.name
-		return None
+		return ''
 
 
 class TaxonomySerializer(serializers.ModelSerializer):

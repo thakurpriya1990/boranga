@@ -152,58 +152,58 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     def get_species_number(self,obj):
         if obj.species.species_number:
             return obj.species.species_number
-        return None
+        return ''
 
     def get_scientific_name(self,obj):
         if obj.species.scientific_name:
             return obj.species.scientific_name
-        return None
+        return ''
 
     def get_common_name(self,obj):
         if obj.species.common_name:
             return obj.species.common_name
-        return None
+        return ''
 
     def get_family(self,obj):
         try:
             taxonomy = Taxonomy.objects.get(species=obj.species)
             return taxonomy.family
         except Taxonomy.DoesNotExist:
-            return None
+            return ''
 
     def get_genus(self,obj):
         try:
             taxonomy = Taxonomy.objects.get(species=obj.species)
             return taxonomy.genus
         except Taxonomy.DoesNotExist:
-            return None
+            return ''
 
     def get_phylogenetic_group(self,obj):
         try:
             taxonomy = Taxonomy.objects.get(species=obj.species)
             return taxonomy.phylogenetic_group
         except Taxonomy.DoesNotExist:
-            return None
+            return ''
 
     def get_conservation_list(self,obj):
         if obj.conservation_list:
             return obj.conservation_list.code
-        return None
+        return ''
 
     def get_conservation_category(self,obj):
         if obj.conservation_category:
             return obj.conservation_category.code
-        return None
+        return ''
 
     def get_region(self,obj):
         if obj.species.region:
             return obj.species.region.name
-        return None
+        return ''
 
     def get_district(self,obj):
         if obj.species.district:
             return obj.species.district.name
-        return None
+        return ''
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
@@ -251,7 +251,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     def get_group_type(self,obj):
         if obj.community:
             return obj.community.group_type.name
-        return None
+        return ''
 
     # def get_conservation_status(self,obj):
     #   try:
@@ -263,39 +263,39 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     def get_community_number(self,obj):
         if obj.community.community_number:
             return obj.community.community_number
-        return None
+        return ''
 
     def get_community_id(self,obj):
         if obj.community.community_id:
             return obj.community.community_id
-        return None
+        return ''
 
     def get_community_name(self,obj):
         if obj.community.community_name:
             return obj.community.community_name
-        return None
+        return ''
 
     def get_community_status(self,obj):
         if obj.community.community_status:
             return obj.community.community_status
-        return None
+        return ''
 
     def get_conservation_list(self,obj):
         if obj.conservation_list:
             return obj.conservation_list.code
-        return None
+        return ''
 
     def get_conservation_category(self,obj):
         if obj.conservation_category:
             return obj.conservation_category.code
-        return None
+        return ''
 
     def get_region(self,obj):
         if obj.community.region:
             return obj.community.region.name
-        return None
+        return ''
 
     def get_district(self,obj):
         if obj.community.district:
             return obj.community.district.name
-        return None
+        return ''
