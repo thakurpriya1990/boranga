@@ -221,7 +221,7 @@ class Species(models.Model):
         # Prefix "S" char to species_number.
         super(Species, self).save(*args,**kwargs)
         if self.species_number == '':
-            new_species_id = 'S{0:06d}'.format(self.pk)
+            new_species_id = 'S{}'.format(str(self.pk))
             self.species_number = new_species_id
             self.save()
 
@@ -355,7 +355,7 @@ class Community(models.Model):
         # Prefix "C" char to community_number.
         super(Community, self).save(*args,**kwargs)
         if self.community_number == '':
-            new_community_id = 'C{0:06d}'.format(self.pk)
+            new_community_id = 'C{}'.format(str(self.pk))
             self.community_number = new_community_id
             self.save()
 
@@ -558,7 +558,7 @@ class SpeciesDocument(Document):
         # Prefix "D" char to document_number.
         super(SpeciesDocument, self).save(*args,**kwargs)
         if self.document_number == '':
-            new_document_id = 'D{0:06d}'.format(self.pk)
+            new_document_id = 'D{}'.format(str(self.pk))
             self.document_number = new_document_id
             self.save()
 
@@ -624,7 +624,7 @@ class CommunityDocument(Document):
         # Prefix "D" char to document_number.
         super(CommunityDocument, self).save(*args,**kwargs)
         if self.document_number == '':
-            new_document_id = 'D{0:06d}'.format(self.pk)
+            new_document_id = 'D{}'.format(str(self.pk))
             self.document_number = new_document_id
             self.save()
     
@@ -753,7 +753,7 @@ class ConservationThreat(models.Model):
     def save(self, *args, **kwargs):
         super(ConservationThreat, self).save(*args,**kwargs)
         if self.threat_number == '':
-            new_threat_id = 'T{0:06d}'.format(self.pk)
+            new_threat_id = 'T{}'.format(str(self.pk))
             self.threat_number = new_threat_id
             self.save()
 
