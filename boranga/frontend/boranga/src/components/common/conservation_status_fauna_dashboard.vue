@@ -341,11 +341,11 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['id', 'Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
+                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
                     'Conservation Category', 'Action', 'Region', 'District']
             }
             if (this.is_internal){
-                return ['id', 'Number','Species','Scientific Name', 'Common Name','Conservation List', 
+                return ['Number','Species','Scientific Name', 'Common Name','Conservation List', 
                     'Conservation Category', 'Action', 'Region', 'District']
             }
         },
@@ -563,7 +563,6 @@ export default {
             let buttons = []
             if(vm.is_external){
                 columns = [
-                    vm.column_id,
                     vm.column_number,
                     vm.column_species_number,
                     vm.column_scientific_name,
@@ -582,7 +581,6 @@ export default {
             }
             if(vm.is_internal){
                 columns = [
-                    vm.column_id,
                     vm.column_number,
                     vm.column_species_number,
                     vm.column_scientific_name,
@@ -603,7 +601,6 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel', 
                         className: 'btn btn-primary ml-2', 
                         exportOptions: { 
-                            columns: ':visible',
                             orthogonal: 'export'
                         } 
                     }, 
@@ -612,7 +609,6 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV', 
                         className: 'btn btn-primary', 
                         exportOptions: { 
-                            columns: ':visible',
                             orthogonal: 'export',
                         } 
                     }, 

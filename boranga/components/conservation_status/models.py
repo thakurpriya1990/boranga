@@ -196,7 +196,7 @@ class SpeciesConservationStatus(ConservationStatus):
     def save(self, *args, **kwargs):
         super(SpeciesConservationStatus, self).save(*args,**kwargs)
         if self.conservation_status_number == '':
-            new_conservation_status_id = 'CS{0:06d}'.format(self.pk)
+            new_conservation_status_id = 'CS{}'.format(str(self.pk))
             self.conservation_status_number = new_conservation_status_id
             self.save()
 
@@ -217,6 +217,6 @@ class CommunityConservationStatus(ConservationStatus):
     def save(self, *args, **kwargs):
         super(CommunityConservationStatus, self).save(*args,**kwargs)
         if self.conservation_status_number == '':
-            new_conservation_status_id = 'CS{0:06d}'.format(self.pk)
+            new_conservation_status_id = 'CS{}'.format(str(self.pk))
             self.conservation_status_number = new_conservation_status_id
             self.save()
