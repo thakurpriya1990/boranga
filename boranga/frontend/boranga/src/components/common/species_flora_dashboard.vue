@@ -1,6 +1,6 @@
 <template id="species_flora_dashboard">
     <div>
-        <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
+        <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
@@ -83,13 +83,14 @@
                         </select>
                     </div>
                 </div>
-
-                <div v-if="newFloraVisibility" class="col-md-3 pull-right">
-                <button @click.prevent="createFlora"
-                    class="btn btn-primary pull-right">New Flora</button>
-                </div>
             </div>
         </CollapsibleFilters>
+
+        <div v-if="newFloraVisibility" class="col-md-12">
+            <div class="text-end">
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFlora"><i class="fa-solid fa-circle-plus"></i> New Flora </button>
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-lg-12">

@@ -63,25 +63,23 @@
                                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                 <input type='hidden' name="species_community_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
-                                    <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5;">
-                                        <div class="navbar-inner">
-                                            <div class="container">
-                                                <p class="pull-right">
-                                                    <button v-if="savingSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
-                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
-                                                    @click.prevent="save()" :disabled="saveExitSpeciesCommunity || submitSpeciesCommunity">Save and Continue</button>
-                                                    
-                                                    <button v-if="saveExitSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
-                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
-                                                    @click.prevent="save_exit()" :disabled="savingSpeciesCommunity || submitSpeciesCommunity">Save and Exit</button>
+                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                        <div class="container">
+                                            <div class="col-md-12 text-end">
+                                                <button v-if="savingSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                @click.prevent="save()" :disabled="saveExitSpeciesCommunity || submitSpeciesCommunity">Save and Continue</button>
+                                                
+                                                <button v-if="saveExitSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                @click.prevent="save_exit()" :disabled="savingSpeciesCommunity || submitSpeciesCommunity">Save and Exit</button>
 
-                                                    <button v-if="submitSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
-                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
-                                                    @click.prevent="submit()" :disbaled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
-                                                </p>
+                                                <button v-if="submitSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                @click.prevent="submit()" :disbaled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
                                             </div>
                                         </div>
                                     </div>
