@@ -2,24 +2,54 @@
     <div>
         <div class="col-md-12">
 
-            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-              <li v-if="is_internal" class="nav-item">
-                <a class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="true">
+            <ul v-if="is_internal" class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+              <li class="nav-item">
+                <a 
+                    class="nav-link" 
+                    id="pills-profile-tab" 
+                    data-bs-toggle="pill" 
+                    href="#pills-profile" 
+                    role="tab" 
+                    aria-controls="pills-profile" 
+                    aria-selected="true">
                   Profile
                 </a>
               </li>
-              <li v-if="is_internal" class="nav-item">
-                <a class="nav-link" id="pills-documents-tab" data-bs-toggle="pill" href="#pills-documents" role="tab" aria-controls="pills-documents" aria-selected="false">
+              <li class="nav-item">
+                <a 
+                    class="nav-link" 
+                    id="pills-documents-tab" 
+                    data-bs-toggle="pill" 
+                    href="#pills-documents" 
+                    role="tab" 
+                    aria-controls="pills-documents" 
+                    aria-selected="false"
+                    @click="tabClicked()">
                   Documents
                 </a>
               </li>
-              <li v-if="is_internal" class="nav-item">
-                <a class="nav-link" id="pills-threats-tab" data-bs-toggle="pill" href="#pills-threats" role="tab" aria-controls="pills-threats" aria-selected="false">
+              <li class="nav-item">
+                <a 
+                    class="nav-link" 
+                    id="pills-threats-tab" 
+                    data-bs-toggle="pill" 
+                    href="#pills-threats" 
+                    role="tab" 
+                    aria-controls="pills-threats" 
+                    aria-selected="false"
+                    @click="tabClicked()">
                   Threats
                 </a>
               </li>
-              <li v-if="is_internal" class="nav-item" id="li-relate-items">
-                <a class="nav-link" id="pills-related-items-tab" data-bs-toggle="pill" href="#pills-related-items" role="tab" aria-controls="pills-related-items" aria-selected="false">
+              <li class="nav-item">
+                <a 
+                    class="nav-link" 
+                    id="pills-related-items-tab" 
+                    data-bs-toggle="pill" 
+                    href="#pills-related-items" 
+                    role="tab" 
+                    aria-controls="pills-related-items" 
+                    aria-selected="false">
                   Related Items
                 </a>
               </li>
@@ -28,55 +58,62 @@
               <div class="tab-pane fade show active" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
                 <Community
                     v-if="isCommunity"  
-                    :species_community="species_community" 
-                    id="communityInformation" 
                     ref="community_information" 
-                    :is_internal="is_internal">
+                    id="communityInformation" 
+                    :is_internal="is_internal"
+                    :species_community="species_community">
                 </Community>
                 <Species
                     v-else
-                    :species_community="species_community" 
-                    id="speciesInformation" 
                     ref="species_information" 
-                    :is_internal="is_internal">
+                    id="speciesInformation" 
+                    :is_internal="is_internal"
+                    :species_community="species_community">
                 </Species>
               </div>
               <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
                 <CommunityDocuments 
                     v-if="isCommunity"
-                    :species_community="species_community" 
-                    id="communityDocuments" 
+                    :key="reloadcount"
                     ref="community_documents" 
-                    :is_internal="is_internal">
+                    id="communityDocuments" 
+                    :is_internal="is_internal"
+                    :species_community="species_community">
                 </CommunityDocuments>
                 <SpeciesDocuments 
-                    v-else
-                    :species_community="species_community" 
-                    id="speciesDocuments" 
+                    v-else 
+                    :key="reloadcount"
                     ref="species_documents" 
-                    :is_internal="is_internal">
+                    id="speciesDocuments" 
+                    :is_internal="is_internal"
+                    :species_community="species_community">
                 </SpeciesDocuments>
               </div>
               <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
                 <CommunityThreats 
                     v-if="isCommunity"
-                    :species_community="species_community" 
-                    id="communityThreats" 
+                    :key="reloadcount"
                     ref="community_threats" 
-                    :is_internal="is_internal">
+                    id="communityThreats" 
+                    :is_internal="is_internal"
+                    :species_community="species_community">
                 </CommunityThreats>
                 <SpeciesThreats
                     v-else 
-                    :species_community="species_community" 
-                    id="speciesThreats" 
+                    :key="reloadcount"
                     ref="species_threats" 
-                    :is_internal="is_internal">
+                    id="speciesThreats" 
+                    :is_internal="is_internal"
+                    :species_community="species_community">
                 </SpeciesThreats>
               </div>
-              <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
+              <div class="tab-pane fade" id="pills-related-items" role="tabpanel" 
+                aria-labelledby="pills-related-items-tab">
                 <RelatedItems 
-                    :species_community="species_community" 
-                    id="speciesRelatedItems">
+                    ref="species_related_items" 
+                    id="speciesRelatedItems"
+                    :is_internal="is_internal"
+                    :species_community="species_community">
                 </RelatedItems>
               </div>
             </div>
@@ -111,6 +148,7 @@
         data:function () {
             return{
                 values:null,
+                reloadcount:0,
             }
         },
         components: {
@@ -129,12 +167,16 @@
 
         },
         methods:{
-            set_tabs:function(){
+            //----function to resolve datatable exceeding beyond the div
+            tabClicked: function(param){
+                this.reloadcount = this.reloadcount+1;
+            },
+            /*set_tabs:function(){
                 let vm = this;
 
-                /* set Applicant tab Active */
+                 set profile tab Active 
                 //$('#pills-tab a[href="#pills-profile"]').tab('show');
-            },
+            },*/
             eventListener: function(){
               let vm=this;
             },
@@ -142,12 +184,9 @@
         },
         mounted: function() {
             let vm = this;
-            vm.set_tabs();
+            //vm.set_tabs();
             vm.form = document.forms.new_species;
             vm.eventListener();
-            //window.addEventListener('beforeunload', vm.leaving);
-            //indow.addEventListener('onblur', vm.leaving);
-
         }
  
     }

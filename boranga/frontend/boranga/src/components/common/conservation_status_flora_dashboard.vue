@@ -503,7 +503,7 @@ export default {
             return {
                 data: "region",
                 orderable: true,
-                searchable: false, // handles by filter_queryset override method
+                searchable: true, // handles by filter_queryset override method
                 visible: true,
                 'render': function(data, type, full){
                     if (full.region){
@@ -612,7 +612,6 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel', 
                         className: 'btn btn-primary ml-2', 
                         exportOptions: { 
-                            columns: ':visible',
                             orthogonal: 'export'
                         } 
                     }, 
@@ -621,7 +620,6 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV', 
                         className: 'btn btn-primary', 
                         exportOptions: { 
-                            columns: ':visible',
                             orthogonal: 'export',
                         } 
                     }, 
@@ -637,7 +635,7 @@ export default {
                 //lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
-                searching: search,
+                searching: true,
                 ajax: {
                     "url": this.url,
                     "dataSrc": 'data',
