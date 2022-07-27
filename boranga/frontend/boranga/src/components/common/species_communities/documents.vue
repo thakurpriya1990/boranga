@@ -4,12 +4,15 @@
             <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
-                    <button @click.prevent="newDocument" style="margin-bottom:10px;" class="btn btn-primary pull-right">
-                        Add Document
-                    </button>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
+                            <i class="fa-solid fa-circle-plus"></i>
+                                Add Document
+                        </button>
+                    </div>
                 </div>
                 <div>
-                    <datatable ref="documents_datatable" :id="'documents-datatable-'+_uid" :dtOptions="documents_options"
+                    <datatable ref="documents_datatable" :id="panelBody" :dtOptions="documents_options"
                     :dtHeaders="documents_headers"/>
                 </div>
             </form>
@@ -46,26 +49,26 @@ export default {
                 species_document_url: api_endpoints.species_documents,
                 documents_headers:['Number','Category', 'Sub Category','Document','Action','Description','Date/Time'],
                 documents_options:{
-                    autowidth: false,
+                    autowidth: true,
                     language:{
                         processing: "<i class='fa fa-4x fa-spinner'></i>"
                     },
                     responsive: true,
+                    searching: true,
                     ajax:{
                         "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/documents'),
                         "dataSrc": ''
                     },
                     order: [],
                     dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
-                     "<'row'<'col-sm-12'tr>>" +
-                     "<'d-flex align-items-center'<'me-auto'i>p>",
+                         "<'row'<'col-sm-12'tr>>" +
+                         "<'d-flex align-items-center'<'me-auto'i>p>",
                     buttons:[
                         {
                             extend: 'excel',
                             text: '<i class="fa-solid fa-download"></i> Excel',
                             className: 'btn btn-primary ml-2',
                             exportOptions: {
-                                columns: ':visible',
                                 orthogonal: 'export' 
                             }
                         },
@@ -74,7 +77,6 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> CSV',
                             className: 'btn btn-primary',
                             exportOptions: {
-                                columns: ':visible',
                                 orthogonal: 'export' 
                             }
                         },
@@ -179,6 +181,7 @@ export default {
                     processing:true,
                     initComplete: function() {
                         helpers.enablePopovers();
+                        console.log(123);
                     }, 
                 }
             }
@@ -310,8 +313,9 @@ export default {
             this.$nextTick(() => {
                 vm.addEventListeners();
                 //vm.initialiseSearch();
-        });
-        }
+            });
+        },
+
     }
 </script>
 

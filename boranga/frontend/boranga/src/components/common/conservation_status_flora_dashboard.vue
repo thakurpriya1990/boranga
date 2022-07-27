@@ -1,6 +1,6 @@
 <template id="species_flora_cs_dashboard">
     <div>
-        <CollapsibleFilters ref="collapsible_filters" @created="collapsible_component_mounted" label= "Filter">
+        <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
@@ -90,13 +90,14 @@
                         </select>
                     </div>
                 </div>
-
-                <div v-if="addFloraCSVisibility" class="col-md-3 pull-right">
-                <button @click.prevent="createFlora"
-                    class="btn btn-primary pull-right">Add Conservation Satus</button>
-                </div>
             </div>
         </CollapsibleFilters>
+
+        <div v-if="addFloraCSVisibility" class="col-md-12">
+            <div class="text-end">
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFlora"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-lg-12">
@@ -502,7 +503,7 @@ export default {
             return {
                 data: "region",
                 orderable: true,
-                searchable: false, // handles by filter_queryset override method
+                searchable: true, // handles by filter_queryset override method
                 visible: true,
                 'render': function(data, type, full){
                     if (full.region){
@@ -611,7 +612,6 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel', 
                         className: 'btn btn-primary ml-2', 
                         exportOptions: { 
-                            columns: ':visible',
                             orthogonal: 'export'
                         } 
                     }, 
@@ -620,7 +620,6 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV', 
                         className: 'btn btn-primary', 
                         exportOptions: { 
-                            columns: ':visible',
                             orthogonal: 'export',
                         } 
                     }, 
@@ -636,7 +635,7 @@ export default {
                 //lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
-                searching: search,
+                searching: true,
                 ajax: {
                     "url": this.url,
                     "dataSrc": 'data',
