@@ -22,6 +22,9 @@ from boranga.components.proposals.mixins import ReferralOwnerMixin
 #from ledger.checkout.utils import create_basket_session, create_checkout_session, place_order_submission, get_cookie_basket
 from django.core.management import call_command
 import json
+import os
+import mimetypes
+
 from decimal import Decimal
 
 import logging
@@ -166,4 +169,28 @@ class ManagementCommandsView(LoginRequiredMixin, TemplateView):
 
         return render(request, self.template_name, data)
 
+
+def getPrivateFile(request):
+  allow_access = False
+  # Add permission rules
+  allow_access = True
+  ####
+
+  #if request.user.is_superuser:
+  if allow_access == True:
+      file_name_path =  request.path 
+      full_file_path= settings.BASE_DIR+file_name_path
+      if os.path.isfile(full_file_path) is True:
+              extension = file_name_path[-3:] 
+              the_file = open(full_file_path, 'rb')
+              the_data = the_file.read()
+              the_file.close()
+              if extension == 'msg':
+                  return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+              if extension == 'eml':
+                  return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+
+              return HttpResponse(the_data, content_type=mimetypes.types_map['.'+str(extension)])
+  else:
+              return
 
