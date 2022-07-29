@@ -3,7 +3,8 @@ from django.core.exceptions import ImproperlyConfigured
 import os, hashlib
 import confy
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-confy.read_environment_file(BASE_DIR+"/.env")
+if os.path.exists(BASE_DIR+"/.env"):
+    confy.read_environment_file(BASE_DIR+"/.env")
 os.environ.setdefault("BASE_DIR", BASE_DIR)
 
 from ledger_api_client.settings_base import *
@@ -231,3 +232,15 @@ LOGGING['loggers']['boranga'] = {
         }
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
+
+
+# Use git commit hash for purging cache in browser for deployment changes
+GIT_COMMIT_HASH = ''
+GIT_COMMIT_DATE = ''
+if  os.path.isdir(BASE_DIR+'/.git/') is True:
+    GIT_COMMIT_DATE = os.popen('cd '+BASE_DIR+' ; git log -1 --format=%cd').read()
+    GIT_COMMIT_HASH = os.popen('cd  '+BASE_DIR+' ; git log -1 --format=%H').read()
+if len(GIT_COMMIT_HASH) == 0:
+    GIT_COMMIT_HASH = os.popen('cat /app/git_hash').read()
+    if len(GIT_COMMIT_HASH) == 0:
+       print ("ERROR: No git hash provided")
