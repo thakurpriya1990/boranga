@@ -341,8 +341,6 @@ class Community(models.Model):
     district = models.ForeignKey(District, 
                                  default=None,
                                  on_delete=models.CASCADE, null=True, blank=True)
-    #conservation_status = models.OneToOneField(ConservationStatus,
-    #                                       on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
 
     class Meta:

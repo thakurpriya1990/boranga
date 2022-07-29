@@ -18,7 +18,8 @@
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Genus:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="genus" placeholder="" 
+                    <input :disabled="species_community.readonly" type="text" class="form-control" id="genus" 
+                    placeholder="" 
                     v-model="species_community.taxonomy_details.genus"/>
                 </div>
             </div>
