@@ -3,12 +3,15 @@
         <FormSection :formCollapse="false" label="Threats" Index="threats">
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
-                    <button @click.prevent="newThreat" style="margin-bottom:10px;" class="btn btn-primary pull-right">
-                        Add Threat
-                    </button>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
+                            <i class="fa-solid fa-circle-plus"></i>
+                                Add Threat
+                        </button>
+                    </div>
                 </div>
                 <div>
-                    <datatable ref="threats_datatable" :id="'threats-datatable-'+_uid" :dtOptions="threats_options"
+                    <datatable ref="threats_datatable" :id="panelBody" :dtOptions="threats_options"
                     :dtHeaders="threats_headers"/>
                 </div>
             </form>
@@ -51,6 +54,7 @@ export default {
                         processing: "<i class='fa fa-4x fa-spinner'></i>"
                     },
                     responsive: true,
+                    searching: true,
                     ajax:{
                         "url": helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/threats'),
                         "dataSrc": ''
@@ -65,7 +69,6 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> Excel',
                             className: 'btn btn-primary ml-2',
                             exportOptions: {
-                                columns: ':visible',
                                 orthogonal: 'export' 
                             }
                         },
@@ -74,7 +77,6 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> CSV',
                             className: 'btn btn-primary',
                             exportOptions: {
-                                columns: ':visible',
                                 orthogonal: 'export' 
                             }
                         },

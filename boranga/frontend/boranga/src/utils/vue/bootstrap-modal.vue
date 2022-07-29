@@ -1,17 +1,18 @@
 <template id="bootstrap-modal">
     <div v-show="show" :transition="transition">
         <div class="modal" @click.self="clickMask">
-            <div class="modal-dialog" :class="modalClass" role="document">
+            <div class="modal-dialog" :class="modalClass">
                 <div class="modal-content">
                     <!--Header-->
                     <slot name="header">
                         <div class="modal-header">
-                            <a type="button" class="close" @click="cancel">x</a>
+                            <!-- <a type="button" class="close" @click="cancel">x</a> -->
                             <h4 class="modal-title">
                                 <slot name="title">
                                     {{title}}
                                 </slot>
                             </h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="cancel"></button>
                         </div>
                     </slot>
                     <!--Container-->
@@ -21,14 +22,15 @@
                     <!--Footer-->
                     <div class="modal-footer">
                         <slot name="footer">
-                            <button id="okBtn" type="button" :class="okClass" @click="ok">{{okText}}</button>
-                            <button type="button" :class="cancelClass" @click="cancel">{{cancelText}}</button>
+                            <button v-if="showOK" id="okBtn" type="button" :class="okClass" @click="ok">{{okText}}</button>
+                            <button v-if="showCancel" type="button" :class="cancelClass" @click="cancel">{{cancelText}}</button>
                         </slot>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="modal-backdrop in"></div>
+        SHOW NOW
+        <div class="modal-backdrop show"></div>
     </div>
 </template>
 
@@ -37,7 +39,6 @@
      * Bootstrap Style Modal Component for Vue
      * Depend on Bootstrap.css
      */
-
      export default {
         props: {
             title: {
@@ -64,6 +65,14 @@
                 type: String,
                 default: 'modal'
             },
+            showOK: {
+                type: Boolean,
+                default: true
+            },
+            showCancel: {
+                type: Boolean,
+                default: true
+            },
             okText: {
                 type: String,
                 default: 'OK'
@@ -74,11 +83,11 @@
             },
             okClass: {
                 type: String,
-                default: 'btn btn-default'
+                default: 'btn btn-primary'
             },
             cancelClass: {
                 type: String,
-                default: 'btn btn-default'
+                default: 'btn btn-danger'
             },
             closeWhenOK: {
                 type: Boolean,
@@ -116,7 +125,6 @@
                     document.body.className += ' modal-open';
                 }
                 else {
-
                     window.setTimeout(() => {
                         document.body.className = document.body.className.replace(/\s?modal-open/, '');
                     }, this.duration || 0);
@@ -151,18 +159,8 @@
     .modal .btn {
         margin-bottom: 0px;
     }
-    .modal-header {
-        border-top-left-radius: .3rem;
-        border-top-right-radius: .3rem;
-    }
-    .modal-footer{
-        border-bottom-left-radius: .3rem;
-        border-bottom-right-radius: .3rem;
-    }
     .modal-body, .modal-footer, .modal-header {
-        /*background-color: #F5F5F5;
-        color: #333333;*/
-        background-color: #efefef;
+        background-color: #F5F5F5;
         color: #333333;
     }
     .modal-transition {
@@ -182,11 +180,8 @@
         opacity: 0;
     }
     .close {
-        font-size: 2.5rem;
-        opacity: .3;
-    }
-    .close:hover {
-        opacity: .7;
+        color: #d9534f;
+        opacity: 1;
     }
     #okBtn {
         margin-bottom: 0px;

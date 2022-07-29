@@ -7,7 +7,7 @@
                     <i :id="warning_icon_id" :title="warning_icon_title" class="fa-solid fa-exclamation-circle fa-2x filter_warning_icon"></i>
                 </div>
                 <div class="ml-2">
-                    <i :id="chevron_elem_id" class="rotate_icon fa-solid fa-chevron-down"></i>
+                    <i :id="chevron_elem_id" class="rotate_icon fa-solid fa-chevron-right"></i>
                 </div>
             </div>
 
@@ -19,8 +19,7 @@
 </template>
 
 <script>
-import uuid from 'uuid';
-
+import { v4 as uuid } from 'uuid';
 export default {
     name:"CollapsibleComponent",
     props: {
@@ -93,6 +92,6 @@ export default {
     transition: 0.5s;
 }
 .chev_rotated {
-    transform: rotate(180deg);
+    transform: rotate(90deg);
 }
 </style>
