@@ -392,7 +392,7 @@ export default {
                 'render': function(data, type, full){
                     return full.species_number
                 },
-                name: "species_number",
+                name: "species__species_number",
             }
         },
         column_scientific_name: function(){
@@ -405,7 +405,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
-                name: "scientific_name",
+                name: "species__scientific_name",
             }
         },
         column_common_name: function(){
@@ -419,7 +419,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "common_name",
+                name: "species__common_name",
             }
         },
         /*column_family: function(){
@@ -433,7 +433,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "family",
+                name: "species__species_taxonomy__family",
             }
         },
         column_genera: function(){
@@ -447,7 +447,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "genus",
+                name: "species__species_taxonomy__genus",
             }
         },*/
         column_conservation_list: function(){
@@ -463,7 +463,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "conservation_list",
+                name: "conservation_list__code",
             }
         },
         column_conservation_category: function(){
@@ -479,7 +479,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "conservation_category",
+                name: "conservation_category__code",
             }
         },
         /*column_workflow_status: function(){
@@ -512,7 +512,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "region",
+                name: "species__region__name",
             }
         },
         column_district: function(){
@@ -528,7 +528,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "district",
+                name: "species__district__name",
             }
         },
         column_action: function(){
