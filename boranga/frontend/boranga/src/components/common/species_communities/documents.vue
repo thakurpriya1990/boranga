@@ -181,7 +181,6 @@ export default {
                     processing:true,
                     initComplete: function() {
                         helpers.enablePopovers();
-                        console.log(123);
                     }, 
                 }
             }

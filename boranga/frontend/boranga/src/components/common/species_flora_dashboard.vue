@@ -435,7 +435,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "family",
+                name: "species_taxonomy__family",
             }
         },
         column_genera: function(){
@@ -449,7 +449,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "genus",
+                name: "species_taxonomy__genus",
             }
         },
         column_conservation_list: function(){
@@ -465,7 +465,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "conservation_list",
+                name: "conservation_status__conservation_list__code",
             }
         },
         column_conservation_category: function(){
@@ -481,7 +481,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "conservation_category",
+                name: "conservation_status__conservation_category__code",
             }
         },
         column_workflow_status: function(){
@@ -514,7 +514,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "region",
+                name: "region__name",
             }
         },
         column_district: function(){
@@ -530,7 +530,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "district",
+                name: "district__name",
             }
         },
         column_action: function(){

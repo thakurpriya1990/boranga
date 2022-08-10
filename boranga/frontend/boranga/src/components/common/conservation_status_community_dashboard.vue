@@ -359,7 +359,7 @@ export default {
                 'render': function(data, type, full){
                     return full.community_number
                 },
-                name: "community_number",
+                name: "community__community_number",
             }
         },
         column_community_id: function(){
@@ -372,7 +372,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
-                name: "community_migrated_id",
+                name: "community__community_migrated_id",
             }
         },
         column_community_name: function(){
@@ -386,7 +386,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "community_name",
+                name: "community__community_name",
             }
         },
         column_community_status: function(){
@@ -400,7 +400,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "community_status",
+                name: "community__community_status",
             }
         },
         column_conservation_list: function(){
@@ -414,7 +414,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_list",
+                name: "conservation_list__code",
             }
         },
         column_conservation_category: function(){
@@ -428,7 +428,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_category",
+                name: "conservation_category__code",
             }
         },
         column_workflow_status: function(){
@@ -444,7 +444,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "community_status",
+                name: "community__community_status",
             }
         },
         column_region: function(){
@@ -460,7 +460,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "region",
+                name: "community__region__name",
             }
         },
         column_district: function(){
@@ -476,7 +476,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "district",
+                name: "community__district__name",
             }
         },
         column_action: function(){
