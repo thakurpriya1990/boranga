@@ -10,13 +10,6 @@
                 </div>
             </div>
             <div class="row form-group">
-                <label for="" class="col-sm-3 control-label">Community ID:</label>
-                <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="community_id" placeholder=""
-                     v-model="species_community.community_id"/>
-                </div>
-            </div>
-            <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Community Name:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="species_community.readonly" type="text" class="form-control" id="community_name" placeholder=""
@@ -24,9 +17,17 @@
                 </div>
             </div>
             <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Community ID:</label>
+                <div class="col-sm-9">
+                    <input :disabled="species_community.readonly" type="text" class="form-control" 
+                    id="community_migrated_id" placeholder=""
+                    v-model="species_community.community_migrated_id"/>
+                </div>
+            </div>
+            <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Community Description:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="species_community.readonly" class="form-control" id="community_description" placeholder=""
+                    <textarea :disabled="species_community.readonly" class="form-control" rows="3" id="community_description" placeholder=""
                     v-model="species_community.community_description"/>
                 </div>
             </div>
@@ -37,12 +38,35 @@
                     v-model="species_community.community_status"/>
                 </div>
             </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Previous Name:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="species_community.readonly" class="form-control" id="community_previous_name" placeholder="" v-model="species_community.previous_name"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Name Authority:</label>
+                <div class="col-sm-9">
+                    <select :disabled="species_community.readonly" class="form-select" id="community_name_authority"
+                        v-model="species_community.name_authority_id">
+                        <option v-for="option in name_authority_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Name Comments:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="species_community.readonly" class="form-control" id="community_comment" placeholder="" v-model="species_community.name_comments"/>
+                </div>
+            </div>
         </FormSection>
         <FormSection :formCollapse="false" label="Distribution" Index="distribution">
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">Region :</label>
                 <div class="col-sm-9">
-                    <select :disabled="species_community.readonly" class="form-control" @change="filterDistrict($event)" v-model="species_community.region_id" placeholder="Select Region">
+                    <select :disabled="species_community.readonly" class="form-select" @change="filterDistrict($event)" v-model="species_community.region_id" placeholder="Select Region">
                         <option v-for="option in region_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
@@ -52,7 +76,7 @@
             <div class="row form-group">
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
-                    <select :disabled="species_community.readonly" class="form-control" v-model="species_community.district_id" placeholder="Select District">
+                    <select :disabled="species_community.readonly" class="form-select" v-model="species_community.district_id" placeholder="Select District">
                         <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
@@ -79,6 +103,92 @@
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="number" class="form-control" id="community_original_area_reference" placeholder=""
                     v-model="species_community.distribution.community_original_area_reference"/>
+                </div>
+            </div>
+        </FormSection>
+        <FormSection :formCollapse="false" label="Conservation Attributes" Index="conservation_attributes">
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Habitat/Growth Form:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="species_community.readonly" type="text" class="form-control" 
+                    id="habitat_growth_form" placeholder="" 
+                    v-model="species_community.conservation_attributes.habitat_growth_form"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
+                <div class="col-sm-9">
+                    <select :disabled="species_community.readonly" class="form-select" 
+                        v-model="species_community.conservation_attributes.pollinator_information_id">
+                        <option v-for="option in pollinator_info_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Minimum Fire Interval:</label>
+                <div class="col-sm-9">
+                    <input :disabled="species_community.readonly" type="text" class="form-control" 
+                    id="minimum_fire_interval" placeholder="" 
+                    v-model="species_community.conservation_attributes.minimum_fire_interval"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Response to Fire:</label>
+                <div class="col-sm-9">
+                    <input :disabled="species_community.readonly" type="text" class="form-control" id="response_to_fire" placeholder="" v-model="species_community.conservation_attributes.response_to_fire"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Post Fire Habitat Interactions:</label>
+                <div class="col-sm-9">
+                    <select :disabled="species_community.readonly" class="form-select" 
+                        v-model="species_community.conservation_attributes.post_fire_habitat_interaction_id">
+                        <option v-for="option in post_fire_habitatat_interactions_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Hydrology:</label>
+                <div class="col-sm-9">
+                    <input :disabled="species_community.readonly" type="text" class="form-control" id="hydrology" 
+                    placeholder="" v-model="species_community.conservation_attributes.hydrology"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Ecological Community Ecological and Biological Information:
+                </label>
+                <div class="col-sm-9">
+                    <textarea :disabled="species_community.readonly" type="text" class="form-control" 
+                    id="ecological_biological_information" placeholder="" 
+                    v-model="species_community.conservation_attributes.ecological_and_biological_information"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Research Requirements:</label>
+                <div class="col-sm-9">
+                    <input :disabled="species_community.readonly" type="text" class="form-control" 
+                    id="research_requirements" 
+                    placeholder="" v-model="species_community.conservation_attributes.research_requirements"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Response to Dieback:</label>
+                <div class="col-sm-9">
+                    <input :disabled="species_community.readonly" type="text" class="form-control" 
+                    id="response_to_dieback" 
+                    placeholder="" v-model="species_community.conservation_attributes.response_to_dieback"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <label for="" class="col-sm-3 control-label">Other relevant diseases:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="species_community.readonly" type="text" class="form-control" 
+                    id="other_relevant_diseases" 
+                    placeholder="" v-model="species_community.conservation_attributes.other_relevant_diseases"/>
                 </div>
             </div>
         </FormSection>
@@ -134,6 +244,10 @@ export default {
                     allowInputToggle:true,
                 },
                 species_list: [],
+                community_profile_dict: {},
+                name_authority_list: [],
+                pollinator_info_list: [],
+                post_fire_habitatat_interactions_list: [],
                 region_list: [],
                 district_list: [],
                 filtered_district_list: [],
@@ -189,6 +303,27 @@ export default {
             //-----fetch species_list
             const res = await Vue.http.get('/api/species/species_list.json');
             vm.species_list= res.body.data;
+            //------fetch list of values
+            const res_obj = await Vue.http.get('/api/community_profile_dict/');
+            vm.community_profile_dict = res_obj.body;
+            vm.name_authority_list = vm.community_profile_dict.name_authority_list;
+            vm.name_authority_list.splice(0,0,
+                {
+                    id: null,
+                    name: null,
+                });
+            vm.pollinator_info_list = vm.community_profile_dict.pollinator_info_list;
+            vm.pollinator_info_list.splice(0,0,
+                {
+                    id: null,
+                    name: null,
+                });
+            vm.post_fire_habitatat_interactions_list = vm.community_profile_dict.post_fire_habitatat_interactions_list;
+            vm.post_fire_habitatat_interactions_list.splice(0,0,
+                {
+                    id: null,
+                    name: null,
+                });
             const response = await Vue.http.get('/api/region_district_filter_dict/');
             vm.filterRegionDistrict= response.body;
             vm.region_list= vm.filterRegionDistrict.region_list;

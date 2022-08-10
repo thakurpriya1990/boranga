@@ -200,7 +200,6 @@ class Species(models.Model):
                                    default="None", null=True, blank=True)
     name_currency = models.CharField(max_length=16,
                                      default="None", null=True, blank=True) # is it the current name? yes or no
-    #taxonomy = models.OneToOneField(Taxonomy, on_delete=models.CASCADE, null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
@@ -230,35 +229,80 @@ class Species(models.Model):
         return '{}-{}'.format(self.species_number,self.species_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
 
 
+class Family(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - Taxonomy
+
+    """
+    name = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
+class PhylogeneticGroup(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - Taxonomy
+
+    """
+    name = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
+class Genus(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - Taxonomy
+
+    """
+    name = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
 class Taxonomy(models.Model):
     """
     Description from wacensus, to get the main name then fill in everything else
 
     Has a:
-    - ConservationList
-    - ConservationCategory
-    - ConservationCriteria
     Used by:
     - Species
-    - Communities
     Is:
     - Table
     """
+    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_taxonomy")
     taxon = models.CharField(max_length=512,
                              default="None", null=True, blank=True)  # flora and fauna, name
     taxon_id = models.IntegerField(default=-1, null=True, blank=True)  # flora and fauna, name
 
-    previous_name = models.CharField(max_length=512,
-                                     default="None", null=True, blank=True)
-    family = models.CharField(max_length=512,
-                              default="None", null=True, blank=True)
-    genus = models.CharField(max_length=512,
-                             default="None", null=True, blank=True)
-    phylogenetic_group = models.CharField(max_length=512,
-                                          default="None", null=True, blank=True)
+    previous_name = models.CharField(max_length=512,null=True, blank=True)
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True)
+    genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
+    # phylogenetic_group is only used for Fauna 
+    phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True)
     name_authority = models.ForeignKey(NameAuthority,
                                        on_delete=models.CASCADE,null=True,blank=True)
-    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_taxonomy")
+    name_comments = models.CharField(max_length=500,null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -331,25 +375,27 @@ class Community(models.Model):
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
     species = models.ManyToManyField(Species, null=True, blank=True)
-    community_id = models.CharField(max_length=200, null=True, blank=True)
+    community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
     community_name = models.CharField(max_length=2048, null=True, blank=True)
     community_status = models.CharField(max_length=128, null=True, blank=True)
     community_description = models.CharField(max_length=2048, null=True, blank=True)
+    previous_name = models.CharField(max_length=512,null=True, blank=True)
+    name_authority = models.ForeignKey(NameAuthority,
+                                       on_delete=models.CASCADE,null=True,blank=True)
+    name_comments = models.CharField(max_length=500,null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
     district = models.ForeignKey(District, 
                                  default=None,
                                  on_delete=models.CASCADE, null=True, blank=True)
-    #conservation_status = models.OneToOneField(ConservationStatus,
-    #                                       on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.community_id)
+        return '{}-{}'.format(self.community_number,self.community_name)
 
     def save(self, *args, **kwargs):
         # Prefix "C" char to community_number.
@@ -797,66 +843,233 @@ class ConservationPlan(models.Model):
     def __str__(self):
         return str(self.threat_category)  # TODO: is the most appropriate?
 
-
-class ConservationAttributes(models.Model):
+# list used in Conservation Attributes
+class FloweringPeriod(models.Model):
     """
-    Additional meta-data particularly of use to administration.
+    # list derived from WACensus
 
     Used by:
+    - SpeciesConservationAttributes
+
+    """
+    period = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.period)
+
+
+class FruitingPeriod(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - SpeciesConservationAttributes
+
+    """
+    period = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.period)
+
+
+class FloraRecruitmentType(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - SpeciesConservationAttributes
+
+    """
+    recruitment_type = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.recruitment_type)
+
+
+class SeedViabilityGerminationInfo(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - SpeciesConservationAttributes
+
+    """
+    name = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
+class RootMorphology(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - SpeciesConservationAttributes
+
+    """
+    name = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
+class PollinatorInformation(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - SpeciesConservationAttributes
+
+    """
+    name = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
+class PostFireHabitatInteraction(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - SpeciesConservationAttributes
+
+    """
+    name = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
+class BreedingPeriod(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - SpeciesConservationAttributes
+
+    """
+    period = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.period)
+
+
+class FaunaBreeding(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - SpeciesConservationAttributes
+
+    """
+    breeding_type = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.breeding_type)
+
+
+class SpeciesConservationAttributes(models.Model):
+    """
+    Species conservation attributes data.
+
+    Used for:
     - Species
     Is:
     - Table
     """
-    general_management_advice = models.CharField(max_length=512,
-                                                 default="None", null=True, blank=True)
-    ecological_attributes = models.CharField(max_length=512,
-                                             default="None", null=True, blank=True)
-    biological_attributes = models.CharField(max_length=512,
-                                             default="None", null=True, blank=True)
-    specific_survey_advice = models.CharField(max_length=512,
-                                              default="None", null=True, blank=True)
-
     species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_conservation_attributes")
-    comments = models.CharField(max_length=2048,
-                                default="None", null=True, blank=True)
+    
+    # flora related attributes
+    flowering_period = models.ForeignKey(FloweringPeriod, on_delete=models.SET_NULL, null=True, blank=True)
+    fruiting_period = models.ForeignKey(FruitingPeriod, on_delete=models.SET_NULL, null=True, blank=True)
+    flora_recruitment_type = models.ForeignKey(FloraRecruitmentType, on_delete=models.SET_NULL, null=True, blank=True)
+    seed_viability_germination_info = models.ForeignKey(SeedViabilityGerminationInfo, on_delete=models.SET_NULL, null=True, blank=True)
+    root_morphology = models.ForeignKey(RootMorphology, on_delete=models.SET_NULL, null=True, blank=True)
+    pollinator_information = models.ForeignKey(PollinatorInformation, on_delete=models.SET_NULL, null=True, blank=True)
+    hydrology = models.CharField(max_length=200, null=True, blank=True)
+    response_to_dieback = models.CharField(max_length=500, null=True, blank=True)
+
+    # fauna related attributes
+    breeding_period = models.ForeignKey(BreedingPeriod, on_delete=models.SET_NULL, null=True, blank=True)
+    fauna_breeding = models.ForeignKey(FaunaBreeding, on_delete=models.SET_NULL, null=True, blank=True)
+    fauna_reproductive_capacity = models.IntegerField(default=0, null=True, blank=True)
+    diet_and_food_source = models.CharField(max_length=200, null=True, blank=True)
+    home_range = models.CharField(max_length=200, null=True, blank=True)
+
+    # flora and fauna common attributes
+    habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
+    time_to_maturity = models.IntegerField(default=0, null=True, blank=True)
+    generation_length = models.IntegerField(default=0, null=True, blank=True)
+    average_lifespan = models.IntegerField(default=0, null=True, blank=True)
+    minimum_fire_interval = models.CharField(max_length=200, null=True, blank=True)
+    response_to_fire = models.CharField(max_length=200, null=True, blank=True)
+    post_fire_habitat_interaction = models.ForeignKey(PostFireHabitatInteraction, on_delete=models.SET_NULL, null=True, blank=True)
+    response_to_disturbance = models.CharField(max_length=500, null=True, blank=True)
+    habitat = models.CharField(max_length=200, null=True, blank=True)
+    research_requirements = models.CharField(max_length=500, null=True, blank=True)
+    other_relevant_diseases = models.CharField(max_length=500, null=True, blank=True)
+
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        return str(self.species)  # TODO: is the most appropriate?
 
 
-# TODO Should delete this model as not required 
-class Distribution(models.Model):
+class CommunityConservationAttributes(models.Model):
     """
-    All the different locations where this species can be found.
+    Community conservation attributes data.
 
-    Has a:
-    - ConservationList
-    - ConservationCategory
-    - ConservationCriteria
-    Used by:
-    - Species
-    - Communities
+    Used for:
+    - Community
     Is:
     - Table
     """
-    department_file_numbers = models.CharField(max_length=512,
-                                               default="None")  # objective, legacy, list of things
-    number_of_occurrences = models.IntegerField(default=-1)
-    extent_of_occurrences = models.IntegerField(default=-1)
-    area_of_occupancy = models.IntegerField(default=-1)
-    number_of_iucn_locations = models.IntegerField(default=-1)
-    # Community Ecological Attributes
-    community_original_area = models.IntegerField(default=-1)
-    community_original_area_accuracy = models.IntegerField(default=-1)
-    community_original_area_reference = models.CharField(max_length=512,
-                                                         default="None")
-    species = models.OneToOneField(Species, on_delete=models.CASCADE, primary_key=True)
+    community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="community_conservation_attributes")
+
+    habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
+    pollinator_information = models.ForeignKey(PollinatorInformation, on_delete=models.SET_NULL, null=True, blank=True)
+    minimum_fire_interval = models.CharField(max_length=200, null=True, blank=True)
+    response_to_fire = models.CharField(max_length=200, null=True, blank=True)
+    post_fire_habitat_interaction = models.ForeignKey(PostFireHabitatInteraction, on_delete=models.SET_NULL, null=True, blank=True)
+    hydrology = models.CharField(max_length=200, null=True, blank=True)
+    ecological_and_biological_information = models.CharField(max_length=500, null=True, blank=True)
+    research_requirements = models.CharField(max_length=500, null=True, blank=True)
+    response_to_dieback = models.CharField(max_length=500, null=True, blank=True)
+    other_relevant_diseases = models.CharField(max_length=500, null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.community_original_area_reference)  # TODO: is the most appropriate?
+        return str(self.community)  # TODO: is the most appropriate?

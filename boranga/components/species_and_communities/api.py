@@ -26,13 +26,26 @@ from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
     Taxonomy,
+    Family,
+    PhylogeneticGroup,
+    Genus,
     NameAuthority,
     Community,
     Region,
     District,
     SpeciesDistribution,
     CommunityDistribution,
-    ConservationAttributes,
+    FloweringPeriod,
+    FruitingPeriod,
+    FloraRecruitmentType,
+    SeedViabilityGerminationInfo,
+    RootMorphology,
+    PollinatorInformation,
+    PostFireHabitatInteraction,
+    BreedingPeriod,
+    FaunaBreeding,
+    SpeciesConservationAttributes,
+    CommunityConservationAttributes,
     DocumentCategory,
     DocumentSubCategory,
     SpeciesDocument,
@@ -59,13 +72,18 @@ from boranga.components.species_and_communities.serializers import (
     SaveSpeciesSerializer,
     CreateSpeciesSerializer,
     SpeciesDistributionSerializer,
-    ConservationAttributesSerializer,
+    SaveSpeciesDistributionSerializer,
+    SpeciesConservationAttributesSerializer,
+    SaveSpeciesConservationAttributesSerializer,
     TaxonomySerializer,
     SaveTaxonomySerializer,
     InternalCommunitySerializer,
     CommunityDistributionSerializer,
+    SaveCommunityDistributionSerializer,
     SaveCommunitySerializer,
     CreateCommunitySerializer,
+    CommunityConservationAttributesSerializer,
+    SaveCommunityConservationAttributesSerializer,
     SpeciesDocumentSerializer,
     CommunityDocumentSerializer,
     SaveSpeciesDocumentSerializer,
@@ -112,20 +130,33 @@ class GetSpeciesFilterDict(views.APIView):
                         'species_id': specimen.id,
                         'scientific_name': specimen.scientific_name,
                         'common_name':specimen.common_name,
-                        # 'family':Taxonomy.objects.get(species=specimen).family,
-                        # 'phylogenetic_group':Taxonomy.objects.get(species=specimen).family.phylogenetic_group,
-                        # 'genus':Taxonomy.objects.get(species=specimen).family.genus,
                         });
-        species_taxonomy_list = []
+        family_list = []
         if group_type:
-            taxonomies = Taxonomy.objects.filter(species__group_type__name=group_type)
-            if taxonomies:
-                for taxon in taxonomies:
-                    species_taxonomy_list.append({
-                        'id': taxon.id,
-                        'family': taxon.family,
-                        'phylogenetic_group':taxon.phylogenetic_group,
-                        'genus':taxon.genus,
+            families = Family.objects.all()
+            if families:
+                for family in families:
+                    family_list.append({
+                        'id': family.id,
+                        'name': family.name,
+                        });
+        phylogenetic_group_list = []
+        if group_type:
+            phylo_groups = PhylogeneticGroup.objects.all()
+            if phylo_groups:
+                for group in phylo_groups:
+                    phylogenetic_group_list.append({
+                        'id': group.id,
+                        'name': group.name,
+                        });
+        genus_list = []
+        if group_type:
+            generas = Genus.objects.all()
+            if generas:
+                for genus in generas:
+                    genus_list.append({
+                        'id': genus.id,
+                        'name': genus.name,
                         });
         conservation_list_dict = []
         conservation_lists = ConservationList.objects.filter(applies_to_species=True)
@@ -146,7 +177,9 @@ class GetSpeciesFilterDict(views.APIView):
                     });
         res_json = {
         "species_data_list":species_data_list,
-        "species_taxonomy_list":species_taxonomy_list,
+        "family_list": family_list,
+        "phylogenetic_group_list":phylogenetic_group_list,
+        "genus_list":genus_list,
         "conservation_list_dict":conservation_list_dict,
         "conservation_category_list":conservation_category_list,
         }
@@ -163,7 +196,7 @@ class GetCommunityFilterDict(views.APIView):
                 for community in communities:
                     community_data_list.append({
                         'id': community.id,
-                        'community_id': community.community_id,
+                        'community_migrated_id': community.community_migrated_id,
                         'community_name':community.community_name,
                         'community_status':community.community_status
                         });
@@ -216,7 +249,7 @@ class GetRegionDistrictFilterDict(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
 
-class GetNameAuthorityList(views.APIView):
+class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
         name_authority_list = []
         name_authorities = NameAuthority.objects.all()
@@ -224,8 +257,141 @@ class GetNameAuthorityList(views.APIView):
             for name in name_authorities:
                 name_authority_list.append({'id': name.id,
                     'name':name.name,
-                    })
-        return Response(name_authority_list)
+                    });
+        family_list = []
+        families = Family.objects.all()
+        if families:
+            for family in families:
+                family_list.append({'id': family.id,
+                    'name':family.name,
+                    });
+        phylo_group_list = []
+        phylo_groups = PhylogeneticGroup.objects.all()
+        if phylo_groups:
+            for group in phylo_groups:
+                phylo_group_list.append({'id': group.id,
+                    'name':group.name,
+                    });
+        genus_list = []
+        generas = Genus.objects.all()
+        if generas:
+            for genus in generas:
+                genus_list.append({'id': genus.id,
+                    'name':genus.name,
+                    });
+        flowering_period_list = []
+        periods = FloweringPeriod.objects.all()
+        if periods:
+            for option in periods:
+                flowering_period_list.append({'id': option.id,
+                    'name':option.period,
+                    });
+        fruiting_period_list = []
+        periods = FruitingPeriod.objects.all()
+        if periods:
+            for option in periods:
+                fruiting_period_list.append({'id': option.id,
+                    'name':option.period,
+                    });
+        flora_recruitment_type_list = []
+        types = FloraRecruitmentType.objects.all()
+        if types:
+            for option in types:
+                flora_recruitment_type_list.append({'id': option.id,
+                    'name':option.recruitment_type,
+                    });
+        seed_viability_germination_info_list = []
+        types = SeedViabilityGerminationInfo.objects.all()
+        if types:
+            for option in types:
+                seed_viability_germination_info_list.append({'id': option.id,
+                    'name':option.name,
+                    });
+        root_morphology_list = []
+        types = RootMorphology.objects.all()
+        if types:
+            for option in types:
+                root_morphology_list.append({'id': option.id,
+                    'name':option.name,
+                    });
+        pollinator_info_list = []
+        types = PollinatorInformation.objects.all()
+        if types:
+            for option in types:
+                pollinator_info_list.append({'id': option.id,
+                    'name':option.name,
+                    });
+        post_fire_habitatat_interactions_list = []
+        types = PostFireHabitatInteraction.objects.all()
+        if types:
+            for option in types:
+                post_fire_habitatat_interactions_list.append({'id': option.id,
+                    'name':option.name,
+                    });
+        breeding_period_list = []
+        periods = BreedingPeriod.objects.all()
+        if periods:
+            for option in periods:
+                breeding_period_list.append({'id': option.id,
+                    'name':option.period,
+                    });
+        fauna_breeding_list = []
+        types = FaunaBreeding.objects.all()
+        if types:
+            for option in types:
+                fauna_breeding_list.append({'id': option.id,
+                    'name':option.breeding_type,
+                    });
+        res_json = {
+        "name_authority_list": name_authority_list,
+        "family_list": family_list,
+        "genus_list": genus_list,
+        "phylo_group_list": phylo_group_list,
+        "flowering_period_list": flowering_period_list,
+        "fruiting_period_list": fruiting_period_list,
+        "flora_recruitment_type_list": flora_recruitment_type_list,
+        "seed_viability_germination_info_list": seed_viability_germination_info_list,
+        "root_morphology_list": root_morphology_list,
+        "pollinator_info_list": pollinator_info_list,
+        "post_fire_habitatat_interactions_list": post_fire_habitatat_interactions_list,
+        "breeding_period_list": breeding_period_list,
+        "fauna_breeding_list": fauna_breeding_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+
+
+class GetCommunityProfileDict(views.APIView):
+    def get(self, request, format=None):
+        name_authority_list = []
+        name_authorities = NameAuthority.objects.all()
+        if name_authorities:
+            for name in name_authorities:
+                name_authority_list.append({'id': name.id,
+                    'name':name.name,
+                    });
+        pollinator_info_list = []
+        types = PollinatorInformation.objects.all()
+        if types:
+            for option in types:
+                pollinator_info_list.append({'id': option.id,
+                    'name':option.name,
+                    });
+        post_fire_habitatat_interactions_list = []
+        types = PostFireHabitatInteraction.objects.all()
+        if types:
+            for option in types:
+                post_fire_habitatat_interactions_list.append({'id': option.id,
+                    'name':option.name,
+                    });
+        res_json = {
+        "name_authority_list":name_authority_list,
+        "pollinator_info_list": pollinator_info_list,
+        "post_fire_habitatat_interactions_list": post_fire_habitatat_interactions_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+
 
 class SpeciesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -245,15 +411,15 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
 
         filter_phylogenetic_group = request.GET.get('filter_phylogenetic_group')
         if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
-            queryset = queryset.filter(species_taxonomy__phylogenetic_group=filter_phylogenetic_group)
+            queryset = queryset.filter(species_taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
         
         filter_family = request.GET.get('filter_family')
         if filter_family and not filter_family.lower() == 'all':
-            queryset = queryset.filter(species_taxonomy__family=filter_family)
+            queryset = queryset.filter(species_taxonomy__family__id=filter_family)
 
         filter_genus = request.GET.get('filter_genus')
         if filter_genus and not filter_genus.lower() == 'all':
-            queryset = queryset.filter(species_taxonomy__genus=filter_genus)
+            queryset = queryset.filter(species_taxonomy__genus__id=filter_genus)
         
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
@@ -327,10 +493,10 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         if filter_group_type:
             queryset = queryset.filter(group_type__name=filter_group_type)
         
-        #filter_community_id
-        filter_community_id = request.GET.get('filter_community_id')
-        if filter_community_id and not filter_community_id.lower() == 'all':
-            queryset = queryset.filter(community_id=filter_community_id)
+        #filter_community_migrated_id
+        filter_community_migrated_id = request.GET.get('filter_community_migrated_id')
+        if filter_community_migrated_id and not filter_community_migrated_id.lower() == 'all':
+            queryset = queryset.filter(community_migrated_id=filter_community_migrated_id)
 
         # filter_community_name
         filter_community_name = request.GET.get('filter_community_name')
@@ -463,8 +629,8 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                         serializer.save()
 
                 if(request_data.get('conservation_attributes')):
-                    conservation_attributes_instance, created = ConservationAttributes.objects.get_or_create(species=instance)
-                    serializer = ConservationAttributesSerializer(conservation_attributes_instance, data = request_data.get('conservation_attributes'))
+                    conservation_attributes_instance, created = SpeciesConservationAttributes.objects.get_or_create(species=instance)
+                    serializer = SaveSpeciesConservationAttributesSerializer(conservation_attributes_instance, data = request_data.get('conservation_attributes'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
@@ -496,21 +662,21 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                     new_instance = serializer.save()
                     new_returned = serializer.data
 
-                    # create ConservationAttributes for new instance
+                    # create SpeciesTaxonomy for new instance
                     data={
-                        'species': new_instance.id
+                        'species_id': new_instance.id
                     }
-                    serializer=TaxonomySerializer(data=data)
+                    serializer=SaveTaxonomySerializer(data=data)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+
+                    # create SpeciesConservationAttributes for new instance
+                    serializer=SaveSpeciesConservationAttributesSerializer(data=data)
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
 
                     # create SpeciesDistribution for new instance
-                    serializer=ConservationAttributesSerializer(data=data)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
-
-                    # create SpeciesDistribution for new instance
-                    serializer=SpeciesDistributionSerializer(data=data)
+                    serializer=SaveSpeciesDistributionSerializer(data=data)
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
                     
@@ -662,6 +828,13 @@ class CommunityViewSet(viewsets.ModelViewSet):
                     if serializer.is_valid():
                         serializer.save()
 
+                if(request_data.get('conservation_attributes')):
+                    conservation_attributes_instance, created = CommunityConservationAttributes.objects.get_or_create(community=instance)
+                    serializer = SaveCommunityConservationAttributesSerializer(conservation_attributes_instance, data = request_data.get('conservation_attributes'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+
                 serializer = SaveCommunitySerializer(instance, data = request_data)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
@@ -689,12 +862,16 @@ class CommunityViewSet(viewsets.ModelViewSet):
                     new_instance = serializer.save()
                     new_returned = serializer.data
 
-                    # create ConservationAttributes for new instance
                     data={
-                        'community': new_instance.id
+                        'community_id': new_instance.id
                     }
                     # create CommunityDistribution for new instance
-                    serializer=CommunityDistributionSerializer(data=data)
+                    serializer=SaveCommunityDistributionSerializer(data=data)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+
+                    # create CommunityConservationAttributes for new instance
+                    serializer=SaveCommunityConservationAttributesSerializer(data=data)
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
                     

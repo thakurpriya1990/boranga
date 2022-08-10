@@ -21,7 +21,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Common Name:</label>
-                        <select class="form-control" v-model="filterCSFloraCommonName">
+                        <select class="form-select" v-model="filterCSFloraCommonName">
                             <option value="all">All</option>
                             <option v-for="species in species_data_list" :value="species.common_name">{{species.common_name}}</option>
                         </select>
@@ -30,25 +30,25 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Family:</label>
-                        <select class="form-control" v-model="filterCSFloraFamily">
+                        <select class="form-select" v-model="filterCSFloraFamily">
                             <option value="all">All</option>
-                            <option v-for="species in species_taxonomy_list" :value="species.family">{{species.family}}</option>
+                            <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Genera:</label>
-                        <select class="form-control" v-model="filterCSFloraGenus">
+                        <select class="form-select" v-model="filterCSFloraGenus">
                             <option value="all">All</option>
-                            <option v-for="species in species_taxonomy_list" :value="species.genus">{{species.genus}}</option>
+                            <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation List:</label>
-                        <select class="form-control" v-model="filterCSFloraConservationList" 
+                        <select class="form-select" v-model="filterCSFloraConservationList" 
                         @change="filterConservationCategory($event)">
                             <option value="all">All</option>
                             <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
@@ -58,7 +58,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation Category:</label>
-                        <select class="form-control" v-model="filterCSFloraConservationCategory">
+                        <select class="form-select" v-model="filterCSFloraConservationCategory">
                             <option value="all">All</option>
                             <option v-for="list in filtered_conservation_category_list" :value="list.id">{{list.code}}</option>
                         </select>
@@ -67,7 +67,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Workflow Status:</label>
-                        <select class="form-control">
+                        <select class="form-select">
                             <option value="All">All</option>
                         </select>
                     </div>
@@ -75,7 +75,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-control" v-model="filterCSFloraRegion">
+                        <select class="form-select" v-model="filterCSFloraRegion">
                             <option value="all">All</option>
                             <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
                         </select>
@@ -84,7 +84,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">District:</label>
-                        <select class="form-control" v-model="filterCSFloraDistrict">
+                        <select class="form-select" v-model="filterCSFloraDistrict">
                             <option value="all">All</option>
                             <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
                         </select>
@@ -231,8 +231,9 @@ export default {
             //Filter list for scientific name and common name
             filterListsSpecies: {},
             species_data_list: [],
-            demo_list: [],
             species_taxonomy_list: [],
+            family_list: [],
+            genus_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
             filtered_conservation_category_list: [],
@@ -632,7 +633,10 @@ export default {
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
                 },
-                //lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                order: [
+                    [0, 'desc']
+                ],
+                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: true,
@@ -714,7 +718,8 @@ export default {
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.species_data_list = vm.filterListsSpecies.species_data_list;
-                vm.species_taxonomy_list = vm.filterListsSpecies.species_taxonomy_list;
+                vm.family_list = vm.filterListsSpecies.family_list;
+                vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();

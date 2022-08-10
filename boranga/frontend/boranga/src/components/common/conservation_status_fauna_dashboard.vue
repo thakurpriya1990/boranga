@@ -5,7 +5,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Scientific Name:</label>
-                        <select class="form-control" v-model="filterCSFaunaScientificName">
+                        <select class="form-select" v-model="filterCSFaunaScientificName">
                             <option value="all">All</option>
                             <option v-for="species in species_data_list" :value="species.scientific_name">{{species.scientific_name}}</option>
                         </select>
@@ -14,7 +14,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Common Name:</label>
-                        <select class="form-control" v-model="filterCSFaunaCommonName">
+                        <select class="form-select" v-model="filterCSFaunaCommonName">
                             <option value="all">All</option>
                             <option v-for="species in species_data_list" :value="species.common_name">{{species.common_name}}</option>
                         </select>
@@ -22,26 +22,36 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Family:</label>
-                        <select class="form-control" v-model="filterCSFaunaFamily">
+                        <label for="">Phylo Group:</label>
+                        <select class="form-select" v-model="filterCSFaunaPhylogeneticGroup">
                             <option value="all">All</option>
-                            <option v-for="species in species_taxonomy_list" :value="species.family">{{species.family}}</option>
+                            <option v-for="option in phylogenetic_group_list" :value="option.id">
+                                {{option.name}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Family:</label>
+                        <select class="form-select" v-model="filterCSFaunaFamily">
+                            <option value="all">All</option>
+                            <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Genera:</label>
-                        <select class="form-control" v-model="filterCSFaunaGenus">
+                        <select class="form-select" v-model="filterCSFaunaGenus">
                             <option value="all">All</option>
-                            <option v-for="species in species_taxonomy_list" :value="species.genus">{{species.genus}}</option>
+                            <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation List:</label>
-                        <select class="form-control" v-model="filterCSFaunaConservationList" 
+                        <select class="form-select" v-model="filterCSFaunaConservationList" 
                         @change="filterConservationCategory($event)">
                             <option value="all">All</option>
                             <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
@@ -51,7 +61,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation Category:</label>
-                        <select class="form-control" v-model="filterCSFaunaConservationCategory">
+                        <select class="form-select" v-model="filterCSFaunaConservationCategory">
                             <option value="all">All</option>
                             <option v-for="list in filtered_conservation_category_list" :value="list.id">{{list.code}}</option>
                         </select>
@@ -60,7 +70,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Workflow Status:</label>
-                        <select class="form-control">
+                        <select class="form-select">
                             <option value="All">All</option>
                         </select>
                     </div>
@@ -68,7 +78,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-control" v-model="filterCSFaunaRegion">
+                        <select class="form-select" v-model="filterCSFaunaRegion">
                             <option value="all">All</option>
                             <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
                         </select>
@@ -77,7 +87,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">District:</label>
-                        <select class="form-control" v-model="filterCSFaunaDistrict">
+                        <select class="form-select" v-model="filterCSFaunaDistrict">
                             <option value="all">All</option>
                             <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
                         </select>
@@ -154,6 +164,11 @@ export default {
             required: false,
             default: 'filterCSFaunaCommonName',
         },
+        filterCSFaunaPhylogeneticGroup_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaPhylogeneticGroup',
+        },
         filterCSFaunaFamily_cache: {
             type: String,
             required: false,
@@ -201,6 +216,9 @@ export default {
             filterCSFaunaCommonName: sessionStorage.getItem(this.filterCSFaunaCommonName_cache) ? 
                                     sessionStorage.getItem(this.filterCSFaunaCommonName_cache) : 'all',
 
+            filterCSFaunaPhylogeneticGroup: sessionStorage.getItem(this.filterCSFaunaPhylogeneticGroup_cache) ? 
+                                            sessionStorage.getItem(this.filterCSFaunaPhylogeneticGroup_cache) : 'all',
+
             filterCSFaunaFamily: sessionStorage.getItem(this.filterCSFaunaFamily_cache) ? 
                                 sessionStorage.getItem(this.filterCSFaunaFamily_cache) : 'all',
 
@@ -222,7 +240,9 @@ export default {
             //Filter list for scientific name and common name
             filterListsSpecies: {},
             species_data_list: [],
-            species_taxonomy_list: [],
+            family_list: [],
+            genus_list: [],
+            phylogenetic_group_list: [],
             conservation_list_dict: [],
             filtered_conservation_category_list: [],
             conservation_category_list: [],
@@ -272,6 +292,11 @@ export default {
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaCommonName_cache, vm.filterCSFaunaCommonName);  
         },
+        filterCSFaunaPhylogeneticGroup: function() {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
+            sessionStorage.setItem(vm.filterCSFaunaPhylogeneticGroup_cache, vm.filterCSFaunaPhylogeneticGroup);
+        },
         filterCSFaunaFamily: function() {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
@@ -313,6 +338,7 @@ export default {
         filterApplied: function(){
             if(this.filterCSFaunaScientificName === 'all' && 
                 this.filterCSFaunaCommonName === 'all' && 
+                this.filterCSFaunaPhylogeneticGroup === 'all' && 
                 this.filterCSFaunaFamily === 'all' && 
                 this.filterCSFaunaGenus === 'all' && 
                 this.filterCSFaunaConservationList === 'all' && 
@@ -622,7 +648,10 @@ export default {
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
                 },
-                //lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                order: [
+                    [0, 'desc']
+                ],
+                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: search,
@@ -635,6 +664,7 @@ export default {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_scientific_name = vm.filterCSFaunaScientificName;
                         d.filter_common_name = vm.filterCSFaunaCommonName;
+                        d.filter_phylogenetic_group = vm.filterCSFaunaPhylogeneticGroup;
                         d.filter_family = vm.filterCSFaunaFamily;
                         d.filter_genus = vm.filterCSFaunaGenus;
                         d.filter_conservation_list = vm.filterCSFaunaConservationList;
@@ -670,7 +700,9 @@ export default {
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.species_data_list = vm.filterListsSpecies.species_data_list;
-                vm.species_taxonomy_list = vm.filterListsSpecies.species_taxonomy_list;
+                vm.family_list = vm.filterListsSpecies.family_list;
+                vm.genus_list = vm.filterListsSpecies.genus_list;
+                vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();

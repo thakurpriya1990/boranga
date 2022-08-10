@@ -12,7 +12,7 @@
                                       <label class="control-label pull-left">Category</label>
                                     </div>
                                     <div class="col-sm-9">
-                                      <select class="form-control" v-model="threatObj.threat_category">
+                                      <select class="form-select" v-model="threatObj.threat_category">
                                         <option  v-for="category in threat_category_list" :value="category.id" v-bind:key="category.id">
                                           {{ category.name }} 
                                         </option>
@@ -59,7 +59,7 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-sm-3" >
+                                    <div class="col-sm-3">
                                       <label class="control-label pull-left">Potential Threat Onset?</label>
                                     </div>
                                     <div class="col-sm-9" style="padding:0px">

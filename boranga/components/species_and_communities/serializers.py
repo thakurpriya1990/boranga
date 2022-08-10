@@ -9,7 +9,8 @@ from boranga.components.species_and_communities.models import(
 	Community,
 	Taxonomy,
 	NameAuthority,
-	ConservationAttributes,
+	SpeciesConservationAttributes,
+	CommunityConservationAttributes,
 	SpeciesDocument,
 	CommunityDocument,
 	SpeciesDistribution,
@@ -84,21 +85,24 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 	def get_family(self,obj):
 		try:
 			taxonomy = Taxonomy.objects.get(species=obj)
-			return taxonomy.family
+			if taxonomy.family:
+				return taxonomy.family.name
 		except Taxonomy.DoesNotExist:
 			return ''
 
 	def get_genus(self,obj):
 		try:
 			taxonomy = Taxonomy.objects.get(species=obj)
-			return taxonomy.genus
+			if taxonomy.genus:
+				return taxonomy.genus.name
 		except Taxonomy.DoesNotExist:
 			return ''
 
 	def get_phylogenetic_group(self,obj):
 		try:
 			taxonomy = Taxonomy.objects.get(species=obj)
-			return taxonomy.phylogenetic_group
+			if taxonomy.phylogenetic_group:
+				return taxonomy.phylogenetic_group.name
 		except Taxonomy.DoesNotExist:
 			return ''
 
@@ -148,7 +152,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			    'id',
 			    'community_number',
 			    'group_type',
-			    'community_id',
+			    'community_migrated_id',
 			    'community_name',
 			    'community_status',
 			    #'conservation_status',
@@ -161,7 +165,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
                 'id',
                 'community_number',
                 'group_type',
-			    'community_id',
+			    'community_migrated_id',
 			    'community_name',
 			    'community_status',
 			    #'conservation_status',
@@ -211,48 +215,139 @@ class TaxonomySerializer(serializers.ModelSerializer):
 		model = Taxonomy
 		fields = (
 			'id',
+			'species_id',
 			'taxon_id',
 			'taxon',
 			'previous_name',
-			'family',
-			'genus',
-			'phylogenetic_group',
+			'family_id',
+			'genus_id',
+			'phylogenetic_group_id',
 			'name_authority_id',
+			'name_comments',
 			)
 
 class SaveTaxonomySerializer(serializers.ModelSerializer):
+	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
 	name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	family_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	genus_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	phylogenetic_group_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
 	class Meta:
 		model = Taxonomy
 		fields = (
 			'id',
+			'species_id',
 			'taxon_id',
 			'taxon',
 			'previous_name',
-			'family',
-			'genus',
-			'phylogenetic_group',
+			'family_id',
+			'genus_id',
+			'phylogenetic_group_id',
 			'name_authority_id',
+			'name_comments',
 			)
+ 
 
-
-class ConservationAttributesSerializer(serializers.ModelSerializer):
+class SpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 	class Meta:
-		model = ConservationAttributes
+		model = SpeciesConservationAttributes
 		fields = (
 			'id',
 			'species_id',
-			'general_management_advice',
-			'ecological_attributes',
-			'biological_attributes',
-			'specific_survey_advice',
-			'comments',
+			#flora related attributes
+			'flowering_period_id',
+			'fruiting_period_id',
+			'flora_recruitment_type_id',
+			'seed_viability_germination_info_id',
+			'root_morphology_id',
+			'pollinator_information_id',
+			'hydrology',
+			'response_to_dieback',
+			# fauna related attributes
+			'breeding_period_id',
+			'fauna_breeding_id',
+			'fauna_reproductive_capacity',
+			'diet_and_food_source',
+			'home_range',
+			# common attributes
+			'habitat_growth_form',
+			'time_to_maturity',
+			'generation_length',
+			'average_lifespan',
+			'minimum_fire_interval',
+			'response_to_fire',
+			'post_fire_habitat_interaction_id',
+			'response_to_disturbance',
+			'habitat',
+			'research_requirements',
+			'other_relevant_diseases',
 			)
+
+
+class SaveSpeciesConservationAttributesSerializer(serializers.ModelSerializer):
+	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	flowering_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	fruiting_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	flora_recruitment_type_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	seed_viability_germination_info_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	root_morphology_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	pollinator_information_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	breeding_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	fauna_breeding_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	post_fire_habitat_interaction_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	class Meta:
+		model = SpeciesConservationAttributes
+		fields = (
+			'id',
+			'species_id',
+			#flora related attributes
+			'flowering_period_id',
+			'fruiting_period_id',
+			'flora_recruitment_type_id',
+			'seed_viability_germination_info_id',
+			'root_morphology_id',
+			'pollinator_information_id',
+			'hydrology',
+			'response_to_dieback',
+			# fauna related attributes
+			'breeding_period_id',
+			'fauna_breeding_id',
+			'fauna_reproductive_capacity',
+			'diet_and_food_source',
+			'home_range',
+			# common attributes
+			'habitat_growth_form',
+			'time_to_maturity',
+			'generation_length',
+			'average_lifespan',
+			'minimum_fire_interval',
+			'response_to_fire',
+			'post_fire_habitat_interaction_id',
+			'response_to_disturbance',
+			'habitat',
+			'research_requirements',
+			'other_relevant_diseases',
+			)
+
 
 class SpeciesDistributionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = SpeciesDistribution
 		fields = (
+			'department_file_numbers',
+			'number_of_occurrences',
+			'extent_of_occurrences',
+			'area_of_occupancy',
+			'number_of_iucn_locations',
+			)
+
+
+class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
+	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	class Meta:
+		model = SpeciesDistribution
+		fields = (
+			'species_id',
 			'department_file_numbers',
 			'number_of_occurrences',
 			'extent_of_occurrences',
@@ -318,10 +413,10 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     def get_conservation_attributes(self,obj):
         try:
-            qs = ConservationAttributes.objects.get(species=obj)
-            return ConservationAttributesSerializer(qs).data
-        except ConservationAttributes.DoesNotExist:
-            return ConservationAttributesSerializer().data
+            qs = SpeciesConservationAttributes.objects.get(species=obj)
+            return SpeciesConservationAttributesSerializer(qs).data
+        except SpeciesConservationAttributes.DoesNotExist:
+            return SpeciesConservationAttributesSerializer().data
 
     def get_distribution(self,obj):
     	try:
@@ -345,10 +440,63 @@ class CommunityDistributionSerializer(serializers.ModelSerializer):
 			)
 
 
+class SaveCommunityDistributionSerializer(serializers.ModelSerializer): 
+	community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	class Meta:
+		model = CommunityDistribution
+		fields = (
+			'community_id',
+			'community_original_area',
+			'community_original_area_accuracy',
+			'community_original_area_reference',
+			)
+
+
 class SpeciesSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Species
 		fields = ('id','scientific_name',)
+
+
+class CommunityConservationAttributesSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = CommunityConservationAttributes
+		fields = (
+			'id',
+			'community_id',
+			'habitat_growth_form',
+			'pollinator_information_id',
+			'minimum_fire_interval',
+			'response_to_fire',
+			'post_fire_habitat_interaction_id',
+			'hydrology',
+			'ecological_and_biological_information',
+			'research_requirements',
+			'response_to_dieback',
+			'other_relevant_diseases',
+			)
+
+
+class SaveCommunityConservationAttributesSerializer(serializers.ModelSerializer):
+	community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	pollinator_information_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	post_fire_habitat_interaction_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	class Meta:
+		model = CommunityConservationAttributes
+		fields = (
+			'id',
+			'community_id',
+			'habitat_growth_form',
+			'pollinator_information_id',
+			'minimum_fire_interval',
+			'response_to_fire',
+			'post_fire_habitat_interaction_id',
+			'hydrology',
+			'ecological_and_biological_information',
+			'research_requirements',
+			'response_to_dieback',
+			'other_relevant_diseases',
+			)
 
 
 class BaseCommunitySerializer(serializers.ModelSerializer):
@@ -356,6 +504,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField(read_only=True)
 	conservation_status = serializers.SerializerMethodField()
 	distribution = serializers.SerializerMethodField()
+	conservation_attributes = serializers.SerializerMethodField()
 	readonly = serializers.SerializerMethodField(read_only=True)
 	last_data_curration_date = serializers.DateField(required=False,allow_null=True)
 	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
@@ -367,14 +516,18 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
         	    'community_number',
         	    'species',
 			    'group_type',
-			    'community_id',
+			    'community_migrated_id',
 			    'community_name',
 			    'community_description',
+			    'previous_name',
+			    'name_authority_id',
+			    'name_comments',
 			    'community_status',
 			    'region_id',
 			    'district_id',
 			    'conservation_status',
 			    'distribution',
+			    'conservation_attributes',
 			    'readonly',
 			    'can_user_edit',
 			    'last_data_curration_date',
@@ -405,6 +558,13 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 		except:
 			qs = None
 		return CommunityDistributionSerializer(qs).data
+
+	def get_conservation_attributes(self,obj):
+		try:
+			qs = CommunityConservationAttributes.objects.get(community=obj)
+			return CommunityConservationAttributesSerializer(qs).data
+		except CommunityConservationAttributes.DoesNotExist:
+			return CommunityConservationAttributesSerializer().data
 
 	def get_can_user_edit(self,obj):
 		return True
@@ -449,13 +609,15 @@ class CreateSpeciesSerializer(BaseSpeciesSerializer):
 class SaveCommunitySerializer(BaseCommunitySerializer):
     region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+    name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     class Meta:
         model = Community
         fields = ('id',
 			    'group_type',
-			    'community_id',
+			    'community_migrated_id',
 			    'community_name',
 			    'community_status',
+			    'name_authority_id',
 			    'region_id',
 			    'district_id',
 			    'last_data_curration_date',
