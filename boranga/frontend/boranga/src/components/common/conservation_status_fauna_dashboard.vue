@@ -379,12 +379,13 @@ export default {
         column_id: function(){
             return {
                 data: "id",
-                orderable: false,
+                orderable: true,
                 searchable: false,
                 visible: false,
                 'render': function(data, type, full){
                     return full.id
-                }
+                },
+                name: "id",
             }
         },
         column_number: function(){
@@ -396,7 +397,7 @@ export default {
                 'render': function(data, type, full){
                     return full.conservation_status_number
                 },
-                name: "conservation_status_number",
+                name: "id",
             }
         },
         column_species_number: function(){
@@ -449,7 +450,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__species_taxonomy__family",
+                name: "species__species_taxonomy__family__name",
             }
         },
         column_genera: function(){
@@ -463,7 +464,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__species_taxonomy__genus",
+                name: "species__species_taxonomy__genus__name",
             }
         },*/
         column_conservation_list: function(){

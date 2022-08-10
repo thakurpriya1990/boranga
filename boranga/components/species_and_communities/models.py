@@ -194,12 +194,9 @@ class Species(models.Model):
                                    on_delete=models.CASCADE)
     image = models.CharField(max_length=512,
                              default="None", null=True, blank=True)
-    scientific_name = models.CharField(max_length=128,
-                                       default="None", null=True, blank=True)
-    common_name = models.CharField(max_length=128,
-                                   default="None", null=True, blank=True)
-    name_currency = models.CharField(max_length=16,
-                                     default="None", null=True, blank=True) # is it the current name? yes or no
+    scientific_name = models.CharField(max_length=128, null=True, blank=True)
+    common_name = models.CharField(max_length=128, null=True, blank=True)
+    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
@@ -207,8 +204,7 @@ class Species(models.Model):
                                  default=None,
                                  on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
-    processing_status = models.CharField(max_length=512,
-                                         default="None", null=True, blank=True)
+    processing_status = models.CharField(max_length=512, null=True, blank=True)
     
     class Meta:
         app_label = 'boranga'
@@ -291,9 +287,8 @@ class Taxonomy(models.Model):
     - Table
     """
     species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_taxonomy")
-    taxon = models.CharField(max_length=512,
-                             default="None", null=True, blank=True)  # flora and fauna, name
-    taxon_id = models.IntegerField(default=-1, null=True, blank=True)  # flora and fauna, name
+    taxon = models.CharField(max_length=512, null=True, blank=True)  # flora and fauna, name
+    taxon_id = models.IntegerField(null=True, blank=True)  # flora and fauna, name
 
     previous_name = models.CharField(max_length=512,null=True, blank=True)
     family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True)
@@ -344,12 +339,11 @@ class SpeciesDistribution(models.Model):
     Is:
     - Table
     """
-    department_file_numbers = models.CharField(max_length=512,
-                                               default="None", null=True, blank=True)  # objective, legacy, list of things
-    number_of_occurrences = models.IntegerField(default=-1, null=True)
-    extent_of_occurrences = models.IntegerField(default=-1, null = True)
-    area_of_occupancy = models.IntegerField(default=-1, null=True)
-    number_of_iucn_locations = models.IntegerField(default=-1, null=True)
+    department_file_numbers = models.CharField(max_length=512,null=True, blank=True)  # objective, legacy, list of things
+    number_of_occurrences = models.IntegerField(null=True, blank=True)
+    extent_of_occurrences = models.IntegerField(null = True, blank=True)
+    area_of_occupancy = models.IntegerField(null=True, blank=True)
+    number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_distribution")
 
     class Meta:
@@ -444,10 +438,9 @@ class CommunityDistribution(models.Model):
     - Table
     """
     # Community Ecological Attributes
-    community_original_area = models.IntegerField(default=-1, null=True, blank=True)
-    community_original_area_accuracy = models.IntegerField(default=-1, null=True, blank=True)
-    community_original_area_reference = models.CharField(max_length=512,
-                                                         default="None", null=True, blank=True)
+    community_original_area = models.IntegerField(null=True, blank=True)
+    community_original_area_accuracy = models.IntegerField(null=True, blank=True)
+    community_original_area_reference = models.CharField(max_length=512, null=True, blank=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="community_distribution")
 
     class Meta:
@@ -779,8 +772,7 @@ class ConservationThreat(models.Model):
     community = models.ForeignKey(Community, on_delete=models.CASCADE, null=True, blank=True, related_name="community_threats")
     threat_number = models.CharField(max_length=9, blank=True, default='')
     threat_category = models.ForeignKey(ThreatCategory, on_delete=models.CASCADE)
-    threat_agent = models.CharField(max_length=512,
-                                          default="None")
+    threat_agent = models.CharField(max_length=512, blank=True, null=True)
     current_impact = models.ForeignKey(CurrentImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True)
     potential_impact = models.ForeignKey(PotentialImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True)
     potential_threat_onset = models.ForeignKey(PotentialThreatOnset, on_delete=models.SET_NULL, default=None, null=True, blank=True)
@@ -1021,15 +1013,15 @@ class SpeciesConservationAttributes(models.Model):
     # fauna related attributes
     breeding_period = models.ForeignKey(BreedingPeriod, on_delete=models.SET_NULL, null=True, blank=True)
     fauna_breeding = models.ForeignKey(FaunaBreeding, on_delete=models.SET_NULL, null=True, blank=True)
-    fauna_reproductive_capacity = models.IntegerField(default=0, null=True, blank=True)
+    fauna_reproductive_capacity = models.IntegerField(null=True, blank=True)
     diet_and_food_source = models.CharField(max_length=200, null=True, blank=True)
     home_range = models.CharField(max_length=200, null=True, blank=True)
 
     # flora and fauna common attributes
     habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
-    time_to_maturity = models.IntegerField(default=0, null=True, blank=True)
-    generation_length = models.IntegerField(default=0, null=True, blank=True)
-    average_lifespan = models.IntegerField(default=0, null=True, blank=True)
+    time_to_maturity = models.IntegerField(null=True, blank=True)
+    generation_length = models.IntegerField(null=True, blank=True)
+    average_lifespan = models.IntegerField(null=True, blank=True)
     minimum_fire_interval = models.CharField(max_length=200, null=True, blank=True)
     response_to_fire = models.CharField(max_length=200, null=True, blank=True)
     post_fire_habitat_interaction = models.ForeignKey(PostFireHabitatInteraction, on_delete=models.SET_NULL, null=True, blank=True)

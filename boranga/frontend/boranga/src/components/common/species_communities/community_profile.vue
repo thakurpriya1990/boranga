@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="community">
         <FormSection :formCollapse="false" label="Taxonomy" Index="taxonomy">
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Species:</label>
                 <div class="col-sm-9">
                     <select style="width:100%;" class="form-control input-sm" multiple ref="species_select" v-model="species_community.species" >
@@ -9,14 +9,14 @@
                     </select>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community Name:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="species_community.readonly" type="text" class="form-control" id="community_name" placeholder=""
                      v-model="species_community.community_name"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community ID:</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="text" class="form-control" 
@@ -24,27 +24,27 @@
                     v-model="species_community.community_migrated_id"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community Description:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="species_community.readonly" class="form-control" rows="3" id="community_description" placeholder=""
                     v-model="species_community.community_description"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community Status:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="species_community.readonly" class="form-control" id="community_status" placeholder=""
                     v-model="species_community.community_status"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Previous Name:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="species_community.readonly" class="form-control" id="community_previous_name" placeholder="" v-model="species_community.previous_name"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Authority:</label>
                 <div class="col-sm-9">
                     <select :disabled="species_community.readonly" class="form-select" id="community_name_authority"
@@ -55,7 +55,7 @@
                     </select>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Comments:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="species_community.readonly" class="form-control" id="community_comment" placeholder="" v-model="species_community.name_comments"/>
@@ -63,7 +63,7 @@
             </div>
         </FormSection>
         <FormSection :formCollapse="false" label="Distribution" Index="distribution">
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region :</label>
                 <div class="col-sm-9">
                     <select :disabled="species_community.readonly" class="form-select" @change="filterDistrict($event)" v-model="species_community.region_id" placeholder="Select Region">
@@ -73,7 +73,7 @@
                     </select>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
                     <select :disabled="species_community.readonly" class="form-select" v-model="species_community.district_id" placeholder="Select District">
@@ -85,20 +85,20 @@
             </div>
         </FormSection>
         <FormSection :formCollapse="false" label="Ecological Communities" Index="ecological_communities">
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community Original Area:(ha):</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="number" class="form-control" id="community_original_area" placeholder="" v-model="species_community.distribution.community_original_area"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community Original Area Accuracy:(ha):</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="number" class="form-control" id="community_original_area_accuracy" placeholder=""
                     v-model="species_community.distribution.community_original_area_accuracy"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community Original Area Reference:</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="number" class="form-control" id="community_original_area_reference" placeholder=""
@@ -107,7 +107,7 @@
             </div>
         </FormSection>
         <FormSection :formCollapse="false" label="Conservation Attributes" Index="conservation_attributes">
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Habitat/Growth Form:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="species_community.readonly" type="text" class="form-control" 
@@ -115,7 +115,7 @@
                     v-model="species_community.conservation_attributes.habitat_growth_form"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
                 <div class="col-sm-9">
                     <select :disabled="species_community.readonly" class="form-select" 
@@ -126,7 +126,7 @@
                     </select>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Minimum Fire Interval:</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="text" class="form-control" 
@@ -134,13 +134,13 @@
                     v-model="species_community.conservation_attributes.minimum_fire_interval"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Response to Fire:</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="text" class="form-control" id="response_to_fire" placeholder="" v-model="species_community.conservation_attributes.response_to_fire"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Post Fire Habitat Interactions:</label>
                 <div class="col-sm-9">
                     <select :disabled="species_community.readonly" class="form-select" 
@@ -151,14 +151,14 @@
                     </select>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Hydrology:</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="text" class="form-control" id="hydrology" 
                     placeholder="" v-model="species_community.conservation_attributes.hydrology"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Ecological Community Ecological and Biological Information:
                 </label>
                 <div class="col-sm-9">
@@ -167,7 +167,7 @@
                     v-model="species_community.conservation_attributes.ecological_and_biological_information"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Research Requirements:</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="text" class="form-control" 
@@ -175,7 +175,7 @@
                     placeholder="" v-model="species_community.conservation_attributes.research_requirements"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Response to Dieback:</label>
                 <div class="col-sm-9">
                     <input :disabled="species_community.readonly" type="text" class="form-control" 
@@ -183,7 +183,7 @@
                     placeholder="" v-model="species_community.conservation_attributes.response_to_dieback"/>
                 </div>
             </div>
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Other relevant diseases:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="species_community.readonly" type="text" class="form-control" 
@@ -202,7 +202,7 @@
             </div>
         </FormSection> -->
         <FormSection :formCollapse="false" label="" Index="">
-            <div class="row form-group">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Last data curration date: </label>
                 <div class="col-sm-9">
                      <input :disabled="species_community.readonly" type="date" class="form-control" name="last_data_curration_date" 

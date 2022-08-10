@@ -319,23 +319,24 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Number', 'Community Id' ,'Community Name', 'Community Status', 'Conservation List' ,  
+                return ['Id','Number', 'Community Id' ,'Community Name', 'Community Status', 'Conservation List' ,  
                             'Conservation Category', 'Action', 'Workflow Status', 'Region', 'District']
             }
             if (this.is_internal){
-                return ['Number', 'Community Id' ,'Community Name', 'Community Status', 'Conservation List',  
+                return ['Id','Number', 'Community Id' ,'Community Name', 'Community Status', 'Conservation List',  
                             'Conservation Category', 'Action', 'Workflow Status', 'Region', 'District']
             }
         },
         column_id: function(){
             return {
                 data: "id",
-                orderable: false,
+                orderable: true,
                 searchable: false,
                 visible: false,
                 'render': function(data, type, full){
                     return full.id
-                }
+                },
+                name: "id",
             }
         },
         column_number: function(){
@@ -347,7 +348,7 @@ export default {
                 'render': function(data, type, full){
                     return full.community_number
                 },
-                name: "community_number",
+                name: "id",
             }
         },
         column_community_id: function(){
@@ -508,6 +509,7 @@ export default {
             let buttons = []
             if(vm.is_external){
                 columns = [
+                    vm.column_id,
                     vm.column_number,
                     vm.column_community_id,
                     vm.column_community_name,
@@ -524,6 +526,7 @@ export default {
             }
             if(vm.is_internal){
                 columns = [
+                    vm.column_id,
                     vm.column_number,
                     vm.column_community_id,
                     vm.column_community_name,
