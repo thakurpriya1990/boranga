@@ -36,6 +36,7 @@ logger = logging.getLogger('boranga')
 
 class ListSpeciesSerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField()
+	scientific_name = serializers.SerializerMethodField()
 	family = serializers.SerializerMethodField()
 	genus = serializers.SerializerMethodField()
 	phylogenetic_group = serializers.SerializerMethodField()
@@ -82,6 +83,11 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 	def get_group_type(self,obj):
 		return obj.group_type.name
 
+	def get_scientific_name(self,obj):
+		if obj.scientific_name:
+			return obj.scientific_name.name
+		return ''
+
 	def get_family(self,obj):
 		try:
 			taxonomy = Taxonomy.objects.get(species=obj)
@@ -115,7 +121,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
 	def get_conservation_list(self,obj):
 		try:
-			# need to show only WA_list species
+			# need to show only WA_listed species
 			conservation_status = SpeciesConservationStatus.objects.get(species=obj ,conservation_list__applies_to_wa=True) # need to show only WA_list species
 			return conservation_status.conservation_list.code
 		except SpeciesConservationStatus.DoesNotExist:
@@ -142,6 +148,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 class ListCommunitiesSerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField()
 	#conservation_status = serializers.SerializerMethodField()
+	community_name = serializers.SerializerMethodField()
 	conservation_list = serializers.SerializerMethodField()
 	conservation_category = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
@@ -184,6 +191,11 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 	# 		return conservation_status.conservation_list.code
 	# 	except CommunityConservationStatus.DoesNotExist:
 	# 		return None
+
+	def get_community_name(self,obj):
+		if obj.community_name:
+			return obj.community_name.name
+		return ''
 
 	def get_conservation_list(self,obj):
 		try:
@@ -331,15 +343,40 @@ class SaveSpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 
 
 class SpeciesDistributionSerializer(serializers.ModelSerializer):
+	cal_number_of_occurrences = serializers.SerializerMethodField() # calculated from occurence reports
+	cal_extent_of_occurrences = serializers.SerializerMethodField() # calculated from occurence reports
+	cal_area_of_occupancy = serializers.SerializerMethodField() # calculated from occurence reports
+	cal_area_of_occupancy_actual = serializers.SerializerMethodField() # calculated from occurence reports
 	class Meta:
 		model = SpeciesDistribution
 		fields = (
 			'department_file_numbers',
 			'number_of_occurrences',
+			'cal_number_of_occurrences',
+			'noo_auto',
 			'extent_of_occurrences',
+			'cal_extent_of_occurrences',
+			'eoo_auto',
 			'area_of_occupancy',
+			'cal_area_of_occupancy',
+			'aoo_auto',
+			'area_of_occupancy_actual',
+			'cal_area_of_occupancy_actual',
+			'aoo_actual_auto',
 			'number_of_iucn_locations',
 			)
+
+	def get_cal_number_of_occurrences(self,obj):
+		return 1 # TODO get calculated value from occurrence report
+
+	def get_cal_extent_of_occurrences(self,obj):
+		return 1 # TODO get calculated value from occurrence report
+
+	def get_cal_area_of_occupancy(self,obj):
+		return 1 # TODO get calculated value from occurrence report
+
+	def get_cal_area_of_occupancy_actual(self,obj):
+		return 1 # TODO get calculated value from occurrence report
 
 
 class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
@@ -350,8 +387,13 @@ class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
 			'species_id',
 			'department_file_numbers',
 			'number_of_occurrences',
+			'noo_auto',
 			'extent_of_occurrences',
+			'eoo_auto',
 			'area_of_occupancy',
+			'aoo_auto',
+			'area_of_occupancy_actual',
+			'aoo_actual_auto',
 			'number_of_iucn_locations',
 			)
 
@@ -371,7 +413,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
                 'id',
                 'species_number',
 			    'group_type',
-			    'scientific_name',
+			    'scientific_name_id',
 			    'common_name',
 			    'region_id',
 			    'district_id',
@@ -420,10 +462,11 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     def get_distribution(self,obj):
     	try:
-    	    qs = SpeciesDistribution.objects.get(species=obj)
-    	except:
-            qs = None
-    	return SpeciesDistributionSerializer(qs).data
+    	    # to create the distribution instance for fetching the calculated values from serializer
+    		distribution_instance, created = SpeciesDistribution.objects.get_or_create(species=obj)
+    		return SpeciesDistributionSerializer(distribution_instance).data
+    	except SpeciesDistribution.DoesNotExist:
+            return SpeciesDistributionSerializer().data
 
 
 class InternalSpeciesSerializer(BaseSpeciesSerializer):
@@ -431,13 +474,43 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class CommunityDistributionSerializer(serializers.ModelSerializer): 
+	cal_number_of_occurrences = serializers.SerializerMethodField() # calculated from occurence reports
+	cal_extent_of_occurrences = serializers.SerializerMethodField() # calculated from occurence reports
+	cal_area_of_occupancy = serializers.SerializerMethodField() # calculated from occurence reports
+	cal_area_of_occupancy_actual = serializers.SerializerMethodField() # calculated from occurence reports
 	class Meta:
 		model = CommunityDistribution
 		fields = (
+			'department_file_numbers',
+			'number_of_occurrences',
+			'cal_number_of_occurrences',
+			'noo_auto',
+			'extent_of_occurrences',
+			'cal_extent_of_occurrences',
+			'eoo_auto',
+			'area_of_occupancy',
+			'cal_area_of_occupancy',
+			'aoo_auto',
+			'area_of_occupancy_actual',
+			'cal_area_of_occupancy_actual',
+			'aoo_actual_auto',
+			'number_of_iucn_locations',
 			'community_original_area',
 			'community_original_area_accuracy',
 			'community_original_area_reference',
 			)
+
+	def get_cal_number_of_occurrences(self,obj):
+		return 1 # TODO get calculated value from occurrence report
+
+	def get_cal_extent_of_occurrences(self,obj):
+		return 1 # TODO get calculated value from occurrence report
+
+	def get_cal_area_of_occupancy(self,obj):
+		return 1 # TODO get calculated value from occurrence report
+
+	def get_cal_area_of_occupancy_actual(self,obj):
+		return 1 # TODO get calculated value from occurrence report
 
 
 class SaveCommunityDistributionSerializer(serializers.ModelSerializer): 
@@ -446,6 +519,16 @@ class SaveCommunityDistributionSerializer(serializers.ModelSerializer):
 		model = CommunityDistribution
 		fields = (
 			'community_id',
+			'department_file_numbers',
+			'number_of_occurrences',
+			'noo_auto',
+			'extent_of_occurrences',
+			'eoo_auto',
+			'area_of_occupancy',
+			'aoo_auto',
+			'area_of_occupancy_actual',
+			'aoo_actual_auto',
+			'number_of_iucn_locations',
 			'community_original_area',
 			'community_original_area_accuracy',
 			'community_original_area_reference',
@@ -453,9 +536,18 @@ class SaveCommunityDistributionSerializer(serializers.ModelSerializer):
 
 
 class SpeciesSerializer(serializers.ModelSerializer):
+	scientific_name = serializers.SerializerMethodField()
 	class Meta:
 		model = Species
-		fields = ('id','scientific_name',)
+		fields = (
+			'id',
+			'scientific_name',
+			)
+
+	def get_scientific_name(self,obj):
+		if obj.scientific_name:
+			return obj.scientific_name.name
+		return ''
 
 
 class CommunityConservationAttributesSerializer(serializers.ModelSerializer):
@@ -517,7 +609,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
         	    'species',
 			    'group_type',
 			    'community_migrated_id',
-			    'community_name',
+			    'community_name_id',
 			    'community_description',
 			    'previous_name',
 			    'name_authority_id',
@@ -554,7 +646,9 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 	def get_distribution(self,obj):
 		try:
-			qs = CommunityDistribution.objects.get(community=obj)
+		    # to create the distribution instance for fetching the calculated values from serializer
+			distribution_instance, created = CommunityDistribution.objects.get_or_create(community=obj)
+			return CommunityDistributionSerializer(distribution_instance).data
 		except:
 			qs = None
 		return CommunityDistributionSerializer(qs).data
@@ -578,11 +672,12 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 class SaveSpeciesSerializer(BaseSpeciesSerializer):
     region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+    scientific_name_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     class Meta:
         model = Species
         fields = ('id',
 			    'group_type',
-			    'scientific_name',
+			    'scientific_name_id',
 			    'common_name',
 			    'region_id',
 			    'district_id',
@@ -610,12 +705,13 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
     region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+    community_name_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
     class Meta:
         model = Community
         fields = ('id',
 			    'group_type',
 			    'community_migrated_id',
-			    'community_name',
+			    'community_name_id',
 			    'community_status',
 			    'name_authority_id',
 			    'region_id',

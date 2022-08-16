@@ -166,6 +166,25 @@ class NameAuthority(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Name Authority"
+        verbose_name_plural = "Name Authorities"
+
+    def __str__(self):
+        return str(self.name)
+
+
+class ScientificName(models.Model):
+    """
+    # list derived from WACensus
+
+    Used by:
+    - Taxonomy
+
+    """
+    name = models.CharField(max_length=300, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
 
     def __str__(self):
         return str(self.name)
@@ -194,7 +213,7 @@ class Species(models.Model):
                                    on_delete=models.CASCADE)
     image = models.CharField(max_length=512,
                              default="None", null=True, blank=True)
-    scientific_name = models.CharField(max_length=128, null=True, blank=True)
+    scientific_name = models.ForeignKey(ScientificName, on_delete=models.SET_NULL, null=True, blank=True)
     common_name = models.CharField(max_length=128, null=True, blank=True)
     name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
     region = models.ForeignKey(Region, 
@@ -341,8 +360,13 @@ class SpeciesDistribution(models.Model):
     """
     department_file_numbers = models.CharField(max_length=512,null=True, blank=True)  # objective, legacy, list of things
     number_of_occurrences = models.IntegerField(null=True, blank=True)
+    noo_auto = models.BooleanField(default=True) # to check auto or manual entry of number_of_occurrences
     extent_of_occurrences = models.IntegerField(null = True, blank=True)
+    eoo_auto = models.BooleanField(default=True) # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
+    aoo_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy
+    area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
+    aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_distribution")
 
@@ -351,6 +375,23 @@ class SpeciesDistribution(models.Model):
 
     def __str__(self):
         return str(self.id)  # TODO: is the most appropriate?
+
+
+class CommunityName(models.Model):
+    """
+    # list derived from TEC
+
+    Used by:
+    - Taxonomy
+
+    """
+    name = models.CharField(max_length=200, blank=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
 
 
 class Community(models.Model):
@@ -366,11 +407,10 @@ class Community(models.Model):
     - Table
     """
     community_number = models.CharField(max_length=9, blank=True, default='')
-    group_type = models.ForeignKey(GroupType,
-                                   on_delete=models.CASCADE)
+    group_type = models.ForeignKey(GroupType,on_delete=models.CASCADE)
     species = models.ManyToManyField(Species, null=True, blank=True)
     community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
-    community_name = models.CharField(max_length=2048, null=True, blank=True)
+    community_name = models.ForeignKey(CommunityName, on_delete=models.SET_NULL, null=True, blank=True)
     community_status = models.CharField(max_length=128, null=True, blank=True)
     community_description = models.CharField(max_length=2048, null=True, blank=True)
     previous_name = models.CharField(max_length=512,null=True, blank=True)
@@ -437,6 +477,16 @@ class CommunityDistribution(models.Model):
     Is:
     - Table
     """
+    department_file_numbers = models.CharField(max_length=512,null=True, blank=True)  # objective, legacy, list of things
+    number_of_occurrences = models.IntegerField(null=True, blank=True)
+    noo_auto = models.BooleanField(default=True) # to check auto or manual entry of number_of_occurrences
+    extent_of_occurrences = models.IntegerField(null = True, blank=True)
+    eoo_auto = models.BooleanField(default=True) # extra boolean field to check auto or manual entry of extent_of_occurrences
+    area_of_occupancy = models.IntegerField(null=True, blank=True)
+    aoo_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy
+    area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
+    aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
+    number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     # Community Ecological Attributes
     community_original_area = models.IntegerField(null=True, blank=True)
     community_original_area_accuracy = models.IntegerField(null=True, blank=True)
@@ -529,6 +579,8 @@ class DocumentCategory(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Document Category"
+        verbose_name_plural = "Document Categories"
 
     def __str__(self):
         return str(self.document_category_name)
@@ -552,6 +604,8 @@ class DocumentSubCategory(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Document Sub Category"
+        verbose_name_plural = "Document Sub Categories"
 
     def __str__(self):
         return str(self.document_sub_category_name)
@@ -697,6 +751,8 @@ class ThreatCategory(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Threat Category"
+        verbose_name_plural = "Threat Categories"
 
     def __str__(self):
         return str(self.name)
@@ -916,6 +972,8 @@ class RootMorphology(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Root Morphology"
+        verbose_name_plural = "Root Morphologies"
 
     def __str__(self):
         return str(self.name)

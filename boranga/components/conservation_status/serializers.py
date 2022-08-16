@@ -156,7 +156,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_scientific_name(self,obj):
         if obj.species.scientific_name:
-            return obj.species.scientific_name
+            return obj.species.scientific_name.name
         return ''
 
     def get_common_name(self,obj):
@@ -275,7 +275,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_community_name(self,obj):
         if obj.community.community_name:
-            return obj.community.community_name
+            return obj.community.community_name.name
         return ''
 
     def get_community_status(self,obj):

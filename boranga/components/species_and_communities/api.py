@@ -25,11 +25,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
+    ScientificName,
     Taxonomy,
     Family,
     PhylogeneticGroup,
     Genus,
     NameAuthority,
+    CommunityName,
     Community,
     Region,
     District,
@@ -112,8 +114,8 @@ class GetScientificName(views.APIView):
         search_term = request.GET.get('term', '')
         if search_term:
             if search_term:
-                data = Species.objects.filter(scientific_name__icontains=search_term).values('id', 'scientific_name')[:10]
-            data_transform = [{'id': species['id'], 'text': species['scientific_name']} for species in data]
+                data = ScientificName.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
+            data_transform = [{'id': species['id'], 'text': species['name']} for species in data]
             return Response({"results": data_transform})
         return Response()
         
@@ -128,8 +130,16 @@ class GetSpeciesFilterDict(views.APIView):
                 for specimen in species:
                     species_data_list.append({
                         'species_id': specimen.id,
-                        'scientific_name': specimen.scientific_name,
                         'common_name':specimen.common_name,
+                        });
+        scientific_name_list = []
+        if group_type:
+            names = ScientificName.objects.all()
+            if names:
+                for name in names:
+                    scientific_name_list.append({
+                        'id': name.id,
+                        'name': name.name,
                         });
         family_list = []
         if group_type:
@@ -177,6 +187,7 @@ class GetSpeciesFilterDict(views.APIView):
                     });
         res_json = {
         "species_data_list":species_data_list,
+        "scientific_name_list": scientific_name_list,
         "family_list": family_list,
         "phylogenetic_group_list":phylogenetic_group_list,
         "genus_list":genus_list,
@@ -197,9 +208,16 @@ class GetCommunityFilterDict(views.APIView):
                     community_data_list.append({
                         'id': community.id,
                         'community_migrated_id': community.community_migrated_id,
-                        'community_name':community.community_name,
                         'community_status':community.community_status
                         });
+        community_name_list = []
+        names = CommunityName.objects.all()
+        if names:
+            for choice in names:
+                community_name_list.append({
+                    'id': choice.id,
+                    'name': choice.name,
+                    });
         conservation_list_dict = []
         conservation_lists = ConservationList.objects.filter(applies_to_communities=True)
         if conservation_lists:
@@ -219,6 +237,7 @@ class GetCommunityFilterDict(views.APIView):
                     });
         res_json = {
         "community_data_list":community_data_list,
+        "community_name_list":community_name_list,
         "conservation_list_dict":conservation_list_dict,
         "conservation_category_list":conservation_category_list,
         }
@@ -251,6 +270,13 @@ class GetRegionDistrictFilterDict(views.APIView):
 
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
+        scientific_name_list = []
+        names = ScientificName.objects.all()
+        if names:
+            for name in names:
+                scientific_name_list.append({'id': name.id,
+                    'name':name.name,
+                    });
         name_authority_list = []
         name_authorities = NameAuthority.objects.all()
         if name_authorities:
@@ -343,6 +369,7 @@ class GetSpeciesProfileDict(views.APIView):
                     'name':option.breeding_type,
                     });
         res_json = {
+        "scientific_name_list": scientific_name_list,
         "name_authority_list": name_authority_list,
         "family_list": family_list,
         "genus_list": genus_list,
@@ -363,6 +390,13 @@ class GetSpeciesProfileDict(views.APIView):
 
 class GetCommunityProfileDict(views.APIView):
     def get(self, request, format=None):
+        community_name_list = []
+        names = CommunityName.objects.all()
+        if names:
+            for name in names:
+                community_name_list.append({'id': name.id,
+                    'name':name.name,
+                    });
         name_authority_list = []
         name_authorities = NameAuthority.objects.all()
         if name_authorities:
@@ -385,6 +419,7 @@ class GetCommunityProfileDict(views.APIView):
                     'name':option.name,
                     });
         res_json = {
+        "community_name_list":community_name_list,
         "name_authority_list":name_authority_list,
         "pollinator_info_list": pollinator_info_list,
         "post_fire_habitatat_interactions_list": post_fire_habitatat_interactions_list,

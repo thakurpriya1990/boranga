@@ -18,8 +18,8 @@
                         <label for="">Community Name:</label>
                         <select class="form-select" v-model="filterCommunityName">
                             <option value="all">All</option>
-                            <option v-for="community in communities_data_list" :value="community.community_name">
-                                {{community.community_name}}
+                            <option v-for="option in community_name_list" :value="option.id">
+                                {{option.name}}
                             </option>
                         </select>
                     </div>
@@ -205,6 +205,7 @@ export default {
             //Filter list for Community select box
             filterListsCommunities: {},
             communities_data_list: [],
+            community_name_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
             filtered_conservation_category_list: [],
@@ -361,7 +362,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
-                name: "community_id",
+                name: "community_migrated_id",
             }
         },
         column_community_name: function(){
@@ -374,7 +375,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
-                name: "community_name",
+                name: "community_name__name",
             }
         },
         column_community_status: function(){
@@ -613,6 +614,7 @@ export default {
             vm.$http.get(api_endpoints.community_filter_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunities= response.body;
                 vm.communities_data_list= vm.filterListsCommunities.community_data_list;
+                vm.community_name_list = vm.filterListsCommunities.community_name_list;
                 vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 vm.filterConservationCategory();

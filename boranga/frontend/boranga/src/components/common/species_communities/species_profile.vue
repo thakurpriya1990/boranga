@@ -4,8 +4,18 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="scientific_name" placeholder="" 
-                    v-model="species_community.scientific_name"/>
+                    <select :disabled="species_community.readonly" class="form-select" 
+                        v-model="species_community.scientific_name_id" id="scientific_name" @change="getSpeciesDisplay()">
+                        <option v-for="option in scientific_name_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label"></label>
+                <div class="col-sm-9">
+                    <textarea disabled class="form-control" rows="3" id="species_display" v-model="species_display"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -96,32 +106,72 @@
                             {{ option.name }}                            
                         </option>
                     </select>
+
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Number of Occurrences:</label>
-                <div class="col-sm-9">
+                <div class="col-sm-6">
                     <input :disabled="species_community.readonly" type="number" class="form-control" id="no_of_occurrences" placeholder="" v-model="species_community.distribution.number_of_occurrences"/>
+                </div>
+                <div class="col-sm-3">    
+                    <input :disabled="species_community.readonly" type="radio" value="true" 
+                            class="noo_auto form-check-input" name="noo_auto" 
+                            v-model="species_community.distribution.noo_auto">
+                    <label>auto</label>
+                    <input :disabled="species_community.readonly" type="radio" value="false" 
+                            class="noo_auto form-check-input" name="noo_auto" 
+                            v-model="species_community.distribution.noo_auto">
+                    <label>manual</label>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Extent of Occurrence:</label>
-                <div class="col-sm-9">
+                <div class="col-sm-6">
                     <input :disabled="species_community.readonly" type="number" class="form-control" id="extent_of_occurrence" 
                     placeholder="" v-model="species_community.distribution.extent_of_occurrences"/>
+                </div>
+                <div class="col-sm-3">    
+                    <input :disabled="species_community.readonly" type="radio" value="true" 
+                            class="eoo_auto form-check-input" name="eoo_auto" 
+                            v-model="species_community.distribution.eoo_auto">
+                    <label>auto</label>
+                    <input :disabled="species_community.readonly" type="radio" value="false" 
+                            class="eoo_auto form-check-input" name="eoo_auto" 
+                            v-model="species_community.distribution.eoo_auto">
+                    <label>manual</label>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(Actual):</label>
-                <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="number" class="form-control" id="area_of_occupancy_actual" placeholder="" v-model="species_community.distribution.area_of_occupancy"/>
+                <div class="col-sm-6">
+                    <input :disabled="species_community.readonly" type="number" class="form-control" id="area_of_occupancy_actual" placeholder="" 
+                    v-model="species_community.distribution.area_of_occupancy_actual"/>
+                </div>
+                <div class="col-sm-3">    
+                    <input :disabled="species_community.readonly" type="radio" value="true" 
+                            class="aoo_actual_auto form-check-input" name="aoo_actual_auto" 
+                            v-model="species_community.distribution.aoo_actual_auto">
+                    <label>auto</label>
+                    <input :disabled="species_community.readonly" type="radio" value="false" 
+                            class="aoo_actual_auto form-check-input" name="aoo_actual_auto" 
+                            v-model="species_community.distribution.aoo_actual_auto">
+                    <label>manual</label>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(2km x 2km):</label>
-                <div class="col-sm-9">
+                <div class="col-sm-6">
                     <input :disabled="species_community.readonly" type="number" class="form-control" id="area_of_occupany" placeholder="" 
                     v-model="species_community.distribution.area_of_occupancy"/>
+                </div>
+                <div class="col-sm-3">    
+                    <input :disabled="species_community.readonly" type="radio" value="true" 
+                            class="aoo_auto form-check-input" name="aoo_auto" v-model="species_community.distribution.aoo_auto">
+                    <label>auto</label>
+                    <input :disabled="species_community.readonly" type="radio" value="false" 
+                            class="aoo_auto form-check-input" name="aoo_auto" v-model="species_community.distribution.aoo_auto">
+                    <label>manual</label>
                 </div>
             </div>
             <div class="row mb-3">
@@ -405,6 +455,7 @@ export default {
                 isFauna: vm.species_community.group_type==="fauna"?true:false,
                 //----list of values dictionary
                 species_profile_dict: {},
+                scientific_name_list: [],
                 name_authority_list: [],
                 family_list: [],
                 genus_list: [],
@@ -422,6 +473,8 @@ export default {
                 post_fire_habitatat_interactions_list: [],
                 breeding_period_list: [],
                 fauna_breeding_list: [],
+                // to display the species selected 
+                species_display: '',
             }
         },
         components: {
@@ -431,6 +484,46 @@ export default {
         computed: {
         },
         watch:{
+            "species_community.distribution.noo_auto": function(newVal) {
+                let vm=this;
+                var selectedValue = newVal;
+                    if(selectedValue === "true"){
+                        vm.species_community.distribution.number_of_occurrences=vm.species_community.distribution.cal_number_of_occurrences;
+                    }
+                    else{
+                        vm.species_community.distribution.number_of_occurrences=null;
+                    }
+            },
+            "species_community.distribution.eoo_auto": function(newVal) {
+                let vm=this;
+                var selectedValue = newVal;
+                    if(selectedValue === "true"){
+                        vm.species_community.distribution.extent_of_occurrences=vm.species_community.distribution.cal_extent_of_occurrences;
+                    }
+                    else{
+                        vm.species_community.distribution.extent_of_occurrences=null;
+                    }
+            },
+            "species_community.distribution.aoo_actual_auto": function(newVal) {
+                let vm=this;
+                var selectedValue = newVal;
+                    if(selectedValue === "true"){
+                        vm.species_community.distribution.area_of_occupancy_actual=vm.species_community.distribution.cal_area_of_occupancy_actual;
+                    }
+                    else{
+                        vm.species_community.distribution.area_of_occupancy_actual=null;
+                    }
+            },
+            "species_community.distribution.aoo_auto": function(newVal) {
+                let vm=this;
+                var selectedValue = newVal;
+                    if(selectedValue === "true"){
+                        vm.species_community.distribution.area_of_occupancy=vm.species_community.distribution.cal_area_of_occupancy;
+                    }
+                    else{
+                        vm.species_community.distribution.area_of_occupancy=null;
+                    }
+            },
         },
         methods:{
             filterDistrict: function(event) {
@@ -462,18 +555,41 @@ export default {
                     vm.species_community.last_data_curration_date=null;
                 }
             },
+            getSpeciesDisplay: function(){
+                for(let choice of this.scientific_name_list){
+                        if(choice.id === this.species_community.scientific_name_id)
+                        {
+                          this.species_display = choice.name;
+                        }
+                    }
+            },
             eventListeners:function (){
-                let vm=this;
-
-                var date= new Date()
-                var today= new Date(date.getFullYear(), date.getMonth(), date.getDate());
             },
         },
         created: async function() {
             let vm=this;
+            //----set the distribution field values if auto onload
+            if(vm.species_community.distribution.noo_auto == true){
+                vm.species_community.distribution.number_of_occurrences=vm.species_community.distribution.cal_number_of_occurrences;
+            }
+            if(vm.species_community.distribution.eoo_auto == true){
+                vm.species_community.distribution.extent_of_occurrences=vm.species_community.distribution.cal_extent_of_occurrences;
+            }
+            if(vm.species_community.distribution.aoo_actual_auto == true){
+                vm.species_community.distribution.area_of_occupancy_actual=vm.species_community.distribution.cal_area_of_occupancy_actual;
+            }
+            if(vm.species_community.distribution.aoo_auto == true){
+                vm.species_community.distribution.area_of_occupancy=vm.species_community.distribution.cal_area_of_occupancy;
+            }
             //------fetch list of values
             const res = await Vue.http.get('/api/species_profile_dict/');
             vm.species_profile_dict = res.body;
+            vm.scientific_name_list = vm.species_profile_dict.scientific_name_list;
+            vm.scientific_name_list.splice(0,0,
+                {
+                    id: null,
+                    name: null,
+                });
             vm.name_authority_list = vm.species_profile_dict.name_authority_list;
             vm.name_authority_list.splice(0,0,
                 {
@@ -489,8 +605,8 @@ export default {
             vm.genus_list = vm.species_profile_dict.genus_list;
             vm.genus_list.splice(0,0,
                 {
-                    id: "",
-                    name: "",
+                    id: null,
+                    name: null,
                 });
             vm.phylo_group_list = vm.species_profile_dict.phylo_group_list;
             vm.phylo_group_list.splice(0,0,
@@ -525,8 +641,8 @@ export default {
             vm.root_morphology_list = vm.species_profile_dict.root_morphology_list;
             vm.root_morphology_list.splice(0,0,
                 {
-                    id: "",
-                    name: "",
+                    id: null,
+                    name: null,
                 });
             vm.pollinator_info_list = vm.species_profile_dict.pollinator_info_list;
             vm.pollinator_info_list.splice(0,0,
@@ -557,10 +673,11 @@ export default {
                 name: null,
             });
             this.filterDistrict();
+            this.getSpeciesDisplay();
         },
         mounted: function(){
             let vm = this;
-
+            //vm.eventListeners();
         }
     }
 </script>
@@ -584,6 +701,9 @@ export default {
     }
     input[type=text], select {
         width: 100%;
+    }
+    input[type=number],{
+        width: 50%;
     }
 </style>
 

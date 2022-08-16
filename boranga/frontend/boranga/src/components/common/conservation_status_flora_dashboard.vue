@@ -407,7 +407,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
-                name: "species__scientific_name",
+                name: "species__scientific_name__name",
             }
         },
         column_common_name: function(){
@@ -699,7 +699,7 @@ export default {
                 }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
-                    let data = e.params.data.text;
+                    let data = e.params.data.id;
                     vm.filterCSFloraScientificName = data;
                 }).
                 on("select2:unselect",function (e) {

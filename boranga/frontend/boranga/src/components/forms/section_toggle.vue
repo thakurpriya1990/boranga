@@ -90,6 +90,6 @@ export default {
     transition: 0.5s;
 }
 .chev_rotated {
-    transform: rotate(180deg);
+    transform: rotate(-180deg);
 }
 </style>
