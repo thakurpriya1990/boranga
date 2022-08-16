@@ -12,7 +12,7 @@
                                       <label class="control-label pull-left">Document Category</label>
                                     </div>
                                     <div class="col-sm-9">
-                                      <select class="form-control" v-model="documentObj.document_category" @change="filterSubCategory($event)">
+                                      <select class="form-select" v-model="documentObj.document_category" @change="filterSubCategory($event)">
                                         <option  v-for="category in documentCategories" :value="category.id" v-bind:key="category.id">
                                           {{ category.name }} 
                                         </option>
@@ -24,7 +24,7 @@
                                       <label class="control-label pull-left">Document Sub Category</label>
                                     </div>
                                     <div class="col-sm-9">
-                                      <select class="form-control" v-model="documentObj.document_sub_category">
+                                      <select class="form-select" v-model="documentObj.document_sub_category">
                                         <option  v-for="sub_category in filteredDocumentSubCategories" :value="sub_category.id" v-bind:key="sub_category.id">
                                           {{ sub_category.name }} 
                                         </option>

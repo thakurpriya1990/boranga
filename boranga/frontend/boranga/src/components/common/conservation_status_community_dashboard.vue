@@ -5,10 +5,10 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Community ID:</label>
-                        <select class="form-control" v-model="filterCSCommunityId">
+                        <select class="form-select" v-model="filterCSCommunityMigratedId">
                             <option value="all">All</option>
-                            <option v-for="community in communities_data_list" :value="community.community_id">
-                                {{community.community_id}}
+                            <option v-for="community in communities_data_list" :value="community.community_migrated_id">
+                                {{community.community_migrated_id}}
                             </option>
                         </select>
                     </div>
@@ -16,10 +16,10 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Community Name:</label>
-                        <select class="form-control" v-model="filterCSCommunityName">
+                        <select class="form-select" v-model="filterCSCommunityName">
                             <option value="all">All</option>
-                            <option v-for="community in communities_data_list" :value="community.community_name">
-                                {{community.community_name}}
+                            <option v-for="option in community_name_list" :value="option.id">
+                                {{option.name}}
                             </option>
                         </select>
                     </div>
@@ -27,7 +27,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Community Status:</label>
-                        <select class="form-control" v-model="filterCSCommunityStatus">
+                        <select class="form-select" v-model="filterCSCommunityStatus">
                             <option value="all">All</option>
                             <option v-for="community in communities_data_list" :value="community.community_status">
                                 {{community.community_status}}
@@ -38,7 +38,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation List:</label>
-                        <select class="form-control" v-model="filterCSCommunityConservationList"
+                        <select class="form-select" v-model="filterCSCommunityConservationList"
                         @change="filterConservationCategory($event)">
                             <option value="all">All</option>
                             <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
@@ -48,7 +48,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation Category:</label>
-                        <select class="form-control" v-model="filterCSCommunityConservationCategory">
+                        <select class="form-select" v-model="filterCSCommunityConservationCategory">
                             <option value="all">All</option>
                             <option v-for="list in filtered_conservation_category_list" :value="list.id">{{list.code}}</option>
                         </select>
@@ -65,7 +65,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-control" v-model="filterCSCommunityRegion">
+                        <select class="form-select" v-model="filterCSCommunityRegion">
                             <option value="all">All</option>
                             <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
                         </select>
@@ -74,7 +74,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">District:</label>
-                        <select class="form-control" v-model="filterCSCommunityDistrict">
+                        <select class="form-select" v-model="filterCSCommunityDistrict">
                             <option value="all">All</option>
                             <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
                         </select>
@@ -135,10 +135,10 @@ export default {
             type: String,
             required: true
         },
-        filterCSCommunityId_cache: {
+        filterCSCommunityMigratedId_cache: {
             type: String,
             required: false,
-            default: 'filterCSCommunityId',
+            default: 'filterCSCommunityMigratedId',
         },
         filterCSCommunityName_cache: {
             type: String,
@@ -181,8 +181,8 @@ export default {
             is_payment_admin: false,
             
             // selected values for filtering
-            filterCSCommunityId: sessionStorage.getItem(this.filterCSCommunityId_cache) ? 
-                                sessionStorage.getItem(this.filterCSCommunityId_cache) : 'all',
+            filterCSCommunityMigratedId: sessionStorage.getItem(this.filterCSCommunityMigratedId_cache) ? 
+                                sessionStorage.getItem(this.filterCSCommunityMigratedId_cache) : 'all',
 
             filterCSCommunityName: sessionStorage.getItem(this.filterCSCommunityName_cache) ? 
                                     sessionStorage.getItem(this.filterCSCommunityName_cache) : 'all',
@@ -204,6 +204,7 @@ export default {
             //Filter list for Community select box
             filterListsCommunities: {},
             communities_data_list: [],
+            community_name_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
             filtered_conservation_category_list: [],
@@ -244,10 +245,10 @@ export default {
         FormSection,
     },
     watch:{
-        filterCSCommunityId: function(){
+        filterCSCommunityMigratedId: function(){
             let vm = this;
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
-            sessionStorage.setItem(vm.filterCSCommunityId_cache, vm.filterCSCommunityId);
+            sessionStorage.setItem(vm.filterCSCommunityMigratedId_cache, vm.filterCSCommunityMigratedId);
         },
         filterCSCommunityName: function() {
             let vm = this;
@@ -289,7 +290,7 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCSCommunityId === 'all' && 
+            if(this.filterCSCommunityMigratedId === 'all' && 
                 this.filterCSCommunityName === 'all' && 
                 this.filterCSCommunityStatus === 'all' && 
                 this.filterCSCommunityConservationList === 'all' && 
@@ -330,12 +331,13 @@ export default {
         column_id: function(){
             return {
                 data: "id",
-                orderable: false,
+                orderable: true,
                 searchable: false,
                 visible: false,
                 'render': function(data, type, full){
                     return full.id
-                }
+                },
+                name: "id",
             }
         },
         column_number: function(){
@@ -347,7 +349,7 @@ export default {
                 'render': function(data, type, full){
                     return full.conservation_status_number
                 },
-                name: "conservation_status_number",
+                name: "id",
             }
         },
         column_community_number: function(){
@@ -364,7 +366,7 @@ export default {
         },
         column_community_id: function(){
             return {
-                data: "community_id",
+                data: "community_migrated_id",
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -372,7 +374,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
-                name: "community__community_id",
+                name: "community__community_migrated_id",
             }
         },
         column_community_name: function(){
@@ -386,7 +388,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "community__community_name",
+                name: "community__community_name__name",
             }
         },
         column_community_status: function(){
@@ -578,6 +580,9 @@ export default {
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
                 },
+                order: [
+                    [0, 'desc']
+                ],
                 lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
@@ -588,7 +593,7 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
-                        d.filter_community_id = vm.filterCSCommunityId;
+                        d.filter_community_migrated_id = vm.filterCSCommunityMigratedId;
                         d.filter_community_name = vm.filterCSCommunityName;
                         d.filter_community_status = vm.filterCSCommunityStatus;
                         d.filter_conservation_list = vm.filterCSCommunityConservationList;
@@ -625,6 +630,7 @@ export default {
             vm.$http.get(api_endpoints.community_filter_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunities= response.body;
                 vm.communities_data_list= vm.filterListsCommunities.community_data_list;
+                vm.community_name_list = vm.filterListsCommunities.community_name_list;
                 vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 vm.filterConservationCategory();

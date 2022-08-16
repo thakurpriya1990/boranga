@@ -145,14 +145,19 @@ export default {
           return helpers.getCookie('csrftoken')
         },
         species_community_form_url: function() {
-          return (this.species_community.group_type === "community") ? `/api/community/${this.species_community.id}/community_save.json`        : `/api/species/${this.species_community.id}/species_save.json`;
+          return (this.species_community.group_type === "community") ? 
+                  `/api/community/${this.species_community.id}/community_save.json`: 
+                  `/api/species/${this.species_community.id}/species_save.json`;
         },
         display_number: function() {
-            return (this.species_community.group_type === "community") ? this.species_community.community_number : 
-                this.species_community.species_number;
+            return (this.species_community.group_type === "community") ? 
+                    this.species_community.community_number : 
+                    this.species_community.species_number;
         },
         display_name: function() {
-            return (this.species_community.group_type === "community") ? this.species_community.community_id : this.species_community.scientific_name;
+            return (this.species_community.group_type === "community") ? 
+                    this.species_community.community_migrated_id : 
+                    this.species_community.common_name;
         },
         class_ncols: function(){
             return this.comparing ? 'col-md-12' : 'col-md-8';

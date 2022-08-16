@@ -91,6 +91,8 @@ class ConservationCategory(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Conservation Category"
+        verbose_name_plural = "Conservation Categories"
 
     def __str__(self):
         return str(self.code)

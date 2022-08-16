@@ -10,7 +10,7 @@ import django
 # Create your tests here.
 from boranga.components.species_and_communities.models import DISTRICT_SWAN_COASTAL, REGION_CHOICES, REGION_SOUTH_WEST, CommitteeMeeting, Contact, District, DocumentCategory, NameAuthority, Region, Species, GroupType,  \
     SpeciesAttributes, Taxonomy, Community, SpeciesDocument, ConservationThreat, \
-    ConservationPlan, Distribution, ConservationAttributes, ThreatCategory
+    ConservationPlan, SpeciesDistribution,CommunityDistribution, SpeciesConservationAttributes, ThreatCategory
 
 from boranga.components.conservation_status.models import(
     ConservationList,
@@ -321,14 +321,11 @@ def create_species_fauna():
                     area_of_occupancy = randrange(100)
                     number_of_iucn_locations = randrange(100)
                     community_original_area_reference = fauna_row[7]
-                    distribution = Distribution.objects.create(department_file_numbers=department_file_numbers,
-                                                            community_original_area=community_original_area,
-                                                            community_original_area_accuracy=community_original_area_accuracy,
+                    distribution = SpeciesDistribution.objects.create(department_file_numbers=department_file_numbers,
                                                             number_of_occurrences=number_of_occurrences,
                                                             extent_of_occurrences=extent_of_occurrences,
                                                             area_of_occupancy=area_of_occupancy,
                                                             number_of_iucn_locations=number_of_iucn_locations,
-                                                            community_original_area_reference=community_original_area_reference,
                                                             species=fauna)
 
                     general_management_advice = "{} is a fauna gen management advice.".format(fauna_row[8])
@@ -336,12 +333,12 @@ def create_species_fauna():
                     biological_attributes = "{} is a fauna bio attribute.".format(fauna_row[8])
                     specific_survey_advice = "{} is a fauna survey advice.".format(fauna_row[8])
                     comments = "{} is a fauna comment.".format(fauna_row[8])
-                    conservation_attributes = ConservationAttributes.objects.create(general_management_advice=general_management_advice,
-                                                                                    ecological_attributes=ecological_attributes,
-                                                                                    biological_attributes=biological_attributes,
-                                                                                    specific_survey_advice=specific_survey_advice,
-                                                                                    comments=comments,
-                                                                                    species=fauna)
+                    # conservation_attributes = ConservationAttributes.objects.create(general_management_advice=general_management_advice,
+                    #                                                                 ecological_attributes=ecological_attributes,
+                    #                                                                 biological_attributes=biological_attributes,
+                    #                                                                 specific_survey_advice=specific_survey_advice,
+                    #                                                                 comments=comments,
+                    #                                                                 species=fauna)
                 except Exception as e:
                     row_failed = True
                     failed_rows.append(fauna_row)
@@ -457,14 +454,11 @@ def create_species_flora():
                         area_of_occupancy = randrange(100)
                         number_of_iucn_locations = randrange(100)
                         community_original_area_reference = flora_row[7]
-                        distribution = Distribution.objects.create(department_file_numbers=department_file_numbers,
-                                                                community_original_area=community_original_area,
-                                                                community_original_area_accuracy=community_original_area_accuracy,
+                        distribution = SpeciesDistribution.objects.create(department_file_numbers=department_file_numbers,
                                                                 number_of_occurrences=number_of_occurrences,
                                                                 extent_of_occurrences=extent_of_occurrences,
                                                                 area_of_occupancy=area_of_occupancy,
                                                                 number_of_iucn_locations=number_of_iucn_locations,
-                                                                community_original_area_reference=community_original_area_reference,
                                                                 species=flora)
 
                         general_management_advice = "{} is a flora gen management advice.".format(flora_row[8])
@@ -472,12 +466,12 @@ def create_species_flora():
                         biological_attributes = "{} is a flora bio attribute.".format(flora_row[8])
                         specific_survey_advice = "{} is a flora survey advice.".format(flora_row[8])
                         comments = "{} is a flora comment.".format(flora_row[8])
-                        conservation_attributes = ConservationAttributes.objects.create(general_management_advice=general_management_advice,
-                                                                                        ecological_attributes=ecological_attributes,
-                                                                                        biological_attributes=biological_attributes,
-                                                                                        specific_survey_advice=specific_survey_advice,
-                                                                                        comments=comments,
-                                                                                        species=flora)
+                        # conservation_attributes = ConservationAttributes.objects.create(general_management_advice=general_management_advice,
+                        #                                                                 ecological_attributes=ecological_attributes,
+                        #                                                                 biological_attributes=biological_attributes,
+                        #                                                                 specific_survey_advice=specific_survey_advice,
+                        #                                                                 comments=comments,
+                        #                                                                 species=flora)
                     except Exception as e:
                         row_failed = True
                         failed_rows.append(flora_row)

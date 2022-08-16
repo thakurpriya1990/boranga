@@ -57,15 +57,15 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 
         filter_phylogenetic_group = request.GET.get('filter_phylogenetic_group')
         if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
-            queryset = queryset.filter(species__species_taxonomy__phylogenetic_group=filter_phylogenetic_group)
+            queryset = queryset.filter(species__species_taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
         
         filter_family = request.GET.get('filter_family')
         if filter_family and not filter_family.lower() == 'all':
-            queryset = queryset.filter(species__species_taxonomy__family=filter_family)
+            queryset = queryset.filter(species__species_taxonomy__family__id=filter_family)
 
         filter_genus = request.GET.get('filter_genus')
         if filter_genus and not filter_genus.lower() == 'all':
-            queryset = queryset.filter(species__species_taxonomy__genus=filter_genus)
+            queryset = queryset.filter(species__species_taxonomy__genus__id=filter_genus)
         
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
@@ -140,10 +140,10 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         if filter_group_type:
             queryset = queryset.filter(community__group_type__name=filter_group_type)
         
-        #filter_community_id
-        filter_community_id = request.GET.get('filter_community_id')
-        if filter_community_id and not filter_community_id.lower() == 'all':
-            queryset = queryset.filter(community__community_id=filter_community_id)
+        #filter_community_migrated_id
+        filter_community_migrated_id = request.GET.get('filter_community_migrated_id')
+        if filter_community_migrated_id and not filter_community_migrated_id.lower() == 'all':
+            queryset = queryset.filter(community__community_migrated_id=filter_community_migrated_id)
 
         # filter_community_name
         filter_community_name = request.GET.get('filter_community_name')
