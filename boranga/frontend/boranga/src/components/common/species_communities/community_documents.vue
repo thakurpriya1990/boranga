@@ -47,7 +47,7 @@ export default {
                 panelBody: "community-documents-"+vm._uid,
                 values:null,
                 community_document_url: api_endpoints.community_documents,
-                documents_headers:['Number','Category', 'Sub Category','Document','Action','Description','Date/Time'],
+                documents_headers:['Number','Category', 'Sub Category','Document','Description','Date/Time','Action'],
                 documents_options:{
                     autowidth: false,
                     language:{
@@ -55,6 +55,11 @@ export default {
                     },
                     responsive: true,
                     searching: true,
+                    //  to show the "workflow Status","Action" columns always in the last position
+                    columnDefs: [
+                        { responsivePriority: 1, targets: 0 },
+                        { responsivePriority: 2, targets: -1 },
+                    ],
                     ajax:{
                         "url": helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/documents'),
                         "dataSrc": ''
@@ -141,20 +146,6 @@ export default {
 
                         },
                         {
-                            data: "id",
-                            mRender:function (data,type,full){
-                                let links = '';
-                                if(full.visible){
-                                    links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
-                                }
-                                else{
-                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
-                                }
-                                return links;
-                            }
-                        },
-                        {
                             data: "description",
                             orderable: true,
                             searchable: true,
@@ -175,6 +166,20 @@ export default {
                                 }else{
                                     return data != '' && data != null ? '<s>'+ moment(data).format('DD/MM/YYYY HH:mm') + '</s>':'';
                                 }
+                            }
+                        },
+                        {
+                            data: "id",
+                            mRender:function (data,type,full){
+                                let links = '';
+                                if(full.visible){
+                                    links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
+                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                }
+                                else{
+                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                }
+                                return links;
                             }
                         },
                     ],

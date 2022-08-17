@@ -371,11 +371,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
-                    'Conservation Category', 'Action', 'Region', 'District']
+                    'Conservation Category', 'Region', 'District', 'Action']
             }
             if (this.is_internal){
                 return ['Number','Species','Scientific Name', 'Common Name','Conservation List', 
-                    'Conservation Category', 'Action', 'Region', 'District']
+                    'Conservation Category', 'Region', 'District', 'Action']
             }
         },
         column_id: function(){
@@ -601,10 +601,10 @@ export default {
                     vm.column_genera,*/
                     vm.column_conservation_list,
                     vm.column_conservation_category,
-                    vm.column_action,
-                    //vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
+                    //vm.column_workflow_status,
+                    vm.column_action,
                 ]
                 search = false
                 buttons = []
@@ -619,10 +619,10 @@ export default {
                     vm.column_genera,*/
                     vm.column_conservation_list,
                     vm.column_conservation_category,
-                    vm.column_action,
-                    //vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
+                    //vm.column_workflow_status,
+                    vm.column_action,
                 ]
                 search = true
                 buttons = [ 
@@ -658,6 +658,12 @@ export default {
                 responsive: true,
                 serverSide: true,
                 searching: search,
+                 //  to show the "workflow Status","Action" columns always in the last position
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 2, targets: -2 }
+                ],
                 ajax: {
                     "url": this.url,
                     "dataSrc": 'data',

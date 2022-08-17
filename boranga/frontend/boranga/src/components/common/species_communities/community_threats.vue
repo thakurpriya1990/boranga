@@ -46,8 +46,8 @@ export default {
                 panelBody: "community-threats-"+vm._uid,
                 values:null,
                 threat_url: api_endpoints.threat,
-                threats_headers:['Number','Category', 'Threat Source', 'Date Observed','Action', 'Threat Agent', 'Comments',
-                                'Current Impact?', 'Potential Impact?'],
+                threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
+                                'Current Impact?', 'Potential Impact?','Action'],
                 threats_options:{
                     autowidth: false,
                     language:{
@@ -55,6 +55,11 @@ export default {
                     },
                     responsive: true,
                     searching: true,
+                    //  to show the "workflow Status","Action" columns always in the last position
+                    columnDefs: [
+                        { responsivePriority: 1, targets: 0 },
+                        { responsivePriority: 2, targets: -1 },
+                    ],
                     ajax:{
                         "url": helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/threats'),
                         "dataSrc": ''
@@ -136,20 +141,6 @@ export default {
                             }
                         },
                         {
-                            data: "id",
-                            mRender:function (data,type,full){
-                                let links = '';
-                                if(full.visible){
-                                    links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                }
-                                else{
-                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
-                                }
-                                return links;
-                            }
-                        },
-                        {
                             data: "threat_agent",
                             orderable: true,
                             searchable: true,
@@ -203,6 +194,20 @@ export default {
                                     return '<s>'+ full.potential_impact_name + '</s>'
                                 }
                             },
+                        },
+                        {
+                            data: "id",
+                            mRender:function (data,type,full){
+                                let links = '';
+                                if(full.visible){
+                                    links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                }
+                                else{
+                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                                }
+                                return links;
+                            }
                         },
                     ],
                     processing:true,

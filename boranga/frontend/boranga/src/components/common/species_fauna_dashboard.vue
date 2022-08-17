@@ -366,10 +366,10 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Action', 'Genera',' Conservation List', 'Conservation Category','Workflow Status', 'Region', 'District']
+                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family',  'Genera',' Conservation List', 'Conservation Category', 'Region', 'District','Workflow Status', 'Action']
             }
             if (this.is_internal){
-                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Action', 'Genera', 'Conservation List', 'Conservation Category','Workflow Status', 'Region', 'District']
+                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera', 'Conservation List', 'Conservation Category', 'Region', 'District','Workflow Status', 'Action']
             }
         },
         column_id: function(){
@@ -618,13 +618,13 @@ export default {
                     vm.column_common_name,
                     vm.column_phylogenetic_group,
                     vm.column_family,
-                    vm.column_action,
                     vm.column_genera,
                     vm.column_conservation_list,
                     vm.column_conservation_category,
-                    vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_workflow_status,
+                    vm.column_action,
                 ]
                 search = false
                 buttons = []
@@ -637,13 +637,13 @@ export default {
                     vm.column_common_name,
                     vm.column_phylogenetic_group,
                     vm.column_family,
-                    vm.column_action,
                     vm.column_genera,
                     vm.column_conservation_list,
                     vm.column_conservation_category,
-                    vm.column_workflow_status,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_workflow_status,
+                    vm.column_action,
                 ]
                 search = true
                 buttons = [
@@ -679,6 +679,12 @@ export default {
                 responsive: true,
                 serverSide: true,
                 searching: search,
+                //  to show the "Action" column always in the last position
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 2, targets: -2 }
+                ],
                 ajax: {
                     "url": this.url,
                     "dataSrc": 'data',

@@ -7,7 +7,7 @@
                         <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <div class="row modal-input-row">
+                                <div class="row modal-input-row mb-3">
                                     <div class="col-sm-3">
                                       <label class="control-label pull-left">Document Category</label>
                                     </div>
@@ -19,7 +19,7 @@
                                       </select>
                                     </div>
                                 </div>
-                                <div class="row modal-input-row">
+                                <div class="row modal-input-row mb-3">
                                     <div class="col-sm-3">
                                       <label class="control-label pull-left">Document Sub Category</label>
                                     </div>
@@ -31,7 +31,7 @@
                                       </select>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                       <label class="control-label pull-left">Description</label>
                                     </div>
@@ -40,7 +40,7 @@
                                       </textarea>                                
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label for="" class="control-label pull-left">Date/Time: </label>
                                     </div>
@@ -49,7 +49,7 @@
                                         ref="uploaded_date" v-model="documentObj.uploaded_date" />
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
                                             <FileField2 ref="filefield" 

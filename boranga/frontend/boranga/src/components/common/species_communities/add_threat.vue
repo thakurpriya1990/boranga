@@ -7,7 +7,7 @@
                         <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <div class="row modal-input-row">
+                                <div class="row modal-input-row mb-3">
                                     <div class="col-sm-3">
                                       <label class="control-label pull-left">Category</label>
                                     </div>
@@ -19,7 +19,7 @@
                                       </select>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                       <label class="control-label pull-left">Threat Agent</label>
                                     </div>
@@ -27,7 +27,7 @@
                                       <input type="text" class="form-control" v-model="threatObj.threat_agent"/>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                       <label class="control-label pull-left">Threat Comments</label>
                                     </div>
@@ -36,40 +36,43 @@
                                       </textarea>                                
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                    <div class="col-sm-3">
                                       <label class="control-label pull-left">Current Impact?</label>
                                     </div>
-                                    <div class="col-sm-9" style="padding:0px">
+                                    <div class="col-sm-9">
                                         <div v-for="option in current_impact_list" class="form-check form-check-inline">
-                                              <input type="radio" :value="option.id" :id="'current_impact_'+option.id" v-bind:key="option.id" v-model="threatObj.current_impact"/>
+                                              <input type="radio" class="form-check-input" :value="option.id" :id="'current_impact_'+option.id" v-bind:key="option.id" 
+                                              v-model="threatObj.current_impact"/>
                                                <label :for="'current_impact_'+option.id" >{{ option.name }}</label>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                       <label class="control-label pull-left">Potential Impact?</label>
                                     </div>
-                                    <div class="col-sm-9" style="padding:0px">
+                                    <div class="col-sm-9">
                                         <div v-for="option in potential_impact_list" class="form-check form-check-inline">
-                                          <input type="radio" :value="option.id" :id="'potential_impact_'+option.id" v-bind:key="option.id" v-model="threatObj.potential_impact"/>
+                                          <input type="radio" class="form-check-input" :value="option.id" :id="'potential_impact_'+option.id" v-bind:key="option.id" 
+                                            v-model="threatObj.potential_impact"/>
                                            <label :for="'potential_impact_'+option.id" >{{ option.name }}</label>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                       <label class="control-label pull-left">Potential Threat Onset?</label>
                                     </div>
-                                    <div class="col-sm-9" style="padding:0px">
-                                        <div v-for="option in potential_threat_onset_list" class="form-check form-check-inline">
-                                          <input type="radio" :value="option.id" :id="'potential_threat_onset_'+option.id" v-bind:key="option.id" v-model="threatObj.potential_threat_onset"/>
+                                    <div class="col-sm-9">
+                                        <div v-for="option in potential_threat_onset_list" class="form-check form-check-inline ">
+                                          <input type="radio" class="form-check-input" :value="option.id" :id="'potential_threat_onset_'+option.id" v-bind:key="option.id" 
+                                                v-model="threatObj.potential_threat_onset"/>
                                            <label :for="'potential_threat_onset_'+option.id" >{{ option.name }}</label>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                       <label class="control-label pull-left">Threat Source</label>
                                     </div>
@@ -77,7 +80,7 @@
                                       <input type="text" class="form-control" readonly v-model="threatObj.source"/>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label for="" class="control-label pull-left">Date observed: </label>
                                     </div>
