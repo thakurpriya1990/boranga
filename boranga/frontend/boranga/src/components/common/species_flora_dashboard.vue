@@ -23,6 +23,16 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
+                        <label for="">Phylo Group:</label>
+                        <select class="form-select" v-model="filterFloraPhylogeneticGroup">
+                            <option value="all">All</option>
+                            <option v-for="option in phylogenetic_group_list" :value="option.id">
+                                {{option.name}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
                         <label for="">Family:</label>
                         <select class="form-select" v-model="filterFloraFamily">
                             <option value="all">All</option>
@@ -160,6 +170,11 @@ export default {
             required: false,
             default: 'filterFloraFamily',
         },
+        filterFloraPhylogeneticGroup_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraPhylogeneticGroup',
+        },
         filterFloraGenus_cache: {
             type: String,
             required: false,
@@ -205,6 +220,9 @@ export default {
             filterFloraFamily: sessionStorage.getItem(this.filterFloraFamily_cache) ? 
                                 sessionStorage.getItem(this.filterFloraFamily_cache) : 'all',
 
+            filterFloraPhylogeneticGroup: sessionStorage.getItem(this.filterFloraPhylogeneticGroup_cache) ? 
+                                            sessionStorage.getItem(this.filterFloraPhylogeneticGroup_cache) : 'all',
+
             filterFloraGenus: sessionStorage.getItem(this.filterFloraGenus_cache) ? 
                                 sessionStorage.getItem(this.filterFloraGenus_cache) : 'all',
 
@@ -225,6 +243,7 @@ export default {
             species_data_list: [],
             scientific_name_list: [],
             family_list: [],
+            phylogenetic_group_list: [],
             genus_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
@@ -280,6 +299,11 @@ export default {
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraFamily_cache, vm.filterFloraFamily);  
         },
+        filterFloraPhylogeneticGroup: function() {
+            let vm = this;
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
+            sessionStorage.setItem(vm.filterFloraPhylogeneticGroup_cache, vm.filterFloraPhylogeneticGroup);
+        },
         filterFloraGenus: function() {
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
@@ -317,6 +341,7 @@ export default {
             if(this.filterFloraScientificName === 'all' && 
                 this.filterFloraCommonName === 'all' && 
                 this.filterFloraFamily === 'all' && 
+                this.filterFloraPhylogeneticGroup === 'all' && 
                 this.filterFloraGenus === 'all' && 
                 this.filterFloraConservationList === 'all' && 
                 this.filterFloraConservationCategory === 'all' && 
@@ -345,12 +370,12 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Id','Number', 'Scientific Name', 'Common Name', 'Family', 'Genera','Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Workflow Status', 'Action']
+                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
+                     'Conservation List', 'Conservation Category', 'Region', 'District', 'Workflow Status', 'Action']
             }
             if (this.is_internal){
-                return ['Id','Number', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Workflow Status', 'Action']
+                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
+                    'Conservation List', 'Conservation Category', 'Region', 'District', 'Workflow Status', 'Action']
             }
         },
         column_id: function(){
@@ -439,6 +464,20 @@ export default {
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
                 name: "species_taxonomy__family__name",
+            }
+        },
+        column_phylogenetic_group: function(){
+            return {
+                data: "phylogenetic_group",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(value, type){
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
+                },
+                //'createdCell': helpers.dtPopoverCellFn,
+                name: "species_taxonomy__phylogenetic_group__name",
             }
         },
         column_genera: function(){
@@ -583,6 +622,7 @@ export default {
                     vm.column_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
+                    vm.column_phylogenetic_group,
                     vm.column_family,
                     vm.column_genera,
                     vm.column_conservation_list,
@@ -601,6 +641,7 @@ export default {
                     vm.column_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
+                    vm.column_phylogenetic_group,
                     vm.column_family,
                     vm.column_genera,
                     vm.column_conservation_list,
@@ -660,6 +701,7 @@ export default {
                         d.filter_scientific_name = vm.filterFloraScientificName;
                         d.filter_common_name = vm.filterFloraCommonName;
                         d.filter_family = vm.filterFloraFamily;
+                        d.filter_phylogenetic_group = vm.filterFloraPhylogeneticGroup;
                         d.filter_genus = vm.filterFloraGenus;
                         d.filter_conservation_list = vm.filterFloraConservationList;
                         d.filter_conservation_category = vm.filterFloraConservationCategory;
@@ -695,6 +737,7 @@ export default {
                 vm.species_data_list = vm.filterListsSpecies.species_data_list;
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
+                vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
                 vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
