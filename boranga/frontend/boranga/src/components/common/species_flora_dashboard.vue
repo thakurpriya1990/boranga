@@ -647,8 +647,8 @@ export default {
                 //  to show the "Action" column always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 2, targets: -1 },
-                    { responsivePriority: 3, targets: -2 }
+                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {
                     "url": this.url,
