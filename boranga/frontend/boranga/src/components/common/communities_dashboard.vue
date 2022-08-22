@@ -393,7 +393,7 @@ export default {
         },
         column_conservation_list: function(){
             return {
-                data: "conservation_list",
+                data: "current_conservation_list",
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -402,12 +402,12 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_status__conservation_list__code",
+                name: "conservation_status__current_conservation_list__code",
             }
         },
         column_conservation_category: function(){
             return {
-                data: "conservation_category",
+                data: "current_conservation_category",
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -416,7 +416,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_status__conservation_category__code",
+                name: "conservation_status__current_conservation_category__code",
             }
         },
         column_workflow_status: function(){

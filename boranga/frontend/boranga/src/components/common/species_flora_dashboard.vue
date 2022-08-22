@@ -496,34 +496,34 @@ export default {
         },
         column_conservation_list: function(){
             return {
-                data: "conservation_list",
+                data: "current_conservation_list",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.conservation_list){
-                        return full.conservation_list;
+                    if(full.current_conservation_list){
+                        return full.current_conservation_list;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "conservation_status__conservation_list__code",
+                name: "conservation_status__current_conservation_list__code",
             }
         },
         column_conservation_category: function(){
             return {
-                data: "conservation_category",
+                data: "current_conservation_category",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.conservation_category){
-                        return full.conservation_category;
+                    if(full.current_conservation_category){
+                        return full.current_conservation_category;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "conservation_status__conservation_category__code",
+                name: "conservation_status__current_conservation_category__code",
             }
         },
         column_workflow_status: function(){

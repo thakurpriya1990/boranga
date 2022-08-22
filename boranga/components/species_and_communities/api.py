@@ -458,11 +458,11 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
-            queryset = queryset.filter(conservation_status__conservation_list=filter_conservation_list)
+            queryset = queryset.filter(conservation_status__current_conservation_list=filter_conservation_list)
 
         filter_conservation_category = request.GET.get('filter_conservation_category')
         if filter_conservation_category and not filter_conservation_category.lower() == 'all':
-            queryset = queryset.filter(conservation_status__conservation_category=filter_conservation_category)
+            queryset = queryset.filter(conservation_status__current_conservation_category=filter_conservation_category)
         
         filter_region = request.GET.get('filter_region')
         if filter_region and not filter_region.lower() == 'all':
@@ -545,11 +545,11 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
 
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
-            queryset = queryset.filter(conservation_status__conservation_list=filter_conservation_list)
+            queryset = queryset.filter(conservation_status__current_conservation_list=filter_conservation_list)
 
         filter_conservation_category = request.GET.get('filter_conservation_category')
         if filter_conservation_category and not filter_conservation_category.lower() == 'all':
-            queryset = queryset.filter(conservation_status__conservation_category=filter_conservation_category)
+            queryset = queryset.filter(conservation_status__current_conservation_category=filter_conservation_category)
 
         filter_region = request.GET.get('filter_region')
         if filter_region and not filter_region.lower() == 'all':

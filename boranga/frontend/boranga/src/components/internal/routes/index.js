@@ -19,8 +19,9 @@ import Reports from '@/components/reports/reports.vue'
 import ParkEntryFeesDashboard from '../park_entry_fees_dashboard.vue'
 import DistrictProposal from '../district_proposals/district_proposal.vue'
 import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
-import ConservationStatusDash from '../conservation_status/dashboard.vue'
 import SpeciesCommunities from '../species_communities/species_communities.vue'
+import ConservationStatusDash from '../conservation_status/dashboard.vue'
+import ConservationStatus from '../conservation_status/conservation_status.vue'
 export default
 {
     path: '/internal',
@@ -205,6 +206,39 @@ export default
                             path: 'referral/:referral_id',
                             component: Referral,
                             name:"internal-species-communities-referral"
+                        }
+                    ]
+                },
+            ]
+        },
+
+        {
+            path: 'conservation_status',
+            component: {
+                render(c)
+                {
+                    return c('router-view')
+                },
+            },
+            children: [
+                {
+                    path: ':conservation_status_id',
+                    component: {
+                        render(c)
+                        {
+                            return c('router-view')
+                        },
+                    },
+                    children: [
+                        {
+                            path: '/',
+                            component: ConservationStatus,
+                            name:"internal-conservation_status"
+                        },
+                        {
+                            path: 'referral/:referral_id',
+                            component: Referral,
+                            name:"internal-conservation_status-referral"
                         }
                     ]
                 },

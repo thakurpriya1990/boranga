@@ -4,17 +4,18 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Scientific Name:</label>
-                        <select class="form-control" v-model="filterCSFloraScientificName">
+                        <label for="">Scientific Name:</label>
+                        <select class="form-select" v-model="filterCSFloraScientificName">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.scientific_name">{{species.scientific_name}}</option>
-                        </select> -->
-                        <label for="scientific_name_lookup">Scientific Name:</label>
+                            <option v-for="option in scientific_name_list" :value="option.id">{{option.name}}
+                            </option>
+                        </select>
+                        <!-- <label for="scientific_name_lookup">Scientific Name:</label>
                         <select 
                             id="scientific_name_lookup"  
                             name="scientific_name_lookup"  
                             ref="scientific_name_lookup" 
-                            class="form-control" />
+                            class="form-control" /> -->
                             <!-- v-model="filterCSFloraScientificName" /> -->
                     </div>
                 </div>
@@ -152,11 +153,11 @@ export default {
             type: String,
             required: true
         },
-        /*filterCSFloraScientificName_cache: {
+        filterCSFloraScientificName_cache: {
             type: String,
             required: false,
             default: 'filterCSFloraScientificName',
-        },*/
+        },
         filterCSFloraCommonName_cache: {
             type: String,
             required: false,
@@ -203,9 +204,9 @@ export default {
             is_payment_admin: false,
             
             // selected values for filtering
-            filterCSFloraScientificName:null,
-            //filterCSFloraScientificName: sessionStorage.getItem(this.filterCSFloraScientificName_cache) ? 
-             //                       sessionStorage.getItem(this.filterCSFloraScientificName_cache) : 'all',
+            //filterCSFloraScientificName:null,
+            filterCSFloraScientificName: sessionStorage.getItem(this.filterCSFloraScientificName_cache) ? 
+                                   sessionStorage.getItem(this.filterCSFloraScientificName_cache) : 'all',
 
             filterCSFloraCommonName: sessionStorage.getItem(this.filterCSFloraCommonName_cache) ? 
                                     sessionStorage.getItem(this.filterCSFloraCommonName_cache) : 'all',
@@ -231,7 +232,7 @@ export default {
             //Filter list for scientific name and common name
             filterListsSpecies: {},
             species_data_list: [],
-            species_taxonomy_list: [],
+            scientific_name_list: [],
             family_list: [],
             genus_list: [],
             conservation_list_dict: [],
@@ -276,7 +277,7 @@ export default {
         filterCSFloraScientificName: function(){
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            //sessionStorage.setItem(vm.filterCSFloraScientificName_cache, vm.filterCSFloraScientificName);  
+            sessionStorage.setItem(vm.filterCSFloraScientificName_cache, vm.filterCSFloraScientificName);  
         },
         filterCSFloraCommonName: function() {
             let vm = this;
@@ -322,7 +323,7 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCSFloraScientificName === null && 
+            if(this.filterCSFloraScientificName === 'all' && 
                 this.filterCSFloraCommonName === 'all' && 
                 this.filterCSFloraFamily === 'all' && 
                 this.filterCSFloraGenus === 'all' && 
@@ -347,7 +348,8 @@ export default {
         addFloraCSVisibility: function() {
             let visibility = false;
             if (this.is_internal) {
-                visibility = true;
+                //visibility = true;
+                visibility = false;
             }
             return visibility;
         },
@@ -454,34 +456,34 @@ export default {
         },*/
         column_conservation_list: function(){
             return {
-                data: "conservation_list",
+                data: "current_conservation_list",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.conservation_list){
-                        return full.conservation_list;
+                    if(full.current_conservation_list){
+                        return full.current_conservation_list;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "conservation_list__code",
+                name: "current_conservation_list__code",
             }
         },
         column_conservation_category: function(){
             return {
-                data: "conservation_category",
+                data: "current_conservation_category",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.conservation_category){
-                        return full.conservation_category;
+                    if(full.current_conservation_category){
+                        return full.current_conservation_category;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "conservation_category__code",
+                name: "current_conservation_category__code",
             }
         },
         /*column_workflow_status: function(){
@@ -521,7 +523,7 @@ export default {
             return {
                 data: "district",
                 orderable: true,
-                searchable: false, // handles by filter_queryset override method
+                searchable: true, // handles by filter_queryset override method
                 visible: true,
                 'render': function(data, type, full){
                     if (full.district){
@@ -546,23 +548,23 @@ export default {
                     if (!vm.is_external){
                         /*if(vm.check_assessor(full) && full.can_officer_process)*/
                         if(full.assessor_process){   
-                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}>Process</a><br/>`;    
+                                links +=  `<a href='/internal/conservation_status/${full.id}?group_type_name=${full.group_type}>Process</a><br/>`;    
                         }
                         else{
-                            links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a><br/>`;
+                            links +=  `<a href='/internal/conservation_status/${full.id}?group_type_name=${full.group_type}'>View</a><br/>`;
                         }
                     }
                     else{
                         if (full.can_user_edit) {
-                            links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
+                            links +=  `<a href='/external/conservation_status/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
                             links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
                         }
                         else if (full.can_user_view) {
-                            links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a>`;
+                            links +=  `<a href='/external/conservation_status/${full.id}?group_type_name=${full.group_type}'>View</a>`;
                         }
                     }
 
-                    links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
+                    links +=  `<a href='/internal/conservation_status/${full.id}?group_type_name=${full.group_type}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
 
                     return links;
                 }
@@ -725,6 +727,7 @@ export default {
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.species_data_list = vm.filterListsSpecies.species_data_list;
+                vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
