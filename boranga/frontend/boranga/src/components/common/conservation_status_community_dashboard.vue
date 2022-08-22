@@ -407,7 +407,7 @@ export default {
         },
         column_conservation_list: function(){
             return {
-                data: "conservation_list",
+                data: "current_conservation_list",
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -416,12 +416,12 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_list__code",
+                name: "current_conservation_list__code",
             }
         },
         column_conservation_category: function(){
             return {
-                data: "conservation_category",
+                data: "current_conservation_category",
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -430,7 +430,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_category__code",
+                name: "current_conservation_category__code",
             }
         },
         column_workflow_status: function(){
@@ -494,23 +494,23 @@ export default {
                     if (!vm.is_external){
                         /*if(vm.check_assessor(full) && full.can_officer_process)*/
                         if(full.assessor_process){   
-                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Process</a><br/>`;
+                                links +=  `<a href='/internal/conservation_status/${full.id}?group_type_name=${full.group_type}'>Process</a><br/>`;
                         }
                         else{
-                            links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a><br/>`;
+                            links +=  `<a href='/internal/conservation_status/${full.id}?group_type_name=${full.group_type}'>View</a><br/>`;
                         }
                     }
                     else{
                         if (full.can_user_edit) {
-                            links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
+                            links +=  `<a href='/external/conservation_status/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
                             links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
                         }
                         else if (full.can_user_view) {
-                            links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a>`;
+                            links +=  `<a href='/external/conservation_status/${full.id}?group_type_name=${full.group_type}'>View</a>`;
                         }
                     }
 
-                    links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
+                    links +=  `<a href='/internal/conservation_status/${full.id}?group_type_name=${full.group_type}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
 
                     return links;
                 }

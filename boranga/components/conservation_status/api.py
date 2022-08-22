@@ -33,6 +33,8 @@ from boranga.components.conservation_status.models import(
 from boranga.components.conservation_status.serializers import(
     ListSpeciesConservationStatusSerializer,
     ListCommunityConservationStatusSerializer,
+    InternalSpeciesConservationStatusSerializer,
+    InternalCommunityConservationStatusSerializer,
 )
 
 import logging
@@ -69,11 +71,11 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
-            queryset = queryset.filter(conservation_list=filter_conservation_list)
+            queryset = queryset.filter(current_conservation_list=filter_conservation_list)
 
         filter_conservation_category = request.GET.get('filter_conservation_category')
         if filter_conservation_category and not filter_conservation_category.lower() == 'all':
-            queryset = queryset.filter(conservation_category=filter_conservation_category)
+            queryset = queryset.filter(current_conservation_category=filter_conservation_category)
         
         filter_region = request.GET.get('filter_region')
         if filter_region and not filter_region.lower() == 'all':
@@ -157,11 +159,11 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
 
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
-            queryset = queryset.filter(conservation_list=filter_conservation_list)
+            queryset = queryset.filter(current_conservation_list=filter_conservation_list)
 
         filter_conservation_category = request.GET.get('filter_conservation_category')
         if filter_conservation_category and not filter_conservation_category.lower() == 'all':
-            queryset = queryset.filter(conservation_category=filter_conservation_category)
+            queryset = queryset.filter(current_conservation_category=filter_conservation_category)
 
         filter_region = request.GET.get('filter_region')
         if filter_region and not filter_region.lower() == 'all':
@@ -217,3 +219,52 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunityConservationStatusSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
+
+
+class SpeciesConservationStatusViewSet(viewsets.ModelViewSet):
+    queryset = SpeciesConservationStatus.objects.none()
+    serializer_class = InternalSpeciesConservationStatusSerializer
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= SpeciesConservationStatus.objects.all()
+            return qs
+        return SpeciesConservationStatus.objects.none()
+
+    @detail_route(methods=['GET',], detail=True)
+    def internal_species_conservation_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = InternalSpeciesConservationStatusSerializer(instance,context={'request':request})
+       
+        res_json = {
+         "species_conservation_status_obj":serializer.data
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+
+
+class CommunityConservationStatusViewSet(viewsets.ModelViewSet):
+    queryset = CommunityConservationStatus.objects.none()
+    serializer_class = InternalCommunityConservationStatusSerializer
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= CommunityConservationStatus.objects.all()
+            return qs
+        return CommunityConservationStatus.objects.none()
+
+    @detail_route(methods=['GET',], detail=True)
+    def internal_community_conservation_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = InternalCommunityConservationStatusSerializer(instance,context={'request':request})
+       
+        res_json = {
+         "community_conservation_status_obj":serializer.data
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+ 
