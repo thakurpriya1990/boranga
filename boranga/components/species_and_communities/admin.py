@@ -1,7 +1,20 @@
 from django.contrib.gis import admin
 from import_export.admin import ImportExportMixin
 from django.db.models import Q
-from boranga.components.species_and_communities.models import District, DocumentCategory, NameAuthority, Region, Source, ThreatCategory, DocumentSubCategory
+from boranga.components.species_and_communities.models import (
+    District, 
+    DocumentCategory, 
+    NameAuthority, 
+    Region, 
+    Source, 
+    ThreatCategory, 
+    DocumentSubCategory,
+    ScientificName,
+    Family,
+    PhylogeneticGroup,
+    Genus,
+    CommunityName,
+    )
 
 
 # The following allow Import/Export of large lists from file.
@@ -28,3 +41,8 @@ admin.site.register(NameAuthority)
 admin.site.register(Source)
 admin.site.register(DocumentCategory)
 admin.site.register(ThreatCategory)
+admin.site.register(ScientificName)
+admin.site.register(Family)
+admin.site.register(PhylogeneticGroup)
+admin.site.register(Genus)
+admin.site.register(CommunityName)

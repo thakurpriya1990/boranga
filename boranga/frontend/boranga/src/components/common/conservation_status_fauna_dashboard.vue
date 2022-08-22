@@ -364,7 +364,8 @@ export default {
         addFaunaCSVisibility: function() {
             let visibility = false;
             if (this.is_internal) {
-                visibility = true;
+                //visibility = true;
+                visibility = false;
             }
             return visibility;
         },

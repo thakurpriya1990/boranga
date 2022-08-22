@@ -256,6 +256,8 @@ class Family(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Family"
+        verbose_name_plural = "Families"
 
     def __str__(self):
         return str(self.name)
@@ -290,6 +292,8 @@ class Genus(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        verbose_name = "Genus"
+        verbose_name_plural = "Genera"
 
     def __str__(self):
         return str(self.name)
