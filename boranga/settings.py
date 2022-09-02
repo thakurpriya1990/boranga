@@ -244,3 +244,13 @@ if len(GIT_COMMIT_HASH) == 0:
     GIT_COMMIT_HASH = os.popen('cat /app/git_hash').read()
     if len(GIT_COMMIT_HASH) == 0:
        print ("ERROR: No git hash provided")
+
+
+#LEDGER_UI_ACCOUNTS_MANAGEMENT = [
+#            {'first_name': {'options' : {'view': True, 'edit': True}}},
+#            {'last_name': {'options' : {'view': True, 'edit': True}}},
+#            {'residential_address': {'options' : {'view': True, 'edit': True}}},
+#            {'phone_number' : {'options' : {'view': True, 'edit': True}}},
+#            {'mobile_number' : {'options' : {'view': True, 'edit': True}}},
+#]
+
