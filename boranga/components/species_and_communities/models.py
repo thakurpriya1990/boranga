@@ -128,7 +128,12 @@ class GroupType(models.Model):
     Is:
     - Enumeration (GroupTypes)
     """
-    GROUP_TYPES = [('flora', 'Flora'), ('fauna', 'Fauna'), ('community', 'Community')]
+    GROUP_TYPE_FLORA = 'flora'
+    GROUP_TYPE_FAUNA = 'fauna'
+    GROUP_TYPE_COMMUNITY = 'community'
+    PROCESSING_STATUS_DRAFT = 'draft'
+    PROCESSING_STATUS_WITH_ASSESSOR = 'with_assessor'
+    GROUP_TYPES = [(GROUP_TYPE_FLORA, 'Flora'), (GROUP_TYPE_FAUNA, 'Fauna'), (GROUP_TYPE_COMMUNITY, 'Community')]
     name = models.CharField(max_length=64,
                             choices=GROUP_TYPES,
                             default=GROUP_TYPES[1],)

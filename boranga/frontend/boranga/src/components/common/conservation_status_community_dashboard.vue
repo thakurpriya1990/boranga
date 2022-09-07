@@ -56,9 +56,10 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Workflow Status:</label>
-                        <select class="form-control">
+                        <label for="">Status:</label>
+                        <select class="form-select" v-model="filterCSCommunityApplicationStatus">
                             <option value="all">All</option>
+                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
                         </select>
                     </div>
                 </div>
@@ -170,6 +171,11 @@ export default {
             required: false,
             default: 'filterCSCommunityDistrict',
         },
+        filterCSCommunityApplicationStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSCommunityApplicationStatus',
+        },
     },
     data() {
         let vm = this;
@@ -201,6 +207,9 @@ export default {
             filterCSCommunityDistrict: sessionStorage.getItem(this.filterCSCommunityDistrict_cache) ? 
                                         sessionStorage.getItem(this.filterCSCommunityDistrict_cache) : 'all',
 
+            filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
+                                    sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'all',
+
             //Filter list for Community select box
             filterListsCommunities: {},
             communities_data_list: [],
@@ -224,11 +233,8 @@ export default {
             internal_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'on_hold', name: 'On Hold'},
-                {value: 'with_qa_officer', name: 'With QA Officer'},
-                {value: 'with_referral', name: 'With Referral'},
-                {value: 'with_assessor_requirements', name: 'With Assessor (Requirements)'},
                 {value: 'with_approver', name: 'With Approver'},
+                {value: 'with_referral', name: 'With Referral'},
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
                 {value: 'discarded', name: 'Discarded'},
@@ -281,6 +287,11 @@ export default {
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityDistrict_cache, vm.filterCSCommunityDistrict);
         },
+        filterCSCommunityApplicationStatus: function() {
+            let vm = this;
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterCSCommunityApplicationStatus_cache, vm.filterCSCommunityApplicationStatus);
+        },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
                 // Collapsible component exists
@@ -296,7 +307,8 @@ export default {
                 this.filterCSCommunityConservationList === 'all' && 
                 this.filterCSCommunityConservationCategory === 'all' && 
                 this.filterCSCommunityRegion === 'all' && 
-                this.filterCSCommunityDistrict === 'all'){
+                this.filterCSCommunityDistrict === 'all' && 
+                this.filterCSCommunityApplicationStatus === 'all'){
                 return false
             } else {
                 return true
@@ -314,19 +326,18 @@ export default {
         addCommunityCSVisibility: function() {
             let visibility = false;
             if (this.is_internal) {
-                //visibility = true;
-                visibility = false;
+                visibility = true;
             }
             return visibility;
         },
         datatable_headers: function(){
             if (this.is_external){
                 return ['Number', 'Community','Community Id' ,'Community Name', 'Community Status', 
-                    'Conservation List' , 'Conservation Category', 'Region', 'District', 'Workflow Status', 'Action']
+                    'Conservation List' , 'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Number', 'Community','Community Id' ,'Community Name', 'Community Status', 
-                        'Conservation List', 'Conservation Category', 'Region', 'District', 'Workflow Status', 'Action']
+                        'Conservation List', 'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -434,20 +445,20 @@ export default {
                 name: "current_conservation_category__code",
             }
         },
-        column_workflow_status: function(){
+        column_status: function(){
             return {
-                data: "community_status",
+                data: "processing_status",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if (full.community_status){
-                        return full.community_status;
+                    if (full.processing_status){
+                        return full.processing_status;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "community__community_status",
+                name: "processing_status",
             }
         },
         column_region: function(){
@@ -534,7 +545,7 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_workflow_status,
+                    vm.column_status,
                     vm.column_action,
                 ]
                 search = false
@@ -551,7 +562,7 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_workflow_status,
+                    vm.column_status,
                     vm.column_action,
                 ]
                 search = true
@@ -608,6 +619,7 @@ export default {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_region = vm.filterCSCommunityRegion;
                         d.filter_district = vm.filterCSCommunityDistrict;
+                        d.filter_application_status = vm.filterCSCommunityApplicationStatus;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -641,6 +653,7 @@ export default {
                 vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 vm.filterConservationCategory();
+                vm.proposal_status = vm.internal_status;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {

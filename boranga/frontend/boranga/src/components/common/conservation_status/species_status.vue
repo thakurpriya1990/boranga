@@ -1,47 +1,103 @@
 <template lang="html">
     <div id="speciesStatus">
-        <FormSection :formCollapse="false" label="Taxonomy" Index="taxonomy">
+        <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Scientific Name:</label>
-                <div class="col-sm-9">
+                <label for="" class="col-sm-4 control-label">Scientific Name:</label>
+                <div class="col-sm-8">
                     <select :disabled="conservation_status_obj.readonly" class="form-select" 
                         v-model="conservation_status_obj.species_id" id="scientific_name" @change="getSpeciesDisplay()">
-                        <option v-for="option in scientific_name_list" :value="option.id" v-bind:key="option.id">
+                        <option v-for="option in species_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
                     </select>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"></label>
-                <div class="col-sm-9">
+                <label for="" class="col-sm-4 control-label"></label>
+                <div class="col-sm-8">
                     <textarea disabled class="form-control" rows="3" id="species_display" v-model="species_display"/>
                 </div>
             </div>
-            <!-- <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Common Name:</label>
-                <div class="col-sm-9">
-                    <input :disabled="conservation_status_obj.readonly" type="text" class="form-control" id="common_name" placeholder="" 
-                    v-model="conservation_status_obj.common_name"/>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Previous Name:</label>
+                <div class="col-sm-8">
+                    <input readonly type="text" class="form-control" id="previous_name" placeholder="" 
+                    v-model="conservation_status_obj.previous_name"/>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Taxon ID:</label>
-                <div class="col-sm-9">
-                    <input :disabled="conservation_status_obj.readonly" type="text" class="form-control" id="taxon_id" placeholder="" 
-                    v-model="conservation_status_obj.taxonomy_details.taxon_id"/>
+                <label for="" class="col-sm-4 control-label">Proposed Conservation List:</label>
+                <div class="col-sm-8">
+                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
+                        v-model="conservation_status_obj.proposed_conservation_list_id" id="proposed_conservation_list" 
+                        @change="filterProposedConservationCategoryCriteria($event)">
+                        <option v-for="option in conservation_list_values" :value="option.id" v-bind:key="option.id">
+                            {{ option.code }}                            
+                        </option>
+                    </select>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Previous Name:</label>
-                <div class="col-sm-9">
-                    <input :disabled="conservation_status_obj.readonly" type="text" class="form-control" id="previous_name" placeholder="" 
-                    v-model="conservation_status_obj.taxonomy_details.previous_name"/>
+                <label for="" class="col-sm-4 control-label">Proposed Conservation Category:</label>
+                <div class="col-sm-8">
+                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
+                        v-model="conservation_status_obj.proposed_conservation_category_id" 
+                        id="proposed_conservation_category">
+                        <option v-for="option in filtered_prop_conservation_category_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.code }}                            
+                        </option>
+                    </select>
                 </div>
-            </div> -->
+            </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Name Comments:</label>
-                <div class="col-sm-9">
+                <label for="" class="col-sm-4 control-label">Proposed Conservation Criteria:</label>
+                <div class="col-sm-8">
+                    <select style="width:100%;" class="form-select input-sm" multiple 
+                        ref="prop_conservation_criteria_select" 
+                        v-model="conservation_status_obj.proposed_conservation_criteria" >
+                        <option v-for="c in filtered_prop_conservation_criteria_list" :value="c.id" >
+                            {{c.code}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Current Conservation List:</label>
+                <div class="col-sm-8">
+                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
+                        v-model="conservation_status_obj.current_conservation_list_id" id="current_conservation_list" 
+                        @change="filterCurrentConservationCategoryCriteria($event)">
+                        <option v-for="option in conservation_list_values" :value="option.id" v-bind:key="option.id">
+                            {{ option.code }}                            
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Current Conservation Category:</label>
+                <div class="col-sm-8">
+                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
+                        v-model="conservation_status_obj.current_conservation_category_id" 
+                        id="current_conservation_category">
+                        <option v-for="option in filtered_curr_conservation_category_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.code }}                            
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Current Conservation Criteria:</label>
+                <div class="col-sm-8">
+                    <select style="width:100%;" class="form-select input-sm" multiple 
+                        ref="curr_conservation_criteria_select" 
+                        v-model="conservation_status_obj.current_conservation_criteria" >
+                        <option v-for="c in filtered_curr_conservation_criteria_list" :value="c.id" :key="c.id">
+                            {{c.code}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Comment:</label>
+                <div class="col-sm-8">
                     <textarea :disabled="conservation_status_obj.readonly" class="form-control" rows="3" id="comment" placeholder=""
                     v-model="conservation_status_obj.comment"/>
                 </div>
@@ -58,6 +114,9 @@ import {
   helpers
 }
 from '@/utils/hooks'
+require("select2/dist/css/select2.min.css");
+require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
+
 export default {
         name: 'SpeciesStatus',
         props:{
@@ -79,8 +138,16 @@ export default {
                 //---to show fields related to Fauna
                 isFauna: vm.conservation_status_obj.group_type==="fauna"?true:false,
                 //----list of values dictionary
-                species_profile_dict: {},
-                scientific_name_list: [],
+                cs_profile_dict: {},
+                species_list: [],
+                conservation_list_values: [],
+                conservation_category_list: [],
+                conservation_criteria_list: [],
+                filtered_prop_conservation_category_list: [],
+                filtered_prop_conservation_criteria_list: [],
+                filtered_curr_conservation_category_list: [],
+                filtered_curr_conservation_criteria_list: [],
+                previous_name_list: [],
                 // to display the species selected 
                 species_display: '',
             }
@@ -103,32 +170,134 @@ export default {
                 }
             },*/
             getSpeciesDisplay: function(){
-                for(let choice of this.scientific_name_list){
-                        if(choice.id === this.conservation_status_obj.scientific_name_id)
+                for(let choice of this.species_list){
+                        if(choice.id === this.conservation_status_obj.species_id)
                         {
                           this.species_display = choice.name;
                         }
                     }
             },
+            filterProposedConservationCategoryCriteria: function(event){
+                this.$nextTick(() => {
+                    if(event){
+                        this.conservation_status_obj.proposed_conservation_category_id=null;
+                        this.conservation_status_obj.proposed_conservation_criteria=[];
+                    }
+                    this.filtered_prop_conservation_category_list=[];
+                    this.filtered_prop_conservation_category_list=[{
+                          id:null,
+                          code:"",
+                          conservation_list_id:null,
+                        }];
+                    this.filtered_prop_conservation_criteria_list=[];
+                    for(let choice of this.conservation_category_list){
+                            if(choice.conservation_list_id === this.conservation_status_obj.proposed_conservation_list_id)
+                            {
+                              this.filtered_prop_conservation_category_list.push(choice);
+                            }
+                        }
+                    for(let choice of this.conservation_criteria_list){
+                            if(choice.conservation_list_id === this.conservation_status_obj.proposed_conservation_list_id)
+                            {
+                              this.filtered_prop_conservation_criteria_list.push(choice);
+                            }
+                        }
+                });
+            },
+            filterCurrentConservationCategoryCriteria: function(event){
+                this.$nextTick(() => {
+                    if(event){
+                        this.conservation_status_obj.current_conservation_category_id=null;
+                        this.conservation_status_obj.current_conservation_criteria=[];
+                    }
+                    this.filtered_curr_conservation_category_list=[];
+                    this.filtered_curr_conservation_category_list=[{
+                          id:null,
+                          code:"",
+                          conservation_list_id:null,
+                        }];
+                    this.filtered_curr_conservation_criteria_list=[];
+                    for(let choice of this.conservation_category_list){
+                            if(choice.conservation_list_id === this.conservation_status_obj.current_conservation_list_id)
+                            {
+                              this.filtered_curr_conservation_category_list.push(choice);
+                            }
+                        }
+                    for(let choice of this.conservation_criteria_list){
+                            if(choice.conservation_list_id === this.conservation_status_obj.current_conservation_list_id)
+                            {
+                              this.filtered_curr_conservation_criteria_list.push(choice);
+                            }
+                        }
+                });
+            },
             eventListeners:function (){
+                let vm = this;
+                // Initialise select2 for Current Conservation Criteria
+                $(vm.$refs.curr_conservation_criteria_select).select2({
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Criteria",
+                    multiple: true,
+                }).
+                on("select2:select",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.selected_criteria = selected.val();
+                    vm.conservation_status_obj.current_conservation_criteria = selected.val();
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.conservation_status_obj.current_conservation_criteria = selected.val();
+                });
+
+                // Initialise select2 for Proposed Conservation Criteria
+                $(vm.$refs.prop_conservation_criteria_select).select2({
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Criteria",
+                    multiple: true,
+                }).
+                on("select2:select",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.conservation_status_obj.proposed_conservation_criteria = selected.val();
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.conservation_status_obj.proposed_conservation_criteria = selected.val();
+                });
             },
         },
         created: async function() {
             let vm=this;
             //------fetch list of values
-            const res = await Vue.http.get('/api/species_profile_dict/');
-            vm.species_profile_dict = res.body;
-            vm.scientific_name_list = vm.species_profile_dict.scientific_name_list;
-            vm.scientific_name_list.splice(0,0,
+            vm.$http.get(api_endpoints.cs_profile_dict+ '?group_type_name=' + vm.conservation_status_obj.group_type).then((response) => {
+                vm.cs_profile_dict = response.body;
+                vm.species_list = vm.cs_profile_dict.species_list;
+                vm.species_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
-            this.getSpeciesDisplay();
+                vm.conservation_list_values = vm.cs_profile_dict.conservation_list_values;
+                vm.conservation_list_values.splice(0,0,
+                {
+                    id: null,
+                    code: null,
+                });
+                vm.conservation_category_list = vm.cs_profile_dict.conservation_category_list;
+                vm.conservation_criteria_list = vm.cs_profile_dict.conservation_criteria_list;
+                this.getSpeciesDisplay();
+                this.filterCurrentConservationCategoryCriteria();
+                this.filterProposedConservationCategoryCriteria();
+            },(error) => {
+                console.log(error);
+            })
         },
         mounted: function(){
             let vm = this;
-            //vm.eventListeners();
+            this.$nextTick(()=>{
+                vm.eventListeners();
+            });
         }
     }
 </script>

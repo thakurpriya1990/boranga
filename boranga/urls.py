@@ -43,8 +43,10 @@ router.register(r'community_documents',species_communities_api.CommunityDocument
 router.register(r'threat',species_communities_api.ConservationThreatViewSet)
 router.register(r'species_conservation_status_paginated',conservation_status_api.SpeciesConservationStatusPaginatedViewSet)
 router.register(r'community_conservation_status_paginated',conservation_status_api.CommunityConservationStatusPaginatedViewSet)
-router.register(r'species_conservation_status',conservation_status_api.SpeciesConservationStatusViewSet)
-router.register(r'community_conservation_status',conservation_status_api.CommunityConservationStatusViewSet)
+router.register(r'conservation_status_paginated',conservation_status_api.ConservationStatusPaginatedViewSet)
+router.register(r'conservation_status',conservation_status_api.ConservationStatusViewSet)
+# router.register(r'species_conservation_status',conservation_status_api.SpeciesConservationStatusViewSet)
+# router.register(r'community_conservation_status',conservation_status_api.CommunityConservationStatusViewSet)
 router.register(r'community',species_communities_api.CommunityViewSet)
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)
@@ -88,7 +90,9 @@ api_patterns = [
     url(r'^api/region_district_filter_dict',species_communities_api.GetRegionDistrictFilterDict.as_view(),name='get-region_district_filter_dict'),
     url(r'^api/species_profile_dict',species_communities_api.GetSpeciesProfileDict.as_view(),name='get-species-profile-dict'),
     url(r'^api/community_profile_dict',species_communities_api.GetCommunityProfileDict.as_view(),name='get-community-profile-dict'),
-    url(r'^api/scientific_name_lookup$', species_communities_api.GetScientificName.as_view(), name='get-scientific_name'),
+    url(r'^api/scientific_name_lookup$', species_communities_api.GetScientificName.as_view(), name='get-scientific-name'),
+    url(r'^api/cs_profile_dict$', conservation_status_api.GetCSProfileDict.as_view(), name='get-cs-profile-dict'),
+    url(r'^api/conservation_list_dict',conservation_status_api.GetConservationListDict.as_view(),name='get-conservation-list-dict'),
 
     #url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
 

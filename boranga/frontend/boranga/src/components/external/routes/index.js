@@ -27,7 +27,7 @@ export default
             name: 'external-proposals-dash'
         },*/
         {
-            path: '/',
+            path: 'conservation-status',
             component: ExternalConservationStatusDash,
             name:"external-conservation_status-dash"
         },

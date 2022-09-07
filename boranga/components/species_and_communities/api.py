@@ -62,8 +62,7 @@ from boranga.components.conservation_status.models import(
     ConservationCategory,
     ConservationCriteria,
     ConservationChangeCode,
-    SpeciesConservationStatus,
-    CommunityConservationStatus,
+    ConservationStatus,
     ConservationList,
 )
 from boranga.components.species_and_communities.serializers import (
@@ -104,7 +103,7 @@ class GetGroupTypeDict(views.APIView):
         if group_types:
             for group in group_types:
                 #group_type_list.append(group.name)
-                group_type_list.append({'id': group.id,'name':group.name});
+                group_type_list.append({'id': group.id,'name':group.name, 'display':group.get_name_display()});
         return Response(group_type_list)
 
 
@@ -118,6 +117,34 @@ class GetScientificName(views.APIView):
             data_transform = [{'id': species['id'], 'text': species['name']} for species in data]
             return Response({"results": data_transform})
         return Response()
+
+
+class GetSpeciesDict(views.APIView): 
+    def get(self, request, format=None):
+        group_type = request.GET.get('group_type_name','')
+        species_list = []
+        if group_type:
+            species = Species.objects.filter(group_type__name=group_type)
+            if species:
+                for specimen in species:
+                    species_list.append({
+                        'species_id': specimen.id,
+                        'common_name':specimen.common_name,
+                        });
+        scientific_name_list = []
+        if group_type:
+            names = ScientificName.objects.all()
+            if names:
+                for name in names:
+                    scientific_name_list.append({
+                        'id': name.id,
+                        'name': name.name,
+                        });
+        res_json = {
+        "species_list":species_data_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
         
 
 class GetSpeciesFilterDict(views.APIView): 
@@ -134,7 +161,7 @@ class GetSpeciesFilterDict(views.APIView):
                         });
         scientific_name_list = []
         if group_type:
-            names = ScientificName.objects.all()
+            names = ScientificName.objects.all() # TODO will need to filter according to  group  selection
             if names:
                 for name in names:
                     scientific_name_list.append({
@@ -143,7 +170,7 @@ class GetSpeciesFilterDict(views.APIView):
                         });
         family_list = []
         if group_type:
-            families = Family.objects.all()
+            families = Family.objects.all() # TODO will need to filter according to  group  selection
             if families:
                 for family in families:
                     family_list.append({
@@ -152,7 +179,7 @@ class GetSpeciesFilterDict(views.APIView):
                         });
         phylogenetic_group_list = []
         if group_type:
-            phylo_groups = PhylogeneticGroup.objects.all()
+            phylo_groups = PhylogeneticGroup.objects.all() # TODO will need to filter according to  group  selection
             if phylo_groups:
                 for group in phylo_groups:
                     phylogenetic_group_list.append({
@@ -161,7 +188,7 @@ class GetSpeciesFilterDict(views.APIView):
                         });
         genus_list = []
         if group_type:
-            generas = Genus.objects.all()
+            generas = Genus.objects.all() # TODO will need to filter according to  group  selection
             if generas:
                 for genus in generas:
                     genus_list.append({

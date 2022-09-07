@@ -18,8 +18,7 @@ from boranga.components.species_and_communities.models import(
 	ConservationThreat,
 	)
 from boranga.components.conservation_status.models import(
-    SpeciesConservationStatus,
-    CommunityConservationStatus,
+    ConservationStatus,
     )
 from boranga.components.conservation_status.serializers import(
     SpeciesConservationStatusSerializer,
@@ -122,17 +121,17 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 	def get_current_conservation_list(self,obj):
 		try:
 			# need to show only WA_listed species
-			conservation_status = SpeciesConservationStatus.objects.get(species=obj ,current_conservation_list__applies_to_wa=True) # need to show only WA_list species
+			conservation_status = ConservationStatus.objects.get(species=obj ,current_conservation_list__applies_to_wa=True) # need to show only WA_list species
 			return conservation_status.current_conservation_list.code
-		except SpeciesConservationStatus.DoesNotExist:
+		except ConservationStatus.DoesNotExist:
 			return ''
 
 	def get_current_conservation_category(self,obj):
 		try:
 			# need to show only WA_list species
-			conservation_status = SpeciesConservationStatus.objects.get(species=obj, current_conservation_list__applies_to_wa=True)
+			conservation_status = ConservationStatus.objects.get(species=obj, current_conservation_list__applies_to_wa=True)
 			return conservation_status.current_conservation_category.code
-		except SpeciesConservationStatus.DoesNotExist:
+		except ConservationStatus.DoesNotExist:
 			return ''
 
 	def get_region(self,obj):
@@ -199,16 +198,16 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 
 	def get_current_conservation_list(self,obj):
 		try:
-			conservation_status = CommunityConservationStatus.objects.get(community=obj,current_conservation_list__applies_to_wa=True) # TODO need to show only WA_list species
+			conservation_status = ConservationStatus.objects.get(community=obj,current_conservation_list__applies_to_wa=True) # TODO need to show only WA_list species
 			return conservation_status.current_conservation_list.code
-		except CommunityConservationStatus.DoesNotExist:
+		except ConservationStatus.DoesNotExist:
 			return ''
 
 	def get_current_conservation_category(self,obj):
 		try:
-			conservation_status = CommunityConservationStatus.objects.get(community=obj,current_conservation_list__applies_to_wa=True)
+			conservation_status = ConservationStatus.objects.get(community=obj,current_conservation_list__applies_to_wa=True)
 			return conservation_status.current_conservation_category.code
-		except CommunityConservationStatus.DoesNotExist:
+		except ConservationStatus.DoesNotExist:
 			return ''
 
 	def get_region(self,obj):
@@ -239,11 +238,11 @@ class TaxonomySerializer(serializers.ModelSerializer):
 			)
 
 class SaveTaxonomySerializer(serializers.ModelSerializer):
-	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	family_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	genus_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	phylogenetic_group_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	family_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	genus_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	phylogenetic_group_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	class Meta:
 		model = Taxonomy
 		fields = (
@@ -297,16 +296,16 @@ class SpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 
 
 class SaveSpeciesConservationAttributesSerializer(serializers.ModelSerializer):
-	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	flowering_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	fruiting_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	flora_recruitment_type_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	seed_viability_germination_info_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	root_morphology_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	pollinator_information_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	breeding_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	fauna_breeding_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	post_fire_habitat_interaction_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	flowering_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	fruiting_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	flora_recruitment_type_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	seed_viability_germination_info_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	root_morphology_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	pollinator_information_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	breeding_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	fauna_breeding_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	post_fire_habitat_interaction_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	class Meta:
 		model = SpeciesConservationAttributes
 		fields = (
@@ -380,7 +379,7 @@ class SpeciesDistributionSerializer(serializers.ModelSerializer):
 
 
 class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
-	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	class Meta:
 		model = SpeciesDistribution
 		fields = (
@@ -444,9 +443,9 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     def get_conservation_status(self,obj):
         try:
-        	qs = SpeciesConservationStatus.objects.get(species=obj , current_conservation_list__applies_to_wa=True)
+        	qs = ConservationStatus.objects.get(species=obj , current_conservation_list__applies_to_wa=True)
         	return SpeciesConservationStatusSerializer(qs).data
-        except SpeciesConservationStatus.DoesNotExist:
+        except ConservationStatus.DoesNotExist:
         	return SpeciesConservationStatusSerializer().data
         	#return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
@@ -514,7 +513,7 @@ class CommunityDistributionSerializer(serializers.ModelSerializer):
 
 
 class SaveCommunityDistributionSerializer(serializers.ModelSerializer): 
-	community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	class Meta:
 		model = CommunityDistribution
 		fields = (
@@ -570,9 +569,9 @@ class CommunityConservationAttributesSerializer(serializers.ModelSerializer):
 
 
 class SaveCommunityConservationAttributesSerializer(serializers.ModelSerializer):
-	community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	pollinator_information_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-	post_fire_habitat_interaction_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+	community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	pollinator_information_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	post_fire_habitat_interaction_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	class Meta:
 		model = CommunityConservationAttributes
 		fields = (
@@ -638,9 +637,9 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 	def get_conservation_status(self,obj):
 		try:
-			qs = CommunityConservationStatus.objects.get(community=obj , current_conservation_list__applies_to_wa=True)
+			qs = ConservationStatus.objects.get(community=obj , current_conservation_list__applies_to_wa=True)
 			return CommunityConservationStatusSerializer(qs).data
-		except CommunityConservationStatus.DoesNotExist:
+		except ConservationStatus.DoesNotExist:
 			return CommunityConservationStatusSerializer().data
 			#return [CommunityConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
@@ -670,9 +669,9 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 
 
 class SaveSpeciesSerializer(BaseSpeciesSerializer):
-    region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-    district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-    scientific_name_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+    region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    scientific_name_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     class Meta:
         model = Species
         fields = ('id',
@@ -690,7 +689,7 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class CreateSpeciesSerializer(BaseSpeciesSerializer):
-    group_type_id = serializers.IntegerField(required=True, write_only= True);
+    group_type_id = serializers.IntegerField(required=True, write_only= True)
     class Meta:
         model = Species
         fields = ('id',
@@ -702,10 +701,10 @@ class CreateSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class SaveCommunitySerializer(BaseCommunitySerializer):
-    region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-    district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-    name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
-    community_name_id = serializers.IntegerField(required=False, allow_null=True, write_only= True);
+    region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    community_name_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     class Meta:
         model = Community
         fields = ('id',
@@ -724,7 +723,7 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
 
 
 class CreateCommunitySerializer(BaseCommunitySerializer):
-    group_type_id = serializers.IntegerField(required=True, write_only= True);
+    group_type_id = serializers.IntegerField(required=True, write_only= True)
     class Meta:
         model = Community
         fields = ('id',

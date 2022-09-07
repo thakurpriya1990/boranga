@@ -20,6 +20,9 @@ module.exports = {
     proposal_type:"/api/proposal_type",
     species:"/api/species",
     community:"/api/community",
+    conservation_status:"/api/conservation_status",
+    /*species_conservation_status:"/api/species_conservation_status",
+    community_conservation_status:"/api/community_conservation_status",*/
     document_categories: "/api/document_categories.json",
     document_sub_categories: "/api/document_sub_categories.json",
     species_documents:"/api/species_documents.json",
@@ -77,12 +80,16 @@ module.exports = {
     communities_paginated_internal: "/api/communities_paginated/communities_internal/?format=datatables",
     species_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/species_cs_internal/?format=datatables",
     community_conservation_status_paginated_internal: "/api/community_conservation_status_paginated/community_cs_internal/?format=datatables",
-    conservation_status_paginated: "/api/conservation_status_paginated/get_conservation_status/?format=datatables",
+    conservation_status_paginated_external: "/api/conservation_status_paginated/conservation_status_external?format=datatables",
     filter_lists_species:"/api/filter_lists_species",
     group_types_dict:"/api/group_types_dict",
     community_filter_dict:"/api/community_filter_dict",
     region_district_filter_dict:"/api/region_district_filter_dict",
     scientific_name_lookup:"/api/scientific_name_lookup",
+
+    //conservation Status profile page list of value dict
+    cs_profile_dict:"/api/cs_profile_dict",
+    conservation_list_dict:"/api/conservation_list_dict",
 
     //filter_list:                    "/api/proposal_paginated/filter_list.json",
     filter_list:                    "/api/proposal/filter_list.json",

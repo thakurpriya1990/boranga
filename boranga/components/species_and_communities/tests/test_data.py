@@ -17,8 +17,8 @@ from boranga.components.conservation_status.models import(
     ConservationCategory, 
     ConservationCriteria,
     ConservationChangeCode,
-    SpeciesConservationStatus,
-    CommunityConservationStatus,
+    ConservationStatus,
+    ConservationStatus,
     )
 
 import logging
@@ -191,7 +191,7 @@ def create_community():
                     conservation_category = ConservationCategory.objects.create(code='community_c_category', 
                                                                                 label='community_c_category')
                     conservation_criteria = ConservationCriteria.objects.create(code='community_criteria')
-                    conservation_status = CommunityConservationStatus.objects.create(change_code=change_code,
+                    conservation_status = ConservationStatus.objects.create(change_code=change_code,
                                                                             conservation_list=conservation_list,
                                                                             conservation_category=conservation_category,
                                                                             conservation_criteria=conservation_criteria)
@@ -252,7 +252,7 @@ def create_species_fauna():
                         conservation_category = ConservationCategory.objects.create(code="code", 
                                                                                     label="label")
                     conservation_criteria = ConservationCriteria.objects.create(code=fauna_row[4])
-                    conservation_status = SpeciesConservationStatus.objects.create(change_code=change_code,
+                    conservation_status = ConservationStatus.objects.create(change_code=change_code,
                                                                             conservation_list=conservation_list,
                                                                             conservation_category=conservation_category,
                                                                             conservation_criteria=conservation_criteria)
@@ -385,7 +385,7 @@ def create_species_flora():
                             conservation_category = ConservationCategory.objects.create(code="code", 
                                                                                         label="label")
                         conservation_criteria = ConservationCriteria.objects.create(code=flora_row[4])
-                        conservation_status = SpeciesConservationStatus.objects.create(change_code=change_code,
+                        conservation_status = ConservationStatus.objects.create(change_code=change_code,
                                                                                 conservation_list=conservation_list,
                                                                                 conservation_category=conservation_category,
                                                                                 conservation_criteria=conservation_criteria)

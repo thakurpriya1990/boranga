@@ -10,13 +10,19 @@ from boranga.components.species_and_communities.models import(
     )
 from boranga.components.conservation_status.models import(
     ConservationStatus,
-    SpeciesConservationStatus,
-    CommunityConservationStatus,
+    ConservationStatus,
+    ConservationStatusLogEntry,
+    ConservationStatusUserAction,
+    ConservationCriteria,
     )
 
 from boranga.components.users.serializers import UserSerializer
 from boranga.components.users.serializers import UserAddressSerializer, DocumentSerializer
-from boranga.components.main.serializers import CommunicationLogEntrySerializer
+from boranga.components.main.serializers import(
+    CommunicationLogEntrySerializer,
+    EmailUserSerializer,
+    )
+from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
 from django.db.models import Q
 
@@ -74,7 +80,7 @@ class ConservationStatusSerializer(serializers.ModelSerializer):
 
 class SpeciesConservationStatusSerializer(ConservationStatusSerializer):
     class Meta:
-        model = SpeciesConservationStatus
+        model = ConservationStatus
         fields = (
             'id',
             'conservation_status_number',
@@ -89,7 +95,7 @@ class SpeciesConservationStatusSerializer(ConservationStatusSerializer):
 
 class CommunityConservationStatusSerializer(ConservationStatusSerializer):
     class Meta:
-        model = CommunityConservationStatus
+        model = ConservationStatus
         fields = (
             'id',
             'conservation_status_number',
@@ -100,6 +106,76 @@ class CommunityConservationStatusSerializer(ConservationStatusSerializer):
             #'current_conservation_criteria',
             'effective_status_date',
             )
+
+
+class ConservationCriteriaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ConservationCriteria
+        fields = ('id',
+            'code',
+            'label'
+            )
+        read_only_fields = ('id',)
+
+
+class ListConservationStatusSerializer(serializers.ModelSerializer):
+    scientific_name = serializers.SerializerMethodField()
+    community_name = serializers.SerializerMethodField()
+    current_conservation_list = serializers.SerializerMethodField()
+    current_conservation_category = serializers.SerializerMethodField()
+    class Meta:
+        model = ConservationStatus
+        fields = (
+                'id',
+                'conservation_status_number',
+                'group_type',
+                'scientific_name',
+                'community_name',
+                'current_conservation_list',
+                'current_conservation_category',
+                'processing_status',
+                'customer_status',
+                'can_user_edit',
+                'can_user_view',
+            )
+        datatables_always_serialize = (
+                'id',
+                'conservation_status_number',
+                'group_type',
+                'scientific_name',
+                'community_name',
+                'current_conservation_list',
+                'current_conservation_category',
+                'processing_status',
+                'customer_status',
+                'can_user_edit',
+                'can_user_view',
+            )   
+
+    def get_scientific_name(self,obj):
+        if obj.species:
+            return obj.species.scientific_name.name
+        return ''
+
+    def get_community_name(self,obj):
+        if obj.community:
+            if obj.community.community_name:
+                return obj.community.community_name.name
+            else:
+                return ''
+        return ''
+
+    def get_current_conservation_list(self,obj):
+        if obj.current_conservation_list:
+            return obj.current_conservation_list.code
+        return ''
+
+    def get_current_conservation_category(self,obj):
+        if obj.current_conservation_category:
+            return obj.current_conservation_category.code
+        return ''
+
 
 class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
@@ -114,7 +190,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     class Meta:
-        model = SpeciesConservationStatus
+        model = ConservationStatus
         fields = (
                 'id',
                 'conservation_status_number',
@@ -129,6 +205,10 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 'district',
                 'current_conservation_list',
                 'current_conservation_category',
+                'processing_status',
+                'customer_status',
+                'can_user_edit',
+                'can_user_view',
             )
         datatables_always_serialize = (
                 'id',
@@ -144,6 +224,10 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 'district',
                 'current_conservation_list',
                 'current_conservation_category',
+                'processing_status',
+                'customer_status',
+                'can_user_edit',
+                'can_user_view',
             )   
 
     def get_group_type(self,obj):
@@ -221,7 +305,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     class Meta:
-        model = CommunityConservationStatus
+        model = ConservationStatus
         fields = (
                 'id',
                 'conservation_status_number',
@@ -235,6 +319,10 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'current_conservation_category',
                 'region',
                 'district',
+                'processing_status',
+                'customer_status',
+                'can_user_edit',
+                'can_user_view',
             )
         datatables_always_serialize = (
                 'id',
@@ -249,6 +337,10 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'current_conservation_category',
                 'region',
                 'district',
+                'processing_status',
+                'customer_status',
+                'can_user_edit',
+                'can_user_view',
             )
 
     def get_group_type(self,obj):
@@ -258,9 +350,9 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
 
     # def get_conservation_status(self,obj):
     #   try:
-    #       conservation_status = CommunityConservationStatus.objects.get(community=obj)
+    #       conservation_status = ConservationStatus.objects.get(community=obj)
     #       return conservation_status.conservation_list.code
-    #   except CommunityConservationStatus.DoesNotExist:
+    #   except ConservationStatus.DoesNotExist:
     #       return None
 
     def get_community_number(self,obj):
@@ -304,71 +396,234 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
         return ''
 
 
-class BaseSpeciesConservationStatusSerializer(serializers.ModelSerializer):
+class BaseConservationStatusSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
+    current_conservation_criteria = serializers.SerializerMethodField()
+    proposed_conservation_criteria = serializers.SerializerMethodField()
+    previous_name = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
     class Meta:
-        model = SpeciesConservationStatus
+        model = ConservationStatus
         fields = (
                 'id',
                 'group_type',
                 'species_id',
+                'previous_name',
+                'community_id',
                 'conservation_status_number',
-                'current_conservation_list',
-                'current_conservation_category',
-                'proposed_conservation_list',
-                'proposed_conservation_category',
+                'current_conservation_list_id',
+                'current_conservation_category_id',
+                'current_conservation_criteria',
+                'proposed_conservation_list_id',
+                'proposed_conservation_category_id',
+                'proposed_conservation_criteria',
                 'comment',
                 'proposed_date',
                 'readonly',
                 'can_user_edit',
+                'lodgement_date',
                 )
 
     def get_readonly(self,obj):
         return False
     
     def get_group_type(self,obj):
-        return obj.species.group_type.name
+        if obj.species:
+            return obj.species.group_type.name
+        elif obj.community:
+            return obj.community.group_type.name
+        else:
+            return ''
 
+    def get_current_conservation_criteria(self,obj):
+        return [c.id for c in obj.current_conservation_criteria.all()]
+
+    def get_proposed_conservation_criteria(self,obj):
+        return [p.id for p in obj.proposed_conservation_criteria.all()]
+
+    def get_previous_name(self,obj):
+        try:
+            taxonomy = Taxonomy.objects.get(species=obj.species)
+            if taxonomy.previous_name:
+                return taxonomy.previous_name
+        except Taxonomy.DoesNotExist:
+            return ''
+    
     def get_can_user_edit(self,obj):
         return True
 
 
-class InternalSpeciesConservationStatusSerializer(BaseSpeciesConservationStatusSerializer):
+class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+    submitter = serializers.SerializerMethodField(read_only=True)
 
-
-class BaseCommunityConservationStatusSerializer(serializers.ModelSerializer):
-    readonly = serializers.SerializerMethodField(read_only=True)
-    group_type = serializers.SerializerMethodField(read_only=True)
-    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
     class Meta:
-        model = CommunityConservationStatus
+        model = ConservationStatus
+        fields = (
+                'id',
+                'group_type',
+                'species_id',
+                'previous_name',
+                'conservation_status_number',
+                'current_conservation_list_id',
+                'current_conservation_category_id',
+                'current_conservation_criteria',
+                'proposed_conservation_list_id',
+                'proposed_conservation_category_id',
+                'proposed_conservation_criteria',
+                'comment',
+                'proposed_date',
+                'readonly',
+                'can_user_edit',
+                'lodgement_date',
+                'submitter',
+                )
+
+    def get_submitter(self, obj):
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return EmailUserSerializer(email_user).data
+        else:
+            return None
+
+
+class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
+    species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    current_conservation_list_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    current_conservation_category_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    proposed_conservation_list_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    proposed_conservation_category_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    #current_conservation_criteria = ConservationCriteriaSerializer(read_only = True)
+
+    class Meta:
+        model = ConservationStatus
+        fields = (
+                'id',
+                'species_id',
+                'current_conservation_list_id',
+                'current_conservation_category_id',
+                'proposed_conservation_list_id',
+                'proposed_conservation_category_id',
+                'comment',
+                'lodgement_date',
+                'submitter',
+                )
+        read_only_fields=('id',)
+
+
+class CreateSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
+    class Meta:
+        model = ConservationStatus
+        fields = ('id',
+                )
+        read_only_fields = (
+            'id',
+            )
+
+
+# class BaseCommunityConservationStatusSerializer(serializers.ModelSerializer):
+#     readonly = serializers.SerializerMethodField(read_only=True)
+#     group_type = serializers.SerializerMethodField(read_only=True)
+#     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+#     class Meta:
+#         model = ConservationStatus
+#         fields = (
+#                 'id',
+#                 'group_type',
+#                 'community_id',
+#                 'conservation_status_number',
+#                 'current_conservation_list_id',
+#                 'current_conservation_category_id',
+#                 'proposed_conservation_list_id',
+#                 'proposed_conservation_category_id',
+#                 'comment',
+#                 'proposed_date',
+#                 'readonly',
+#                 'can_user_edit',
+#                 )
+
+#     def get_readonly(self,obj):
+#         return False
+    
+#     def get_group_type(self,obj):
+#         return obj.community.group_type.name
+
+#     def get_can_user_edit(self,obj):
+#         return True
+
+
+class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerializer):
+    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+    submitter = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ConservationStatus
         fields = (
                 'id',
                 'group_type',
                 'community_id',
                 'conservation_status_number',
-                'current_conservation_list',
-                'current_conservation_category',
-                'proposed_conservation_list',
-                'proposed_conservation_category',
+                'current_conservation_list_id',
+                'current_conservation_category_id',
+                'current_conservation_criteria',
+                'proposed_conservation_list_id',
+                'proposed_conservation_category_id',
+                'proposed_conservation_criteria',
                 'comment',
                 'proposed_date',
                 'readonly',
                 'can_user_edit',
+                'lodgement_date',
+                'submitter',
                 )
 
-    def get_readonly(self,obj):
-        return False
-    
-    def get_group_type(self,obj):
-        return obj.community.group_type.name
-
-    def get_can_user_edit(self,obj):
-        return True
+    def get_submitter(self, obj):
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return EmailUserSerializer(email_user).data
+        else:
+            return None
 
 
-class InternalCommunityConservationStatusSerializer(BaseCommunityConservationStatusSerializer):
-    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer):
+    community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    current_conservation_list_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    current_conservation_category_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    proposed_conservation_list_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    proposed_conservation_category_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    #current_conservation_criteria = ConservationCriteriaSerializer(read_only = True)
+
+    class Meta:
+        model = ConservationStatus
+        fields = (
+                'id',
+                'community_id',
+                'current_conservation_list_id',
+                'current_conservation_category_id',
+                'proposed_conservation_list_id',
+                'proposed_conservation_category_id',
+                'comment',
+                'lodgement_date',
+                'submitter',
+                )
+        read_only_fields=('id',)
+
+
+class ConservationStatusUserActionSerializer(serializers.ModelSerializer):
+    who = serializers.CharField(source='who.get_full_name')
+    class Meta:
+        model = ConservationStatusUserAction
+        fields = '__all__'
+
+
+class ConservationStatusLogEntrySerializer(CommunicationLogEntrySerializer):
+    documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ConservationStatusLogEntry
+        fields = "__all__"
+        read_only_fields = ("customer",)
+
+    def get_documents(self, obj):
+        return [[d.name, d._file.url] for d in obj.documents.all()]

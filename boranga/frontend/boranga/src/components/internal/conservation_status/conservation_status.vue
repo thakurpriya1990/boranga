@@ -6,19 +6,19 @@
             <div v-if="!comparing" class="col-md-3">
                <!-- TODO -->
 
-               <!-- <CommsLogs
+               <CommsLogs
                     :comms_url="comms_url"
                     :logs_url="logs_url"
                     :comms_add_url="comms_add_url"
                     :disable_add_entry="false"
-                /> -->
+                />
 
-               <!--  <Submission v-if="canSeeSubmission"
+                <Submission v-if="canSeeSubmission"
                     :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name"
-                    :lodgement_date="proposal.lodgement_date"
+                    :lodgement_date="conservation_status_obj.lodgement_date"
                     class="mt-2"
-                /> -->
+                />
                 
                 <!-- TODO
                 <Workflow
@@ -52,7 +52,7 @@
                 <template>
                     <div class="">
                         <div class="row">
-                            <form :action="species_community_form_url" method="post" name="new_conservation_status" enctype="multipart/form-data">
+                            <form :action="species_community_cs_form_url" method="post" name="new_conservation_status" enctype="multipart/form-data">
                                 <ProposalConservationStatus 
                                     ref="conservation_status" 
                                     :conservation_status_obj="conservation_status_obj" 
@@ -119,9 +119,9 @@ export default {
             submitConservationStatus: false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.conservation_status_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.conservation_status_id+'/add_comms_log'),
-            //logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.conservation_status_id+'/action_log'),
+            comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/comms_log'),
+            comms_add_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/add_comms_log'),
+            logs_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/action_log'),
             comparing: false,
         }
     },
@@ -143,15 +143,14 @@ export default {
         csrf_token: function() {
           return helpers.getCookie('csrftoken')
         },
-        species_community_form_url: function() {
-          return (this.conservation_status_obj.group_type === "community") ? 
+        species_community_cs_form_url: function() {
+          /*return (this.conservation_status_obj.group_type === "community") ? 
                   `/api/community/${this.conservation_status_obj.id}/community_save.json`: 
-                  `/api/species/${this.conservation_status_obj.id}/species_save.json`;
+                  `/api/species_conservation_status/${this.conservation_status_obj.id}/species_conservation_status_save.json`;*/
+            return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
         },
         display_number: function() {
-            return (this.conservation_status_obj.group_type === "community") ? 
-                    this.conservation_status_obj.conservation_status_number : 
-                    this.conservation_status_obj.conservation_status_number;
+            return this.conservation_status_obj.conservation_status_number;
         },
         display_name: function() {
             return (this.conservation_status_obj.group_type === "community") ? 
@@ -160,6 +159,39 @@ export default {
         },
         class_ncols: function(){
             return this.comparing ? 'col-md-12' : 'col-md-8';
+        },
+        submitter_first_name: function(){
+            if (this.conservation_status_obj.submitter){
+                return this.conservation_status_obj.submitter.first_name
+            } else {
+                return ''
+            }
+        },
+        submitter_last_name: function(){
+            if (this.conservation_status_obj.submitter){
+                return this.conservation_status_obj.submitter.last_name
+            } else {
+                return ''
+            }
+        },
+        submitter_id: function(){
+            if (this.conservation_status_obj.submitter){
+                return this.conservation_status_obj.submitter.id
+            } else {
+                //eturn this.conservation_status_obj.applicant_obj.id
+            }
+        },
+        submitter_email: function(){
+            if (this.conservation_status_obj.submitter){
+                return this.conservation_status_obj.submitter.email
+            } else {
+                //return this.conservation_status_obj.applicant_obj.email
+            }
+        },
+        canSeeSubmission: function(){
+            /*return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)*/
+
+            return true; // TODO the Processing Status based value
         },
     },
     methods: {
@@ -171,7 +203,7 @@ export default {
             vm.savingConservationStatus=true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            const res = await vm.$http.post(vm.species_community_form_url,payload);
+            const res = await vm.$http.post(vm.species_community_cs_form_url,payload);
             if(res.ok){
                 swal(
                     'Saved',
@@ -198,7 +230,7 @@ export default {
             // redirect back to dashboard
             if (res.ok) {
                 vm.$router.push({
-                    name: 'internal-species-communities-dash'
+                    name: 'internal-conservation_status-dash'
                 });
             }
         },
@@ -223,7 +255,7 @@ export default {
                     const res = await this.save();
                     if (res.ok) {
                         vm.$router.push({
-                          name: 'internal-species-communities-dash'
+                          name: 'internal-conservation_status-dash'
                         });
                     }
                 } catch(err) {
@@ -258,7 +290,7 @@ export default {
     },
     beforeRouteEnter: function(to, from, next) {
         //-------------get species_conservation_status object if received species id
-        if(to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna"){
+        /*if(to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna"){
             Vue.http.get(`/api/species_conservation_status/${to.params.conservation_status_id}/internal_species_conservation_status.json`).then(res => {
               next(vm => {
                 vm.conservation_status_obj = res.body.species_conservation_status_obj; //--temp species_obj
@@ -278,7 +310,15 @@ export default {
             err => {
               console.log(err);
             });
-        }
+        }*/
+        Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(res => {
+              next(vm => {
+                vm.conservation_status_obj = res.body.conservation_status_obj;
+              });
+            },
+            err => {
+              console.log(err);
+            });
     },
     /*beforeRouteUpdate: function(to, from, next) {
           Vue.http.get(`/api/proposal/${to.params.conservation_status_id}.json`).then(res => {
