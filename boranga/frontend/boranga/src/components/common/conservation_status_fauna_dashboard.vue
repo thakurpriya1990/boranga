@@ -70,9 +70,10 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Workflow Status:</label>
-                        <select class="form-select">
-                            <option value="All">All</option>
+                        <label for="">Status:</label>
+                        <select class="form-select" v-model="filterCSFaunaApplicationStatus">
+                            <option value="all">All</option>
+                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
                         </select>
                     </div>
                 </div>
@@ -200,6 +201,11 @@ export default {
             required: false,
             default: 'filterCSFaunaDistrict',
         },
+        filterCSFaunaApplicationStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaApplicationStatus',
+        },
     },
     data() {
         let vm = this;
@@ -238,6 +244,9 @@ export default {
             filterCSFaunaDistrict: sessionStorage.getItem(this.filterCSFaunaDistrict_cache) ? 
                                     sessionStorage.getItem(this.filterCSFaunaDistrict_cache) : 'all',
 
+            filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
+                                    sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'all',
+
             //Filter list for scientific name and common name
             filterListsSpecies: {},
             species_data_list: [],
@@ -264,11 +273,8 @@ export default {
             internal_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'on_hold', name: 'On Hold'},
-                {value: 'with_qa_officer', name: 'With QA Officer'},
-                {value: 'with_referral', name: 'With Referral'},
-                {value: 'with_assessor_requirements', name: 'With Assessor (Requirements)'},
                 {value: 'with_approver', name: 'With Approver'},
+                {value: 'with_referral', name: 'With Referral'},
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
                 {value: 'discarded', name: 'Discarded'},
@@ -329,6 +335,11 @@ export default {
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaDistrict_cache, vm.filterCSFaunaDistrict);
         },
+        filterCSFaunaApplicationStatus: function() {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterCSFaunaApplicationStatus_cache, vm.filterCSFaunaApplicationStatus);
+        },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
                 // Collapsible component exists
@@ -346,7 +357,8 @@ export default {
                 this.filterCSFaunaConservationList === 'all' && 
                 this.filterCSFaunaConservationCategory === 'all' && 
                 this.filterCSFaunaRegion === 'all' && 
-                this.filterCSFaunaDistrict === 'all'){
+                this.filterCSFaunaDistrict === 'all' && 
+                this.filterCSFaunaApplicationStatus === 'all'){
                 return false
             } else {
                 return true
@@ -364,19 +376,18 @@ export default {
         addFaunaCSVisibility: function() {
             let visibility = false;
             if (this.is_internal) {
-                //visibility = true;
-                visibility = false;
+                visibility = true;
             }
             return visibility;
         },
         datatable_headers: function(){
             if (this.is_external){
                 return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Action']
+                    'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Number','Species','Scientific Name', 'Common Name','Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Action']
+                    'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -502,7 +513,7 @@ export default {
                 name: "current_conservation_category__code",
             }
         },
-        /*column_workflow_status: function(){
+        column_status: function(){
             return {
                 // 9. Workflow Status
                 data: "processing_status",
@@ -518,7 +529,7 @@ export default {
                 },
                 name: "processing_status",
             }
-        },*/
+        },
         column_region: function(){
             return {
                 data: "region",
@@ -604,7 +615,7 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
-                    //vm.column_workflow_status,
+                    vm.column_status,
                     vm.column_action,
                 ]
                 search = false
@@ -622,7 +633,7 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
-                    //vm.column_workflow_status,
+                    vm.column_status,
                     vm.column_action,
                 ]
                 search = true
@@ -681,6 +692,7 @@ export default {
                         d.filter_conservation_category = vm.filterCSFaunaConservationCategory;
                         d.filter_region = vm.filterCSFaunaRegion;
                         d.filter_district = vm.filterCSFaunaDistrict;
+                        d.filter_application_status = vm.filterCSFaunaApplicationStatus;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -717,6 +729,7 @@ export default {
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
+                vm.proposal_status = vm.internal_status;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {

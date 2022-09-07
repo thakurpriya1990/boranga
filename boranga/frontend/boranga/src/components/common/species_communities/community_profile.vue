@@ -6,7 +6,7 @@
                 <div class="col-sm-9">
                     <select style="width:100%;" class="form-select input-sm" multiple ref="species_select" 
                         v-model="species_community.species" >
-                        <option v-for="s in species_list" :value="s.id" >{{s.id}} - {{s.scientific_name}}</option>
+                        <option v-for="s in species_list" :value="s.id" :key="s.id">{{s.id}} - {{s.scientific_name}}</option>
                     </select>
                 </div>
             </div>
