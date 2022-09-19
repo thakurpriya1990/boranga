@@ -39,6 +39,11 @@ test
  Type "help" for help.
 
  boranga_dev=# 
+ 
+ If importing database from a copy you will need to rename django_admin_log user to user_id
+ 
+ ALTER TABLE django_admin_log RENAME COLUMN "user" TO user_id;
+ 
 ```
 
 ## Add in .env
