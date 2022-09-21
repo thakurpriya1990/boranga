@@ -2,6 +2,9 @@ var site_url = location.origin
 var t_class='Commercial operations'
 var filming='Filming'
 var event='Event'
+var flora='flora'
+var fauna='fauna'
+var community='community'
 
 module.exports = {
     organisations: '/api/organisations.json',
@@ -104,6 +107,9 @@ module.exports = {
     //list_proposals:"/api/list_proposal/?format=datatables",
     //list_referrals:"/api/list_proposal/referral_list/?format=datatables",
 
+    discard_cs_proposal:function (id) {
+      return `/api/conservation_status/${id}.json`;
+    },
     discard_proposal:function (id) {
       return `/api/proposal/${id}.json`;
     },

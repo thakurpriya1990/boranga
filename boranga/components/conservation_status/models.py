@@ -1,3 +1,4 @@
+import logging
 import datetime
 from django.db import models
 from boranga.components.main.models import (
@@ -8,11 +9,22 @@ from boranga.components.main.models import (
 from boranga.components.species_and_communities.models import(
     Species,
     Community,
+    GroupType,
 )
+from boranga.ledger_api_utils import retrieve_email_user
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.managed_models import SystemGroup
 import json
 from django.db import models,transaction
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from boranga.settings import (
+    GROUP_NAME_ASSESSOR,
+    GROUP_NAME_APPROVER,
+)
+
+
+logger = logging.getLogger(__name__)
 
 private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
@@ -236,6 +248,8 @@ class ConservationStatus(models.Model):
     RECURRENCE_PATTERNS = [(1, 'Month'), (2, 'Year')]
     change_code = models.ForeignKey(ConservationChangeCode, 
                                     on_delete=models.SET_NULL , blank=True, null=True)
+    # group_type of application
+    application_type = models.ForeignKey(GroupType, on_delete=models.SET_NULL, blank=True, null=True)
 
     #species related conservation status
     species = models.ForeignKey(Species, on_delete=models.CASCADE , related_name="conservation_status", null=True, blank=True)
@@ -245,18 +259,12 @@ class ConservationStatus(models.Model):
 
     conservation_status_number = models.CharField(max_length=9, blank=True, default='')
 
-    # current listing details
-    current_conservation_list = models.ForeignKey(ConservationList,
+    # listing details
+    conservation_list = models.ForeignKey(ConservationList,
                                              on_delete=models.CASCADE, blank=True, null=True, related_name="curr_conservation_list")
-    current_conservation_category = models.ForeignKey(ConservationCategory, 
+    conservation_category = models.ForeignKey(ConservationCategory, 
                                               on_delete=models.SET_NULL, blank=True, null=True, related_name="curr_conservation_category")
-    current_conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True, null=True, related_name="curr_conservation_criteria")
-    # proposed listing details
-    proposed_conservation_list = models.ForeignKey(ConservationList,
-                                             on_delete=models.CASCADE, blank=True, null=True, related_name="prop_conservation_list")
-    proposed_conservation_category = models.ForeignKey(ConservationCategory, 
-                                              on_delete=models.SET_NULL, blank=True, null=True, related_name="prop_conservation_category")
-    proposed_conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True, null=True, related_name="prop_conservation_criteria")
+    conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True, null=True, related_name="curr_conservation_criteria")
     comment = models.CharField(max_length=512, blank=True, null=True)
     review_date = models.DateField(null=True,blank=True)
     recurrence_pattern = models.SmallIntegerField(choices=RECURRENCE_PATTERNS,default=1)
@@ -299,9 +307,66 @@ class ConservationStatus(models.Model):
             return self.species.group_type.get_name_display()
         elif self.community:
             return self.community.group_type.get_name_display()
+        else:
+            return self.application_type.get_name_display() # when the form is incomplete
+
+    @property
+    def applicant(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return "{} {}".format(
+                email_user.first_name,
+                email_user.last_name)
+
+    @property
+    def applicant_email(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return self.email_user.email
+
+    @property
+    def applicant_details(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return "{} {}\n{}".format(
+                email_user.first_name,
+                email_user.last_name,
+                email_user.addresses.all().first())
+
+    @property
+    def applicant_address(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return email_user.residential_address
+
+    @property
+    def applicant_id(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return self.email_user.id
+
+    @property
+    def applicant_type(self):
+        if self.submitter:
+            #return self.APPLICANT_TYPE_SUBMITTER
+            return 'SUB'
+
+    @property
+    def applicant_field(self):
+        # if self.org_applicant:
+        #     return 'org_applicant'
+        # elif self.proxy_applicant:
+        #     return 'proxy_applicant'
+        # else:
+        #     return 'submitter'
+        return 'submitter'
 
     def log_user_action(self, action, request):
-        return ConservationStatusUserAction.log_action(self, action, request.user)
+        return ConservationStatusUserAction.log_action(self, action, request.user.id)
+
+    @property
+    def is_assigned(self):
+        return self.assigned_officer is not None
 
     @property
     def can_user_edit(self):
@@ -316,6 +381,210 @@ class ConservationStatus(models.Model):
         :return: True if the application is in one of the approved status.
         """
         return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
+
+    @property
+    def is_discardable(self):
+        """
+        An application can be discarded by a customer if:
+        1 - It is a draft
+        2- or if the application has been pushed back to the user
+        """
+        return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
+
+    @property
+    def is_deletable(self):
+        """
+        An application can be deleted only if it is a draft and it hasn't been lodged yet
+        :return:
+        """
+        return self.customer_status == 'draft' and not self.conservation_status_number
+
+    @property
+    def is_flora_application(self):
+        if self.application_type.name==GroupType.GROUP_TYPE_FLORA:
+            return True
+        return False
+
+    @property
+    def is_fauna_application(self):
+        if self.application_type.name==GroupType.GROUP_TYPE_FAUNA:
+            return True
+        return False
+
+    @property
+    def is_community_application(self):
+        if self.application_type.name==GroupType.GROUP_TYPE_COMMUNITY:
+            return True
+        return False
+
+    @property
+    def allowed_assessors(self):
+        # if self.processing_status == 'with_approver':
+        #     group = self.__approver_group()
+        # elif self.processing_status =='with_qa_officer':
+        #     group = QAOfficerGroup.objects.get(default=True)
+        # else:
+        #     group = self.__assessor_group()
+        # return group.members.all() if group else []
+
+        group = None
+        # TODO: Take application_type into account
+        if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+        ]:
+            group = self.get_approver_group()
+        elif self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+        ]:
+            group = self.get_assessor_group()
+        users = (
+            list(
+                map(
+                    lambda id: retrieve_email_user(id),
+                    group.get_system_group_member_ids(),
+                )
+            )
+            if group
+            else []
+        )
+        return users
+
+    def get_assessor_group(self):
+        # TODO: Take application_type into account
+        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
+
+    def get_approver_group(self):
+        # TODO: Take application_type into account
+        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+
+    @property
+    def assessor_recipients(self):
+        logger.info("assessor_recipients")
+        recipients = []
+        group_ids = self.get_assessor_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
+
+    @property
+    def approver_recipients(self):
+        logger.info("assessor_recipients")
+        recipients = []
+        group_ids = self.get_approver_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
+
+    #Check if the user is member of assessor group for the CS Proposal
+    def is_assessor(self,user):
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+    #Check if the user is member of assessor group for the CS Proposal
+    def is_approver(self,user):
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+
+    def can_assess(self,user):
+        logger.info("can assess")
+        logger.info("user")
+        logger.info(type(user))
+        logger.info(user)
+        logger.info(user.id)
+        if self.processing_status in [
+            # "on_hold",
+            # "with_qa_officer",
+            "with_assessor",
+            "with_referral",
+            "with_assessor_conditions",
+        ]:
+            logger.info("self.__assessor_group().get_system_group_member_ids()")
+            logger.info(self.get_assessor_group().get_system_group_member_ids())
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
+        elif self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_APPROVER:
+            return user.id in self.get_approver_group().get_system_group_member_ids()
+        else:
+            return False
+
+    def has_assessor_mode(self,user):
+        status_without_assessor = [
+            "with_approver",
+            "approved",
+            "waiting_payment",
+            "declined",
+            "draft",
+        ]
+        if self.processing_status in status_without_assessor:
+            return False
+        else:
+            if self.assigned_officer:
+                if self.assigned_officer == user.id:
+                    return (
+                        user.id
+                        in self.get_assessor_group().get_system_group_member_ids()
+                    )
+                else:
+                    return False
+            else:
+                return (
+                    user.id in self.get_assessor_group().get_system_group_member_ids()
+                )
+
+    # def assign_officer(self,request,officer):
+    #     with transaction.atomic():
+    #         try:
+    #             if not self.can_assess(request.user):
+    #                 raise exceptions.ProposalNotAuthorized()
+    #             if not self.can_assess(officer):
+    #                 raise ValidationError('The selected person is not authorised to be assigned to this proposal')
+    #             if self.processing_status == 'with_approver':
+    #                 if officer != self.assigned_approver:
+    #                     self.assigned_approver = officer
+    #                     self.save()
+    #                     # Create a log entry for the proposal
+    #                     self.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+    #                     # Create a log entry for the organisation
+    #                     applicant_field=getattr(self, self.applicant_field)
+    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+    #             else:
+    #                 if officer != self.assigned_officer:
+    #                     self.assigned_officer = officer
+    #                     self.save()
+    #                     # Create a log entry for the proposal
+    #                     self.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+    #                     # Create a log entry for the organisation
+    #                     applicant_field=getattr(self, self.applicant_field)
+    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+    #         except:
+    #             raise
+
+    # def unassign(self,request):
+    #     with transaction.atomic():
+    #         try:
+    #             if not self.can_assess(request.user):
+    #                 raise exceptions.ProposalNotAuthorized()
+    #             if self.processing_status == 'with_approver':
+    #                 if self.assigned_approver:
+    #                     self.assigned_approver = None
+    #                     self.save()
+    #                     # Create a log entry for the proposal
+    #                     self.log_user_action(ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(self.id),request)
+    #                     # Create a log entry for the organisation
+    #                     applicant_field=getattr(self, self.applicant_field)
+    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(self.id),request)
+    #             else:
+    #                 if self.assigned_officer:
+    #                     self.assigned_officer = None
+    #                     self.save()
+    #                     # Create a log entry for the proposal
+    #                     self.log_user_action(ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(self.id),request)
+    #                     # Create a log entry for the organisation
+    #                     applicant_field=getattr(self, self.applicant_field)
+    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(self.id),request)
+    #         except:
+    #             raise
 
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):

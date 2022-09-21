@@ -24,6 +24,7 @@ from copy import deepcopy
 from django.shortcuts import render, redirect, get_object_or_404
 
 from boranga.components.species_and_communities.models import GroupType
+from boranga.components.conservation_status.utils import cs_proposal_submit
 
 from boranga.components.conservation_status.models import(
     ConservationCategory,
@@ -38,6 +39,8 @@ from boranga.components.conservation_status.serializers import(
     ListSpeciesConservationStatusSerializer,
     ListCommunityConservationStatusSerializer,
     ListConservationStatusSerializer,
+    ConservationStatusSerializer,
+    CreateConservationStatusSerializer,
     InternalSpeciesConservationStatusSerializer,
     SaveSpeciesConservationStatusSerializer,
     CreateSpeciesConservationStatusSerializer,
@@ -101,7 +104,7 @@ class GetConservationListDict(views.APIView):
 
 class GetCSProfileDict(views.APIView):
     def get(self, request, format=None):
-        group_type = request.GET.get('group_type_name','')
+        group_type = request.GET.get('group_type','')
         species_list = []
         if group_type:
             species = Species.objects.filter(group_type__name=group_type)
@@ -169,7 +172,9 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         # filter_group_type
         filter_group_type = request.GET.get('filter_group_type')
         if filter_group_type:
-            queryset = queryset.filter(species__group_type__name=filter_group_type)
+            #queryset = queryset.filter(species__group_type__name=filter_group_type)
+            #changed to application_type (ie group_type)
+            queryset = queryset.filter(application_type__name=filter_group_type)
         # filter_scientific_name
         filter_scientific_name = request.GET.get('filter_scientific_name')
         if filter_scientific_name and not filter_scientific_name.lower() == 'all':
@@ -193,11 +198,11 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
-            queryset = queryset.filter(current_conservation_list=filter_conservation_list)
+            queryset = queryset.filter(conservation_list=filter_conservation_list)
 
         filter_conservation_category = request.GET.get('filter_conservation_category')
         if filter_conservation_category and not filter_conservation_category.lower() == 'all':
-            queryset = queryset.filter(current_conservation_category=filter_conservation_category)
+            queryset = queryset.filter(conservation_category=filter_conservation_category)
         
         filter_region = request.GET.get('filter_region')
         if filter_region and not filter_region.lower() == 'all':
@@ -266,7 +271,9 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         # filter_group_type
         filter_group_type = request.GET.get('filter_group_type')
         if filter_group_type:
-            queryset = queryset.filter(community__group_type__name=filter_group_type)
+            #queryset = queryset.filter(community__group_type__name=filter_group_type)
+            #changed to application_type (ie group_type)
+            queryset = queryset.filter(application_type__name=filter_group_type)
         
         #filter_community_migrated_id
         filter_community_migrated_id = request.GET.get('filter_community_migrated_id')
@@ -285,11 +292,11 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
 
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
-            queryset = queryset.filter(current_conservation_list=filter_conservation_list)
+            queryset = queryset.filter(conservation_list=filter_conservation_list)
 
         filter_conservation_category = request.GET.get('filter_conservation_category')
         if filter_conservation_category and not filter_conservation_category.lower() == 'all':
-            queryset = queryset.filter(current_conservation_category=filter_conservation_category)
+            queryset = queryset.filter(conservation_category=filter_conservation_category)
 
         filter_region = request.GET.get('filter_region')
         if filter_region and not filter_region.lower() == 'all':
@@ -360,10 +367,12 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
         community = GroupType.GROUP_TYPE_COMMUNITY
         
         filter_group_type = request.GET.get('filter_group_type')
-        if filter_group_type and filter_group_type == flora or filter_group_type == fauna:
-            queryset = queryset.filter(species__group_type__name=filter_group_type)
-        elif filter_group_type and filter_group_type == community:
-            queryset = queryset.filter(community__group_type__name=filter_group_type)
+        # if filter_group_type and filter_group_type == flora or filter_group_type == fauna:
+        #     queryset = queryset.filter(species__group_type__name=filter_group_type)
+        # elif filter_group_type and filter_group_type == community:
+        #     queryset = queryset.filter(community__group_type__name=filter_group_type)
+        if filter_group_type and not filter_group_type.lower() == 'all':
+            queryset = queryset.filter(application_type__name=filter_group_type)
         
         # filter_scientific_name
         filter_scientific_name = request.GET.get('filter_scientific_name')
@@ -377,11 +386,11 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
 
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
-            queryset = queryset.filter(current_conservation_list=filter_conservation_list)
+            queryset = queryset.filter(conservation_list=filter_conservation_list)
 
         filter_conservation_category = request.GET.get('filter_conservation_category')
         if filter_conservation_category and not filter_conservation_category.lower() == 'all':
-            queryset = queryset.filter(current_conservation_category=filter_conservation_category)
+            queryset = queryset.filter(conservation_category=filter_conservation_category)
 
         filter_application_status = request.GET.get('filter_application_status')
         if filter_application_status and not filter_application_status.lower() == 'all':
@@ -432,8 +441,8 @@ class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET',], detail=False)
     def conservation_status_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
-        # Not Sure but to filter for only WA listed conservation lists for external
-        qs = qs.filter(Q(current_conservation_list__applies_to_wa=True))
+        # TODO Not Sure but to filter for only WA listed conservation lists for external
+        #qs = qs.filter(Q(conservation_list__applies_to_wa=True))
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -444,7 +453,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
 
 class ConservationStatusViewSet(viewsets.ModelViewSet):
     queryset = ConservationStatus.objects.none()
-    serializer_class = InternalSpeciesConservationStatusSerializer
+    serializer_class = ConservationStatusSerializer
     lookup_field = 'id'
 
     def get_queryset(self):
@@ -452,14 +461,47 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         if is_internal(self.request): #user.is_authenticated():
             qs= ConservationStatus.objects.all()
             return qs
+        elif is_customer(self.request):
+            user_orgs = [org.id for org in user.commercialoperator_organisations.all()]
+            queryset =  ConservationStatus.objects.filter( Q(submitter = user.id) )
+            return queryset
+        logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
+        return Proposal.objects.none()
         return ConservationStatus.objects.none()
+
+    def get_serializer_class(self):
+        try:
+            # application_type = Proposal.objects.get(id=self.kwargs.get('id')).application_type.name
+            # if application_type == ApplicationType.TCLASS:
+            #     return ProposalSerializer
+            # elif application_type == ApplicationType.FILMING:
+            #     return ProposalFilmingSerializer
+            # elif application_type == ApplicationType.EVENT:
+            #     return ProposalEventSerializer
+            return ConservationStatusSerializer
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
     def internal_serializer_class(self):
         try:
             instance = self.get_object()
-            if instance.species_id:
+            # if instance.species_id:
+            #     return InternalSpeciesConservationStatusSerializer
+            # elif instance.community_id:
+            #     return InternalCommunityConservationStatusSerializer
+            if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
                 return InternalSpeciesConservationStatusSerializer
-            elif instance.community_id:
+            elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
                 return InternalCommunityConservationStatusSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -493,9 +535,9 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 instance = self.get_object() 
                 request_data = request.data
-                if request_data.get('group_type_name') == GroupType.GROUP_TYPE_FLORA or GroupType.GROUP_TYPE_FAUNA:
+                if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
                     serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data)
-                else:
+                elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
                     serializer=SaveCommunityConservationStatusSerializer(instance, data = request_data)
 
                 serializer.is_valid(raise_exception=True)
@@ -503,11 +545,8 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                     saved_instance = serializer.save()
 
                     # add the updated Current conservation criteria list [1,2] to the cs instance,
-                    saved_instance.current_conservation_criteria.set(request_data.get('current_conservation_criteria'))
+                    saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
-                    # add the updated Proposed conservation criteria list [1,2] to the cs instance,
-                    saved_instance.proposed_conservation_criteria.set(request_data.get('proposed_conservation_criteria'))
-                    
                     serializer_class = self.internal_serializer_class()
                     return_serializer = serializer_class(instance=saved_instance, context={'request': request})
                     #return Response(return_serializer.data)
@@ -521,6 +560,73 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def draft(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                request_data = request.data
+                #request.data['submitter'] = u'{}'.format(request.user.id)
+                if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
+                    serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
+                elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+                    serializer=SaveCommunityConservationStatusSerializer(instance, data = request_data, partial=True)
+
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    saved_instance = serializer.save()
+
+                    # add the updated Current conservation criteria list [1,2] to the cs instance,
+                    saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+
+            return redirect(reverse('external'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+        raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def submit(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            #instance.submit(request,self)
+            cs_proposal_submit(instance, request)
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            #return redirect(reverse('external'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def create(self, request, *args, **kwargs):
+        group_type_id = GroupType.objects.get(id=request.data.get('application_type_id'))
+        obj = ConservationStatus.objects.create(
+                #submitter=request.user.id,
+                application_type=group_type_id,
+                )
+        serialized_obj = CreateConservationStatusSerializer(obj)
+        return Response(serialized_obj.data)
 
     @detail_route(methods=['GET',], detail=True)
     def action_log(self, request, *args, **kwargs):

@@ -126,7 +126,9 @@ urlpatterns = [
     #url(r'^preview/licence-pdf/(?P<proposal_pk>\d+)',proposal_views.PreviewLicencePDFView.as_view(), name='preview_licence_pdf'),
     url(r'^private-media/', views.getPrivateFile, name='view_private_file'),
 
-    ##following url is defined so that to include url path when sending Proposal amendment request to user.
+    #following url is defined so that to include url path when sending Proposal amendment request to user.
+    url(r'^external/conservation_status/(?P<cs_proposal_pk>\d+)/$', views.ExternalConservationStatusView.as_view(), name='external-conservation-status-detail'),
+    url(r'^internal/conservation_status/(?P<cs_proposal_pk>\d+)/$', views.InternalConservationStatusView.as_view(), name='internal-conservation-status-detail'),
     #url(r'^external/proposal/(?P<proposal_pk>\d+)/$', views.ExternalProposalView.as_view(), name='external-proposal-detail'),
     #url(r'^internal/proposal/(?P<proposal_pk>\d+)/$', views.InternalProposalView.as_view(), name='internal-proposal-detail'),
     #url(r'^external/compliance/(?P<compliance_pk>\d+)/$', views.ExternalComplianceView.as_view(), name='external-compliance-detail'),
