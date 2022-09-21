@@ -58,16 +58,18 @@
               <div class="tab-pane fade show active" id="pills-status" role="tabpanel" aria-labelledby="pills-status-tab">
                 <CommunityStatus
                     v-if="isCommunity"  
-                    ref="community_status" 
+                    ref="community_conservation_status" 
                     id="communityStatus" 
-                    :is_internal="is_internal"
+                    :is_external="is_external"
+                    :canEditStatus="canEditStatus"
                     :conservation_status_obj="conservation_status_obj">
                 </CommunityStatus>
                 <SpeciesStatus
                     v-else
-                    ref="species_status" 
+                    ref="species_conservation_status" 
                     id="speciesStatus" 
-                    :is_internal="is_internal"
+                    :is_external="is_external"
+                    :canEditStatus="canEditStatus"
                     :conservation_status_obj="conservation_status_obj">
                 </SpeciesStatus>
               </div>
@@ -143,6 +145,10 @@
             is_internal:{
               type: Boolean,
               default: false
+            },
+            canEditStatus:{
+              type: Boolean,
+              default: true
             },
         },
         data:function () {

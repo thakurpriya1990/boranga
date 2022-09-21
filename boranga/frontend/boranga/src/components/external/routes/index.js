@@ -1,5 +1,7 @@
 import ExternalDashboard from '../dashboard.vue'
 import ExternalConservationStatusDash from '../conservation_status/dashboard.vue'
+import ConservationStatusProposal from '../conservation_status/conservation_status_proposal.vue'
+import ConservationStatusProposalSubmit from '../conservation_status/conservation_status_proposal_submit.vue'
 import Proposal from '../proposal.vue'
 //import CommercialOperatorLicence from '../commercial_operator_licence.vue'
 import ProposalApply from '../proposal_apply.vue'
@@ -89,6 +91,32 @@ export default
                 //    name:"draft_commercial_operator_licence"
                 //},
             ]
-        }
+        },
+        {
+            path: 'conservation_status',
+            component: {
+                render(c)
+                {
+                    return c('router-view')
+                },
+            },
+            children: [
+                {
+                    path: ':conservation_status_id',
+                    component: ConservationStatusProposal,
+                    name:"draft_cs_proposal"
+                },
+                {
+                    path: 'submit',
+                    component: ConservationStatusProposalSubmit,
+                    name:"submit_cs_proposal"
+                },
+                /*{
+                    path: 'submit',
+                    component: CnservationStatusSubmit,
+                    name:"submit_cs_proposal"
+                },*/
+            ]
+        },
     ]
 }

@@ -63,12 +63,25 @@
             </div>
         </CollapsibleFilters>
 
-        <div v-if="addCSVisibility" class="col-md-12">
+        <!-- <div v-if="addCSVisibility" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Status</button>
             </div>
+        </div> -->
+        <div v-if="addCSVisibility" class="col-md-12 dropdown">
+            <div class="text-end">
+                <button class="btn btn-primary dropdown-toggle mb-2" type="button" id="cs_proposal_type" data-bs-toggle="dropdown" aria-expanded="false">
+                    Propose Conservation Status
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="cs_proposal_type">
+                    <li v-for="group in group_types">
+                        <a class="dropdown-item" 
+                            @click.prevent="createConservationStatus(group.id)">{{ group.display }}
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
-
         <div class="row">
             <div class="col-lg-12">
                 <datatable
@@ -333,34 +346,34 @@ export default {
         },
         column_conservation_list: function(){
             return {
-                data: "current_conservation_list",
+                data: "conservation_list",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.current_conservation_list){
-                        return full.current_conservation_list;
+                    if(full.conservation_list){
+                        return full.conservation_list;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "current_conservation_list__code",
+                name: "conservation_list__code",
             }
         },
         column_conservation_category: function(){
             return {
-                data: "current_conservation_category",
+                data: "conservation_category",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.current_conservation_category){
-                        return full.current_conservation_category;
+                    if(full.conservation_category){
+                        return full.conservation_category;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "current_conservation_category__code",
+                name: "conservation_category__code",
             }
         },
         column_status: function(){
@@ -391,11 +404,11 @@ export default {
                 'render': function(data, type, full){
                     let links = "";
                     if (full.can_user_edit) {
-                            links +=  `<a href='/external/conservation_status/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
+                            links +=  `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
                         }
                         else if (full.can_user_view) {
-                            links +=  `<a href='/external/conservation_status/${full.id}?group_type_name=${full.group_type}'>View</a>`;
+                            links +=  `<a href='/external/conservation_status/${full.id}'>View</a>`;
                         }
 
                     return links;
@@ -546,29 +559,29 @@ export default {
                     }
                 //});
         },
-        createFloraConservationStatus: async function () {
-            let newFloraCSId = null
+        createConservationStatus: async function (group_type) {
+            let newCSId = null
             try {
                     const createUrl = api_endpoints.conservation_status+"/";
                     let payload = new Object();
-                    let savedFloraCS = await Vue.http.post(createUrl, payload);
-                    if (savedFloraCS) {
-                        newFloraCSId = savedFloraCS.body.id;
+                    payload.application_type_id = group_type
+                    let savedCS = await Vue.http.post(createUrl, payload);
+                    if (savedCS) {
+                        newCSId = savedCS.body.id;
                     }
                 }
             catch (err) {
                 console.log(err);
-                if (this.is_internal) {
+                if (this.is_external) {
                     return err;
                 }
             }
             this.$router.push({
-                name: 'internal-species-communities',
-                params: {species_community_id: newFloraCSId},
-                query: {group_type_name: this.group_type_name},
+                name: 'draft_cs_proposal',
+                params: {conservation_status_id: newCSId},
                 });
         },
-        discardProposal:function (proposal_id) {
+        discardCSProposal:function (conservation_status_id) {
             let vm = this;
             swal({
                 title: "Discard Application",
@@ -578,7 +591,7 @@ export default {
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_proposal(proposal_id))
+                vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
                 .then((response) => {
                     swal(
                         'Discarded',
@@ -596,10 +609,10 @@ export default {
         addEventListeners: function(){
             let vm = this;
             // External Discard listener
-            vm.$refs.conservation_status_datatable.vmDataTable.on('click', 'a[data-discard-proposal]', function(e) {
+            vm.$refs.conservation_status_datatable.vmDataTable.on('click', 'a[data-discard-cs-proposal]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-proposal');
-                vm.discardProposal(id);
+                var id = $(this).attr('data-discard-cs-proposal');
+                vm.discardCSProposal(id);
             });
         },
         initialiseSearch:function(){
@@ -664,8 +677,8 @@ export default {
         });
         this.$nextTick(() => {
             vm.initialiseScientificNameLookup();
-            vm.initialiseSearch();
             vm.addEventListeners();
+            vm.initialiseSearch();
         });
     }
 }

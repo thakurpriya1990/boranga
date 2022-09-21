@@ -56,6 +56,7 @@
                                 <ProposalConservationStatus 
                                     ref="conservation_status" 
                                     :conservation_status_obj="conservation_status_obj" 
+                                    :canEditStatus="canEditStatus"
                                     id="ConservationStatusStart" 
                                     :is_internal="true">
                                 </ProposalConservationStatus>
@@ -193,6 +194,10 @@ export default {
 
             return true; // TODO the Processing Status based value
         },
+        canEditStatus: function(){
+            //return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit: 'false';
+            return true;
+        },
     },
     methods: {
         commaToNewline(s){
@@ -239,7 +244,7 @@ export default {
             vm.submitConservationStatus=true;
             try {
                 await swal({
-                    title:"Edit Species",
+                    title:"Edit Conservation Status",
                     text: "Are you sure you want to submit the changes",
                     type: "question",
                     showCancelButton: true,
