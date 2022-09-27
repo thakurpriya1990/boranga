@@ -591,7 +591,7 @@ export default {
                         }
                     }
 
-                    //links +=  `<a href='/internal/conservation_status/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranga demo
+                    links +=  `<a href='/internal/conservation_status/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranga demo
 
                     return links;
                 }

@@ -522,7 +522,7 @@ export default {
                         }
                     }
 
-                    //links +=  `<a href='/internal/conservation_status/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
+                    links +=  `<a href='/internal/conservation_status/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
 
                     return links;
                 }
