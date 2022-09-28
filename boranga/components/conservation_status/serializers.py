@@ -363,6 +363,8 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField(read_only=True)
     conservation_criteria = serializers.SerializerMethodField()
     previous_name = serializers.SerializerMethodField()
+    allowed_assessors = EmailUserSerializer(many=True)
+
     class Meta:
         model = ConservationStatus
         fields = (
@@ -381,6 +383,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
                 'applicant_type',
                 'applicant',
                 'submitter',
+                'assigned_officer',
                 'customer_status',
                 'processing_status',
                 'review_status',
@@ -389,6 +392,9 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
                 'can_user_view',
                 'reference',
                 'applicant_details',
+                'assigned_officer',
+                'assigned_approver',
+                'allowed_assessors',
                 )
 
     def get_readonly(self,obj):
@@ -459,6 +465,14 @@ class CreateConservationStatusSerializer(BaseConservationStatusSerializer):
 
 class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+    current_assessor = serializers.SerializerMethodField()
+    allowed_assessors = EmailUserSerializer(many=True)
+    assessor_mode = serializers.SerializerMethodField()
+    # accessing_user_roles = (
+    #     serializers.SerializerMethodField()
+    # )
 
     class Meta:
         model = ConservationStatus
@@ -473,11 +487,41 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
                 'conservation_criteria',
                 'comment',
                 'proposed_date',
+                'processing_status',
+                'customer_status',
                 'readonly',
-                'can_user_edit',
                 'lodgement_date',
                 'submitter',
+                'applicant_type',
+                'assigned_officer',
+                'assigned_approver',
+                'can_user_edit',
+                'can_user_view',
+                'current_assessor',
+                'allowed_assessors',
+                'assessor_mode',
+                'accessing_user_roles',
                 )
+
+    # def get_accessing_user_roles(self, conservation_status):
+    #     request = self.context.get("request")
+    #     accessing_user = request.user
+    #     roles = []
+    #     if (
+    #         accessing_user.id
+    #         in conservation_status.get_assessor_group().get_system_group_member_ids()
+    #     ):
+    #         roles.append("assessor")
+    #     if (
+    #         accessing_user.id
+    #         in conservation_status.get_approver_group().get_system_group_member_ids()
+    #     ):
+    #         roles.append("approver")
+    #     referral_ids = list(conservation_status.referrals.values_list("referral", flat=True))
+    #     if accessing_user.id in referral_ids:
+    #         roles.append("referral")
+    #     return roles
+
 
     def get_submitter(self, obj):
         if obj.submitter:
@@ -485,6 +529,30 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
             return EmailUserSerializer(email_user).data
         else:
             return None
+
+    def get_readonly(self,obj):
+        return True
+
+    def get_current_assessor(self, obj):
+        return {
+            "id": self.context["request"].user.id,
+            "name": self.context["request"].user.get_full_name(),
+            "email": self.context["request"].user.email,
+        }
+
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context["request"]
+        user = (
+            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+        )
+        return {
+            "assessor_mode": True,
+            "has_assessor_mode": obj.has_assessor_mode(user),
+            "assessor_can_assess": obj.can_assess(user),
+            "assessor_level": "assessor",
+            "assessor_box_view": obj.assessor_comments_view(user),
+        }
 
 
 class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
@@ -523,39 +591,15 @@ class CreateSpeciesConservationStatusSerializer(BaseConservationStatusSerializer
             )
 
 
-# class BaseCommunityConservationStatusSerializer(serializers.ModelSerializer):
-#     readonly = serializers.SerializerMethodField(read_only=True)
-#     group_type = serializers.SerializerMethodField(read_only=True)
-#     can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
-#     class Meta:
-#         model = ConservationStatus
-#         fields = (
-#                 'id',
-#                 'group_type',
-#                 'community_id',
-#                 'conservation_status_number',
-#                 'conservation_list_id',
-#                 'conservation_category_id',
-#                 'proposed_conservation_list_id',
-#                 'proposed_conservation_category_id',
-#                 'comment',
-#                 'proposed_date',
-#                 'readonly',
-#                 'can_user_edit',
-#                 )
-
-#     def get_readonly(self,obj):
-#         return False
-    
-#     def get_group_type(self,obj):
-#         return obj.community.group_type.name
-
-#     def get_can_user_edit(self,obj):
-#         return True
-
-
 class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+    current_assessor = serializers.SerializerMethodField()
+    allowed_assessors = EmailUserSerializer(many=True)
+    # accessing_user_roles = (
+    #     serializers.SerializerMethodField()
+    # )
 
     class Meta:
         model = ConservationStatus
@@ -569,11 +613,39 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
                 'conservation_criteria',
                 'comment',
                 'proposed_date',
+                'processing_status',
+                'customer_status',
                 'readonly',
-                'can_user_edit',
                 'lodgement_date',
                 'submitter',
+                'applicant_type',
+                'assigned_officer',
+                'assigned_approver',
+                'can_user_edit',
+                'can_user_view',
+                'current_assessor',
+                'allowed_assessors',
+                'accessing_user_roles',
                 )
+
+    # def get_accessing_user_roles(self, conservation_status):
+    #     request = self.context.get("request")
+    #     accessing_user = request.user
+    #     roles = []
+    #     if (
+    #         accessing_user.id
+    #         in conservation_status.get_assessor_group().get_system_group_member_ids()
+    #     ):
+    #         roles.append("assessor")
+    #     if (
+    #         accessing_user.id
+    #         in conservation_status.get_approver_group().get_system_group_member_ids()
+    #     ):
+    #         roles.append("approver")
+    #     referral_ids = list(conservation_status.referrals.values_list("referral", flat=True))
+    #     if accessing_user.id in referral_ids:
+    #         roles.append("referral")
+    #     return roles
 
     def get_submitter(self, obj):
         if obj.submitter:
@@ -581,6 +653,16 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
             return EmailUserSerializer(email_user).data
         else:
             return None
+
+    def get_readonly(self,obj):
+        return True
+
+    def get_current_assessor(self, obj):
+        return {
+            "id": self.context["request"].user.id,
+            "name": self.context["request"].user.get_full_name(),
+            "email": self.context["request"].user.email,
+        }
 
 
 class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer):

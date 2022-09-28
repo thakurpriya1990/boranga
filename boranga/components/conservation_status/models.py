@@ -512,7 +512,6 @@ class ConservationStatus(models.Model):
         status_without_assessor = [
             "with_approver",
             "approved",
-            "waiting_payment",
             "declined",
             "draft",
         ]
@@ -532,33 +531,33 @@ class ConservationStatus(models.Model):
                     user.id in self.get_assessor_group().get_system_group_member_ids()
                 )
 
-    # def assign_officer(self,request,officer):
-    #     with transaction.atomic():
-    #         try:
-    #             if not self.can_assess(request.user):
-    #                 raise exceptions.ProposalNotAuthorized()
-    #             if not self.can_assess(officer):
-    #                 raise ValidationError('The selected person is not authorised to be assigned to this proposal')
-    #             if self.processing_status == 'with_approver':
-    #                 if officer != self.assigned_approver:
-    #                     self.assigned_approver = officer
-    #                     self.save()
-    #                     # Create a log entry for the proposal
-    #                     self.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
-    #                     # Create a log entry for the organisation
-    #                     applicant_field=getattr(self, self.applicant_field)
-    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
-    #             else:
-    #                 if officer != self.assigned_officer:
-    #                     self.assigned_officer = officer
-    #                     self.save()
-    #                     # Create a log entry for the proposal
-    #                     self.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
-    #                     # Create a log entry for the organisation
-    #                     applicant_field=getattr(self, self.applicant_field)
-    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
-    #         except:
-    #             raise
+    def assign_officer(self,request,officer):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if not self.can_assess(officer):
+                    raise ValidationError('The selected person is not authorised to be assigned to this proposal')
+                if self.processing_status == 'with_approver':
+                    if officer != self.assigned_approver:
+                        self.assigned_approver = officer
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.log_user_action(ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+                        # Create a log entry for the organisation
+                        applicant_field=getattr(self, self.applicant_field)
+                        applicant_field.log_user_action(ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+                else:
+                    if officer != self.assigned_officer:
+                        self.assigned_officer = officer
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.log_user_action(ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+                        # Create a log entry for the organisation
+                        applicant_field=getattr(self, self.applicant_field)
+                        applicant_field.log_user_action(ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+            except:
+                raise
 
     # def unassign(self,request):
     #     with transaction.atomic():

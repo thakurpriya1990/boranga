@@ -462,11 +462,10 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             qs= ConservationStatus.objects.all()
             return qs
         elif is_customer(self.request):
-            user_orgs = [org.id for org in user.commercialoperator_organisations.all()]
+            user_orgs = [org.id for org in user.boranga_organisations.all()]
             queryset =  ConservationStatus.objects.filter( Q(submitter = user.id) )
             return queryset
         logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
-        return Proposal.objects.none()
         return ConservationStatus.objects.none()
 
     def get_serializer_class(self):
@@ -685,6 +684,24 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                 # End Save Documents
 
                 return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def assign_request_user(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.assign_officer(request,request.user)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer = self.get_serializer(instance, context={'request':request})
+            return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise

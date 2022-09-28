@@ -3,46 +3,60 @@
       <div class="row" style="padding-bottom: 50px;">
         <h3>{{ display_number }} - {{display_name }}</h3>
         
-            <div v-if="!comparing" class="col-md-3">
-               <!-- TODO -->
+        <div v-if="!comparing" class="col-md-3">
+           <!-- TODO -->
 
-               <CommsLogs
-                    :comms_url="comms_url"
-                    :logs_url="logs_url"
-                    :comms_add_url="comms_add_url"
-                    :disable_add_entry="false"
-                />
+           <CommsLogs
+                :comms_url="comms_url"
+                :logs_url="logs_url"
+                :comms_add_url="comms_add_url"
+                :disable_add_entry="false"
+            />
 
-                <Submission v-if="canSeeSubmission"
-                    :submitter_first_name="submitter_first_name"
-                    :submitter_last_name="submitter_last_name"
-                    :lodgement_date="conservation_status_obj.lodgement_date"
-                    class="mt-2"
-                />
-                
-                <!-- TODO
-                <Workflow
-                    ref='workflow'
-                    :proposal="proposal"
-                    :isFinalised="isFinalised"
-                    :canAction="canAction"
-                    :canAssess="canAssess"
-                    :can_user_edit="proposal.can_user_edit"
-                    @toggleProposal="toggleProposal"
-                    @toggleRequirements="toggleRequirements"
-                    @switchStatus="switchStatus"
-                    @completeReferral="completeReferral"
-                    @amendmentRequest="amendmentRequest"
-                    @proposedDecline="proposedDecline"
-                    @proposedApproval="proposedApproval"
-                    @issueProposal="issueProposal"
-                    @declineProposal="declineProposal"
-                    @assignRequestUser="assignRequestUser"
-                    @assignTo="assignTo"
-                    class="mt-2"
-                />
-                -->
+            <Submission v-if="canSeeSubmission"
+                :submitter_first_name="submitter_first_name"
+                :submitter_last_name="submitter_last_name"
+                :lodgement_date="conservation_status_obj.lodgement_date"
+                class="mt-2"
+            />
+            
+            <div class="top-buffer-s">
+                <div class="card card-default">
+                    <div class="card-header">
+                        Workflow 
+                    </div>
+                     <div class="card-body card-collapse">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <strong>Status</strong><br/>
+                                {{ conservation_status_obj.processing_status }}
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="separator"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+            <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
+                <strong>Currently assigned to</strong><br/>
+                <div class="form-group">
+                    <template v-if="conservation_status_obj.processing_status == 'With Approver'">
+                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="conservation_status_obj.assigned_approver">
+                            <option v-for="member in conservation_status_obj.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                        </select>
+                        <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
+                    </template>
+                    <template v-else>
+                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="conservation_status_obj.assigned_officer">
+                            <option v-for="member in conservation_status_obj.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                        </select>
+                        <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
+                    </template>
+                </div>
+            </div>
+           
+        </div>
 
             
         <div v-if="!comparing" class="col-md-1"></div>
@@ -124,6 +138,7 @@ export default {
             comms_add_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/add_comms_log'),
             logs_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/action_log'),
             comparing: false,
+            initialisedSelects: false,
         }
     },
     components: {
@@ -195,8 +210,21 @@ export default {
             return true; // TODO the Processing Status based value
         },
         canEditStatus: function(){
-            //return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit: 'false';
-            return true;
+            return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit: 'false';
+        },
+        isFinalised: function(){
+            return this.conservation_status_obj.processing_status == 'Declined' || this.conservation_status_obj.processing_status == 'Approved';
+        },
+        canAction: function(){
+            if (this.conservation_status_obj.processing_status == 'With Approver'){
+                return this.conservation_status_obj && (this.conservation_status_obj.processing_status == 'With Approver' || this.conservation_status_obj.processing_status == 'With Assessor') && !this.isFinalised && !this.conservation_status_obj.can_user_edit && (this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver || this.conservation_status_obj.assigned_approver == null ) && this.conservation_status_obj.assessor_mode.assessor_can_assess? true : false;
+            }
+            else{
+                return this.proposal && (this.proposal.processing_status == 'With QA Officer' || this.proposal.processing_status == 'On Hold' || this.proposal.processing_status == 'With Approver' || this.proposal.processing_status == 'With Assessor' || this.proposal.processing_status == 'With Assessor (Requirements)') && !this.isFinalised && !this.proposal.can_user_edit && (this.proposal.current_assessor.id == this.proposal.assigned_officer || this.proposal.assigned_officer == null ) && this.proposal.assessor_mode.assessor_can_assess? true : false;
+            }
+        },
+        canAssess: function(){
+            return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
         },
     },
     methods: {
@@ -283,6 +311,96 @@ export default {
                 },err=>{
             });
         },
+        updateAssignedOfficerSelect:function(){
+            let vm = this;
+            if (vm.conservation_status_obj.processing_status == 'With Approver'){
+                $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_approver);
+                $(vm.$refs.assigned_officer).trigger('change');
+            }
+            else{
+                $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_officer);
+                $(vm.$refs.assigned_officer).trigger('change');
+            }
+        },
+        assignRequestUser: function(){
+            let vm = this;
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assign_request_user')))
+            .then((response) => {
+                vm.conservation_status_obj = response.body;
+                vm.fetchProposalParks(vm.proposal.id);
+                vm.original_proposal = helpers.copyObject(response.body);
+                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
+                vm.updateAssignedOfficerSelect();
+
+            }, (error) => {
+                vm.proposal = helpers.copyObject(vm.original_proposal)
+                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
+                vm.updateAssignedOfficerSelect();
+                swal(
+                    'Application Error',
+                    helpers.apiVueResourceError(error),
+                    'error'
+                )
+            });
+        },
+        initialiseAssignedOfficerSelect:function(reinit=false){
+            let vm = this;
+            if (reinit){
+                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy'): '';
+            }
+            // Assigned officer select
+            $(vm.$refs.assigned_officer).select2({
+                "theme": "bootstrap",
+                allowClear: true,
+                placeholder:"Select Officer"
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                if (vm.conservation_status_obj.processing_status == 'With Approver'){
+                    vm.conservation_status_obj.assigned_approver = selected.val();
+                }
+                else{
+                    vm.conservation_status_obj.assigned_officer = selected.val();
+                }
+                //vm.assignTo();
+            }).on("select2:unselecting", function(e) {
+                var self = $(this);
+                setTimeout(() => {
+                    self.select2('close');
+                }, 0);
+            }).on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                if (vm.conservation_status_obj.processing_status == 'With Approver'){
+                    vm.conservation_status_obj.assigned_approver = null;
+                }
+                else{
+                    vm.conservation_status_obj.assigned_officer = null;
+                }
+                //vm.assignTo();
+            });
+        },
+        initialiseSelects: function(){
+            let vm = this;
+            if (!vm.initialisedSelects){
+                //$(vm.$refs.department_users).select2({
+                /*$(vm.$refs.referral_recipient_groups).select2({
+                    "theme": "bootstrap",
+                    allowClear: true,
+                    placeholder:"Select Referral"
+                }).
+                on("select2:select",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.selected_referral = selected.val();
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.selected_referral = '' 
+                });*/
+                vm.initialiseAssignedOfficerSelect();
+                vm.initialisedSelects = true;
+            }
+        },
     },
     mounted: function() {
         let vm = this;
@@ -290,6 +408,7 @@ export default {
     updated: function(){
         let vm = this;
         this.$nextTick(() => {
+            vm.initialiseSelects();
             vm.form = document.forms.new_conservation_status;
         });
     },
