@@ -29,36 +29,6 @@ from django.db.models import Q
 logger = logging.getLogger('boranga')
 
 
-# class SpeciesConservationStatusSerializer(ConservationStatusSerializer):
-#     class Meta:
-#         model = ConservationStatus
-#         fields = (
-#             'id',
-#             'conservation_status_number',
-#             'species',
-#             'current_conservation_status',
-#             'current_conservation_list',
-#             'current_conservation_category',
-#             #'current_conservation_criteria',
-#             'effective_status_date',
-#             )
-
-
-# class CommunityConservationStatusSerializer(ConservationStatusSerializer):
-#     class Meta:
-#         model = ConservationStatus
-#         fields = (
-#             'id',
-#             'conservation_status_number',
-#             'community',
-#             'current_conservation_status',
-#             'current_conservation_list',
-#             'current_conservation_category',
-#             #'current_conservation_criteria',
-#             'effective_status_date',
-#             )
-
-
 class ConservationCriteriaSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -500,7 +470,7 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
                 'current_assessor',
                 'allowed_assessors',
                 'assessor_mode',
-                'accessing_user_roles',
+                #'accessing_user_roles',
                 )
 
     # def get_accessing_user_roles(self, conservation_status):
@@ -597,6 +567,7 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
     customer_status = serializers.SerializerMethodField(read_only=True)
     current_assessor = serializers.SerializerMethodField()
     allowed_assessors = EmailUserSerializer(many=True)
+    assessor_mode = serializers.SerializerMethodField()
     # accessing_user_roles = (
     #     serializers.SerializerMethodField()
     # )
@@ -625,7 +596,8 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
                 'can_user_view',
                 'current_assessor',
                 'allowed_assessors',
-                'accessing_user_roles',
+                'assessor_mode',
+                #'accessing_user_roles',
                 )
 
     # def get_accessing_user_roles(self, conservation_status):
@@ -647,6 +619,7 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
     #         roles.append("referral")
     #     return roles
 
+
     def get_submitter(self, obj):
         if obj.submitter:
             email_user = retrieve_email_user(obj.submitter)
@@ -662,6 +635,20 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
             "id": self.context["request"].user.id,
             "name": self.context["request"].user.get_full_name(),
             "email": self.context["request"].user.email,
+        }
+
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context["request"]
+        user = (
+            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+        )
+        return {
+            "assessor_mode": True,
+            "has_assessor_mode": obj.has_assessor_mode(user),
+            "assessor_can_assess": obj.can_assess(user),
+            "assessor_level": "assessor",
+            "assessor_box_view": obj.assessor_comments_view(user),
         }
 
 

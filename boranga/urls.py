@@ -45,6 +45,7 @@ router.register(r'species_conservation_status_paginated',conservation_status_api
 router.register(r'community_conservation_status_paginated',conservation_status_api.CommunityConservationStatusPaginatedViewSet)
 router.register(r'conservation_status_paginated',conservation_status_api.ConservationStatusPaginatedViewSet)
 router.register(r'conservation_status',conservation_status_api.ConservationStatusViewSet)
+# router.register(r'cs_referrals',conservation_status_api.ConservationStatusReferralViewSet)
 # router.register(r'species_conservation_status',conservation_status_api.SpeciesConservationStatusViewSet)
 # router.register(r'community_conservation_status',conservation_status_api.CommunityConservationStatusViewSet)
 router.register(r'community',species_communities_api.CommunityViewSet)

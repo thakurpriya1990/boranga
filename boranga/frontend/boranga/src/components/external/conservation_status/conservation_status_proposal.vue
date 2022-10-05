@@ -411,8 +411,15 @@ export default {
     can_submit_conservation_status: function(){
       let vm=this;
       let blank_fields=[]
-      if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
-          blank_fields.push(' Species is missing')
+      if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
+        if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
+            blank_fields.push(' Species is missing')
+        }
+      }
+      else{
+        if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == ''){
+            blank_fields.push(' Community is missing')
+        }
       }
       if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == ''){
           blank_fields.push(' Conservation List is missing')

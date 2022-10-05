@@ -22,6 +22,7 @@ LEDGER_TEMPLATE = 'bootstrap5'
 
 GROUP_NAME_ASSESSOR = 'ProposalAssessorGroup'
 GROUP_NAME_APPROVER = 'ProposalApproverGroup'
+GROUP_NAME_REFERRAL = 'ProposalReferralGroup'
 
 
 if env('CONSOLE_EMAIL_BACKEND', False):

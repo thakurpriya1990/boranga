@@ -17,6 +17,7 @@ module.exports = {
     department_users: '/api/department_users',
     filtered_users: '/api/filtered_users',
     referral_recipient_groups: '/api/referrals/user_group_list',
+    cs_referral_recipient_groups: '/api/cs_referrals/user_group_list',
     //other
     //countries: "https://restcountries.eu/rest/v1/?fullText=true",
     countries: '/api/countries',
