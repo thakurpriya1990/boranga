@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.db.models import Q
+from rest_framework import serializers
 
 from ledger_api_client.ledger_models import EmailUserRO
 from boranga.components.main.serializers import EmailUserROSerializerForReferral
@@ -46,6 +47,19 @@ def check_db_connection():
             connection.connect()
     except Exception as e:
         connection.connect()
+
+def handle_validation_error(e):
+    # if hasattr(e, 'error_dict'):
+    #     raise serializers.ValidationError(repr(e.error_dict))
+    # else:
+    #     raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+    if hasattr(e, 'error_dict'):
+        raise serializers.ValidationError(repr(e.error_dict))
+    else:
+        if hasattr(e, 'message'):
+            raise serializers.ValidationError(e.message)
+        else:
+            raise
 
 #def add_business_days(from_date, number_of_days):
 #    """ given from_date and number_of_days, returns the next weekday date i.e. excludes Sat/Sun """

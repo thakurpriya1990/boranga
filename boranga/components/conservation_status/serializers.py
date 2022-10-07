@@ -14,6 +14,7 @@ from boranga.components.conservation_status.models import(
     ConservationStatusLogEntry,
     ConservationStatusUserAction,
     ConservationCriteria,
+    ConservationStatusReferral,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -433,11 +434,123 @@ class CreateConservationStatusSerializer(BaseConservationStatusSerializer):
             )
 
 
+class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
+    #referral = serializers.CharField(source='referral.get_full_name')
+    referral_obj = serializers.SerializerMethodField()
+    processing_status = serializers.CharField(source='get_processing_status_display')
+    class Meta:
+        model = ConservationStatusReferral
+        fields = '__all__'
+
+    def get_referral_obj(self, obj):
+        referral_email_user = retrieve_email_user(obj.referral)
+        serializer = EmailUserSerializer(referral_email_user)
+        return serializer.data
+
+
+
+# TODO use this internal serializer than InternalSpeciesConservationStatusSerializer and InternalCommunityConservationStatusSerializer
+class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
+    submitter = serializers.SerializerMethodField(read_only=True)
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+    current_assessor = serializers.SerializerMethodField()
+    latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
+    allowed_assessors = EmailUserSerializer(many=True)
+    assessor_mode = serializers.SerializerMethodField()
+    # accessing_user_roles = (
+    #     serializers.SerializerMethodField()
+    # )
+
+    class Meta:
+        model = ConservationStatus
+        fields = (
+                'id',
+                'group_type',
+                'species_id',
+                'previous_name',
+                'community_id',
+                'conservation_status_number',
+                'conservation_list_id',
+                'conservation_category_id',
+                'conservation_criteria',
+                'comment',
+                'proposed_date',
+                'processing_status',
+                'customer_status',
+                'readonly',
+                'lodgement_date',
+                'submitter',
+                'applicant_type',
+                'assigned_officer',
+                'assigned_approver',
+                'can_user_edit',
+                'can_user_view',
+                'current_assessor',
+                'latest_referrals',
+                'allowed_assessors',
+                'assessor_mode',
+                #'accessing_user_roles',
+                )
+
+    # def get_accessing_user_roles(self, conservation_status):
+    #     request = self.context.get("request")
+    #     accessing_user = request.user
+    #     roles = []
+    #     if (
+    #         accessing_user.id
+    #         in conservation_status.get_assessor_group().get_system_group_member_ids()
+    #     ):
+    #         roles.append("assessor")
+    #     if (
+    #         accessing_user.id
+    #         in conservation_status.get_approver_group().get_system_group_member_ids()
+    #     ):
+    #         roles.append("approver")
+    #     referral_ids = list(conservation_status.referrals.values_list("referral", flat=True))
+    #     if accessing_user.id in referral_ids:
+    #         roles.append("referral")
+    #     return roles
+
+
+    def get_submitter(self, obj):
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return EmailUserSerializer(email_user).data
+        else:
+            return None
+
+    def get_readonly(self,obj):
+        return True
+
+    def get_current_assessor(self, obj):
+        return {
+            "id": self.context["request"].user.id,
+            "name": self.context["request"].user.get_full_name(),
+            "email": self.context["request"].user.email,
+        }
+
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context["request"]
+        user = (
+            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+        )
+        return {
+            "assessor_mode": True,
+            "has_assessor_mode": obj.has_assessor_mode(user),
+            "assessor_can_assess": obj.can_assess(user),
+            "assessor_level": "assessor",
+            "assessor_box_view": obj.assessor_comments_view(user),
+        }
+
+
 class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
     current_assessor = serializers.SerializerMethodField()
+    latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
     allowed_assessors = EmailUserSerializer(many=True)
     assessor_mode = serializers.SerializerMethodField()
     # accessing_user_roles = (
@@ -468,6 +581,7 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
                 'can_user_edit',
                 'can_user_view',
                 'current_assessor',
+                'latest_referrals',
                 'allowed_assessors',
                 'assessor_mode',
                 #'accessing_user_roles',
@@ -566,6 +680,7 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
     processing_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
     current_assessor = serializers.SerializerMethodField()
+    latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
     allowed_assessors = EmailUserSerializer(many=True)
     assessor_mode = serializers.SerializerMethodField()
     # accessing_user_roles = (
@@ -595,6 +710,7 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
                 'can_user_edit',
                 'can_user_view',
                 'current_assessor',
+                'latest_referrals',
                 'allowed_assessors',
                 'assessor_mode',
                 #'accessing_user_roles',
@@ -700,3 +816,99 @@ class ConservationStatusLogEntrySerializer(CommunicationLogEntrySerializer):
 
     def get_documents(self, obj):
         return [[d.name, d._file.url] for d in obj.documents.all()]
+
+
+class SendReferralSerializer(serializers.Serializer):
+    email = serializers.EmailField(allow_blank=True)
+    text = serializers.CharField(allow_blank=True)
+
+    # def validate(self, data):
+    #     field_errors = {}
+    #     non_field_errors = []
+
+    #     request = self.context.get("request")
+    #     if request.user.email == data["email"]:
+    #         non_field_errors.append("You cannot send referral to yourself.")
+    #     elif not data["email"]:
+    #         non_field_errors.append("Referral not found.")
+
+    #     # Raise errors
+    #     if field_errors:
+    #         raise serializers.ValidationError(field_errors)
+    #     if non_field_errors:
+    #         raise serializers.ValidationError(non_field_errors)
+    #     # else:
+    #     # pass
+
+    #     return data
+
+
+class ConservationStatusReferralProposalSerializer(InternalConservationStatusSerializer):
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        try:
+            referral = ConservationStatusReferral.objects.get(conservation_status=obj,referral=user)
+        except:
+            referral = None
+        return {
+            'assessor_mode': True,
+            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+            'assessor_level': 'referral',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+
+class ConservationStatusReferralSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source="get_processing_status_display")
+    latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
+    can_be_completed = serializers.BooleanField()
+    # can_process = serializers.SerializerMethodField()
+    # #referral_assessment = ProposalAssessmentSerializer(read_only=True)
+    # application_type = serializers.CharField(read_only=True)
+    # allowed_assessors = EmailUserSerializer(many=True)
+    # current_assessor = serializers.SerializerMethodField()
+    # referral_obj = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ConservationStatusReferral
+        fields = [
+            "__all__",
+            #"referral_obj",
+        ]
+
+    # def get_referral_obj(self, obj):
+    #     referral_email_user = retrieve_email_user(obj.referral)
+    #     serializer = EmailUserSerializer(referral_email_user)
+    #     return serializer.data
+
+    # def get_current_assessor(self, obj):
+    #     return {
+    #         "id": self.context["request"].user.id,
+    #         "name": self.context["request"].user.get_full_name(),
+    #         "email": self.context["request"].user.email,
+    #     }
+
+    def __init__(self, *args, **kwargs):
+        super(ConservationStatusReferralSerializer, self).__init__(*args, **kwargs)
+        try:
+            self.fields["conservation_status"] = ConservationStatusReferralProposalSerializer(
+                context={"request": self.context["request"]}
+            )
+            # TODO Do I need to do ReferralProposalSerializer accounding to application_type?
+            # if kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.TCLASS:
+            #     self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
+            # elif kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.FILMING:
+            #     self.fields['proposal'] = FilmingReferralProposalSerializer(context={'request':self.context['request']})
+            # elif kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.EVENT:
+            #     self.fields['proposal'] = EventReferralProposalSerializer(context={'request':self.context['request']})
+        except:
+            raise
+
+    # def get_can_process(self, obj):
+    #     request = self.context["request"]
+    #     user = (
+    #         request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+    #     )
+    #     return obj.can_process(user)

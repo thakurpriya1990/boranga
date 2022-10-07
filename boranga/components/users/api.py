@@ -87,6 +87,15 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = EmailUser.objects.all()
     serializer_class = UserSerializer
 
+    @list_route(methods=['GET',], detail=False)
+    def get_department_users(self, request, *args, **kwargs):
+        search_term = request.GET.get('term', '')
+        data = EmailUser.objects.filter(is_staff=True). \
+            filter(Q(first_name__icontains=search_term) | Q(last_name__icontains=search_term)). \
+            values('email', 'first_name', 'last_name')[:10]
+        data_transform = [{'id': person['email'], 'text': person['first_name'] + ' ' + person['last_name']} for person in data]
+        return Response({"results": data_transform})
+
     @detail_route(methods=['POST',], detail=True)
     def update_personal(self, request, *args, **kwargs):
         try:

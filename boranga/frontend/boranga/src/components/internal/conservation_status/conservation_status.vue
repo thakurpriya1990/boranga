@@ -34,14 +34,14 @@
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
-                            <!-- <template v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
+                            <template v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Referrals</strong><br/>
                                     <div class="form-group">
 
-                                        <select :disabled="!canLimitedAction" ref="referral_recipient_groups" class="form-control">
+                                        <select :disabled="!canLimitedAction" ref="department_users" class="form-control">
                                             <option value="null"></option>
-                                            <option v-for="group in referral_recipient_groups" :value="group">{{group}}</option>
+                                            <!-- <option v-for="user in department_users" :value="user.email" :key="user.id">{{user.name}}</option> -->
                                         </select>
 
                                         <template v-if='!sendingReferral'>
@@ -65,7 +65,7 @@
                                         </tr>
                                         <tr v-for="r in conservation_status_obj.latest_referrals">
                                             <td>
-                                                <small><strong>{{r.referral}}</strong></small><br/>
+                                                <small><strong>{{r.referral_obj.first_name}} {{ r.referral_obj.last_name }}</strong></small><br/>
                                                 <small><strong>{{r.lodged_on | formatDate}}</strong></small>
                                             </td>
                                             <td>
@@ -82,12 +82,12 @@
                                     <template>
                                             
                                     </template>
-                                     <MoreReferrals @refreshFromResponse="refreshFromResponse" :proposal="conservation_status_obj" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/> 
+                                    <!-- <MoreReferrals @refreshFromResponse="refreshFromResponse" :proposal="conservation_status_obj" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/> -->
                                 </div>
                                 <div class="col-sm-12">
                                     <div class="separator"></div>
                                 </div>
-                            </template> -->
+                            </template>
                             <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong><br/>
                                 <div class="form-group">
@@ -155,12 +155,13 @@
                                     :canEditStatus="canEditStatus"
                                     id="ConservationStatusStart" 
                                     :is_internal="true">
+                                    <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
                                 </ProposalConservationStatus>
                                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                 <input type='hidden' name="conservation_status_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
                                     <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                        <div class="container">
+                                        <div v-if="hasAssessorMode" class="container">
                                             <div class="col-md-12 text-end">
                                                 <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -213,11 +214,15 @@ export default {
         return {
             "conservation_status_obj":null,
             "original_conservation_status_obj": null,
+            "loading": [],
             form: null,
             savingConservationStatus:false,
             saveExitConservationStatus: false,
             submitConservationStatus: false,
-            referral_recipient_groups : [],
+            department_users : [],
+            selected_referral: '',
+            referral_text: '',
+            sendingReferral: false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/comms_log'),
@@ -320,6 +325,9 @@ export default {
         },
         canAssess: function(){
             return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
+        },
+        hasAssessorMode:function(){
+            return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode ? true : false;
         },
     },
     methods: {
@@ -552,42 +560,116 @@ export default {
                 vm.assignTo();
             });
         },
+        fetchDeparmentUsers: function(){
+            let vm = this;
+            vm.loading.push('Loading Department Users');
+            vm.$http.get(api_endpoints.department_users).then((response) => {
+                vm.department_users = response.body
+                vm.loading.splice('Loading Department Users',1);
+            },(error) => {
+                console.log(error);
+                vm.loading.splice('Loading Department Users',1);
+            })
+        },
         initialiseSelects: function(){
             let vm = this;
             if (!vm.initialisedSelects){
-                //$(vm.$refs.department_users).select2({
-                /*$(vm.$refs.referral_recipient_groups).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select Referral"
-                }).
-                on("select2:select",function (e) {
+                $(vm.$refs.department_users).select2({
+                minimumInputLength: 2,
+                "theme": "bootstrap-5",
+                allowClear: true,
+                placeholder:"Select Referrer",
+                ajax: {
+                    url: api_endpoints.users_api + '/get_department_users/',
+                    dataType: 'json',
+                    data: function(params) {
+                        var query = {
+                            term: params.term,
+                            type: 'public',
+                        }
+                        return query;
+                    },
+                },
+                })
+                .on("select2:select", function (e) {
+                    //var selected = $(e.currentTarget);
+                    //vm.selected_referral = selected.val();
+                    let data = e.params.data.id;
+                    vm.selected_referral = data;
+                })
+                .on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.selected_referral = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_referral = '' 
-                });*/
+                    vm.selected_referral = null;
+                })
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
         },
-        fetchReferralRecipientGroups: function(){
+        sendReferral: function(){
             let vm = this;
-            vm.loading.push('Loading Referral Recipient Groups');
-            vm.$http.get(api_endpoints.cs_referral_recipient_groups).then((response) => {
-                vm.referral_recipient_groups = response.body
-                vm.loading.splice('Loading Referral Recipient Groups',1);
-            },(error) => {
+            //vm.save_wo();
+            //TODO in boranga below checkAssessorData()
+            //vm.checkAssessorData();
+            let formData = new FormData(vm.form);
+            vm.sendingReferral = true;
+            let payload = new Object();
+            Object.assign(payload, vm.conservation_status_obj);
+            //vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+
+            let data = {'email':vm.selected_referral, 'text': vm.referral_text};
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/assesor_send_referral')),JSON.stringify(data),{
+                emulateJSON:true
+            }).then((response) => {
+                vm.sendingReferral = false;
+                vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                vm.conservation_status_obj = response.body;
+                swal(
+                    'Referral Sent',
+                    'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
+                    'success'
+                )
+                $(vm.$refs.department_users).val(null).trigger("change");
+                vm.selected_referral = '';
+                vm.referral_text = '';
+            }, (error) => {
                 console.log(error);
-                vm.loading.splice('Loading Referral Recipient Groups',1);
-            })
+                swal(
+                    'Referral Error',
+                    helpers.apiVueResourceError(error),
+                    'error'
+                )
+                vm.sendingReferral = false;
+            });
+
+
+          //},err=>{
+          //});
+        },
+        remindReferral:function(r){
+            let vm = this;
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/remind')).then(response => {
+                vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                vm.conservation_status_obj = response.body;
+                //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                swal(
+                    'Referral Reminder',
+                    'A reminder has been sent to '+vm.department_users.find(d => d.id == r.referral).name,
+                    'success'
+                )
+            },
+            error => {
+                swal(
+                    'Proposal Error',
+                    helpers.apiVueResourceError(error),
+                    'error'
+                )
+            });
         },
     },
     mounted: function() {
         let vm = this;
-        //vm.fetchReferralRecipientGroups();
+        vm.fetchDeparmentUsers();
     },
     updated: function(){
         let vm = this;

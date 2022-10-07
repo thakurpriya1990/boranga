@@ -59,6 +59,7 @@ class RevisionedMixin(models.Model):
     A model tracked by reversion through the save method.
     """
     def save(self, **kwargs):
+        from reversion import revisions
         if kwargs.pop('no_revision', False):
             super(RevisionedMixin, self).save(**kwargs)
         else:

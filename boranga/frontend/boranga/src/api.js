@@ -12,12 +12,12 @@ module.exports = {
     organisation_requests: '/api/organisation_requests.json',
     organisation_contacts: '/api/organisation_contacts.json',
     organisation_access_group_members: '/api/organisation_access_group_members',
+    users_api: '/api/users',
     users: '/api/users.json',
     profile: '/api/profile',
     department_users: '/api/department_users',
     filtered_users: '/api/filtered_users',
     referral_recipient_groups: '/api/referrals/user_group_list',
-    cs_referral_recipient_groups: '/api/cs_referrals/user_group_list',
     //other
     //countries: "https://restcountries.eu/rest/v1/?fullText=true",
     countries: '/api/countries',
@@ -25,6 +25,7 @@ module.exports = {
     species:"/api/species",
     community:"/api/community",
     conservation_status:"/api/conservation_status",
+    cs_referrals:"/api/cs_referrals.json",
     /*species_conservation_status:"/api/species_conservation_status",
     community_conservation_status:"/api/community_conservation_status",*/
     document_categories: "/api/document_categories.json",
