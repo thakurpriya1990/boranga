@@ -542,10 +542,12 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 instance = self.get_object() 
                 request_data = request.data
+                # to resolve error for serializer submitter id as object is received
+                request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
                 if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
-                    serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data)
+                    serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
                 elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
-                    serializer=SaveCommunityConservationStatusSerializer(instance, data = request_data)
+                    serializer=SaveCommunityConservationStatusSerializer(instance, data = request_data, partial=True)
 
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
@@ -872,6 +874,40 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.remind(request)
+            serializer = InternalConservationStatusSerializer(instance.conservation_status,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',],detail=True,)
+    def recall(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.recall(request)
+            serializer = InternalConservationStatusSerializer(instance.conservation_status,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',],detail=True,)
+    def resend(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.resend(request)
             serializer = InternalConservationStatusSerializer(instance.conservation_status,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:

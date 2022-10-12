@@ -13,6 +13,9 @@ from boranga.components.species_and_communities.models import(
     Community,
     GroupType,
 )
+from boranga.components.proposals.models import(
+    AmendmentReason,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -24,7 +27,10 @@ from boranga.settings import (
     GROUP_NAME_ASSESSOR,
     GROUP_NAME_APPROVER,
 )
-from boranga.components.conservation_status.email import send_conservation_status_referral_email_notification
+from boranga.components.conservation_status.email import (
+    send_conservation_status_referral_email_notification,
+    send_conservation_status_referral_recall_email_notification,
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +48,9 @@ def update_referral_doc_filename(instance, filename):
     return "{}/conservation_status/{}/referral/{}".format(
         settings.MEDIA_APP_DIR, instance.referral.proposal.id, filename
     )
+
+def update_conservation_status_amendment_request_doc_filename(instance, filename):
+    return 'conservation_status/{}/amendment_request_documents/{}'.format(instance.conservation_status_amendment_request.conservation_status.id,filename)
 
 
 class ConservationList(models.Model):
@@ -896,7 +905,79 @@ class ConservationStatusReferral(models.Model):
                 reminder=True,
                 )
 
+    def recall(self,request):
+        with transaction.atomic():
+            if not self.conservation_status.can_assess(request.user):
+                raise exceptions.ProposalNotAuthorized()
+            self.processing_status = 'recalled'
+            self.save()
+            send_conservation_status_referral_recall_email_notification(self, request)
+            # TODO Log conservationstatus proposal action
+            self.conservation_status.log_user_action(
+                ConservationStatusUserAction.RECALL_REFERRAL.format(
+                    self.id, 
+                    self.conservation_status.conservation_status_number,
+                ), 
+                request,
+            )
+            # TODO log organisation action
+            #self.proposal.applicant.log_user_action(ProposalUserAction.RECALL_REFERRAL.format(self.id, self.proposal.lodgement_number), request)
+
+    def resend(self,request):
+        with transaction.atomic():
+            if not self.conservation_status.can_assess(request.user):
+                raise exceptions.ProposalNotAuthorized()
+            self.processing_status = 'with_referral'
+            self.conservation_status.processing_status = 'with_referral'
+            self.conservation_status.save()
+            self.sent_from = 1
+            self.save()
+            # Create a log entry for the proposal
+            self.conservation_status.log_user_action(
+                ConservationStatusUserAction.ACTION_RESEND_REFERRAL_TO.format(
+                    self.id,
+                    self.conservation_status.conservation_status_number,
+                    '{}({})'.format(self.referral_as_email_user.get_full_name(),self.referral_as_email_user.email),
+                ),
+                request,
+            )
+            # Create a log entry for the organisation
+            #self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+            
+            # send email
+            send_conservation_status_referral_email_notification(self,request)
+
     def can_assess_referral(self,user):
         return self.processing_status == 'with_referral'
 
 
+class ConservationStatusProposalRequest(models.Model):
+    conservation_status = models.ForeignKey(ConservationStatus, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200, blank=True)
+    text = models.TextField(blank=True)
+    officer = models.IntegerField()  # EmailUserRO
+
+    class Meta:
+        app_label = 'boranga'
+
+
+class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
+    STATUS_CHOICES = (('requested', 'Requested'), ('amended', 'Amended'))
+
+    status = models.CharField('Status', max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
+    reason = models.ForeignKey(AmendmentReason, blank=True, null=True, on_delete=models.SET_NULL)
+    
+    class Meta:
+        app_label = 'boranga'
+
+
+class ConservationStatusAmendmentRequestDocument(Document):
+    conservation_status_amendment_request = models.ForeignKey('ConservationStatusAmendmentRequest',related_name='cs_amendment_request_documents', on_delete=models.CASCADE)
+    _file = models.FileField(upload_to=update_conservation_status_amendment_request_doc_filename, max_length=500, storage=private_storage)
+    input_name = models.CharField(max_length=255,null=True,blank=True)
+    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+
+    def delete(self):
+        if self.can_delete:
+            return super(ConservationStatusAmendmentRequestDocument, self).delete()

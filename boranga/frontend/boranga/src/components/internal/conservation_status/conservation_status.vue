@@ -614,7 +614,7 @@ export default {
             vm.sendingReferral = true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            //vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
 
             let data = {'email':vm.selected_referral, 'text': vm.referral_text};
             vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/assesor_send_referral')),JSON.stringify(data),{
@@ -642,8 +642,8 @@ export default {
             });
 
 
-          //},err=>{
-          //});
+          },err=>{
+          });
         },
         remindReferral:function(r){
             let vm = this;
@@ -655,6 +655,59 @@ export default {
                 swal(
                     'Referral Reminder',
                     'A reminder has been sent to '+vm.department_users.find(d => d.id == r.referral).name,
+                    'success'
+                )
+            },
+            error => {
+                swal(
+                    'Proposal Error',
+                    helpers.apiVueResourceError(error),
+                    'error'
+                )
+            });
+        },
+        recallReferral:function(r){
+            let vm = this;
+            swal({
+                    title: "Loading...",
+                    //text: "Loading...",
+                    allowOutsideClick: false,
+                    allowEscapeKey:false,
+                    onOpen: () =>{
+                        swal.showLoading()
+                    }
+            })
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/recall')).then(response => {
+                swal.hideLoading();
+                swal.close();
+                vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                vm.conservation_status_obj = response.body;
+                //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                swal(
+                    'Referral Recall',
+                    'The referall has been recalled from '+vm.department_users.find(d => d.id == r.referral).name,
+                    'success'
+                )
+            },
+            error => {
+                swal(
+                    'Proposal Error',
+                    helpers.apiVueResourceError(error),
+                    'error'
+                )
+            });
+        },
+        resendReferral:function(r){
+            let vm = this;
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/resend')).then(response => {
+                vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                vm.conservation_status_obj = response.body;
+                //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                swal(
+                    'Referral Resent',
+                    'The referral has been resent to '+vm.department_users.find(d => d.id == r.referral).name,
                     'success'
                 )
             },

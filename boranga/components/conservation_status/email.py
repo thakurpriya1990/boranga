@@ -39,6 +39,11 @@ class ConservationStatusReferralSendNotificationEmail(TemplateEmailBase):
     html_template = 'boranga/emails/cs_proposals/send_referral_notification.html'
     txt_template = 'boranga/emails/cs_proposals/send_referral_notification.txt'
 
+class ConservationStatusReferralRecallNotificationEmail(TemplateEmailBase):
+    subject = 'A referral for a conservation status proposal has been recalled.'
+    html_template = 'boranga/emails/cs_proposals/send_referral_recall_notification.html'
+    txt_template = 'boranga/emails/cs_proposals/send_referral_recall_notification.txt'
+
 
 def send_submit_email_notification(request, cs_proposal):
     email = SubmitSendNotificationEmail()
@@ -209,6 +214,22 @@ def send_conservation_status_referral_email_notification(referral,request,remind
     _log_conservation_status_referral_email(msg, referral, sender=sender)
     # if referral.conservation_status.applicant:
     #     _log_org_email(msg, referral.conservation_status.applicant, referral.referral, sender=sender)
+
+def send_conservation_status_referral_recall_email_notification(referral,request):
+    email = ConservationStatusReferralRecallNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-conservation-status-referral-detail',kwargs={'cs_proposal_pk':referral.conservation_status.id,'referral_pk':referral.id}))
+
+    context = {
+        'cs_proposal': referral.conservation_status,
+        'url': url,
+    }
+
+    msg = email.send(EmailUser.objects.get(id=referral.referral).email, context=context)
+    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    sender = get_sender_user()
+    _log_conservation_status_referral_email(msg, referral, sender=sender)
+    # if referral.proposal.applicant:
+    #     _log_org_email(msg, referral.proposal.applicant, referral.referral, sender=sender)
 
 def _log_conservation_status_referral_email(email_message, referral, sender=None):
     from boranga.components.conservation_status.models import ConservationStatusLogEntry
