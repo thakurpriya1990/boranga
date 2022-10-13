@@ -34,6 +34,7 @@ from boranga.components.conservation_status.models import(
     ConservationStatus,
     ConservationList,
     ConservationStatusReferral,
+    ConservationStatusAmendmentRequest,
     Species,
     Community,
 )
@@ -55,6 +56,7 @@ from boranga.components.conservation_status.serializers import(
     #SpeciesConservationStatusLogEntrySerializer,
     #SpeciesConservationStatusUserActionSerializer,
     ConservationStatusReferralSerializer,
+    ConservationStatusAmendmentRequestSerializer,
 )
 from boranga.components.main.utils import (
     check_db_connection,
@@ -910,6 +912,46 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
             instance.resend(request)
             serializer = InternalConservationStatusSerializer(instance.conservation_status,context={'request':request})
             return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
+    queryset = ConservationStatusAmendmentRequest.objects.all()
+    serializer_class = ConservationStatusAmendmentRequestSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data= json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception = True)
+            instance = serializer.save()
+            instance.add_documents(request)
+            instance.generate_amendment(request)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def delete_document(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            ConservationStatusAmendmentRequestDocument.objects.get(id=request.data.get('id')).delete()
+            return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.requirement_documents.all()])
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise

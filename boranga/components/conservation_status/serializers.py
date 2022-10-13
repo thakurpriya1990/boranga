@@ -15,6 +15,8 @@ from boranga.components.conservation_status.models import(
     ConservationStatusUserAction,
     ConservationCriteria,
     ConservationStatusReferral,
+    ConservationStatusAmendmentRequest,
+    ConservationStatusAmendmentRequestDocument,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -28,6 +30,70 @@ from rest_framework import serializers
 from django.db.models import Q
 
 logger = logging.getLogger('boranga')
+
+#Serializer used for species form
+class SpeciesConservationStatusSerializer(serializers.ModelSerializer):
+    conservation_status = serializers.SerializerMethodField()
+    conservation_list = serializers.SerializerMethodField()
+    conservation_category = serializers.SerializerMethodField()
+    class Meta:
+        model = ConservationStatus
+        fields = (
+            'id',
+            'conservation_status_number',
+            'species',
+            'conservation_status',
+            'conservation_list',
+            'conservation_category',
+            #'conservation_criteria',
+            )
+
+    def get_conservation_status(self,obj):
+        if obj.conservation_list:
+            return obj.conservation_list.code
+        return ''
+
+    def get_conservation_list(self,obj):
+        if obj.conservation_list:
+            return obj.conservation_list.code
+        return ''
+
+    def get_conservation_category(self,obj):
+        if obj.conservation_category:
+            return obj.conservation_category.code
+        return ''
+
+#Serializer used for community form
+class CommunityConservationStatusSerializer(serializers.ModelSerializer):
+    conservation_status = serializers.SerializerMethodField()
+    conservation_list = serializers.SerializerMethodField()
+    conservation_category = serializers.SerializerMethodField()
+    class Meta:
+        model = ConservationStatus
+        fields = (
+            'id',
+            'conservation_status_number',
+            'community',
+            'conservation_status',
+            'conservation_list',
+            'conservation_category',
+            #'conservation_criteria',
+            )
+
+    def get_conservation_status(self,obj):
+        if obj.conservation_list:
+            return obj.conservation_list.code
+        return ''
+
+    def get_conservation_list(self,obj):
+        if obj.conservation_list:
+            return obj.conservation_list.code
+        return ''
+
+    def get_conservation_category(self,obj):
+        if obj.conservation_category:
+            return obj.conservation_category.code
+        return ''
 
 
 class ConservationCriteriaSerializer(serializers.ModelSerializer):
@@ -912,3 +978,18 @@ class ConservationStatusReferralSerializer(serializers.ModelSerializer):
     #         request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
     #     )
     #     return obj.can_process(user)
+
+
+class ConservationStatusAmendmentRequestDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConservationStatusAmendmentRequestDocument
+        fields = ('id', 'name', '_file')
+        #fields = '__all__'
+
+class ConservationStatusAmendmentRequestSerializer(serializers.ModelSerializer):
+    #reason = serializers.SerializerMethodField()
+    cs_amendment_request_documents = ConservationStatusAmendmentRequestDocumentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ConservationStatusAmendmentRequest
+        fields = '__all__'

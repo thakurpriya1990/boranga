@@ -122,7 +122,9 @@ export default {
             return helpers.getCookie('csrftoken')
         },
         has_uploaded_docs: function() {
-          return this.uploaded_documents.length>0 ? true : false;
+          // commented below as giving error of undefined length in amendment request form
+          //return this.uploaded_documents.length()>0 ? true : false;
+          return this.uploaded_documents ? true : false;
         }
     },
 

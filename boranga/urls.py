@@ -28,6 +28,7 @@ from ledger_api_client.urls import urlpatterns as ledger_patterns
 router = routers.DefaultRouter()
 router.register(r'organisations',org_api.OrganisationViewSet)
 router.register(r'proposal',proposal_api.ProposalViewSet)
+
 router.register(r'species',species_communities_api.SpeciesViewSet)
 router.register(r'community',species_communities_api.CommunityViewSet)
 router.register(r'species_paginated',species_communities_api.SpeciesPaginatedViewSet)
@@ -48,7 +49,8 @@ router.register(r'conservation_status',conservation_status_api.ConservationStatu
 router.register(r'cs_referrals',conservation_status_api.ConservationStatusReferralViewSet)
 # router.register(r'species_conservation_status',conservation_status_api.SpeciesConservationStatusViewSet)
 # router.register(r'community_conservation_status',conservation_status_api.CommunityConservationStatusViewSet)
-router.register(r'community',species_communities_api.CommunityViewSet)
+router.register(r'cs_amendment_request',conservation_status_api.ConservationStatusAmendmentRequestViewSet)
+
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)
 router.register(r'approval_paginated',approval_api.ApprovalPaginatedViewSet)

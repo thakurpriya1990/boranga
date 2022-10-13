@@ -24,6 +24,21 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-sm-offset-2 col-sm-8">
+                                    <div class="form-group">
+                                        <div class="input-group date" ref="add_attachments" style="width: 70%;">
+                                            <FileField2
+                                            ref="filefield"
+                                            :uploaded_documents="amendment.amendment_request_documents"
+                                            :delete_url="delete_url"
+                                            :proposal_id="conservation_status_id"
+                                            :isRepeatable="true"
+                                            name="amendment_request_file"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -36,13 +51,15 @@
 import Vue from 'vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
+import FileField2 from '@/components/forms/filefield2.vue'
 
 import {helpers, api_endpoints} from "@/utils/hooks.js"
 export default {
     name:'amendment-request',
     components:{
         modal,
-        alert
+        alert,
+        FileField2,
     },
     props:{
             conservation_status_id:{
@@ -58,7 +75,10 @@ export default {
             reason:'',
             reason_id: null,
             amendingProposal: false,
-            conservation_status: vm.conservation_status_id 
+            conservation_status: vm.conservation_status_id,
+            num_files: 0,
+            input_name: 'amendment_request_doc',
+            requirement_documents: [], 
             },
             reason_choices: {},
             errors: false,
@@ -70,6 +90,9 @@ export default {
         showError: function() {
             var vm = this;
             return vm.errors;
+        },
+        delete_url: function() {
+            return (this.amendment.id) ? '/api/cs_amendment_request/'+this.amendment.id+'/delete_document/' : '';
         }
     },
     methods:{
@@ -108,15 +131,26 @@ export default {
         sendData:function(){
             let vm = this;
             vm.errors = false;
-            // if(vm.amendment.text){
-            //     vm.amendment.text= vm.formatText(vm.amendment.text)
-            // }
-            // console.log(vm.amendment.text);
             let amendment = JSON.parse(JSON.stringify(vm.amendment));
-            vm.$http.post('/api/amendment_request.json',JSON.stringify(amendment),{
+            let formData = new FormData()
+            var files = vm.$refs.filefield.files;
+            $.each(files, function (idx, v) {
+                var file = v['file'];
+                var filename = v['name'];
+                var name = 'file-' + idx;
+                formData.append(name, file, filename);
+            });
+            amendment.num_files = files.length;
+            amendment.input_name = 'requirement_doc';
+            amendment.proposal = vm.proposal_id;
+            amendment.update = true;
+
+            formData.append('data', JSON.stringify(amendment));
+
+            // vm.$http.post('/api/amendment_request.json',JSON.stringify(amendment),{
+                vm.$http.post('/api/amendment_request.json', formData,{
                         emulateJSON:true,
                     }).then((response)=>{
-                        //vm.$parent.loading.splice('processing contact',1);
                         swal(
                              'Sent',
                              'An email has been sent to applicant with the request to amend this Application',
@@ -125,43 +159,24 @@ export default {
                         vm.amendingProposal = true;
                         vm.close();
                         //vm.$emit('refreshFromResponse',response);
-                        Vue.http.get(`/api/conservation_status/${vm.conservation_status_id}/internal_conservation_status.json`).then((response)=>
+                        Vue.http.get(`/api/conservation_status/${vm.proposal_id}/internal_conservation_status.json`).then((response)=>
                         {
-                            vm.$emit('refreshFromResponse',response, vm.documents);
-                            
+                            vm.$emit('refreshFromResponse',response);
+
                         },(error)=>{
                             console.log(error);
                         });
                         vm.$router.push({ path: '/internal' }); //Navigate to dashboard after creating Amendment request
-                     
+
                     },(error)=>{
                         console.log(error);
                         vm.errors = true;
                         vm.errorString = helpers.apiVueResourceError(error);
                         vm.amendingProposal = true;
-                        
+
                     });
                 
 
-        },
-        formatText: function(text){
-            let s = text.replace(/\n/g,'<br/>')
-                    s = s.replace(/[\u2018|\u2019|\u201A]/g, "\'");
-                    // smart double quotes
-                    s = s.replace(/[\u201C|\u201D|\u201E]/g, "\"");
-                    // ellipsis
-                    s = s.replace(/\u2026/g, "...");
-                    // dashes
-                    s = s.replace(/[\u2013|\u2014]/g, "-");
-                    // circumflex
-                    s = s.replace(/\u02C6/g, "^");
-                    // open angle bracket
-                    s = s.replace(/\u2039/g, "<");
-                    // close angle bracket
-                    s = s.replace(/\u203A/g, ">");
-                    // spaces
-                    s = s.replace(/[\u02DC|\u00A0]/g, " ");
-                    return s;
         },
         addFormValidations: function() {
             let vm = this;
@@ -214,38 +229,7 @@ export default {
                 vm.amendment.reason = selected.val();
                 vm.amendment.reason_id = selected.val();
             });
-
-            // let amendmentTextField = $('#amendment_text');
-            // amendmentTextField.on(
-            //   'paste', 
-            //   (e) => {
-            //       //console.log("plain text only");
-            //       // cancel paste
-            //       e.preventDefault();
-            //       // get text representation of clipboard
-            //       let text = (e.originalEvent || e).clipboardData.getData('text/plain');
-            //       //let transformedText = text.replace(/\n/g,'<br/>')
-            //       let s = text.replace(/\n/g,'<br/>')
-            //         s = s.replace(/[\u2018|\u2019|\u201A]/g, "\'");
-            //         // smart double quotes
-            //         s = s.replace(/[\u201C|\u201D|\u201E]/g, "\"");
-            //         // ellipsis
-            //         s = s.replace(/\u2026/g, "...");
-            //         // dashes
-            //         s = s.replace(/[\u2013|\u2014]/g, "-");
-            //         // circumflex
-            //         s = s.replace(/\u02C6/g, "^");
-            //         // open angle bracket
-            //         s = s.replace(/\u2039/g, "<");
-            //         // close angle bracket
-            //         s = s.replace(/\u203A/g, ">");
-            //         // spaces
-            //         s = s.replace(/[\u02DC|\u00A0]/g, " ");
-            //       //console.log(s)
-            //       // insert text manually
-            //       document.execCommand("insertHTML", false, s);
-            //   });
-       }
+        }
    },
    mounted:function () {
         let vm =this;
