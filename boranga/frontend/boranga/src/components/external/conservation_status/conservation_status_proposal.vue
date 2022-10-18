@@ -1,27 +1,34 @@
 <template lang="html">
     <div class="container" >
         <form :action="cs_proposal_form_url" method="post" name="new_cs_proposal" enctype="multipart/form-data">
-            <!-- <div v-if="!cs_proposal_readonly">
-              <div v-if="hasAmendmentRequest" class="row" style="color:red;">
-                  <div class="col-lg-12 pull-right">
-                    <div class="panel panel-default">
-                      <div class="panel-heading">
-                        <h3 class="panel-title" style="color:red;">An amendment has been requested for this Application
-                          <a class="panelClicker" :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
-                                <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                          </a>
-                        </h3>
-                      </div>
-                      <div class="panel-body collapse in" :id="pBody">
-                        <div v-for="a in amendment_request">
-                          <p>Reason: {{a.reason}}</p>
-                          <p>Details: <p v-for="t in splitText(a.text)">{{t}}</p></p>  
-                      </div>
+            <div v-if="!cs_proposal_readonly">
+              <div v-if="hasAmendmentRequest" class="row">
+                <div class="col-lg-12 pull-right">
+                  <!-- <div class="card card-default">
+                    <div class="card-header">
+                      <h3 class="card-title" style="color:red;">An amendment has been requested for this Application
+                        <a class="panelClicker" :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
+                              <span class="glyphicon glyphicon-chevron-down pull-right "></span>
+                        </a>
+                      </h3>
+                    </div>
+                    <div class="card-body collapse in" :id="pBody">
+                      <div v-for="a in amendment_request">
+                        <p>Reason: {{a.reason}}</p>
+                        <p>Details: <p v-for="t in splitText(a.text)">{{t}}</p></p>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div> -->
+                </div> -->
+                <FormSection :formCollapse="true" label="An amendment has been requested for this Application" 
+                Index="amendment_request" customColor="red">
+                  <div v-for="a in amendment_request">
+                    <p>Reason: {{a.reason}}</p>
+                    <p>Details: <p v-for="t in splitText(a.text)">{{t}}</p></p>
+                  </div>
+                </FormSection>
+              </div> 
+            </div>
+          </div>
 
             <!-- <div id="error" v-if="missing_fields.length > 0" style="margin: 10px; padding: 5px; color: red; border:1px solid red;">
                 <b>Please answer the following mandatory question(s):</b>
@@ -92,6 +99,7 @@
 //import Proposal from '../form.vue'
 import Vue from 'vue' 
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'
+import FormSection from '@/components/forms/section_toggle.vue';
 import {
   api_endpoints,
   helpers
@@ -123,6 +131,7 @@ export default {
   },
   components: {
     ProposalConservationStatus,
+    FormSection,
   },
   computed: {
     isLoading: function() {
@@ -411,8 +420,15 @@ export default {
     can_submit_conservation_status: function(){
       let vm=this;
       let blank_fields=[]
-      if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
-          blank_fields.push(' Species is missing')
+      if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
+        if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
+            blank_fields.push(' Species is missing')
+        }
+      }
+      else{
+        if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == ''){
+            blank_fields.push(' Community is missing')
+        }
       }
       if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == ''){
           blank_fields.push(' Conservation List is missing')
@@ -505,14 +521,14 @@ export default {
             vm.loading.splice('fetching conservation status proposal', 1);
             vm.setdata(vm.conservation_status_obj.readonly);
             
-            /*Vue.http.get(helpers.add_endpoint_json(api_endpoints.conservation_status,to.params.conservation_status_id+'/amendment_request')).then((res) => {
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.conservation_status,to.params.conservation_status_id+'/amendment_request')).then((res) => {
                      
                       vm.setAmendmentData(res.body);
                   
                 },
               err => { 
                         console.log(err);
-                  });*/
+                  });
               });
           },
         err => {

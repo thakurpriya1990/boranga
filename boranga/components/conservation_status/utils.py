@@ -29,12 +29,12 @@ def cs_proposal_submit(cs_proposal,request):
             if cs_proposal.can_user_edit:
                 cs_proposal.submitter = request.user.id
                 cs_proposal.lodgement_date = timezone.now()
-                # if (cs_proposal.amendment_requests):
-                #     qs = cs_proposal.amendment_requests.filter(status = "requested")
-                #     if (qs):
-                #         for q in qs:
-                #             q.status = 'amended'
-                #             q.save()
+                if (cs_proposal.amendment_requests):
+                    qs = cs_proposal.amendment_requests.filter(status = "requested")
+                    if (qs):
+                        for q in qs:
+                            q.status = 'amended'
+                            q.save()
 
                 # Create a log entry for the proposal
                 cs_proposal.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(cs_proposal.id),request)

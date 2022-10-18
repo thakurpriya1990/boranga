@@ -25,6 +25,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from boranga.components.species_and_communities.models import GroupType
 from boranga.components.conservation_status.utils import cs_proposal_submit
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from boranga.components.conservation_status.models import(
     ConservationCategory,
@@ -32,23 +33,36 @@ from boranga.components.conservation_status.models import(
     ConservationChangeCode,
     ConservationStatus,
     ConservationList,
+    ConservationStatusReferral,
+    ConservationStatusAmendmentRequest,
     Species,
     Community,
 )
 from boranga.components.conservation_status.serializers import(
+    SendReferralSerializer,
+    DTConservationStatusReferralSerializer,
     ListSpeciesConservationStatusSerializer,
     ListCommunityConservationStatusSerializer,
     ListConservationStatusSerializer,
     ConservationStatusSerializer,
     CreateConservationStatusSerializer,
+    InternalConservationStatusSerializer,
     InternalSpeciesConservationStatusSerializer,
     SaveSpeciesConservationStatusSerializer,
     CreateSpeciesConservationStatusSerializer,
     InternalCommunityConservationStatusSerializer,
+    SaveCommunityConservationStatusSerializer,
     ConservationStatusLogEntrySerializer,
     ConservationStatusUserActionSerializer,
     #SpeciesConservationStatusLogEntrySerializer,
     #SpeciesConservationStatusUserActionSerializer,
+    ConservationStatusReferralSerializer,
+    ConservationStatusAmendmentRequestSerializer,
+    ConservationStatusAmendmentRequestDisplaySerializer,
+)
+from boranga.components.main.utils import (
+    check_db_connection,
+    handle_validation_error,
 )
 
 import logging
@@ -462,11 +476,10 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             qs= ConservationStatus.objects.all()
             return qs
         elif is_customer(self.request):
-            user_orgs = [org.id for org in user.commercialoperator_organisations.all()]
+            user_orgs = [org.id for org in user.boranga_organisations.all()]
             queryset =  ConservationStatus.objects.filter( Q(submitter = user.id) )
             return queryset
         logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
-        return Proposal.objects.none()
         return ConservationStatus.objects.none()
 
     def get_serializer_class(self):
@@ -495,14 +508,12 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
     def internal_serializer_class(self):
         try:
             instance = self.get_object()
-            # if instance.species_id:
+            # if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
             #     return InternalSpeciesConservationStatusSerializer
-            # elif instance.community_id:
+            # elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             #     return InternalCommunityConservationStatusSerializer
-            if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
-                return InternalSpeciesConservationStatusSerializer
-            elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
-                return InternalCommunityConservationStatusSerializer
+            # TODO try to use below serializer than two above
+            return InternalConservationStatusSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -535,10 +546,12 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 instance = self.get_object() 
                 request_data = request.data
+                # to resolve error for serializer submitter id as object is received
+                request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
                 if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
-                    serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data)
+                    serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
                 elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
-                    serializer=SaveCommunityConservationStatusSerializer(instance, data = request_data)
+                    serializer=SaveCommunityConservationStatusSerializer(instance, data = request_data, partial=True)
 
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
@@ -569,6 +582,8 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 request_data = request.data
                 #request.data['submitter'] = u'{}'.format(request.user.id)
+                if request_data['submitter']:
+                    request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
                 if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
                     serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
                 elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
@@ -695,149 +710,257 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(methods=['GET',], detail=True)
+    def amendment_request(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.amendment_requests
+            qs = qs.filter(status = 'requested')
+            serializer = ConservationStatusAmendmentRequestDisplaySerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
-# class SpeciesConservationStatusViewSet(viewsets.ModelViewSet):
-#     queryset = ConservationStatus.objects.none()
-#     serializer_class = InternalSpeciesConservationStatusSerializer
-#     lookup_field = 'id'
+    @detail_route(methods=['GET',], detail=True)
+    def assign_request_user(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.assign_officer(request,request.user)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
-#     def get_queryset(self):
-#         user = self.request.user
-#         if is_internal(self.request): #user.is_authenticated():
-#             qs= ConservationStatus.objects.all()
-#             return qs
-#         return ConservationStatus.objects.none()
+    @detail_route(methods=['POST',], detail=True)
+    def assign_to(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            user_id = request.data.get('assessor_id',None)
+            user = None
+            if not user_id:
+                raise serializers.ValidationError('An assessor id is required')
+            try:
+                user = EmailUser.objects.get(id=user_id)
+            except EmailUser.DoesNotExist:
+                raise serializers.ValidationError('A user with the id passed in does not exist')
+            instance.assign_officer(request,user)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
-#     @detail_route(methods=['GET',], detail=True)
-#     def internal_species_conservation_status(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         serializer = InternalSpeciesConservationStatusSerializer(instance,context={'request':request})
-       
-#         res_json = {
-#          "species_conservation_status_obj":serializer.data
-#         }
-#         res_json = json.dumps(res_json)
-#         return HttpResponse(res_json, content_type='application/json')
+    @detail_route(methods=['GET',], detail=True)
+    def unassign(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.unassign(request)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
-#     @detail_route(methods=['post'], detail=True)
-#     @renderer_classes((JSONRenderer,))
-#     def species_conservation_status_save(self, request, *args, **kwargs):
-#         try:
-#             with transaction.atomic():
-#                 instance = self.get_object() 
-#                 request_data = request.data
-#                 serializer = SaveSpeciesConservationStatusSerializer(instance, data = request_data)
-#                 serializer.is_valid(raise_exception=True)
-#                 if serializer.is_valid():
-#                     saved_instance = serializer.save()
-
-#                     # add the updated Current conservation criteria list [1,2] to the cs instance,
-#                     saved_instance.current_conservation_criteria.set(request_data.get('current_conservation_criteria'))
-
-#                     # add the updated Proposed conservation criteria list [1,2] to the cs instance,
-#                     saved_instance.proposed_conservation_criteria.set(request_data.get('proposed_conservation_criteria'))
-                    
-#                     return_serializer = InternalSpeciesConservationStatusSerializer(instance=saved_instance, context={'request': request})
-#                     #return Response(return_serializer.data)
-#                     return Response()
-        
-#         except serializers.ValidationError:
-#             print(traceback.print_exc())
-#             raise
-#         except ValidationError as e:
-#             raise serializers.ValidationError(repr(e.error_dict))
-#         except Exception as e:
-#             print(traceback.print_exc())
-#             raise serializers.ValidationError(str(e))
-
-#     @detail_route(methods=['GET',], detail=True)
-#     def action_log(self, request, *args, **kwargs):
-#         try:
-#             instance = self.get_object()
-#             qs = instance.action_logs.all()
-#             serializer = SpeciesConservationStatusUserActionSerializer(qs,many=True)
-#             return Response(serializer.data)
-#         except serializers.ValidationError:
-#             print(traceback.print_exc())
-#             raise
-#         except ValidationError as e:
-#             print(traceback.print_exc())
-#             raise serializers.ValidationError(repr(e.error_dict))
-#         except Exception as e:
-#             print(traceback.print_exc())
-#             raise serializers.ValidationError(str(e))
-
-#     @detail_route(methods=['GET',], detail=True)
-#     def comms_log(self, request, *args, **kwargs):
-#         try:
-#             instance = self.get_object()
-#             qs = instance.comms_logs.all()
-#             serializer = SpeciesConservationStatusLogEntrySerializer(qs,many=True)
-#             return Response(serializer.data)
-#         except serializers.ValidationError:
-#             print(traceback.print_exc())
-#             raise
-#         except ValidationError as e:
-#             print(traceback.print_exc())
-#             raise serializers.ValidationError(repr(e.error_dict))
-#         except Exception as e:
-#             print(traceback.print_exc())
-#             raise serializers.ValidationError(str(e))
-
-#     @detail_route(methods=['POST',], detail=True)
-#     @renderer_classes((JSONRenderer,))
-#     def add_comms_log(self, request, *args, **kwargs):
-#         try:
-#             with transaction.atomic():
-#                 instance = self.get_object()
-#                 mutable=request.data._mutable
-#                 request.data._mutable=True
-#                 request.data['species_conservation_status'] = u'{}'.format(instance.id)
-#                 request.data['staff'] = u'{}'.format(request.user.id)
-#                 request.data._mutable=mutable
-#                 serializer = SpeciesConservationStatusLogEntrySerializer(data=request.data)
-#                 serializer.is_valid(raise_exception=True)
-#                 comms = serializer.save()
-#                 # Save the files
-#                 for f in request.FILES:
-#                     document = comms.documents.create()
-#                     document.name = str(request.FILES[f])
-#                     document._file = request.FILES[f]
-#                     document.save()
-#                 # End Save Documents
-
-#                 return Response(serializer.data)
-#         except serializers.ValidationError:
-#             print(traceback.print_exc())
-#             raise
-#         except ValidationError as e:
-#             print(traceback.print_exc())
-#             raise serializers.ValidationError(repr(e.error_dict))
-#         except Exception as e:
-#             print(traceback.print_exc())
-#             raise serializers.ValidationError(str(e))
+    @detail_route(methods=['post'], detail=True)
+    def assesor_send_referral(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SendReferralSerializer(data=request.data, context={"request": request})
+            serializer.is_valid(raise_exception=True)
+            #text=serializer.validated_data['text']
+            #instance.send_referral(request,serializer.validated_data['email'])
+            instance.send_referral(request,serializer.validated_data['email'], serializer.validated_data['text'])
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
 
-# class CommunityConservationStatusViewSet(viewsets.ModelViewSet):
-#     queryset = ConservationStatus.objects.none()
-#     serializer_class = InternalCommunityConservationStatusSerializer
-#     lookup_field = 'id'
+class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
+    #queryset = Referral.objects.all()
+    queryset = ConservationStatusReferral.objects.none()
+    serializer_class = ConservationStatusReferralSerializer
 
-#     def get_queryset(self):
-#         user = self.request.user
-#         if is_internal(self.request): #user.is_authenticated():
-#             qs= ConservationStatus.objects.all()
-#             return qs
-#         return ConservationStatus.objects.none()
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and is_internal(self.request):
+            #queryset =  Referral.objects.filter(referral=user)
+            queryset =  ConservationStatusReferral.objects.all()
+            return queryset
+        return ConservationStatusReferral.objects.none()
 
-#     @detail_route(methods=['GET',], detail=True)
-#     def internal_community_conservation_status(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         serializer = InternalCommunityConservationStatusSerializer(instance,context={'request':request})
-       
-#         res_json = {
-#          "community_conservation_status_obj":serializer.data
-#         }
-#         res_json = json.dumps(res_json)
-#         return HttpResponse(res_json, content_type='application/json')
- 
+    # @list_route(methods=['GET',])
+    # def filter_list(self, request, *args, **kwargs):
+    #     """ Used by the external dashboard filters """
+    #     #qs =  self.get_queryset().filter(referral=request.user)
+    #     qs =  self.get_queryset()
+    #     region_qs =  qs.filter(proposal__region__isnull=False).values_list('proposal__region__name', flat=True).distinct()
+    #     #district_qs =  qs.filter(proposal__district__isnull=False).values_list('proposal__district__name', flat=True).distinct()
+    #     activity_qs =  qs.filter(proposal__activity__isnull=False).order_by('proposal__activity').distinct('proposal__activity').values_list('proposal__activity', flat=True).distinct()
+    #     submitter_qs = qs.filter(proposal__submitter__isnull=False).order_by('proposal__submitter').distinct('proposal__submitter').values_list('proposal__submitter__first_name','proposal__submitter__last_name','proposal__submitter__email')
+    #     submitters = [dict(email=i[2], search_term='{} {} ({})'.format(i[0], i[1], i[2])) for i in submitter_qs]
+    #     processing_status_qs =  qs.filter(proposal__processing_status__isnull=False).order_by('proposal__processing_status').distinct('proposal__processing_status').values_list('proposal__processing_status', flat=True)
+    #     processing_status = [dict(value=i, name='{}'.format(' '.join(i.split('_')).capitalize())) for i in processing_status_qs]
+    #     application_types=ApplicationType.objects.filter(visible=True).values_list('name', flat=True)
+    #     data = dict(
+    #         regions=region_qs,
+    #         #districts=district_qs,
+    #         activities=activity_qs,
+    #         submitters=submitters,
+    #         processing_status_choices=processing_status,
+    #         application_types=application_types,
+    #     )
+    #     return Response(data)
+
+
+    # def retrieve(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance, context={'request':request})
+    #     return Response(serializer.data)
+
+    # @list_route(methods=['GET',])
+    # def user_list(self, request, *args, **kwargs):
+    #     qs = self.get_queryset().filter(referral=request.user)
+    #     serializer = DTReferralSerializer(qs, many=True)
+    #     #serializer = DTReferralSerializer(self.get_queryset(), many=True)
+    #     return Response(serializer.data)
+
+    @list_route(methods=['GET',], detail=False)
+    def datatable_list(self, request, *args, **kwargs):
+        conservation_status = request.GET.get('conservation_status',None)
+        qs = self.get_queryset().all()
+        if conservation_status:
+            qs = qs.filter(conservation_status_id=int(conservation_status))
+        serializer = DTConservationStatusReferralSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    @detail_route(methods=['GET',],detail=True,)
+    def remind(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.remind(request)
+            serializer = InternalConservationStatusSerializer(instance.conservation_status,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',],detail=True,)
+    def recall(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.recall(request)
+            serializer = InternalConservationStatusSerializer(instance.conservation_status,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',],detail=True,)
+    def resend(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.resend(request)
+            serializer = InternalConservationStatusSerializer(instance.conservation_status,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
+    queryset = ConservationStatusAmendmentRequest.objects.all()
+    serializer_class = ConservationStatusAmendmentRequestSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data= json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception = True)
+            instance = serializer.save()
+            instance.add_documents(request)
+            instance.generate_amendment(request)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def delete_document(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            ConservationStatusAmendmentRequestDocument.objects.get(id=request.data.get('id')).delete()
+            return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.cs_amendment_request_documents.all()])
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))

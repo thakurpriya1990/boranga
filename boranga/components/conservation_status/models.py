@@ -1,15 +1,20 @@
 import logging
 import datetime
 from django.db import models
+from django.core.exceptions import ValidationError
 from boranga.components.main.models import (
     CommunicationsLogEntry, 
     UserAction,
-    Document
+    Document,
+    RevisionedMixin,
 )
 from boranga.components.species_and_communities.models import(
     Species,
     Community,
     GroupType,
+)
+from boranga.components.proposals.models import(
+    AmendmentReason,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -22,6 +27,11 @@ from boranga.settings import (
     GROUP_NAME_ASSESSOR,
     GROUP_NAME_APPROVER,
 )
+from boranga.components.conservation_status.email import (
+    send_conservation_status_referral_email_notification,
+    send_conservation_status_referral_recall_email_notification,
+    send_conservation_status_amendment_email_notification,
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -34,6 +44,14 @@ def update_species_conservation_status_comms_log_filename(instance, filename):
 
 def update_conservation_status_comms_log_filename(instance, filename):
     return '{}/conservation_status/{}/communications/{}'.format(settings.MEDIA_APP_DIR, instance.log_entry.conservation_status.id,filename)
+
+def update_referral_doc_filename(instance, filename):
+    return "{}/conservation_status/{}/referral/{}".format(
+        settings.MEDIA_APP_DIR, instance.referral.proposal.id, filename
+    )
+
+def update_conservation_status_amendment_request_doc_filename(instance, filename):
+    return 'conservation_status/{}/amendment_request_documents/{}'.format(instance.conservation_status_amendment_request.conservation_status.id,filename)
 
 
 class ConservationList(models.Model):
@@ -400,6 +418,10 @@ class ConservationStatus(models.Model):
         return self.customer_status == 'draft' and not self.conservation_status_number
 
     @property
+    def latest_referrals(self):
+        return self.referrals.all()[:2]
+
+    @property
     def is_flora_application(self):
         if self.application_type.name==GroupType.GROUP_TYPE_FLORA:
             return True
@@ -508,11 +530,31 @@ class ConservationStatus(models.Model):
         else:
             return False
 
+    def assessor_comments_view(self,user):
+
+        if (self.processing_status == 'with_assessor' 
+            or self.processing_status == 'with_referral' or 
+            self.processing_status == 'with_approver'
+        ):
+            try:
+                referral = ConservationStatusReferral.objects.get(conservation_status=self,referral=user)
+            except:
+                referral = None
+            if referral:
+                return True
+            # elif self.__assessor_group() in user.proposalassessorgroup_set.all():
+            elif user.id in self.get_assessor_group().get_system_group_member_ids():
+                return True
+            # elif self.__approver_group() in user.proposalapprovergroup_set.all():
+            elif user.id in self.get_approver_group().get_system_group_member_ids():
+                return True
+            else:
+                return False
+
     def has_assessor_mode(self,user):
         status_without_assessor = [
             "with_approver",
             "approved",
-            "waiting_payment",
             "declined",
             "draft",
         ]
@@ -532,59 +574,142 @@ class ConservationStatus(models.Model):
                     user.id in self.get_assessor_group().get_system_group_member_ids()
                 )
 
-    # def assign_officer(self,request,officer):
-    #     with transaction.atomic():
-    #         try:
-    #             if not self.can_assess(request.user):
-    #                 raise exceptions.ProposalNotAuthorized()
-    #             if not self.can_assess(officer):
-    #                 raise ValidationError('The selected person is not authorised to be assigned to this proposal')
-    #             if self.processing_status == 'with_approver':
-    #                 if officer != self.assigned_approver:
-    #                     self.assigned_approver = officer
-    #                     self.save()
-    #                     # Create a log entry for the proposal
-    #                     self.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
-    #                     # Create a log entry for the organisation
-    #                     applicant_field=getattr(self, self.applicant_field)
-    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
-    #             else:
-    #                 if officer != self.assigned_officer:
-    #                     self.assigned_officer = officer
-    #                     self.save()
-    #                     # Create a log entry for the proposal
-    #                     self.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
-    #                     # Create a log entry for the organisation
-    #                     applicant_field=getattr(self, self.applicant_field)
-    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
-    #         except:
-    #             raise
+    def assign_officer(self,request,officer):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if not self.can_assess(officer):
+                    raise ValidationError('The selected person is not authorised to be assigned to this proposal')
+                if self.processing_status == 'with_approver':
+                    if officer != self.assigned_approver:
+                        self.assigned_approver = officer.id
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.log_user_action(
+                            ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                            self.id,
+                            '{}({})'.format(officer.get_full_name(),officer.email),
+                            ),
+                            request,
+                        )
+                        # Create a log entry for the organisation
+                        # applicant_field=getattr(self, self.applicant_field)
+                        # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+                else:
+                    if officer != self.assigned_officer:
+                        self.assigned_officer = officer.id
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.log_user_action(
+                            ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                                self.id,
+                                '{}({})'.format(officer.get_full_name(),officer.email),
+                                ),
+                            request,
+                        )
+                        # Create a log entry for the organisation
+                        # applicant_field=getattr(self, self.applicant_field)
+                        # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+            except:
+                raise
 
-    # def unassign(self,request):
-    #     with transaction.atomic():
-    #         try:
-    #             if not self.can_assess(request.user):
-    #                 raise exceptions.ProposalNotAuthorized()
-    #             if self.processing_status == 'with_approver':
-    #                 if self.assigned_approver:
-    #                     self.assigned_approver = None
-    #                     self.save()
-    #                     # Create a log entry for the proposal
-    #                     self.log_user_action(ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(self.id),request)
-    #                     # Create a log entry for the organisation
-    #                     applicant_field=getattr(self, self.applicant_field)
-    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(self.id),request)
-    #             else:
-    #                 if self.assigned_officer:
-    #                     self.assigned_officer = None
-    #                     self.save()
-    #                     # Create a log entry for the proposal
-    #                     self.log_user_action(ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(self.id),request)
-    #                     # Create a log entry for the organisation
-    #                     applicant_field=getattr(self, self.applicant_field)
-    #                     applicant_field.log_user_action(ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(self.id),request)
-    #         except:
-    #             raise
+    def unassign(self,request):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status == 'with_approver':
+                    if self.assigned_approver:
+                        self.assigned_approver = None
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.log_user_action(
+                            ConservationStatusUserAction.ACTION_UNASSIGN_APPROVER.format(
+                                self.id),
+                            request,
+                        )
+                        # Create a log entry for the organisation
+                        # applicant_field=getattr(self, self.applicant_field)
+                        # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_UNASSIGN_APPROVER.format(self.id),request)
+                else:
+                    if self.assigned_officer:
+                        self.assigned_officer = None
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.log_user_action(
+                            ConservationStatusUserAction.ACTION_UNASSIGN_ASSESSOR.format(
+                                self.id),
+                            request,
+                        )
+                        # Create a log entry for the organisation
+                        # applicant_field=getattr(self, self.applicant_field)
+                        # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_UNASSIGN_ASSESSOR.format(self.id),request)
+            except:
+                raise
+
+    def send_referral(self,request,referral_email,referral_text):
+        with transaction.atomic():
+            try:
+                referral_email = referral_email.lower()
+                if (
+                    self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR or 
+                    self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+                ):
+                    self.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+                    self.save()
+                    referral = None
+                    # Check if the user is in ledger
+                    try:
+                        user = EmailUser.objects.get(email__icontains=referral_email)
+                    except EmailUser.DoesNotExist:
+                        # Validate if it is a deparment user
+                        department_user = get_department_user(referral_email)
+                        if not department_user:
+                            raise ValidationError('The user you want to send the referral to is not a member of the department')
+                        # Check if the user is in ledger or create
+
+                        user,created = EmailUser.objects.get_or_create(email=department_user['email'].lower())
+                        if created:
+                            user.first_name = department_user['given_name']
+                            user.last_name = department_user['surname']
+                            user.save()
+                    try:
+                        ConservationStatusReferral.objects.get(referral=user.id,conservation_status=self)
+                        raise ValidationError('A referral has already been sent to this user')
+                    except ConservationStatusReferral.DoesNotExist:
+                        # Create Referral
+                        referral = ConservationStatusReferral.objects.create(
+                            conservation_status = self,
+                            referral=user.id,
+                            sent_by=request.user.id,
+                            text=referral_text,
+                            assigned_officer=request.user.id,
+                        )
+                    # Create a log entry for the proposal
+                    self.log_user_action(
+                        ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
+                            referral.id, 
+                            self.conservation_status_number, 
+                            '{}({})'.format(user.get_full_name(), user.email),
+                        ), 
+                        request,
+                    )
+                    # Create a log entry for the organisation
+                    if self.applicant:
+                        pass
+                        #self.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id, self.lodgement_number, '{}({})'.format(user.get_full_name(), user.email)), request)
+                    # send email
+                    send_conservation_status_referral_email_notification(referral,request)
+                else:
+                    raise exceptions.ConservationStatusReferralCannotBeSent()
+            except:
+                raise
+
+    @property
+    def amendment_requests(self):
+        qs =ConservationStatusAmendmentRequest.objects.filter(conservation_status = self)
+        return qs
 
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):
@@ -615,18 +740,29 @@ class ConservationStatusUserAction(UserAction):
     #ConservationStatus Proposal
     ACTION_EDIT_CONSERVATION_STATUS= "Edit Conservation Status {}"
     ACTION_LODGE_PROPOSAL = "Lodge proposal for conservation status {}"
-    ACTION_ASSIGN_TO_ASSESSOR = "Assign proposal {} to {} as the assessor"
-    ACTION_UNASSIGN_ASSESSOR = "Unassign assessor from proposal {}"
-    ACTION_ASSIGN_TO_APPROVER = "Assign proposal {} to {} as the approver"
-    ACTION_UNASSIGN_APPROVER = "Unassign approver from proposal {}"
-    ACTION_DISCARD_PROPOSAL = "Discard proposal {}"
+    ACTION_ASSIGN_TO_ASSESSOR = "Assign conservation status proposal {} to {} as the assessor"
+    ACTION_UNASSIGN_ASSESSOR = "Unassign assessor from conservation status proposal {}"
+    ACTION_ASSIGN_TO_APPROVER = "Assign conservation status proposal {} to {} as the approver"
+    ACTION_UNASSIGN_APPROVER = "Unassign approver from conservation status proposal {}"
+    ACTION_DISCARD_PROPOSAL = "Discard conservation status proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
+
+    #Amendment
+    ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
     
     # Assessors
     ACTION_SAVE_ASSESSMENT_ = "Save assessment {}"
     ACTION_CONCLUDE_ASSESSMENT_ = "Conclude assessment {}"
-    ACTION_PROPOSED_APPROVAL = "Proposal {} has been proposed for approval"
-    ACTION_PROPOSED_DECLINE = "Proposal {} has been proposed for decline"
+    ACTION_PROPOSED_APPROVAL = "Conservation status proposal {} has been proposed for approval"
+    ACTION_PROPOSED_DECLINE = "Conservation status proposal {} has been proposed for decline"
+
+    # Referrals
+    ACTION_SEND_REFERRAL_TO = "Send referral {} for conservation status proposal {} to {}"
+    ACTION_RESEND_REFERRAL_TO = "Resend referral {} for conservation status proposal {} to {}"
+    ACTION_REMIND_REFERRAL = "Send reminder for referral {} for conservation status proposal {} to {}"
+    ACTION_BACK_TO_PROCESSING = "Back to processing for conservation status proposal {}"
+    RECALL_REFERRAL = "Referral {} for conservation status proposal {} has been recalled"
+    CONCLUDE_REFERRAL = "Referral {} for conservation status proposal {} has been concluded by {}"
 
 
     class Meta:
@@ -644,51 +780,265 @@ class ConservationStatusUserAction(UserAction):
     conservation_status= models.ForeignKey(ConservationStatus, related_name='action_logs', on_delete=models.CASCADE)
 
 
+class ConservationStatusReferralDocument(Document):
+    referral = models.ForeignKey(
+        "ConservationStatusReferral", related_name="referral_documents", on_delete=models.CASCADE
+    )
+    _file = models.FileField(upload_to=update_referral_doc_filename, max_length=512, storage=private_storage)
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    can_delete = models.BooleanField(
+        default=True
+    )  # after initial submit prevent document from being deleted
 
-# class SpeciesConservationStatus(ConservationStatus):
-#     """
-#     Species Conservation Status
-#     """
-#     species = models.ForeignKey(Species, on_delete=models.CASCADE , related_name="conservation_status")
-#     conservation_status_number = models.CharField(max_length=9, blank=True, default='')
+    def delete(self):
+        if self.can_delete:
+            # TODO Don't have ConservationDocument yet
+            #return super(ProposalDocument, self).delete()
+            return self.can_delete
+        logger.info(
+            "Cannot delete existing document object after Application has been submitted (including document submitted before Application pushback to status Draft): {}".format(
+                self.name
+            )
+        )
 
-#     class Meta:
-#         app_label = 'boranga'
+    class Meta:
+        app_label = "boranga"
 
-#     def __str__(self):
-#         return(self.conservation_status_number)
+#class ConservationStatusReferral(RevisionedMixin):
+class ConservationStatusReferral(models.Model):
+    SENT_CHOICES = ((1, "Sent From Assessor"), (2, "Sent From Referral"))
+    PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
+    PROCESSING_STATUS_RECALLED = "recalled"
+    PROCESSING_STATUS_COMPLETED = "completed"
+    PROCESSING_STATUS_CHOICES = (
+        (PROCESSING_STATUS_WITH_REFERRAL, "Awaiting"),
+        (PROCESSING_STATUS_RECALLED, "Recalled"),
+        (PROCESSING_STATUS_COMPLETED, "Completed"),
+    )
+    lodged_on = models.DateTimeField(auto_now_add=True)
+    conservation_status = models.ForeignKey(
+        ConservationStatus, related_name="referrals", on_delete=models.CASCADE
+    )
+    sent_by = models.IntegerField()  # EmailUserRO
+    referral = models.IntegerField()  # EmailUserRO
+    linked = models.BooleanField(default=False)
+    sent_from = models.SmallIntegerField(
+        choices=SENT_CHOICES, default=SENT_CHOICES[0][0]
+    )
+    processing_status = models.CharField(
+        "Processing Status",
+        max_length=30,
+        choices=PROCESSING_STATUS_CHOICES,
+        default=PROCESSING_STATUS_CHOICES[0][0],
+    )
+    text = models.TextField(blank=True)  # Assessor text
+    referral_text = models.TextField(blank=True)
+    document = models.ForeignKey(
+        ConservationStatusReferralDocument,
+        blank=True,
+        null=True,
+        related_name="referral_document",
+        on_delete=models.SET_NULL,
+    )
+    assigned_officer = models.IntegerField()  # EmailUserRO
 
-#     def save(self, *args, **kwargs):
-#         super(SpeciesConservationStatus, self).save(*args,**kwargs)
-#         if self.conservation_status_number == '':
-#             new_conservation_status_id = 'CS{}'.format(str(self.pk))
-#             self.conservation_status_number = new_conservation_status_id
-#             self.save()
+    class Meta:
+        app_label = "boranga"
+        ordering = ("-lodged_on",)
 
-#     @property
-#     def reference(self):
-#         return '{}-{}'.format(self.conservation_status_number,self.conservation_status_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
+    def __str__(self):
+        return "Application {} - Referral {}".format(self.conservation_status.id, self.id)
 
-#     def log_user_action(self, action, request):
-#         return SpeciesConservationStatusUserAction.log_action(self, action, request.user)
+    # Methods
+    @property
+    def latest_referrals(self):
+        return ConservationStatusReferral.objects.filter(sent_by=self.referral, conservation_status=self.conservation_status)[:2]
+
+    @property
+    def can_be_completed(self):
+        #Referral cannot be completed until second level referral sent by referral has been completed/recalled
+        qs=ConservationStatusReferral.objects.filter(sent_by=self.referral, conservation_status=self.conservation_status, processing_status='with_referral')
+        if qs:
+            return False
+        else:
+            return True
+
+    # def get_referral_group(self):
+    #     # TODO: Take application_type into account
+    #     return SystemGroup.objects.get(name=GROUP_NAME_REFERRAL)
+
+    # @property
+    # def referral_recipients(self):
+    #     logger.info("referral_recipients")
+    #     recipients = []
+    #     group_ids = self.get_referral_group().get_system_group_member_ids()
+    #     for id in group_ids:
+    #         logger.info(id)
+    #         recipients.append(EmailUser.objects.get(id=id).email)
+    #     return recipients
+
+    @property
+    def referral_as_email_user(self):
+        return retrieve_email_user(self.referral)
+
+    def remind(self,request):
+        with transaction.atomic():
+            if not self.conservation_status.can_assess(request.user):
+                raise exceptions.ProposalNotAuthorized()
+            # Create a log entry for the proposal
+            self.conservation_status.log_user_action(
+                ConservationStatusUserAction.ACTION_REMIND_REFERRAL.format(
+                    self.id,
+                    self.conservation_status.conservation_status_number,
+                    "{}".format(self.referral_as_email_user.get_full_name()),
+                ),
+                request,
+            )
+            # Create a log entry for the organisation
+            applicant_field = getattr(self.conservation_status, self.conservation_status.applicant_field)
+            applicant_field = retrieve_email_user(applicant_field)
+            
+            # TODO: logging applicant_field
+            # applicant_field.log_user_action(
+            #     ConservationStatusUserAction.ACTION_REMIND_REFERRAL.format(
+            #         self.id, 
+            #         self.conservation_status.conservation_status_number, 
+            #         '{}'.format(self.referral_as_email_user.get_full_name())
+            #         ), request
+            #     )
+
+            # send email
+            send_conservation_status_referral_email_notification(
+                self,
+                request,
+                reminder=True,
+                )
+
+    def recall(self,request):
+        with transaction.atomic():
+            if not self.conservation_status.can_assess(request.user):
+                raise exceptions.ProposalNotAuthorized()
+            self.processing_status = 'recalled'
+            self.save()
+            send_conservation_status_referral_recall_email_notification(self, request)
+            # TODO Log conservationstatus proposal action
+            self.conservation_status.log_user_action(
+                ConservationStatusUserAction.RECALL_REFERRAL.format(
+                    self.id, 
+                    self.conservation_status.conservation_status_number,
+                ), 
+                request,
+            )
+            # TODO log organisation action
+            #self.proposal.applicant.log_user_action(ProposalUserAction.RECALL_REFERRAL.format(self.id, self.proposal.lodgement_number), request)
+
+    def resend(self,request):
+        with transaction.atomic():
+            if not self.conservation_status.can_assess(request.user):
+                raise exceptions.ProposalNotAuthorized()
+            self.processing_status = 'with_referral'
+            self.conservation_status.processing_status = 'with_referral'
+            self.conservation_status.save()
+            self.sent_from = 1
+            self.save()
+            # Create a log entry for the proposal
+            self.conservation_status.log_user_action(
+                ConservationStatusUserAction.ACTION_RESEND_REFERRAL_TO.format(
+                    self.id,
+                    self.conservation_status.conservation_status_number,
+                    '{}({})'.format(self.referral_as_email_user.get_full_name(),self.referral_as_email_user.email),
+                ),
+                request,
+            )
+            # Create a log entry for the organisation
+            #self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+            
+            # send email
+            send_conservation_status_referral_email_notification(self,request)
+
+    def can_assess_referral(self,user):
+        return self.processing_status == 'with_referral'
+
+    @property
+    def can_be_processed(self):
+        return self.processing_status == "with_referral"
 
 
-# class CommunityConservationStatus(ConservationStatus):
-#     """
-#     Community Conservation Status
-#     """
-#     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name="conservation_status")
-#     conservation_status_number = models.CharField(max_length=9, blank=True, default='')
+class ConservationStatusProposalRequest(models.Model):
+    conservation_status = models.ForeignKey(ConservationStatus, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200, blank=True)
+    text = models.TextField(blank=True)
+    officer = models.IntegerField(null=True)  # EmailUserRO
 
-#     class Meta:
-#         app_label = 'boranga'
+    class Meta:
+        app_label = 'boranga'
 
-#     def __str__(self):
-#         return(self.conservation_status_number)
 
-#     def save(self, *args, **kwargs):
-#         super(CommunityConservationStatus, self).save(*args,**kwargs)
-#         if self.conservation_status_number == '':
-#             new_conservation_status_id = 'CS{}'.format(str(self.pk))
-#             self.conservation_status_number = new_conservation_status_id
-#             self.save()
+class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
+    STATUS_CHOICES = (('requested', 'Requested'), ('amended', 'Amended'))
+
+    status = models.CharField('Status', max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
+    reason = models.ForeignKey(AmendmentReason, blank=True, null=True, on_delete=models.SET_NULL)
+    
+    class Meta:
+        app_label = 'boranga'
+
+    def generate_amendment(self,request):
+        with transaction.atomic():
+            try:
+                if not self.conservation_status.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.status == 'requested':
+                    conservation_status = self.conservation_status
+                    if conservation_status.processing_status != 'draft':
+                        conservation_status.processing_status = 'draft'
+                        conservation_status.customer_status = 'draft'
+                        conservation_status.save()
+                        # TODO at the moment conservation_status is not having it's document model
+                        #conservation_status.documents.all().update(can_hide=True)
+
+                    # Create a log entry for the conservationstatus
+                    conservation_status.log_user_action(ConservationStatusUserAction.ACTION_ID_REQUEST_AMENDMENTS, request)
+                    # Create a log entry for the organisation
+                    # if conservation_status.applicant:
+                    #     conservation_status.applicant.log_user_action(ConservationStatusUserAction.ACTION_ID_REQUEST_AMENDMENTS, request)
+
+                    # send email
+
+                    send_conservation_status_amendment_email_notification(self,request, conservation_status)
+
+                self.save()
+            except:
+                raise
+
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                if not data.get('update'):
+                    documents_qs = self.cs_amendment_request_documents.filter(input_name='amendment_request_doc', visible=True)
+                    documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    document = self.cs_amendment_request_documents.create(_file=_file, name=_file.name)
+                    document.input_name = data['input_name']
+                    document.can_delete = True
+                    document.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
+
+
+class ConservationStatusAmendmentRequestDocument(Document):
+    conservation_status_amendment_request = models.ForeignKey('ConservationStatusAmendmentRequest',related_name='cs_amendment_request_documents', on_delete=models.CASCADE)
+    _file = models.FileField(upload_to=update_conservation_status_amendment_request_doc_filename, max_length=500, storage=private_storage)
+    input_name = models.CharField(max_length=255,null=True,blank=True)
+    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+
+    def delete(self):
+        if self.can_delete:
+            return super(ConservationStatusAmendmentRequestDocument, self).delete()

@@ -15,6 +15,15 @@ logger = logging.getLogger(__name__)
 
 SYSTEM_NAME = settings.SYSTEM_NAME_SHORT + ' Automated Message'
 
+def get_sender_user():
+    sender = settings.DEFAULT_FROM_EMAIL
+    try:
+        sender_user = EmailUser.objects.get(email__icontains=sender)
+    except:
+        EmailUser.objects.create(email=sender, password='')
+        sender_user = EmailUser.objects.get(email__icontains=sender)
+    return sender_user
+
 class SubmitSendNotificationEmail(TemplateEmailBase):
     subject = 'A new Application has been submitted.'
     html_template = 'boranga/emails/cs_proposals/send_submit_notification.html'
@@ -24,6 +33,21 @@ class ExternalSubmitSendNotificationEmail(TemplateEmailBase):
     subject = '{} - Confirmation - Application submitted.'.format(settings.DEP_NAME)
     html_template = 'boranga/emails/cs_proposals/send_external_submit_notification.html'
     txt_template = 'boranga/emails/cs_proposals/send_external_submit_notification.txt'
+
+class ConservationStatusReferralSendNotificationEmail(TemplateEmailBase):
+    subject = 'A referral for a conservation status proposal has been sent to you.'
+    html_template = 'boranga/emails/cs_proposals/send_referral_notification.html'
+    txt_template = 'boranga/emails/cs_proposals/send_referral_notification.txt'
+
+class ConservationStatusReferralRecallNotificationEmail(TemplateEmailBase):
+    subject = 'A referral for a conservation status proposal has been recalled.'
+    html_template = 'boranga/emails/cs_proposals/send_referral_recall_notification.html'
+    txt_template = 'boranga/emails/cs_proposals/send_referral_recall_notification.txt'
+
+class ConservationStatusAmendmentRequestSendNotificationEmail(TemplateEmailBase):
+    subject = 'An amendment to your conservation status proposal is required.'
+    html_template = 'boranga/emails/cs_proposals/send_amendment_notification.html'
+    txt_template = 'boranga/emails/cs_proposals/send_amendment_notification.txt'
 
 
 def send_submit_email_notification(request, cs_proposal):
@@ -178,3 +202,126 @@ def _log_user_email(email_message, emailuser, customer ,sender=None):
     email_entry = EmailUserLogEntry.objects.create(**kwargs)
 
     return email_entry
+
+def send_conservation_status_referral_email_notification(referral,request,reminder=False):
+    email = ConservationStatusReferralSendNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-conservation-status-referral-detail',kwargs={'cs_proposal_pk':referral.conservation_status.id,'referral_pk':referral.id}))
+
+    context = {
+        'cs_proposal': referral.conservation_status,
+        'url': url,
+        'reminder':reminder,
+        'comments': referral.text
+    }
+    msg = email.send(EmailUser.objects.get(id=referral.referral).email, context=context)
+    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    sender = get_sender_user()
+    _log_conservation_status_referral_email(msg, referral, sender=sender)
+    # if referral.conservation_status.applicant:
+    #     _log_org_email(msg, referral.conservation_status.applicant, referral.referral, sender=sender)
+
+def send_conservation_status_referral_recall_email_notification(referral,request):
+    email = ConservationStatusReferralRecallNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-conservation-status-referral-detail',kwargs={'cs_proposal_pk':referral.conservation_status.id,'referral_pk':referral.id}))
+
+    context = {
+        'cs_proposal': referral.conservation_status,
+        'url': url,
+    }
+
+    msg = email.send(EmailUser.objects.get(id=referral.referral).email, context=context)
+    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    sender = get_sender_user()
+    _log_conservation_status_referral_email(msg, referral, sender=sender)
+    # if referral.proposal.applicant:
+    #     _log_org_email(msg, referral.proposal.applicant, referral.referral, sender=sender)
+
+def _log_conservation_status_referral_email(email_message, referral, sender=None):
+    from boranga.components.conservation_status.models import ConservationStatusLogEntry
+    if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
+        # TODO this will log the plain text body, should we log the html instead
+        text = email_message.body
+        subject = email_message.subject
+        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        # the to email is normally a list
+        if isinstance(email_message.to, list):
+            to = ','.join(email_message.to)
+        else:
+            to = smart_text(email_message.to)
+        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
+        all_ccs = []
+        if email_message.cc:
+            all_ccs += list(email_message.cc)
+        if email_message.bcc:
+            all_ccs += list(email_message.bcc)
+        all_ccs = ','.join(all_ccs)
+
+    else:
+        text = smart_text(email_message)
+        subject = ''
+        # TODO not sure if referral.conservation_status.applicant.email will works here
+        #import ipdb; ipdb.set_trace()
+        to = referral.conservation_status.applicant.email if referral.conservation_status.applicant.email else ''
+        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        all_ccs = ''
+
+    customer = referral.referral
+
+    staff = sender.id
+
+    kwargs = {
+        'subject': subject,
+        'text': text,
+        'conservation_status': referral.conservation_status,
+        'customer': customer,
+        'staff': staff,
+        'to': to,
+        'fromm': fromm,
+        'cc': all_ccs
+    }
+
+    email_entry = ConservationStatusLogEntry.objects.create(**kwargs)
+
+    return email_entry
+
+def send_conservation_status_amendment_email_notification(amendment_request, request, conservation_status):
+    email = ConservationStatusAmendmentRequestSendNotificationEmail()
+    reason = amendment_request.reason.reason
+    url = request.build_absolute_uri(reverse('external-conservation-status-detail',kwargs={'cs_proposal_pk': conservation_status.id}))
+
+    if "-internal" in url:
+        # remove '-internal'. This email is for external submitters 
+        url = ''.join(url.split('-internal'))
+
+    attachments = []
+    if amendment_request.cs_amendment_request_documents:
+        for doc in amendment_request.cs_amendment_request_documents.all():
+            #file_name = doc._file.name
+            file_name = doc.name
+            attachment = (file_name, doc._file.file.read())
+            attachments.append(attachment)
+
+
+    context = {
+        'cs_proposal': conservation_status,
+        'reason': reason,
+        'amendment_request_text': amendment_request.text,
+        'url': url
+    }
+
+    all_ccs = []
+    # if conservation_status.applicant and conservation_status.applicant.email != conservation_status.submitter.email and conservation_status.applicant.email:
+    #         cc_list = conservation_status.applicant.email
+    #         if cc_list:
+    #             all_ccs = [cc_list]
+
+    msg = email.send(
+        EmailUser.objects.get(id=conservation_status.submitter).email,cc=all_ccs, 
+        context=context,
+        attachments=attachments
+        )
+    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    sender = get_sender_user()
+    _log_conservation_status_email(msg, conservation_status, sender=sender)
+    # if conservation_status.applicant:
+    #     _log_org_email(msg, conservation_status.applicant, conservation_status.submitter, sender=sender)
