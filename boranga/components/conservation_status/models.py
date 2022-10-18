@@ -30,6 +30,7 @@ from boranga.settings import (
 from boranga.components.conservation_status.email import (
     send_conservation_status_referral_email_notification,
     send_conservation_status_referral_recall_email_notification,
+    send_conservation_status_amendment_email_notification,
     )
 
 
@@ -705,6 +706,11 @@ class ConservationStatus(models.Model):
             except:
                 raise
 
+    @property
+    def amendment_requests(self):
+        qs =ConservationStatusAmendmentRequest.objects.filter(conservation_status = self)
+        return qs
+
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):
     conservation_status = models.ForeignKey(ConservationStatus, related_name='comms_logs', on_delete=models.CASCADE)
@@ -740,6 +746,9 @@ class ConservationStatusUserAction(UserAction):
     ACTION_UNASSIGN_APPROVER = "Unassign approver from conservation status proposal {}"
     ACTION_DISCARD_PROPOSAL = "Discard conservation status proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
+
+    #Amendment
+    ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
     
     # Assessors
     ACTION_SAVE_ASSESSMENT_ = "Save assessment {}"
@@ -950,12 +959,16 @@ class ConservationStatusReferral(models.Model):
     def can_assess_referral(self,user):
         return self.processing_status == 'with_referral'
 
+    @property
+    def can_be_processed(self):
+        return self.processing_status == "with_referral"
+
 
 class ConservationStatusProposalRequest(models.Model):
     conservation_status = models.ForeignKey(ConservationStatus, on_delete=models.CASCADE)
     subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
-    officer = models.IntegerField()  # EmailUserRO
+    officer = models.IntegerField(null=True)  # EmailUserRO
 
     class Meta:
         app_label = 'boranga'
@@ -969,6 +982,54 @@ class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
     
     class Meta:
         app_label = 'boranga'
+
+    def generate_amendment(self,request):
+        with transaction.atomic():
+            try:
+                if not self.conservation_status.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.status == 'requested':
+                    conservation_status = self.conservation_status
+                    if conservation_status.processing_status != 'draft':
+                        conservation_status.processing_status = 'draft'
+                        conservation_status.customer_status = 'draft'
+                        conservation_status.save()
+                        # TODO at the moment conservation_status is not having it's document model
+                        #conservation_status.documents.all().update(can_hide=True)
+
+                    # Create a log entry for the conservationstatus
+                    conservation_status.log_user_action(ConservationStatusUserAction.ACTION_ID_REQUEST_AMENDMENTS, request)
+                    # Create a log entry for the organisation
+                    # if conservation_status.applicant:
+                    #     conservation_status.applicant.log_user_action(ConservationStatusUserAction.ACTION_ID_REQUEST_AMENDMENTS, request)
+
+                    # send email
+
+                    send_conservation_status_amendment_email_notification(self,request, conservation_status)
+
+                self.save()
+            except:
+                raise
+
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                if not data.get('update'):
+                    documents_qs = self.cs_amendment_request_documents.filter(input_name='amendment_request_doc', visible=True)
+                    documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    document = self.cs_amendment_request_documents.create(_file=_file, name=_file.name)
+                    document.input_name = data['input_name']
+                    document.can_delete = True
+                    document.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
 
 
 class ConservationStatusAmendmentRequestDocument(Document):

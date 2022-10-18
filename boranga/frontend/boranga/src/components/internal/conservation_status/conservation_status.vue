@@ -82,7 +82,7 @@
                                     <template>
                                             
                                     </template>
-                                    <!-- <MoreReferrals @refreshFromResponse="refreshFromResponse" :proposal="conservation_status_obj" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/> -->
+                                    <CSMoreReferrals @refreshFromResponse="refreshFromResponse" :conservation_status_obj="conservation_status_obj" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/>
                                 </div>
                                 <div class="col-sm-12">
                                     <div class="separator"></div>
@@ -199,7 +199,7 @@ import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 import AmendmentRequest from './amendment_request.vue'
 
-//import MoreReferrals from '@common-utils/more_referrals.vue'
+import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'
 import {
@@ -239,6 +239,7 @@ export default {
         Workflow,
         ProposalConservationStatus,
         AmendmentRequest,
+        CSMoreReferrals,
     },
     filters: {
         formatDate: function(data){
@@ -250,6 +251,9 @@ export default {
     computed: {
         csrf_token: function() {
           return helpers.getCookie('csrftoken')
+        },
+        referralListURL: function(){
+            return this.conservation_status_obj!= null ? helpers.add_endpoint_json(api_endpoints.cs_referrals,'datatable_list')+'?conservation_status='+this.conservation_status_obj.id : '';
         },
         species_community_cs_form_url: function() {
           /*return (this.conservation_status_obj.group_type === "community") ? 
@@ -424,7 +428,7 @@ export default {
                 },err=>{
             });
         },
-         refreshFromResponse:function(response){
+        refreshFromResponse:function(response){
             let vm = this;
             vm.original_conservation_status_obj = helpers.copyObject(response.body);
             vm.conservation_status_obj = helpers.copyObject(response.body);

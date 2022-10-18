@@ -40,6 +40,7 @@ from boranga.components.conservation_status.models import(
 )
 from boranga.components.conservation_status.serializers import(
     SendReferralSerializer,
+    DTConservationStatusReferralSerializer,
     ListSpeciesConservationStatusSerializer,
     ListCommunityConservationStatusSerializer,
     ListConservationStatusSerializer,
@@ -57,6 +58,7 @@ from boranga.components.conservation_status.serializers import(
     #SpeciesConservationStatusUserActionSerializer,
     ConservationStatusReferralSerializer,
     ConservationStatusAmendmentRequestSerializer,
+    ConservationStatusAmendmentRequestDisplaySerializer,
 )
 from boranga.components.main.utils import (
     check_db_connection,
@@ -580,6 +582,8 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 request_data = request.data
                 #request.data['submitter'] = u'{}'.format(request.user.id)
+                if request_data['submitter']:
+                    request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
                 if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
                     serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
                 elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
@@ -696,6 +700,24 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                 # End Save Documents
 
                 return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def amendment_request(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.amendment_requests
+            qs = qs.filter(status = 'requested')
+            serializer = ConservationStatusAmendmentRequestDisplaySerializer(qs,many=True)
+            return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -843,33 +865,14 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
     #     #serializer = DTReferralSerializer(self.get_queryset(), many=True)
     #     return Response(serializer.data)
 
-    # @detail_route(methods=["post"], detail=True)
-    # def send_referral(self, request, *args, **kwargs):
-    #     try:
-    #         instance = self.get_object()
-    #         serializer = SendReferralSerializer(
-    #             data=request.data, context={"request": request}
-    #         )
-    #         serializer.is_valid(raise_exception=True)
-    #         instance.send_referral(
-    #             request,
-    #             serializer.validated_data["email"],
-    #             serializer.validated_data["text"],
-    #         )
-    #         serializer = self.get_serializer(instance, context={"request": request})
-    #         return Response(serializer.data)
-    #     except serializers.ValidationError:
-    #         print(traceback.print_exc())
-    #         raise
-    #     except ValidationError as e:
-    #         if hasattr(e, "error_dict"):
-    #             raise serializers.ValidationError(repr(e.error_dict))
-    #         else:
-    #             if hasattr(e, "message"):
-    #                 raise serializers.ValidationError(e.message)
-    #     except Exception as e:
-    #         print(traceback.print_exc())
-    #         raise serializers.ValidationError(str(e))
+    @list_route(methods=['GET',], detail=False)
+    def datatable_list(self, request, *args, **kwargs):
+        conservation_status = request.GET.get('conservation_status',None)
+        qs = self.get_queryset().all()
+        if conservation_status:
+            qs = qs.filter(conservation_status_id=int(conservation_status))
+        serializer = DTConservationStatusReferralSerializer(qs, many=True)
+        return Response(serializer.data)
 
     @detail_route(methods=['GET',],detail=True,)
     def remind(self, request, *args, **kwargs):
@@ -951,7 +954,7 @@ class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             ConservationStatusAmendmentRequestDocument.objects.get(id=request.data.get('id')).delete()
-            return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.requirement_documents.all()])
+            return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.cs_amendment_request_documents.all()])
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise

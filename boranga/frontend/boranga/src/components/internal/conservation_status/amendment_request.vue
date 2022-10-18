@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="internal-conservation-status-proposal-amend">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" title="Amendment Request" large>
+        <modal id="myModal" transition="modal fade" @ok="ok()" @cancel="cancel()" title="Amendment Request" large>
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="amendForm">
@@ -10,7 +10,7 @@
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label pull-left"  for="Name">Reason</label>
-                                        <select class="form-control" name="reason" ref="reason" v-model="amendment.reason">
+                                        <select class="form-select" name="reason" ref="reason" v-model="amendment.reason">
                                             <option v-for="r in reason_choices" :value="r.key">{{r.value}}</option>
                                         </select>
                                     </div>
@@ -30,7 +30,7 @@
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
                                             <FileField2
                                             ref="filefield"
-                                            :uploaded_documents="amendment.amendment_request_documents"
+                                            :uploaded_documents="amendment.cs_amendment_request_documents"
                                             :delete_url="delete_url"
                                             :proposal_id="conservation_status_id"
                                             :isRepeatable="true"
@@ -78,7 +78,7 @@ export default {
             conservation_status: vm.conservation_status_id,
             num_files: 0,
             input_name: 'amendment_request_doc',
-            requirement_documents: [], 
+            cs_amendment_request_documents: [], 
             },
             reason_choices: {},
             errors: false,
@@ -141,14 +141,14 @@ export default {
                 formData.append(name, file, filename);
             });
             amendment.num_files = files.length;
-            amendment.input_name = 'requirement_doc';
-            amendment.proposal = vm.proposal_id;
+            amendment.input_name = 'amendment_request_doc';
+            amendment.conservation_status = vm.conservation_status_id;
             amendment.update = true;
 
             formData.append('data', JSON.stringify(amendment));
 
             // vm.$http.post('/api/amendment_request.json',JSON.stringify(amendment),{
-                vm.$http.post('/api/amendment_request.json', formData,{
+                vm.$http.post('/api/cs_amendment_request.json', formData,{
                         emulateJSON:true,
                     }).then((response)=>{
                         swal(
@@ -159,7 +159,7 @@ export default {
                         vm.amendingProposal = true;
                         vm.close();
                         //vm.$emit('refreshFromResponse',response);
-                        Vue.http.get(`/api/conservation_status/${vm.proposal_id}/internal_conservation_status.json`).then((response)=>
+                        Vue.http.get(`/api/conservation_status/${vm.conservation_status_id}/internal_conservation_status.json`).then((response)=>
                         {
                             vm.$emit('refreshFromResponse',response);
 
@@ -196,7 +196,8 @@ export default {
                         $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
                     });
                     // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
+                    // commented below (Priya) as gives error for .tooltipz
+                    //$("." + this.settings.validClass).tooltip("destroy");
                     // add or update tooltips
                     for (var i = 0; i < errorList.length; i++) {
                         var error = errorList[i];
@@ -218,6 +219,7 @@ export default {
                 "theme": "bootstrap-5",
                 allowClear: true,
                 placeholder:"Select Reason",
+                dropdownParent: $('#myModal .modal-body'),
             }).
             on("select2:select",function (e) {
                 var selected = $(e.currentTarget);
@@ -245,4 +247,5 @@ export default {
 </script>
 
 <style lang="css">
+
 </style>

@@ -476,10 +476,16 @@ class ConservationStatusSerializer(BaseConservationStatusSerializer):
     def get_readonly(self,obj):
         return obj.can_user_view
 
+    # Priya updated as gives error for submitter when resubmit after amendment request
     def get_submitter(self,obj):
+        # if obj.submitter:
+        #     email_user = retrieve_email_user(obj.submitter)
+        #     return email_user.get_full_name()
+        # else:
+        #     return None
         if obj.submitter:
             email_user = retrieve_email_user(obj.submitter)
-            return email_user.get_full_name()
+            return EmailUserSerializer(email_user).data
         else:
             return None
     
@@ -888,25 +894,66 @@ class SendReferralSerializer(serializers.Serializer):
     email = serializers.EmailField(allow_blank=True)
     text = serializers.CharField(allow_blank=True)
 
-    # def validate(self, data):
-    #     field_errors = {}
-    #     non_field_errors = []
+    def validate(self, data):
+        field_errors = {}
+        non_field_errors = []
 
-    #     request = self.context.get("request")
-    #     if request.user.email == data["email"]:
-    #         non_field_errors.append("You cannot send referral to yourself.")
-    #     elif not data["email"]:
-    #         non_field_errors.append("Referral not found.")
+        request = self.context.get("request")
+        if request.user.email == data["email"]:
+            non_field_errors.append("You cannot send referral to yourself.")
+        elif not data["email"]:
+            non_field_errors.append("Referral not found.")
 
-    #     # Raise errors
-    #     if field_errors:
-    #         raise serializers.ValidationError(field_errors)
-    #     if non_field_errors:
-    #         raise serializers.ValidationError(non_field_errors)
-    #     # else:
-    #     # pass
+        # Raise errors
+        if field_errors:
+            raise serializers.ValidationError(field_errors)
+        if non_field_errors:
+            raise serializers.ValidationError(non_field_errors)
+        # else:
+        # pass
 
-    #     return data
+        return data
+
+
+class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source='conservation_status.get_processing_status_display')
+    referral_status = serializers.CharField(source='get_processing_status_display')
+    conservation_status_lodgement_date = serializers.CharField(source='conservation_status.lodgement_date')
+    conservation_status_number = serializers.CharField(source='conservation_status.conservation_status_number')
+    submitter = serializers.SerializerMethodField()
+    referral = serializers.SerializerMethodField()
+    assigned_officer = serializers.CharField(
+        source="assigned_officer.get_full_name", allow_null=True
+    )
+
+    class Meta:
+        model = ConservationStatusReferral
+        fields = (
+            'id',
+            'submitter',
+            'processing_status',
+            'referral_status',
+            'lodged_on',
+            'conservation_status',
+            'can_be_processed',
+            'referral',
+            'conservation_status_lodgement_date',
+            'conservation_status_number',
+            'referral_text',
+            'assigned_officer',
+        )
+
+    def get_referral(self, obj):
+        serializer = EmailUserSerializer(retrieve_email_user(obj.referral))
+        return serializer.data
+
+    def get_submitter(self,obj):
+         # if obj.submitter:
+        if hasattr(obj, "submitter") and obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return EmailUserSerializer(email_user).data
+        else:
+            return ""
 
 
 class ConservationStatusReferralProposalSerializer(InternalConservationStatusSerializer):
@@ -993,3 +1040,16 @@ class ConservationStatusAmendmentRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConservationStatusAmendmentRequest
         fields = '__all__'
+
+
+class ConservationStatusAmendmentRequestDisplaySerializer(serializers.ModelSerializer):
+    reason = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ConservationStatusAmendmentRequest
+        fields = '__all__'
+
+    def get_reason (self,obj):
+        #return obj.get_reason_display()
+        return obj.reason.reason if obj.reason else None
+
