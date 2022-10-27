@@ -19,6 +19,7 @@ RUN apt-get install --no-install-recommends -y libpq-dev patch
 RUN apt-get install --no-install-recommends -y postgresql-client mtr systemd
 RUN apt-get install --no-install-recommends -y sqlite3 vim postgresql-client ssh htop
 RUN apt-get install --no-install-recommends -y rsyslog
+RUN apt-get install --no-install-recommends -y npm 
 RUN ln -s /usr/bin/python3 /usr/bin/python 
 #RUN ln -s /usr/bin/pip3 /usr/bin/pip
 RUN pip install --upgrade pip
@@ -56,6 +57,8 @@ COPY .git ./.git
 COPY boranga ./boranga
 #RUN mkdir /app/boranga/cache/
 #RUN chmod 777 /app/boranga/cache/
+RUN cd /app/boranga/frontend/boranga; npm install
+RUN cd /app/boranga/frontend/boranga; npm run build
 RUN python manage.py collectstatic --noinput
 RUN apt-get install --no-install-recommends -y python3-pil
 EXPOSE 8080
