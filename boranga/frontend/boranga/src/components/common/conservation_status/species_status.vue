@@ -1,6 +1,44 @@
 <template lang="html">
     <div id="speciesStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
+            <div v-if="!is_external">
+                <!-- Assessor Deficiencies and comment box -->
+                <div class="row mb-3" v-if="deficiencyVisibility">
+                    <label for="" class="col-sm-4 control-label">Deficiencies:</label>
+                    <div class="col-sm-8">
+                        <textarea :disabled="deficiency_readonly" class="form-control" rows="3" id="assessor_deficiencies" placeholder=""
+                        v-model="conservation_status_obj.deficiency_data"/>
+                    </div>
+                </div>
+                <div class="row mb-3" v-if="assessorCommentVisibility">
+                    <label for="" class="col-sm-4 control-label">Assessor:</label>
+                    <div class="col-sm-8">
+                        <textarea :disabled="assessor_comment_readonly" class="form-control" rows="3" id="assessor_comment" placeholder=""
+                        v-model="conservation_status_obj.assessor_data"/>
+                    </div>
+                </div>
+                <!-- --- -->
+
+                <!-- Assessor Deficiencies and comment box -->
+                <div v-if="referral_comments_boxes.length >0">
+                    <div v-for="ref in referral_comments_boxes">
+                        <div class="row mb-3" v-if="ref.box_view">
+                            <label for="" class="col-sm-4 control-label">{{ref.label}}:</label>
+                            <div class="col-sm-8">
+                                <textarea 
+                                    :disabled="ref.readonly" 
+                                    :name="ref.name" 
+                                    :value="ref.value" 
+                                    class="form-control" 
+                                    rows="3" 
+                                    placeholder="" />
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+            </div>
+            <!--  -->
+
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Scientific Name:</label>
                 <div class="col-sm-8">
@@ -52,11 +90,13 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Proposed Conservation Criteria:</label>
                 <div class="col-sm-8">
-                    <select style="width:100%;" class="form-select input-sm" multiple 
+                    <select :disabled="conservation_status_obj.readonly" 
+                        style="width:100%;" class="form-select input-sm" multiple 
                         ref="conservation_criteria_select" 
                         v-model="conservation_status_obj.conservation_criteria" >
                         <option v-for="c in filtered_conservation_criteria_list" :value="c.id" :key="c.id">
-                            {{c.code}}</option>
+                            {{c.code}}
+                        </option>
                     </select>
                 </div>
             </div>
@@ -121,14 +161,25 @@ export default {
                 filtered_conservation_category_list: [],
                 filtered_conservation_criteria_list: [],
                 previous_name_list: [],
+                referral_comments_boxes: [],
                 // to display the species selected 
                 species_display: '',
+                //---Comment box attributes
+                deficiency_readonly : !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? true : false,
+                assessor_comment_readonly: !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? true : false,
+                
             }
         },
         components: {
             FormSection,
         },
         computed: {
+            deficiencyVisibility: function(){
+                return this.conservation_status_obj.assessor_mode.assessor_box_view;
+            },
+            assessorCommentVisibility: function(){
+                return this.conservation_status_obj.assessor_mode.assessor_box_view;
+            },
         },
         watch:{
         },
@@ -204,6 +255,28 @@ export default {
                         }
                 });
             },
+            generateReferralCommentBoxes: function(){
+                var box_visibility = this.conservation_status_obj.assessor_mode.assessor_box_view
+                var assessor_mode = this.conservation_status_obj.assessor_level
+                if (!this.conservation_status_obj.can_user_edit){
+                    var current_referral_present = false;
+                    $.each(this.conservation_status_obj.latest_referrals,(i,v)=> {
+                        var referral_name = `comment-field-Referral-${v.referral_obj.email}`; 
+                        var referral_visibility =  assessor_mode == 'referral' && this.conservation_status_obj.assessor_mode.assessor_can_assess ? false : true ;
+                        var referral_label = `${v.referral_obj.fullname}`;
+                        var referral_comment_val = `${v.referral_comment}`;
+                        this.referral_comments_boxes.push(
+                            {
+                                "box_view": box_visibility,
+                                "name": referral_name,
+                                "label": referral_label,
+                                "readonly": referral_visibility,
+                                "value": referral_comment_val,
+                            }
+                        )
+                    });
+                }
+            },
             eventListeners:function (){
                 let vm = this;
                 // Initialise select2 for proposed Conservation Criteria
@@ -261,6 +334,9 @@ export default {
                 vm.conservation_criteria_list = vm.cs_profile_dict.conservation_criteria_list;
                 this.getSpeciesDisplay();
                 this.filterConservationCategoryCriteria();
+                if(!vm.is_external){
+                    this.generateReferralCommentBoxes();
+                }
                 //this.filterProposedConservationCategoryCriteria();
             },(error) => {
                 console.log(error);

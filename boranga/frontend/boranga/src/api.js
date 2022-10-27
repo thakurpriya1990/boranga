@@ -84,7 +84,9 @@ module.exports = {
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
     communities_paginated_internal: "/api/communities_paginated/communities_internal/?format=datatables",
     species_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/species_cs_internal/?format=datatables",
+    species_conservation_status_referrals_paginated_internal: "/api/species_conservation_status_paginated/species_cs_referrals_internal/?format=datatables",
     community_conservation_status_paginated_internal: "/api/community_conservation_status_paginated/community_cs_internal/?format=datatables",
+    community_conservation_status_referrals_paginated_internal: "/api/community_conservation_status_paginated/community_cs_referrals_internal/?format=datatables",
     conservation_status_paginated_external: "/api/conservation_status_paginated/conservation_status_external?format=datatables",
     filter_lists_species:"/api/filter_lists_species",
     group_types_dict:"/api/group_types_dict",
@@ -103,6 +105,9 @@ module.exports = {
     filter_list_referrals:          "/api/referrals/filter_list.json",
     filter_list_parks:              "/api/parks/filter_list.json",
     filter_list_district_proposals:  "/api/district_proposals/filter_list.json",
+
+    filter_list_cs_referrals:         "/api/cs_referrals/filter_list.json",
+    filter_list_cs_referrals_community:"/api/cs_referrals/community_filter_list.json",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",

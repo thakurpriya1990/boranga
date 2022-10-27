@@ -290,7 +290,7 @@ def send_conservation_status_amendment_email_notification(amendment_request, req
     url = request.build_absolute_uri(reverse('external-conservation-status-detail',kwargs={'cs_proposal_pk': conservation_status.id}))
 
     if "-internal" in url:
-        # remove '-internal'. This email is for external submitters 
+        # remove '-internal'. This email is for external submitters
         url = ''.join(url.split('-internal'))
 
     attachments = []
@@ -316,7 +316,7 @@ def send_conservation_status_amendment_email_notification(amendment_request, req
     #             all_ccs = [cc_list]
 
     msg = email.send(
-        EmailUser.objects.get(id=conservation_status.submitter).email,cc=all_ccs, 
+        EmailUser.objects.get(id=conservation_status.submitter).email,cc=all_ccs,
         context=context,
         attachments=attachments
         )
