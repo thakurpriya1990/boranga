@@ -19,7 +19,7 @@ RUN apt-get install --no-install-recommends -y libpq-dev patch
 RUN apt-get install --no-install-recommends -y postgresql-client mtr systemd
 RUN apt-get install --no-install-recommends -y sqlite3 vim postgresql-client ssh htop
 RUN apt-get install --no-install-recommends -y rsyslog
-RUN apt-get install --no-install-recommends -y npm 
+RUN apt-get install --no-install-recommends -y npm bzip2
 RUN ln -s /usr/bin/python3 /usr/bin/python 
 #RUN ln -s /usr/bin/pip3 /usr/bin/pip
 RUN pip install --upgrade pip
