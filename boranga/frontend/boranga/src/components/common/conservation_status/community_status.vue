@@ -52,11 +52,13 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Proposed Conservation Criteria:</label>
                 <div class="col-sm-8">
-                    <select style="width:100%;" class="form-select input-sm" multiple 
+                    <select :disabled="conservation_status_obj.readonly" 
+                        style="width:100%;" class="form-select input-sm" multiple 
                         ref="conservation_criteria_select" 
                         v-model="conservation_status_obj.conservation_criteria" >
                         <option v-for="c in filtered_conservation_criteria_list" :value="c.id" :key="c.id">
-                            {{c.code}}</option>
+                            {{c.code}}
+                        </option>
                     </select>
                 </div>
             </div>

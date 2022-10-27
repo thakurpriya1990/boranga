@@ -280,7 +280,7 @@ export default {
         filterCSCommunityRegion: function(){
             let vm = this;
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityRegion_cache, vm.filterCommunityRegion);
+            sessionStorage.setItem(vm.filterCSCommunityRegion_cache, vm.filterCSCommunityRegion);
         },
         filterCSCommunityDistrict: function(){
             let vm = this;

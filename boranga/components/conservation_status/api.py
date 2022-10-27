@@ -27,6 +27,16 @@ from boranga.components.species_and_communities.models import GroupType
 from boranga.components.conservation_status.utils import cs_proposal_submit
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
+from boranga.components.species_and_communities.models import(
+    Species,
+    Community,
+    Taxonomy,
+    PhylogeneticGroup,
+    Genus,
+    Family,
+    ScientificName,
+)
+
 from boranga.components.conservation_status.models import(
     ConservationCategory,
     ConservationCriteria,
@@ -35,8 +45,6 @@ from boranga.components.conservation_status.models import(
     ConservationList,
     ConservationStatusReferral,
     ConservationStatusAmendmentRequest,
-    Species,
-    Community,
 )
 from boranga.components.conservation_status.serializers import(
     SendReferralSerializer,
@@ -183,52 +191,100 @@ class GetCSProfileDict(views.APIView):
 class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
+
         # filter_group_type
         filter_group_type = request.GET.get('filter_group_type')
-        if filter_group_type:
-            #queryset = queryset.filter(species__group_type__name=filter_group_type)
-            #changed to application_type (ie group_type)
-            queryset = queryset.filter(application_type__name=filter_group_type)
+        if queryset.model is ConservationStatus:
+            if filter_group_type:
+                #queryset = queryset.filter(species__group_type__name=filter_group_type)
+                #changed to application_type (ie group_type)
+                queryset = queryset.filter(application_type__name=filter_group_type)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_group_type:
+                #queryset = queryset.filter(species__group_type__name=filter_group_type)
+                #changed to application_type (ie group_type)
+                queryset = queryset.filter(conservation_status__application_type__name=filter_group_type)
+
         # filter_scientific_name
         filter_scientific_name = request.GET.get('filter_scientific_name')
-        if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-            queryset = queryset.filter(species__scientific_name=filter_scientific_name)
+        if queryset.model is ConservationStatus:
+            if filter_scientific_name and not filter_scientific_name.lower() == 'all':
+                queryset = queryset.filter(species__scientific_name=filter_scientific_name)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_scientific_name and not filter_scientific_name.lower() == 'all':
+                queryset = queryset.filter(conservation_status__species__scientific_name=filter_scientific_name)
 
         filter_common_name = request.GET.get('filter_common_name')
-        if filter_common_name and not filter_common_name.lower() == 'all':
-            queryset = queryset.filter(species__common_name=filter_common_name)
+        if queryset.model is ConservationStatus:
+            if filter_common_name and not filter_common_name.lower() == 'all':
+                queryset = queryset.filter(species__common_name=filter_common_name)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_common_name and not filter_common_name.lower() == 'all':
+                queryset = queryset.filter(conservation_status__species__common_name=filter_common_name)
 
         filter_phylogenetic_group = request.GET.get('filter_phylogenetic_group')
-        if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
-            queryset = queryset.filter(species__species_taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
+        if queryset.model is ConservationStatus:
+            if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
+                queryset = queryset.filter(species__species_taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
+                queryset = queryset.filter(conservation_status__species__species_taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
         
         filter_family = request.GET.get('filter_family')
-        if filter_family and not filter_family.lower() == 'all':
-            queryset = queryset.filter(species__species_taxonomy__family__id=filter_family)
+        if queryset.model is ConservationStatus:
+            if filter_family and not filter_family.lower() == 'all':
+                queryset = queryset.filter(species__species_taxonomy__family__id=filter_family)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_family and not filter_family.lower() == 'all':
+                queryset = queryset.filter(conservation_status__species__species_taxonomy__family__id=filter_family)
 
         filter_genus = request.GET.get('filter_genus')
-        if filter_genus and not filter_genus.lower() == 'all':
-            queryset = queryset.filter(species__species_taxonomy__genus__id=filter_genus)
+        if queryset.model is ConservationStatus:
+            if filter_genus and not filter_genus.lower() == 'all':
+                queryset = queryset.filter(species__species_taxonomy__genus__id=filter_genus)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_genus and not filter_genus.lower() == 'all':
+                queryset = queryset.filter(conservation_status__species__species_taxonomy__genus__id=filter_genus)
         
         filter_conservation_list = request.GET.get('filter_conservation_list')
-        if filter_conservation_list and not filter_conservation_list.lower() == 'all':
-            queryset = queryset.filter(conservation_list=filter_conservation_list)
+        if queryset.model is ConservationStatus:
+            if filter_conservation_list and not filter_conservation_list.lower() == 'all':
+                queryset = queryset.filter(conservation_list=filter_conservation_list)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_conservation_list and not filter_conservation_list.lower() == 'all':
+                queryset = queryset.filter(conservation_status__conservation_list=filter_conservation_list)
 
         filter_conservation_category = request.GET.get('filter_conservation_category')
-        if filter_conservation_category and not filter_conservation_category.lower() == 'all':
-            queryset = queryset.filter(conservation_category=filter_conservation_category)
+        if queryset.model is ConservationStatus:
+            if filter_conservation_category and not filter_conservation_category.lower() == 'all':
+                queryset = queryset.filter(conservation_category=filter_conservation_category)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_conservation_category and not filter_conservation_category.lower() == 'all':
+                queryset = queryset.filter(conservation_status__conservation_category=filter_conservation_category)
         
         filter_region = request.GET.get('filter_region')
-        if filter_region and not filter_region.lower() == 'all':
-            queryset = queryset.filter(species__region=filter_region)
+        if queryset.model is ConservationStatus:
+            if filter_region and not filter_region.lower() == 'all':
+                queryset = queryset.filter(species__region=filter_region)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_region and not filter_region.lower() == 'all':
+                queryset = queryset.filter(conservation_status__species__region=filter_region)
 
         filter_district = request.GET.get('filter_district')
-        if filter_district and not filter_district.lower() == 'all':
-            queryset = queryset.filter(species__district=filter_district)
+        if queryset.model is ConservationStatus:
+            if filter_district and not filter_district.lower() == 'all':
+                queryset = queryset.filter(species__district=filter_district)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_district and not filter_district.lower() == 'all':
+                queryset = queryset.filter(conservation_status__species__district=filter_district)
 
         filter_application_status = request.GET.get('filter_application_status')
-        if filter_application_status and not filter_application_status.lower() == 'all':
-            queryset = queryset.filter(processing_status=filter_application_status)
+        if queryset.model is ConservationStatus:
+            if filter_application_status and not filter_application_status.lower() == 'all':
+                queryset = queryset.filter(processing_status=filter_application_status)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_application_status and not filter_application_status.lower() == 'all':
+                queryset = queryset.filter(conservation_status__processing_status=filter_application_status)
 
         getter = request.query_params.get
         fields = self.get_fields(getter)
@@ -277,6 +333,25 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         serializer = ListSpeciesConservationStatusSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
 
+    @list_route(methods=['GET',], detail=False)
+    def species_cs_referrals_internal(self, request, *args, **kwargs):
+        """
+        Used by the internal Referred To Me (Flora/Fauna)dashboard
+
+        http://localhost:8499/api/species_conservation_status_paginated/species_cs_referrals_internal/?format=datatables&draw=1&length=2
+        """
+        self.serializer_class = ConservationStatusReferralSerializer
+        qs = ConservationStatusReferral.objects.filter(referral=request.user.id) if is_internal(self.request) else ConservationStatusReferral.objects.none()
+        # TODO Priya commented the below and use above qs as not sure if we need referralrecipientgroup()
+        #qs = Referral.objects.filter(referral_group__in=request.user.referralrecipientgroup_set.all()) if is_internal(self.request) else Referral.objects.none()
+        #qs = self.filter_queryset(self.request, qs, self)
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = DTConservationStatusReferralSerializer(result_page, context={'request':request}, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
+
 
 class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -285,44 +360,69 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         # filter_group_type
         filter_group_type = request.GET.get('filter_group_type')
         if filter_group_type:
-            #queryset = queryset.filter(community__group_type__name=filter_group_type)
-            #changed to application_type (ie group_type)
-            queryset = queryset.filter(application_type__name=filter_group_type)
+            if queryset.model is ConservationStatus:
+                queryset = queryset.filter(application_type__name=filter_group_type)
+            elif queryset.model is ConservationStatusReferral:
+                queryset = queryset.filter(conservation_status__application_type__name=filter_group_type)
         
         #filter_community_migrated_id
         filter_community_migrated_id = request.GET.get('filter_community_migrated_id')
         if filter_community_migrated_id and not filter_community_migrated_id.lower() == 'all':
-            queryset = queryset.filter(community__community_migrated_id=filter_community_migrated_id)
+            if queryset.model is ConservationStatus:
+                queryset = queryset.filter(community__community_migrated_id=filter_community_migrated_id)
+            elif queryset.model is ConservationStatusReferral:
+                queryset = queryset.filter(conservation_status__community__community_migrated_id=filter_community_migrated_id)
 
         # filter_community_name
         filter_community_name = request.GET.get('filter_community_name')
         if filter_community_name and not filter_community_name.lower() == 'all':
-            queryset = queryset.filter(community__community_name=filter_community_name)
+            if queryset.model is ConservationStatus:
+                queryset = queryset.filter(community__community_name=filter_community_name)
+            elif queryset.model is ConservationStatusReferral:
+                queryset = queryset.filter(conservation_status__community__community_name=filter_community_name)
 
         # filter_community_status
         filter_community_status = request.GET.get('filter_community_status')
         if filter_community_status and not filter_community_status.lower() == 'all':
-            queryset = queryset.filter(community__community_status=filter_community_status)
+            if queryset.model is ConservationStatus:
+                queryset = queryset.filter(community__community_status=filter_community_status)
+            elif queryset.model is ConservationStatusReferral:
+                queryset = queryset.filter(conservation_status__community__community_status=filter_community_status)
 
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
-            queryset = queryset.filter(conservation_list=filter_conservation_list)
+            if queryset.model is ConservationStatus:
+                queryset = queryset.filter(conservation_list=filter_conservation_list)
+            elif queryset.model is ConservationStatusReferral:
+                queryset = queryset.filter(conservation_status__conservation_list=filter_conservation_list)
 
         filter_conservation_category = request.GET.get('filter_conservation_category')
         if filter_conservation_category and not filter_conservation_category.lower() == 'all':
-            queryset = queryset.filter(conservation_category=filter_conservation_category)
+            if queryset.model is ConservationStatus:
+                queryset = queryset.filter(conservation_category=filter_conservation_category)
+            elif queryset.model is ConservationStatusReferral:
+                queryset = queryset.filter(conservation_status__conservation_category=filter_conservation_category)
 
         filter_region = request.GET.get('filter_region')
         if filter_region and not filter_region.lower() == 'all':
-            queryset = queryset.filter(community__region=filter_region)
+            if queryset.model is ConservationStatus:
+                queryset = queryset.filter(community__region=filter_region)
+            elif queryset.model is ConservationStatusReferral:
+                queryset = queryset.filter(conservation_status__community__region=filter_region)
 
         filter_district = request.GET.get('filter_district')
         if filter_district and not filter_district.lower() == 'all':
-            queryset = queryset.filter(community__district=filter_district)
+            if queryset.model is ConservationStatus:
+                queryset = queryset.filter(community__district=filter_district)
+            elif queryset.model is ConservationStatusReferral:
+                queryset = queryset.filter(conservation_status__community__district=filter_district)
 
         filter_application_status = request.GET.get('filter_application_status')
         if filter_application_status and not filter_application_status.lower() == 'all':
-            queryset = queryset.filter(processing_status=filter_application_status)
+            if queryset.model is ConservationStatus:
+                queryset = queryset.filter(processing_status=filter_application_status)
+            elif queryset.model is ConservationStatusReferral:
+                queryset = queryset.filter(conservation_status__processing_status=filter_application_status)
 
         getter = request.query_params.get
         fields = self.get_fields(getter)
@@ -369,6 +469,25 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunityConservationStatusSerializer(result_page, context={'request': request}, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
+
+    @list_route(methods=['GET',], detail=False)
+    def community_cs_referrals_internal(self, request, *args, **kwargs):
+        """
+        Used by the internal Referred to me dashboard
+
+        http://localhost:8499/api/community_conservation_status_paginated/community_cs_referrals_internal/?format=datatables&draw=1&length=2
+        """
+        self.serializer_class = ConservationStatusReferralSerializer
+        qs = ConservationStatusReferral.objects.filter(referral=request.user.id) if is_internal(self.request) else ConservationStatusReferral.objects.none()
+        # TODO Priya commented the below and use above qs as not sure if we need referralrecipientgroup()
+        #qs = Referral.objects.filter(referral_group__in=request.user.referralrecipientgroup_set.all()) if is_internal(self.request) else Referral.objects.none()
+        #qs = self.filter_queryset(self.request, qs, self)
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = DTConservationStatusReferralSerializer(result_page, context={'request':request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
 
 
@@ -829,28 +948,186 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
             return queryset
         return ConservationStatusReferral.objects.none()
 
-    # @list_route(methods=['GET',])
-    # def filter_list(self, request, *args, **kwargs):
-    #     """ Used by the external dashboard filters """
-    #     #qs =  self.get_queryset().filter(referral=request.user)
-    #     qs =  self.get_queryset()
-    #     region_qs =  qs.filter(proposal__region__isnull=False).values_list('proposal__region__name', flat=True).distinct()
-    #     #district_qs =  qs.filter(proposal__district__isnull=False).values_list('proposal__district__name', flat=True).distinct()
-    #     activity_qs =  qs.filter(proposal__activity__isnull=False).order_by('proposal__activity').distinct('proposal__activity').values_list('proposal__activity', flat=True).distinct()
-    #     submitter_qs = qs.filter(proposal__submitter__isnull=False).order_by('proposal__submitter').distinct('proposal__submitter').values_list('proposal__submitter__first_name','proposal__submitter__last_name','proposal__submitter__email')
-    #     submitters = [dict(email=i[2], search_term='{} {} ({})'.format(i[0], i[1], i[2])) for i in submitter_qs]
-    #     processing_status_qs =  qs.filter(proposal__processing_status__isnull=False).order_by('proposal__processing_status').distinct('proposal__processing_status').values_list('proposal__processing_status', flat=True)
-    #     processing_status = [dict(value=i, name='{}'.format(' '.join(i.split('_')).capitalize())) for i in processing_status_qs]
-    #     application_types=ApplicationType.objects.filter(visible=True).values_list('name', flat=True)
-    #     data = dict(
-    #         regions=region_qs,
-    #         #districts=district_qs,
-    #         activities=activity_qs,
-    #         submitters=submitters,
-    #         processing_status_choices=processing_status,
-    #         application_types=application_types,
-    #     )
-    #     return Response(data)
+    #used for Species (flora/Fauna)Referred to me internal dashboard filters
+    @list_route(methods=['GET',], detail=False)
+    def filter_list(self, request, *args, **kwargs):
+        """ Used by the internal Referred to me dashboard filters """
+        #qs =  self.get_queryset().filter(referral=request.user)
+        qs =  self.get_queryset()
+        # region_qs =  qs.filter(proposal__region__isnull=False).values_list('proposal__region__name', flat=True).distinct()
+        # #district_qs =  qs.filter(proposal__district__isnull=False).values_list('proposal__district__name', flat=True).distinct()
+        # activity_qs =  qs.filter(proposal__activity__isnull=False).order_by('proposal__activity').distinct('proposal__activity').values_list('proposal__activity', flat=True).distinct()
+        # submitter_qs = qs.filter(proposal__submitter__isnull=False).order_by('proposal__submitter').distinct('proposal__submitter').values_list('proposal__submitter__first_name','proposal__submitter__last_name','proposal__submitter__email')
+        # submitters = [dict(email=i[2], search_term='{} {} ({})'.format(i[0], i[1], i[2])) for i in submitter_qs]
+        # processing_status_qs =  qs.filter(proposal__processing_status__isnull=False).order_by('proposal__processing_status').distinct('proposal__processing_status').values_list('proposal__processing_status', flat=True)
+        # processing_status = [dict(value=i, name='{}'.format(' '.join(i.split('_')).capitalize())) for i in processing_status_qs]
+        # application_types=ApplicationType.objects.filter(visible=True).values_list('name', flat=True)
+        # data = dict(
+        #     regions=region_qs,
+        #     #districts=district_qs,
+        #     activities=activity_qs,
+        #     submitters=submitters,
+        #     processing_status_choices=processing_status,
+        #     application_types=application_types,
+        # )
+
+        qs =  self.get_queryset()
+        group_type = request.GET.get('group_type_name','')
+        species_data_list = []
+        if group_type:
+            species_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species', flat=True).distinct()
+            species = Species.objects.filter(id__in=species_qs)
+            if species:
+                for i in species:
+                    species_data_list.append({
+                        'species_id': i.id,
+                        'common_name':i.common_name,
+                        });
+        scientific_name_list = []
+        if group_type:
+            scientific_name_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species__scientific_name', flat=True).distinct()
+            names = ScientificName.objects.filter(id__in=scientific_name_qs) # TODO will need to filter according to  group  selection
+            if names:
+                for name in names:
+                    scientific_name_list.append({
+                        'id': name.id,
+                        'name': name.name,
+                        });
+        family_list = []
+        if group_type:
+            species_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species', flat=True).distinct()
+            family_qs = Taxonomy.objects.filter(species__in=species_qs).values_list('family', flat=True).distinct()
+            families = Family.objects.filter(id__in=family_qs) # TODO will need to filter according to  group  selection
+            if families:
+                for family in families:
+                    family_list.append({
+                        'id': family.id,
+                        'name': family.name,
+                        });
+        phylogenetic_group_list = []
+        if group_type:
+            species_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species', flat=True).distinct()
+            phylo_group_qs = Taxonomy.objects.filter(species__in=species_qs).values_list('phylogenetic_group', flat=True).distinct()
+            phylo_groups = PhylogeneticGroup.objects.filter(id__in=phylo_group_qs) # TODO will need to filter according to  group  selection
+            if phylo_groups:
+                for group in phylo_groups:
+                    phylogenetic_group_list.append({
+                        'id': group.id,
+                        'name': group.name,
+                        });
+        genus_list = []
+        if group_type:
+            species_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species', flat=True).distinct()
+            genus_qs = Taxonomy.objects.filter(species__in=species_qs).values_list('genus', flat=True).distinct()
+            generas = Genus.objects.filter(id__in=genus_qs) # TODO will need to filter according to  group  selection
+            if generas:
+                for genus in generas:
+                    genus_list.append({
+                        'id': genus.id,
+                        'name': genus.name,
+                        });
+        conservation_list_dict = []
+        cons_list_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__conservation_list', flat=True).distinct()
+        conservation_lists = ConservationList.objects.filter(id__in=cons_list_qs)
+        if conservation_lists:
+            for choice in conservation_lists:
+                conservation_list_dict.append({'id': choice.id,
+                    'code': choice.code,
+                    });
+
+        conservation_category_list = []
+        conservation_categories = ConservationCategory.objects.all()
+        if conservation_categories:
+            for choice in conservation_categories:
+                conservation_category_list.append({
+                    'id': choice.id,
+                    'code': choice.code,
+                    'conservation_list_id': choice.conservation_list_id,
+                    });
+        processing_status_list = []
+        processing_statuses =  qs.filter(conservation_status__processing_status__isnull=False).order_by('conservation_status__processing_status').distinct('conservation_status__processing_status').values_list('conservation_status__processing_status', flat=True)
+        if processing_statuses:
+            for status in processing_statuses:
+                processing_status_list.append({
+                    'value': status,
+                    'name': '{}'.format(' '.join(status.split('_')).capitalize()),
+                    });
+        res_json = {
+        "species_data_list":species_data_list,
+        "scientific_name_list": scientific_name_list,
+        "family_list": family_list,
+        "phylogenetic_group_list":phylogenetic_group_list,
+        "genus_list":genus_list,
+        "conservation_list_dict":conservation_list_dict,
+        "conservation_category_list":conservation_category_list,
+        "processing_status_list": processing_status_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+        return Response(data)
+
+    @list_route(methods=['GET',], detail=False)
+    def community_filter_list(self, request, *args, **kwargs):
+        """ Used by the internal referred to me dashboard filters for community """
+        #qs =  self.get_queryset().filter(referral=request.user)
+        qs =  self.get_queryset()
+        group_type = request.GET.get('group_type_name','')
+        community_data_list = []
+        if group_type:
+            community_qs = qs.filter(conservation_status__community__isnull=False).values_list('conservation_status__community', flat=True).distinct()
+            communities = Community.objects.filter(id__in=community_qs)
+            if communities:
+                for i in communities:
+                    community_data_list.append({
+                        'id': i.id,
+                        'community_migrated_id':i.community_migrated_id,
+                        });
+        community_name_list = []
+        if group_type:
+            community_name = qs.filter(conservation_status__community__isnull=False).order_by('conservation_status__community').distinct('conservation_status__community').values_list('conservation_status__community__community_name', 'conservation_status__community__community_name__name').distinct()
+            #names = CommunityName.objects.filter(id__in=community_name_qs) # TODO will need to filter according to  group  selection
+            if community_name:
+                for name in community_name:
+                    community_name_list.append({
+                        'id': name[0],
+                        'name': name[1],
+                        });
+        conservation_list_dict = []
+        cons_list_qs = qs.filter(conservation_status__community__isnull=False).values_list('conservation_status__conservation_list', flat=True).distinct()
+        conservation_lists = ConservationList.objects.filter(id__in=cons_list_qs)
+        if conservation_lists:
+            for choice in conservation_lists:
+                conservation_list_dict.append({'id': choice.id,
+                    'code': choice.code,
+                    });
+
+        conservation_category_list = []
+        conservation_categories = ConservationCategory.objects.all()
+        if conservation_categories:
+            for choice in conservation_categories:
+                conservation_category_list.append({
+                    'id': choice.id,
+                    'code': choice.code,
+                    'conservation_list_id': choice.conservation_list_id,
+                    });
+        processing_status_list = []
+        processing_statuses =  qs.filter(conservation_status__processing_status__isnull=False).order_by('conservation_status__processing_status').distinct('conservation_status__processing_status').values_list('conservation_status__processing_status', flat=True)
+        if processing_statuses:
+            for status in processing_statuses:
+                processing_status_list.append({
+                    'value': status,
+                    'name': '{}'.format(' '.join(status.split('_')).capitalize()),
+                    });
+        res_json = {
+        "community_data_list":community_data_list,
+        "community_name_list":community_name_list,
+        "conservation_list_dict":conservation_list_dict,
+        "conservation_category_list":conservation_category_list,
+        "processing_status_list": processing_status_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+        return Response(data)
 
 
     # def retrieve(self, request, *args, **kwargs):
@@ -871,7 +1148,7 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset().all()
         if conservation_status:
             qs = qs.filter(conservation_status_id=int(conservation_status))
-        serializer = DTConservationStatusReferralSerializer(qs, many=True)
+        serializer = DTConservationStatusReferralSerializer(qs, many=True, context={"request": request})
         return Response(serializer.data)
 
     @detail_route(methods=['GET',],detail=True,)

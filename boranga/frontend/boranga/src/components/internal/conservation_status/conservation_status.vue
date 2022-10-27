@@ -340,11 +340,12 @@ export default {
         },
         amendmentRequest: function(){
             //this.save_wo();
-            let values = '';
-            $('.deficiency').each((i,d) => {
+            let value = '';
+            value = $('#assessor_deficiencies').val();
+            /*$('#assessor_deficiencies').each((i,d) => {
                 values +=  $(d).val() != '' ? `Question - ${$(d).data('question')}\nDeficiency - ${$(d).val()}\n\n`: '';
-            }); 
-            this.$refs.amendment_request.amendment.text = values;
+            }); */
+            this.$refs.amendment_request.amendment.text = value;
             
             this.$refs.amendment_request.isModalOpen = true;
         },

@@ -301,6 +301,8 @@ class ConservationStatus(models.Model):
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     review_status = models.CharField('Review Status', max_length=30, choices=REVIEW_STATUS_CHOICES,
                                      default=REVIEW_STATUS_CHOICES[0][0])
+    deficiency_data = models.TextField(null=True, blank=True)
+    assessor_data = models.TextField(null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -550,6 +552,13 @@ class ConservationStatus(models.Model):
                 return True
             else:
                 return False
+
+    @property   
+    def status_without_assessor(self):
+        status_without_assessor = ['with_approver','approved','declined','draft', 'with_referral']
+        if self.processing_status in status_without_assessor:
+            return True
+        return False
 
     def has_assessor_mode(self,user):
         status_without_assessor = [
@@ -833,6 +842,7 @@ class ConservationStatusReferral(models.Model):
     )
     text = models.TextField(blank=True)  # Assessor text
     referral_text = models.TextField(blank=True)
+    referral_comment = models.TextField(blank=True, null=True)  # Referral Comment
     document = models.ForeignKey(
         ConservationStatusReferralDocument,
         blank=True,
@@ -857,11 +867,22 @@ class ConservationStatusReferral(models.Model):
     @property
     def can_be_completed(self):
         #Referral cannot be completed until second level referral sent by referral has been completed/recalled
-        qs=ConservationStatusReferral.objects.filter(sent_by=self.referral, conservation_status=self.conservation_status, processing_status='with_referral')
+        qs=ConservationStatusReferral.objects.filter(sent_by=self.referral, conservation_status=self.conservation_status, processing_status=ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL)
         if qs:
             return False
         else:
             return True
+
+    def can_process(self, user):
+        return True  # TODO: implement
+        # if self.processing_status == Referral.PROCESSING_STATUS_WITH_REFERRAL:
+        #    group =  ReferralRecipientGroup.objects.filter(id=self.referral_group.id)
+        #    #user=request.user
+        #    if group and group[0] in user.referralrecipientgroup_set.all():
+        #        return True
+        #    else:
+        #        return False
+        # return False
 
     # def get_referral_group(self):
     #     # TODO: Take application_type into account

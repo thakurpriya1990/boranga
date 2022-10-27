@@ -432,6 +432,8 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
                 'assigned_officer',
                 'assigned_approver',
                 'allowed_assessors',
+                'deficiency_data',
+                'assessor_data',
                 )
 
     def get_readonly(self,obj):
@@ -562,6 +564,8 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 'latest_referrals',
                 'allowed_assessors',
                 'assessor_mode',
+                'deficiency_data',
+                'assessor_data',
                 #'accessing_user_roles',
                 )
 
@@ -657,6 +661,8 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
                 'allowed_assessors',
                 'assessor_mode',
                 #'accessing_user_roles',
+                'deficiency_data',
+                'assessor_data',
                 )
 
     # def get_accessing_user_roles(self, conservation_status):
@@ -733,6 +739,8 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
                 'can_user_edit',
                 'can_user_view',
                 'reference',
+                'deficiency_data',
+                'assessor_data',
                 )
         read_only_fields=('id',)
 
@@ -785,6 +793,8 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
                 'latest_referrals',
                 'allowed_assessors',
                 'assessor_mode',
+                'deficiency_data',
+                'assessor_data',
                 #'accessing_user_roles',
                 )
 
@@ -862,6 +872,8 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
                 'can_user_edit',
                 'can_user_view',
                 'reference',
+                'deficiency_data',
+                'assessor_data',
                 )
         read_only_fields=('id',)
 
@@ -922,9 +934,20 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     conservation_status_number = serializers.CharField(source='conservation_status.conservation_status_number')
     submitter = serializers.SerializerMethodField()
     referral = serializers.SerializerMethodField()
-    assigned_officer = serializers.CharField(
-        source="assigned_officer.get_full_name", allow_null=True
-    )
+    document = serializers.SerializerMethodField()
+    can_user_process=serializers.SerializerMethodField()
+    # Priya commented as not used on boranga referral dash yet
+    #assigned_officer = serializers.CharField(source='assigned_officer.get_full_name', allow_null=True)
+    group_type = serializers.SerializerMethodField()
+    # species related fields
+    species_number = serializers.SerializerMethodField()
+    scientific_name = serializers.SerializerMethodField()
+    conservation_list = serializers.SerializerMethodField()
+    conservation_category = serializers.SerializerMethodField()
+    # community related fields
+    community_number = serializers.SerializerMethodField()
+    community_migrated_id = serializers.SerializerMethodField()
+    community_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatusReferral
@@ -937,10 +960,22 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             'conservation_status',
             'can_be_processed',
             'referral',
+            'document',
             'conservation_status_lodgement_date',
             'conservation_status_number',
             'referral_text',
-            'assigned_officer',
+            'can_user_process',
+            #'assigned_officer',
+            #species related fields
+            'group_type',
+            'species_number',
+            'scientific_name',
+            'conservation_list',
+            'conservation_category',
+            # community related fields
+            'community_number',
+            'community_migrated_id',
+            'community_name',
         )
 
     def get_referral(self, obj):
@@ -954,6 +989,59 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             return EmailUserSerializer(email_user).data
         else:
             return ""
+
+    def get_document(self, obj):
+        # doc = obj.referral_documents.last()
+        return [obj.document.name, obj.document._file.url] if obj.document else None
+
+    def get_can_user_process(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        if obj.can_process(user) and obj.can_be_completed:
+            if obj.assigned_officer:
+                if obj.assigned_officer == user:
+                    return True
+            else:
+                return True
+        return False
+
+    def get_group_type(self,obj):
+        if obj.conservation_status:
+            return obj.conservation_status.application_type.name # if user haven't filled up the form yet(ie. species not selected)
+
+    def get_species_number(self,obj):
+        if obj.conservation_status.species:
+            return obj.conservation_status.species.species_number
+        return ''
+
+    def get_scientific_name(self,obj):
+        if obj.conservation_status.species:
+            return obj.conservation_status.species.scientific_name.name
+
+    def get_community_number(self,obj):
+        if obj.conservation_status.community:
+            return obj.conservation_status.community.community_number
+        return ''
+
+    def get_community_migrated_id(self,obj):
+        if obj.conservation_status.community:
+            return obj.conservation_status.community.community_migrated_id
+        return ''
+
+    def get_community_name(self,obj):
+        if obj.conservation_status.community:
+            return obj.conservation_status.community.community_name.name
+        return ''
+
+    def get_conservation_list(self,obj):
+        if obj.conservation_status.conservation_list:
+            return obj.conservation_status.conservation_list.code
+        return ''
+
+    def get_conservation_category(self,obj):
+        if obj.conservation_status.conservation_category:
+            return obj.conservation_status.conservation_category.code
+        return ''
 
 
 class ConservationStatusReferralProposalSerializer(InternalConservationStatusSerializer):
