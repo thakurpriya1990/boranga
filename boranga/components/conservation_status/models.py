@@ -749,6 +749,7 @@ class ConservationStatusUserAction(UserAction):
     #ConservationStatus Proposal
     ACTION_EDIT_CONSERVATION_STATUS= "Edit Conservation Status {}"
     ACTION_LODGE_PROPOSAL = "Lodge proposal for conservation status {}"
+    ACTION_SAVE_APPLICATION = "Save proposal {}"
     ACTION_ASSIGN_TO_ASSESSOR = "Assign conservation status proposal {} to {} as the assessor"
     ACTION_UNASSIGN_ASSESSOR = "Unassign assessor from conservation status proposal {}"
     ACTION_ASSIGN_TO_APPROVER = "Assign conservation status proposal {} to {} as the approver"

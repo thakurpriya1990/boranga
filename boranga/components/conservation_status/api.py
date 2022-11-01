@@ -45,6 +45,7 @@ from boranga.components.conservation_status.models import(
     ConservationList,
     ConservationStatusReferral,
     ConservationStatusAmendmentRequest,
+    ConservationStatusUserAction,
 )
 from boranga.components.conservation_status.serializers import(
     SendReferralSerializer,
@@ -665,7 +666,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 instance = self.get_object() 
                 request_data = request.data
-                # to resolve error for serializer submitter id as object is received
+                # to resolve error for serializer submitter id as object is received in request
                 request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
                 if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
                     serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
@@ -679,10 +680,13 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                     # add the updated Current conservation criteria list [1,2] to the cs instance,
                     saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
-                    serializer_class = self.internal_serializer_class()
-                    return_serializer = serializer_class(instance=saved_instance, context={'request': request})
+                    #commented below as  internal proposal is only save changes not submitted(save and exit/submit form)
+                    #serializer_class = self.internal_serializer_class()
+                    #return_serializer = serializer_class(instance=saved_instance, context={'request': request})
                     #return Response(return_serializer.data)
-                    return Response()
+                    #return Response()
+                    instance.log_user_action(ConservationStatusUserAction.ACTION_SAVE_APPLICATION.format(instance.conservation_status_number), request)
+            return redirect(reverse('external'))
         
         except serializers.ValidationError:
             print(traceback.print_exc())

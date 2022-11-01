@@ -161,7 +161,8 @@
                                 <input type='hidden' name="conservation_status_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
                                     <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                        <div v-if="hasAssessorMode" class="container">
+                                        <!-- commented the below as internal is no proposal submission just saving proposal changes -->
+                                        <!-- <div v-if="hasAssessorMode" class="container">
                                             <div class="col-md-12 text-end">
                                                 <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -177,6 +178,14 @@
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                                 <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
                                                 @click.prevent="submit()" :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
+                                            </div>
+                                        </div> -->
+
+                                        <div v-if="hasAssessorMode" class="container">
+                                            <div class="col-md-12 text-end">
+                                                <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
                                             </div>
                                         </div>
                                     </div>
@@ -217,8 +226,8 @@ export default {
             "loading": [],
             form: null,
             savingConservationStatus:false,
-            saveExitConservationStatus: false,
-            submitConservationStatus: false,
+            /*saveExitConservationStatus: false,
+            submitConservationStatus: false,*/
             department_users : [],
             selected_referral: '',
             referral_text: '',
@@ -354,26 +363,18 @@ export default {
             vm.savingConservationStatus=true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            const res = await vm.$http.post(vm.species_community_cs_form_url,payload);
-            if(res.ok){
-                swal(
-                    'Saved',
-                    'Your changes has been saved',
-                    'success'
-                )
-                vm.savingConservationStatus=false;
-                return res;
-            }
-            else{
-                swal({
-                    title: "Please fix following errors before saving",
-                    text: err.bodyText,
-                    type:'error'
-                });
-                vm.savingConservationStatus=false;
-            }
+            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+              swal(
+                'Saved',
+                'Your changes has been saved',
+                'success'
+              )
+              vm.savingConservationStatus=false;
+          },err=>{
+            vm.savingConservationStatus=false;
+          });
         },
-        save_exit: async function(){
+        /*save_exit: async function(){
             let vm = this;
             vm.saveExitConservationStatus=true;
             const res = await this.save();
@@ -384,8 +385,8 @@ export default {
                     name: 'internal-conservation_status-dash'
                 });
             }
-        },
-        submit: async function(){
+        },*/
+        /*submit: async function(){
             let vm = this
             vm.submitConservationStatus=true;
             try {
@@ -421,11 +422,12 @@ export default {
                     //this.submitting = false;
                 }
             }
-        },
+        },*/
         save_wo: function() {
             let vm = this;
-            let formData = new FormData(vm.form);
-            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
+            let payload = new Object();
+            Object.assign(payload, vm.conservation_status_obj);
+            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
                 },err=>{
             });
         },
