@@ -978,6 +978,66 @@ class ConservationStatusReferral(models.Model):
             # send email
             send_conservation_status_referral_email_notification(self,request)
 
+    def send_referral(self,request,referral_email,referral_text):
+        with transaction.atomic():
+            try:
+                referral_email = referral_email.lower()
+                if self.conservation_status.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL:
+                    if request.user.id != self.referral:
+                        raise exceptions.ReferralNotAuthorized()
+                    if self.sent_from != 1:
+                        raise exceptions.ReferralCanNotSend()
+                    self.conservation_status.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+                    self.conservation_status.save()
+                    referral = None
+                    # Check if the user is in ledger
+                    try:
+                        user = EmailUser.objects.get(email__icontains=referral_email)
+                    except EmailUser.DoesNotExist:
+                        # Validate if it is a deparment user
+                        department_user = get_department_user(referral_email)
+                        if not department_user:
+                            raise ValidationError('The user you want to send the referral to is not a member of the department')
+                        # Check if the user is in ledger or create
+
+                        user,created = EmailUser.objects.get_or_create(email=department_user['email'].lower())
+                        if created:
+                            user.first_name = department_user['given_name']
+                            user.last_name = department_user['surname']
+                            user.save()
+                    qs=ConservationStatusReferral.objects.filter(sent_by=user.id, conservation_status=self.conservation_status)
+                    if qs:
+                        raise ValidationError('You cannot send referral to this user')
+                    try:
+                        ConservationStatusReferral.objects.get(referral=user.id,conservation_status=self.conservation_status)
+                        raise ValidationError('A referral has already been sent to this user')
+                    except ConservationStatusReferral.DoesNotExist:
+                        # Create Referral
+                        referral = ConservationStatusReferral.objects.create(
+                            conservation_status = self.conservation_status,
+                            referral=user.id,
+                            sent_by=request.user.id,
+                            sent_from=2,
+                            text=referral_text
+                        )
+                    # Create a log entry for the proposal
+                    self.conservation_status.log_user_action(
+                        ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
+                            referral.id,
+                            self.conservation_status.conservation_status_number,
+                            '{}({})'.format(user.get_full_name(),user.email),
+                        ),
+                        request,
+                    )
+                    # Create a log entry for the organisation
+                    #self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.proposal.lodgement_number,'{}({})'.format(user.get_full_name(),user.email)),request)
+                    # send email
+                    send_conservation_status_referral_email_notification(referral,request)
+                else:
+                    raise exceptions.ConservationStatusReferralCannotBeSent()
+            except:
+                raise
+
     def can_assess_referral(self,user):
         return self.processing_status == 'with_referral'
 

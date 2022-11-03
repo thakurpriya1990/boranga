@@ -932,8 +932,8 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     referral_status = serializers.CharField(source='get_processing_status_display')
     conservation_status_lodgement_date = serializers.CharField(source='conservation_status.lodgement_date')
     conservation_status_number = serializers.CharField(source='conservation_status.conservation_status_number')
-    submitter = serializers.SerializerMethodField()
     referral = serializers.SerializerMethodField()
+    submitter = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
     can_user_process=serializers.SerializerMethodField()
     # Priya commented as not used on boranga referral dash yet
@@ -953,37 +953,35 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
         model = ConservationStatusReferral
         fields = (
             'id',
-            'submitter',
             'processing_status',
             'referral_status',
+            'conservation_status_lodgement_date',
+            'conservation_status_number',
+            'referral',
+            'submitter',
+            'can_user_process',
             'lodged_on',
             'conservation_status',
             'can_be_processed',
-            'referral',
             'document',
-            'conservation_status_lodgement_date',
-            'conservation_status_number',
             'referral_text',
-            'can_user_process',
             #'assigned_officer',
-            #species related fields
             'group_type',
             'species_number',
             'scientific_name',
             'conservation_list',
             'conservation_category',
-            # community related fields
             'community_number',
             'community_migrated_id',
             'community_name',
-        )
+        ) 
 
     def get_referral(self, obj):
         serializer = EmailUserSerializer(retrieve_email_user(obj.referral))
         return serializer.data
 
     def get_submitter(self,obj):
-         # if obj.submitter:
+        # if obj.submitter:
         if hasattr(obj, "submitter") and obj.submitter:
             email_user = retrieve_email_user(obj.submitter)
             return EmailUserSerializer(email_user).data
@@ -1065,19 +1063,10 @@ class ConservationStatusReferralSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
     latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
     can_be_completed = serializers.BooleanField()
-    # can_process = serializers.SerializerMethodField()
-    # #referral_assessment = ProposalAssessmentSerializer(read_only=True)
-    # application_type = serializers.CharField(read_only=True)
-    # allowed_assessors = EmailUserSerializer(many=True)
-    # current_assessor = serializers.SerializerMethodField()
-    # referral_obj = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatusReferral
-        fields = [
-            "__all__",
-            #"referral_obj",
-        ]
+        fields = '__all__'
 
     # def get_referral_obj(self, obj):
     #     referral_email_user = retrieve_email_user(obj.referral)
@@ -1097,13 +1086,6 @@ class ConservationStatusReferralSerializer(serializers.ModelSerializer):
             self.fields["conservation_status"] = ConservationStatusReferralProposalSerializer(
                 context={"request": self.context["request"]}
             )
-            # TODO Do I need to do ReferralProposalSerializer accounding to application_type?
-            # if kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.TCLASS:
-            #     self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
-            # elif kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.FILMING:
-            #     self.fields['proposal'] = FilmingReferralProposalSerializer(context={'request':self.context['request']})
-            # elif kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.EVENT:
-            #     self.fields['proposal'] = EventReferralProposalSerializer(context={'request':self.context['request']})
         except:
             raise
 

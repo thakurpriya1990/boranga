@@ -952,6 +952,18 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
             return queryset
         return ConservationStatusReferral.objects.none()
 
+    def get_serializer_class(self):
+        try:
+            return ConservationStatusReferralSerializer
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     #used for Species (flora/Fauna)Referred to me internal dashboard filters
     @list_route(methods=['GET',], detail=False)
     def filter_list(self, request, *args, **kwargs):
@@ -1202,6 +1214,25 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    #used on referral form
+    @detail_route(methods=['post'], detail=True)
+    def send_referral(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SendReferralSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.send_referral(request,serializer.validated_data['email'],serializer.validated_data['text'])
+            serializer = self.get_serializer(instance, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
