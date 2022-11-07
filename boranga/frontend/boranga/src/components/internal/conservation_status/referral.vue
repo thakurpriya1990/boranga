@@ -1,5 +1,5 @@
 <template lang="html">
-    <div v-if="conservation_status_obj" class="container" id="internalConservationStatus">
+    <div v-if="conservation_status_obj" class="container" id="internalCSReferral">
       <div class="row" style="padding-bottom: 50px;">
         <h3>{{ display_number }} - {{display_name }}</h3>
         
@@ -9,11 +9,10 @@
            <CommsLogs
                 :comms_url="comms_url"
                 :logs_url="logs_url"
-                :comms_add_url="comms_add_url"
-                :disable_add_entry="false"
+                comms_add_url="test"
             />
 
-            <Submission v-if="canSeeSubmission"
+            <Submission
                 :submitter_first_name="submitter_first_name"
                 :submitter_last_name="submitter_last_name"
                 :lodgement_date="conservation_status_obj.lodgement_date"
@@ -34,25 +33,25 @@
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
-                            <template v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Referrals</strong><br/>
-                                    <div class="form-group">
+                                    <div class="form-group" v-if="!isFinalised">
 
-                                        <select :disabled="!canLimitedAction" ref="department_users" class="form-control">
+                                        <select :disabled="isFinalised || conservation_status_obj.can_user_edit" ref="department_users" class="form-control">
                                             <option value="null"></option>
                                             <!-- <option v-for="user in department_users" :value="user.email" :key="user.id">{{user.name}}</option> -->
                                         </select>
 
                                         <template v-if='!sendingReferral'>
-                                            <template v-if="selected_referral">
+                                            <template v-if="selected_referral && !isFinalised && !conservation_status_obj.can_user_edit && referral.sent_from == 1">
                                                 <label class="control-label pull-left"  for="Name">Comments</label>
                                                 <textarea class="form-control" name="name" v-model="referral_text"></textarea>
-                                                <a v-if="canLimitedAction" @click.prevent="sendReferral()" class="actionBtn pull-right">Send</a>
+                                                <a v-if="!isFinalised && !conservation_status_obj.can_user_edit && referral.sent_from == 1" @click.prevent="sendReferral()" 
+                                                    class="actionBtn pull-right">Send</a>
                                             </template>
                                         </template>
                                         <template v-else>
-                                            <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled class="actionBtn text-primary pull-right">
+                                            <span v-if="!isFinalised && !conservation_status_obj.can_user_edit && referral.sent_from == 1" @click.prevent="sendReferral()" class="actionBtn text-primary pull-right">
                                                 Sending Referral&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
                                             </span>
@@ -63,18 +62,21 @@
                                             <th>Referral</th>
                                             <th>Status/Action</th>
                                         </tr>
-                                        <tr v-for="r in conservation_status_obj.latest_referrals">
+                                        <tr v-for="r in referral.latest_referrals">
                                             <td>
                                                 <small><strong>{{r.referral_obj.first_name}} {{ r.referral_obj.last_name }}</strong></small><br/>
                                                 <small><strong>{{r.lodged_on | formatDate}}</strong></small>
                                             </td>
                                             <td>
                                                 <small><strong>{{r.processing_status}}</strong></small><br/>
-                                                <template v-if="r.processing_status == 'Awaiting'">
-                                                    <small v-if="canLimitedAction"><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)"href="#">Recall</a></small>
-                                                </template>
-                                                <template v-else>
-                                                    <small v-if="canLimitedAction"><a @click.prevent="resendReferral(r)" href="#">Resend</a></small>
+                                                <template v-if="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id">
+                                                    <template v-if="r.processing_status == 'Awaiting'">
+                                                        <small><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)"href="#">Recall</a></small>
+                                                    </template>
+                                                    <template v-else>
+                                                        <small><a @click.prevent="resendReferral(r)" href="#">Resend</a>
+                                                        </small>
+                                                    </template>
                                                 </template>
                                             </td>
                                         </tr>
@@ -82,55 +84,28 @@
                                     <template>
                                             
                                     </template>
-                                    <CSMoreReferrals @refreshFromResponse="refreshFromResponse" :conservation_status_obj="conservation_status_obj" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/>
+                                    <CSMoreReferrals @refreshFromResponse="refreshFromResponse" :conservation_status_obj="conservation_status_obj" :canAction="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id" :isFinalised="isFinalised" 
+                                        :referral_url="referralListURL"/>
                                 </div>
                                 <div class="col-sm-12">
                                     <div class="separator"></div>
                                 </div>
-                            </template>
-                            <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
-                                <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
-                                    <template v-if="conservation_status_obj.processing_status == 'With Approver'">
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="conservation_status_obj.assigned_approver">
-                                            <option v-for="member in conservation_status_obj.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
-                                    </template>
-                                    <template v-else>
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="conservation_status_obj.assigned_officer">
-                                            <option v-for="member in conservation_status_obj.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
-                                    </template>
-                                </div>
-                            </div>
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
-                            <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
-                                <template v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <strong>Action</strong><br/>
-                                        </div>
+                            <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id && referral.can_be_completed">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <strong>Action</strong><br/>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="amendmentRequest()">Request Amendment</button><br/>
-                                        </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label class="control-label pull-left"  for="Name">Comments</label>
+                                        <textarea class="form-control" name="name" v-model="referral_comment"></textarea>
+                                        <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="completeReferral">Complete Referral Task</button>
                                     </div>
-                                   <!--  <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="proposedDecline()">Propose to Decline</button>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="proposedApproval()">Propose to Approve</button><br/>
-                                        </div>
-                                    </div> -->
-                                </template>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -150,42 +125,22 @@
                         <div class="row">
                             <form :action="species_community_cs_form_url" method="post" name="new_conservation_status" enctype="multipart/form-data">
                                 <ProposalConservationStatus 
+                                    v-if="conservation_status_obj"
                                     ref="conservation_status" 
-                                    :conservation_status_obj="conservation_status_obj" 
-                                    :canEditStatus="canEditStatus"
-                                    id="ConservationStatusStart" 
-                                    :is_internal="true">
+                                    :conservation_status_obj="conservation_status_obj" >
                                     <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
                                 </ProposalConservationStatus>
                                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                 <input type='hidden' name="conservation_status_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
-                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                        <!-- commented the below as internal is no proposal submission just saving proposal changes -->
-                                        <!-- <div v-if="hasAssessorMode" class="container">
+                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;" 
+                                    v-if="!conservation_status_obj.can_user_edit && !isFinalised">
+                                        <div v-if="!isFinalised" class="container">
                                             <div class="col-md-12 text-end">
-                                                <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
+                                                <!-- <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
-                                                @click.prevent="save()" :disabled="saveExitConservationStatus || submitConservationStatus">Save and Continue</button>
-                                                
-                                                <button v-if="saveExitConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
-                                                @click.prevent="save_exit()" :disabled="savingConservationStatus || submitConservationStatus">Save and Exit</button>
-
-                                                <button v-if="submitConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
-                                                @click.prevent="submit()" :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
-                                            </div>
-                                        </div> -->
-
-                                        <div v-if="hasAssessorMode" class="container">
-                                            <div class="col-md-12 text-end">
-                                                <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button> -->
+                                                <button class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
                                             </div>
                                         </div>
                                     </div>
@@ -197,7 +152,6 @@
             </div>
         </div>
         </div>
-        <AmendmentRequest ref="amendment_request" :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
     </div>
 </template>
 <script>
@@ -206,7 +160,6 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
-import AmendmentRequest from './amendment_request.vue'
 
 import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
@@ -217,11 +170,11 @@ import {
 }
 from '@/utils/hooks'
 export default {
-    name: 'InternalConservationStatus',
+    name: 'InternalConservationStatusReferral',
     data: function() {
         let vm = this;
         return {
-            "conservation_status_obj":null,
+            //"conservation_status_obj":null,
             "original_conservation_status_obj": null,
             "loading": [],
             form: null,
@@ -231,14 +184,15 @@ export default {
             department_users : [],
             selected_referral: '',
             referral_text: '',
+            referral_comment: '',
             sendingReferral: false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/add_comms_log'),
             logs_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/action_log'),
             comparing: false,
             initialisedSelects: false,
+            referral: {},
         }
     },
     components: {
@@ -247,7 +201,6 @@ export default {
         Submission,
         Workflow,
         ProposalConservationStatus,
-        AmendmentRequest,
         CSMoreReferrals,
     },
     filters: {
@@ -255,9 +208,17 @@ export default {
             return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
         }
     },
+    props:{
+            referralId:{
+                type:Number,
+            },
+    },
     watch: {
     },
     computed: {
+        conservation_status_obj: function(){
+            return this.referral != null && this.referall != 'undefined' ? this.referral.conservation_status : null;
+        },
         csrf_token: function() {
           return helpers.getCookie('csrftoken')
         },
@@ -309,16 +270,8 @@ export default {
                 //return this.conservation_status_obj.applicant_obj.email
             }
         },
-        canSeeSubmission: function(){
-            /*return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)*/
-
-            return true; // TODO the Processing Status based value
-        },
-        canEditStatus: function(){
-            return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit: 'false';
-        },
         isFinalised: function(){
-            return this.conservation_status_obj.processing_status == 'Declined' || this.conservation_status_obj.processing_status == 'Approved';
+            return !(this.referral != null  && this.referral.processing_status == 'Awaiting'); 
         },
         canLimitedAction: function(){
             if (this.conservation_status_obj.processing_status == 'With Approver'){
@@ -346,17 +299,6 @@ export default {
     methods: {
         commaToNewline(s){
             return s.replace(/[,;]/g, '\n');
-        },
-        amendmentRequest: function(){
-            //this.save_wo();
-            let value = '';
-            value = $('#assessor_deficiencies').val();
-            /*$('#assessor_deficiencies').each((i,d) => {
-                values +=  $(d).val() != '' ? `Question - ${$(d).data('question')}\nDeficiency - ${$(d).val()}\n\n`: '';
-            }); */
-            this.$refs.amendment_request.amendment.text = value;
-            
-            this.$refs.amendment_request.isModalOpen = true;
         },
         save: async function() {
             let vm = this;
@@ -510,27 +452,6 @@ export default {
                 $(vm.$refs.assigned_officer).trigger('change');
             }
         },
-        assignRequestUser: function(){
-            let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/assign_request_user')))
-            .then((response) => {
-                vm.conservation_status_obj = response.body;
-                //vm.fetchProposalParks(vm.proposal.id);
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                vm.updateAssignedOfficerSelect();
-
-            }, (error) => {
-                vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
-                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                vm.updateAssignedOfficerSelect();
-                swal(
-                    'Application Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
         initialiseAssignedOfficerSelect:function(reinit=false){
             let vm = this;
             if (reinit){
@@ -585,7 +506,7 @@ export default {
                 minimumInputLength: 2,
                 "theme": "bootstrap-5",
                 allowClear: true,
-                placeholder:"Select Referrer",
+                placeholder:"Select Referral",
                 ajax: {
                     url: api_endpoints.users_api + '/get_department_users/',
                     dataType: 'json',
@@ -739,31 +660,9 @@ export default {
         });
     },
     beforeRouteEnter: function(to, from, next) {
-        //-------------get species_conservation_status object if received species id
-        /*if(to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna"){
-            Vue.http.get(`/api/species_conservation_status/${to.params.conservation_status_id}/internal_species_conservation_status.json`).then(res => {
+        Vue.http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,to.params.referral_id)).then(res => {
               next(vm => {
-                vm.conservation_status_obj = res.body.species_conservation_status_obj; //--temp species_obj
-              });
-            },
-            err => {
-              console.log(err);
-            });
-        }
-        //------get community_conservations_status object if received community id
-        else{
-            Vue.http.get(`/api/community_conservation_status/${to.params.conservation_status_id}/internal_community_conservation_status.json`).then(res => {
-              next(vm => {
-                vm.conservation_status_obj = res.body.community_conservation_status_obj; //--temp community_obj
-              });
-            },
-            err => {
-              console.log(err);
-            });
-        }*/
-        Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(res => {
-              next(vm => {
-                vm.conservation_status_obj = res.body.conservation_status_obj;
+                vm.referral = res.body;
               });
             },
             err => {

@@ -45,6 +45,7 @@ from boranga.components.conservation_status.models import(
     ConservationList,
     ConservationStatusReferral,
     ConservationStatusAmendmentRequest,
+    ConservationStatusUserAction,
 )
 from boranga.components.conservation_status.serializers import(
     SendReferralSerializer,
@@ -665,7 +666,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 instance = self.get_object() 
                 request_data = request.data
-                # to resolve error for serializer submitter id as object is received
+                # to resolve error for serializer submitter id as object is received in request
                 request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
                 if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
                     serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
@@ -679,10 +680,13 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                     # add the updated Current conservation criteria list [1,2] to the cs instance,
                     saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
-                    serializer_class = self.internal_serializer_class()
-                    return_serializer = serializer_class(instance=saved_instance, context={'request': request})
+                    #commented below as  internal proposal is only save changes not submitted(save and exit/submit form)
+                    #serializer_class = self.internal_serializer_class()
+                    #return_serializer = serializer_class(instance=saved_instance, context={'request': request})
                     #return Response(return_serializer.data)
-                    return Response()
+                    #return Response()
+                    instance.log_user_action(ConservationStatusUserAction.ACTION_SAVE_APPLICATION.format(instance.conservation_status_number), request)
+            return redirect(reverse('external'))
         
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -948,6 +952,18 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
             return queryset
         return ConservationStatusReferral.objects.none()
 
+    def get_serializer_class(self):
+        try:
+            return ConservationStatusReferralSerializer
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     #used for Species (flora/Fauna)Referred to me internal dashboard filters
     @list_route(methods=['GET',], detail=False)
     def filter_list(self, request, *args, **kwargs):
@@ -1198,6 +1214,25 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    #used on referral form
+    @detail_route(methods=['post'], detail=True)
+    def send_referral(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SendReferralSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.send_referral(request,serializer.validated_data['email'],serializer.validated_data['text'])
+            serializer = self.get_serializer(instance, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

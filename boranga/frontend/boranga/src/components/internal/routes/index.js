@@ -22,6 +22,7 @@ import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
 import SpeciesCommunities from '../species_communities/species_communities.vue'
 import ConservationStatusDash from '../conservation_status/dashboard.vue'
 import ConservationStatus from '../conservation_status/conservation_status.vue'
+import ConservationStatusReferral from '../conservation_status/referral.vue'
 export default
 {
     path: '/internal',
@@ -237,7 +238,7 @@ export default
                         },
                         {
                             path: 'referral/:referral_id',
-                            component: Referral,
+                            component: ConservationStatusReferral,
                             name:"internal-conservation_status-referral"
                         }
                     ]
