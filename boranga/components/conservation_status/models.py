@@ -2,6 +2,7 @@ import logging
 import datetime
 from django.db import models
 from django.core.exceptions import ValidationError
+from boranga import exceptions
 from boranga.components.main.models import (
     CommunicationsLogEntry, 
     UserAction,
@@ -31,6 +32,7 @@ from boranga.components.conservation_status.email import (
     send_conservation_status_referral_email_notification,
     send_conservation_status_referral_recall_email_notification,
     send_conservation_status_amendment_email_notification,
+    send_conservation_status_referral_complete_email_notification,
     )
 
 
@@ -693,7 +695,7 @@ class ConservationStatus(models.Model):
                             referral=user.id,
                             sent_by=request.user.id,
                             text=referral_text,
-                            assigned_officer=request.user.id,
+                            assigned_officer=request.user.id, # TODO should'nt use assigned officer as per das
                         )
                     # Create a log entry for the proposal
                     self.log_user_action(
@@ -772,6 +774,7 @@ class ConservationStatusUserAction(UserAction):
     ACTION_REMIND_REFERRAL = "Send reminder for referral {} for conservation status proposal {} to {}"
     ACTION_BACK_TO_PROCESSING = "Back to processing for conservation status proposal {}"
     RECALL_REFERRAL = "Referral {} for conservation status proposal {} has been recalled"
+    COMMENT_REFERRAL = "Referral {} for conservation status proposal {} has been commented by {}"
     CONCLUDE_REFERRAL = "Referral {} for conservation status proposal {} has been concluded by {}"
 
 
@@ -841,8 +844,8 @@ class ConservationStatusReferral(models.Model):
         choices=PROCESSING_STATUS_CHOICES,
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
-    text = models.TextField(blank=True)  # Assessor text
-    referral_text = models.TextField(blank=True)
+    text = models.TextField(blank=True)  # Assessor text when send_referral
+    referral_text = models.TextField(blank=True) # used in other projects for complete referral comment but not used in boranga
     referral_comment = models.TextField(blank=True, null=True)  # Referral Comment
     document = models.ForeignKey(
         ConservationStatusReferralDocument,
@@ -851,7 +854,7 @@ class ConservationStatusReferral(models.Model):
         related_name="referral_document",
         on_delete=models.SET_NULL,
     )
-    assigned_officer = models.IntegerField()  # EmailUserRO
+    assigned_officer = models.IntegerField(null=True)  # EmailUserRO
 
     class Meta:
         app_label = "boranga"
@@ -905,6 +908,7 @@ class ConservationStatusReferral(models.Model):
 
     def remind(self,request):
         with transaction.atomic():
+            # TODO Is referral needed to check the assessor_group permission for below?
             if not self.conservation_status.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
             # Create a log entry for the proposal
@@ -1035,6 +1039,35 @@ class ConservationStatusReferral(models.Model):
                     send_conservation_status_referral_email_notification(referral,request)
                 else:
                     raise exceptions.ConservationStatusReferralCannotBeSent()
+            except:
+                raise
+    
+    #def complete(self,request, referral_comment):
+    def complete(self,request):
+        with transaction.atomic():
+            try:
+                if request.user.id != self.referral:
+                    raise exceptions.ReferralNotAuthorized()
+                self.processing_status = 'completed'
+                #self.referral_text = referral_comment
+                self.save()
+                
+                outstanding  = self.conservation_status.referrals.filter(processing_status='with_referral')
+                if len(outstanding) == 0:
+                    self.conservation_status.processing_status = 'with_assessor'
+                    self.conservation_status.save()
+                
+                # TODO Log conservationstatus action
+                self.conservation_status.log_user_action(ConservationStatusUserAction.CONCLUDE_REFERRAL.format(
+                    self.id,
+                    self.conservation_status.conservation_status_number,
+                    '{}({})'.format(self.referral_as_email_user.get_full_name(),self.referral_as_email_user.email),
+                    ),
+                    request,
+                )
+                # TODO log organisation action
+                #self.proposal.applicant.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+                send_conservation_status_referral_complete_email_notification(self,request)
             except:
                 raise
 

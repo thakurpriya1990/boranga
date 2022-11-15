@@ -465,10 +465,24 @@ export default {
                 },
             }
         },
+       column_conservation_status: function(){  
+            let vm = this
+            return{
+                data: "conservation_status", 
+                visible: false,
+            }
+        },
         column_can_be_processed: function(){  
             let vm = this
             return{
                 data: "can_be_processed", 
+                visible: false,
+            }
+        },
+        column_can_user_process: function(){  
+            let vm = this
+            return{
+                data: "can_user_process", 
                 visible: false,
             }
         },
@@ -488,6 +502,9 @@ export default {
                 vm.column_district,*/
                 vm.column_status,
                 vm.column_action,
+                vm.column_conservation_status,
+                vm.column_can_be_processed,
+                vm.column_can_user_process,
             ]
             let search = false
             let buttons = [

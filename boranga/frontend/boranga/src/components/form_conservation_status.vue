@@ -62,7 +62,8 @@
                     id="communityStatus" 
                     :is_external="is_external"
                     :canEditStatus="canEditStatus"
-                    :conservation_status_obj="conservation_status_obj">
+                    :conservation_status_obj="conservation_status_obj"
+                    :referral="referral">
                 </CommunityStatus>
                 <SpeciesStatus
                     v-else
@@ -70,7 +71,8 @@
                     id="speciesStatus" 
                     :is_external="is_external"
                     :canEditStatus="canEditStatus"
-                    :conservation_status_obj="conservation_status_obj">
+                    :conservation_status_obj="conservation_status_obj"
+                    :referral="referral">
                 </SpeciesStatus>
               </div>
               <!-- <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
@@ -137,6 +139,10 @@
             conservation_status_obj:{
                 type: Object,
                 required:true
+            },
+            referral:{
+                type: Object,
+                required:false
             },
             is_external:{
               type: Boolean,

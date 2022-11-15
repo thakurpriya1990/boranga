@@ -175,6 +175,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     phylogenetic_group = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
+    processing_status = serializers.CharField(source='get_processing_status_display')
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     class Meta:
@@ -298,6 +299,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     #conservation_status = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
+    processing_status = serializers.CharField(source='get_processing_status_display')
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     class Meta:
@@ -965,6 +967,7 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             'can_be_processed',
             'document',
             'referral_text',
+            'referral_comment',
             #'assigned_officer',
             'group_type',
             'species_number',
@@ -1048,14 +1051,14 @@ class ConservationStatusReferralProposalSerializer(InternalConservationStatusSer
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         try:
-            referral = ConservationStatusReferral.objects.get(conservation_status=obj,referral=user)
+            referral = ConservationStatusReferral.objects.get(conservation_status=obj,referral=user.id)
         except:
             referral = None
         return {
             'assessor_mode': True,
-            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+            'assessor_can_assess': referral.can_assess_referral(user.id) if referral else None,
             'assessor_level': 'referral',
-            'assessor_box_view': obj.assessor_comments_view(user)
+            'assessor_box_view': obj.assessor_comments_view(user.id)
         }
 
 

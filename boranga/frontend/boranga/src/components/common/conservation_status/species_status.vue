@@ -25,13 +25,22 @@
                         <div class="row mb-3" v-if="ref.box_view">
                             <label for="" class="col-sm-4 control-label">{{ref.label}}:</label>
                             <div class="col-sm-8">
-                                <textarea 
+                                <textarea v-if='!ref.readonly'
+                                    :disabled="ref.readonly" 
+                                    :name="ref.name" 
+                                    class="form-control" 
+                                    rows="3" 
+                                    placeholder="" 
+                                    v-model="referral.referral_comment"
+                                    />
+                                <textarea v-else
                                     :disabled="ref.readonly" 
                                     :name="ref.name" 
                                     :value="ref.value" 
                                     class="form-control" 
-                                    rows="3" 
-                                    placeholder="" />
+                                    rows="" 
+                                    placeholder="" 
+                                    />
                             </div>
                         </div> 
                     </div>
@@ -129,6 +138,10 @@ export default {
                 type: Object,
                 required:true
             },
+            referral:{
+                type: Object,
+                required:false
+            },
             is_external:{
               type: Boolean,
               default: false
@@ -165,8 +178,9 @@ export default {
                 // to display the species selected 
                 species_display: '',
                 //---Comment box attributes
-                deficiency_readonly : !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? true : false,
-                assessor_comment_readonly: !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? true : false,
+
+                deficiency_readonly : !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? false : true,
+                assessor_comment_readonly: !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? false : true,
                 
             }
         },
@@ -257,12 +271,12 @@ export default {
             },
             generateReferralCommentBoxes: function(){
                 var box_visibility = this.conservation_status_obj.assessor_mode.assessor_box_view
-                var assessor_mode = this.conservation_status_obj.assessor_level
+                var assessor_mode = this.conservation_status_obj.assessor_mode.assessor_level
                 if (!this.conservation_status_obj.can_user_edit){
                     var current_referral_present = false;
                     $.each(this.conservation_status_obj.latest_referrals,(i,v)=> {
                         var referral_name = `comment-field-Referral-${v.referral_obj.email}`; 
-                        var referral_visibility =  assessor_mode == 'referral' && this.conservation_status_obj.assessor_mode.assessor_can_assess ? false : true ;
+                        var referral_visibility =  assessor_mode == 'referral' && this.conservation_status_obj.assessor_mode.assessor_can_assess && this.referral.referral == v.referral_obj.id ? false : true ;
                         var referral_label = `${v.referral_obj.fullname}`;
                         var referral_comment_val = `${v.referral_comment}`;
                         this.referral_comments_boxes.push(
@@ -371,7 +385,7 @@ export default {
     input[type=text], select {
         width: 100%;
     }
-    input[type=number],{
+    input[type=number] {
         width: 50%;
     }
 </style>

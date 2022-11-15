@@ -86,7 +86,7 @@ export default {
                     },
                     {
                         title: 'Referral Comments',
-                        data: 'referral_text',
+                        data: 'referral_comment',
 
                         'render': function (value) {
                             var ellipsis = '...',
@@ -275,8 +275,12 @@ export default {
     },
     mounted(){
         this.$nextTick(() => {
+            let vm=this;
             //popoverTriggerElhelpers.enablePopovers()
-            this.initialiseTable()
+            // if loop given below to avoid error when referral completes his task
+            if(!vm.isFinalised){
+                this.initialiseTable();
+            }
         })
     },
 }

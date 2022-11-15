@@ -44,6 +44,11 @@ class ConservationStatusReferralRecallNotificationEmail(TemplateEmailBase):
     html_template = 'boranga/emails/cs_proposals/send_referral_recall_notification.html'
     txt_template = 'boranga/emails/cs_proposals/send_referral_recall_notification.txt'
 
+class ConservationStatusReferralCompleteNotificationEmail(TemplateEmailBase):
+    subject = 'A referral for a conservation status has been completed.'
+    html_template = 'boranga/emails/cs_proposals/send_referral_complete_notification.html'
+    txt_template = 'boranga/emails/cs_proposals/send_referral_complete_notification.txt'
+
 class ConservationStatusAmendmentRequestSendNotificationEmail(TemplateEmailBase):
     subject = 'An amendment to your conservation status proposal is required.'
     html_template = 'boranga/emails/cs_proposals/send_amendment_notification.html'
@@ -230,6 +235,23 @@ def send_conservation_status_referral_recall_email_notification(referral,request
     }
 
     msg = email.send(EmailUser.objects.get(id=referral.referral).email, context=context)
+    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    sender = get_sender_user()
+    _log_conservation_status_referral_email(msg, referral, sender=sender)
+    # if referral.proposal.applicant:
+    #     _log_org_email(msg, referral.proposal.applicant, referral.referral, sender=sender)
+
+def send_conservation_status_referral_complete_email_notification(referral,request):
+    email = ConservationStatusReferralCompleteNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-conservation-status-detail',kwargs={'cs_proposal_pk': referral.conservation_status.id}))
+
+    context = {
+        'cs_proposal': referral.conservation_status,
+        'url': url,
+        'referral_comments': referral.referral_comment
+    }
+
+    msg = email.send(EmailUser.objects.get(id=referral.sent_by).email, context=context)
     #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_conservation_status_referral_email(msg, referral, sender=sender)
