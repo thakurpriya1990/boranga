@@ -1,0 +1,8 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+        <p>A referral for Conservation Status <strong>{{cs_proposal.conservation_status_number}}</strong> has been completed:</p>
+        <p>Referral Comments: {{referral_comments}}</p>
+    <p>You can access this Conservation Status Proposal using the following link:</p>
+    <a href="{{url}}">Access Conservation Status Proposal</a>
+{%  endblock %}

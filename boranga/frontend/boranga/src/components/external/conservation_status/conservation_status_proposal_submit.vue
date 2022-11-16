@@ -4,15 +4,15 @@
             <div class="col-sm-12">
                 <div class="row">
                     <div v-if="isCSProposal" class="col-sm-offset-3 col-sm-6 borderDecoration">
-                      <div v-if="conservation_status_obj.application_type==application_type_flora">
+                      <div v-if="conservation_status_obj.group_type==application_type_flora">
                         <strong>Your flora conservation status application has been successfully submitted.</strong>
                         <br/>
                       </div>
-                      <div v-else-if="conservation_status_obj.application_type==application_type_fauna">
+                      <div v-else-if="conservation_status_obj.group_type==application_type_fauna">
                         <strong>Your fauna conservation status application has been successfully submitted.</strong>
                         <br/>
                       </div>
-                      <div v-else>
+                      <div v-else-if="conservation_status_obj.group_type==application_type_community">
                         <strong>Your community conservation status application has been successfully submitted.</strong>
                         <br/>
                       </div>
@@ -43,7 +43,7 @@
 import Vue from 'vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
 }
 from '@/utils/hooks'
 //import utils from './utils'
@@ -61,13 +61,13 @@ export default {
       return this.conservation_status_obj && this.conservation_status_obj.id ? true : false;
     },
     application_type_flora: function(){
-      return api_endpoints.flora;
+      return api_endpoints.group_type_flora;
     },
     application_type_fauna: function(){
-      return api_endpoints.fauna;
+      return api_endpoints.group_type_fauna;
     },
     application_type_community: function(){
-      return api_endpoints.community;
+      return api_endpoints.group_type_community;
     }
   },
   methods: {

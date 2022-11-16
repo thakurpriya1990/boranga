@@ -339,7 +339,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         """
         Used by the internal Referred To Me (Flora/Fauna)dashboard
 
-        http://localhost:8499/api/species_conservation_status_paginated/species_cs_referrals_internal/?format=datatables&draw=1&length=2
+        http://localhost:8499/api/species_conservation_cstatus_paginated/species_cs_referrals_internal/?format=datatables&draw=1&length=2
         """
         self.serializer_class = ConservationStatusReferralSerializer
         qs = ConservationStatusReferral.objects.filter(referral=request.user.id) if is_internal(self.request) else ConservationStatusReferral.objects.none()
@@ -1166,6 +1166,33 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
             qs = qs.filter(conservation_status_id=int(conservation_status))
         serializer = DTConservationStatusReferralSerializer(qs, many=True, context={"request": request})
         return Response(serializer.data)
+    
+    @detail_route(methods=['GET',], detail=True)
+    def referral_list(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = self.get_queryset().all()
+        qs=qs.filter(sent_by=instance.referral, conservation_status=instance.conservation_status)
+        serializer = DTConservationStatusReferralSerializer(qs, many=True, context={"request": request})
+        #serializer = ProposalReferralSerializer(qs, many=True)
+        return Response(serializer.data)
+    
+    @detail_route(methods=['GET', 'POST'], detail=True)
+    def complete(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            #referral_comment = request.data.get('referral_comment')
+            #instance.complete(request, referral_comment)
+            instance.complete(request)
+            serializer = self.get_serializer(instance, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
     @detail_route(methods=['GET',],detail=True,)
     def remind(self, request, *args, **kwargs):
@@ -1223,7 +1250,7 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
     def send_referral(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            serializer = SendReferralSerializer(data=request.data)
+            serializer = SendReferralSerializer(data=request.data, context={"request": request})
             serializer.is_valid(raise_exception=True)
             instance.send_referral(request,serializer.validated_data['email'],serializer.validated_data['text'])
             serializer = self.get_serializer(instance, context={'request':request})
@@ -1233,6 +1260,35 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
             raise
         except ValidationError as e:
             handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def conservation_status_referral_save(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object() 
+                request_data = request.data
+                instance.referral_comment=request_data.get('referral_comment')
+                instance.save()
+                # Create a log entry for the proposal
+                instance.conservation_status.log_user_action(
+                    ConservationStatusUserAction.COMMENT_REFERRAL.format(
+                        instance.id,
+                        instance.conservation_status.conservation_status_number,
+                        '{}({})'.format(instance.referral_as_email_user.get_full_name(),instance.referral_as_email_user.email),
+                    ),
+                    request,
+                )
+            return redirect(reverse('internal'))
+        
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

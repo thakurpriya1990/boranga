@@ -2,9 +2,9 @@ var site_url = location.origin
 var t_class='Commercial operations'
 var filming='Filming'
 var event='Event'
-var flora='flora'
-var fauna='fauna'
-var community='community'
+var group_type_flora='flora'
+var group_type_fauna='fauna'
+var group_type_community='community'
 
 module.exports = {
     organisations: '/api/organisations.json',
@@ -151,5 +151,8 @@ module.exports = {
     t_class: t_class,
     filming: filming,
     event: event,
-    group_types:['Fauna', 'Flora', 'Communities']
+    group_types:['Fauna', 'Flora', 'Communities'],
+    group_type_flora: group_type_flora,
+    group_type_fauna: group_type_fauna,
+    group_type_community: group_type_community,
 }

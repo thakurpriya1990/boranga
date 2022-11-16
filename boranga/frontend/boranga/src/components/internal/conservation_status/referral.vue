@@ -81,18 +81,12 @@
                                             </td>
                                         </tr>
                                     </table>
-                                    <template>
-                                            
-                                    </template>
                                     <CSMoreReferrals @refreshFromResponse="refreshFromResponse" :conservation_status_obj="conservation_status_obj" :canAction="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id" :isFinalised="isFinalised" 
                                         :referral_url="referralListURL"/>
                                 </div>
                                 <div class="col-sm-12">
                                     <div class="separator"></div>
                                 </div>
-                            <div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div>
                             <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id && referral.can_be_completed">
                                 <div class="row">
                                     <div class="col-sm-12">
@@ -101,8 +95,8 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label class="control-label pull-left"  for="Name">Comments</label>
-                                        <textarea class="form-control" name="name" v-model="referral_comment"></textarea>
+                                        <!-- <label class="control-label pull-left"  for="Name">Comments</label> -->
+                                        <!-- <textarea class="form-control" name="name" v-model="referral_comment"></textarea> -->
                                         <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="completeReferral">Complete Referral Task</button>
                                     </div>
                                 </div>
@@ -111,8 +105,6 @@
                     </div>
                 </div>
             </div>
-            
-           
         </div>
 
             
@@ -127,7 +119,8 @@
                                 <ProposalConservationStatus 
                                     v-if="conservation_status_obj"
                                     ref="conservation_status" 
-                                    :conservation_status_obj="conservation_status_obj" >
+                                    :conservation_status_obj="conservation_status_obj" 
+                                    :referral="referral">
                                     <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
                                 </ProposalConservationStatus>
                                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
@@ -217,19 +210,26 @@ export default {
     },
     computed: {
         conservation_status_obj: function(){
-            return this.referral != null && this.referall != 'undefined' ? this.referral.conservation_status : null;
+            return this.referral != null && this.referral != 'undefined' ? this.referral.conservation_status : null;
         },
         csrf_token: function() {
           return helpers.getCookie('csrftoken')
         },
         referralListURL: function(){
-            return this.conservation_status_obj!= null ? helpers.add_endpoint_json(api_endpoints.cs_referrals,'datatable_list')+'?conservation_status='+this.conservation_status_obj.id : '';
+            //return this.referral!= null ? helpers.add_endpoint_json(api_endpoints.cs_referrals,'datatable_li)+'?conservation_status='+this.conservation_status_obj.id : '';
+            return this.referral!= null ? helpers.add_endpoint_json(api_endpoints.cs_referrals,this.referral.id+'/referral_list') : '';
         },
         species_community_cs_form_url: function() {
           /*return (this.conservation_status_obj.group_type === "community") ? 
                   `/api/community/${this.conservation_status_obj.id}/community_save.json`: 
                   `/api/species_conservation_status/${this.conservation_status_obj.id}/species_conservation_status_save.json`;*/
             return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
+        },
+        species_community_cs_referral_form_url: function() {
+          /*return (this.conservation_status_obj.group_type === "community") ? 
+                  `/api/community/${this.conservation_status_obj.id}/community_save.json`: 
+                  `/api/species_conservation_status/${this.conservation_status_obj.id}/species_conservation_status_save.json`;*/
+            return `/api/cs_referrals/${this.referral.id}/conservation_status_referral_save.json`;
         },
         display_number: function() {
             return this.conservation_status_obj.conservation_status_number;
@@ -304,8 +304,8 @@ export default {
             let vm = this;
             vm.savingConservationStatus=true;
             let payload = new Object();
-            Object.assign(payload, vm.conservation_status_obj);
-            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            Object.assign(payload, vm.referral);
+            vm.$http.post(vm.species_community_cs_referral_form_url,payload).then(res=>{
               swal(
                 'Saved',
                 'Your changes has been saved',
@@ -375,13 +375,13 @@ export default {
         },
         refreshFromResponse:function(response){
             let vm = this;
-            vm.original_conservation_status_obj = helpers.copyObject(response.body);
+            //vm.original_conservation_status_obj = helpers.copyObject(response.body);
             vm.conservation_status_obj = helpers.copyObject(response.body);
             // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-            vm.$nextTick(() => {
-                vm.initialiseAssignedOfficerSelect(true);
-                vm.updateAssignedOfficerSelect();
-            });
+            // vm.$nextTick(() => {
+            //     vm.initialiseAssignedOfficerSelect(true);
+            //     vm.updateAssignedOfficerSelect();
+            // });
         },
         assignTo: function(){
             let vm = this;
@@ -545,12 +545,13 @@ export default {
             vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
 
             let data = {'email':vm.selected_referral, 'text': vm.referral_text};
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/assesor_send_referral')),JSON.stringify(data),{
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.cs_referrals,(vm.referral.id+'/send_referral')),JSON.stringify(data),{
                 emulateJSON:true
             }).then((response) => {
                 vm.sendingReferral = false;
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                vm.conservation_status_obj = response.body;
+                vm.referral= response.body;
+                //vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                //vm.conservation_status_obj = response.body;
                 swal(
                     'Referral Sent',
                     'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
@@ -577,9 +578,10 @@ export default {
             let vm = this;
 
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/remind')).then(response => {
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                vm.conservation_status_obj = response.body;
+                //vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                //vm.conservation_status_obj = response.body;
                 //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                vm.fetchReferral(vm.referral.id);
                 swal(
                     'Referral Reminder',
                     'A reminder has been sent to '+vm.department_users.find(d => d.id == r.referral).name,
@@ -609,12 +611,13 @@ export default {
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/recall')).then(response => {
                 swal.hideLoading();
                 swal.close();
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                vm.conservation_status_obj = response.body;
+                //vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                //vm.conservation_status_obj = response.body;
                 //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                vm.fetchReferral(vm.referral.id);
                 swal(
                     'Referral Recall',
-                    'The referall has been recalled from '+vm.department_users.find(d => d.id == r.referral).name,
+                    'The referral has been recalled from '+vm.department_users.find(d => d.id == r.referral).name,
                     'success'
                 )
             },
@@ -630,9 +633,10 @@ export default {
             let vm = this;
 
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/resend')).then(response => {
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                vm.conservation_status_obj = response.body;
+                //vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                //vm.conservation_status_obj = response.body;
                 //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                vm.fetchReferral(vm.referral.id);
                 swal(
                     'Referral Resent',
                     'The referral has been resent to '+vm.department_users.find(d => d.id == r.referral).name,
@@ -647,6 +651,65 @@ export default {
                 )
             });
         },
+        fetchReferral: function(){
+            let vm = this;
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,vm.referral.id)).then(res => {
+              
+                vm.referral = res.body;
+                //vm.referral.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                //vm.fetchreferrallist(vm.referral.id);
+              
+            },
+            err => {
+              console.log(err);
+            });
+        },
+        completeReferral:function(){
+            let vm = this;
+            // let data = {'referral_comment': vm.referral_comment};
+            
+            swal({
+                title: "Complete Referral",
+                text: "Are you sure you want to complete this referral?",
+                type: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Submit'
+            }).then(() => { 
+                let payload = new Object();
+                Object.assign(payload, vm.referral);
+                vm.$http.post(vm.species_community_cs_referral_form_url,payload).then(res=>{
+                    
+                //     vm.$http.post(helpers.add_endpoint_json(api_endpoints.cs_referrals,vm.$route.params.referral_id+'/complete'),JSON.stringify(data),{
+                // emulateJSON:true
+                // }).then(res => {
+                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,vm.$route.params.referral_id+'/complete')).then(res => {
+                        vm.referral = res.body;
+                        //vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
+                    },
+                    error => {
+                        swal(
+                            'Referral Error',
+                            helpers.apiVueResourceError(error),
+                            'error'
+                        )
+                    });
+                    
+                    },err=>{
+                 });
+               /* vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,vm.$route.params.referral_id+'/complete')).then(res => {
+                    vm.referral = res.body;
+                    vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
+                },
+                error => {
+                    swal(
+                        'Referral Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
+                }); */
+            },(error) => {
+            });
+        }
     },
     mounted: function() {
         let vm = this;
