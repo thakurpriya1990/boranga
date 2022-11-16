@@ -10,6 +10,15 @@
             >
                 <div class='col-11' :style="'color:' + customColor">
                     {{ label }}
+                    <!-- to display the assessor and referral comments textboxes -->
+                    <template v-if="displayCommentSection">
+                        <template v-if="!isShowComment">
+                            <a v-if="has_comment_value" href="" @click.prevent="toggleComment"><i style="color:red" class="far fa-comment">&nbsp;</i></a>
+                            <a v-else href="" @click.prevent="toggleComment"><i class="far fa-comment">&nbsp;</i></a>
+                        </template>
+                        <a href="" v-else-if="isShowComment" @click.prevent="toggleComment"><i class="fa fa-ban">&nbsp;</i></a>
+                    </template>
+                    <!-- ----------------------------------------------------- -->
                 </div>
                 <div class='col-1 text-end'>
                     <!--i :id="chevron_elem_id" class="rotate_icon fa-solid fa-chevron-right"></i-->
@@ -48,6 +57,19 @@ export default {
             type: Boolean,
             default: false,
         },
+        isShowComment:{
+            type: Boolean,
+            required: false,
+        },
+        has_comment_value:{
+            type: Boolean,
+            required: false,
+        },
+        displayCommentSection:{
+            type: Boolean,
+            default:false,
+        }
+
     },
     data:function () {
         return {
@@ -89,7 +111,11 @@ export default {
             // Bootstrap add a 'collapsed' class name to the element
             let elem_expanded_when_clicked = $('#show_hide_switch_' + this.section_body_id).hasClass('collapsed')
             this.elem_expanded = !elem_expanded_when_clicked
-        }
+        },
+        toggleComment:function(){
+                this.$emit('toggleComment',!this.isShowComment)
+                //this.isShowComment = ! this.isShowComment;
+            },
         
     },
     mounted: function() {

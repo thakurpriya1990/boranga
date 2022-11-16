@@ -1,48 +1,50 @@
 <template lang="html">
     <div id="communityStatus">
-        <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
+        <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status" :isShowComment="isShowComment" :has_comment_value="has_comment_value" v-on:toggleComment="toggleComment($event)" :displayCommentSection="!is_external">
             <div v-if="!is_external">
-                <!-- Assessor Deficiencies and comment box -->
-                <div class="row mb-3" v-if="deficiencyVisibility">
-                    <label for="" class="col-sm-4 control-label">Deficiencies:</label>
-                    <div class="col-sm-8">
-                        <textarea :disabled="deficiency_readonly" class="form-control" rows="3" id="assessor_deficiencies" placeholder=""
-                        v-model="conservation_status_obj.deficiency_data"/>
+                <div v-show="isShowComment">
+                    <!-- Assessor Deficiencies and comment box -->
+                    <div class="row mb-3" v-if="deficiencyVisibility">
+                        <label for="" class="col-sm-4 control-label">Deficiencies:</label>
+                        <div class="col-sm-8">
+                            <textarea :disabled="deficiency_readonly" class="form-control" rows="3" id="assessor_deficiencies" placeholder=""
+                            v-model="conservation_status_obj.deficiency_data"/>
+                        </div>
                     </div>
-                </div>
-                <div class="row mb-3" v-if="assessorCommentVisibility">
-                    <label for="" class="col-sm-4 control-label">Assessor:</label>
-                    <div class="col-sm-8">
-                        <textarea :disabled="assessor_comment_readonly" class="form-control" rows="3" id="assessor_comment" placeholder=""
-                        v-model="conservation_status_obj.assessor_data"/>
+                    <div class="row mb-3" v-if="assessorCommentVisibility">
+                        <label for="" class="col-sm-4 control-label">Assessor:</label>
+                        <div class="col-sm-8">
+                            <textarea :disabled="assessor_comment_readonly" class="form-control" rows="3" id="assessor_comment" placeholder=""
+                            v-model="conservation_status_obj.assessor_data"/>
+                        </div>
                     </div>
-                </div>
-                <!-- --- -->
+                    <!-- --- -->
 
-                <!-- Assessor Deficiencies and comment box -->
-                <div v-if="referral_comments_boxes.length >0">
-                    <div v-for="ref in referral_comments_boxes">
-                        <div class="row mb-3" v-if="ref.box_view">
-                            <label for="" class="col-sm-4 control-label">{{ref.label}}:</label>
-                            <div class="col-sm-8">
-                                <textarea v-if='!ref.readonly'
-                                    :disabled="ref.readonly" 
-                                    :name="ref.name" 
-                                    class="form-control" 
-                                    rows="3" 
-                                    placeholder="" 
-                                    v-model="referral.referral_comment"
-                                    />
-                                <textarea v-else
-                                    :disabled="ref.readonly" 
-                                    :name="ref.name" 
-                                    :value="ref.value" 
-                                    class="form-control" 
-                                    rows="" 
-                                    placeholder="" 
-                                    />
-                            </div>
-                        </div> 
+                    <!-- Assessor Deficiencies and comment box -->
+                    <div v-if="referral_comments_boxes.length >0">
+                        <div v-for="ref in referral_comments_boxes">
+                            <div class="row mb-3" v-if="ref.box_view">
+                                <label for="" class="col-sm-4 control-label">{{ref.label}}:</label>
+                                <div class="col-sm-8">
+                                    <textarea v-if='!ref.readonly'
+                                        :disabled="ref.readonly" 
+                                        :name="ref.name" 
+                                        class="form-control" 
+                                        rows="3" 
+                                        placeholder="" 
+                                        v-model="referral.referral_comment"
+                                        />
+                                    <textarea v-else
+                                        :disabled="ref.readonly" 
+                                        :name="ref.name" 
+                                        :value="ref.value" 
+                                        class="form-control" 
+                                        rows="" 
+                                        placeholder="" 
+                                        />
+                                </div>
+                            </div> 
+                        </div>
                     </div>
                 </div>
             </div>
@@ -161,6 +163,7 @@ export default {
                     keepInvalid:true,
                     allowInputToggle:true,
                 },
+                isShowComment: false,
                 //----list of values dictionary
                 cs_community_profile_dict: {},
                 community_list: [],
@@ -320,6 +323,22 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.conservation_status_obj.proposed_conservation_criteria = selected.val();
                 });*/
+            },
+            toggleComment:function(updatedShowComment) {
+                //this.isShowComment = ! this.isShowComment;
+                this.isShowComment = updatedShowComment;
+            },
+            has_comment_value:function () {
+                let has_value=false;
+                // TODO need to add assessor comment value as well
+                for(var i=0; i<this.referral_comments_boxes.length; i++){
+                    if(this.referral_comments_boxes[i].hasOwnProperty('value')){
+                        if(this.referral_comments_boxes[i].value!=null && this.referral_comments_boxes[i].value!=undefined && this.referral_comments_boxes[i].value!= '' ){
+                            has_value=true;
+                        }
+                    } 
+                }
+                return has_value;
             },
         },
         created: async function() {
