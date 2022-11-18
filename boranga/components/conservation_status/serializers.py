@@ -1056,9 +1056,9 @@ class ConservationStatusReferralProposalSerializer(InternalConservationStatusSer
             referral = None
         return {
             'assessor_mode': True,
-            'assessor_can_assess': referral.can_assess_referral(user.id) if referral else None,
+            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
             'assessor_level': 'referral',
-            'assessor_box_view': obj.assessor_comments_view(user.id)
+            'assessor_box_view': obj.assessor_comments_view(user)
         }
 
 
@@ -1125,4 +1125,9 @@ class ConservationStatusAmendmentRequestDisplaySerializer(serializers.ModelSeria
     def get_reason (self,obj):
         #return obj.get_reason_display()
         return obj.reason.reason if obj.reason else None
+
+
+class ProposedDeclineSerializer(serializers.Serializer):
+    reason = serializers.CharField()
+    cc_email = serializers.CharField(required=False, allow_null=True)
 

@@ -120,16 +120,16 @@
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="amendmentRequest()">Request Amendment</button><br/>
                                         </div>
                                     </div>
-                                   <!--  <div class="row">
+                                    <div class="row">
                                         <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="proposedDecline()">Propose to Decline</button>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="proposedApproval()">Propose to Approve</button><br/>
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="proposedApproval()">Propose to Approve</button><br/>
                                         </div>
-                                    </div> -->
+                                    </div>
                                 </template>
                             </div>
                         </div>
@@ -198,6 +198,8 @@
         </div>
         </div>
         <AmendmentRequest ref="amendment_request" :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
+        <ProposedDecline ref="proposed_decline" :processing_status="conservation_status_obj.processing_status" :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
+        
     </div>
 </template>
 <script>
@@ -207,6 +209,7 @@ import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 import AmendmentRequest from './amendment_request.vue'
+import ProposedDecline from './proposal_proposed_decline'
 
 import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
@@ -249,6 +252,7 @@ export default {
         ProposalConservationStatus,
         AmendmentRequest,
         CSMoreReferrals,
+        ProposedDecline,
     },
     filters: {
         formatDate: function(data){
@@ -357,6 +361,11 @@ export default {
             this.$refs.amendment_request.amendment.text = value;
             
             this.$refs.amendment_request.isModalOpen = true;
+        },
+        proposedDecline: function(){
+            this.save_wo();
+            //this.$refs.proposed_decline.decline = this.conservation_status_obj.proposaldeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.proposaldeclineddetails): {};
+            this.$refs.proposed_decline.isModalOpen = true;
         },
         save: async function() {
             let vm = this;

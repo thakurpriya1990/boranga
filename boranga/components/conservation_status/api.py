@@ -68,6 +68,7 @@ from boranga.components.conservation_status.serializers import(
     ConservationStatusReferralSerializer,
     ConservationStatusAmendmentRequestSerializer,
     ConservationStatusAmendmentRequestDisplaySerializer,
+    ProposedDeclineSerializer,
 )
 from boranga.components.main.utils import (
     check_db_connection,
@@ -934,6 +935,29 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             raise
         except ValidationError as e:
             handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['POST',], detail=True)
+    def proposed_decline(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = ProposedDeclineSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.proposed_decline(request,serializer.validated_data)
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

@@ -33,6 +33,7 @@ from boranga.components.conservation_status.email import (
     send_conservation_status_referral_recall_email_notification,
     send_conservation_status_amendment_email_notification,
     send_conservation_status_referral_complete_email_notification,
+    send_approver_decline_email_notification,
     )
 
 
@@ -303,8 +304,9 @@ class ConservationStatus(models.Model):
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     review_status = models.CharField('Review Status', max_length=30, choices=REVIEW_STATUS_CHOICES,
                                      default=REVIEW_STATUS_CHOICES[0][0])
-    deficiency_data = models.TextField(null=True, blank=True)
-    assessor_data = models.TextField(null=True, blank=True)
+    proposed_decline_status = models.BooleanField(default=False)
+    deficiency_data = models.TextField(null=True, blank=True) # deficiency comment
+    assessor_data = models.TextField(null=True, blank=True)  # assessor comment
 
     class Meta:
         app_label = 'boranga'
@@ -541,7 +543,7 @@ class ConservationStatus(models.Model):
             self.processing_status == 'with_approver'
         ):
             try:
-                referral = ConservationStatusReferral.objects.get(conservation_status=self,referral=user)
+                referral = ConservationStatusReferral.objects.get(conservation_status=self,referral=user.id)
             except:
                 referral = None
             if referral:
@@ -721,6 +723,58 @@ class ConservationStatus(models.Model):
     def amendment_requests(self):
         qs =ConservationStatusAmendmentRequest.objects.filter(conservation_status = self)
         return qs
+    
+    def move_to_status(self,request,status, approver_comment):
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
+        if status in ['with_assessor','with_approver']:
+            if self.processing_status == 'with_referral' or self.can_user_edit:
+                raise ValidationError('You cannot change the current status at this time')
+            if self.processing_status != status:
+                if self.processing_status =='with_approver':
+                     self.approver_comment=''
+                    # if approver_comment:
+                    #     self.approver_comment = approver_comment
+                    #     self.save()
+                    #     send_proposal_approver_sendback_email_notification(request, self)
+                self.processing_status = status
+                self.save()
+                # if status=='with_assessor_requirements':
+                #     self.add_default_requirements()
+
+                # Create a log entry for the Conservation status proposal
+                if self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR:
+                    self.log_user_action(ConservationStatusUserAction.ACTION_BACK_TO_PROCESSING.format(self.id),request)
+                # elif self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS:
+                #     self.log_user_action(ProposalUserAction.ACTION_ENTER_REQUIREMENTS.format(self.id),request)
+        else:
+            raise ValidationError('The provided status cannot be found.')
+    
+    def proposed_decline(self,request,details):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status != 'with_assessor':
+                    raise ValidationError('You cannot propose to decline if it is not with assessor')
+
+                reason = details.get('reason')
+                ConservationStatusDeclinedDetails.objects.update_or_create(
+                    conservation_status = self,
+                    defaults={'officer': request.user.id, 'reason': reason, 'cc_email': details.get('cc_email',None)}
+                )
+                self.proposed_decline_status = True
+                approver_comment = ''
+                self.move_to_status(request,'with_approver', approver_comment)
+                # Log proposal action
+                self.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_DECLINE.format(self.id),request)
+                # Log entry for organisation
+                # applicant_field=getattr(self, self.applicant_field)
+                # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_DECLINE.format(self.id),request)
+
+                send_approver_decline_email_notification(reason, request, self)
+            except:
+                raise
 
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):
@@ -791,6 +845,18 @@ class ConservationStatusUserAction(UserAction):
         )
 
     conservation_status= models.ForeignKey(ConservationStatus, related_name='action_logs', on_delete=models.CASCADE)
+
+
+class ConservationStatusDeclinedDetails(models.Model):
+    # proposal = models.OneToOneField(Proposal, related_name='declined_details')
+    conservation_status = models.OneToOneField(ConservationStatus, on_delete=models.CASCADE)
+    # officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
+    officer = models.IntegerField()  # EmailUserRO
+    reason = models.TextField(blank=True)
+    cc_email = models.TextField(null=True)
+
+    class Meta:
+        app_label = "boranga"
 
 
 class ConservationStatusReferralDocument(Document):

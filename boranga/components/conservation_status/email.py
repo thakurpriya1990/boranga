@@ -54,6 +54,11 @@ class ConservationStatusAmendmentRequestSendNotificationEmail(TemplateEmailBase)
     html_template = 'boranga/emails/cs_proposals/send_amendment_notification.html'
     txt_template = 'boranga/emails/cs_proposals/send_amendment_notification.txt'
 
+class ApproverDeclineSendNotificationEmail(TemplateEmailBase):
+    subject = 'An Application has been recommended for decline.'
+    html_template = 'boranga/emails/cs_proposals/send_approver_decline_notification.html'
+    txt_template = 'boranga/emails/cs_proposals/send_approver_decline_notification.txt'
+
 
 def send_submit_email_notification(request, cs_proposal):
     email = SubmitSendNotificationEmail()
@@ -347,3 +352,25 @@ def send_conservation_status_amendment_email_notification(amendment_request, req
     _log_conservation_status_email(msg, conservation_status, sender=sender)
     # if conservation_status.applicant:
     #     _log_org_email(msg, conservation_status.applicant, conservation_status.submitter, sender=sender)
+
+    #send email when Conservation Status Proposal is 'proposed to decline' by assessor.
+def send_approver_decline_email_notification(reason, request, conservation_status):
+    email = ApproverDeclineSendNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-conservation-status-detail',kwargs={'cs_proposal_pk': conservation_status.id}))
+    context = {
+        'cs_proposal': conservation_status,
+        'reason': reason,
+        'url': url
+    }
+
+    msg = email.send(
+        conservation_status.approver_recipients, 
+        context=context
+        )
+    #sender = request.user if request else EmailUser.objects.get(email__icontains=settings.DEFAULT_FROM_EMAIL)
+    sender = get_sender_user()
+    _log_conservation_status_email(msg, conservation_status, sender=sender)
+    # if conservation_status.org_applicant:
+    #     _log_org_email(msg, conservation_status.org_applicant, conservation_status.submitter, sender=sender)
+    # else:
+    #     _log_user_email(msg, conservation_status.submitter, conservation_status.submitter, sender=sender)

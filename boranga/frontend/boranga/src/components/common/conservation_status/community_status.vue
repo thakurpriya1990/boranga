@@ -192,6 +192,18 @@ export default {
             assessorCommentVisibility: function(){
                 return this.conservation_status_obj.assessor_mode.assessor_box_view;
             },
+            has_comment_value:function () {
+                let has_value=false;
+                // TODO need to add assessor comment value as well
+                for(var i=0; i<this.referral_comments_boxes.length; i++){
+                    if(this.referral_comments_boxes[i].hasOwnProperty('value')){
+                        if(this.referral_comments_boxes[i].value!=null && this.referral_comments_boxes[i].value!=undefined && this.referral_comments_boxes[i].value!= '' ){
+                            has_value=true;
+                        }
+                    } 
+                }
+                return has_value;
+            },
         },
         watch:{
         },
@@ -327,18 +339,6 @@ export default {
             toggleComment:function(updatedShowComment) {
                 //this.isShowComment = ! this.isShowComment;
                 this.isShowComment = updatedShowComment;
-            },
-            has_comment_value:function () {
-                let has_value=false;
-                // TODO need to add assessor comment value as well
-                for(var i=0; i<this.referral_comments_boxes.length; i++){
-                    if(this.referral_comments_boxes[i].hasOwnProperty('value')){
-                        if(this.referral_comments_boxes[i].value!=null && this.referral_comments_boxes[i].value!=undefined && this.referral_comments_boxes[i].value!= '' ){
-                            has_value=true;
-                        }
-                    } 
-                }
-                return has_value;
             },
         },
         created: async function() {
