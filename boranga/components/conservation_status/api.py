@@ -69,6 +69,7 @@ from boranga.components.conservation_status.serializers import(
     ConservationStatusAmendmentRequestSerializer,
     ConservationStatusAmendmentRequestDisplaySerializer,
     ProposedDeclineSerializer,
+    ProposedApprovalSerializer,
 )
 from boranga.components.main.utils import (
     check_db_connection,
@@ -946,6 +947,58 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             serializer = ProposedDeclineSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance.proposed_decline(request,serializer.validated_data)
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['POST',], detail=True)
+    def proposed_approval(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = ProposedApprovalSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.proposed_approval(request,serializer.validated_data)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['POST',], detail=True)
+    def switch_status(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            status = request.data.get('status')
+            approver_comment = request.data.get('approver_comment')
+            if not status:
+                raise serializers.ValidationError('Status is required')
+            else:
+                if not status in ['with_assessor','with_approver']:
+                    raise serializers.ValidationError('The status provided is not allowed')
+            instance.move_to_status(request,status, approver_comment)
             serializer_class = self.internal_serializer_class()
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)

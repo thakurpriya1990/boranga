@@ -2,6 +2,7 @@ import logging
 import datetime
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.contrib.postgres.fields.jsonb import JSONField
 from boranga import exceptions
 from boranga.components.main.models import (
     CommunicationsLogEntry, 
@@ -34,6 +35,8 @@ from boranga.components.conservation_status.email import (
     send_conservation_status_amendment_email_notification,
     send_conservation_status_referral_complete_email_notification,
     send_approver_decline_email_notification,
+    send_approver_approve_email_notification,
+    send_proposal_approver_sendback_email_notification,
     )
 
 
@@ -269,8 +272,19 @@ class ConservationStatus(models.Model):
     RECURRENCE_PATTERNS = [(1, 'Month'), (2, 'Year')]
     change_code = models.ForeignKey(ConservationChangeCode, 
                                     on_delete=models.SET_NULL , blank=True, null=True)
+    
+    APPLICATION_TYPE_CHOICES = (
+        ('new_proposal', 'New Application'),
+        ('amendment', 'Amendment'),
+        ('renewal', 'Renewal'),
+        ('external', 'External'),
+    )
+
     # group_type of application
     application_type = models.ForeignKey(GroupType, on_delete=models.SET_NULL, blank=True, null=True)
+    #
+    proposal_type = models.CharField('Application Status Type', max_length=40, choices=APPLICATION_TYPE_CHOICES,
+                                        default=APPLICATION_TYPE_CHOICES[0][0])
 
     #species related conservation status
     species = models.ForeignKey(Species, on_delete=models.CASCADE , related_name="conservation_status", null=True, blank=True)
@@ -307,6 +321,9 @@ class ConservationStatus(models.Model):
     proposed_decline_status = models.BooleanField(default=False)
     deficiency_data = models.TextField(null=True, blank=True) # deficiency comment
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
+    # to store the proposed start and end date of proposal
+    proposed_issuance_approval = JSONField(blank=True, null=True)
+    approver_comment = models.TextField(blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -732,11 +749,11 @@ class ConservationStatus(models.Model):
                 raise ValidationError('You cannot change the current status at this time')
             if self.processing_status != status:
                 if self.processing_status =='with_approver':
-                     self.approver_comment=''
-                    # if approver_comment:
-                    #     self.approver_comment = approver_comment
-                    #     self.save()
-                    #     send_proposal_approver_sendback_email_notification(request, self)
+                    self.approver_comment=''
+                    if approver_comment:
+                        self.approver_comment = approver_comment
+                        self.save()
+                        send_proposal_approver_sendback_email_notification(request, self)
                 self.processing_status = status
                 self.save()
                 # if status=='with_assessor_requirements':
@@ -773,6 +790,34 @@ class ConservationStatus(models.Model):
                 # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_DECLINE.format(self.id),request)
 
                 send_approver_decline_email_notification(reason, request, self)
+            except:
+                raise
+    
+    def proposed_approval(self,request,details):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status != 'with_assessor':
+                    raise ValidationError('You cannot propose for approval if it is not with assessor')
+                self.proposed_issuance_approval = {
+                    'effective_from_date' : details.get('effective_from_date').strftime('%d/%m/%Y'),
+                    'effective_to_date' : details.get('effective_to_date').strftime('%d/%m/%Y'),
+                    'details': details.get('details'),
+                    'cc_email':details.get('cc_email')
+                }
+                self.proposed_decline_status = False
+                approver_comment = ''
+                self.move_to_status(request,'with_approver', approver_comment)
+                self.assigned_officer = None
+                self.save()
+                # Log proposal action
+                self.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(self.id),request)
+                # Log entry for organisation
+                # applicant_field=getattr(self, self.applicant_field)
+                # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(self.id),request)
+
+                send_approver_approve_email_notification(request, self)
             except:
                 raise
 

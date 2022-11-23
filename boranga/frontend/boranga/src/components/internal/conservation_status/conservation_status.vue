@@ -131,6 +131,41 @@
                                         </div>
                                     </div>
                                 </template>
+                                <template v-else-if="conservation_status_obj.processing_status == 'With Approver'">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <strong>Action</strong><br/>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <label class="control-label pull-left"  for="Name">Approver Comments</label>
+                                            <textarea class="form-control" name="name" v-model="approver_comment"></textarea><br>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- <div class="col-sm-12" v-if="conservation_status_obj.proposed_decline_status">
+                                            <button style="width:80%;" class="btn btn-primary" :disabled="conservation_status_obj.can_user_edit" @click.prevent="switchStatus('with_assessor')">Back To Assessor</button><br/>
+                                        </div>
+                                        <div class="col-sm-12" v-else>
+                                            <button style="width:80%;" class="btn btn-primary" :disabled="conservation_status_obj.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Back To Assessor</button><br/>
+                                        </div> -->
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary" :disabled="conservation_status_obj.can_user_edit" @click.prevent="switchStatus('with_assessor')">Back To Assessor</button><br/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <!-- v-if="!proposal.proposed_decline_status" -->
+                                        <div class="col-sm-12" >
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="issueProposal()">Approve</button><br/>
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="declineProposal()">Decline</button><br/>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -199,6 +234,7 @@
         </div>
         <AmendmentRequest ref="amendment_request" :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
         <ProposedDecline ref="proposed_decline" :processing_status="conservation_status_obj.processing_status" :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
+        <ProposedApproval ref="proposed_approval" :processing_status="conservation_status_obj.processing_status" :conservation_status_id="conservation_status_obj.id" :isApprovalLevelDocument="isApprovalLevelDocument" @refreshFromResponse="refreshFromResponse"/>
         
     </div>
 </template>
@@ -210,6 +246,7 @@ import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 import AmendmentRequest from './amendment_request.vue'
 import ProposedDecline from './proposal_proposed_decline'
+import ProposedApproval from './proposed_issuance.vue'
 
 import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
@@ -234,6 +271,7 @@ export default {
             department_users : [],
             selected_referral: '',
             referral_text: '',
+            approver_comment: '',
             sendingReferral: false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
@@ -253,6 +291,7 @@ export default {
         AmendmentRequest,
         CSMoreReferrals,
         ProposedDecline,
+        ProposedApproval,
     },
     filters: {
         formatDate: function(data){
@@ -346,6 +385,10 @@ export default {
         hasAssessorMode:function(){
             return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode ? true : false;
         },
+        isApprovalLevelDocument: function(){
+            //return this.conservation_status_obj && this.conservation_status_obj.processing_status == 'With Approver' && this.conservation_status_obj.approval_level != null && this.conservation_status_obj.approval_level_document == null ? true : false;
+            return false;
+        },
     },
     methods: {
         commaToNewline(s){
@@ -362,9 +405,22 @@ export default {
             
             this.$refs.amendment_request.isModalOpen = true;
         },
+        proposedApproval: function(){
+            this.$refs.proposed_approval.approval = this.conservation_status_obj.proposed_issuance_approval != null ? helpers.copyObject(this.conservation_status_obj.proposed_issuance_approval) : {};
+            // Priya - Commented below as  we don't have other details on the form yet
+            // if((this.conservation_status_obj.proposed_issuance_approval==null || this.conservation_status_obj.proposed_issuance_approval.effective_to_date==null) && this.conservation_status_obj.other_details.proposed_end_date!=null){
+            //     // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
+            //     var test_approval={
+            //         'start_date': this.proposal.other_details.nominated_start_date,
+            //         'expiry_date': this.proposal.other_details.proposed_end_date
+            //     };
+            //     this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+            // }
+            this.$refs.proposed_approval.isModalOpen = true;
+        },
         proposedDecline: function(){
             this.save_wo();
-            //this.$refs.proposed_decline.decline = this.conservation_status_obj.proposaldeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.proposaldeclineddetails): {};
+            this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
         save: async function() {
@@ -734,6 +790,60 @@ export default {
                     'error'
                 )
             });
+        },
+        switchStatus: function(status){
+            let vm = this;
+            //vm.save_wo();
+            //let vm = this;
+            //if approver is pushing back proposal to Assessor then navigate the approver back to dashboard page
+            if(vm.conservation_status_obj.processing_status == 'With Approver' && status=='with_assessor') {
+                let data = {'status': status, 'approver_comment': vm.approver_comment}
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/switch_status')),JSON.stringify(data),{
+                    emulateJSON:true,
+                })
+                .then((response) => {
+                    vm.conservation_status_obj = response.body;
+                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                    vm.approver_comment='';
+                    vm.$nextTick(() => {
+                        vm.initialiseAssignedOfficerSelect(true);
+                        vm.updateAssignedOfficerSelect();
+                    });
+                    vm.$router.push({ path: '/internal/conservation-status/' });
+                }, (error) => {
+                    vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+                    swal(
+                        'Application Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
+                });
+            }
+            else{
+                let data = {'status': status, 'approver_comment': vm.approver_comment}
+                vm.changingStatus=true;
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/switch_status')),JSON.stringify(data),{
+                    emulateJSON:true,
+                })
+                .then((response) => {
+                    vm.conservation_status_obj = response.body;
+                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                    vm.approver_comment='';
+                    vm.$nextTick(() => {
+                        vm.initialiseAssignedOfficerSelect(true);
+                        vm.updateAssignedOfficerSelect();
+                    });
+                    vm.changingStatus=false;
+                }, (error) => {
+                    vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+                    swal(
+                        'Application Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
+                    vm.changingStatus=false;
+                });
+            }
         },
     },
     mounted: function() {

@@ -59,6 +59,16 @@ class ApproverDeclineSendNotificationEmail(TemplateEmailBase):
     html_template = 'boranga/emails/cs_proposals/send_approver_decline_notification.html'
     txt_template = 'boranga/emails/cs_proposals/send_approver_decline_notification.txt'
 
+class ApproverApproveSendNotificationEmail(TemplateEmailBase):
+    subject = 'An Application has been recommended for approval.'
+    html_template = 'boranga/emails/cs_proposals/send_approver_approve_notification.html'
+    txt_template = 'boranga/emails/cs_proposals/send_approver_approve_notification.txt'
+
+class ApproverSendBackNotificationEmail(TemplateEmailBase):
+    subject = 'An Application has been sent back by approver.'
+    html_template = 'boranga/emails/cs_proposals/send_approver_sendback_notification.html'
+    txt_template = 'boranga/emails/cs_proposals/send_approver_sendback_notification.txt'
+
 
 def send_submit_email_notification(request, cs_proposal):
     email = SubmitSendNotificationEmail()
@@ -367,6 +377,54 @@ def send_approver_decline_email_notification(reason, request, conservation_statu
         conservation_status.approver_recipients, 
         context=context
         )
+    #sender = request.user if request else EmailUser.objects.get(email__icontains=settings.DEFAULT_FROM_EMAIL)
+    sender = get_sender_user()
+    _log_conservation_status_email(msg, conservation_status, sender=sender)
+    # if conservation_status.org_applicant:
+    #     _log_org_email(msg, conservation_status.org_applicant, conservation_status.submitter, sender=sender)
+    # else:
+    #     _log_user_email(msg, conservation_status.submitter, conservation_status.submitter, sender=sender)
+
+def send_approver_approve_email_notification(request, conservation_status):
+    email = ApproverApproveSendNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-conservation-status-detail',kwargs={'cs_proposal_pk': conservation_status.id}))
+    context = {
+        'effective_from_date' : conservation_status.proposed_issuance_approval.get('effective_from_date'),
+        'effective_to_date' : conservation_status.proposed_issuance_approval.get('effective_to_date'),
+        'details': conservation_status.proposed_issuance_approval.get('details'),
+        'cs_proposal': conservation_status,
+        'url': url
+    }
+
+    msg = email.send(
+        conservation_status.approver_recipients, 
+        context=context
+        )
+    #sender = request.user if request else EmailUser.objects.get(email__icontains=settings.DEFAULT_FROM_EMAIL)
+    sender = get_sender_user()
+    _log_conservation_status_email(msg, conservation_status, sender=sender)
+    # if conservation_status.org_applicant:
+    #     _log_org_email(msg, conservation_status.org_applicant, conservation_status.submitter, sender=sender)
+    # else:
+    #     _log_user_email(msg, conservation_status.submitter, conservation_status.submitter, sender=sender)
+
+def send_proposal_approver_sendback_email_notification(request, conservation_status):
+    email = ApproverSendBackNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-conservation-status-detail',kwargs={'cs_proposal_pk': conservation_status.id}))
+
+    if 'test-emails' in request.path_info:
+        approver_comment = 'This is my test comment'
+    else:
+        approver_comment = conservation_status.approver_comment
+
+
+    context = {
+        'cs_proposal': conservation_status,
+        'url': url,
+        'approver_comment': approver_comment
+    }
+
+    msg = email.send(conservation_status.assessor_recipients, context=context)
     #sender = request.user if request else EmailUser.objects.get(email__icontains=settings.DEFAULT_FROM_EMAIL)
     sender = get_sender_user()
     _log_conservation_status_email(msg, conservation_status, sender=sender)

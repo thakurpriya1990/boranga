@@ -17,6 +17,7 @@ from boranga.components.conservation_status.models import(
     ConservationStatusReferral,
     ConservationStatusAmendmentRequest,
     ConservationStatusAmendmentRequestDocument,
+    ConservationStatusDeclinedDetails,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -112,6 +113,7 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
     community_name = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
+    customer_status = serializers.CharField(source='get_customer_status_display')
     class Meta:
         model = ConservationStatus
         fields = (
@@ -524,6 +526,11 @@ class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
+class ConservationStatusDeclinedDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConservationStatusDeclinedDetails
+        fields = '__all__'
+
 
 # TODO use this internal serializer than InternalSpeciesConservationStatusSerializer and InternalCommunityConservationStatusSerializer
 class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
@@ -534,6 +541,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
     allowed_assessors = EmailUserSerializer(many=True)
     assessor_mode = serializers.SerializerMethodField()
+    conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer()
     # accessing_user_roles = (
     #     serializers.SerializerMethodField()
     # )
@@ -568,6 +576,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 'assessor_mode',
                 'deficiency_data',
                 'assessor_data',
+                'proposed_issuance_approval',
+                'proposed_decline_status',
+                'conservationstatusdeclineddetails',
                 #'accessing_user_roles',
                 )
 
@@ -623,6 +634,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         }
 
 
+# Not used at the moment
 class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
@@ -631,6 +643,7 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
     latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
     allowed_assessors = EmailUserSerializer(many=True)
     assessor_mode = serializers.SerializerMethodField()
+    conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer()
     # accessing_user_roles = (
     #     serializers.SerializerMethodField()
     # )
@@ -665,6 +678,9 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
                 #'accessing_user_roles',
                 'deficiency_data',
                 'assessor_data',
+                'proposed_issuance_approval',
+                'proposed_decline_status',
+                'conservationstatusdeclineddetails',
                 )
 
     # def get_accessing_user_roles(self, conservation_status):
@@ -757,6 +773,7 @@ class CreateSpeciesConservationStatusSerializer(BaseConservationStatusSerializer
             )
 
 
+# Not used at the moment
 class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
@@ -765,6 +782,7 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
     latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
     allowed_assessors = EmailUserSerializer(many=True)
     assessor_mode = serializers.SerializerMethodField()
+    conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer(many=True)
     # accessing_user_roles = (
     #     serializers.SerializerMethodField()
     # )
@@ -797,6 +815,9 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
                 'assessor_mode',
                 'deficiency_data',
                 'assessor_data',
+                'proposed_issuance_approval',
+                'proposed_decline_status',
+                'conservationstatusdeclineddetails',
                 #'accessing_user_roles',
                 )
 
@@ -1130,4 +1151,13 @@ class ConservationStatusAmendmentRequestDisplaySerializer(serializers.ModelSeria
 class ProposedDeclineSerializer(serializers.Serializer):
     reason = serializers.CharField()
     cc_email = serializers.CharField(required=False, allow_null=True)
+
+
+class ProposedApprovalSerializer(serializers.Serializer):
+    # effective_from_date = serializers.DateField(input_formats=['%d/%m/%Y'])
+    # effective_to_date = serializers.DateField(input_formats=['%d/%m/%Y'])
+    effective_from_date = serializers.DateField()
+    effective_to_date = serializers.DateField()
+    details = serializers.CharField()
+    cc_email = serializers.CharField(required=False,allow_null=True)
 

@@ -16,7 +16,7 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row" mb-3>
                                     <div class="col-sm-12">
                                         <label v-if=check_status() class="control-label"  for="Name">CC email</label>
                                         <label v-else class="control-label"  for="Name">Proposed CC email</label>
@@ -96,7 +96,7 @@ export default {
             this.decline = {};
             this.errors = false;
             $('.has-error').removeClass('has-error');
-            this.validation_form.resetForm();
+            //this.validation_form.resetForm();
         },
         check_status: function (){
             let vm= this;
@@ -117,7 +117,7 @@ export default {
                         vm.decliningProposal = false;
                         vm.close();
                         vm.$emit('refreshFromResponse',response);
-                        vm.$router.push({ path: '/internal' }); //Navigate to dashboard after propose decline.
+                        vm.$router.push({ path: '/internal/conservation-status/' }); //Navigate to dashboard after propose decline.
                     },(error)=>{
                         vm.errors = true;
                         vm.decliningProposal = false;
