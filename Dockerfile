@@ -11,6 +11,11 @@ ENV SITE_DOMAIN='dbca.wa.gov.au'
 ENV OSCAR_SHOP_NAME='Parks & Wildlife'
 ENV BPAY_ALLOWED=False
 
+# Use Australian Mirrors
+RUN sed 's/archive.ubuntu.com/au.archive.ubuntu.com/g' /etc/apt/sources.list > /etc/apt/sourcesau.list
+RUN mv /etc/apt/sourcesau.list /etc/apt/sources.list
+# Use Australian Mirrors
+
 RUN apt-get clean
 RUN apt-get update
 RUN apt-get upgrade -y
