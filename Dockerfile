@@ -24,7 +24,7 @@ RUN apt-get install --no-install-recommends -y libpq-dev patch
 RUN apt-get install --no-install-recommends -y postgresql-client mtr systemd
 RUN apt-get install --no-install-recommends -y sqlite3 vim postgresql-client ssh htop
 RUN apt-get install --no-install-recommends -y rsyslog
-RUN apt-get install --no-install-recommends -y npm bzip2
+RUN apt-get install --no-install-recommends -y bzip2
 
 # Install nodejs
 RUN update-ca-certificates
