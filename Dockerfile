@@ -25,6 +25,16 @@ RUN apt-get install --no-install-recommends -y postgresql-client mtr systemd
 RUN apt-get install --no-install-recommends -y sqlite3 vim postgresql-client ssh htop
 RUN apt-get install --no-install-recommends -y rsyslog
 RUN apt-get install --no-install-recommends -y npm bzip2
+
+# Install nodejs
+RUN update-ca-certificates
+# install node 16
+RUN touch install_node.sh
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x -o install_node.sh
+RUN chmod +x install_node.sh && ./install_node.sh
+RUN apt-get install -y nodejs
+# Install nodejs
+
 RUN ln -s /usr/bin/python3 /usr/bin/python 
 #RUN ln -s /usr/bin/pip3 /usr/bin/pip
 RUN pip install --upgrade pip
