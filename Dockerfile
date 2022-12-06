@@ -11,15 +11,30 @@ ENV SITE_DOMAIN='dbca.wa.gov.au'
 ENV OSCAR_SHOP_NAME='Parks & Wildlife'
 ENV BPAY_ALLOWED=False
 
+# Use Australian Mirrors
+RUN sed 's/archive.ubuntu.com/au.archive.ubuntu.com/g' /etc/apt/sources.list > /etc/apt/sourcesau.list
+RUN mv /etc/apt/sourcesau.list /etc/apt/sources.list
+# Use Australian Mirrors
+
 RUN apt-get clean
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install --no-install-recommends -y wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3 python3-setuptools python3-dev python3-pip tzdata libreoffice cron 
+RUN apt-get install --no-install-recommends -y curl wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3 python3-setuptools python3-dev python3-pip tzdata libreoffice cron 
 RUN apt-get install --no-install-recommends -y libpq-dev patch
 RUN apt-get install --no-install-recommends -y postgresql-client mtr systemd
 RUN apt-get install --no-install-recommends -y sqlite3 vim postgresql-client ssh htop
 RUN apt-get install --no-install-recommends -y rsyslog
-RUN apt-get install --no-install-recommends -y npm bzip2
+RUN apt-get install --no-install-recommends -y bzip2
+
+# Install nodejs
+RUN update-ca-certificates
+# install node 16
+RUN touch install_node.sh
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x -o install_node.sh
+RUN chmod +x install_node.sh && ./install_node.sh
+RUN apt-get install -y nodejs
+# Install nodejs
+
 RUN ln -s /usr/bin/python3 /usr/bin/python 
 #RUN ln -s /usr/bin/pip3 /usr/bin/pip
 RUN pip install --upgrade pip
