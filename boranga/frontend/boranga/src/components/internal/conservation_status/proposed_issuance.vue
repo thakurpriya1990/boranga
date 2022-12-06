@@ -70,6 +70,20 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="form-group" v-if="processing_status == 'With Approver'">
+                                <div class="row mb-3">
+                                    <div class="col-sm-4">
+                                        <label class="control-label pull-left" >Approval Document</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <FileField2
+                                        ref="filefield"
+                                        :proposal_id="conservation_status_id"
+                                        :isRepeatable="false"
+                                        name="cs_approval_file"/>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -90,12 +104,14 @@
 //import $ from 'jquery'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
+import FileField2 from '@/components/forms/filefield2.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
 export default {
     name:'Proposed-Approval',
     components:{
         modal,
-        alert
+        alert,
+        FileField2,
     },
     props:{
         conservation_status_id: {
@@ -117,6 +133,7 @@ export default {
             isModalOpen:false,
             form:null,
             approval: {},
+            uploadedFile: null,
             state: 'proposed_approval',
             issuingApproval: false,
             validation_form: null,
@@ -162,6 +179,9 @@ export default {
         can_preview: function(){
             return (this.processing_status == 'With Approver' || 'With Assessor (Requirements)') && this.approval.effective_from_date && this.approval.effective_to_date ? true : false;
         },
+        // delete_url: function() {
+        //     return (this.approval.id) ? '/api/cs_amendment_request/'+this.approval.id+'/delete_document/' : '';
+        // }
     },
     methods:{
         ok:function () {
@@ -192,7 +212,7 @@ export default {
             vm.issuingApproval = true;
             if (vm.state == 'proposed_approval'){
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_id+'/proposed_approval'),JSON.stringify(approval),{
-                        emulateJSON:true,
+                    emulateJSON:true,
                     }).then((response)=>{
                         vm.issuingApproval = false;
                         vm.close();
@@ -205,7 +225,21 @@ export default {
                     });
             }
             else if (vm.state == 'final_approval'){
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_id+'/final_approval'),JSON.stringify(approval),{
+                let formData = new FormData()
+                var files = vm.$refs.filefield.files;
+                // $.each(files, function (idx, v) {
+                //     var file = v['file'];
+                //     var filename = v['name'];
+                //     var name = 'file-' + idx;
+                //     formData.append(name, file, filename);
+                //     formData.append('proposal_approval_document', vm.uploadedFile)
+                // });
+                //no need to use above loop for files as restricted to add only one approval document
+                vm.uploadedFile =  files.length>0 ? files[0].file : null;
+                formData.append('proposal_approval_document', vm.uploadedFile)
+                formData.append('data', JSON.stringify(approval));
+
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_id+'/final_approval'),formData,{
                         emulateJSON:true,
                     }).then((response)=>{
                         vm.issuingApproval = false;

@@ -105,10 +105,11 @@
                                     </template>
                                 </div>
                             </div>
-                            <div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div>
+                            
                             <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
+                                <div class="col-sm-12">
+                                    <div class="separator"></div>
+                                </div>
                                 <template v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
                                     <div class="row">
                                         <div class="col-sm-12">
@@ -273,6 +274,7 @@ export default {
             referral_text: '',
             approver_comment: '',
             sendingReferral: false,
+            changingStatus:false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/comms_log'),
@@ -406,7 +408,8 @@ export default {
             this.$refs.amendment_request.isModalOpen = true;
         },
         proposedApproval: function(){
-            this.$refs.proposed_approval.approval = this.conservation_status_obj.proposed_issuance_approval != null ? helpers.copyObject(this.conservation_status_obj.proposed_issuance_approval) : {};
+            //this.$refs.proposed_approval.approval = this.conservation_status_obj.proposed_issuance_approval != null ? helpers.copyObject(this.conservation_status_obj.proposed_issuance_approval) : {};
+            this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
             // Priya - Commented below as  we don't have other details on the form yet
             // if((this.conservation_status_obj.proposed_issuance_approval==null || this.conservation_status_obj.proposed_issuance_approval.effective_to_date==null) && this.conservation_status_obj.other_details.proposed_end_date!=null){
             //     // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
@@ -418,8 +421,18 @@ export default {
             // }
             this.$refs.proposed_approval.isModalOpen = true;
         },
+        issueProposal:function(){
+            this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
+            this.$refs.proposed_approval.state = 'final_approval';
+            this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument;
+            this.$refs.proposed_approval.isModalOpen = true;
+        },
         proposedDecline: function(){
             this.save_wo();
+            this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails): {};
+            this.$refs.proposed_decline.isModalOpen = true;
+        },
+        declineProposal:function(){
             this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
@@ -883,6 +896,7 @@ export default {
         Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(res => {
               next(vm => {
                 vm.conservation_status_obj = res.body.conservation_status_obj;
+                console.log(vm.conservation_status_obj.processing_status);
               });
             },
             err => {

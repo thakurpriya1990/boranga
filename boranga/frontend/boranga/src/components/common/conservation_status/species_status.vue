@@ -124,6 +124,18 @@
                     v-model="conservation_status_obj.comment"/>
                 </div>
             </div>
+            <div class="row mb-3" v-if="isStatusApproved">
+                <label for="" class="col-sm-4 control-label">Effective From Date:</label>
+                <div class="col-sm-8">
+                    <input :disabled="conservation_status_obj.readonly" type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_from_date">
+                </div>
+            </div>
+            <div class="row mb-3" v-if="isStatusApproved">
+                <label for="" class="col-sm-4 control-label">Effective To Date:</label>
+                <div class="col-sm-8">
+                   <input :disabled="conservation_status_obj.readonly" type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_to_date" v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_to_date">
+                </div>
+            </div>
         </FormSection>
     </div>
 </template>
@@ -215,6 +227,9 @@ export default {
                 }
                 return has_value;
             },
+            isStatusApproved: function(){
+                return this.conservation_status_obj.processing_status=="Approved" ? true : false;
+            }
         },
         watch:{
         },

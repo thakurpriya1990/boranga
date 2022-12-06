@@ -1,0 +1,7 @@
+{%  extends 'boranga/emails/base_email.txt' %}
+
+{%  block content %}
+
+        Proposal {{cs_proposal.conservation_status_number}} has been approved.
+
+{%  endblock %}

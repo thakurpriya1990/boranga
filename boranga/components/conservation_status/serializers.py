@@ -18,6 +18,7 @@ from boranga.components.conservation_status.models import(
     ConservationStatusAmendmentRequest,
     ConservationStatusAmendmentRequestDocument,
     ConservationStatusDeclinedDetails,
+    ConservationStatusIssuanceApprovalDetails
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -180,6 +181,8 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source='get_processing_status_display')
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
+    assessor_process = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = ConservationStatus
         fields = (
@@ -200,6 +203,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 'customer_status',
                 'can_user_edit',
                 'can_user_view',
+                'assessor_process',
             )
         datatables_always_serialize = (
                 'id',
@@ -219,6 +223,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 'customer_status',
                 'can_user_edit',
                 'can_user_view',
+                'assessor_process',
             )   
 
     def get_group_type(self,obj):
@@ -290,6 +295,20 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             if obj.species.district:
                 return obj.species.district.name
         return ''
+    
+    def get_assessor_process(self,obj):
+        # Check if currently logged in user has access to process the proposal
+        request = self.context['request']
+        template_group = self.context.get('template_group')
+        user = request.user
+        # if obj.can_officer_process and template_group == 'apiary':
+        if obj.can_officer_process:
+            if obj.assigned_officer:
+                if obj.assigned_officer == user:
+                    return True
+            elif user in obj.allowed_assessors:
+                return True
+        return False
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
@@ -304,6 +323,8 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source='get_processing_status_display')
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
+    assessor_process = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = ConservationStatus
         fields = (
@@ -323,6 +344,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'customer_status',
                 'can_user_edit',
                 'can_user_view',
+                'assessor_process',
             )
         datatables_always_serialize = (
                 'id',
@@ -341,6 +363,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'customer_status',
                 'can_user_edit',
                 'can_user_view',
+                'assessor_process',
             )
 
     def get_group_type(self,obj):
@@ -397,6 +420,20 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             if obj.community.district:
                 return obj.community.district.name
         return ''
+    
+    def get_assessor_process(self,obj):
+        # Check if currently logged in user has access to process the proposal
+        request = self.context['request']
+        template_group = self.context.get('template_group')
+        user = request.user
+        # if obj.can_officer_process and template_group == 'apiary':
+        if obj.can_officer_process:
+            if obj.assigned_officer:
+                if obj.assigned_officer == user:
+                    return True
+            elif user in obj.allowed_assessors:
+                return True
+        return False
 
 
 class BaseConservationStatusSerializer(serializers.ModelSerializer):
@@ -531,6 +568,19 @@ class ConservationStatusDeclinedDetailsSerializer(serializers.ModelSerializer):
         model = ConservationStatusDeclinedDetails
         fields = '__all__'
 
+class ConservationStatusIssuanceApprovalDetailsSerializer(serializers.ModelSerializer):
+    effective_from_date = serializers.DateField(format="%Y-%m-%d",required=False,allow_null=True)
+    #effective_to_date = serializers.DateTimeField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    effective_to_date = serializers.DateField(format="%Y-%m-%d",required=False,allow_null=True)
+    class Meta:
+        model = ConservationStatusIssuanceApprovalDetails
+        fields = (
+                'effective_from_date',
+                'effective_to_date',
+                'details',
+                'cc_email',
+            )
+
 
 # TODO use this internal serializer than InternalSpeciesConservationStatusSerializer and InternalCommunityConservationStatusSerializer
 class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
@@ -542,6 +592,8 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     allowed_assessors = EmailUserSerializer(many=True)
     assessor_mode = serializers.SerializerMethodField()
     conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer()
+    conservationstatusissuanceapprovaldetails = ConservationStatusIssuanceApprovalDetailsSerializer()
+    conservation_status_approval_document = serializers.SerializerMethodField()
     # accessing_user_roles = (
     #     serializers.SerializerMethodField()
     # )
@@ -579,6 +631,8 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 'proposed_issuance_approval',
                 'proposed_decline_status',
                 'conservationstatusdeclineddetails',
+                'conservationstatusissuanceapprovaldetails',
+                'conservation_status_approval_document',
                 #'accessing_user_roles',
                 )
 
@@ -608,6 +662,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             return EmailUserSerializer(email_user).data
         else:
             return None
+    
+    def get_processing_status(self,obj):
+        return obj.get_processing_status_display()
 
     def get_readonly(self,obj):
         return True
@@ -632,6 +689,18 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "assessor_level": "assessor",
             "assessor_box_view": obj.assessor_comments_view(user),
         }
+    
+    def get_conservation_status_approval_document(self, obj):
+        try:
+            if obj.conservationstatusissuanceapprovaldetails.conservation_status_approval_document is not None:
+                return [
+                    obj.conservationstatusissuanceapprovaldetails.conservation_status_approval_document.name,
+                    obj.conservationstatusissuanceapprovaldetails.conservation_status_approval_document._file.url,
+                ]
+            else:
+                return obj.conservationstatusissuanceapprovaldetails.conservation_status_approval_document
+        except ConservationStatusIssuanceApprovalDetails.DoesNotExist:
+            return None
 
 
 # Not used at the moment
