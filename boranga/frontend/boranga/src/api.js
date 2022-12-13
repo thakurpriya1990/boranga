@@ -25,6 +25,7 @@ module.exports = {
     species:"/api/species",
     community:"/api/community",
     conservation_status:"/api/conservation_status",
+    conservation_status_documents:"/api/conservation_status_documents.json",
     cs_referrals:"/api/cs_referrals.json",
     /*species_conservation_status:"/api/species_conservation_status",
     community_conservation_status:"/api/community_conservation_status",*/

@@ -15,7 +15,7 @@
                   Status
                 </a>
               </li>
-              <!-- <li class="nav-item">
+              <li class="nav-item">
                 <a 
                     class="nav-link" 
                     id="pills-documents-tab" 
@@ -28,7 +28,7 @@
                   Documents
                 </a>
               </li>
-              <li class="nav-item">
+              <!-- <li class="nav-item">
                 <a 
                     class="nav-link" 
                     id="pills-threats-tab" 
@@ -75,25 +75,16 @@
                     :referral="referral">
                 </SpeciesStatus>
               </div>
-              <!-- <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
-                <CommunityDocuments 
-                    v-if="isCommunity"
+              <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
+                <CSDocuments 
                     :key="reloadcount"
-                    ref="community_documents" 
-                    id="communityDocuments" 
+                    ref="cs_documents" 
+                    id="csDocuments" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
-                </CommunityDocuments>
-                <SpeciesDocuments 
-                    v-else 
-                    :key="reloadcount"
-                    ref="species_documents" 
-                    id="speciesDocuments" 
-                    :is_internal="is_internal"
-                    :species_community="species_community">
-                </SpeciesDocuments>
+                    :conservation_status_obj="conservation_status_obj">
+                </CSDocuments>
               </div>
-              <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
+              <!-- <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
                 <CommunityThreats 
                     v-if="isCommunity"
                     :key="reloadcount"
@@ -128,8 +119,8 @@
 <script>
     import SpeciesStatus from '@/components/common/conservation_status/species_status.vue'
     import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
-    /*import SpeciesDocuments from '@/components/common/species_communities/documents.vue'
-    import CommunityDocuments from '@/components/common/species_communities/community_documents.vue'
+    import CSDocuments from '@/components/common/conservation_status/cs_documents.vue'
+    /*import CommunityDocuments from '@/components/common/species_communities/community_documents.vue'
     import SpeciesThreats from '@/components/common/species_communities/species_threats.vue'
     import CommunityThreats from '@/components/common/species_communities/community_threats.vue'
     import RelatedItems from '@/components/common/species_communities/related_items.vue'*/
@@ -166,6 +157,7 @@
         components: {
             SpeciesStatus,
             CommunityStatus,
+            CSDocuments,
             /*SpeciesDocuments,
             CommunityDocuments,
             SpeciesThreats,

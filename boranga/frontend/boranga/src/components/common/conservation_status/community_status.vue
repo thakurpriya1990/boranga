@@ -20,7 +20,7 @@
                     </div>
                     <!-- --- -->
 
-                    <!-- Assessor Deficiencies and comment box -->
+                    <!-- Assessor Deficiencies and comment box -->z`
                     <div v-if="referral_comments_boxes.length >0">
                         <div v-for="ref in referral_comments_boxes">
                             <div class="row mb-3" v-if="ref.box_view">
@@ -118,6 +118,26 @@
                     v-model="conservation_status_obj.comment"/>
                 </div>
             </div>
+            <div class="row mb-3" v-if="isStatusApproved">
+                <label for="" class="col-sm-4 control-label">Effective From Date:</label>
+                <div class="col-sm-8">
+                    <input :disabled="conservation_status_obj.readonly" type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_from_date">
+                </div>
+            </div>
+            <div class="row mb-3" v-if="isStatusApproved">
+                <label for="" class="col-sm-4 control-label">Effective To Date:</label>
+                <div class="col-sm-8">
+                   <input :disabled="conservation_status_obj.readonly" type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_to_date" v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_to_date">
+                </div>
+            </div>
+            <div class="row mb-3" v-if="isStatusApproved">
+                <label for="" class="col-sm-4 control-label">Approval document:</label>
+                <div class="col-sm-8">
+                    <p v-if="conservation_status_obj.conservation_status_approval_document">
+                        <strong><a :href="conservation_status_obj.conservation_status_approval_document[1]" target="_blank">{{conservation_status_obj.conservation_status_approval_document[0]}}</a></strong>
+                    </p>
+                </div>
+            </div>
         </FormSection>
     </div>
 </template>
@@ -191,6 +211,21 @@ export default {
             },
             assessorCommentVisibility: function(){
                 return this.conservation_status_obj.assessor_mode.assessor_box_view;
+            },
+            has_comment_value:function () {
+                let has_value=false;
+                // TODO need to add assessor comment value as well
+                for(var i=0; i<this.referral_comments_boxes.length; i++){
+                    if(this.referral_comments_boxes[i].hasOwnProperty('value')){
+                        if(this.referral_comments_boxes[i].value!=null && this.referral_comments_boxes[i].value!=undefined && this.referral_comments_boxes[i].value!= '' ){
+                            has_value=true;
+                        }
+                    } 
+                }
+                return has_value;
+            },
+            isStatusApproved: function(){
+                return this.conservation_status_obj.processing_status=="Approved" ? true : false;
             },
         },
         watch:{
@@ -327,18 +362,6 @@ export default {
             toggleComment:function(updatedShowComment) {
                 //this.isShowComment = ! this.isShowComment;
                 this.isShowComment = updatedShowComment;
-            },
-            has_comment_value:function () {
-                let has_value=false;
-                // TODO need to add assessor comment value as well
-                for(var i=0; i<this.referral_comments_boxes.length; i++){
-                    if(this.referral_comments_boxes[i].hasOwnProperty('value')){
-                        if(this.referral_comments_boxes[i].value!=null && this.referral_comments_boxes[i].value!=undefined && this.referral_comments_boxes[i].value!= '' ){
-                            has_value=true;
-                        }
-                    } 
-                }
-                return has_value;
             },
         },
         created: async function() {

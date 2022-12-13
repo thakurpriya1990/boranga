@@ -579,6 +579,7 @@ class DocumentCategory(models.Model):
     - DocumentSubCategory
     - SpeciesDocument
     - CommunityDocument
+    -ConservationStatusDocument
     Is:
     - Table
     """
@@ -601,6 +602,7 @@ class DocumentSubCategory(models.Model):
     Used by:
     - SpeciesDocument
     - CommunityDocument
+    -ConservationStatusDocument
     Is:
     - Table
     """
@@ -639,11 +641,11 @@ class SpeciesDocument(Document):
     document_category = models.ForeignKey(DocumentCategory, 
                                           null=True,
                                           blank=True,
-                                          on_delete=models.CASCADE)
+                                          on_delete=models.SET_NULL)
     document_sub_category = models.ForeignKey(DocumentSubCategory, 
                                           null=True,
                                           blank=True,
-                                          on_delete=models.CASCADE)
+                                          on_delete=models.SET_NULL)
     species = models.ForeignKey(Species, 
                                 blank=False, 
                                 default=None,
@@ -705,11 +707,11 @@ class CommunityDocument(Document):
     document_category = models.ForeignKey(DocumentCategory, 
                                           null=True,
                                           blank=True,
-                                          on_delete=models.CASCADE)
+                                          on_delete=models.SET_NULL)
     document_sub_category = models.ForeignKey(DocumentSubCategory, 
                                           null=True,
                                           blank=True,
-                                          on_delete=models.CASCADE)
+                                          on_delete=models.SET_NULL)
     community = models.ForeignKey(Community, 
                                 blank=False, 
                                 default=None,
