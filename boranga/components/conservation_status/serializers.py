@@ -18,7 +18,8 @@ from boranga.components.conservation_status.models import(
     ConservationStatusAmendmentRequest,
     ConservationStatusAmendmentRequestDocument,
     ConservationStatusDeclinedDetails,
-    ConservationStatusIssuanceApprovalDetails
+    ConservationStatusIssuanceApprovalDetails,
+    ConservationStatusDocument,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -1230,3 +1231,47 @@ class ProposedApprovalSerializer(serializers.Serializer):
     details = serializers.CharField()
     cc_email = serializers.CharField(required=False,allow_null=True)
 
+class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
+	document_category_name = serializers.SerializerMethodField()
+	document_sub_category_name = serializers.SerializerMethodField()
+	class Meta:
+		model = ConservationStatusDocument
+		fields = (
+			'id',
+			'document_number',
+			'conservation_status',
+			'name',
+			'_file',
+			'description',
+			'input_name',
+			'uploaded_date',
+			'document_category',
+			'document_category_name',
+			'document_sub_category',
+			'document_sub_category_name',
+			'visible',
+		)
+		read_only_fields = ('id','document_number')
+
+	def get_document_category_name(self,obj):
+		if obj.document_category:
+			return obj.document_category.document_category_name
+
+	def get_document_sub_category_name(self,obj):
+		if obj.document_sub_category:
+			return obj.document_sub_category.document_sub_category_name
+
+
+class SaveConservationStatusDocumentSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = ConservationStatusDocument
+		fields = (
+			'id',
+			'conservation_status',
+			'name',
+			'description',
+			'input_name',
+			'uploaded_date',
+			'document_category',
+			'document_sub_category',
+			)

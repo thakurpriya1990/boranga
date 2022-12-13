@@ -14,6 +14,8 @@ from boranga.components.species_and_communities.models import(
     Species,
     Community,
     GroupType,
+    DocumentCategory,
+    DocumentSubCategory,
 )
 from boranga.components.proposals.models import(
     AmendmentReason,
@@ -29,6 +31,7 @@ from boranga.settings import (
     GROUP_NAME_ASSESSOR,
     GROUP_NAME_APPROVER,
 )
+from boranga.components.main.utils import get_department_user
 from boranga.components.conservation_status.email import (
     send_conservation_status_referral_email_notification,
     send_conservation_status_referral_recall_email_notification,
@@ -891,12 +894,16 @@ class ConservationStatus(models.Model):
                 proposal_approval_document = request.data['proposal_approval_document']
                 if proposal_approval_document != 'null':
                     try:
-                        document = self.documents.get(input_name=str(proposal_approval_document))
+                        #document = self.documents.get(input_name=str(proposal_approval_document))
+                        document = self.documents.get(name=str(proposal_approval_document)) #Priya, commented above as input_name=approval shouldn't be shown in documents tab 
                     except:
                         # can also use name = proposal_approval_document.name rather than str(proposal_approval_document)
-                        document = self.documents.get_or_create(input_name=str(proposal_approval_document), name=str(proposal_approval_document))[0]
+                        #document = self.documents.get_or_create(input_name='str(proposal_approval_document)', name=str(proposal_approval_document))[0]
+                        document = self.documents.get_or_create(input_name='conservation_status_approval_doc', name=str(proposal_approval_document))[0]  #Priya, commented above as input_name=approval shouldn't be shown in documents tab 
+
                     document.name = str(proposal_approval_document)
                     document._file = proposal_approval_document
+
                     document.save()
                     d=ConservationStatusDocument.objects.get(id=document.id)
                 else:
@@ -1093,16 +1100,55 @@ class ConservationStatusUserAction(UserAction):
 
 
 class ConservationStatusDocument(Document):
+    document_number = models.CharField(max_length=9, blank=True, default='')
     conservation_status = models.ForeignKey('ConservationStatus',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_conservation_status_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     can_hide= models.BooleanField(default=False) # after initial submit, document cannot be deleted but can be hidden
-    hidden=models.BooleanField(default=False) # after initial submit prevent document from being deleted
+    hidden=models.BooleanField(default=False) # after initial submit prevent document from being deleted # Priya alternatively used below visible field in boranga
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+    document_category = models.ForeignKey(DocumentCategory,
+                                          null=True,
+                                          blank=True,
+                                          on_delete=models.SET_NULL)
+    document_sub_category = models.ForeignKey(DocumentSubCategory,
+                                          null=True,
+                                          blank=True,
+                                          on_delete=models.SET_NULL)
 
     class Meta:
         app_label = 'boranga'
         verbose_name = "Conservation Status Document"
+
+    def save(self, *args, **kwargs):
+        # Prefix "D" char to document_number.
+        super(ConservationStatusDocument, self).save(*args,**kwargs)
+        if self.document_number == '':
+            new_document_id = 'D{}'.format(str(self.pk))
+            self.document_number = new_document_id
+            self.save()
+
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                # if not data.get('update'):
+                #     documents_qs = self.filter(input_name='species_doc', visible=True)
+                #     documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    self._file=_file
+                    self.name=_file.name
+                    self.input_name = data['input_name']
+                    self.can_delete = True
+                    self.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
 
 
 class ConservationStatusDeclinedDetails(models.Model):
