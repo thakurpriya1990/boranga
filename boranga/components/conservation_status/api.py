@@ -26,6 +26,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from boranga.components.species_and_communities.models import GroupType
 from boranga.components.conservation_status.utils import cs_proposal_submit
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from boranga.components.main.decorators import basic_exception_handler
+
+from boranga.components.main.related_item import RelatedItemsSerializer
 
 from boranga.components.species_and_communities.models import(
     Species,
@@ -664,6 +667,13 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
+    
+    @list_route(methods=['GET',], detail=False)
+    def filter_list(self, request, *args, **kwargs):
+        """ Used by the Related Items dashboard filters """
+        related_type =  ConservationStatus.RELATED_ITEM_CHOICES 
+        res_json = json.dumps(related_type) 
+        return HttpResponse(res_json, content_type='application/json')
 
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -1084,6 +1094,15 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=["get"], detail=True)
+    @basic_exception_handler
+    def get_related_items(self, request, *args, **kwargs):
+        instance = self.get_object()
+        related_filter_type= request.GET.get('related_filter_type')
+        related_items = instance.get_related_items(related_filter_type)
+        serializer = RelatedItemsSerializer(related_items, many=True)
+        return Response(serializer.data)
 
 
 class ConservationStatusReferralViewSet(viewsets.ModelViewSet):

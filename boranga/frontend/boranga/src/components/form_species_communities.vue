@@ -49,7 +49,8 @@
                     href="#pills-related-items" 
                     role="tab" 
                     aria-controls="pills-related-items" 
-                    aria-selected="false">
+                    aria-selected="false"
+                    @click="tabClicked()">
                   Related Items
                 </a>
               </li>
@@ -107,13 +108,12 @@
                     :species_community="species_community">
                 </SpeciesThreats>
               </div>
-              <div class="tab-pane fade" id="pills-related-items" role="tabpanel" 
-                aria-labelledby="pills-related-items-tab">
+              <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems 
-                    ref="species_related_items" 
-                    id="speciesRelatedItems"
-                    :is_internal="is_internal"
-                    :species_community="species_community">
+                    ref="species_communities_related_items" 
+                    id="speciesCommunitiesRelatedItems" 
+                    :ajax_url="related_items_ajax_url"
+                    :filter_list_url="related_items_filter_list_url">
                 </RelatedItems>
               </div>
             </div>
@@ -128,7 +128,7 @@
     import CommunityDocuments from '@/components/common/species_communities/community_documents.vue'
     import SpeciesThreats from '@/components/common/species_communities/species_threats.vue'
     import CommunityThreats from '@/components/common/species_communities/community_threats.vue'
-    import RelatedItems from '@/components/common/species_communities/related_items.vue'
+    import RelatedItems from '@/components/common/table_related_items.vue'
 
     export default {
         props:{
@@ -164,7 +164,22 @@
             isCommunity: function(){
                 return this.species_community.group_type == "community"
             },
-
+            related_items_ajax_url: function(){
+              if(this.isCommunity){
+                return '/api/community/' + this.species_community.id + '/get_related_items/'
+              }
+              else{
+                return '/api/species/' + this.species_community.id + '/get_related_items/'
+              }
+            },
+            related_items_filter_list_url: function(){
+              if(this.isCommunity){
+                return '/api/community/filter_list.json'
+              }
+              else{
+                return '/api/species/filter_list.json'
+              }
+            },
         },
         methods:{
             //----function to resolve datatable exceeding beyond the div
