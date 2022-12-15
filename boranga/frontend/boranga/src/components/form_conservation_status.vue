@@ -28,6 +28,19 @@
                   Documents
                 </a>
               </li>
+              <li class="nav-item" role="presentation">
+                <a 
+                  class="nav-link" 
+                  id="pills-related-items-tab" 
+                  data-bs-toggle="pill" 
+                  data-bs-target="#pills-related-items" 
+                  role="tab" 
+                  aria-controls="pills-related-items" 
+                  aria-selected="false"
+                  @click="tabClicked()">
+                  Related Items
+                </a>
+              </li>
               <!-- <li class="nav-item">
                 <a 
                     class="nav-link" 
@@ -84,6 +97,14 @@
                     :conservation_status_obj="conservation_status_obj">
                 </CSDocuments>
               </div>
+              <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
+                <RelatedItems 
+                    ref="cs_related_items" 
+                    id="csRelatedItems" 
+                    :ajax_url="related_items_ajax_url"
+                    :filter_list_url="related_items_filter_list_url">
+                </RelatedItems>
+              </div>
               <!-- <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
                 <CommunityThreats 
                     v-if="isCommunity"
@@ -120,6 +141,7 @@
     import SpeciesStatus from '@/components/common/conservation_status/species_status.vue'
     import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
     import CSDocuments from '@/components/common/conservation_status/cs_documents.vue'
+    import RelatedItems from '@/components/common/table_related_items.vue'
     /*import CommunityDocuments from '@/components/common/species_communities/community_documents.vue'
     import SpeciesThreats from '@/components/common/species_communities/species_threats.vue'
     import CommunityThreats from '@/components/common/species_communities/community_threats.vue'
@@ -158,6 +180,7 @@
             SpeciesStatus,
             CommunityStatus,
             CSDocuments,
+            RelatedItems,
             /*SpeciesDocuments,
             CommunityDocuments,
             SpeciesThreats,
@@ -168,7 +191,12 @@
             isCommunity: function(){
                 return this.conservation_status_obj.group_type == "community"
             },
-
+            related_items_ajax_url: function(){
+              return '/api/conservation_status/' + this.conservation_status_obj.id + '/get_related_items/'
+            },
+            related_items_filter_list_url: function(){
+              return '/api/conservation_status/filter_list.json'
+            },
         },
         methods:{
             //----function to resolve datatable exceeding beyond the div

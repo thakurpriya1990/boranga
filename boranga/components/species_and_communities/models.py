@@ -9,6 +9,7 @@ import json
 from django.db import models,transaction
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from boranga.components.main.related_item import RelatedItem
 
 private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
@@ -211,6 +212,8 @@ class Species(models.Model):
     Is:
     - Table
     """
+    RELATED_ITEM_CHOICES = [('conservation_status', 'Conservation Status')]
+    
     species_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
@@ -245,6 +248,59 @@ class Species(models.Model):
     @property
     def reference(self):
         return '{}-{}'.format(self.species_number,self.species_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
+    
+    def get_related_items(self,filter_type, **kwargs):
+        return_list = []
+        if filter_type == 'all':
+            related_field_names = ['conservation_status',]
+        else:
+            related_field_names = [filter_type,]
+        all_fields = self._meta.get_fields()
+        for a_field in all_fields:
+            if a_field.name in related_field_names:
+                field_objects = []
+                if a_field.is_relation:
+                    if a_field.many_to_many:
+                        field_objects = a_field.related_model.objects.filter(**{a_field.remote_field.name: self})
+                    elif a_field.many_to_one:  # foreign key
+                        field_objects = [getattr(self, a_field.name),]
+                    elif a_field.one_to_many:  # reverse foreign key
+                        field_objects = a_field.related_model.objects.filter(**{a_field.remote_field.name: self})
+                    elif a_field.one_to_one:
+                        if hasattr(self, a_field.name):
+                            field_objects = [getattr(self, a_field.name),]
+                for field_object in field_objects:
+                    if field_object:
+                        related_item = field_object.as_related_item
+                        return_list.append(related_item)
+
+        # serializer = RelatedItemsSerializer(return_list, many=True)
+        # return serializer.data
+        return return_list
+    
+    @property
+    def as_related_item(self):
+        related_item = RelatedItem(
+            identifier=self.related_item_identifier,
+            model_name=self._meta.verbose_name,
+            descriptor=self.related_item_descriptor,
+            status=self.related_item_status,
+            action_url='<a href=/internal/species_communities/{}?group_type_name={} target="_blank">View</a>'.format(self.id,self.group_type.name)
+        )
+        return related_item
+
+    @property
+    def related_item_identifier(self):
+        return self.species_number
+
+    @property
+    def related_item_descriptor(self):
+        return self.scientific_name.name
+    
+    @property
+    def related_item_status(self):
+        #return self.get_processing_status_display
+        return self.processing_status # TODO use the above to display as still no processing_status choices list
 
 
 class Family(models.Model):
@@ -413,6 +469,8 @@ class Community(models.Model):
     Is:
     - Table
     """
+    RELATED_ITEM_CHOICES = [('species', 'Species'), ('conservation_status', 'Conservation Status')]
+
     community_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,on_delete=models.CASCADE)
     species = models.ManyToManyField(Species, null=True, blank=True)
@@ -449,6 +507,60 @@ class Community(models.Model):
     @property
     def reference(self):
         return '{}-{}'.format(self.community_number)
+    
+    def get_related_items(self,filter_type, **kwargs):
+        return_list = []
+        if filter_type == 'all':
+            related_field_names = ['species', 'conservation_status',]
+        else:
+            related_field_names = [filter_type,]
+        all_fields = self._meta.get_fields()
+        for a_field in all_fields:
+            if a_field.name in related_field_names:
+                field_objects = []
+                if a_field.is_relation:
+                    if a_field.many_to_many:
+                        field_objects = a_field.related_model.objects.filter(**{a_field.remote_field.name: self})
+                    elif a_field.many_to_one:  # foreign key
+                        field_objects = [getattr(self, a_field.name),]
+                    elif a_field.one_to_many:  # reverse foreign key
+                        field_objects = a_field.related_model.objects.filter(**{a_field.remote_field.name: self})
+                    elif a_field.one_to_one:
+                        if hasattr(self, a_field.name):
+                            field_objects = [getattr(self, a_field.name),]
+                for field_object in field_objects:
+                    if field_object:
+                        related_item = field_object.as_related_item
+                        return_list.append(related_item)
+
+        # serializer = RelatedItemsSerializer(return_list, many=True)
+        # return serializer.data
+        return return_list
+    
+    @property
+    def as_related_item(self):
+        related_item = RelatedItem(
+            identifier=self.related_item_identifier,
+            model_name=self._meta.verbose_name,
+            descriptor=self.related_item_descriptor,
+            status=self.related_item_status,
+            action_url='<a href=/internal/species_communities/{} target="_blank">Open</a>'.format(self.id)
+        )
+        return related_item
+
+    @property
+    def related_item_identifier(self):
+        return self.community_number
+
+    @property
+    def related_item_descriptor(self):
+        return self.community_name
+
+    @property
+    def related_item_status(self):
+        #return self.processing_status # TODO use the above to display as still no processing_status choices list
+        return 'Not available yet'
+
 
 
 class CommunityLogDocument(Document):
