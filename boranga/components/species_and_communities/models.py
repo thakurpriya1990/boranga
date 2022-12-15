@@ -284,6 +284,7 @@ class Species(models.Model):
             identifier=self.related_item_identifier,
             model_name=self._meta.verbose_name,
             descriptor=self.related_item_descriptor,
+            status=self.related_item_status,
             action_url='<a href=/internal/species_communities/{}?group_type_name={} target="_blank">View</a>'.format(self.id,self.group_type.name)
         )
         return related_item
@@ -295,6 +296,11 @@ class Species(models.Model):
     @property
     def related_item_descriptor(self):
         return self.scientific_name.name
+    
+    @property
+    def related_item_status(self):
+        #return self.get_processing_status_display
+        return self.processing_status # TODO use the above to display as still no processing_status choices list
 
 
 class Family(models.Model):
@@ -537,6 +543,7 @@ class Community(models.Model):
             identifier=self.related_item_identifier,
             model_name=self._meta.verbose_name,
             descriptor=self.related_item_descriptor,
+            status=self.related_item_status,
             action_url='<a href=/internal/species_communities/{} target="_blank">Open</a>'.format(self.id)
         )
         return related_item
@@ -548,6 +555,12 @@ class Community(models.Model):
     @property
     def related_item_descriptor(self):
         return self.community_name
+
+    @property
+    def related_item_status(self):
+        #return self.processing_status # TODO use the above to display as still no processing_status choices list
+        return 'Not available yet'
+
 
 
 class CommunityLogDocument(Document):

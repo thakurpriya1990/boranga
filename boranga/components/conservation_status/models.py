@@ -1063,6 +1063,7 @@ class ConservationStatus(models.Model):
             identifier=self.related_item_identifier,
             model_name=self._meta.verbose_name,
             descriptor=self.related_item_descriptor,
+            status=self.related_item_status,
             action_url='<a href=/internal/conservation_status/{} target="_blank">View</a>'.format(self.id)
         )
         return related_item
@@ -1074,6 +1075,10 @@ class ConservationStatus(models.Model):
     @property
     def related_item_descriptor(self):
         return self.conservation_list.code
+
+    @property
+    def related_item_status(self):
+        return self.get_processing_status_display
 
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):

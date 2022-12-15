@@ -88,6 +88,17 @@ export default {
                 },
             }
         },
+        column_status: function(){
+            return {
+                data: 'status',
+                //name: 'type',
+                orderable: false,
+                searchable: false,
+                visible: true,
+                //'render': function(row, type, full){
+                //}
+            }
+        },
         column_action: function(){
             return {
                 data: 'action_url',
@@ -105,6 +116,7 @@ export default {
                 vm.column_lodgement_number,
                 vm.column_type,
                 vm.column_description,
+                vm.column_status,
                 vm.column_action,
             ]
             return {
@@ -140,6 +152,7 @@ export default {
                 'Number',
                 'Type',
                 'Description',
+                'Status',
                 'Action',
             ]
         },
