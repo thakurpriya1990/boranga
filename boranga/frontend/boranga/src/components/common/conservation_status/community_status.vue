@@ -118,19 +118,20 @@
                     v-model="conservation_status_obj.comment"/>
                 </div>
             </div>
-            <div class="row mb-3" v-if="isStatusApproved">
+            <!-- TODO Do we need to show the effective dates and approval document to external user -->
+            <div class="row mb-3" v-if="isStatusApproved && is_external==false">
                 <label for="" class="col-sm-4 control-label">Effective From Date:</label>
                 <div class="col-sm-8">
                     <input :disabled="conservation_status_obj.readonly" type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_from_date">
                 </div>
             </div>
-            <div class="row mb-3" v-if="isStatusApproved">
+            <div class="row mb-3" v-if="isStatusApproved && is_external==false">
                 <label for="" class="col-sm-4 control-label">Effective To Date:</label>
                 <div class="col-sm-8">
                    <input :disabled="conservation_status_obj.readonly" type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_to_date" v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_to_date">
                 </div>
             </div>
-            <div class="row mb-3" v-if="isStatusApproved">
+            <div class="row mb-3" v-if="isStatusApproved && is_external==false">
                 <label for="" class="col-sm-4 control-label">Approval document:</label>
                 <div class="col-sm-8">
                     <p v-if="conservation_status_obj.conservation_status_approval_document">

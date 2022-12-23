@@ -197,8 +197,8 @@
                                 <input type='hidden' name="conservation_status_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
                                     <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                        <!-- commented the below as internal is no proposal submission just saving proposal changes -->
-                                        <!-- <div v-if="hasAssessorMode" class="container">
+                                        <!--the below as internal proposal submission ELSE just saving proposal changes -->
+                                        <div v-if="conservation_status_obj.internal_user_edit" class="container">
                                             <div class="col-md-12 text-end">
                                                 <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -215,9 +215,9 @@
                                                 <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
                                                 @click.prevent="submit()" :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
                                             </div>
-                                        </div> -->
+                                        </div>
 
-                                        <div v-if="hasAssessorMode" class="container">
+                                        <div v-else-if="hasAssessorMode" class="container">
                                             <div class="col-md-12 text-end">
                                                 <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -267,8 +267,11 @@ export default {
             "loading": [],
             form: null,
             savingConservationStatus:false,
-            /*saveExitConservationStatus: false,
-            submitConservationStatus: false,*/
+            saveExitConservationStatus: false,
+            submitConservationStatus: false,
+            submitting: false,
+            saveExitCSProposal: false,
+            savingCSProposal:false,
             department_users : [],
             selected_referral: '',
             referral_text: '',
@@ -436,7 +439,7 @@ export default {
             this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
-        save: async function() {
+        save: async function(e) {
             let vm = this;
             vm.savingConservationStatus=true;
             let payload = new Object();
@@ -449,58 +452,145 @@ export default {
               )
               vm.savingConservationStatus=false;
           },err=>{
+            var errorText=helpers.apiVueResourceError(err); 
+                  swal(
+                          'Save Error',
+                          errorText,
+                          'error'
+                      )
             vm.savingConservationStatus=false;
           });
         },
-        /*save_exit: async function(){
+        save_exit: async function(e){
             let vm = this;
             vm.saveExitConservationStatus=true;
-            const res = await this.save();
+            this.save(e);
             vm.saveExitConservationStatus=false;
             // redirect back to dashboard
-            if (res.ok) {
-                vm.$router.push({
+            vm.$router.push({
                     name: 'internal-conservation_status-dash'
                 });
-            }
-        },*/
-        /*submit: async function(){
-            let vm = this
-            vm.submitConservationStatus=true;
-            try {
-                await swal({
-                    title:"Edit Conservation Status",
-                    text: "Are you sure you want to submit the changes",
-                    type: "question",
-                    showCancelButton: true,
-                    confirmButtonText: "submit"
-                })
-            } catch (cancel) {
-                vm.submitConservationStatus = false;
-                return;
-            }
+        },
+        save_before_submit: async function(e) {
+            //console.log('save before submit');
+            let vm = this;
+            vm.saveError=false;
 
-            if(vm.submitConservationStatus){
-                try {
-                    const res = await this.save();
-                    if (res.ok) {
-                        vm.$router.push({
-                          name: 'internal-conservation_status-dash'
-                        });
-                    }
-                } catch(err) {
-                    console.log(err)
-                    console.log(typeof(err.body))
-                    await swal({
-                        title: 'Submit Error',
-                        html: helpers.formatError(err),
-                        type: "error",
-                    })
-                    vm.submitConservationStatus=false;
-                    //this.submitting = false;
+            let payload = new Object();
+            Object.assign(payload, vm.conservation_status_obj);
+            const result = await vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+                //return true;
+            },err=>{
+                        var errorText=helpers.apiVueResourceError(err); 
+                        swal(
+                                'Submit Error',
+                                //helpers.apiVueResourceError(err),
+                                errorText,
+                                'error'
+                            )
+                        vm.submitConservationStatus=false;
+                        vm.saveError=true;
+                //return false;
+            });
+            return result;
+        },
+        can_submit: function(){
+            let vm=this;
+            let blank_fields=[]
+            // TODO check blank 
+            /*if (vm.conservation_status_obj.application_type==vm.application_type_tclass) {
+            } 
+            else if (vm.conservation_status_obj.application_type==vm.application_type_event) {
+                blank_fields=vm.can_submit_event();
+            }*/
+            blank_fields=vm.can_submit_conservation_status();
+            
+            if(blank_fields.length==0){
+                return true;
+            }
+            else{
+                return blank_fields;
+            }
+        },
+        can_submit_conservation_status: function(){
+            let vm=this;
+            let blank_fields=[]
+            if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
+                if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
+                    blank_fields.push(' Species is missing')
                 }
             }
-        },*/
+            else{
+                if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == ''){
+                    blank_fields.push(' Community is missing')
+                }
+            }
+            if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == ''){
+                blank_fields.push(' Conservation List is missing')
+            }
+            if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == ''){
+                blank_fields.push(' Conservation Category is missing')
+            }
+            if (vm.conservation_status_obj.conservation_criteria.length == 0){
+                blank_fields.push(' Conservation criteria is missing')
+            }
+            if (vm.conservation_status_obj.comment == null || vm.conservation_status_obj.comment == ''){
+                blank_fields.push(' Conservation comment is missing')
+            }
+            /*if(vm.$refs.proposal_filming.$refs.filming_other_details.$refs.deed_poll_doc.documents.length==0){
+                blank_fields.push(' Deed poll document is missing')
+            }*/
+            return blank_fields
+        },
+        submit: async function(){
+            let vm = this;
+
+            var missing_data= vm.can_submit();
+            if(missing_data!=true){
+                swal({
+                    title: "Please fix following errors before submitting",
+                    text: missing_data,
+                    type:'error'
+                })
+                //vm.paySubmitting=false;
+                return false;
+            }
+            vm.submitConservationStatus=true;
+            swal({
+                title: "Submit New Conservation Status Application",
+                text: "Are you sure you want to submit this application?",
+                type: "question",
+                showCancelButton: true,
+                confirmButtonText: "submit"
+            }).then(async () => {
+            
+                let result = await vm.save_before_submit()
+                if(!vm.saveError){
+                    let payload = new Object();
+                    Object.assign(payload, vm.conservation_status_obj);
+                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_obj.id+'/submit'),payload).then(res=>{
+                        vm.conservation_status_obj = res.body;
+                        // vm.$router.push({
+                        //     name: 'submit_cs_proposal',
+                        //     params: { conservation_status_obj: vm.conservation_status_obj}
+                        // });
+                    // TODO router should push to submit_cs_proposal for internal side 
+                        vm.$router.push({
+                            name: 'internal-conservation_status-dash'
+                        });
+                    },err=>{
+                        swal(
+                            'Submit Error',
+                            helpers.apiVueResourceError(err),
+                            'error'
+                        )
+                    });
+                }
+                
+            },(error) => {
+                vm.submitConservationStatus=false;
+            });
+        },
         save_wo: function() {
             let vm = this;
             let payload = new Object();
@@ -896,7 +986,6 @@ export default {
         Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(res => {
               next(vm => {
                 vm.conservation_status_obj = res.body.conservation_status_obj;
-                console.log(vm.conservation_status_obj.processing_status);
               });
             },
             err => {

@@ -584,6 +584,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET',], detail=False)
     def conservation_status_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
+        qs = qs.filter(Q(internal_application=False))
         # TODO Not Sure but to filter for only WA listed conservation lists for external
         #qs = qs.filter(Q(conservation_list__applies_to_wa=True))
         qs = self.filter_queryset(qs)
@@ -683,7 +684,8 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                 instance = self.get_object() 
                 request_data = request.data
                 # to resolve error for serializer submitter id as object is received in request
-                request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
+                if request_data['submitter']:
+                    request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
                 if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
                     serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
                 elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
@@ -775,9 +777,13 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         group_type_id = GroupType.objects.get(id=request.data.get('application_type_id'))
+        internal_application = False
+        if request.data.get('internal_application'):
+                internal_application = request.data.get('internal_application')
         obj = ConservationStatus.objects.create(
                 #submitter=request.user.id,
                 application_type=group_type_id,
+                internal_application=internal_application
                 )
         serialized_obj = CreateConservationStatusSerializer(obj)
         return Response(serialized_obj.data)

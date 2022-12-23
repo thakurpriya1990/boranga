@@ -559,22 +559,29 @@ export default {
                     let links = "";
                     if (!vm.is_external){
                         /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                        if(full.assessor_process){   
-                                links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;    
+                        if(full.internal_user_edit)
+                        {
+                            links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
                         }
                         else{
-                            links +=  `<a href='/internal/conservation_status/${full.id}'>View</a><br/>`;
+                            if(full.assessor_process){
+                                    links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
+                            }
+                            else{
+                                links +=  `<a href='/internal/conservation_status/${full.id}'>View</a><br/>`;
+                            }
                         }
                     }
-                    else{
-                        if (full.can_user_edit) {
-                            links +=  `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
-                        }
-                        else if (full.can_user_view) {
-                            links +=  `<a href='/external/conservation_status/${full.id}'>View</a>`;
-                        }
-                    }
+                    // else{
+                    //     if (full.can_user_edit) {
+                    //         links +=  `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
+                    //         links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
+                    //     }
+                    //     else if (full.can_user_view) {
+                    //         links +=  `<a href='/external/conservation_status/${full.id}'>View</a>`;
+                    //     }
+                    // }
 
                     links +=  `<a href='/internal/conservation_status/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
 
@@ -781,6 +788,8 @@ export default {
             try {
                     const createUrl = api_endpoints.conservation_status+"/";
                     let payload = new Object();
+                    payload.application_type_id = this.group_type_id
+                    payload.internal_application = true
                     let savedFloraCS = await Vue.http.post(createUrl, payload);
                     if (savedFloraCS) {
                         newFloraCSId = savedFloraCS.body.id;
@@ -793,11 +802,11 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-species-communities',
-                params: {species_community_id: newFloraCSId},
+                name: 'internal-conservation_status',
+                params: {conservation_status_id: newFloraCSId},
                 });
         },
-        discardProposal:function (proposal_id) {
+        discardCSProposal:function (conservation_status_id) {
             let vm = this;
             swal({
                 title: "Discard Application",
@@ -807,7 +816,7 @@ export default {
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_proposal(proposal_id))
+                vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
                 .then((response) => {
                     swal(
                         'Discarded',
@@ -824,11 +833,11 @@ export default {
         },
         addEventListeners: function(){
             let vm = this;
-            // External Discard listener
-            vm.$refs.flora_cs_datatable.vmDataTable.on('click', 'a[data-discard-proposal]', function(e) {
+            // internal Discard listener
+            vm.$refs.flora_cs_datatable.vmDataTable.on('click', 'a[data-discard-cs-proposal]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-proposal');
-                vm.discardProposal(id);
+                var id = $(this).attr('data-discard-cs-proposal');
+                vm.discardCSProposal(id);
             });
         },
         initialiseSearch:function(){

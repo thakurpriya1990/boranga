@@ -185,7 +185,6 @@ export default {
             //large FilterList of Species Values object
             vm.$http.get(vm.filter_list_url).then((response) => {
                 vm.related_type_filter_list = response.body;
-                console.log(response.body)
             },(error) => {
                 console.log(error);
             })

@@ -183,6 +183,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     assessor_process = serializers.SerializerMethodField(read_only=True)
+    internal_user_edit = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -205,6 +206,8 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 'can_user_edit',
                 'can_user_view',
                 'assessor_process',
+                'internal_application',
+                'internal_user_edit',
             )
         datatables_always_serialize = (
                 'id',
@@ -225,6 +228,8 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 'can_user_edit',
                 'can_user_view',
                 'assessor_process',
+                'internal_application',
+                'internal_user_edit',
             )   
 
     def get_group_type(self,obj):
@@ -303,13 +308,23 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         template_group = self.context.get('template_group')
         user = request.user
         # if obj.can_officer_process and template_group == 'apiary':
+        # TODO if internal user proposal then check condition that he is not able to process
         if obj.can_officer_process:
             if obj.assigned_officer:
-                if obj.assigned_officer == user:
+                if obj.assigned_officer == user.id:
                     return True
             elif user in obj.allowed_assessors:
                 return True
         return False
+
+    def get_internal_user_edit(self,obj):
+        request = self.context['request']
+        user = request.user
+        if obj.can_user_edit:
+            if obj.internal_application == True:
+                return True
+        else:
+            return False
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
@@ -325,6 +340,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     assessor_process = serializers.SerializerMethodField(read_only=True)
+    internal_user_edit = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -346,6 +362,8 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'can_user_edit',
                 'can_user_view',
                 'assessor_process',
+                'internal_application',
+                'internal_user_edit',
             )
         datatables_always_serialize = (
                 'id',
@@ -365,6 +383,8 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'can_user_edit',
                 'can_user_view',
                 'assessor_process',
+                'internal_application',
+                'internal_user_edit',
             )
 
     def get_group_type(self,obj):
@@ -435,6 +455,15 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             elif user in obj.allowed_assessors:
                 return True
         return False
+
+    def get_internal_user_edit(self,obj):
+        request = self.context['request']
+        user = request.user
+        if obj.can_user_edit:
+            if obj.internal_application == True:
+                return True
+        else:
+            return False
 
 
 class BaseConservationStatusSerializer(serializers.ModelSerializer):
@@ -541,6 +570,7 @@ class CreateConservationStatusSerializer(BaseConservationStatusSerializer):
         fields = (
             'id',
             'application_type',
+            'internal_application',
             'submitter',
             )
         read_only_fields = (
@@ -583,7 +613,7 @@ class ConservationStatusIssuanceApprovalDetailsSerializer(serializers.ModelSeria
             )
 
 
-# TODO use this internal serializer than InternalSpeciesConservationStatusSerializer and InternalCommunityConservationStatusSerializer
+# this internal serializer is used rather than InternalSpeciesConservationStatusSerializer and InternalCommunityConservationStatusSerializer
 class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
@@ -595,9 +625,11 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer()
     conservationstatusissuanceapprovaldetails = ConservationStatusIssuanceApprovalDetailsSerializer()
     conservation_status_approval_document = serializers.SerializerMethodField()
+    internal_user_edit = serializers.SerializerMethodField(read_only=True)
     # accessing_user_roles = (
     #     serializers.SerializerMethodField()
     # )
+
 
     class Meta:
         model = ConservationStatus
@@ -633,6 +665,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 'proposed_decline_status',
                 'conservationstatusdeclineddetails',
                 'conservationstatusissuanceapprovaldetails',
+                'internal_user_edit',
                 'conservation_status_approval_document',
                 #'accessing_user_roles',
                 )
@@ -668,7 +701,16 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         return obj.get_processing_status_display()
 
     def get_readonly(self,obj):
-        return True
+        # for internal add new conservation status change the below readonly
+        #return True
+        # Check if in 'draft' shouldn't be editable internal(if application is external) but should be editable(if internal_application)
+        if obj.can_user_edit:
+            if obj.internal_application:
+                return False
+            else:
+                return True
+        else:
+            return obj.can_user_view
 
     def get_current_assessor(self, obj):
         return {
@@ -690,7 +732,16 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "assessor_level": "assessor",
             "assessor_box_view": obj.assessor_comments_view(user),
         }
-    
+
+    def get_internal_user_edit(self,obj):
+        request = self.context['request']
+        user = request.user
+        if obj.can_user_edit:
+            if obj.internal_application == True:
+                return True
+        else:
+            return False
+
     def get_conservation_status_approval_document(self, obj):
         try:
             if obj.conservationstatusissuanceapprovaldetails.conservation_status_approval_document is not None:

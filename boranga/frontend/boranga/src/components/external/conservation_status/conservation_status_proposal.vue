@@ -62,8 +62,8 @@
                 <div class="row" style="margin-bottom: 50px">
                         <div  class="container">
                           <div class="row" style="margin-bottom: 50px">
-                              <div class="navbar navbar-fixed-bottom"  style="background-color: #f5f5f5;">
-                                  <div class="navbar-inner">
+                              <div class="navbar fixed-bottom"  style="background-color: #f5f5f5;">
+                                  <div class="navbar-inner-right">
                                     <div v-if="conservation_status_obj && !conservation_status_obj.readonly" class="container">
                                       <p class="pull-right" style="margin-top:5px">
                                         <button v-if="saveExitCSProposal" type="button" class="btn btn-primary" disabled>Save and Exit&nbsp;
