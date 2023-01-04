@@ -288,6 +288,22 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
             if filter_district and not filter_district.lower() == 'all':
                 queryset = queryset.filter(conservation_status__species__district=filter_district)
 
+        filter_effective_from_date = request.GET.get('filter_effective_from_date')
+        filter_effective_to_date = request.GET.get('filter_effective_to_date')
+        if queryset.model is ConservationStatus:
+            if filter_effective_from_date:
+                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date)
+
+            if filter_effective_to_date:
+                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date)
+
+        elif queryset.model is ConservationStatusReferral:
+            if filter_effective_from_date:
+                queryset = queryset.filter(conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date)
+
+            if filter_effective_to_date:
+                queryset = queryset.filter(conservation_status__conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date)
+
         filter_application_status = request.GET.get('filter_application_status')
         if queryset.model is ConservationStatus:
             if filter_application_status and not filter_application_status.lower() == 'all':
@@ -426,6 +442,22 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                 queryset = queryset.filter(community__district=filter_district)
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.filter(conservation_status__community__district=filter_district)
+
+        filter_effective_from_date = request.GET.get('filter_effective_from_date')
+        filter_effective_to_date = request.GET.get('filter_effective_to_date')
+        if queryset.model is ConservationStatus:
+            if filter_effective_from_date:
+                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date)
+
+            if filter_effective_to_date:
+                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date)
+
+        elif queryset.model is ConservationStatusReferral:
+            if filter_effective_from_date:
+                queryset = queryset.filter(conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date)
+
+            if filter_effective_to_date:
+                queryset = queryset.filter(conservation_status__conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date)
 
         filter_application_status = request.GET.get('filter_application_status')
         if filter_application_status and not filter_application_status.lower() == 'all':

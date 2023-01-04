@@ -92,6 +92,18 @@
                         </select>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective From Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFloraEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective To Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFloraEffectiveToDate">
+                    </div>
+                </div>
             </div>
         </CollapsibleFilters>
 
@@ -199,6 +211,17 @@ export default {
             required: false,
             default: 'filterCSFloraApplicationStatus',
         },
+        filterCSFloraEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFloraEffectiveFromDate',
+        },
+        filterCSFloraEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFloraEffectiveToDate',
+        },
+
     },
     data() {
         let vm = this;
@@ -237,6 +260,12 @@ export default {
 
             filterCSFloraApplicationStatus: sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : 'all',
+
+            filterCSFloraEffectiveFromDate: sessionStorage.getItem(this.filterCSFloraEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCSFloraEffectiveFromDate_cache) : '',
+
+            filterCSFloraEffectiveToDate: sessionStorage.getItem(this.filterCSFloraEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCSFloraEffectiveToDate_cache) : '',
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
@@ -320,6 +349,16 @@ export default {
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraDistrict_cache, vm.filterCSFloraDistrict);
         },
+        filterCSFloraEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFloraEffectiveFromDate_cache, vm.filterCSFloraEffectiveFromDate);
+        },
+        filterCSFloraEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFloraEffectiveToDate_cache, vm.filterCSFloraEffectiveToDate);
+        },
         filterCSFloraApplicationStatus: function() {
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
@@ -342,7 +381,9 @@ export default {
                 this.filterCSFloraConservationCategory === 'all' && 
                 this.filterCSFloraRegion === 'all' && 
                 this.filterCSFloraDistrict === 'all' && 
-                this.filterCSFloraApplicationStatus === 'all'){
+                this.filterCSFloraApplicationStatus === 'all' &&
+                this.filterCSFloraEffectiveFromDate === '' &&
+                this.filterCSFloraEffectiveToDate === ''){
                 return false
             } else {
                 return true
@@ -368,11 +409,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
-                    'Conservation Category', 'Region', 'District','Status', 'Action']
+                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Number','Species','Scientific Name', 'Common Name','Conservation List', 
-                    'Conservation Category', 'Region', 'District','Status', 'Action']
+                    'Conservation Category', 'Region', 'District','Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -547,6 +588,38 @@ export default {
                 name: "species__district__name",
             }
         },
+        column_effective_from_date: function(){
+            return {
+                data: "effective_from_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_from_date){
+                        return full.effective_from_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_from_date",
+            }
+        },
+        column_effective_to_date: function(){
+            return {
+                data: "effective_to_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_to_date){
+                        return full.effective_to_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_to_date",
+            }
+        },
         column_action: function(){
             let vm = this
             return {
@@ -607,6 +680,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -625,6 +700,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -661,7 +738,7 @@ export default {
                 lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
-                searching: true,
+                searching: search,
                  //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
@@ -684,6 +761,8 @@ export default {
                         d.filter_region = vm.filterCSFloraRegion;
                         d.filter_district = vm.filterCSFloraDistrict;
                         d.filter_application_status = vm.filterCSFloraApplicationStatus;
+                        d.filter_effective_from_date = vm.filterCSFloraEffectiveFromDate;
+                        d.filter_effective_to_date = vm.filterCSFloraEffectiveToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },

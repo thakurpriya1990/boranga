@@ -95,6 +95,18 @@
                         </select>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective From Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective To Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveToDate">
+                    </div>
+                </div>
             </div>
         </CollapsibleFilters>
         
@@ -206,6 +218,16 @@ export default {
             required: false,
             default: 'filterCSFaunaApplicationStatus',
         },
+        filterCSFaunaEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaEffectiveFromDate',
+        },
+        filterCSFaunaEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaEffectiveToDate',
+        },
     },
     data() {
         let vm = this;
@@ -246,6 +268,12 @@ export default {
 
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'all',
+
+            filterCSFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFaunaEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCSFaunaEffectiveFromDate_cache) : '',
+
+            filterCSFaunaEffectiveToDate: sessionStorage.getItem(this.filterCSFaunaEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCSFaunaEffectiveToDate_cache) : '',
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
@@ -335,6 +363,16 @@ export default {
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaDistrict_cache, vm.filterCSFaunaDistrict);
         },
+        filterCSFaunaEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaEffectiveFromDate_cache, vm.filterCSFaunaEffectiveFromDate);
+        },
+        filterCSFaunaEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaEffectiveToDate_cache, vm.filterCSFaunaEffectiveToDate);
+        },
         filterCSFaunaApplicationStatus: function() {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
@@ -358,7 +396,9 @@ export default {
                 this.filterCSFaunaConservationCategory === 'all' && 
                 this.filterCSFaunaRegion === 'all' && 
                 this.filterCSFaunaDistrict === 'all' && 
-                this.filterCSFaunaApplicationStatus === 'all'){
+                this.filterCSFaunaApplicationStatus === 'all' &&
+                this.filterCSFaunaEffectiveFromDate === '' &&
+                this.filterCSFaunaEffectiveToDate === ''){
                 return false
             } else {
                 return true
@@ -383,11 +423,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Number','Species','Scientific Name', 'Common Name','Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -562,6 +602,38 @@ export default {
                 name: "species__district__name",
             }
         },
+        column_effective_from_date: function(){
+            return {
+                data: "effective_from_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_from_date){
+                        return full.effective_from_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_from_date",
+            }
+        },
+        column_effective_to_date: function(){
+            return {
+                data: "effective_to_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_to_date){
+                        return full.effective_to_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_to_date",
+            }
+        },
         column_action: function(){
             let vm = this
             return {
@@ -622,6 +694,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -640,6 +714,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -700,6 +776,8 @@ export default {
                         d.filter_region = vm.filterCSFaunaRegion;
                         d.filter_district = vm.filterCSFaunaDistrict;
                         d.filter_application_status = vm.filterCSFaunaApplicationStatus;
+                        d.filter_effective_from_date = vm.filterCSFaunaEffectiveFromDate;
+                        d.filter_effective_to_date = vm.filterCSFaunaEffectiveToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },

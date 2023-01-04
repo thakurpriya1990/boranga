@@ -81,6 +81,18 @@
                         </select>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective From Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective To Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveToDate">
+                    </div>
+                </div>
             </div>
         </CollapsibleFilters>
 
@@ -176,6 +188,16 @@ export default {
             required: false,
             default: 'filterCSCommunityApplicationStatus',
         },
+        filterCSCommunityEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSCommunityEffectiveFromDate',
+        },
+        filterCSCommunityEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSCommunityEffectiveToDate',
+        },
     },
     data() {
         let vm = this;
@@ -210,6 +232,12 @@ export default {
 
             filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'all',
+
+            filterCSCommunityEffectiveFromDate: sessionStorage.getItem(this.filterCSCommunityEffectiveFromDate_cache) ?
+                                    sessionStorage.getItem(this.filterCSCommunityEffectiveFromDate_cache) : '',
+
+            filterCSCommunityEffectiveToDate: sessionStorage.getItem(this.filterCSCommunityEffectiveToDate_cache) ?
+                                    sessionStorage.getItem(this.filterCSCommunityEffectiveToDate_cache) : '',
 
             //Filter list for Community select box
             filterListsCommunities: {},
@@ -288,6 +316,16 @@ export default {
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityDistrict_cache, vm.filterCSCommunityDistrict);
         },
+        filterCSCommunityEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSCommunityEffectiveFromDate_cache, vm.filterCSCommunityEffectiveFromDate);
+        },
+        filterCSCommunityEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSCommunityEffectiveToDate_cache, vm.filterCSCommunityEffectiveToDate);
+        },
         filterCSCommunityApplicationStatus: function() {
             let vm = this;
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
@@ -309,7 +347,9 @@ export default {
                 this.filterCSCommunityConservationCategory === 'all' && 
                 this.filterCSCommunityRegion === 'all' && 
                 this.filterCSCommunityDistrict === 'all' && 
-                this.filterCSCommunityApplicationStatus === 'all'){
+                this.filterCSCommunityApplicationStatus === 'all' &&
+                this.filterCSCommunityEffectiveFromDate === '' &&
+                this.filterCSCommunityEffectiveToDate === ''){
                 return false
             } else {
                 return true
@@ -334,11 +374,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Number', 'Community','Community Id' ,'Community Name', 'Community Status', 
-                    'Conservation List' , 'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                    'Conservation List' , 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Number', 'Community','Community Id' ,'Community Name', 'Community Status', 
-                        'Conservation List', 'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                        'Conservation List', 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -494,6 +534,38 @@ export default {
                 name: "community__district__name",
             }
         },
+        column_effective_from_date: function(){
+            return {
+                data: "effective_from_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_from_date){
+                        return full.effective_from_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_from_date",
+            }
+        },
+        column_effective_to_date: function(){
+            return {
+                data: "effective_to_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_to_date){
+                        return full.effective_to_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_to_date",
+            }
+        },
         column_action: function(){
             let vm = this
             return {
@@ -553,6 +625,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -570,6 +644,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -628,6 +704,8 @@ export default {
                         d.filter_region = vm.filterCSCommunityRegion;
                         d.filter_district = vm.filterCSCommunityDistrict;
                         d.filter_application_status = vm.filterCSCommunityApplicationStatus;
+                        d.filter_effective_from_date = vm.filterCSCommunityEffectiveFromDate;
+                        d.filter_effective_to_date = vm.filterCSCommunityEffectiveToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
