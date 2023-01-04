@@ -81,12 +81,24 @@
                         </select>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective From Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective To Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveToDate">
+                    </div>
+                </div>
             </div>
         </CollapsibleFilters>
 
         <div v-if="addCommunityCSVisibility" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunity"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
             </div>
         </div>
 
@@ -176,6 +188,16 @@ export default {
             required: false,
             default: 'filterCSCommunityApplicationStatus',
         },
+        filterCSCommunityEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSCommunityEffectiveFromDate',
+        },
+        filterCSCommunityEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSCommunityEffectiveToDate',
+        },
     },
     data() {
         let vm = this;
@@ -199,7 +221,8 @@ export default {
             filterCSCommunityConservationList: sessionStorage.getItem(this.filterCSCommunityConservationList_cache) ? 
                                     sessionStorage.getItem(this.filterCSCommunityConservationList_cache) : 'all',
 
-            filterCSCommunityConservationCategory: sessionStorage.getItem(this.filterCSCommunityConservationCategory_cache)                     ? sessionStorage.getItem(this.filterCSCommunityConservationCategory_cache) : 'all',
+            filterCSCommunityConservationCategory: sessionStorage.getItem(this.filterCSCommunityConservationCategory_cache) ? 
+                                    sessionStorage.getItem(this.filterCSCommunityConservationCategory_cache) : 'all',
 
             filterCSCommunityRegion: sessionStorage.getItem(this.filterCSCommunityRegion_cache) ? 
                                     sessionStorage.getItem(this.filterCSCommunityRegion_cache) : 'all',
@@ -209,6 +232,12 @@ export default {
 
             filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'all',
+
+            filterCSCommunityEffectiveFromDate: sessionStorage.getItem(this.filterCSCommunityEffectiveFromDate_cache) ?
+                                    sessionStorage.getItem(this.filterCSCommunityEffectiveFromDate_cache) : '',
+
+            filterCSCommunityEffectiveToDate: sessionStorage.getItem(this.filterCSCommunityEffectiveToDate_cache) ?
+                                    sessionStorage.getItem(this.filterCSCommunityEffectiveToDate_cache) : '',
 
             //Filter list for Community select box
             filterListsCommunities: {},
@@ -287,6 +316,16 @@ export default {
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityDistrict_cache, vm.filterCSCommunityDistrict);
         },
+        filterCSCommunityEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSCommunityEffectiveFromDate_cache, vm.filterCSCommunityEffectiveFromDate);
+        },
+        filterCSCommunityEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSCommunityEffectiveToDate_cache, vm.filterCSCommunityEffectiveToDate);
+        },
         filterCSCommunityApplicationStatus: function() {
             let vm = this;
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
@@ -308,7 +347,9 @@ export default {
                 this.filterCSCommunityConservationCategory === 'all' && 
                 this.filterCSCommunityRegion === 'all' && 
                 this.filterCSCommunityDistrict === 'all' && 
-                this.filterCSCommunityApplicationStatus === 'all'){
+                this.filterCSCommunityApplicationStatus === 'all' &&
+                this.filterCSCommunityEffectiveFromDate === '' &&
+                this.filterCSCommunityEffectiveToDate === ''){
                 return false
             } else {
                 return true
@@ -333,11 +374,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Number', 'Community','Community Id' ,'Community Name', 'Community Status', 
-                    'Conservation List' , 'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                    'Conservation List' , 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Number', 'Community','Community Id' ,'Community Name', 'Community Status', 
-                        'Conservation List', 'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                        'Conservation List', 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -493,6 +534,38 @@ export default {
                 name: "community__district__name",
             }
         },
+        column_effective_from_date: function(){
+            return {
+                data: "effective_from_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_from_date){
+                        return full.effective_from_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_from_date",
+            }
+        },
+        column_effective_to_date: function(){
+            return {
+                data: "effective_to_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_to_date){
+                        return full.effective_to_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_to_date",
+            }
+        },
         column_action: function(){
             let vm = this
             return {
@@ -505,22 +578,29 @@ export default {
                     let links = "";
                     if (!vm.is_external){
                         /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                        if(full.assessor_process){   
-                                links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
+                        if(full.internal_user_edit)
+                        {
+                            links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
                         }
                         else{
-                            links +=  `<a href='/internal/conservation_status/${full.id}'>View</a><br/>`;
+                            if(full.assessor_process){
+                                    links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
+                            }
+                            else{
+                                links +=  `<a href='/internal/conservation_status/${full.id}'>View</a><br/>`;
+                            }
                         }
                     }
-                    else{
-                        if (full.can_user_edit) {
-                            links +=  `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
-                        }
-                        else if (full.can_user_view) {
-                            links +=  `<a href='/external/conservation_status/${full.id}'>View</a>`;
-                        }
-                    }
+                    // else{
+                    //     if (full.can_user_edit) {
+                    //         links +=  `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
+                    //         links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
+                    //     }
+                    //     else if (full.can_user_view) {
+                    //         links +=  `<a href='/external/conservation_status/${full.id}'>View</a>`;
+                    //     }
+                    // }
 
                     links +=  `<a href='/internal/conservation_status/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
 
@@ -545,6 +625,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -562,6 +644,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -620,6 +704,8 @@ export default {
                         d.filter_region = vm.filterCSCommunityRegion;
                         d.filter_district = vm.filterCSCommunityDistrict;
                         d.filter_application_status = vm.filterCSCommunityApplicationStatus;
+                        d.filter_effective_from_date = vm.filterCSCommunityEffectiveFromDate;
+                        d.filter_effective_to_date = vm.filterCSCommunityEffectiveToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -683,15 +769,16 @@ export default {
                     }
                 });
         },
-        createCommunity: async function () {
-            let newCommunityId = null
+        createCommunityConservationStatus: async function () {
+            let newCommunityCSId = null
             try {
-                    const createUrl = api_endpoints.community+"/";
+                    const createUrl = api_endpoints.conservation_status+"/";
                     let payload = new Object();
-                    payload.group_type_id = this.group_type_id
-                    let savedCommunity = await Vue.http.post(createUrl, payload);
-                    if (savedCommunity) {
-                        newCommunityId = savedCommunity.body.id;
+                    payload.application_type_id = this.group_type_id
+                    payload.internal_application = true
+                    let savedCommunityCS = await Vue.http.post(createUrl, payload);
+                    if (savedCommunityCS) {
+                        newCommunityCSId = savedCommunityCS.body.id;
                     }
                 }
             catch (err) {
@@ -701,12 +788,11 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-species-communities',
-                params: {species_community_id: newCommunityId},
+                name: 'internal-conservation_status',
+                params: {conservation_status_id: newCommunityCSId},
                 });
         },
-
-        discardProposal:function (proposal_id) {
+        discardCSProposal:function (conservation_status_id) {
             let vm = this;
             swal({
                 title: "Discard Application",
@@ -716,7 +802,7 @@ export default {
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_proposal(proposal_id))
+                vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
                 .then((response) => {
                     swal(
                         'Discarded',
@@ -733,11 +819,11 @@ export default {
         },
         addEventListeners: function(){
             let vm = this;
-            // External Discard listener
-            vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-discard-proposal]', function(e) {
+            // internal Discard listener
+            vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-discard-cs-proposal]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-proposal');
-                vm.discardProposal(id);
+                var id = $(this).attr('data-discard-cs-proposal');
+                vm.discardCSProposal(id);
             });
         },
         initialiseSearch:function(){

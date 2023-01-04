@@ -95,12 +95,24 @@
                         </select>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective From Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Effective To Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveToDate">
+                    </div>
+                </div>
             </div>
         </CollapsibleFilters>
         
         <div v-if="addFaunaCSVisibility" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFauna"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
             </div>
         </div>
 
@@ -206,6 +218,16 @@ export default {
             required: false,
             default: 'filterCSFaunaApplicationStatus',
         },
+        filterCSFaunaEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaEffectiveFromDate',
+        },
+        filterCSFaunaEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaEffectiveToDate',
+        },
     },
     data() {
         let vm = this;
@@ -246,6 +268,12 @@ export default {
 
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'all',
+
+            filterCSFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFaunaEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCSFaunaEffectiveFromDate_cache) : '',
+
+            filterCSFaunaEffectiveToDate: sessionStorage.getItem(this.filterCSFaunaEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCSFaunaEffectiveToDate_cache) : '',
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
@@ -335,6 +363,16 @@ export default {
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaDistrict_cache, vm.filterCSFaunaDistrict);
         },
+        filterCSFaunaEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaEffectiveFromDate_cache, vm.filterCSFaunaEffectiveFromDate);
+        },
+        filterCSFaunaEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaEffectiveToDate_cache, vm.filterCSFaunaEffectiveToDate);
+        },
         filterCSFaunaApplicationStatus: function() {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
@@ -358,7 +396,9 @@ export default {
                 this.filterCSFaunaConservationCategory === 'all' && 
                 this.filterCSFaunaRegion === 'all' && 
                 this.filterCSFaunaDistrict === 'all' && 
-                this.filterCSFaunaApplicationStatus === 'all'){
+                this.filterCSFaunaApplicationStatus === 'all' &&
+                this.filterCSFaunaEffectiveFromDate === '' &&
+                this.filterCSFaunaEffectiveToDate === ''){
                 return false
             } else {
                 return true
@@ -383,11 +423,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Number','Species','Scientific Name', 'Common Name','Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -562,6 +602,38 @@ export default {
                 name: "species__district__name",
             }
         },
+        column_effective_from_date: function(){
+            return {
+                data: "effective_from_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_from_date){
+                        return full.effective_from_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_from_date",
+            }
+        },
+        column_effective_to_date: function(){
+            return {
+                data: "effective_to_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.effective_to_date){
+                        return full.effective_to_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "conservationstatusissuanceapprovaldetails__effective_to_date",
+            }
+        },
         column_action: function(){
             let vm = this
             return {
@@ -574,24 +646,31 @@ export default {
                     let links = "";
                     if (!vm.is_external){
                         /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                        if(full.assessor_process){   
-                                links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;   
+                        if(full.internal_user_edit)
+                        {
+                            links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
                         }
                         else{
-                            links +=  `<a href='/internal/conservation_status/${full.id}'>View</a><br/>`;
+                            if(full.assessor_process){
+                                    links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`; 
+                            }
+                            else{
+                                links +=  `<a href='/internal/conservation_status/${full.id}'>View</a><br/>`;
+                            }
                         }
                     }
-                    else{
-                        if (full.can_user_edit) {
-                            links +=  `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
-                        }
-                        else if (full.can_user_view) {
-                            links +=  `<a href='/external/conservation_status/${full.id}'>View</a>`;
-                        }
-                    }
+                    // else{
+                    //     if (full.can_user_edit) {
+                    //         links +=  `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
+                    //         links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
+                    //     }
+                    //     else if (full.can_user_view) {
+                    //         links +=  `<a href='/external/conservation_status/${full.id}'>View</a>`;
+                    //     }
+                    // }
 
-                    links +=  `<a href='/internal/conservation_status/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranga demo
+                    links +=  `<a href='/internal/conservation_status/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
 
                     return links;
                 }
@@ -615,6 +694,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -633,6 +714,8 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -693,6 +776,8 @@ export default {
                         d.filter_region = vm.filterCSFaunaRegion;
                         d.filter_district = vm.filterCSFaunaDistrict;
                         d.filter_application_status = vm.filterCSFaunaApplicationStatus;
+                        d.filter_effective_from_date = vm.filterCSFaunaEffectiveFromDate;
+                        d.filter_effective_to_date = vm.filterCSFaunaEffectiveToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -759,15 +844,16 @@ export default {
                     }
                 //});
         },
-        createFauna: async function () {
-            let newFaunaId = null
+        createFaunaConservationStatus: async function () {
+            let newFaunaCSId = null
             try {
-                    const createUrl = api_endpoints.species+"/";
+                    const createUrl = api_endpoints.conservation_status+"/";
                     let payload = new Object();
-                    payload.group_type_id = this.group_type_id
-                    let savedFauna = await Vue.http.post(createUrl, payload);
-                    if (savedFauna) {
-                        newFaunaId = savedFauna.body.id;
+                    payload.application_type_id = this.group_type_id
+                    payload.internal_application = true
+                    let savedFaunaCS = await Vue.http.post(createUrl, payload);
+                    if (savedFaunaCS) {
+                        newFaunaCSId = savedFaunaCS.body.id;
                     }
                 }
             catch (err) {
@@ -777,11 +863,11 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-species-communities',
-                params: {species_community_id: newFaunaId},
+                name: 'internal-conservation_status',
+                params: {conservation_status_id: newFaunaCSId},
                 });
         },
-        discardProposal:function (proposal_id) {
+        discardCSProposal:function (conservation_status_id) {
             let vm = this;
             swal({
                 title: "Discard Application",
@@ -791,7 +877,7 @@ export default {
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_proposal(proposal_id))
+                vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
                 .then((response) => {
                     swal(
                         'Discarded',
@@ -809,10 +895,10 @@ export default {
         addEventListeners: function(){
             let vm = this;
             // External Discard listener
-            vm.$refs.fauna_cs_datatable.vmDataTable.on('click', 'a[data-discard-proposal]', function(e) {
+            vm.$refs.fauna_cs_datatable.vmDataTable.on('click', 'a[data-discard-cs-proposal]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-proposal');
-                vm.discardProposal(id);
+                var id = $(this).attr('data-discard-cs-proposal');
+                vm.discardCSProposal(id);
             });
         },
         initialiseSearch:function(){

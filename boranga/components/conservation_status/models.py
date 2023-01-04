@@ -339,8 +339,9 @@ class ConservationStatus(models.Model):
     deficiency_data = models.TextField(null=True, blank=True) # deficiency comment
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
     # to store the proposed start and end date of proposal
-    proposed_issuance_approval = JSONField(blank=True, null=True)
+    proposed_issuance_approval = JSONField(blank=True, null=True) # Not used in boranga as created another model to store the details
     approver_comment = models.TextField(blank=True)
+    internal_application = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'boranga'
@@ -631,7 +632,7 @@ class ConservationStatus(models.Model):
                 return (
                     user.id in self.get_assessor_group().get_system_group_member_ids()
                 )
-
+    
     def assign_officer(self,request,officer):
         with transaction.atomic():
             try:

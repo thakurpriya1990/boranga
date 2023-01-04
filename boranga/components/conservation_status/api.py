@@ -288,6 +288,22 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
             if filter_district and not filter_district.lower() == 'all':
                 queryset = queryset.filter(conservation_status__species__district=filter_district)
 
+        filter_effective_from_date = request.GET.get('filter_effective_from_date')
+        filter_effective_to_date = request.GET.get('filter_effective_to_date')
+        if queryset.model is ConservationStatus:
+            if filter_effective_from_date:
+                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date)
+
+            if filter_effective_to_date:
+                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date)
+
+        elif queryset.model is ConservationStatusReferral:
+            if filter_effective_from_date:
+                queryset = queryset.filter(conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date)
+
+            if filter_effective_to_date:
+                queryset = queryset.filter(conservation_status__conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date)
+
         filter_application_status = request.GET.get('filter_application_status')
         if queryset.model is ConservationStatus:
             if filter_application_status and not filter_application_status.lower() == 'all':
@@ -426,6 +442,22 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                 queryset = queryset.filter(community__district=filter_district)
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.filter(conservation_status__community__district=filter_district)
+
+        filter_effective_from_date = request.GET.get('filter_effective_from_date')
+        filter_effective_to_date = request.GET.get('filter_effective_to_date')
+        if queryset.model is ConservationStatus:
+            if filter_effective_from_date:
+                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date)
+
+            if filter_effective_to_date:
+                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date)
+
+        elif queryset.model is ConservationStatusReferral:
+            if filter_effective_from_date:
+                queryset = queryset.filter(conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date)
+
+            if filter_effective_to_date:
+                queryset = queryset.filter(conservation_status__conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date)
 
         filter_application_status = request.GET.get('filter_application_status')
         if filter_application_status and not filter_application_status.lower() == 'all':
@@ -584,6 +616,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET',], detail=False)
     def conservation_status_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
+        qs = qs.filter(Q(internal_application=False))
         # TODO Not Sure but to filter for only WA listed conservation lists for external
         #qs = qs.filter(Q(conservation_list__applies_to_wa=True))
         qs = self.filter_queryset(qs)
@@ -683,7 +716,8 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                 instance = self.get_object() 
                 request_data = request.data
                 # to resolve error for serializer submitter id as object is received in request
-                request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
+                if request_data['submitter']:
+                    request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
                 if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
                     serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
                 elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
@@ -775,9 +809,13 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         group_type_id = GroupType.objects.get(id=request.data.get('application_type_id'))
+        internal_application = False
+        if request.data.get('internal_application'):
+                internal_application = request.data.get('internal_application')
         obj = ConservationStatus.objects.create(
                 #submitter=request.user.id,
                 application_type=group_type_id,
+                internal_application=internal_application
                 )
         serialized_obj = CreateConservationStatusSerializer(obj)
         return Response(serialized_obj.data)
