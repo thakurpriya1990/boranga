@@ -255,3 +255,7 @@ if len(GIT_COMMIT_HASH) == 0:
 #            {'mobile_number' : {'options' : {'view': True, 'edit': True}}},
 #]
 
+#NOMOS login details
+NOMOS_USERNAME = env('NOMOS_USERNAME')
+NOMOS_PASSWORD = env('NOMOS_PASSWORD')
+
