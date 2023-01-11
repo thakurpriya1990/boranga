@@ -194,115 +194,6 @@ class ScientificName(models.Model):
         return str(self.name)
 
 
-class Species(models.Model):
-    """
-    Forms the basis for a Species and Communities record.
-
-    Has a:
-    - ConservationStatus
-    - GroupType
-    - SpeciesDocument
-    - ConservationThreat
-    - ConservationPlan
-    - Taxonomy
-    - Distribution
-    - ConservationAttributes
-    Used by:
-    - Communities
-    Is:
-    - Table
-    """
-    RELATED_ITEM_CHOICES = [('conservation_status', 'Conservation Status')]
-    
-    species_number = models.CharField(max_length=9, blank=True, default='')
-    group_type = models.ForeignKey(GroupType,
-                                   on_delete=models.CASCADE)
-    image = models.CharField(max_length=512,
-                             default="None", null=True, blank=True)
-    scientific_name = models.ForeignKey(ScientificName, on_delete=models.SET_NULL, null=True, blank=True)
-    common_name = models.CharField(max_length=128, null=True, blank=True)
-    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
-    region = models.ForeignKey(Region, 
-                               default=None,
-                               on_delete=models.CASCADE, null=True, blank=True)
-    district = models.ForeignKey(District, 
-                                 default=None,
-                                 on_delete=models.CASCADE, null=True, blank=True)
-    last_data_curration_date = models.DateField(blank =True, null=True)
-    processing_status = models.CharField(max_length=512, null=True, blank=True)
-    
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return '{}-{}'.format(self.species_number,self.scientific_name)
-
-    def save(self, *args, **kwargs):
-        # Prefix "S" char to species_number.
-        super(Species, self).save(*args,**kwargs)
-        if self.species_number == '':
-            new_species_id = 'S{}'.format(str(self.pk))
-            self.species_number = new_species_id
-            self.save()
-
-    @property
-    def reference(self):
-        return '{}-{}'.format(self.species_number,self.species_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
-    
-    def get_related_items(self,filter_type, **kwargs):
-        return_list = []
-        if filter_type == 'all':
-            related_field_names = ['conservation_status',]
-        else:
-            related_field_names = [filter_type,]
-        all_fields = self._meta.get_fields()
-        for a_field in all_fields:
-            if a_field.name in related_field_names:
-                field_objects = []
-                if a_field.is_relation:
-                    if a_field.many_to_many:
-                        field_objects = a_field.related_model.objects.filter(**{a_field.remote_field.name: self})
-                    elif a_field.many_to_one:  # foreign key
-                        field_objects = [getattr(self, a_field.name),]
-                    elif a_field.one_to_many:  # reverse foreign key
-                        field_objects = a_field.related_model.objects.filter(**{a_field.remote_field.name: self})
-                    elif a_field.one_to_one:
-                        if hasattr(self, a_field.name):
-                            field_objects = [getattr(self, a_field.name),]
-                for field_object in field_objects:
-                    if field_object:
-                        related_item = field_object.as_related_item
-                        return_list.append(related_item)
-
-        # serializer = RelatedItemsSerializer(return_list, many=True)
-        # return serializer.data
-        return return_list
-    
-    @property
-    def as_related_item(self):
-        related_item = RelatedItem(
-            identifier=self.related_item_identifier,
-            model_name=self._meta.verbose_name,
-            descriptor=self.related_item_descriptor,
-            status=self.related_item_status,
-            action_url='<a href=/internal/species_communities/{}?group_type_name={} target="_blank">View</a>'.format(self.id,self.group_type.name)
-        )
-        return related_item
-
-    @property
-    def related_item_identifier(self):
-        return self.species_number
-
-    @property
-    def related_item_descriptor(self):
-        return self.scientific_name.name
-    
-    @property
-    def related_item_status(self):
-        #return self.get_processing_status_display
-        return self.processing_status # TODO use the above to display as still no processing_status choices list
-
-
 class Family(models.Model):
     """
     # list derived from WACensus
@@ -368,9 +259,10 @@ class Taxonomy(models.Model):
     Is:
     - Table
     """
-    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_taxonomy")
-    taxon = models.CharField(max_length=512, null=True, blank=True)  # flora and fauna, name
-    taxon_id = models.IntegerField(null=True, blank=True)  # flora and fauna, name
+    #taxon = models.CharField(max_length=512, null=True, blank=True)  # flora and fauna, name
+    taxon_name_id = models.IntegerField(null=True, blank=True)  # flora and fauna, name
+    scientific_name = models.CharField(max_length=512,null=True, blank=True)
+    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
 
     previous_name = models.CharField(max_length=512,null=True, blank=True)
     family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True)
@@ -385,7 +277,132 @@ class Taxonomy(models.Model):
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.taxon)  # TODO: is the most appropriate?
+        return str(self.scientific_name)  # TODO: is the most appropriate?
+
+
+class TaxonVernacular(models.Model):
+    """
+    Common Name for Taxon i.e Species(flora/Fauna)
+    Used by:
+    -Taxonomy
+    """
+    vernacular_id = models.IntegerField(null=True, blank=True)
+    vernacular_name = models.CharField(max_length=512,null=True, blank=True)
+    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.CASCADE, unique=True, null=True, related_name="vernaculars")
+    taxon_name_id = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.vernacular_name)  # TODO: is the most appropriate?
+
+
+class Species(models.Model):
+    """
+    Forms the basis for a Species and Communities record.
+
+    Has a:
+    - ConservationStatus
+    - GroupType
+    - SpeciesDocument
+    - ConservationThreat
+    - ConservationPlan
+    - Taxonomy
+    - Distribution
+    - ConservationAttributes
+    Used by:
+    - Communities
+    Is:
+    - Table
+    """
+    RELATED_ITEM_CHOICES = [('conservation_status', 'Conservation Status')]
+    
+    species_number = models.CharField(max_length=9, blank=True, default='')
+    group_type = models.ForeignKey(GroupType,
+                                   on_delete=models.CASCADE)
+    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.SET_NULL, null=True, blank=True)
+    image = models.CharField(max_length=512,
+                             default="None", null=True, blank=True)
+    region = models.ForeignKey(Region, 
+                               default=None,
+                               on_delete=models.CASCADE, null=True, blank=True)
+    district = models.ForeignKey(District, 
+                                 default=None,
+                                 on_delete=models.CASCADE, null=True, blank=True)
+    last_data_curration_date = models.DateField(blank =True, null=True)
+    processing_status = models.CharField(max_length=512, null=True, blank=True)
+    
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return '{}'.format(self.species_number)
+
+    def save(self, *args, **kwargs):
+        # Prefix "S" char to species_number.
+        super(Species, self).save(*args,**kwargs)
+        if self.species_number == '':
+            new_species_id = 'S{}'.format(str(self.pk))
+            self.species_number = new_species_id
+            self.save()
+
+    @property
+    def reference(self):
+        return '{}-{}'.format(self.species_number,self.species_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
+    
+    def get_related_items(self,filter_type, **kwargs):
+        return_list = []
+        if filter_type == 'all':
+            related_field_names = ['conservation_status',]
+        else:
+            related_field_names = [filter_type,]
+        all_fields = self._meta.get_fields()
+        for a_field in all_fields:
+            if a_field.name in related_field_names:
+                field_objects = []
+                if a_field.is_relation:
+                    if a_field.many_to_many:
+                        field_objects = a_field.related_model.objects.filter(**{a_field.remote_field.name: self})
+                    elif a_field.many_to_one:  # foreign key
+                        field_objects = [getattr(self, a_field.name),]
+                    elif a_field.one_to_many:  # reverse foreign key
+                        field_objects = a_field.related_model.objects.filter(**{a_field.remote_field.name: self})
+                    elif a_field.one_to_one:
+                        if hasattr(self, a_field.name):
+                            field_objects = [getattr(self, a_field.name),]
+                for field_object in field_objects:
+                    if field_object:
+                        related_item = field_object.as_related_item
+                        return_list.append(related_item)
+
+        # serializer = RelatedItemsSerializer(return_list, many=True)
+        # return serializer.data
+        return return_list
+    
+    @property
+    def as_related_item(self):
+        related_item = RelatedItem(
+            identifier=self.related_item_identifier,
+            model_name=self._meta.verbose_name,
+            descriptor=self.related_item_descriptor,
+            status=self.related_item_status,
+            action_url='<a href=/internal/species_communities/{}?group_type_name={} target="_blank">View</a>'.format(self.id,self.group_type.name)
+        )
+        return related_item
+
+    @property
+    def related_item_identifier(self):
+        return self.species_number
+
+    @property
+    def related_item_descriptor(self):
+        return self.taxonomy.scientific_name
+    
+    @property
+    def related_item_status(self):
+        #return self.get_processing_status_display
+        return self.processing_status # TODO use the above to display as still no processing_status choices list
 
 
 class SpeciesLogDocument(Document):

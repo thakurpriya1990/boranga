@@ -338,6 +338,15 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             elif user in obj.allowed_assessors:
                 return True
         return False
+    
+    def get_assessor_edit(self,obj):
+        request = self.context['request']
+        user = request.user
+        if obj.can_officer_edit:
+            if user in obj.allowed_assessors:
+                return True
+        return False
+
 
     def get_internal_user_edit(self,obj):
         request = self.context['request']
@@ -499,7 +508,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             elif user in obj.allowed_assessors:
                 return True
         return False
-
+    
     def get_internal_user_edit(self,obj):
         request = self.context['request']
         user = request.user
