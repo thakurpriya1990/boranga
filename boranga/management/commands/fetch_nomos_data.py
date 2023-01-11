@@ -24,15 +24,15 @@ class Command(BaseCommand):
         updates = []
         
         my_url='https://wagyl.bio.wa.gov.au/api/token'
-        # username='oim-nomos@taxman.com'
-        # passwd='msDC4wa05rhOa5TW46HK'
+        
         username= settings.NOMOS_USERNAME
         passwd= settings.NOMOS_PASSWORD
 
         data1=[{'grant_type': 'password',
         'scope': 'READER',
-        'username': 'oim-nomos@taxman.com',
-        'password': 'msDC4wa05rhOa5TW46HK'}]
+        'username': username,
+        'password': passwd }]
+        logger.info('username: {} Password: {}'.format(username, passwd))
 
         try:
             res=requests.post(my_url, data=data1[0])
@@ -42,7 +42,6 @@ class Command(BaseCommand):
                 token='{} {}'.format(r['token_type'], r['access_token'])
                 logger.info('Access token {}'.format(token))
                 #token example
-                #'bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvaW0tbm9tb3NAdGF4bWFuLmNvbSIsInNjb3BlcyI6WyJSRUFERVIiXSwiZXhwIjoxNjcyODkxODQ1fQ.aXIuryDfIf3HDy7FDIqMokmFFx3Tm-yafT56geJno18'
                 # users_url='https://wagyl.bio.wa.gov.au/api/v1/users?range=%5B0%2C20%5D'
                 # token='{} {}'.format(r['token_type'], r['access_token'])
                 # user_res=requests.get(users_url, headers={'Authorization': token})
@@ -57,7 +56,7 @@ class Command(BaseCommand):
                 taxon_url='https://wagyl.bio.wa.gov.au/api/v1/taxon_names?range=%5B0%2C5%5D'
                 taxon_res=requests.get(taxon_url, headers={'Authorization': token})
                 tres=taxon_res.json()
-                logger.info('Lenght: '.format(len(tres)))
+                logger.info('Taxon data:{} '.format(tres))
                 try:
                     for t in tres:
                         obj, created=Taxonomy.objects.update_or_create(taxon_id=t['taxon_name_id'], defaults={'taxon' : t['scientific_name']})
@@ -69,7 +68,8 @@ class Command(BaseCommand):
 
             else:
                 err_msg = 'Login failed with status code {}'.format(res.status_code)
-                logger.error('{}\n{}'.format(err_msg, str(e)))
+                #logger.error('{}\n{}'.format(err_msg, str(e)))
+                logger.error('{}'.format(err_msg))
                 errors.append(err_msg)
         except Exception as e:
             err_msg = 'Error at the end'
