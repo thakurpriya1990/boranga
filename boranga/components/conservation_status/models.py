@@ -330,6 +330,8 @@ class ConservationStatus(models.Model):
     assigned_officer = models.IntegerField(null=True) #EmailUserRO
     assigned_approver = models.IntegerField(null=True) #EmailUserRO
     approved_by = models.IntegerField(null=True) #EmailUserRO
+    # internal user who edits the approved conservation status(only specific fields)
+    #modified_by = models.IntegerField(null=True) #EmailUserRO 
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
@@ -437,6 +439,18 @@ class ConservationStatus(models.Model):
             return False
         else:
             return True
+    
+    @property
+    def can_officer_edit(self):
+        """
+        :return: True if the application is in one of the internal editable status for internal edit(few fields).
+        """
+        #officer_view_state = ['draft','approved','declined','temp','discarded', 'closed']
+        officer_edit_state = ['approved']
+        if self.processing_status in officer_edit_state:
+            return True
+        else:
+            return False
 
     @property
     def can_user_edit(self):
@@ -605,7 +619,7 @@ class ConservationStatus(models.Model):
 
     @property   
     def status_without_assessor(self):
-        status_without_assessor = ['with_approver','approved','declined','draft', 'with_referral']
+        status_without_assessor = ['with_approver','approved','closed','declined','draft', 'with_referral']
         if self.processing_status in status_without_assessor:
             return True
         return False
@@ -614,9 +628,16 @@ class ConservationStatus(models.Model):
         status_without_assessor = [
             "with_approver",
             "approved",
+            "closed",
             "declined",
             "draft",
         ]
+        # status_without_assessor = [
+        #     "with_approver",
+        #     "closed",
+        #     "declined",
+        #     "draft",
+        # ]
         if self.processing_status in status_without_assessor:
             return False
         else:

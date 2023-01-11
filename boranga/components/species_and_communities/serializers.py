@@ -416,78 +416,76 @@ class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
 
 
 class BaseSpeciesSerializer(serializers.ModelSerializer):
-    readonly = serializers.SerializerMethodField(read_only=True)
-    group_type = serializers.SerializerMethodField(read_only=True)
-    conservation_status = serializers.SerializerMethodField()
-    taxonomy_details = serializers.SerializerMethodField()
-    conservation_attributes = serializers.SerializerMethodField()
-    distribution = serializers.SerializerMethodField()
-    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+	readonly = serializers.SerializerMethodField(read_only=True)
+	group_type = serializers.SerializerMethodField(read_only=True)
+	conservation_status = serializers.SerializerMethodField()
+	taxonomy_details = serializers.SerializerMethodField()
+	conservation_attributes = serializers.SerializerMethodField()
+	distribution = serializers.SerializerMethodField()
+	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
 	
-    class Meta:
-        model = Species
-        fields = (
-                'id',
-                'species_number',
-			    'group_type',
-			    'scientific_name_id',
-			    'common_name',
-			    'region_id',
-			    'district_id',
-			    'conservation_status',
-			    'processing_status',
-			    'readonly',
-			    'can_user_edit',
-			    'taxonomy_details',
-			    'conservation_attributes',
-			    'distribution',
-			    'last_data_curration_date',
+	class Meta:
+		model = Species
+		fields = (
+			'id',
+			'species_number',
+			'group_type',
+			'scientific_name_id',
+			'common_name',
+			'region_id',
+			'district_id',
+			'conservation_status',
+			'processing_status',
+			'readonly',
+			'can_user_edit',
+			'taxonomy_details',
+			'conservation_attributes',
+			'distribution',
+			'last_data_curration_date',
+			)
+			
+	def get_readonly(self,obj):
+		return False
 
-                # tab field models
-                )
-    
-    def get_readonly(self,obj):
-        return False
+	def get_group_type(self,obj):
+		return obj.group_type.name
 
-    def get_group_type(self,obj):
-        return obj.group_type.name
+	def get_taxonomy_details(self,obj):
+		try:
+			qs = Taxonomy.objects.get(species=obj)
+			return TaxonomySerializer(qs).data
+		except Taxonomy.DoesNotExist:
+			return TaxonomySerializer().data
 
-    def get_taxonomy_details(self,obj):
-    	try:
-    		qs = Taxonomy.objects.get(species=obj)
-    		return TaxonomySerializer(qs).data
-    	except Taxonomy.DoesNotExist:
-    		return TaxonomySerializer().data
-
-    def get_conservation_status(self,obj):
-        try:
-        	qs = ConservationStatus.objects.get(
+	def get_conservation_status(self,obj):
+		try:
+			qs = ConservationStatus.objects.get(
         		species=obj ,
         		conservation_list__applies_to_wa=True,
         		processing_status='current'
         	)
-        	return SpeciesConservationStatusSerializer(qs).data
-        except ConservationStatus.DoesNotExist:
-        	return SpeciesConservationStatusSerializer().data
-    #     	#return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+			return SpeciesConservationStatusSerializer(qs).data
+		except ConservationStatus.DoesNotExist:
+			return SpeciesConservationStatusSerializer().data
+			#return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+	
+	def get_can_user_edit(self,obj):
+		return True
 
-    def get_can_user_edit(self,obj):
-    	return True
+	def get_conservation_attributes(self,obj):
+		try:
+			qs = SpeciesConservationAttributes.objects.get(species=obj)
+			return SpeciesConservationAttributesSerializer(qs).data
+		except SpeciesConservationAttributes.DoesNotExist:
+			return SpeciesConservationAttributesSerializer().data
 
-    def get_conservation_attributes(self,obj):
-        try:
-            qs = SpeciesConservationAttributes.objects.get(species=obj)
-            return SpeciesConservationAttributesSerializer(qs).data
-        except SpeciesConservationAttributes.DoesNotExist:
-            return SpeciesConservationAttributesSerializer().data
-
-    def get_distribution(self,obj):
-    	try:
+	def get_distribution(self,obj):
+		try:
     	    # to create the distribution instance for fetching the calculated values from serializer
-    		distribution_instance, created = SpeciesDistribution.objects.get_or_create(species=obj)
-    		return SpeciesDistributionSerializer(distribution_instance).data
-    	except SpeciesDistribution.DoesNotExist:
-            return SpeciesDistributionSerializer().data
+			distribution_instance, created = SpeciesDistribution.objects.get_or_create(species=obj)
+			return SpeciesDistributionSerializer(distribution_instance).data
+		except SpeciesDistribution.DoesNotExist:
+			return SpeciesDistributionSerializer().data
 
 
 class InternalSpeciesSerializer(BaseSpeciesSerializer):
