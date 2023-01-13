@@ -7,7 +7,7 @@
                         <label for="">Scientific Name:</label>
                         <select class="form-select" v-model="filterFaunaScientificName">
                             <option value="all">All</option>
-                            <option v-for="option in scientific_name_list" :value="option.id">{{option.name}}
+                            <option v-for="option in scientific_name_list" :value="option.name">{{option.name}}
                             </option>
                         </select>
                     </div>
@@ -17,7 +17,7 @@
                         <label for="">Common Name:</label>
                         <select class="form-select" v-model="filterFaunaCommonName">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.common_name">{{species.common_name}}</option>
+                            <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -235,7 +235,7 @@ export default {
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
-            species_data_list: [],
+            common_name_list: [],
             scientific_name_list: [],
             family_list: [],
             genus_list: [],
@@ -728,8 +728,8 @@ export default {
 
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
-                vm.species_data_list = vm.filterListsSpecies.species_data_list;
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
+                vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;

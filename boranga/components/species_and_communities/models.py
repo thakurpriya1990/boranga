@@ -288,7 +288,7 @@ class TaxonVernacular(models.Model):
     """
     vernacular_id = models.IntegerField(null=True, blank=True)
     vernacular_name = models.CharField(max_length=512,null=True, blank=True)
-    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.CASCADE, unique=True, null=True, related_name="vernaculars")
+    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.CASCADE, null=True, related_name="vernaculars")
     taxon_name_id = models.IntegerField(null=True, blank=True)
 
     class Meta:

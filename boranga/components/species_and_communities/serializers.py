@@ -36,10 +36,10 @@ logger = logging.getLogger('boranga')
 class ListSpeciesSerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField()
 	scientific_name = serializers.SerializerMethodField()
+	common_name = serializers.SerializerMethodField()
 	family = serializers.SerializerMethodField()
 	genus = serializers.SerializerMethodField()
 	phylogenetic_group = serializers.SerializerMethodField()
-	#conservation_status = serializers.SerializerMethodField()
 	conservation_list = serializers.SerializerMethodField()
 	conservation_category = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
@@ -57,7 +57,6 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'phylogenetic_group',
 			    'region',
 			    'district',
-			    #'conservation_status',
 			    'conservation_list',
 			    'conservation_category',
 			    'processing_status',
@@ -73,7 +72,6 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'phylogenetic_group',
 			    'region',
 			    'district',
-			    #'conservation_status',
 			    'conservation_list',
 			    'conservation_category',
 			    'processing_status',
@@ -83,40 +81,49 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 		return obj.group_type.name
 
 	def get_scientific_name(self,obj):
-		if obj.scientific_name:
-			return obj.scientific_name.name
+		if obj.taxonomy:
+			return obj.taxonomy.scientific_name
+		return ''
+	
+	def get_common_name(self,obj):
+		if obj.taxonomy:
+			if obj.taxonomy.vernaculars:
+				names_list=obj.taxonomy.vernaculars.all().values_list('vernacular_name', flat=True)
+				return ','.join(names_list)
 		return ''
 
 	def get_family(self,obj):
-		try:
-			taxonomy = Taxonomy.objects.get(species=obj)
-			if taxonomy.family:
-				return taxonomy.family.name
-		except Taxonomy.DoesNotExist:
-			return ''
+		# try:
+		# 	taxonomy = Taxonomy.objects.get(species=obj)
+		# 	if taxonomy.family:
+		# 		return taxonomy.family.name
+		# except Taxonomy.DoesNotExist:
+		# 	return ''
+		if obj.taxonomy.family:
+			return obj.taxonomy.family.name
+		return ''
 
 	def get_genus(self,obj):
-		try:
-			taxonomy = Taxonomy.objects.get(species=obj)
-			if taxonomy.genus:
-				return taxonomy.genus.name
-		except Taxonomy.DoesNotExist:
-			return ''
+		# try:
+		# 	taxonomy = Taxonomy.objects.get(species=obj)
+		# 	if taxonomy.genus:
+		# 		return taxonomy.genus.name
+		# except Taxonomy.DoesNotExist:
+		# 	return ''
+		if obj.taxonomy.genus:
+			return obj.taxonomy.genus.name
+		return ''
 
 	def get_phylogenetic_group(self,obj):
-		try:
-			taxonomy = Taxonomy.objects.get(species=obj)
-			if taxonomy.phylogenetic_group:
-				return taxonomy.phylogenetic_group.name
-		except Taxonomy.DoesNotExist:
-			return ''
-
-	# def get_conservation_status(self,obj):
-	# 	try:
-	# 		conservation_status = SpeciesConservationStatus.objects.get(species=obj)
-	# 		return conservation_status.conservation_list.code
-	# 	except SpeciesConservationStatus.DoesNotExist:
-	# 		return None
+		# try:
+		# 	taxonomy = Taxonomy.objects.get(species=obj)
+		# 	if taxonomy.phylogenetic_group:
+		# 		return taxonomy.phylogenetic_group.name
+		# except Taxonomy.DoesNotExist:
+		# 	return ''
+		if obj.taxonomy.phylogenetic_group:
+			return obj.taxonomy.phylogenetic_group.name
+		return ''
 
 	def get_conservation_list(self,obj):
 		try:
@@ -244,9 +251,10 @@ class TaxonomySerializer(serializers.ModelSerializer):
 		model = Taxonomy
 		fields = (
 			'id',
-			'species_id',
-			'taxon_id',
-			'taxon',
+			'taxon_name_id',
+			'scientific_name',
+			# need to fetch common name in multiple select
+			# 'common_name',
 			'previous_name',
 			'family_id',
 			'genus_id',
@@ -256,7 +264,6 @@ class TaxonomySerializer(serializers.ModelSerializer):
 			)
 
 class SaveTaxonomySerializer(serializers.ModelSerializer):
-	species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	family_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	genus_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
@@ -265,9 +272,8 @@ class SaveTaxonomySerializer(serializers.ModelSerializer):
 		model = Taxonomy
 		fields = (
 			'id',
-			'species_id',
-			'taxon_id',
-			'taxon',
+			'taxon_name_id',
+			'scientific_name',
 			'previous_name',
 			'family_id',
 			'genus_id',
@@ -430,8 +436,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			'id',
 			'species_number',
 			'group_type',
-			'scientific_name_id',
-			'common_name',
+			'taxonomy_id',
 			'region_id',
 			'district_id',
 			'conservation_status',
@@ -452,8 +457,10 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
 	def get_taxonomy_details(self,obj):
 		try:
-			qs = Taxonomy.objects.get(species=obj)
-			return TaxonomySerializer(qs).data
+			# qs = Taxonomy.objects.get(species=obj)
+			if obj.taxonomy:
+				qs = obj.taxonomy
+				return TaxonomySerializer(qs).data
 		except Taxonomy.DoesNotExist:
 			return TaxonomySerializer().data
 
@@ -694,13 +701,12 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 class SaveSpeciesSerializer(BaseSpeciesSerializer):
     region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-    scientific_name_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    taxonomy_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     class Meta:
         model = Species
         fields = ('id',
 			    'group_type',
-			    'scientific_name_id',
-			    'common_name',
+				'taxonomy_id'
 			    'region_id',
 			    'district_id',
 			    'processing_status',
