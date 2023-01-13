@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Fetch nomos data'
+    help = 'Fetch Vernacular data'
 
     def handle(self, *args, **options):
         #logger.info('Running command {}')
@@ -44,30 +44,21 @@ class Command(BaseCommand):
                 #token example
                 # users_url='https://wagyl.bio.wa.gov.au/api/v1/users?range=%5B0%2C20%5D'
                 # token='{} {}'.format(r['token_type'], r['access_token'])
-                # user_res=requests.get(users_url, headers={'Authorization': token})
-                # if user_res.status_code==200:
-                #     users=user_res.json()
-                #     #logger.info('Users response {}'.format(users))
-                # else:
-                #     err_msg = 'Users API failed with status code {}'.format(res.status_code)
-                #     logger.error('{}\n{}'.format(err_msg, str(e)))
-                #     errors.append(err_msg)
+                
 
-                taxon_url='https://wagyl.bio.wa.gov.au/api/v1/taxon_names?range=%5B0%2C5%5D'
-                taxon_res=requests.get(taxon_url, headers={'Authorization': token})
-                tres=taxon_res.json()
-                logger.info('Taxon data:{} '.format(tres))
+                vern_url='https://wagyl.bio.wa.gov.au/api/v1/vernaculars?range=%5B0%2C5%5D'
+                vern_res=requests.get(vern_url, headers={'Authorization': token})
+                vres=vern_res.json()
+                #logger.info('Taxon data:{} '.format(vres))
                 try:
-                    for t in tres:
-                        obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t['taxon_name_id'], defaults={'scientific_name' : t['scientific_name']})
-                        logger.info('Taxon {}'.format(obj.scientific_name))
+                    for t in vres:
+                        taxon, taxon_created= Taxonomy.objects.get_or_create(taxon_name_id=t['taxon_name_id'])
+                        obj, created=TaxonVernacular.objects.update_or_create(vernacular_id=t['vernacular_id'], defaults={'vernacular_name' : t['vernacular_name'], 'taxonomy': taxon, 'taxon_name_id' : taxon.taxon_name_id })
+                        logger.info('Vernacular {}'.format(obj.vernacular_name))
                         
-                        # if created:
-                        #     #spc, spc_created= Species.objects.update_or_create(taxonomy_id=obj.id)
-                        #     tax_ver, tax_ver_created=TaxonVernacular.objects.update_or_create(taxonomy_id=obj.id, defaults={'taxon_name_id' : obj.taxon_name_id})
-                        #     logger.info('TaxonVernacular {}'.format(tax_ver))
+                        
                 except Exception as e:
-                    err_msg = 'Create taxon:'
+                    err_msg = 'Create Vernacular:'
                     logger.error('{}\n{}'.format(err_msg, str(e)))
                     errors.append(err_msg)
 
@@ -83,8 +74,8 @@ class Command(BaseCommand):
 
 
         cmd_name = __name__.split('.')[-1].replace('_', ' ').upper()
-        err_str = '<strong style="color: red;">Errors: {}</strong>'.format(len(errors)) if len(errors)>0 else '<strong style="color: green;">Errors: 0</strong>'
-        msg = '<p>{} completed. Errors: {}. IDs updated: {}.</p>'.format(cmd_name, err_str, updates)
+        err_str = 'Errors: {}'.format(len(errors)) if len(errors)>0 else 'Errors: 0'
+        msg = '{} completed. Errors: {}. IDs updated: {}.'.format(cmd_name, err_str, updates)
         logger.info(msg)
         print(msg) # will redirect to cron_tasks.log file, by the parent script
 
