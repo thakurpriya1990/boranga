@@ -14,12 +14,12 @@
                     :disable_add_entry="false"
                 /> -->
 
-               <!--  <Submission v-if="canSeeSubmission"
+                <Submission v-if="canSeeSubmission"
                     :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name"
-                    :lodgement_date="proposal.lodgement_date"
+                    :lodgement_date="species_community.lodgement_date"
                     class="mt-2"
-                /> -->
+                />
                 
                 <!-- TODO
                 <Workflow
@@ -161,6 +161,25 @@ export default {
         },
         class_ncols: function(){
             return this.comparing ? 'col-md-12' : 'col-md-8';
+        },
+        submitter_first_name: function(){
+            if (this.species_community && this.species_community.submitter){
+                return this.species_community.submitter.first_name
+            } else {
+                return ''
+            }
+        },
+        submitter_last_name: function(){
+            if (this.species_community && this.species_community.submitter){
+                return this.species_community.submitter.last_name
+            } else {
+                return ''
+            }
+        },
+        canSeeSubmission: function(){
+            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
+            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
+            return true
         },
     },
     methods: {

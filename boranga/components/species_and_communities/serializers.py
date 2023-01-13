@@ -27,7 +27,8 @@ from boranga.components.conservation_status.serializers import(
 
 from boranga.components.users.serializers import UserSerializer
 from boranga.components.users.serializers import UserAddressSerializer, DocumentSerializer
-from boranga.components.main.serializers import CommunicationLogEntrySerializer
+from boranga.components.main.serializers import CommunicationLogEntrySerializer, EmailUserSerializer
+from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
 from django.db.models import Q
 
@@ -619,6 +620,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 	readonly = serializers.SerializerMethodField(read_only=True)
 	last_data_curration_date = serializers.DateField(required=False,allow_null=True)
 	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+	submitter= serializers.SerializerMethodField(read_only=True)
 
 	class Meta:
 		model = Community
@@ -642,6 +644,8 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 			    'readonly',
 			    'can_user_edit',
 			    'last_data_curration_date',
+				'submitter',
+				'lodgement_date'
 
                 # tab field models
                 )
@@ -684,6 +688,15 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 	def get_can_user_edit(self,obj):
 		return True
+
+	def get_submitter(self, obj):
+		if obj.submitter:
+			email_user = retrieve_email_user(obj.submitter)
+			#return email_user.get_full_name()
+			return EmailUserSerializer(email_user).data
+
+		else:
+			return None
 
 
 class InternalCommunitySerializer(BaseCommunitySerializer):

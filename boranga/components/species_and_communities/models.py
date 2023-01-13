@@ -10,6 +10,7 @@ from django.db import models,transaction
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from boranga.components.main.related_item import RelatedItem
+from boranga.ledger_api_utils import retrieve_email_user
 
 private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
@@ -332,6 +333,8 @@ class Species(models.Model):
                                  on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
     processing_status = models.CharField(max_length=512, null=True, blank=True)
+    lodgement_date = models.DateTimeField(blank=True, null=True)
+    submitter = models.IntegerField(null=True) #EmailUserRO 
     
     class Meta:
         app_label = 'boranga'
@@ -403,6 +406,12 @@ class Species(models.Model):
     def related_item_status(self):
         #return self.get_processing_status_display
         return self.processing_status # TODO use the above to display as still no processing_status choices list
+
+    @property
+    def submitter_user(self):
+        email_user= retrieve_email_user(self.submitter)
+
+        return email_user
 
 
 class SpeciesLogDocument(Document):
@@ -506,6 +515,8 @@ class Community(models.Model):
                                  default=None,
                                  on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
+    lodgement_date = models.DateTimeField(blank=True, null=True)
+    submitter = models.IntegerField(null=True) #EmailUserRO 
 
     class Meta:
         app_label = 'boranga'
