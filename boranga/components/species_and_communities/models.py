@@ -614,6 +614,24 @@ class CommunityLogEntry(CommunicationsLogEntry):
             self.reference = self.species.reference
         super(CommunityLogEntry, self).save(**kwargs)
 
+class CommunityUserAction(UserAction):
+    
+    ACTION_SEND_PAYMENT_DUE_NOTIFICATION = "Send monthly invoice/BPAY payment due notification {} for application {} to {}"
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ('-when',)
+
+    @classmethod
+    def log_action(cls, community, action, user):
+        return cls.objects.create(
+            community=community,
+            who=user,
+            what=str(action)
+        )
+
+    community = models.ForeignKey(Community, related_name='action_logs', on_delete=models.CASCADE)
+
 
 class CommunityDistribution(models.Model):
     """

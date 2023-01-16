@@ -7,12 +7,12 @@
             <div v-if="!comparing" class="col-md-3">
                <!-- TODO -->
 
-               <!-- <CommsLogs
+               <CommsLogs
                     :comms_url="comms_url"
                     :logs_url="logs_url"
                     :comms_add_url="comms_add_url"
                     :disable_add_entry="false"
-                /> -->
+                />
 
                 <Submission v-if="canSeeSubmission"
                     :submitter_first_name="submitter_first_name"
@@ -120,9 +120,12 @@ export default {
             submitSpeciesCommunity: false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/add_comms_log'),
+            //comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/comms_log'),
+            //comms_add_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/add_comms_log'),
             //logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/action_log'),
+            comms_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/comms_log'),
+            comms_add_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/add_comms_log'),
+            logs_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/action_log'),
             comparing: false,
         }
     },

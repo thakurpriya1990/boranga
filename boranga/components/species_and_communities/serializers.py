@@ -16,6 +16,8 @@ from boranga.components.species_and_communities.models import(
 	SpeciesDistribution,
 	CommunityDistribution,
 	ConservationThreat,
+	CommunityLogEntry,
+	CommunityUserAction,
 	)
 from boranga.components.conservation_status.models import(
     ConservationStatus,
@@ -941,3 +943,23 @@ class SaveConservationThreatSerializer(serializers.ModelSerializer):
 			'potential_threat_onset',
 			'date_observed',
 			)
+
+
+class CommunityLogEntrySerializer(CommunicationLogEntrySerializer):
+    documents = serializers.SerializerMethodField()
+    class Meta:
+        model = CommunityLogEntry
+        fields = '__all__'
+        read_only_fields = (
+            'customer',
+        )
+
+    def get_documents(self,obj):
+        return [[d.name,d._file.url] for d in obj.documents.all()]
+
+
+class CommunityUserActionSerializer(serializers.ModelSerializer):
+    who = serializers.CharField(source='who.get_full_name')
+    class Meta:
+        model = CommunityUserAction
+        fields = '__all__'
