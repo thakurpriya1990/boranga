@@ -123,9 +123,9 @@ export default {
             //comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/comms_log'),
             //comms_add_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/add_comms_log'),
             //logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/action_log'),
-            comms_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/add_comms_log'),
-            logs_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/action_log'),
+            //comms_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/comms_log'),
+            //comms_add_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/add_comms_log'),
+            //logs_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/action_log'),
             comparing: false,
         }
     },
@@ -183,6 +183,21 @@ export default {
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
             return true
+        },
+        comms_url: function() {
+          return (this.species_community.group_type === "community") ? 
+                  helpers.add_endpoint_json(api_endpoints.community,this.$route.params.species_community_id+'/comms_log'): 
+                  helpers.add_endpoint_json(api_endpoints.species,this.$route.params.species_community_id+'/comms_log');
+        },
+        comms_add_url: function() {
+          return (this.species_community.group_type === "community") ? 
+                  helpers.add_endpoint_json(api_endpoints.community,this.$route.params.species_community_id+'/add_comms_log'): 
+                  helpers.add_endpoint_json(api_endpoints.species,this.$route.params.species_community_id+'/add_comms_log');
+        },
+        logs_url: function() {
+          return (this.species_community.group_type === "community") ? 
+                  helpers.add_endpoint_json(api_endpoints.community,this.$route.params.species_community_id+'/action_log'): 
+                  helpers.add_endpoint_json(api_endpoints.species,this.$route.params.species_community_id+'/action_log');
         },
     },
     methods: {

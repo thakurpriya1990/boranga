@@ -437,6 +437,24 @@ class SpeciesLogEntry(CommunicationsLogEntry):
             self.reference = self.species.reference
         super(SpeciesLogEntry, self).save(**kwargs)
 
+class SpeciesUserAction(UserAction):
+    
+    ACTION_SEND_PAYMENT_DUE_NOTIFICATION = "Send monthly invoice/BPAY payment due notification {} for application {} to {}"
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ('-when',)
+
+    @classmethod
+    def log_action(cls, species, action, user):
+        return cls.objects.create(
+            species=species,
+            who=user,
+            what=str(action)
+        )
+
+    species = models.ForeignKey(Species, related_name='action_logs', on_delete=models.CASCADE)
+
 
 class SpeciesDistribution(models.Model):
     """
@@ -534,7 +552,7 @@ class Community(models.Model):
 
     @property
     def reference(self):
-        return '{}-{}'.format(self.community_number)
+        return '{}-{}'.format(self.community_number, self.community_number)
     
     def get_related_items(self,filter_type, **kwargs):
         return_list = []
@@ -611,7 +629,7 @@ class CommunityLogEntry(CommunicationsLogEntry):
     def save(self, **kwargs):
         # save the application reference if the reference not provided
         if not self.reference:
-            self.reference = self.species.reference
+            self.reference = self.community.reference
         super(CommunityLogEntry, self).save(**kwargs)
 
 class CommunityUserAction(UserAction):
