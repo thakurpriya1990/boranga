@@ -82,7 +82,7 @@ from boranga.components.species_and_communities.serializers import (
     SpeciesConservationAttributesSerializer,
     SaveSpeciesConservationAttributesSerializer,
     TaxonomySerializer,
-    SaveTaxonomySerializer,
+    # SaveTaxonomySerializer,
     InternalCommunitySerializer,
     CommunityDistributionSerializer,
     SaveCommunityDistributionSerializer,
@@ -308,6 +308,21 @@ class GetRegionDistrictFilterDict(views.APIView):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
+
+
+class TaxonomyViewSet(viewsets.ModelViewSet):
+    queryset = Taxonomy.objects.all()
+    serializer_class = TaxonomySerializer
+
+    def get_queryset(self):
+        qs = Taxonomy.objects.all()
+        return qs
+
+    @list_route(methods=['GET',], detail=False)
+    def taxon_names(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
+        return Response(serializer.data)
 
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
@@ -689,6 +704,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['GET',], detail=False)
     @renderer_classes((JSONRenderer,))
     def species_list(self, request, *args, **kwargs):
+        # TODO filter Species that's approved(submitted) only 
         qs= Species.objects.all()
         serializer = SpeciesSerializer(qs, many=True)
         res_json = {
@@ -710,13 +726,13 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-
-                if(request_data.get('taxonomy_details')):
-                    taxonomy_instance, created = Taxonomy.objects.get_or_create(species=instance)
-                    serializer = SaveTaxonomySerializer(taxonomy_instance, data = request_data.get('taxonomy_details'))
-                    serializer.is_valid(raise_exception=True)
-                    if serializer.is_valid():
-                        serializer.save()
+                # No need to submit Taxonomy details due to NOMOS Api
+                # if(request_data.get('taxonomy_details')):
+                #     taxonomy_instance, created = Taxonomy.objects.get_or_create(species=instance)
+                #     serializer = SaveTaxonomySerializer(taxonomy_instance, data = request_data.get('taxonomy_details'))
+                #     serializer.is_valid(raise_exception=True)
+                #     if serializer.is_valid():
+                #         serializer.save()
 
                 if(request_data.get('conservation_attributes')):
                     conservation_attributes_instance, created = SpeciesConservationAttributes.objects.get_or_create(species=instance)
@@ -752,14 +768,10 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                     new_instance = serializer.save()
                     new_returned = serializer.data
 
-                    # create SpeciesTaxonomy for new instance
                     data={
                         'species_id': new_instance.id
                     }
-                    serializer=SaveTaxonomySerializer(data=data)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
-
+                    
                     # create SpeciesConservationAttributes for new instance
                     serializer=SaveSpeciesConservationAttributesSerializer(data=data)
                     serializer.is_valid(raise_exception=True)

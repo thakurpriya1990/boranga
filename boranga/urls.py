@@ -31,6 +31,7 @@ router.register(r'proposal',proposal_api.ProposalViewSet)
 
 router.register(r'species',species_communities_api.SpeciesViewSet)
 router.register(r'community',species_communities_api.CommunityViewSet)
+router.register(r'taxonomy',species_communities_api.TaxonomyViewSet)
 router.register(r'species_paginated',species_communities_api.SpeciesPaginatedViewSet)
 router.register(r'communities_paginated',species_communities_api.CommunitiesPaginatedViewSet)
 router.register(r'document_categories', species_communities_api.DocumentCategoryViewSet)

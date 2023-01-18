@@ -435,7 +435,7 @@ export default {
 //                            //return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "scientific_name__name",
+                name: "taxonomy__scientific_name",
             }
         },
         column_common_name: function(){
@@ -449,7 +449,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "common_name",
+                name: "taxonomy__vernaculars__vernacular_name",
             }
         },
         column_family: function(){
@@ -463,7 +463,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "species_taxonomy__family__name",
+                name: "taxonomy__family__name",
             }
         },
         column_phylogenetic_group: function(){
@@ -477,7 +477,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "species_taxonomy__phylogenetic_group__name",
+                name: "taxonomy__phylogenetic_group__name",
             }
         },
         column_genera: function(){
@@ -491,7 +491,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "species_taxonomy__genus__name",
+                name: "taxonomy__genus__name",
             }
         },
         column_conservation_list: function(){

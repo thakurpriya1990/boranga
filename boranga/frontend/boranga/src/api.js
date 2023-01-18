@@ -24,6 +24,7 @@ module.exports = {
     proposal_type:"/api/proposal_type",
     species:"/api/species",
     community:"/api/community",
+    taxonomy:"/api/taxonomy",
     conservation_status:"/api/conservation_status",
     conservation_status_documents:"/api/conservation_status_documents.json",
     cs_referrals:"/api/cs_referrals.json",
