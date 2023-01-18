@@ -5,9 +5,9 @@
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
                 <div class="col-sm-9">
                     <select :disabled="species_community.readonly" class="form-select" 
-                        v-model="species_community.scientific_name_id" id="scientific_name" @change="getSpeciesDisplay()">
-                        <option v-for="option in scientific_name_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
+                        v-model="species_community.taxonomy_id" id="scientific_name" @change="loadTaxonomydetails()">
+                        <option v-for="option in taxon_names" :value="option.id" v-bind:key="option.id">
+                            {{ option.scientific_name }}                            
                         </option>
                     </select>
                 </div>
@@ -21,28 +21,31 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Common Name:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="common_name" placeholder="" 
-                    v-model="species_community.common_name"/>
+                    <input :disabled="true" type="text" class="form-control" id="common_name" placeholder="" 
+                    v-model="common_name"/>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Taxon ID:</label>
+                <label for="" class="col-sm-3 control-label">Taxon Name ID:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="taxon_id" placeholder="" 
-                    v-model="species_community.taxonomy_details.taxon_id"/>
+                    <input :disabled="true" type="text" class="form-control" id="taxon_name_id" placeholder="" 
+                    v-model="taxon_name_id"/>
+                    <!-- gives error for the below when new species created as no taxonomy id is present -->
+                    <!-- <input :disabled="true" type="text" class="form-control" id="taxon_name_id" placeholder="" 
+                    v-model="species_communities.taxonomy_details.taxon_name_id"/> -->
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Previous Name:</label>
                 <div class="col-sm-9">
-                    <input :disabled="species_community.readonly" type="text" class="form-control" id="previous_name" placeholder="" 
-                    v-model="species_community.taxonomy_details.previous_name"/>
+                    <input :disabled="true" type="text" class="form-control" id="previous_name" placeholder="" 
+                    v-model="previous_name"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Phylogenetic Group:</label>
                 <div class="col-sm-9">
-                    <select :disabled="species_community.readonly" class="form-select" v-model="species_community.taxonomy_details.phylogenetic_group_id" id="phylogenetic_group">
+                    <select :disabled="true" class="form-select" v-model="phylogenetic_group_id" id="phylogenetic_group">
                         <option v-for="option in phylo_group_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
@@ -52,7 +55,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Family:</label>
                 <div class="col-sm-9">
-                    <select :disabled="species_community.readonly" class="form-select" v-model="species_community.taxonomy_details.family_id" id="family">
+                    <select :disabled="true" class="form-select" v-model="family_id" id="family">
                         <option v-for="option in family_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
@@ -62,7 +65,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Genus:</label>
                 <div class="col-sm-9">
-                    <select :disabled="species_community.readonly" class="form-select" v-model="species_community.taxonomy_details.genus_id" id="genus">
+                    <select :disabled="true" class="form-select" v-model="genus_id" id="genus">
                         <option v-for="option in genus_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
@@ -72,7 +75,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Authority:</label>
                 <div class="col-sm-9">
-                    <select :disabled="species_community.readonly" class="form-select" v-model="species_community.taxonomy_details.name_authority_id">
+                    <select :disabled="true" class="form-select" v-model="name_authority_id">
                         <option v-for="option in name_authority_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
@@ -82,8 +85,8 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Comments:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="species_community.readonly" class="form-control" rows="3" id="comment" placeholder=""
-                    v-model="species_community.taxonomy_details.name_comments"/>
+                    <textarea :disabled="true" class="form-control" rows="3" id="comment" placeholder=""
+                    v-model="name_comments"/>
                 </div>
             </div>
         </FormSection>
@@ -454,8 +457,9 @@ export default {
                 //---to show fields related to Fauna
                 isFauna: vm.species_community.group_type==="fauna"?true:false,
                 //----list of values dictionary
+                taxon_names: {},
                 species_profile_dict: {},
-                scientific_name_list: [],
+                //scientific_name_list: [],
                 name_authority_list: [],
                 family_list: [],
                 genus_list: [],
@@ -473,8 +477,16 @@ export default {
                 post_fire_habitatat_interactions_list: [],
                 breeding_period_list: [],
                 fauna_breeding_list: [],
-                // to display the species selected 
+                // to display the species Taxonomy selected details
                 species_display: '',
+                common_name: null,
+                taxon_name_id: null,
+                previous_name:null,
+                phylogenetic_group_id: null,
+                family_id: null,
+                genus_id: null,
+                name_authority_id: null,
+                name_comments: null,
             }
         },
         components: {
@@ -555,11 +567,20 @@ export default {
                     vm.species_community.last_data_curration_date=null;
                 }
             },
-            getSpeciesDisplay: function(){
-                for(let choice of this.scientific_name_list){
-                        if(choice.id === this.species_community.scientific_name_id)
+            loadTaxonomydetails: function(){
+                let vm=this;
+                for(let choice of vm.taxon_names){
+                        if(choice.id === vm.species_community.taxonomy_id)
                         {
-                          this.species_display = choice.name;
+                          vm.species_display = choice.scientific_name;
+                          vm.common_name = choice.common_name;
+                          vm.taxon_name_id = choice.taxon_name_id;
+                          vm.previous_name = choice.previous_name;
+                          vm.phylogenetic_group_id = choice.phylogenetic_group_id;
+                          vm.family_id = choice.family_id;
+                          vm.genus_id = choice.genus_id;
+                          vm.name_authority_id = choice.name_authority_id;
+                          vm.name_comments = choice.name_comments;
                         }
                     }
             },
@@ -581,15 +602,13 @@ export default {
             if(vm.species_community.distribution.aoo_auto == true){
                 vm.species_community.distribution.area_of_occupancy=vm.species_community.distribution.cal_area_of_occupancy;
             }
+            //--------get api taxon_names
+            vm.$http.get(api_endpoints.taxonomy+'/taxon_names.json').then((response) => {
+                vm.taxon_names = response.body;
+            });
             //------fetch list of values
             const res = await Vue.http.get('/api/species_profile_dict/');
             vm.species_profile_dict = res.body;
-            vm.scientific_name_list = vm.species_profile_dict.scientific_name_list;
-            vm.scientific_name_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
             vm.name_authority_list = vm.species_profile_dict.name_authority_list;
             vm.name_authority_list.splice(0,0,
                 {
@@ -673,7 +692,7 @@ export default {
                 name: null,
             });
             this.filterDistrict();
-            this.getSpeciesDisplay();
+            this.loadTaxonomydetails();
         },
         mounted: function(){
             let vm = this;

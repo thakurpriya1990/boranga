@@ -29,6 +29,7 @@ from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
+    TaxonVernacular,
     ScientificName,
     Taxonomy,
     Family,
@@ -81,7 +82,7 @@ from boranga.components.species_and_communities.serializers import (
     SpeciesConservationAttributesSerializer,
     SaveSpeciesConservationAttributesSerializer,
     TaxonomySerializer,
-    SaveTaxonomySerializer,
+    # SaveTaxonomySerializer,
     InternalCommunitySerializer,
     CommunityDistributionSerializer,
     SaveCommunityDistributionSerializer,
@@ -123,54 +124,63 @@ class GetScientificName(views.APIView):
         return Response()
 
 
-class GetSpeciesDict(views.APIView): 
-    def get(self, request, format=None):
-        group_type = request.GET.get('group_type_name','')
-        species_list = []
-        if group_type:
-            species = Species.objects.filter(group_type__name=group_type)
-            if species:
-                for specimen in species:
-                    species_list.append({
-                        'species_id': specimen.id,
-                        'common_name':specimen.common_name,
-                        });
-        scientific_name_list = []
-        if group_type:
-            names = ScientificName.objects.all()
-            if names:
-                for name in names:
-                    scientific_name_list.append({
-                        'id': name.id,
-                        'name': name.name,
-                        });
-        res_json = {
-        "species_list":species_data_list,
-        }
-        res_json = json.dumps(res_json)
-        return HttpResponse(res_json, content_type='application/json')
-        
+# class GetSpeciesDict(views.APIView):
+#     def get(self, request, format=None):
+#         group_type = request.GET.get('group_type_name','')
+#         species_list = []
+#         if group_type:
+#             species = Species.objects.filter(group_type__name=group_type)
+#             if species:
+#                 for specimen in species:
+#                     species_list.append({
+#                         'species_id': specimen.id,
+#                         'common_name':specimen.common_name,
+#                         });
+#         scientific_name_list = []
+#         if group_type:
+#             names = ScientificName.objects.all()
+#             if names:
+#                 for name in names:
+#                     scientific_name_list.append({
+#                         'id': name.id,
+#                         'name': name.name,
+#                         });
+#         res_json = {
+#         "species_list":species_data_list,
+#         }
+#         res_json = json.dumps(res_json)
+#         return HttpResponse(res_json, content_type='application/json')
 
-class GetSpeciesFilterDict(views.APIView): 
+
+class GetSpeciesFilterDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
-        species_data_list = []
-        if group_type:
-            species = Species.objects.filter(group_type__name=group_type)
-            if species:
-                for specimen in species:
-                    species_data_list.append({
-                        'species_id': specimen.id,
-                        'common_name':specimen.common_name,
-                        });
+        # species_data_list = []
+        # if group_type:
+        #     species = Species.objects.filter(group_type__name=group_type)
+        #     if species:
+        #         for specimen in species:
+        #             species_data_list.append({
+        #                 'species_id': specimen.id,
+        #                 'common_name':specimen.common_name,
+        #                 });
         scientific_name_list = []
         if group_type:
-            names = ScientificName.objects.all() # TODO will need to filter according to  group  selection
+            names = Taxonomy.objects.all() # TODO will need to filter according to  group  selection
             if names:
                 for name in names:
                     scientific_name_list.append({
                         'id': name.id,
-                        'name': name.name,
+                        'name': name.scientific_name,
+                        });
+        common_name_list = []
+        if group_type:
+            names = TaxonVernacular.objects.all() # TODO will need to filter according to  group  selection
+            if names:
+                for name in names:
+                    common_name_list.append({
+                        'id': name.id,
+                        'name': name.vernacular_name,
                         });
         family_list = []
         if group_type:
@@ -217,8 +227,8 @@ class GetSpeciesFilterDict(views.APIView):
                     'conservation_list_id': choice.conservation_list_id,
                     });
         res_json = {
-        "species_data_list":species_data_list,
         "scientific_name_list": scientific_name_list,
+        "common_name_list": common_name_list,
         "family_list": family_list,
         "phylogenetic_group_list":phylogenetic_group_list,
         "genus_list":genus_list,
@@ -299,14 +309,36 @@ class GetRegionDistrictFilterDict(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
 
+
+class TaxonomyViewSet(viewsets.ModelViewSet):
+    queryset = Taxonomy.objects.all()
+    serializer_class = TaxonomySerializer
+
+    def get_queryset(self):
+        qs = Taxonomy.objects.all()
+        return qs
+
+    @list_route(methods=['GET',], detail=False)
+    def taxon_names(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
+        return Response(serializer.data)
+
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
         scientific_name_list = []
-        names = ScientificName.objects.all()
-        if names:
-            for name in names:
-                scientific_name_list.append({'id': name.id,
-                    'name':name.name,
+        taxons = Taxonomy.objects.all()
+        if taxons:
+            for taxon in taxons:
+                scientific_name_list.append({'id': taxon.id,
+                    'name': taxon.scientific_name,
+                    'taxon_name_id': taxon.taxon_name_id,
+                    'previous_name': taxon.previous_name,
+                    'family_id': taxon.family_id,
+                    'phylogenetic_group_id': taxon.phylogenetic_group_id,
+                    'genus_id': taxon.genus_id,
+                    'name_authority_id': taxon.name_authority_id,
+                    'name_comments': taxon.name_comments,
                     });
         name_authority_list = []
         name_authorities = NameAuthority.objects.all()
@@ -469,23 +501,23 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         # filter_scientific_name
         filter_scientific_name = request.GET.get('filter_scientific_name')
         if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-            queryset = queryset.filter(scientific_name=filter_scientific_name)
+            queryset = queryset.filter(taxonomy__scientific_name=filter_scientific_name)
 
         filter_common_name = request.GET.get('filter_common_name')
         if filter_common_name and not filter_common_name.lower() == 'all':
-            queryset = queryset.filter(common_name=filter_common_name)
+            queryset = queryset.filter(taxonomy__vernaculars__id=filter_common_name)
 
         filter_phylogenetic_group = request.GET.get('filter_phylogenetic_group')
         if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
-            queryset = queryset.filter(species_taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
+            queryset = queryset.filter(taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
         
         filter_family = request.GET.get('filter_family')
         if filter_family and not filter_family.lower() == 'all':
-            queryset = queryset.filter(species_taxonomy__family__id=filter_family)
+            queryset = queryset.filter(taxonomy__family__id=filter_family)
 
         filter_genus = request.GET.get('filter_genus')
         if filter_genus and not filter_genus.lower() == 'all':
-            queryset = queryset.filter(species_taxonomy__genus__id=filter_genus)
+            queryset = queryset.filter(taxonomy__genus__id=filter_genus)
         
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
@@ -672,6 +704,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['GET',], detail=False)
     @renderer_classes((JSONRenderer,))
     def species_list(self, request, *args, **kwargs):
+        # TODO filter Species that's approved(submitted) only 
         qs= Species.objects.all()
         serializer = SpeciesSerializer(qs, many=True)
         res_json = {
@@ -693,13 +726,13 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-
-                if(request_data.get('taxonomy_details')):
-                    taxonomy_instance, created = Taxonomy.objects.get_or_create(species=instance)
-                    serializer = SaveTaxonomySerializer(taxonomy_instance, data = request_data.get('taxonomy_details'))
-                    serializer.is_valid(raise_exception=True)
-                    if serializer.is_valid():
-                        serializer.save()
+                # No need to submit Taxonomy details due to NOMOS Api
+                # if(request_data.get('taxonomy_details')):
+                #     taxonomy_instance, created = Taxonomy.objects.get_or_create(species=instance)
+                #     serializer = SaveTaxonomySerializer(taxonomy_instance, data = request_data.get('taxonomy_details'))
+                #     serializer.is_valid(raise_exception=True)
+                #     if serializer.is_valid():
+                #         serializer.save()
 
                 if(request_data.get('conservation_attributes')):
                     conservation_attributes_instance, created = SpeciesConservationAttributes.objects.get_or_create(species=instance)
@@ -735,14 +768,10 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                     new_instance = serializer.save()
                     new_returned = serializer.data
 
-                    # create SpeciesTaxonomy for new instance
                     data={
                         'species_id': new_instance.id
                     }
-                    serializer=SaveTaxonomySerializer(data=data)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
-
+                    
                     # create SpeciesConservationAttributes for new instance
                     serializer=SaveSpeciesConservationAttributesSerializer(data=data)
                     serializer.is_valid(raise_exception=True)

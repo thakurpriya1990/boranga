@@ -147,7 +147,7 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_scientific_name(self,obj):
         if obj.species:
-            return obj.species.scientific_name.name
+            return obj.species.taxonomy.scientific_name
         return ''
 
     def get_community_name(self,obj):
@@ -251,40 +251,33 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_scientific_name(self,obj):
         if obj.species:
-            return obj.species.scientific_name.name
+            return obj.species.taxonomy.scientific_name
         return ''
 
     def get_common_name(self,obj):
         if obj.species:
-            return obj.species.common_name
+            if obj.species.taxonomy.vernaculars:
+                names_list=obj.species.taxonomy.vernaculars.all().values_list('vernacular_name', flat=True)
+                return ','.join(names_list)
         return ''
 
     def get_family(self,obj):
-        try:
-            if obj.species:
-                taxonomy = Taxonomy.objects.get(species=obj.species)
-                if taxonomy.family:
-                    return taxonomy.family.name
-        except Taxonomy.DoesNotExist:
-            return ''
+        if obj.species:
+            if obj.species.taxonomy.family:
+                return obj.species.taxonomy.family.name
+        return ''
 
     def get_genus(self,obj):
-        try:
-            if obj.species:
-                taxonomy = Taxonomy.objects.get(species=obj.species)
-                if taxonomy.genus:
-                    return taxonomy.genus.name
-        except Taxonomy.DoesNotExist:
-            return ''
+        if obj.species:
+            if obj.species.taxonomy.genus:
+                return obj.species.taxonomy.genus.name
+        return ''
 
     def get_phylogenetic_group(self,obj):
-        try:
-            if obj.species:
-                taxonomy = Taxonomy.objects.get(species=obj.species)
-                if taxonomy.phylogenetic_group:
-                    return taxonomy.phylogenetic_group.name
-        except Taxonomy.DoesNotExist:
-            return ''
+        if obj.species:
+            if obj.species.taxonomy.phylogenetic_group:
+                return obj.species.taxonomy.phylogenetic_group.name
+        return ''
 
     def get_conservation_list(self,obj):
         if obj.conservation_list:
@@ -1212,7 +1205,7 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
 
     def get_scientific_name(self,obj):
         if obj.conservation_status.species:
-            return obj.conservation_status.species.scientific_name.name
+            return obj.conservation_status.species.taxonomy.scientific_name
 
     def get_community_number(self,obj):
         if obj.conservation_status.community:
