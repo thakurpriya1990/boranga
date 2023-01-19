@@ -61,6 +61,7 @@ from boranga.components.species_and_communities.models import (
     PotentialImpact,
     PotentialThreatOnset,
     ConservationThreat,
+    CommunityUserAction,
 )
 from boranga.components.conservation_status.models import(
     ConservationCategory,
@@ -1102,6 +1103,27 @@ class CommunityViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             qs = instance.action_logs.all()
             serializer = CommunityUserActionSerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    def upload_image(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            # instance.upload_image(request)
+            # with transaction.atomic():
+            #     instance.save()
+            #     instance.log_user_action(CommunityUserAction.ACTION_ID_UPDATE.format(
+            #     '{} '.format(instance.id)), request)
+            serializer = InternalCommunitySerializer(instance, partial=True)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())

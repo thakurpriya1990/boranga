@@ -20,7 +20,41 @@
                     :lodgement_date="species_community.lodgement_date"
                     class="mt-2"
                 />
-                
+                <template>
+                    <div class="">
+                        <div class="card card-default">
+                            <div class="card-header">
+                            Species Image
+                            </div>
+                            <div class="card-body card-collapse">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <!-- <strong>Submitted by</strong><br/>
+                                        {{ submitter_first_name }}
+                                        {{ submitter_last_name }} -->
+                                        <!-- <span class="col-sm-3 btn btn-link btn-file pull-left" v-if="uploadedID"><SecureBaseLink link_name="Uploaded Photo ID" :link_data="{'user_id': current_user.id}" /></span> -->
+                                        <div class="site-logo row" v-if="uploadedID"><img :src="imageURL"  class="img-responsive"/></div>
+                                        <span class="btn btn-link btn-file pull-left" v-else-if="!uploadedID">Attach Photo ID<input type="file" ref="uploadedID" @change="readFileID()"/></span>
+                                        <span class="btn btn-link btn-file pull-left" v-else >&nbsp;Uploading...</span>
+                                    </div>
+                                    <!-- <div class="col-sm-12 top-buffer-s">
+                                        <strong>Lodged on</strong><br/>
+                                        {{ lodgement_date | formatDate}}
+                                    </div>
+                                    <div class="col-sm-12 top-buffer-s">
+                                        <table class="table small-table">
+                                            <tr>
+                                                <th>Lodgement</th>
+                                                <th>Date</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </table>
+                                    </div> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
                 <!-- TODO
                 <Workflow
                     ref='workflow'
@@ -118,6 +152,9 @@ export default {
             savingSpeciesCommunity:false,
             saveExitSpeciesCommunity: false,
             submitSpeciesCommunity: false,
+            uploadedID: null,
+            imageURL:'',
+
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             //comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/comms_log'),
@@ -203,6 +240,60 @@ export default {
     methods: {
         commaToNewline(s){
             return s.replace(/[,;]/g, '\n');
+        },
+        readFileID: async function() {
+            let vm = this;
+            let _file = null;
+            var input = $(vm.$refs.uploadedID)[0];
+            vm.imageURL= URL.createObjectURL(input.files[0])
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.readAsDataURL(input.files[0]);
+                reader.onload = function(e) {
+                    _file = e.target.result;
+                };
+                _file = input.files[0];
+            }
+            //vm.imageURL= URL.createObjectURL()
+            vm.uploadedID = _file;
+            
+            await vm.uploadID();
+        },
+        uploadID: async function() {
+            let vm = this;
+            vm.uploadingID = true;
+            let data = new FormData();
+            data.append('image2', vm.uploadedID);
+            if (vm.uploadedID == null){
+                vm.uploadingID = false;
+                swal({
+                        title: 'Upload ID',
+                        html: 'Please select an Image to upload.',
+                        type: 'error'
+                });
+            } else {
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.community,(this.$route.params.species_community_id+'/upload_image')),data,{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.uploadingID = false;
+                    vm.uploadedID = null;
+                    vm.uploadedID = response.body.identification2;
+                    vm.current_user.identification2 = response.body.identification2;
+                }, (error) => {
+                    console.log(error);
+                    vm.uploadingID = false;
+                    vm.uploadedID = null;
+                    let error_msg = '<br/>';
+                    for (var key in error.body) {
+                        error_msg += key + ': ' + error.body[key] + '<br/>';
+                    }
+                    swal({
+                        title: 'Upload ID',
+                        html: 'There was an error uploading your ID.<br/>' + error_msg,
+                        type: 'error'
+                    });
+                });
+            }
         },
         save: async function() {
             let vm = this;

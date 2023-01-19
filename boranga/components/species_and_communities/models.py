@@ -325,6 +325,7 @@ class Species(models.Model):
     taxonomy = models.ForeignKey(Taxonomy, on_delete=models.SET_NULL, null=True, blank=True)
     image = models.CharField(max_length=512,
                              default="None", null=True, blank=True)
+    image_doc = models.ForeignKey('SpeciesDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='species_image')
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
@@ -535,6 +536,7 @@ class Community(models.Model):
     last_data_curration_date = models.DateField(blank =True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
+    image_doc = models.ForeignKey('CommunityDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='community_image')
 
     class Meta:
         app_label = 'boranga'
