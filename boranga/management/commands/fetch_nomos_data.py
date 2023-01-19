@@ -32,7 +32,7 @@ class Command(BaseCommand):
         'scope': 'READER',
         'username': username,
         'password': passwd }]
-        logger.info('username: {} Password: {}'.format(username, passwd))
+        #logger.info('username: {} Password: {}'.format(username, passwd))
 
         try:
             res=requests.post(my_url, data=data1[0])
@@ -53,7 +53,7 @@ class Command(BaseCommand):
                 #     logger.error('{}\n{}'.format(err_msg, str(e)))
                 #     errors.append(err_msg)
 
-                taxon_url='https://wagyl.bio.wa.gov.au/api/v1/taxon_names?range=%5B0%2C5%5D'
+                taxon_url='https://wagyl.bio.wa.gov.au/api/v1/taxon_names'
                 taxon_res=requests.get(taxon_url, headers={'Authorization': token})
                 tres=taxon_res.json()
                 #logger.info('Taxon data:{} '.format(tres))
@@ -61,6 +61,7 @@ class Command(BaseCommand):
                     for t in tres:
                         obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t['taxon_name_id'], defaults={'scientific_name' : t['scientific_name']})
                         #logger.info('Taxon {}'.format(obj.scientific_name))
+                        updates.append(obj.id)
                         
                         # if created:
                         #     #spc, spc_created= Species.objects.update_or_create(taxonomy_id=obj.id)
