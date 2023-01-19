@@ -34,13 +34,13 @@ from boranga.components.species_and_communities.models import(
     Species,
     Community,
     Taxonomy,
+    TaxonVernacular,
     PhylogeneticGroup,
     Genus,
     Family,
-    ScientificName,
 )
 
-from boranga.components.conservation_status.models import(
+from boranga.components.conservation_status.models import( 
     ConservationCategory,
     ConservationCriteria,
     ConservationChangeCode,
@@ -87,16 +87,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# used for external CS Dash filter
 class GetConservationListDict(views.APIView):
     def get(self, request, format=None):
         species_list = []
         species = Species.objects.all()
-        species = species.filter(~Q(scientific_name=None)) # TODO remove later as every species will have scientific name
+        species = species.filter(~Q(taxonomy__scientific_name=None)) # TODO remove later as every species will have scientific name
         if species:
             for specimen in species:
                 species_list.append({
                     'id': specimen.id,
-                    'name':specimen.scientific_name.name,
+                    'name':specimen.taxonomy.scientific_name,
                     });
         community_list = []
         communities = Community.objects.all()
@@ -140,12 +141,12 @@ class GetCSProfileDict(views.APIView):
         species_list = []
         if group_type:
             species = Species.objects.filter(group_type__name=group_type)
-            species = species.filter(~Q(scientific_name=None)) # TODO remove later as every species will have scientific name
+            species = species.filter(~Q(taxonomy=None)) # TODO remove later as every species will have taxonomy
             if species:
                 for specimen in species:
                     species_list.append({
                         'id': specimen.id,
-                        'name':specimen.scientific_name.name,
+                        'name':specimen.taxonomy.scientific_name,
                         });
         community_list = []
         communities = Community.objects.all()
@@ -219,42 +220,42 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         filter_scientific_name = request.GET.get('filter_scientific_name')
         if queryset.model is ConservationStatus:
             if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-                queryset = queryset.filter(species__scientific_name=filter_scientific_name)
+                queryset = queryset.filter(species__taxonomy__scientific_name=filter_scientific_name)
         elif queryset.model is ConservationStatusReferral:
             if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-                queryset = queryset.filter(conservation_status__species__scientific_name=filter_scientific_name)
+                queryset = queryset.filter(conservation_status__species__taxonomy__scientific_name=filter_scientific_name)
 
         filter_common_name = request.GET.get('filter_common_name')
         if queryset.model is ConservationStatus:
             if filter_common_name and not filter_common_name.lower() == 'all':
-                queryset = queryset.filter(species__common_name=filter_common_name)
+                queryset = queryset.filter(species__taxonomy__vernaculars__id=filter_common_name)
         elif queryset.model is ConservationStatusReferral:
             if filter_common_name and not filter_common_name.lower() == 'all':
-                queryset = queryset.filter(conservation_status__species__common_name=filter_common_name)
+                queryset = queryset.filter(conservation_status__species__taxonomy__vernaculars__id=filter_common_name)
 
         filter_phylogenetic_group = request.GET.get('filter_phylogenetic_group')
         if queryset.model is ConservationStatus:
             if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
-                queryset = queryset.filter(species__species_taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
+                queryset = queryset.filter(species__taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
         elif queryset.model is ConservationStatusReferral:
             if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
-                queryset = queryset.filter(conservation_status__species__species_taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
+                queryset = queryset.filter(conservation_status__species__taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
         
         filter_family = request.GET.get('filter_family')
         if queryset.model is ConservationStatus:
             if filter_family and not filter_family.lower() == 'all':
-                queryset = queryset.filter(species__species_taxonomy__family__id=filter_family)
+                queryset = queryset.filter(species__taxonomy__family__id=filter_family)
         elif queryset.model is ConservationStatusReferral:
             if filter_family and not filter_family.lower() == 'all':
-                queryset = queryset.filter(conservation_status__species__species_taxonomy__family__id=filter_family)
+                queryset = queryset.filter(conservation_status__species__taxonomy__family__id=filter_family)
 
         filter_genus = request.GET.get('filter_genus')
         if queryset.model is ConservationStatus:
             if filter_genus and not filter_genus.lower() == 'all':
-                queryset = queryset.filter(species__species_taxonomy__genus__id=filter_genus)
+                queryset = queryset.filter(species__taxonomy__genus__id=filter_genus)
         elif queryset.model is ConservationStatusReferral:
             if filter_genus and not filter_genus.lower() == 'all':
-                queryset = queryset.filter(conservation_status__species__species_taxonomy__genus__id=filter_genus)
+                queryset = queryset.filter(conservation_status__species__taxonomy__genus__id=filter_genus)
         
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if queryset.model is ConservationStatus:
@@ -1201,22 +1202,31 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                 for i in species:
                     species_data_list.append({
                         'species_id': i.id,
-                        'common_name':i.common_name,
                         });
         scientific_name_list = []
         if group_type:
-            scientific_name_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species__scientific_name', flat=True).distinct()
-            names = ScientificName.objects.filter(id__in=scientific_name_qs) # TODO will need to filter according to  group  selection
+            taxonomy_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species__taxonomy', flat=True).distinct()
+            names = Taxonomy.objects.filter(id__in=taxonomy_qs) # TODO will need to filter according to  group  selection
             if names:
                 for name in names:
                     scientific_name_list.append({
                         'id': name.id,
-                        'name': name.name,
+                        'name': name.scientific_name,
+                        });
+        common_name_list = []
+        if group_type:
+            taxonomy_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species__taxonomy', flat=True).distinct()
+            common_names = TaxonVernacular.objects.filter(taxonomy__in=taxonomy_qs)
+            if common_names:
+                for name in common_names:
+                    common_name_list.append({
+                        'id': name.id,
+                        'name': name.vernacular_name,
                         });
         family_list = []
         if group_type:
-            species_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species', flat=True).distinct()
-            family_qs = Taxonomy.objects.filter(species__in=species_qs).values_list('family', flat=True).distinct()
+            taxonomy_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species__taxonomy', flat=True).distinct()
+            family_qs = Taxonomy.objects.filter(id__in=taxonomy_qs).values_list('family', flat=True).distinct()
             families = Family.objects.filter(id__in=family_qs) # TODO will need to filter according to  group  selection
             if families:
                 for family in families:
@@ -1226,8 +1236,8 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                         });
         phylogenetic_group_list = []
         if group_type:
-            species_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species', flat=True).distinct()
-            phylo_group_qs = Taxonomy.objects.filter(species__in=species_qs).values_list('phylogenetic_group', flat=True).distinct()
+            taxonomy_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species__taxonomy', flat=True).distinct()
+            phylo_group_qs = Taxonomy.objects.filter(id__in=taxonomy_qs).values_list('phylogenetic_group', flat=True).distinct()
             phylo_groups = PhylogeneticGroup.objects.filter(id__in=phylo_group_qs) # TODO will need to filter according to  group  selection
             if phylo_groups:
                 for group in phylo_groups:
@@ -1237,8 +1247,8 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                         });
         genus_list = []
         if group_type:
-            species_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species', flat=True).distinct()
-            genus_qs = Taxonomy.objects.filter(species__in=species_qs).values_list('genus', flat=True).distinct()
+            taxonomy_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species__taxonomy', flat=True).distinct()
+            genus_qs = Taxonomy.objects.filter(id__in=taxonomy_qs).values_list('genus', flat=True).distinct()
             generas = Genus.objects.filter(id__in=genus_qs) # TODO will need to filter according to  group  selection
             if generas:
                 for genus in generas:
@@ -1275,6 +1285,7 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         res_json = {
         "species_data_list":species_data_list,
         "scientific_name_list": scientific_name_list,
+        "common_name_list": common_name_list,
         "family_list": family_list,
         "phylogenetic_group_list":phylogenetic_group_list,
         "genus_list":genus_list,

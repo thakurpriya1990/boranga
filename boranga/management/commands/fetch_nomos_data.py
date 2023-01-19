@@ -56,11 +56,11 @@ class Command(BaseCommand):
                 taxon_url='https://wagyl.bio.wa.gov.au/api/v1/taxon_names?range=%5B0%2C5%5D'
                 taxon_res=requests.get(taxon_url, headers={'Authorization': token})
                 tres=taxon_res.json()
-                logger.info('Taxon data:{} '.format(tres))
+                #logger.info('Taxon data:{} '.format(tres))
                 try:
                     for t in tres:
                         obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t['taxon_name_id'], defaults={'scientific_name' : t['scientific_name']})
-                        logger.info('Taxon {}'.format(obj.scientific_name))
+                        #logger.info('Taxon {}'.format(obj.scientific_name))
                         
                         # if created:
                         #     #spc, spc_created= Species.objects.update_or_create(taxonomy_id=obj.id)

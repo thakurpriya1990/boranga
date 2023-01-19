@@ -197,7 +197,7 @@ export default {
         display_name: function() {
             return (this.species_community.group_type === "community") ? 
                     this.species_community.community_migrated_id : 
-                    this.species_community.common_name;
+                    (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.scientific_name : '';
         },
         class_ncols: function(){
             return this.comparing ? 'col-md-12' : 'col-md-8';

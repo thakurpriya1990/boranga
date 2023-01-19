@@ -172,11 +172,7 @@
                     </div>
                 </div>
             </div>
-            
-           
         </div>
-
-            
         <div v-if="!comparing" class="col-md-1"></div>
         <!--<div class="col-md-8">-->
         <div :class="class_ncols">

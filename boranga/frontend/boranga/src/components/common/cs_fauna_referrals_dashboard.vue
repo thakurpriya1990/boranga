@@ -24,7 +24,7 @@
                         <label for="">Common Name:</label>
                         <select class="form-select" v-model="filterCSRefFaunaCommonName">
                             <option value="all">All</option>
-                            <option v-for="species in species_data_list" :value="species.common_name">{{species.common_name}}</option>
+                            <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -220,8 +220,8 @@ export default {
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
-            species_data_list: [],
             scientific_name_list: [],
+            common_name_list: [],
             family_list: [],
             genus_list: [],
             conservation_list_dict: [],
@@ -352,7 +352,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
-                name: "conservation_status__species__scientific_name__name",
+                name: "conservation_status__species__taxonomy__scientific_name",
             }
         },
         /*column_common_name: function(){
@@ -366,7 +366,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_status__species__common_name",
+                name: "conservation_status__species__taxonomy__vernaculars__vernacular_name",
             }
         },*/
         column_conservation_list: function(){
@@ -622,8 +622,8 @@ export default {
             //large FilterList of Species Values object
             vm.$http.get(api_endpoints.filter_list_cs_referrals+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
-                vm.species_data_list = vm.filterListsSpecies.species_data_list;
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
+                vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
