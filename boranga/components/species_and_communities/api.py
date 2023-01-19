@@ -62,6 +62,8 @@ from boranga.components.species_and_communities.models import (
     PotentialImpact,
     PotentialThreatOnset,
     ConservationThreat,
+    CommunityUserAction,
+    SpeciesUserAction,
 )
 from boranga.components.conservation_status.models import(
     ConservationCategory,
@@ -95,8 +97,11 @@ from boranga.components.species_and_communities.serializers import (
     SaveSpeciesDocumentSerializer,
     SaveCommunityDocumentSerializer,
     SpeciesLogEntrySerializer,
+    SpeciesUserActionSerializer,
     ConservationThreatSerializer,
     SaveConservationThreatSerializer,
+    CommunityLogEntrySerializer,
+    CommunityUserActionSerializer,
 )
 
                             
@@ -883,6 +888,23 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def action_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.action_logs.all()
+            serializer = SpeciesUserActionSerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
     
     @detail_route(methods=["get"], detail=True)
     @basic_exception_handler
@@ -892,6 +914,52 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         related_items = instance.get_related_items(related_filter_type)
         serializer = RelatedItemsSerializer(related_items, many=True)
         return Response(serializer.data)
+
+    @detail_route(methods=['POST',], detail=True)
+    def upload_image(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            #import ipdb; ipdb.set_trace()
+            instance.upload_image(request)
+            with transaction.atomic():
+                instance.save()
+                instance.log_user_action(SpeciesUserAction.ACTION_IMAGE_UPDATE.format(
+                '{} '.format(instance.id)), request)
+            serializer = InternalSpeciesSerializer(instance, partial=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    def delete_image(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            #import ipdb; ipdb.set_trace()
+            #instance.upload_image(request)
+            with transaction.atomic():
+                instance.image_doc=None
+                instance.save()
+                instance.log_user_action(SpeciesUserAction.ACTION_IMAGE_DELETE.format(
+                '{} '.format(instance.id)), request)
+            serializer = InternalSpeciesSerializer(instance, partial=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
 
 
 class CommunityViewSet(viewsets.ModelViewSet):
@@ -1054,6 +1122,119 @@ class CommunityViewSet(viewsets.ModelViewSet):
         related_items = instance.get_related_items(related_filter_type)
         serializer = RelatedItemsSerializer(related_items, many=True)
         return Response(serializer.data)
+
+    @detail_route(methods=['GET',], detail=True)
+    def comms_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.comms_logs.all()
+            serializer = CommunityLogEntrySerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def add_comms_log(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                mutable=request.data._mutable
+                request.data._mutable=True
+                request.data['community'] = u'{}'.format(instance.id)
+                request.data['staff'] = u'{}'.format(request.user.id)
+                request.data._mutable=mutable
+                serializer = CommunityLogEntrySerializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                comms = serializer.save()
+                # Save the files
+                for f in request.FILES:
+                    document = comms.documents.create()
+                    document.name = str(request.FILES[f])
+                    document._file = request.FILES[f]
+                    document.save()
+                # End Save Documents
+
+                return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def action_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.action_logs.all()
+            serializer = CommunityUserActionSerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    def upload_image(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            #import ipdb; ipdb.set_trace()
+            instance.upload_image(request)
+            with transaction.atomic():
+                instance.save()
+                instance.log_user_action(CommunityUserAction.ACTION_IMAGE_UPDATE.format(
+                '{} '.format(instance.id)), request)
+            serializer = InternalCommunitySerializer(instance, partial=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    def delete_image(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            #import ipdb; ipdb.set_trace()
+            #instance.upload_image(request)
+            with transaction.atomic():
+                instance.image_doc=None
+                instance.save()
+                instance.log_user_action(CommunityUserAction.ACTION_IMAGE_DELETE.format(
+                '{} '.format(instance.id)), request)
+            serializer = InternalCommunitySerializer(instance, partial=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
 
 
 class DocumentCategoryViewSet(viewsets.ModelViewSet):

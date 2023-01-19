@@ -40,13 +40,13 @@ class Command(BaseCommand):
                 r=res.json()
                 r['access_token']
                 token='{} {}'.format(r['token_type'], r['access_token'])
-                logger.info('Access token {}'.format(token))
+                #logger.info('Access token {}'.format(token))
                 #token example
                 # users_url='https://wagyl.bio.wa.gov.au/api/v1/users?range=%5B0%2C20%5D'
                 # token='{} {}'.format(r['token_type'], r['access_token'])
                 
 
-                vern_url='https://wagyl.bio.wa.gov.au/api/v1/vernaculars?range=%5B0%2C5%5D'
+                vern_url='https://wagyl.bio.wa.gov.au/api/v1/vernaculars'
                 vern_res=requests.get(vern_url, headers={'Authorization': token})
                 vres=vern_res.json()
                 #logger.info('Taxon data:{} '.format(vres))
@@ -54,7 +54,8 @@ class Command(BaseCommand):
                     for t in vres:
                         taxon, taxon_created= Taxonomy.objects.get_or_create(taxon_name_id=t['taxon_name_id'])
                         obj, created=TaxonVernacular.objects.update_or_create(vernacular_id=t['vernacular_id'], defaults={'vernacular_name' : t['vernacular_name'], 'taxonomy': taxon, 'taxon_name_id' : taxon.taxon_name_id })
-                        logger.info('Vernacular {}'.format(obj.vernacular_name))
+                        #logger.info('Vernacular {}'.format(obj.vernacular_name))
+                        updates.append(obj.id)
                         
                         
                 except Exception as e:

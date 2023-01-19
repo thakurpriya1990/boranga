@@ -10,6 +10,7 @@ from django.db import models,transaction
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from boranga.components.main.related_item import RelatedItem
+from boranga.ledger_api_utils import retrieve_email_user
 
 private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
@@ -324,6 +325,7 @@ class Species(models.Model):
     taxonomy = models.ForeignKey(Taxonomy, on_delete=models.SET_NULL, null=True, blank=True)
     image = models.CharField(max_length=512,
                              default="None", null=True, blank=True)
+    image_doc = models.ForeignKey('SpeciesDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='species_image')
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
@@ -332,6 +334,8 @@ class Species(models.Model):
                                  on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
     processing_status = models.CharField(max_length=512, null=True, blank=True)
+    lodgement_date = models.DateTimeField(blank=True, null=True)
+    submitter = models.IntegerField(null=True) #EmailUserRO 
     
     class Meta:
         app_label = 'boranga'
@@ -404,6 +408,22 @@ class Species(models.Model):
         #return self.get_processing_status_display
         return self.processing_status # TODO use the above to display as still no processing_status choices list
 
+    @property
+    def submitter_user(self):
+        email_user= retrieve_email_user(self.submitter)
+
+        return email_user
+
+    def log_user_action(self, action, request):
+        return SpeciesUserAction.log_action(self, action, request.user.id)
+
+    def upload_image(self, request):
+        with transaction.atomic():
+            document = SpeciesDocument(_file=request.data.dict()['image2'], species=self)
+            document.save()
+            self.image_doc=document
+            self.save()
+
 
 class SpeciesLogDocument(Document):
     log_entry = models.ForeignKey('SpeciesLogEntry',related_name='documents', on_delete=models.CASCADE)
@@ -427,6 +447,25 @@ class SpeciesLogEntry(CommunicationsLogEntry):
         if not self.reference:
             self.reference = self.species.reference
         super(SpeciesLogEntry, self).save(**kwargs)
+
+class SpeciesUserAction(UserAction):
+    
+    ACTION_IMAGE_UPDATE= "Species Image document updated for Species {}"
+    ACTION_IMAGE_DELETE= "Species Image document deleted for Species {}"
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ('-when',)
+
+    @classmethod
+    def log_action(cls, species, action, user):
+        return cls.objects.create(
+            species=species,
+            who=user,
+            what=str(action)
+        )
+
+    species = models.ForeignKey(Species, related_name='action_logs', on_delete=models.CASCADE)
 
 
 class SpeciesDistribution(models.Model):
@@ -506,6 +545,9 @@ class Community(models.Model):
                                  default=None,
                                  on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
+    lodgement_date = models.DateTimeField(blank=True, null=True)
+    submitter = models.IntegerField(null=True) #EmailUserRO 
+    image_doc = models.ForeignKey('CommunityDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='community_image')
 
     class Meta:
         app_label = 'boranga'
@@ -523,7 +565,7 @@ class Community(models.Model):
 
     @property
     def reference(self):
-        return '{}-{}'.format(self.community_number)
+        return '{}-{}'.format(self.community_number, self.community_number)
     
     def get_related_items(self,filter_type, **kwargs):
         return_list = []
@@ -578,6 +620,16 @@ class Community(models.Model):
         #return self.processing_status # TODO use the above to display as still no processing_status choices list
         return 'Not available yet'
 
+    def log_user_action(self, action, request):
+        return CommunityUserAction.log_action(self, action, request.user.id)
+
+    def upload_image(self, request):
+        with transaction.atomic():
+            document = CommunityDocument(_file=request.data.dict()['image2'], community=self)
+            document.save()
+            self.image_doc=document
+            self.save()
+
 
 
 class CommunityLogDocument(Document):
@@ -600,8 +652,30 @@ class CommunityLogEntry(CommunicationsLogEntry):
     def save(self, **kwargs):
         # save the application reference if the reference not provided
         if not self.reference:
-            self.reference = self.species.reference
+            self.reference = self.community.reference
         super(CommunityLogEntry, self).save(**kwargs)
+
+class CommunityUserAction(UserAction):
+    
+    ACTION_SEND_PAYMENT_DUE_NOTIFICATION = "Send monthly invoice/BPAY payment due notification {} for application {} to {}"
+    ACTION_IMAGE_UPDATE= "Community Image document updated for Community {}"
+    ACTION_IMAGE_DELETE= "Community Image document deleted for Community {}"
+
+
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ('-when',)
+
+    @classmethod
+    def log_action(cls, community, action, user):
+        return cls.objects.create(
+            community=community,
+            who=user,
+            what=str(action)
+        )
+
+    community = models.ForeignKey(Community, related_name='action_logs', on_delete=models.CASCADE)
 
 
 class CommunityDistribution(models.Model):

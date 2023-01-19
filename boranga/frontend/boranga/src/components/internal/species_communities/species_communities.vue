@@ -6,21 +6,52 @@
 
             <div v-if="!comparing" class="col-md-3">
                <!-- TODO -->
+               <template>
+                    <div class="">
+                        <div class="card card-default">
+                            <div class="card-header">
+                            Image
+                            </div>
+                            <div class="card-body card-collapse">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        
+                                        <div class="site-logo row" v-if="uploadedID">
+                                            <img :src="uploadedID"  class="img-responsive"/>
+                                            <span>
+                                                <a @click="delete_image()" class="fa fa-trash-o" title="Remove file" style="cursor: pointer; color:red;"> delete image</a>
+                                            </span>
+                                        
+                                        </div>
+                                        <span class="btn btn-link btn-file pull-left" v-else-if="!uploadedID">Attach Image<input type="file" ref="uploadedID" @change="readFileID()"/></span>
+                                        <span class="btn btn-link btn-file pull-left" v-else >&nbsp;Uploading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <template>
+                    <div class="card card-default">
+                        <!-- <div class="card-body card-collapse"></div> -->
+                    </div>
+                    
+                </template>
 
-               <!-- <CommsLogs
+               <CommsLogs
                     :comms_url="comms_url"
                     :logs_url="logs_url"
                     :comms_add_url="comms_add_url"
                     :disable_add_entry="false"
-                /> -->
+                />
 
-               <!--  <Submission v-if="canSeeSubmission"
+                <Submission v-if="canSeeSubmission"
                     :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name"
-                    :lodgement_date="proposal.lodgement_date"
+                    :lodgement_date="species_community.lodgement_date"
                     class="mt-2"
-                /> -->
-                
+                />
+               
                 <!-- TODO
                 <Workflow
                     ref='workflow'
@@ -118,11 +149,17 @@ export default {
             savingSpeciesCommunity:false,
             saveExitSpeciesCommunity: false,
             submitSpeciesCommunity: false,
+            uploadedID: null,
+            imageURL:'',
+
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/add_comms_log'),
+            //comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/comms_log'),
+            //comms_add_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/add_comms_log'),
             //logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/action_log'),
+            //comms_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/comms_log'),
+            //comms_add_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/add_comms_log'),
+            //logs_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/action_log'),
             comparing: false,
         }
     },
@@ -162,10 +199,147 @@ export default {
         class_ncols: function(){
             return this.comparing ? 'col-md-12' : 'col-md-8';
         },
+        submitter_first_name: function(){
+            if (this.species_community && this.species_community.submitter){
+                return this.species_community.submitter.first_name
+            } else {
+                return ''
+            }
+        },
+        submitter_last_name: function(){
+            if (this.species_community && this.species_community.submitter){
+                return this.species_community.submitter.last_name
+            } else {
+                return ''
+            }
+        },
+        canSeeSubmission: function(){
+            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
+            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
+            return true
+        },
+        comms_url: function() {
+          return (this.species_community.group_type === "community") ? 
+                  helpers.add_endpoint_json(api_endpoints.community,this.$route.params.species_community_id+'/comms_log'): 
+                  helpers.add_endpoint_json(api_endpoints.species,this.$route.params.species_community_id+'/comms_log');
+        },
+        comms_add_url: function() {
+          return (this.species_community.group_type === "community") ? 
+                  helpers.add_endpoint_json(api_endpoints.community,this.$route.params.species_community_id+'/add_comms_log'): 
+                  helpers.add_endpoint_json(api_endpoints.species,this.$route.params.species_community_id+'/add_comms_log');
+        },
+        logs_url: function() {
+          return (this.species_community.group_type === "community") ? 
+                  helpers.add_endpoint_json(api_endpoints.community,this.$route.params.species_community_id+'/action_log'): 
+                  helpers.add_endpoint_json(api_endpoints.species,this.$route.params.species_community_id+'/action_log');
+        },
     },
     methods: {
         commaToNewline(s){
             return s.replace(/[,;]/g, '\n');
+        },
+        readFileID: async function() {
+            let vm = this;
+            let _file = null;
+            var input = $(vm.$refs.uploadedID)[0];
+            vm.imageURL= URL.createObjectURL(input.files[0])
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.readAsDataURL(input.files[0]);
+                reader.onload = function(e) {
+                    _file = e.target.result;
+                };
+                _file = input.files[0];
+            }
+            //vm.imageURL= URL.createObjectURL()
+            vm.uploadedID = _file;
+            
+            await vm.uploadImage();
+        },
+        uploadImage: async function() {
+            let vm = this;
+            vm.uploadingID = true;
+            let data = new FormData();
+            data.append('image2', vm.uploadedID);
+            if (vm.uploadedID == null){
+                vm.uploadingID = false;
+                swal({
+                        title: 'Upload Image',
+                        html: 'Please select an Image to upload.',
+                        type: 'error'
+                });
+            } else {
+                if(this.species_community.group_type=='community'){
+                    var api_url= api_endpoints.community;
+                }
+                else{
+                    var api_url= api_endpoints.species;
+                }
+                vm.$http.post(helpers.add_endpoint_json(api_url,(this.$route.params.species_community_id+'/upload_image')),data,{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.uploadingID = false;
+                    vm.uploadedID = null;
+                    vm.uploadedID = response.body.image_doc;
+                    vm.species_community.image_doc = response.body.image_doc;
+                }, (error) => {
+                    console.log(error);
+                    vm.uploadingID = false;
+                    vm.uploadedID = null;
+                    let error_msg = '<br/>';
+                    for (var key in error.body) {
+                        error_msg += key + ': ' + error.body[key] + '<br/>';
+                    }
+                    swal({
+                        title: 'Upload ID',
+                        html: 'There was an error uploading your ID.<br/>' + error_msg,
+                        type: 'error'
+                    });
+                });
+            }
+        },
+        delete_image: async function() {
+            let vm = this;
+            if(this.species_community.group_type=='community'){
+                    var api_url= api_endpoints.community;
+                }
+                else{
+                    var api_url= api_endpoints.species;
+                }
+           
+            if (vm.uploadedID == null){
+                swal({
+                        title: 'Delete Image',
+                        html: 'No Image uploaded.',
+                        type: 'error'
+                });
+            } else {
+                if(vm.species_community.image_doc)
+                {
+                    vm.$http.post(helpers.add_endpoint_json(api_url,(this.$route.params.species_community_id+'/delete_image')),{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.uploadingID = false;
+                    vm.uploadedID = null;
+                    vm.uploadedID = response.body.image_doc;
+                    vm.species_community.image_doc = response.body.image_doc;
+                }, (error) => {
+                    console.log(error);
+                    vm.uploadingID = false;
+                    vm.uploadedID = null;
+                    let error_msg = '<br/>';
+                    for (var key in error.body) {
+                        error_msg += key + ': ' + error.body[key] + '<br/>';
+                    }
+                    swal({
+                        title: 'Delete Image',
+                        html: 'There was an error deleting your image.<br/>' + error_msg,
+                        type: 'error'
+                    });
+                });
+                }
+                
+            }
         },
         save: async function() {
             let vm = this;
@@ -263,6 +437,7 @@ export default {
             Vue.http.get(`/api/species/${to.params.species_community_id}/internal_species.json`).then(res => {
               next(vm => {
                 vm.species_community = res.body.species_obj; //--temp species_obj
+                vm.uploadedID= vm.species_community.image_doc;
               });
             },
             err => {
@@ -274,6 +449,7 @@ export default {
             Vue.http.get(`/api/community/${to.params.species_community_id}/internal_community.json`).then(res => {
               next(vm => {
                 vm.species_community = res.body.community_obj; //--temp community_obj
+                vm.uploadedID= vm.species_community.image_doc;
               });
             },
             err => {

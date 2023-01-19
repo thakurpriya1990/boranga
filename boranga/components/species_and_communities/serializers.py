@@ -17,6 +17,9 @@ from boranga.components.species_and_communities.models import(
 	SpeciesDistribution,
 	CommunityDistribution,
 	ConservationThreat,
+	CommunityLogEntry,
+	CommunityUserAction,
+	SpeciesUserAction,
 	)
 from boranga.components.conservation_status.models import(
     ConservationStatus,
@@ -28,7 +31,8 @@ from boranga.components.conservation_status.serializers import(
 
 from boranga.components.users.serializers import UserSerializer
 from boranga.components.users.serializers import UserAddressSerializer, DocumentSerializer
-from boranga.components.main.serializers import CommunicationLogEntrySerializer
+from boranga.components.main.serializers import CommunicationLogEntrySerializer, EmailUserSerializer
+from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
 from django.db.models import Q
 
@@ -425,6 +429,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 	conservation_attributes = serializers.SerializerMethodField()
 	distribution = serializers.SerializerMethodField()
 	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+	image_doc=serializers.SerializerMethodField()
 	
 	class Meta:
 		model = Species
@@ -443,6 +448,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			'conservation_attributes',
 			'distribution',
 			'last_data_curration_date',
+			'image_doc'
 			)
 			
 	def get_readonly(self,obj):
@@ -489,6 +495,11 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			return SpeciesDistributionSerializer(distribution_instance).data
 		except SpeciesDistribution.DoesNotExist:
 			return SpeciesDistributionSerializer().data
+
+	def get_image_doc(self,obj):
+		if obj.image_doc and obj.image_doc._file:
+			return obj.image_doc._file.url
+		return None
 
 
 class InternalSpeciesSerializer(BaseSpeciesSerializer):
@@ -622,6 +633,8 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 	readonly = serializers.SerializerMethodField(read_only=True)
 	last_data_curration_date = serializers.DateField(required=False,allow_null=True)
 	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+	submitter= serializers.SerializerMethodField(read_only=True)
+	image_doc = serializers.SerializerMethodField()
 
 	class Meta:
 		model = Community
@@ -645,6 +658,9 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 			    'readonly',
 			    'can_user_edit',
 			    'last_data_curration_date',
+				'submitter',
+				'lodgement_date',
+				'image_doc'
 
                 # tab field models
                 )
@@ -687,6 +703,20 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 	def get_can_user_edit(self,obj):
 		return True
+
+	def get_submitter(self, obj):
+		if obj.submitter:
+			email_user = retrieve_email_user(obj.submitter)
+			#return email_user.get_full_name()
+			return EmailUserSerializer(email_user).data
+
+		else:
+			return None
+
+	def get_image_doc(self,obj):
+		if obj.image_doc and obj.image_doc._file:
+			return obj.image_doc._file.url
+		return None
 
 
 class InternalCommunitySerializer(BaseCommunitySerializer):
@@ -869,6 +899,17 @@ class SpeciesLogEntrySerializer(CommunicationLogEntrySerializer):
     def get_documents(self,obj):
         return [[d.name,d._file.url] for d in obj.documents.all()]
 
+class SpeciesUserActionSerializer(serializers.ModelSerializer):
+	who = serializers.SerializerMethodField()
+	class Meta:
+		model = SpeciesUserAction
+		fields = '__all__'
+
+	def get_who(self, conservation_status_user_action):
+		email_user = retrieve_email_user(conservation_status_user_action.who)
+		fullname = email_user.get_full_name()
+		return fullname
+
 
 class ConservationThreatSerializer(serializers.ModelSerializer):
 	threat_category_name = serializers.SerializerMethodField()
@@ -930,3 +971,33 @@ class SaveConservationThreatSerializer(serializers.ModelSerializer):
 			'potential_threat_onset',
 			'date_observed',
 			)
+
+
+class CommunityLogEntrySerializer(CommunicationLogEntrySerializer):
+    documents = serializers.SerializerMethodField()
+    class Meta:
+        model = CommunityLogEntry
+        fields = '__all__'
+        read_only_fields = (
+            'customer',
+        )
+
+    def get_documents(self,obj):
+        return [[d.name,d._file.url] for d in obj.documents.all()]
+
+
+class CommunityUserActionSerializer(serializers.ModelSerializer):
+	who = serializers.SerializerMethodField()
+	class Meta:
+		model = CommunityUserAction
+		fields = '__all__'
+	def get_who(self, conservation_status_user_action):
+		email_user = retrieve_email_user(conservation_status_user_action.who)
+		fullname = email_user.get_full_name()
+		return fullname 
+
+# class CommunityUserActionSerializer(serializers.ModelSerializer):
+#     who = serializers.SerializerMethodField()
+#     class Meta:
+#         model = CommunityUserAction
+#         fields = '__all__'
