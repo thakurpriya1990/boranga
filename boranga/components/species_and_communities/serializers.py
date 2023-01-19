@@ -900,10 +900,15 @@ class SpeciesLogEntrySerializer(CommunicationLogEntrySerializer):
         return [[d.name,d._file.url] for d in obj.documents.all()]
 
 class SpeciesUserActionSerializer(serializers.ModelSerializer):
-    who = serializers.CharField(source='who.get_full_name')
-    class Meta:
-        model = SpeciesUserAction
-        fields = '__all__'
+	who = serializers.SerializerMethodField()
+	class Meta:
+		model = SpeciesUserAction
+		fields = '__all__'
+
+	def get_who(self, conservation_status_user_action):
+		email_user = retrieve_email_user(conservation_status_user_action.who)
+		fullname = email_user.get_full_name()
+		return fullname
 
 
 class ConservationThreatSerializer(serializers.ModelSerializer):
@@ -982,13 +987,17 @@ class CommunityLogEntrySerializer(CommunicationLogEntrySerializer):
 
 
 class CommunityUserActionSerializer(serializers.ModelSerializer):
-    who = serializers.CharField(source='who.get_full_name')
-    class Meta:
-        model = CommunityUserAction
-        fields = '__all__'
+	who = serializers.SerializerMethodField()
+	class Meta:
+		model = CommunityUserAction
+		fields = '__all__'
+	def get_who(self, conservation_status_user_action):
+		email_user = retrieve_email_user(conservation_status_user_action.who)
+		fullname = email_user.get_full_name()
+		return fullname 
 
-class CommunityUserActionSerializer(serializers.ModelSerializer):
-    who = serializers.CharField(source='who.get_full_name')
-    class Meta:
-        model = CommunityUserAction
-        fields = '__all__'
+# class CommunityUserActionSerializer(serializers.ModelSerializer):
+#     who = serializers.SerializerMethodField()
+#     class Meta:
+#         model = CommunityUserAction
+#         fields = '__all__'

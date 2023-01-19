@@ -6,6 +6,37 @@
 
             <div v-if="!comparing" class="col-md-3">
                <!-- TODO -->
+               <template>
+                    <div class="">
+                        <div class="card card-default">
+                            <div class="card-header">
+                            Image
+                            </div>
+                            <div class="card-body card-collapse">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        
+                                        <div class="site-logo row" v-if="uploadedID">
+                                            <img :src="uploadedID"  class="img-responsive"/>
+                                            <span>
+                                                <a @click="delete_image()" class="fa fa-trash-o" title="Remove file" style="cursor: pointer; color:red;"> delete image</a>
+                                            </span>
+                                        
+                                        </div>
+                                        <span class="btn btn-link btn-file pull-left" v-else-if="!uploadedID">Attach Image<input type="file" ref="uploadedID" @change="readFileID()"/></span>
+                                        <span class="btn btn-link btn-file pull-left" v-else >&nbsp;Uploading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <template>
+                    <div class="card card-default">
+                        <!-- <div class="card-body card-collapse"></div> -->
+                    </div>
+                    
+                </template>
 
                <CommsLogs
                     :comms_url="comms_url"
@@ -20,47 +51,7 @@
                     :lodgement_date="species_community.lodgement_date"
                     class="mt-2"
                 />
-                <template>
-                    <div class="">
-                        <div class="card card-default">
-                            <div class="card-header">
-                            Species Image
-                            </div>
-                            <div class="card-body card-collapse">
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <!-- <strong>Submitted by</strong><br/>
-                                        {{ submitter_first_name }}
-                                        {{ submitter_last_name }} -->
-                                        <!-- <span class="col-sm-3 btn btn-link btn-file pull-left" v-if="uploadedID"><SecureBaseLink link_name="Uploaded Photo ID" :link_data="{'user_id': current_user.id}" /></span> -->
-                                        <div class="site-logo row" v-if="uploadedID">
-                                            <img :src="uploadedID"  class="img-responsive"/>
-                                            <span>
-                                                <a @click="delete_image()" class="fa fa-trash-o" title="Remove file" style="cursor: pointer; color:red;"> delete image</a>
-                                            </span>
-                                        
-                                        </div>
-                                        <span class="btn btn-link btn-file pull-left" v-else-if="!uploadedID">Attach Image<input type="file" ref="uploadedID" @change="readFileID()"/></span>
-                                        <span class="btn btn-link btn-file pull-left" v-else >&nbsp;Uploading...</span>
-                                    </div>
-                                    <!-- <div class="col-sm-12 top-buffer-s">
-                                        <strong>Lodged on</strong><br/>
-                                        {{ lodgement_date | formatDate}}
-                                    </div>
-                                    <div class="col-sm-12 top-buffer-s">
-                                        <table class="table small-table">
-                                            <tr>
-                                                <th>Lodgement</th>
-                                                <th>Date</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </table>
-                                    </div> -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </template>
+               
                 <!-- TODO
                 <Workflow
                     ref='workflow'
