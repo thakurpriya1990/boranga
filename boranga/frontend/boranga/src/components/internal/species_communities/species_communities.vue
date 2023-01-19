@@ -33,8 +33,14 @@
                                         {{ submitter_first_name }}
                                         {{ submitter_last_name }} -->
                                         <!-- <span class="col-sm-3 btn btn-link btn-file pull-left" v-if="uploadedID"><SecureBaseLink link_name="Uploaded Photo ID" :link_data="{'user_id': current_user.id}" /></span> -->
-                                        <div class="site-logo row" v-if="uploadedID"><img :src="imageURL"  class="img-responsive"/></div>
-                                        <span class="btn btn-link btn-file pull-left" v-else-if="!uploadedID">Attach Photo ID<input type="file" ref="uploadedID" @change="readFileID()"/></span>
+                                        <div class="site-logo row" v-if="uploadedID">
+                                            <img :src="uploadedID"  class="img-responsive"/>
+                                            <span>
+                                                <a @click="delete_image()" class="fa fa-trash-o" title="Remove file" style="cursor: pointer; color:red;"> delete image</a>
+                                            </span>
+                                        
+                                        </div>
+                                        <span class="btn btn-link btn-file pull-left" v-else-if="!uploadedID">Attach Image<input type="file" ref="uploadedID" @change="readFileID()"/></span>
                                         <span class="btn btn-link btn-file pull-left" v-else >&nbsp;Uploading...</span>
                                     </div>
                                     <!-- <div class="col-sm-12 top-buffer-s">
@@ -257,9 +263,9 @@ export default {
             //vm.imageURL= URL.createObjectURL()
             vm.uploadedID = _file;
             
-            await vm.uploadID();
+            await vm.uploadImage();
         },
-        uploadID: async function() {
+        uploadImage: async function() {
             let vm = this;
             vm.uploadingID = true;
             let data = new FormData();
@@ -267,18 +273,24 @@ export default {
             if (vm.uploadedID == null){
                 vm.uploadingID = false;
                 swal({
-                        title: 'Upload ID',
+                        title: 'Upload Image',
                         html: 'Please select an Image to upload.',
                         type: 'error'
                 });
             } else {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.community,(this.$route.params.species_community_id+'/upload_image')),data,{
+                if(this.species_community.group_type=='community'){
+                    var api_url= api_endpoints.community;
+                }
+                else{
+                    var api_url= api_endpoints.species;
+                }
+                vm.$http.post(helpers.add_endpoint_json(api_url,(this.$route.params.species_community_id+'/upload_image')),data,{
                     emulateJSON:true
                 }).then((response) => {
                     vm.uploadingID = false;
                     vm.uploadedID = null;
-                    vm.uploadedID = response.body.identification2;
-                    vm.current_user.identification2 = response.body.identification2;
+                    vm.uploadedID = response.body.image_doc;
+                    vm.species_community.image_doc = response.body.image_doc;
                 }, (error) => {
                     console.log(error);
                     vm.uploadingID = false;
@@ -293,6 +305,49 @@ export default {
                         type: 'error'
                     });
                 });
+            }
+        },
+        delete_image: async function() {
+            let vm = this;
+            if(this.species_community.group_type=='community'){
+                    var api_url= api_endpoints.community;
+                }
+                else{
+                    var api_url= api_endpoints.species;
+                }
+           
+            if (vm.uploadedID == null){
+                swal({
+                        title: 'Delete Image',
+                        html: 'No Image uploaded.',
+                        type: 'error'
+                });
+            } else {
+                if(vm.species_community.image_doc)
+                {
+                    vm.$http.post(helpers.add_endpoint_json(api_url,(this.$route.params.species_community_id+'/delete_image')),{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.uploadingID = false;
+                    vm.uploadedID = null;
+                    vm.uploadedID = response.body.image_doc;
+                    vm.species_community.image_doc = response.body.image_doc;
+                }, (error) => {
+                    console.log(error);
+                    vm.uploadingID = false;
+                    vm.uploadedID = null;
+                    let error_msg = '<br/>';
+                    for (var key in error.body) {
+                        error_msg += key + ': ' + error.body[key] + '<br/>';
+                    }
+                    swal({
+                        title: 'Delete Image',
+                        html: 'There was an error deleting your image.<br/>' + error_msg,
+                        type: 'error'
+                    });
+                });
+                }
+                
             }
         },
         save: async function() {
@@ -391,6 +446,7 @@ export default {
             Vue.http.get(`/api/species/${to.params.species_community_id}/internal_species.json`).then(res => {
               next(vm => {
                 vm.species_community = res.body.species_obj; //--temp species_obj
+                vm.uploadedID= vm.species_community.image_doc;
               });
             },
             err => {
@@ -402,6 +458,7 @@ export default {
             Vue.http.get(`/api/community/${to.params.species_community_id}/internal_community.json`).then(res => {
               next(vm => {
                 vm.species_community = res.body.community_obj; //--temp community_obj
+                vm.uploadedID= vm.species_community.image_doc;
               });
             },
             err => {

@@ -414,6 +414,16 @@ class Species(models.Model):
 
         return email_user
 
+    def log_user_action(self, action, request):
+        return SpeciesUserAction.log_action(self, action, request.user.id)
+
+    def upload_image(self, request):
+        with transaction.atomic():
+            document = SpeciesDocument(_file=request.data.dict()['image2'], species=self)
+            document.save()
+            self.image_doc=document
+            self.save()
+
 
 class SpeciesLogDocument(Document):
     log_entry = models.ForeignKey('SpeciesLogEntry',related_name='documents', on_delete=models.CASCADE)
@@ -440,7 +450,8 @@ class SpeciesLogEntry(CommunicationsLogEntry):
 
 class SpeciesUserAction(UserAction):
     
-    ACTION_SEND_PAYMENT_DUE_NOTIFICATION = "Send monthly invoice/BPAY payment due notification {} for application {} to {}"
+    ACTION_IMAGE_UPDATE= "Species Image document updated for Species {}"
+    ACTION_IMAGE_DELETE= "Species Image document deleted for Species {}"
 
     class Meta:
         app_label = 'boranga'
@@ -609,6 +620,16 @@ class Community(models.Model):
         #return self.processing_status # TODO use the above to display as still no processing_status choices list
         return 'Not available yet'
 
+    def log_user_action(self, action, request):
+        return CommunityUserAction.log_action(self, action, request.user.id)
+
+    def upload_image(self, request):
+        with transaction.atomic():
+            document = CommunityDocument(_file=request.data.dict()['image2'], community=self)
+            document.save()
+            self.image_doc=document
+            self.save()
+
 
 
 class CommunityLogDocument(Document):
@@ -637,6 +658,10 @@ class CommunityLogEntry(CommunicationsLogEntry):
 class CommunityUserAction(UserAction):
     
     ACTION_SEND_PAYMENT_DUE_NOTIFICATION = "Send monthly invoice/BPAY payment due notification {} for application {} to {}"
+    ACTION_IMAGE_UPDATE= "Community Image document updated for Community {}"
+    ACTION_IMAGE_DELETE= "Community Image document deleted for Community {}"
+
+
 
     class Meta:
         app_label = 'boranga'

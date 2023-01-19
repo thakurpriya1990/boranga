@@ -429,6 +429,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 	conservation_attributes = serializers.SerializerMethodField()
 	distribution = serializers.SerializerMethodField()
 	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+	image_doc=serializers.SerializerMethodField()
 	
 	class Meta:
 		model = Species
@@ -447,6 +448,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			'conservation_attributes',
 			'distribution',
 			'last_data_curration_date',
+			'image_doc'
 			)
 			
 	def get_readonly(self,obj):
@@ -493,6 +495,11 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			return SpeciesDistributionSerializer(distribution_instance).data
 		except SpeciesDistribution.DoesNotExist:
 			return SpeciesDistributionSerializer().data
+
+	def get_image_doc(self,obj):
+		if obj.image_doc and obj.image_doc._file:
+			return obj.image_doc._file.url
+		return None
 
 
 class InternalSpeciesSerializer(BaseSpeciesSerializer):
@@ -627,6 +634,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 	last_data_curration_date = serializers.DateField(required=False,allow_null=True)
 	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
 	submitter= serializers.SerializerMethodField(read_only=True)
+	image_doc = serializers.SerializerMethodField()
 
 	class Meta:
 		model = Community
@@ -651,7 +659,8 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 			    'can_user_edit',
 			    'last_data_curration_date',
 				'submitter',
-				'lodgement_date'
+				'lodgement_date',
+				'image_doc'
 
                 # tab field models
                 )
@@ -703,6 +712,11 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 		else:
 			return None
+
+	def get_image_doc(self,obj):
+		if obj.image_doc and obj.image_doc._file:
+			return obj.image_doc._file.url
+		return None
 
 
 class InternalCommunitySerializer(BaseCommunitySerializer):
