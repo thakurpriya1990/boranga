@@ -457,7 +457,7 @@ export default {
                 //---to show fields related to Fauna
                 isFauna: vm.species_community.group_type==="fauna"?true:false,
                 //----list of values dictionary
-                taxon_names: {},
+                taxon_names: [],
                 species_profile_dict: {},
                 //scientific_name_list: [],
                 name_authority_list: [],
@@ -569,6 +569,7 @@ export default {
             },
             loadTaxonomydetails: function(){
                 let vm=this;
+                //console.log(vm.taxon_names);
                 for(let choice of vm.taxon_names){
                         if(choice.id === vm.species_community.taxonomy_id)
                         {
