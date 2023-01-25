@@ -656,22 +656,13 @@ export default {
                                     links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`; 
                             }
                             else{
-                                links +=  `<a href='/internal/conservation_status/${full.id}'>View</a><br/>`;
+                                if(full.assessor_edit){
+                                    links +=  `<a href='/internal/conservation_status/${full.id}?action=edit'>Edit</a><br/>`;
+                                }
+                                links +=  `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
                             }
                         }
                     }
-                    // else{
-                    //     if (full.can_user_edit) {
-                    //         links +=  `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
-                    //         links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
-                    //     }
-                    //     else if (full.can_user_view) {
-                    //         links +=  `<a href='/external/conservation_status/${full.id}'>View</a>`;
-                    //     }
-                    // }
-
-                    links +=  `<a href='/internal/conservation_status/${full.id}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
-
                     return links;
                 }
             }
