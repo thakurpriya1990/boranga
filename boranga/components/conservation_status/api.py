@@ -12,6 +12,7 @@ from rest_framework.renderers import JSONRenderer
 from datetime import datetime
 from ledger_api_client.settings_base import TIME_ZONE
 from boranga import settings
+from boranga import exceptions
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.urls import reverse
@@ -731,12 +732,46 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                     # add the updated Current conservation criteria list [1,2] to the cs instance,
                     saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
-                    #commented below as  internal proposal is only save changes not submitted(save and exit/submit form)
-                    #serializer_class = self.internal_serializer_class()
-                    #return_serializer = serializer_class(instance=saved_instance, context={'request': request})
-                    #return Response(return_serializer.data)
-                    #return Response()
                     instance.log_user_action(ConservationStatusUserAction.ACTION_SAVE_APPLICATION.format(instance.conservation_status_number), request)
+
+            return redirect(reverse('internal'))
+
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def conservation_status_edit(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                request_data = request.data
+                if not instance.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if(instance.processing_status == 'approved'):
+                    # to resolve error for serializer submitter id as object is received in request
+                    if request_data['submitter']:
+                        request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
+                    if instance.application_type.name == GroupType.GROUP_TYPE_FLORA or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA:
+                        serializer=SaveSpeciesConservationStatusSerializer(instance, data = request_data, partial=True)
+                    elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+                        serializer=SaveCommunityConservationStatusSerializer(instance, data = request_data, partial=True)
+
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        saved_instance = serializer.save()
+
+                        # add the updated Current conservation criteria list [1,2] to the cs instance,
+                        saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+
+                        instance.log_user_action(ConservationStatusUserAction.ACTION_EDIT_APPLICATION.format(instance.conservation_status_number), request)
+
             return redirect(reverse('external'))
         
         except serializers.ValidationError:

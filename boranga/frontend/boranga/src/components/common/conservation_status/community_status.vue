@@ -20,7 +20,7 @@
                     </div>
                     <!-- --- -->
 
-                    <!-- Assessor Deficiencies and comment box -->z`
+                    <!-- Assessor Deficiencies and comment box -->
                     <div v-if="referral_comments_boxes.length >0">
                         <div v-for="ref in referral_comments_boxes">
                             <div class="row mb-3" v-if="ref.box_view">
@@ -101,7 +101,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Proposed Conservation Criteria:</label>
                 <div class="col-sm-8">
-                    <select :disabled="conservation_status_obj.readonly" 
+                    <select :disabled="isReadOnly" 
                         style="width:100%;" class="form-select input-sm" multiple 
                         ref="conservation_criteria_select" 
                         v-model="conservation_status_obj.conservation_criteria" >
@@ -114,7 +114,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Comment:</label>
                 <div class="col-sm-8">
-                    <textarea :disabled="conservation_status_obj.readonly" class="form-control" rows="3" id="comment" placeholder=""
+                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
                     v-model="conservation_status_obj.comment"/>
                 </div>
             </div>
@@ -195,7 +195,7 @@ export default {
                 filtered_prop_conservation_criteria_list: [],
                 filtered_conservation_category_list: [],
                 filtered_conservation_criteria_list: [],
-                 referral_comments_boxes: [],
+                referral_comments_boxes: [],
                 // to display the species selected 
                 community_display: '',
                 //---Comment box attributes
@@ -227,6 +227,15 @@ export default {
             },
             isStatusApproved: function(){
                 return this.conservation_status_obj.processing_status=="Approved" ? true : false;
+            },
+            isReadOnly: function(){
+                let action = this.$route.query.action;
+                if(action === "edit" && this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode){
+                    return false;
+                }
+                else{
+                    return this.conservation_status_obj.readonly;
+                }
             },
         },
         watch:{

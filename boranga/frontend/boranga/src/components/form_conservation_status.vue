@@ -28,7 +28,7 @@
                   Documents
                 </a>
               </li>
-              <li class="nav-item" role="presentation">
+              <li class="nav-item">
                 <a 
                   class="nav-link" 
                   id="pills-related-items-tab" 
@@ -41,31 +41,6 @@
                   Related Items
                 </a>
               </li>
-              <!-- <li class="nav-item">
-                <a 
-                    class="nav-link" 
-                    id="pills-threats-tab" 
-                    data-bs-toggle="pill" 
-                    href="#pills-threats" 
-                    role="tab" 
-                    aria-controls="pills-threats" 
-                    aria-selected="false"
-                    @click="tabClicked()">
-                  Threats
-                </a>
-              </li>
-              <li class="nav-item">
-                <a 
-                    class="nav-link" 
-                    id="pills-related-items-tab" 
-                    data-bs-toggle="pill" 
-                    href="#pills-related-items" 
-                    role="tab" 
-                    aria-controls="pills-related-items" 
-                    aria-selected="false">
-                  Related Items
-                </a>
-              </li> -->
             </ul>
             <div class="tab-content" id="pills-tabContent">
               <div class="tab-pane fade show active" id="pills-status" role="tabpanel" aria-labelledby="pills-status-tab">
@@ -98,40 +73,14 @@
                 </CSDocuments>
               </div>
               <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
-                <RelatedItems 
+                <RelatedItems
+                    :key="reloadcount" 
                     ref="cs_related_items" 
                     id="csRelatedItems" 
                     :ajax_url="related_items_ajax_url"
                     :filter_list_url="related_items_filter_list_url">
                 </RelatedItems>
               </div>
-              <!-- <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
-                <CommunityThreats 
-                    v-if="isCommunity"
-                    :key="reloadcount"
-                    ref="community_threats" 
-                    id="communityThreats" 
-                    :is_internal="is_internal"
-                    :species_community="species_community">
-                </CommunityThreats>
-                <SpeciesThreats
-                    v-else 
-                    :key="reloadcount"
-                    ref="species_threats" 
-                    id="speciesThreats" 
-                    :is_internal="is_internal"
-                    :species_community="species_community">
-                </SpeciesThreats>
-              </div>
-              <div class="tab-pane fade" id="pills-related-items" role="tabpanel" 
-                aria-labelledby="pills-related-items-tab">
-                <RelatedItems 
-                    ref="species_related_items" 
-                    id="speciesRelatedItems"
-                    :is_internal="is_internal"
-                    :species_community="species_community">
-                </RelatedItems>
-              </div> -->
             </div>
         </div>
     </div>
@@ -142,11 +91,7 @@
     import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
     import CSDocuments from '@/components/common/conservation_status/cs_documents.vue'
     import RelatedItems from '@/components/common/table_related_items.vue'
-    /*import CommunityDocuments from '@/components/common/species_communities/community_documents.vue'
-    import SpeciesThreats from '@/components/common/species_communities/species_threats.vue'
-    import CommunityThreats from '@/components/common/species_communities/community_threats.vue'
-    import RelatedItems from '@/components/common/species_communities/related_items.vue'*/
-
+    
     export default {
         props:{
             conservation_status_obj:{
@@ -181,11 +126,6 @@
             CommunityStatus,
             CSDocuments,
             RelatedItems,
-            /*SpeciesDocuments,
-            CommunityDocuments,
-            SpeciesThreats,
-            CommunityThreats,
-            RelatedItems,*/
         },
         computed:{
             isCommunity: function(){
@@ -210,7 +150,6 @@
         },
         mounted: function() {
             let vm = this;
-            //vm.set_tabs();
             vm.form = document.forms.new_conservation_status;
             vm.eventListener();
         }

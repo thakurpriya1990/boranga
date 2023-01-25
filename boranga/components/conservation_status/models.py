@@ -30,6 +30,7 @@ from django.core.files.storage import FileSystemStorage
 from boranga.settings import (
     GROUP_NAME_ASSESSOR,
     GROUP_NAME_APPROVER,
+    GROUP_NAME_EDITOR,
 )
 from boranga.components.main.utils import get_department_user
 from boranga.components.main.related_item import RelatedItem
@@ -526,6 +527,11 @@ class ConservationStatus(models.Model):
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
         ]:
             group = self.get_assessor_group()
+        # for tO SHOW edit action on dashoard of CS
+        elif self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+        ]:
+            group = self.get_editor_group()
         users = (
             list(
                 map(
@@ -545,6 +551,10 @@ class ConservationStatus(models.Model):
     def get_approver_group(self):
         # TODO: Take application_type into account
         return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+    
+    # Group for editing the Approved CS(only specific fields)
+    def get_editor_group(self):
+        return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
 
     @property
     def assessor_recipients(self):
@@ -593,6 +603,8 @@ class ConservationStatus(models.Model):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
         elif self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_APPROVER:
             return user.id in self.get_approver_group().get_system_group_member_ids()
+        elif self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
+            return user.id in self.get_editor_group().get_system_group_member_ids()
         else:
             return False
 
@@ -616,6 +628,10 @@ class ConservationStatus(models.Model):
                 return True
             else:
                 return False
+        #TODO not sure if we need to show the comments while editing the approved CS
+        # if(self.processing_status == 'approved'):
+        #     if user.id in self.get_editor_group().get_system_group_member_ids():
+        #         return True
 
     @property   
     def status_without_assessor(self):
@@ -632,14 +648,13 @@ class ConservationStatus(models.Model):
             "declined",
             "draft",
         ]
-        # status_without_assessor = [
-        #     "with_approver",
-        #     "closed",
-        #     "declined",
-        #     "draft",
-        # ]
         if self.processing_status in status_without_assessor:
-            return False
+            # For Editing the 'Approved' conservation status for authorised group
+            if self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
+                return user.id in self.get_editor_group().get_system_group_member_ids()
+            else:
+                return False
+        
         else:
             if self.assigned_officer:
                 if self.assigned_officer == user.id:
@@ -668,7 +683,7 @@ class ConservationStatus(models.Model):
                         # Create a log entry for the proposal
                         self.log_user_action(
                             ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
-                            self.id,
+                            self.conservation_status_number,
                             '{}({})'.format(officer.get_full_name(),officer.email),
                             ),
                             request,
@@ -683,7 +698,7 @@ class ConservationStatus(models.Model):
                         # Create a log entry for the proposal
                         self.log_user_action(
                             ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
-                                self.id,
+                                self.conservation_status_number,
                                 '{}({})'.format(officer.get_full_name(),officer.email),
                                 ),
                             request,
@@ -706,7 +721,7 @@ class ConservationStatus(models.Model):
                         # Create a log entry for the proposal
                         self.log_user_action(
                             ConservationStatusUserAction.ACTION_UNASSIGN_APPROVER.format(
-                                self.id),
+                                self.conservation_status_number),
                             request,
                         )
                         # Create a log entry for the organisation
@@ -719,7 +734,7 @@ class ConservationStatus(models.Model):
                         # Create a log entry for the proposal
                         self.log_user_action(
                             ConservationStatusUserAction.ACTION_UNASSIGN_ASSESSOR.format(
-                                self.id),
+                                self.conservation_status_number),
                             request,
                         )
                         # Create a log entry for the organisation
@@ -811,7 +826,7 @@ class ConservationStatus(models.Model):
 
                 # Create a log entry for the Conservation status proposal
                 if self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR:
-                    self.log_user_action(ConservationStatusUserAction.ACTION_BACK_TO_PROCESSING.format(self.id),request)
+                    self.log_user_action(ConservationStatusUserAction.ACTION_BACK_TO_PROCESSING.format(self.conservation_status_number),request)
                 # elif self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS:
                 #     self.log_user_action(ProposalUserAction.ACTION_ENTER_REQUIREMENTS.format(self.id),request)
         else:
@@ -834,7 +849,7 @@ class ConservationStatus(models.Model):
                 approver_comment = ''
                 self.move_to_status(request,'with_approver', approver_comment)
                 # Log proposal action
-                self.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_DECLINE.format(self.id),request)
+                self.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_DECLINE.format(self.conservation_status_number),request)
                 # Log entry for organisation
                 # applicant_field=getattr(self, self.applicant_field)
                 # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_DECLINE.format(self.id),request)
@@ -860,7 +875,7 @@ class ConservationStatus(models.Model):
                 self.customer_status = 'declined'
                 self.save()
                 # Log proposal action
-                self.log_user_action(ConservationStatusUserAction.ACTION_DECLINE.format(self.id),request)
+                self.log_user_action(ConservationStatusUserAction.ACTION_DECLINE.format(self.conservation_status_number),request)
                 # Log entry for organisation
                 # applicant_field=getattr(self, self.applicant_field)
                 # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_DECLINE.format(self.id),request)
@@ -896,7 +911,7 @@ class ConservationStatus(models.Model):
                 self.assigned_officer = None
                 self.save()
                 # Log proposal action
-                self.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(self.id),request)
+                self.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(self.conservation_status_number),request)
                 # Log entry for organisation
                 # applicant_field=getattr(self, self.applicant_field)
                 # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(self.id),request)
@@ -952,7 +967,7 @@ class ConservationStatus(models.Model):
                 self.processing_status = 'approved'
                 self.customer_status = 'approved'
                 # Log proposal action
-                self.log_user_action(ConservationStatusUserAction.ACTION_APPROVE_PROPOSAL_.format(self.id),request)
+                self.log_user_action(ConservationStatusUserAction.ACTION_APPROVE_PROPOSAL_.format(self.conservation_status_number),request)
                 # Log entry for organisation
                 # applicant_field=getattr(self, self.applicant_field)
                 # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
@@ -1028,7 +1043,7 @@ class ConservationStatus(models.Model):
                                     previous_approved_wa_version.processing_status='closed'
                                     previous_approved_wa_version.save()
                                     #add the log_user_action
-                                    self.log_user_action(ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(previous_approved_wa_version.id),request)
+                                    self.log_user_action(ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(previous_approved_wa_version.conservation_status_number),request)
                             elif self.community:
                                 previous_approved_wa_version= ConservationStatus.objects.get(community=self.community, processing_status='approved', conservation_list__applies_to_wa=True)
                                 if previous_approved_wa_version:
@@ -1036,7 +1051,7 @@ class ConservationStatus(models.Model):
                                     previous_approved_wa_version.processing_status='closed'
                                     previous_approved_wa_version.save()
                                     #add the log_user_action
-                                    self.log_user_action(ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(previous_approved_wa_version.id),request)
+                                    self.log_user_action(ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(previous_approved_wa_version.conservation_status_number),request)
 
                         except ConservationStatus.DoesNotExist:
                             pass
@@ -1132,13 +1147,14 @@ class ConservationStatusUserAction(UserAction):
     ACTION_EDIT_CONSERVATION_STATUS= "Edit Conservation Status {}"
     ACTION_LODGE_PROPOSAL = "Lodge proposal for conservation status {}"
     ACTION_SAVE_APPLICATION = "Save proposal {}"
+    ACTION_EDIT_APPLICATION = "Edit proposal {}"
     ACTION_ASSIGN_TO_ASSESSOR = "Assign conservation status proposal {} to {} as the assessor"
     ACTION_UNASSIGN_ASSESSOR = "Unassign assessor from conservation status proposal {}"
     ACTION_ASSIGN_TO_APPROVER = "Assign conservation status proposal {} to {} as the approver"
     ACTION_UNASSIGN_APPROVER = "Unassign approver from conservation status proposal {}"
     ACTION_DECLINE = "Decline conservation status application {}"
-    ACTION_APPROVE_PROPOSAL_ = "Approve conservation status  proposal{}"
-    ACTION_CLOSE_CONSERVATIONSTATUS = "De list conservation status{}"
+    ACTION_APPROVE_PROPOSAL_ = "Approve conservation status  proposal {}"
+    ACTION_CLOSE_CONSERVATIONSTATUS = "De list conservation status {}"
     ACTION_DISCARD_PROPOSAL = "Discard conservation status proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
 

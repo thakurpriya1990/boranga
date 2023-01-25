@@ -183,6 +183,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     assessor_process = serializers.SerializerMethodField(read_only=True)
+    assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
     effective_from_date = serializers.SerializerMethodField()
     effective_to_date = serializers.SerializerMethodField()
@@ -208,6 +209,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 'can_user_edit',
                 'can_user_view',
                 'assessor_process',
+                'assessor_edit',
                 'internal_application',
                 'internal_user_edit',
                 'effective_from_date',
@@ -232,6 +234,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 'can_user_edit',
                 'can_user_view',
                 'assessor_process',
+                'assessor_edit',
                 'internal_application',
                 'internal_user_edit',
                 'effective_from_date',
@@ -364,6 +367,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     assessor_process = serializers.SerializerMethodField(read_only=True)
+    assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
     effective_from_date = serializers.SerializerMethodField()
     effective_to_date = serializers.SerializerMethodField()
@@ -388,6 +392,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'can_user_edit',
                 'can_user_view',
                 'assessor_process',
+                'assessor_edit',
                 'internal_application',
                 'internal_user_edit',
                 'effective_from_date',
@@ -411,6 +416,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'can_user_edit',
                 'can_user_view',
                 'assessor_process',
+                'assessor_edit',
                 'internal_application',
                 'internal_user_edit',
                 'effective_from_date',
@@ -502,6 +508,14 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 return True
         return False
     
+    def get_assessor_edit(self,obj):
+        request = self.context['request']
+        user = request.user
+        if obj.can_officer_edit:
+            if user in obj.allowed_assessors:
+                return True
+        return False
+
     def get_internal_user_edit(self,obj):
         request = self.context['request']
         user = request.user

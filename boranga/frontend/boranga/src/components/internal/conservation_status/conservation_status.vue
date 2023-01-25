@@ -309,10 +309,12 @@ export default {
             return this.conservation_status_obj!= null ? helpers.add_endpoint_json(api_endpoints.cs_referrals,'datatable_list')+'?conservation_status='+this.conservation_status_obj.id : '';
         },
         species_community_cs_form_url: function() {
-          /*return (this.conservation_status_obj.group_type === "community") ? 
-                  `/api/community/${this.conservation_status_obj.id}/community_save.json`: 
-                  `/api/species_conservation_status/${this.conservation_status_obj.id}/species_conservation_status_save.json`;*/
-            return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
+            if(this.$route.query.action == 'edit'){
+                return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_edit.json`;
+            }
+            else{
+                return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
+            }
         },
         display_number: function() {
             return this.conservation_status_obj.conservation_status_number;
@@ -384,7 +386,19 @@ export default {
             return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
         },
         hasAssessorMode:function(){
-            return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode ? true : false;
+            // Need to check for approved status as to show 'Save changes' button only when edit and not while view
+            if (this.conservation_status_obj.processing_status == 'Approved'){
+                if(this.$route.query.action == 'edit')
+                {
+                    return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode ? true : false;
+                }
+                else{
+                    return false;
+                }
+            }
+            else{
+                return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode ? true : false;
+            }
         },
         isApprovalLevelDocument: function(){
             //return this.conservation_status_obj && this.conservation_status_obj.processing_status == 'With Approver' && this.conservation_status_obj.approval_level != null && this.conservation_status_obj.approval_level_document == null ? true : false;
