@@ -49,6 +49,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 	conservation_category = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
 	district = serializers.SerializerMethodField()
+	processing_status = serializers.CharField(source='get_processing_status_display')
+	assessor_process = serializers.SerializerMethodField(read_only=True)
 	class Meta:
 		model = Species
 		fields = (
@@ -65,6 +67,9 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'conservation_list',
 			    'conservation_category',
 			    'processing_status',
+				'can_user_edit',
+				'can_user_view',
+				'assessor_process',
 			)
 		datatables_always_serialize = (
                 'id',
@@ -80,6 +85,9 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'conservation_list',
 			    'conservation_category',
 			    'processing_status',
+				'can_user_edit',
+				'can_user_view',
+				'assessor_process',
 			)	
 
 	def get_group_type(self,obj):
@@ -149,6 +157,21 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			return obj.district.name
 		return ''
 
+	def get_assessor_process(self,obj):
+        # Check if currently logged in user has access to process the proposal
+		request = self.context['request']
+		template_group = self.context.get('template_group')
+		user = request.user
+		# if obj.can_officer_process and template_group == 'apiary':
+		# TODO if internal user proposal then check condition that he is not able to process
+		if obj.can_officer_process:
+			if obj.assigned_officer:
+				if obj.assigned_officer == user.id:
+					return True
+			elif user in obj.allowed_assessors:
+				return True
+		return False
+
 class ListCommunitiesSerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField()
 	#conservation_status = serializers.SerializerMethodField()
@@ -157,6 +180,8 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 	conservation_category = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
 	district = serializers.SerializerMethodField()
+	processing_status = serializers.CharField(source='get_processing_status_display')
+	assessor_process = serializers.SerializerMethodField(read_only=True)
 	class Meta:
 		model = Community
 		fields = (
@@ -171,6 +196,10 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			    'conservation_category',
 			    'region',
 			    'district',
+				'processing_status',
+				'can_user_edit',
+				'can_user_view',
+				'assessor_process',
 			)
 		datatables_always_serialize = (
                 'id',
@@ -184,6 +213,10 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			    'conservation_category',
 			    'region',
 			    'district',
+				'processing_status',
+				'can_user_edit',
+				'can_user_view',
+				'assessor_process',
 			)
 
 	def get_group_type(self,obj):
@@ -234,6 +267,21 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 		if obj.district:
 			return obj.district.name
 		return ''
+	
+	def get_assessor_process(self,obj):
+        # Check if currently logged in user has access to process the proposal
+		request = self.context['request']
+		template_group = self.context.get('template_group')
+		user = request.user
+		# if obj.can_officer_process and template_group == 'apiary':
+		# TODO if internal user proposal then check condition that he is not able to process
+		if obj.can_officer_process:
+			if obj.assigned_officer:
+				if obj.assigned_officer == user.id:
+					return True
+			elif user in obj.allowed_assessors:
+				return True
+		return False
 
 
 class TaxonomySerializer(serializers.ModelSerializer):

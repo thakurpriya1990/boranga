@@ -267,7 +267,7 @@ export default {
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
                 {value: 'discarded', name: 'Discarded'},
-                {value: 'awaiting_payment', name: 'Awaiting Payment'},
+                {value: 'closed', name: 'Closed'},
             ],
             
             proposal_status: [],

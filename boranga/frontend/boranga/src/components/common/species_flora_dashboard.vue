@@ -70,9 +70,10 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Workflow Status:</label>
-                        <select class="form-select">
-                            <option value="All">All</option>
+                        <label for="">Status:</label>
+                        <select class="form-select" v-model="filterFloraApplicationStatus">
+                            <option value="all">All</option>
+                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
                         </select>
                     </div>
                 </div>
@@ -190,6 +191,11 @@ export default {
             required: false,
             default: 'filterFloraConservationCategory',
         },
+        filterFloraApplicationStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraApplicationStatus',
+        },
         filterFloraRegion_cache: {
             type: String,
             required: false,
@@ -231,6 +237,9 @@ export default {
 
             filterFloraConservationCategory: sessionStorage.getItem(this.filterFloraConservationCategory_cache) ? 
                                     sessionStorage.getItem(this.filterFloraConservationCategory_cache) : 'all',
+            
+            filterFloraApplicationStatus: sessionStorage.getItem(this.filterFloraApplicationStatus_cache) ?
+            sessionStorage.getItem(this.filterFloraApplicationStatus_cache) : 'all',
 
             filterFloraRegion: sessionStorage.getItem(this.filterFloraRegion_cache) ? 
                                     sessionStorage.getItem(this.filterFloraRegion_cache) : 'all',
@@ -264,15 +273,12 @@ export default {
             internal_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'on_hold', name: 'On Hold'},
-                {value: 'with_qa_officer', name: 'With QA Officer'},
                 {value: 'with_referral', name: 'With Referral'},
-                {value: 'with_assessor_requirements', name: 'With Assessor (Requirements)'},
                 {value: 'with_approver', name: 'With Approver'},
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
                 {value: 'discarded', name: 'Discarded'},
-                {value: 'awaiting_payment', name: 'Awaiting Payment'},
+                {value: 'closed', name: 'Closed'},
             ],
             
             proposal_status: [],
@@ -319,6 +325,11 @@ export default {
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterFloraConservationCategory_cache, vm.filterFloraConservationCategory);
         },
+        filterFloraApplicationStatus: function() {
+            let vm = this;
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterFloraApplicationStatus_cache, vm.filterFloraApplicationStatus);
+        },
         filterFloraRegion: function(){
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
@@ -345,6 +356,7 @@ export default {
                 this.filterFloraGenus === 'all' && 
                 this.filterFloraConservationList === 'all' && 
                 this.filterFloraConservationCategory === 'all' && 
+                this.filterFloraApplicationStatus === 'all' &&
                 this.filterFloraRegion === 'all' && 
                 this.filterFloraDistrict === 'all'){
                 return false
@@ -371,11 +383,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
-                     'Conservation List', 'Conservation Category', 'Region', 'District', 'Workflow Status', 'Action']
+                     'Conservation List', 'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
-                    'Conservation List', 'Conservation Category', 'Region', 'District', 'Workflow Status', 'Action']
+                    'Conservation List', 'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -526,7 +538,7 @@ export default {
                 name: "conservation_status__conservation_category__code",
             }
         },
-        column_workflow_status: function(){
+        column_status: function(){
             return {
                 // 9. Workflow Status
                 data: "processing_status",
@@ -586,26 +598,19 @@ export default {
                 'render': function(data, type, full){
                     let links = "";
                     if (!vm.is_external){
-                        /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                        if(full.assessor_process){   
-                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}>Process</a><br/>`;    
+                        if (full.can_user_edit) {
+                            links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-species-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
                         }
                         else{
-                            links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a><br/>`;
+                            if(full.assessor_process){   
+                                    links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}>Process</a><br/>`;    
+                            }
+                            else{
+                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a><br/>`;
+                            }
                         }
                     }
-                    else{
-                        if (full.can_user_edit) {
-                            links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
-                        }
-                        else if (full.can_user_view) {
-                            links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a>`;
-                        }
-                    }
-
-                    links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Edit</a><br/>`; // Dummy addition for Boranaga demo
-
                     return links;
                 }
             }
@@ -629,7 +634,7 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_workflow_status,
+                    vm.column_status,
                     vm.column_action,
                 ]
                 search = false
@@ -648,7 +653,7 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_workflow_status,
+                    vm.column_status,
                     vm.column_action,
                 ]
                 search = true
@@ -705,6 +710,7 @@ export default {
                         d.filter_genus = vm.filterFloraGenus;
                         d.filter_conservation_list = vm.filterFloraConservationList;
                         d.filter_conservation_category = vm.filterFloraConservationCategory;
+                        d.filter_application_status = vm.filterFloraApplicationStatus;
                         d.filter_region = vm.filterFloraRegion;
                         d.filter_district = vm.filterFloraDistrict;
                         d.is_internal = vm.is_internal;
@@ -742,6 +748,7 @@ export default {
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
+                vm.proposal_status = vm.internal_status;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
@@ -794,7 +801,7 @@ export default {
                 query: {group_type_name: this.group_type_name},
                 });
         },
-        discardProposal:function (proposal_id) {
+        discardSpeciesProposal:function (species_id) {
             let vm = this;
             swal({
                 title: "Discard Application",
@@ -804,7 +811,7 @@ export default {
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_proposal(proposal_id))
+                vm.$http.delete(api_endpoints.discard_species_proposal(species_id))
                 .then((response) => {
                     swal(
                         'Discarded',
@@ -822,10 +829,10 @@ export default {
         addEventListeners: function(){
             let vm = this;
             // External Discard listener
-            vm.$refs.flora_datatable.vmDataTable.on('click', 'a[data-discard-proposal]', function(e) {
+            vm.$refs.flora_datatable.vmDataTable.on('click', 'a[data-discard-species-proposal]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-proposal');
-                vm.discardProposal(id);
+                var id = $(this).attr('data-discard-species-proposal');
+                vm.discardSpeciesProposal(id);
             });
         },
         initialiseSearch:function(){

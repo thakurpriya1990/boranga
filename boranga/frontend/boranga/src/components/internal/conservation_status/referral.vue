@@ -71,7 +71,7 @@
                                                 <small><strong>{{r.processing_status}}</strong></small><br/>
                                                 <template v-if="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id">
                                                     <template v-if="r.processing_status == 'Awaiting'">
-                                                        <small><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)"href="#">Recall</a></small>
+                                                        <small><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)" href="#">Recall</a></small>
                                                     </template>
                                                     <template v-else>
                                                         <small><a @click.prevent="resendReferral(r)" href="#">Resend</a>

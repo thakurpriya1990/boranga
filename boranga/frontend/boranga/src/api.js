@@ -119,8 +119,11 @@ module.exports = {
     discard_cs_proposal:function (id) {
       return `/api/conservation_status/${id}.json`;
     },
-    discard_proposal:function (id) {
-      return `/api/proposal/${id}.json`;
+    discard_community_proposal:function (id) {
+      return `/api/community/${id}.json`;
+    },
+    discard_species_proposal:function (id) {
+      return `/api/species/${id}.json`;
     },
     discard_vessel:function (id) {
       return `/api/vessels/${id}.json`;
