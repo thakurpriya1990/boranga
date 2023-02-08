@@ -110,6 +110,7 @@
               </div>
               <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems 
+                    :key="reloadcount"
                     ref="species_communities_related_items" 
                     id="speciesCommunitiesRelatedItems" 
                     :ajax_url="related_items_ajax_url"

@@ -3,80 +3,72 @@
       <div class="row" style="padding-bottom: 50px;">
         <h3>{{ display_number }} - {{display_name }}</h3>
         <h4>{{species_community.conservation_status.conservation_category }}</h4>
-
-            <div v-if="!comparing" class="col-md-3">
-               <!-- TODO -->
-               <template>
-                    <div class="">
-                        <div class="card card-default">
-                            <div class="card-header">
-                            Image
-                            </div>
-                            <div class="card-body card-collapse">
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        
-                                        <div class="site-logo row" v-if="uploadedID">
-                                            <img :src="uploadedID"  class="img-responsive"/>
-                                            <span>
-                                                <a @click="delete_image()" class="fa fa-trash-o" title="Remove file" style="cursor: pointer; color:red;"> delete image</a>
-                                            </span>
-                                        
-                                        </div>
-                                        <span class="btn btn-link btn-file pull-left" v-else-if="!uploadedID">Attach Image<input type="file" ref="uploadedID" @change="readFileID()"/></span>
-                                        <span class="btn btn-link btn-file pull-left" v-else >&nbsp;Uploading...</span>
+        <div v-if="!comparing" class="col-md-3">
+            <!-- TODO -->
+            <template>
+                <div class="">
+                    <div class="card card-default">
+                        <div class="card-header">
+                        Image
+                        </div>
+                        <div class="card-body card-collapse">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    
+                                    <div class="site-logo row" v-if="uploadedID">
+                                        <img :src="uploadedID"  class="img-responsive"/>
+                                        <span>
+                                            <a @click="delete_image()" class="fa fa-trash-o" title="Remove file" style="cursor: pointer; color:red;"> delete image</a>
+                                        </span>
+                                    
                                     </div>
+                                    <span class="btn btn-link btn-file pull-left" v-else-if="!uploadedID">Attach Image<input type="file" ref="uploadedID" @change="readFileID()"/></span>
+                                    <span class="btn btn-link btn-file pull-left" v-else >&nbsp;Uploading...</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </template>
-                <template>
-                    <div class="card card-default">
-                        <!-- <div class="card-body card-collapse"></div> -->
+                </div>
+            </template>
+            <template>
+                <div class="card card-default">
+                    <!-- <div class="card-body card-collapse"></div> -->
+                </div>
+                
+            </template>
+
+            <CommsLogs
+                :comms_url="comms_url"
+                :logs_url="logs_url"
+                :comms_add_url="comms_add_url"
+                :disable_add_entry="false"
+            />
+
+            <Submission v-if="canSeeSubmission"
+                :submitter_first_name="submitter_first_name"
+                :submitter_last_name="submitter_last_name"
+                :lodgement_date="species_community.lodgement_date"
+                class="mt-2"
+            />
+            <div class="top-buffer-s">
+                <div class="card card-default">
+                    <div class="card-header">
+                        Workflow 
                     </div>
-                    
-                </template>
-
-               <CommsLogs
-                    :comms_url="comms_url"
-                    :logs_url="logs_url"
-                    :comms_add_url="comms_add_url"
-                    :disable_add_entry="false"
-                />
-
-                <Submission v-if="canSeeSubmission"
-                    :submitter_first_name="submitter_first_name"
-                    :submitter_last_name="submitter_last_name"
-                    :lodgement_date="species_community.lodgement_date"
-                    class="mt-2"
-                />
-               
-                <!-- TODO
-                <Workflow
-                    ref='workflow'
-                    :proposal="proposal"
-                    :isFinalised="isFinalised"
-                    :canAction="canAction"
-                    :canAssess="canAssess"
-                    :can_user_edit="proposal.can_user_edit"
-                    @toggleProposal="toggleProposal"
-                    @toggleRequirements="toggleRequirements"
-                    @switchStatus="switchStatus"
-                    @completeReferral="completeReferral"
-                    @amendmentRequest="amendmentRequest"
-                    @proposedDecline="proposedDecline"
-                    @proposedApproval="proposedApproval"
-                    @issueProposal="issueProposal"
-                    @declineProposal="declineProposal"
-                    @assignRequestUser="assignRequestUser"
-                    @assignTo="assignTo"
-                    class="mt-2"
-                />
-                -->
+                     <div class="card-body card-collapse">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <strong>Status</strong><br/>
+                                {{ species_community.processing_status }}
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="separator"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            
+        </div>
         <div v-if="!comparing" class="col-md-1"></div>
         <!--<div class="col-md-8">-->
         <div :class="class_ncols">
@@ -95,7 +87,7 @@
                                 <input type='hidden' name="species_community_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
                                     <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                        <div class="container">
+                                        <div v-if="species_community.can_user_edit" class="container">
                                             <div class="col-md-12 text-end">
                                                 <button v-if="savingSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -111,6 +103,13 @@
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                                 <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
                                                 @click.prevent="submit()" :disbaled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
+                                            </div>
+                                        </div>
+                                        <div v-else-if="hasUserEditMode" class="container">
+                                            <div class="col-md-12 text-end">
+                                                <button v-if="savingSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
                                             </div>
                                         </div>
                                     </div>
@@ -154,12 +153,6 @@ export default {
 
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            //comms_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/comms_log'),
-            //comms_add_url: helpers.add_endpoint_json(api_endpoints.species,vm.$route.params.species_community_id+'/add_comms_log'),
-            //logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.species_community_id+'/action_log'),
-            //comms_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/comms_log'),
-            //comms_add_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/add_comms_log'),
-            //logs_url: helpers.add_endpoint_json(api_endpoints.community,vm.$route.params.species_community_id+'/action_log'),
             comparing: false,
         }
     },
@@ -185,6 +178,11 @@ export default {
           return (this.species_community.group_type === "community") ? 
                   `/api/community/${this.species_community.id}/community_save.json`: 
                   `/api/species/${this.species_community.id}/species_save.json`;
+        },
+        species_community_submit_url: function() {
+          return (this.species_community.group_type === "community") ? 
+                  `community`: 
+                  `species`;
         },
         display_number: function() {
             return (this.species_community.group_type === "community") ? 
@@ -217,6 +215,15 @@ export default {
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
             return true
+        },
+        hasUserEditMode:function(){
+            // Need to check for approved status as to show 'Save changes' button only when edit and not while view
+            if(this.$route.query.action == 'edit'){
+                return this.species_community && this.species_community.user_edit_mode ? true : false;
+            }
+            else{
+                return false;
+            }
         },
         comms_url: function() {
           return (this.species_community.group_type === "community") ? 
@@ -341,78 +348,133 @@ export default {
                 
             }
         },
-        save: async function() {
+        save: async function(e) {
             let vm = this;
             vm.savingSpeciesCommunity=true;
             let payload = new Object();
             Object.assign(payload, vm.species_community);
-            const res = await vm.$http.post(vm.species_community_form_url,payload);
-            if(res.ok){
-                swal(
-                    'Saved',
-                    'Your changes has been saved',
-                    'success'
-                )
-                vm.savingSpeciesCommunity=false;
-                return res;
-            }
-            else{
-                swal({
-                    title: "Please fix following errors before saving",
-                    text: err.bodyText,
-                    type:'error'
-                });
-                vm.savingSpeciesCommunity=false;
-            }
+            vm.$http.post(vm.species_community_form_url,payload).then(res=>{
+              swal(
+                'Saved',
+                'Your changes has been saved',
+                'success'
+              )
+              vm.savingSpeciesCommunity=false;
+          },err=>{
+            var errorText=helpers.apiVueResourceError(err); 
+                  swal(
+                          'Save Error',
+                          errorText,
+                          'error'
+                      )
+            vm.savingSpeciesCommunity=false;
+          });
         },
-        save_exit: async function(){
+        save_exit: async function(e){
             let vm = this;
             vm.saveExitSpeciesCommunity=true;
-            const res = await this.save();
+            this.save(e);
             vm.saveExitSpeciesCommunity=false;
             // redirect back to dashboard
-            if (res.ok) {
-                vm.$router.push({
+            vm.$router.push({
                     name: 'internal-species-communities-dash'
                 });
+        },
+        save_before_submit: async function(e) {
+            //console.log('save before submit');
+            let vm = this;
+            vm.saveError=false;
+
+            let payload = new Object();
+            Object.assign(payload, vm.species_community);
+            const result = await vm.$http.post(vm.species_community_form_url,payload).then(res=>{
+                //return true;
+            },err=>{
+                        var errorText=helpers.apiVueResourceError(err); 
+                        swal(
+                                'Submit Error',
+                                //helpers.apiVueResourceError(err),
+                                errorText,
+                                'error'
+                            )
+                        vm.submitConservationStatus=false;
+                        vm.saveError=true;
+                //return false;
+            });
+            return result;
+        },
+        can_submit: function(){
+            let vm=this;
+            let blank_fields=[]
+            if (vm.species_community.group_type == 'flora' || vm.species_community.group_type == 'fauna'){
+                if (vm.species_community.taxonomy_id == null || vm.species_community.taxonomy_id == ''){
+                    blank_fields.push(' Scientific Name is missing')
+                }
+            }
+            else{
+                if (vm.species_community.community_name_id == null || vm.species_community.community_name_id == ''){
+                    blank_fields.push(' Community Name is missing')
+                }
+            }
+            if(blank_fields.length==0){
+                return true;
+            }
+            else{
+                return blank_fields;
             }
         },
         submit: async function(){
-            let vm = this
-            vm.submitSpeciesCommunity=true;
-            try {
-                await swal({
-                    title:"Edit Species",
-                    text: "Are you sure you want to submit the changes",
-                    type: "question",
-                    showCancelButton: true,
-                    confirmButtonText: "submit"
-                })
-            } catch (cancel) {
-                vm.submitSpeciesCommunity = false;
-                return;
-            }
+            let vm = this;
 
-            if(vm.submitSpeciesCommunity){
-                try {
-                    const res = await this.save();
-                    if (res.ok) {
-                        vm.$router.push({
-                          name: 'internal-species-communities-dash'
-                        });
-                    }
-                } catch(err) {
-                    console.log(err)
-                    console.log(typeof(err.body))
-                    await swal({
-                        title: 'Submit Error',
-                        html: helpers.formatError(err),
-                        type: "error",
-                    })
-                    vm.submitSpeciesCommunity=false;
-                    //this.submitting = false;
-                }
+            var missing_data= vm.can_submit();
+            if(missing_data!=true){
+                swal({
+                    title: "Please fix following errors before submitting",
+                    text: missing_data,
+                    type:'error'
+                })
+                //vm.paySubmitting=false;
+                return false;
             }
+            
+            vm.submitSpeciesCommunity=true;
+            swal({
+                title: "Submit",
+                text: "Are you sure you want to submit this application?",
+                type: "question",
+                showCancelButton: true,
+                confirmButtonText: "submit"
+            }).then(async () => {
+            
+                let result = await vm.save_before_submit()
+                if(!vm.saveError){
+                    let payload = new Object();
+                    Object.assign(payload, vm.species_community);
+                    let submit_url = this.species_community.group_type === "community"? 
+                                    helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/submit'): 
+                                    helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/submit')
+                    vm.$http.post(submit_url,payload).then(res=>{
+                        vm.species_community = res.body;
+                        // vm.$router.push({
+                        //     name: 'submit_cs_proposal',
+                        //     params: { conservation_status_obj: vm.conservation_status_obj}
+                        // });
+                    // TODO router should push to submit_cs_proposal for internal side 
+                        vm.$router.push({
+                            name: 'internal-species-communities-dash'
+                        });
+                    },err=>{
+                        swal(
+                            'Submit Error',
+                            helpers.apiVueResourceError(err),
+                            'error'
+                        )
+                    });
+                }
+                
+            },(error) => {
+                vm.submitSpeciesCommunity=false;
+            });
         },
         save_wo: function() {
             let vm = this;

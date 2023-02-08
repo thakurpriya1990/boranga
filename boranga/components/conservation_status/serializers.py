@@ -146,16 +146,13 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
             )   
 
     def get_scientific_name(self,obj):
-        if obj.species:
+        if obj.species.taxonomy:
             return obj.species.taxonomy.scientific_name
         return ''
 
     def get_community_name(self,obj):
-        if obj.community:
-            if obj.community.community_name:
-                return obj.community.community_name.name
-            else:
-                return ''
+        if obj.community.taxonomy:
+            return obj.community.taxonomy.community_name
         return ''
 
     def get_conservation_list(self,obj):
@@ -253,7 +250,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         return ''
 
     def get_scientific_name(self,obj):
-        if obj.species:
+        if obj.species.taxonomy:
             return obj.species.taxonomy.scientific_name
         return ''
 
@@ -442,18 +439,18 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
         return ''
 
     def get_community_migrated_id(self,obj):
-        if obj.community:
-            return obj.community.community_migrated_id
+        if obj.community.taxonomy:
+            return obj.community.taxonomy.community_migrated_id
         return ''
 
     def get_community_name(self,obj):
-        if obj.community:
-            return obj.community.community_name.name
+        if obj.community.taxonomy:
+            return obj.community.taxonomy.community_name
         return ''
 
     def get_community_status(self,obj):
         if obj.community:
-            return obj.community.community_status
+            return obj.community.taxonomy.community_status
         return ''
 
     def get_conservation_list(self,obj):
@@ -1219,7 +1216,9 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
 
     def get_scientific_name(self,obj):
         if obj.conservation_status.species:
-            return obj.conservation_status.species.taxonomy.scientific_name
+            if obj.conservation_status.species.taxonomy:
+                return obj.conservation_status.species.taxonomy.scientific_name
+        return ''
 
     def get_community_number(self,obj):
         if obj.conservation_status.community:
@@ -1228,12 +1227,13 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
 
     def get_community_migrated_id(self,obj):
         if obj.conservation_status.community:
-            return obj.conservation_status.community.community_migrated_id
+            if obj.conservation_status.community.taxonomy:
+                return obj.conservation_status.community.taxonomy.community_migrated_id
         return ''
 
     def get_community_name(self,obj):
         if obj.conservation_status.community:
-            return obj.conservation_status.community.community_name.name
+            return obj.conservation_status.community.taxonomy.community_name
         return ''
 
     def get_conservation_list(self,obj):

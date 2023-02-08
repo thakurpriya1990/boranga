@@ -1,4 +1,5 @@
 import datetime
+import logging
 from django.db import models
 from boranga.components.main.models import (
     CommunicationsLogEntry, 
@@ -11,6 +12,15 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from boranga.components.main.related_item import RelatedItem
 from boranga.ledger_api_utils import retrieve_email_user
+from ledger_api_client.managed_models import SystemGroup
+from boranga.settings import (
+    GROUP_NAME_ASSESSOR,
+    GROUP_NAME_APPROVER,
+    GROUP_NAME_EDITOR,
+)
+
+
+logger = logging.getLogger(__name__)
 
 private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
@@ -260,16 +270,14 @@ class Taxonomy(models.Model):
     Is:
     - Table
     """
-    #taxon = models.CharField(max_length=512, null=True, blank=True)  # flora and fauna, name
     taxon_name_id = models.IntegerField(null=True, blank=True)  # flora and fauna, name
     scientific_name = models.CharField(max_length=512,null=True, blank=True)
-    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
-
-    previous_name = models.CharField(max_length=512,null=True, blank=True)
     family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True)
     genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
     # phylogenetic_group is only used for Fauna 
     phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True)
+    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
+    previous_name = models.CharField(max_length=512,null=True, blank=True)
     name_authority = models.ForeignKey(NameAuthority,
                                        on_delete=models.CASCADE,null=True,blank=True)
     name_comments = models.CharField(max_length=500,null=True, blank=True)
@@ -317,14 +325,26 @@ class Species(models.Model):
     Is:
     - Table
     """
+
+    PROCESSING_STATUS_DRAFT = 'draft'
+    PROCESSING_STATUS_CURRENT = 'current'
+    PROCESSING_STATUS_HISTORICAL = 'historical'
+    PROCESSING_STATUS_TO_BE_SPLIT = 'to_be_split'
+    PROCESSING_STATUS_TO_BE_COMBINED = 'to_be_combined'
+    PROCESSING_STATUS_TO_BE_RENAMED = 'to_be_renamed'
+    PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_DRAFT, 'Draft'),
+                                 (PROCESSING_STATUS_CURRENT, 'Current'),
+                                 (PROCESSING_STATUS_HISTORICAL, 'Historical'),
+                                 (PROCESSING_STATUS_TO_BE_SPLIT, 'To Be Split'),
+                                 (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
+                                 (PROCESSING_STATUS_TO_BE_RENAMED, 'To Be Renamed'),
+                                )
     RELATED_ITEM_CHOICES = [('conservation_status', 'Conservation Status')]
     
     species_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
-    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.SET_NULL, null=True, blank=True)
-    image = models.CharField(max_length=512,
-                             default="None", null=True, blank=True)
+    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
     image_doc = models.ForeignKey('SpeciesDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='species_image')
     region = models.ForeignKey(Region, 
                                default=None,
@@ -333,7 +353,9 @@ class Species(models.Model):
                                  default=None,
                                  on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
-    processing_status = models.CharField(max_length=512, null=True, blank=True)
+    processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
+                                         default=PROCESSING_STATUS_CHOICES[0][0], null=True, blank=True)
+    prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
     
@@ -355,6 +377,225 @@ class Species(models.Model):
     def reference(self):
         return '{}-{}'.format(self.species_number,self.species_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
     
+    @property
+    def applicant(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return "{} {}".format(
+                email_user.first_name,
+                email_user.last_name)
+
+    @property
+    def applicant_email(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return self.email_user.email
+
+    @property
+    def applicant_details(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return "{} {}\n{}".format(
+                email_user.first_name,
+                email_user.last_name,
+                email_user.addresses.all().first())
+
+    @property
+    def applicant_address(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return email_user.residential_address
+
+    @property
+    def applicant_id(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return self.email_user.id
+
+    @property
+    def applicant_type(self):
+        if self.submitter:
+            #return self.APPLICANT_TYPE_SUBMITTER
+            return 'SUB'
+
+    @property
+    def applicant_field(self):
+        # if self.org_applicant:
+        #     return 'org_applicant'
+        # elif self.proxy_applicant:
+        #     return 'proxy_applicant'
+        # else:
+        #     return 'submitter'
+        return 'submitter'
+
+    @property
+    def can_user_edit(self):
+        """
+        :return: True if the application is in one of the editable status.
+        """
+        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        user_editable_state = ['draft',]
+        return self.processing_status in user_editable_state
+
+    @property
+    def can_user_view(self):
+        """
+        :return: True if the application is in one of the approved status.
+        """
+        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        user_viewable_state = ['current','historical']
+        return self.processing_status in user_viewable_state
+
+    @property
+    def can_user_action(self):
+        """
+        :return: True if the application is in one of the processable status for Assessor(species) role.
+        """
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            return True
+
+    @property
+    def is_discardable(self):
+        """
+        An application can be discarded by a customer if:
+        1 - It is a draft
+        2- or if the application has been pushed back to the user
+        """
+        # return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
+        return self.processing_status == 'draft'
+
+    @property
+    def is_deletable(self):
+        """
+        An application can be deleted only if it is a draft and it hasn't been lodged yet
+        :return:
+        """
+        # return self.customer_status == 'draft' and not self.species_number
+        return self.processing_status == 'draft' and not self.species_number
+
+    @property
+    def is_flora_application(self):
+        if self.group_type.name==GroupType.GROUP_TYPE_FLORA:
+            return True
+        return False
+
+    @property
+    def is_fauna_application(self):
+        if self.group_type.name==GroupType.GROUP_TYPE_FAUNA:
+            return True
+        return False
+
+    @property
+    def allowed_assessors(self):
+        group = None
+        # TODO: Take application_type into account
+        # if self.processing_status in [
+        #     Species.PROCESSING_STATUS_WITH_APPROVER,
+        # ]:
+        #     group = self.get_approver_group()
+        # elif self.processing_status in [
+        #     Species.PROCESSING_STATUS_WITH_REFERRAL,
+        #     Species.PROCESSING_STATUS_WITH_ASSESSOR,
+        # ]:
+        #     group = self.get_assessor_group()
+        # users = (
+        #     list(
+        #         map(
+        #             lambda id: retrieve_email_user(id),
+        #             group.get_system_group_member_ids(),
+        #         )
+        #     )
+        #     if group
+        #     else []
+        # )
+        # return users
+        #TODO We need specific species processing SysstemGroup
+        group = self.get_assessor_group()
+        users = (
+            list(
+                map(
+                    lambda id: retrieve_email_user(id),
+                    group.get_system_group_member_ids(),
+                )
+            )
+            if group
+            else []
+        )
+        return users
+
+    def get_assessor_group(self):
+        # TODO: Take application_type into account
+        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
+
+    def get_approver_group(self):
+        # TODO: Take application_type into account
+        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+
+    @property
+    def assessor_recipients(self):
+        logger.info("assessor_recipients")
+        recipients = []
+        group_ids = self.get_assessor_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
+
+    @property
+    def approver_recipients(self):
+        logger.info("assessor_recipients")
+        recipients = []
+        group_ids = self.get_approver_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
+
+    #Check if the user is member of assessor group for the CS Proposal
+    def is_assessor(self,user):
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+    #Check if the user is member of assessor group for the CS Proposal
+    def is_approver(self,user):
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+    # def can_assess(self,user):
+    #     logger.info("can assess")
+    #     logger.info("user")
+    #     logger.info(type(user))
+    #     logger.info(user)
+    #     logger.info(user.id)
+    #     if self.processing_status in [
+    #         "with_assessor",
+    #         "with_referral",
+    #     ]:
+    #         logger.info("self.__assessor_group().get_system_group_member_ids()")
+    #         logger.info(self.get_assessor_group().get_system_group_member_ids())
+    #         return user.id in self.get_assessor_group().get_system_group_member_ids()
+    #     elif self.processing_status == Species.PROCESSING_STATUS_WITH_APPROVER:
+    #         return user.id in self.get_approver_group().get_system_group_member_ids()
+    #     else:
+    #         return False
+
+    @property   
+    def status_without_assessor(self):
+        status_without_assessor = ['with_approver','approved','closed','declined','draft', 'with_referral']
+        if self.processing_status in status_without_assessor:
+            return True
+        return False
+
+    def has_user_edit_mode(self,user):
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            return (
+                user.id in self.get_assessor_group().get_system_group_member_ids()
+            )
+
     def get_related_items(self,filter_type, **kwargs):
         return_list = []
         if filter_type == 'all':
@@ -383,7 +624,7 @@ class Species(models.Model):
         # serializer = RelatedItemsSerializer(return_list, many=True)
         # return serializer.data
         return return_list
-    
+
     @property
     def as_related_item(self):
         related_item = RelatedItem(
@@ -402,11 +643,10 @@ class Species(models.Model):
     @property
     def related_item_descriptor(self):
         return self.taxonomy.scientific_name
-    
+
     @property
     def related_item_status(self):
-        #return self.get_processing_status_display
-        return self.processing_status # TODO use the above to display as still no processing_status choices list
+        return self.get_processing_status_display
 
     @property
     def submitter_user(self):
@@ -452,6 +692,11 @@ class SpeciesUserAction(UserAction):
     
     ACTION_IMAGE_UPDATE= "Species Image document updated for Species {}"
     ACTION_IMAGE_DELETE= "Species Image document deleted for Species {}"
+    ACTION_EDIT_SPECIES= "Edit Species {}"
+    ACTION_CREATE_SPECIES= "Create new species {}"
+    ACTION_SAVE_SPECIES = "Save Species {}"
+    ACTION_CLOSE_CONSERVATIONSTATUS = "De list species {}"
+    ACTION_DISCARD_PROPOSAL = "Discard species proposal {}"
 
     class Meta:
         app_label = 'boranga'
@@ -513,6 +758,33 @@ class CommunityName(models.Model):
         return str(self.name)
 
 
+class CommunityTaxonomy(models.Model):
+    """
+    Description from wacensus, to get the main name then fill in everything else
+
+    Has a:
+    Used by:
+    - Community
+    Is:
+    - Table
+    """
+    community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
+    community_name = models.CharField(max_length=512,null=True, blank=True)
+    community_status = models.CharField(max_length=128, null=True, blank=True)
+    community_description = models.CharField(max_length=2048, null=True, blank=True)
+    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
+    previous_name = models.CharField(max_length=512,null=True, blank=True)
+    name_authority = models.ForeignKey(NameAuthority,
+                                       on_delete=models.CASCADE,null=True,blank=True)
+    name_comments = models.CharField(max_length=500,null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.community_name)  # TODO: is the most appropriate?
+
+
 class Community(models.Model):
     """
     A collection of 2 or more Species within a specific location.
@@ -525,19 +797,25 @@ class Community(models.Model):
     Is:
     - Table
     """
+    PROCESSING_STATUS_DRAFT = 'draft'
+    PROCESSING_STATUS_CURRENT = 'current'
+    PROCESSING_STATUS_HISTORICAL = 'historical'
+    PROCESSING_STATUS_TO_BE_SPLIT = 'to_be_split'
+    PROCESSING_STATUS_TO_BE_COMBINED = 'to_be_combined'
+    PROCESSING_STATUS_TO_BE_RENAMED = 'to_be_renamed'
+    PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_DRAFT, 'Draft'),
+                                 (PROCESSING_STATUS_CURRENT, 'Current'),
+                                 (PROCESSING_STATUS_HISTORICAL, 'Historical'),
+                                 (PROCESSING_STATUS_TO_BE_SPLIT, 'To Be Split'),
+                                 (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
+                                 (PROCESSING_STATUS_TO_BE_RENAMED, 'To Be Renamed'),
+                                )
     RELATED_ITEM_CHOICES = [('species', 'Species'), ('conservation_status', 'Conservation Status')]
 
     community_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,on_delete=models.CASCADE)
     species = models.ManyToManyField(Species, null=True, blank=True)
-    community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
-    community_name = models.ForeignKey(CommunityName, on_delete=models.SET_NULL, null=True, blank=True)
-    community_status = models.CharField(max_length=128, null=True, blank=True)
-    community_description = models.CharField(max_length=2048, null=True, blank=True)
-    previous_name = models.CharField(max_length=512,null=True, blank=True)
-    name_authority = models.ForeignKey(NameAuthority,
-                                       on_delete=models.CASCADE,null=True,blank=True)
-    name_comments = models.CharField(max_length=500,null=True, blank=True)
+    taxonomy = models.ForeignKey(CommunityTaxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
@@ -545,9 +823,12 @@ class Community(models.Model):
                                  default=None,
                                  on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
-    lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
     image_doc = models.ForeignKey('CommunityDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='community_image')
+    processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
+                                         default=PROCESSING_STATUS_CHOICES[0][0])
+    prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
+    lodgement_date = models.DateTimeField(blank=True, null=True) # TODO confirm if proposed date is the same or different
 
     class Meta:
         app_label = 'boranga'
@@ -562,6 +843,214 @@ class Community(models.Model):
             new_community_id = 'C{}'.format(str(self.pk))
             self.community_number = new_community_id
             self.save()
+    
+    @property
+    def applicant(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return "{} {}".format(
+                email_user.first_name,
+                email_user.last_name)
+
+    @property
+    def applicant_email(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return self.email_user.email
+
+    @property
+    def applicant_details(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return "{} {}\n{}".format(
+                email_user.first_name,
+                email_user.last_name,
+                email_user.addresses.all().first())
+
+    @property
+    def applicant_address(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return email_user.residential_address
+
+    @property
+    def applicant_id(self):
+        if self.submitter:
+            email_user = retrieve_email_user(self.submitter)
+            return self.email_user.id
+
+    @property
+    def applicant_type(self):
+        if self.submitter:
+            #return self.APPLICANT_TYPE_SUBMITTER
+            return 'SUB'
+
+    @property
+    def applicant_field(self):
+        # if self.org_applicant:
+        #     return 'org_applicant'
+        # elif self.proxy_applicant:
+        #     return 'proxy_applicant'
+        # else:
+        #     return 'submitter'
+        return 'submitter'
+
+    @property
+    def can_user_edit(self):
+        """
+        :return: True if the application is in one of the editable status.
+        """
+        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        user_editable_state = ['draft',]
+        return self.processing_status in user_editable_state
+
+    @property
+    def can_user_view(self):
+        """
+        :return: True if the application is in one of the approved status.
+        """
+        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        user_viewable_state = ['current','historical']
+        return self.processing_status in user_viewable_state
+
+    @property
+    def can_user_action(self):
+        """
+        :return: True if the application is in one of the processable status for Assessor(species) role.
+        """
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            return True
+
+    @property
+    def is_discardable(self):
+        """
+        An application can be discarded by a customer if:
+        1 - It is a draft
+        2- or if the application has been pushed back to the user
+        """
+        # return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
+        return self.processing_status == 'draft'
+
+    @property
+    def is_deletable(self):
+        """
+        An application can be deleted only if it is a draft and it hasn't been lodged yet
+        :return:
+        """
+        # return self.customer_status == 'draft' and not self.community_number
+        return self.processing_status == 'draft' and not self.community_number
+
+    @property
+    def is_community_application(self):
+        if self.group_type.name==GroupType.GROUP_TYPE_COMMUNITY:
+            return True
+        return False
+
+    @property
+    def allowed_assessors(self):
+        group = None
+        # # TODO: Take application_type into account
+        # if self.processing_status in [
+        #     Community.PROCESSING_STATUS_WITH_APPROVER,
+        # ]:
+        #     group = self.get_approver_group()
+        # elif self.processing_status in [
+        #     Community.PROCESSING_STATUS_WITH_REFERRAL,
+        #     Community.PROCESSING_STATUS_WITH_ASSESSOR,
+        # ]:
+        #     group = self.get_assessor_group()
+        group = self.get_assessor_group()
+        users = (
+            list(
+                map(
+                    lambda id: retrieve_email_user(id),
+                    group.get_system_group_member_ids(),
+                )
+            )
+            if group
+            else []
+        )
+        return users
+
+    def get_assessor_group(self):
+        # TODO: Take application_type into account
+        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
+
+    def get_approver_group(self):
+        # TODO: Take application_type into account
+        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+
+    # Group for editing the Approved CS(only specific fields)
+    def get_editor_group(self):
+        return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
+
+    @property
+    def assessor_recipients(self):
+        logger.info("assessor_recipients")
+        recipients = []
+        group_ids = self.get_assessor_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
+
+    @property
+    def approver_recipients(self):
+        logger.info("assessor_recipients")
+        recipients = []
+        group_ids = self.get_approver_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
+
+    #Check if the user is member of assessor group for the CS Proposal
+    def is_assessor(self,user):
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+    #Check if the user is member of assessor group for the CS Proposal
+    def is_approver(self,user):
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+    # def can_assess(self,user):
+    #     logger.info("can assess")
+    #     logger.info("user")
+    #     logger.info(type(user))
+    #     logger.info(user)
+    #     logger.info(user.id)
+    #     if self.processing_status in [
+    #         # "on_hold",
+    #         # "with_qa_officer",
+    #         "with_assessor",
+    #         "with_referral",
+    #         "with_assessor_conditions",
+    #     ]:
+    #         logger.info("self.__assessor_group().get_system_group_member_ids()")
+    #         logger.info(self.get_assessor_group().get_system_group_member_ids())
+    #         return user.id in self.get_assessor_group().get_system_group_member_ids()
+    #     elif self.processing_status == Community.PROCESSING_STATUS_WITH_APPROVER:
+    #         return user.id in self.get_approver_group().get_system_group_member_ids()
+    #     else:
+    #         return False
+
+    @property   
+    def status_without_assessor(self):
+        status_without_assessor = ['with_approver','approved','closed','declined','draft', 'with_referral']
+        if self.processing_status in status_without_assessor:
+            return True
+        return False
+
+    def has_user_edit_mode(self,user):
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            return (
+                user.id in self.get_assessor_group().get_system_group_member_ids()
+            )
 
     @property
     def reference(self):
@@ -595,7 +1084,7 @@ class Community(models.Model):
         # serializer = RelatedItemsSerializer(return_list, many=True)
         # return serializer.data
         return return_list
-    
+
     @property
     def as_related_item(self):
         related_item = RelatedItem(
@@ -613,12 +1102,13 @@ class Community(models.Model):
 
     @property
     def related_item_descriptor(self):
-        return self.community_name
+        if self.taxonomy:
+            return self.taxonomy.community_name
+        return ''
 
     @property
     def related_item_status(self):
-        #return self.processing_status # TODO use the above to display as still no processing_status choices list
-        return 'Not available yet'
+        return self.processing_status
 
     def log_user_action(self, action, request):
         return CommunityUserAction.log_action(self, action, request.user.id)
@@ -629,7 +1119,6 @@ class Community(models.Model):
             document.save()
             self.image_doc=document
             self.save()
-
 
 
 class CommunityLogDocument(Document):
@@ -657,9 +1146,11 @@ class CommunityLogEntry(CommunicationsLogEntry):
 
 class CommunityUserAction(UserAction):
     
-    ACTION_SEND_PAYMENT_DUE_NOTIFICATION = "Send monthly invoice/BPAY payment due notification {} for application {} to {}"
     ACTION_IMAGE_UPDATE= "Community Image document updated for Community {}"
     ACTION_IMAGE_DELETE= "Community Image document deleted for Community {}"
+    ACTION_EDIT_COMMUNITY= "Edit Community {}"
+    ACTION_CREATE_COMMUNITY= "Create new community {}"
+    ACTION_SAVE_COMMUNITY = "Save Community {}"
 
 
 

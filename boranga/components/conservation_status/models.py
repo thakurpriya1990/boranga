@@ -220,8 +220,6 @@ class ConservationStatus(models.Model):
     Used by:
     - SpeciesConservationStatus
     - CommunityConservationStatus
-    Is:
-    - Abstract class
     """
     CUSTOMER_STATUS_DRAFT = 'draft'
     CUSTOMER_STATUS_WITH_ASSESSOR = 'with_assessor'
@@ -551,7 +549,7 @@ class ConservationStatus(models.Model):
     def get_approver_group(self):
         # TODO: Take application_type into account
         return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
-    
+
     # Group for editing the Approved CS(only specific fields)
     def get_editor_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
@@ -1111,7 +1109,8 @@ class ConservationStatus(models.Model):
 
     @property
     def related_item_descriptor(self):
-        return self.conservation_list.code
+        if self.conservation_list:
+            return self.conservation_list.code
 
     @property
     def related_item_status(self):

@@ -7,8 +7,8 @@
                         <label for="">Community ID:</label>
                         <select class="form-select" v-model="filterCSRefCommunityMigratedId">
                             <option value="all">All</option>
-                            <option v-for="community in communities_data_list" :value="community.community_migrated_id">
-                                {{community.community_migrated_id}}
+                            <option v-for="option in communities_data_list" :value="option.id">
+                                {{option.community_migrated_id}}
                             </option>
                         </select>
                     </div>
@@ -18,8 +18,8 @@
                         <label for="">Community Name:</label>
                         <select class="form-select" v-model="filterCSRefCommunityName">
                             <option value="all">All</option>
-                            <option v-for="option in community_name_list" :value="option.id">
-                                {{option.name}}
+                            <option v-for="option in communities_data_list" :value="option.id">
+                                {{option.community_name}}
                             </option>
                         </select>
                     </div>
@@ -29,8 +29,8 @@
                         <label for="">Community Status:</label>
                         <select class="form-select" v-model="filterCSRefCommunityStatus">
                             <option value="all">All</option>
-                            <option v-for="community in communities_data_list" :value="community.community_status">
-                                {{community.community_status}}
+                            <option v-for="option in communities_data_list" :value="option.id">
+                                {{option.community_status}}
                             </option>
                         </select>
                     </div>
@@ -196,7 +196,6 @@ export default {
             //Filter list for Community select box
             filterListsCommunities: {},
             communities_data_list: [],
-            community_name_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
             filtered_conservation_category_list: [],
@@ -567,7 +566,6 @@ export default {
             vm.$http.get(api_endpoints.filter_list_cs_referrals_community+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunities= response.body;
                 vm.communities_data_list= vm.filterListsCommunities.community_data_list;
-                vm.community_name_list = vm.filterListsCommunities.community_name_list;
                 vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 vm.filterConservationCategory();

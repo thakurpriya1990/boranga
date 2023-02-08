@@ -25,6 +25,7 @@ module.exports = {
     species:"/api/species",
     community:"/api/community",
     taxonomy:"/api/taxonomy",
+    community_taxonomy:"/api/community_taxonomy",
     conservation_status:"/api/conservation_status",
     conservation_status_documents:"/api/conservation_status_documents.json",
     cs_referrals:"/api/cs_referrals.json",
@@ -119,8 +120,11 @@ module.exports = {
     discard_cs_proposal:function (id) {
       return `/api/conservation_status/${id}.json`;
     },
-    discard_proposal:function (id) {
-      return `/api/proposal/${id}.json`;
+    discard_community_proposal:function (id) {
+      return `/api/community/${id}.json`;
+    },
+    discard_species_proposal:function (id) {
+      return `/api/species/${id}.json`;
     },
     discard_vessel:function (id) {
       return `/api/vessels/${id}.json`;

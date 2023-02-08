@@ -9,11 +9,9 @@ from boranga.components.species_and_communities.models import (
     Source, 
     ThreatCategory, 
     DocumentSubCategory,
-    ScientificName,
     Family,
     PhylogeneticGroup,
     Genus,
-    CommunityName,
     )
 
 
@@ -41,8 +39,6 @@ admin.site.register(NameAuthority)
 admin.site.register(Source)
 admin.site.register(DocumentCategory)
 admin.site.register(ThreatCategory)
-admin.site.register(ScientificName)
 admin.site.register(Family)
 admin.site.register(PhylogeneticGroup)
 admin.site.register(Genus)
-admin.site.register(CommunityName)
