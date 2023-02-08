@@ -603,12 +603,11 @@ export default {
                             links +=  `<a href='#${full.id}' data-discard-species-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
                         }
                         else{
-                            if(full.assessor_process){   
-                                    links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}>Process</a><br/>`;    
+                            if(full.user_process){   
+
+                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;    
                             }
-                            else{
-                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>View</a><br/>`;
-                            }
+                            links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                         }
                     }
                     return links;

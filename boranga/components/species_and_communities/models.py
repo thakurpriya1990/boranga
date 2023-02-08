@@ -1,4 +1,5 @@
 import datetime
+import logging
 from django.db import models
 from boranga.components.main.models import (
     CommunicationsLogEntry, 
@@ -11,6 +12,15 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from boranga.components.main.related_item import RelatedItem
 from boranga.ledger_api_utils import retrieve_email_user
+from ledger_api_client.managed_models import SystemGroup
+from boranga.settings import (
+    GROUP_NAME_ASSESSOR,
+    GROUP_NAME_APPROVER,
+    GROUP_NAME_EDITOR,
+)
+
+
+logger = logging.getLogger(__name__)
 
 private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
@@ -260,16 +270,14 @@ class Taxonomy(models.Model):
     Is:
     - Table
     """
-    #taxon = models.CharField(max_length=512, null=True, blank=True)  # flora and fauna, name
     taxon_name_id = models.IntegerField(null=True, blank=True)  # flora and fauna, name
     scientific_name = models.CharField(max_length=512,null=True, blank=True)
-    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
-
-    previous_name = models.CharField(max_length=512,null=True, blank=True)
     family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True)
     genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
     # phylogenetic_group is only used for Fauna 
     phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True)
+    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
+    previous_name = models.CharField(max_length=512,null=True, blank=True)
     name_authority = models.ForeignKey(NameAuthority,
                                        on_delete=models.CASCADE,null=True,blank=True)
     name_comments = models.CharField(max_length=500,null=True, blank=True)
@@ -318,83 +326,25 @@ class Species(models.Model):
     - Table
     """
 
-    CUSTOMER_STATUS_DRAFT = 'draft'
-    CUSTOMER_STATUS_WITH_ASSESSOR = 'with_assessor'
-    CUSTOMER_STATUS_AMENDMENT_REQUIRED = 'amendment_required'
-    CUSTOMER_STATUS_APPROVED = 'approved'
-    CUSTOMER_STATUS_DECLINED = 'declined'
-    CUSTOMER_STATUS_DISCARDED = 'discarded'
-    CUSTOMER_STATUS_CLOSED = 'closed'
-    CUSTOMER_STATUS_PARTIALLY_APPROVED = 'partially_approved'
-    CUSTOMER_STATUS_PARTIALLY_DECLINED = 'partially_declined'
-    CUSTOMER_STATUS_CHOICES = ((CUSTOMER_STATUS_DRAFT, 'Draft'),
-                               (CUSTOMER_STATUS_WITH_ASSESSOR, 'Under Review'),
-                               (CUSTOMER_STATUS_AMENDMENT_REQUIRED, 'Amendment Required'),
-                               (CUSTOMER_STATUS_APPROVED, 'Approved'),
-                               (CUSTOMER_STATUS_DECLINED, 'Declined'),
-                               (CUSTOMER_STATUS_DISCARDED, 'Discarded'),
-                               (CUSTOMER_STATUS_CLOSED, 'DeListed'),
-                               (CUSTOMER_STATUS_PARTIALLY_APPROVED, 'Partially Approved'),
-                               (CUSTOMER_STATUS_PARTIALLY_DECLINED, 'Partially Declined'),
-                               )
-
-    # List of statuses from above that allow a customer to edit an application.
-    CUSTOMER_EDITABLE_STATE = ['draft',
-                                'amendment_required',
-                            ]
-
-    # List of statuses from above that allow a customer to view an application (read-only)
-    CUSTOMER_VIEWABLE_STATE = ['with_assessor', 'under_review', 'approved', 'declined','closed','partially_approved', 'partially_declined']
-
-    PROCESSING_STATUS_TEMP = 'temp'
     PROCESSING_STATUS_DRAFT = 'draft'
-    PROCESSING_STATUS_WITH_ASSESSOR = 'with_assessor'
-    PROCESSING_STATUS_WITH_REFERRAL = 'with_referral'
-    PROCESSING_STATUS_WITH_APPROVER = 'with_approver'
-    PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE = 'awaiting_applicant_respone'
-    PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE = 'awaiting_assessor_response'
-    PROCESSING_STATUS_AWAITING_RESPONSES = 'awaiting_responses'
-    PROCESSING_STATUS_APPROVED = 'approved'
-    PROCESSING_STATUS_DECLINED = 'declined'
-    PROCESSING_STATUS_DISCARDED = 'discarded'
-    PROCESSING_STATUS_CLOSED = 'closed'
-    PROCESSING_STATUS_PARTIALLY_APPROVED = 'partially_approved'
-    PROCESSING_STATUS_PARTIALLY_DECLINED = 'partially_declined'
+    PROCESSING_STATUS_CURRENT = 'current'
+    PROCESSING_STATUS_HISTORICAL = 'historical'
+    PROCESSING_STATUS_TO_BE_SPLIT = 'to_be_split'
+    PROCESSING_STATUS_TO_BE_COMBINED = 'to_be_combined'
+    PROCESSING_STATUS_TO_BE_RENAMED = 'to_be_renamed'
     PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_DRAFT, 'Draft'),
-                                 (PROCESSING_STATUS_WITH_ASSESSOR, 'With Assessor'),
-                                 (PROCESSING_STATUS_WITH_REFERRAL, 'With Referral'),
-                                 (PROCESSING_STATUS_WITH_APPROVER, 'With Approver'),
-                                 (PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE, 'Awaiting Applicant Response'),
-                                 (PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE, 'Awaiting Assessor Response'),
-                                 (PROCESSING_STATUS_AWAITING_RESPONSES, 'Awaiting Responses'),
-                                 (PROCESSING_STATUS_APPROVED, 'Approved'),
-                                 (PROCESSING_STATUS_DECLINED, 'Declined'),
-                                 (PROCESSING_STATUS_DISCARDED, 'Discarded'),
-                                 (PROCESSING_STATUS_CLOSED, 'DeListed'),
-                                 (PROCESSING_STATUS_PARTIALLY_APPROVED, 'Partially Approved'),
-                                 (PROCESSING_STATUS_PARTIALLY_DECLINED, 'Partially Declined'),
+                                 (PROCESSING_STATUS_CURRENT, 'Current'),
+                                 (PROCESSING_STATUS_HISTORICAL, 'Historical'),
+                                 (PROCESSING_STATUS_TO_BE_SPLIT, 'To Be Split'),
+                                 (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
+                                 (PROCESSING_STATUS_TO_BE_RENAMED, 'To Be Renamed'),
                                 )
-    REVIEW_STATUS_CHOICES = (
-        ('not_reviewed', 'Not Reviewed'), ('awaiting_amendments', 'Awaiting Amendments'), ('amended', 'Amended'),
-        ('accepted', 'Accepted'))
-    customer_status = models.CharField('Customer Status', max_length=40, choices=CUSTOMER_STATUS_CHOICES,
-                                       default=CUSTOMER_STATUS_CHOICES[0][0])
-    
-    APPLICATION_TYPE_CHOICES = (
-        ('new_proposal', 'New Application'),
-        ('amendment', 'Amendment'),
-        ('renewal', 'Renewal'),
-        ('external', 'External'),
-    )
-
     RELATED_ITEM_CHOICES = [('conservation_status', 'Conservation Status')]
     
-    proposal_type = models.CharField('Application Status Type', max_length=40, choices=APPLICATION_TYPE_CHOICES,
-                                        default=APPLICATION_TYPE_CHOICES[0][0])
     species_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
-    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.SET_NULL, null=True, blank=True)
+    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
     image_doc = models.ForeignKey('SpeciesDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='species_image')
     region = models.ForeignKey(Region, 
                                default=None,
@@ -406,17 +356,8 @@ class Species(models.Model):
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0], null=True, blank=True)
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
-    review_status = models.CharField('Review Status', max_length=30, choices=REVIEW_STATUS_CHOICES,
-                                     default=REVIEW_STATUS_CHOICES[0][0])
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
-    assigned_officer = models.IntegerField(null=True) #EmailUserRO
-    assigned_approver = models.IntegerField(null=True) #EmailUserRO
-    approved_by = models.IntegerField(null=True) #EmailUserRO
-    proposed_decline_status = models.BooleanField(default=False)
-    deficiency_data = models.TextField(null=True, blank=True) # deficiency comment
-    assessor_data = models.TextField(null=True, blank=True)  # assessor comment
-    approver_comment = models.TextField(blank=True)
     
     class Meta:
         app_label = 'boranga'
@@ -486,35 +427,35 @@ class Species(models.Model):
         # else:
         #     return 'submitter'
         return 'submitter'
-    
-    @property
-    def is_assigned(self):
-        return self.assigned_officer is not None
-    
-    @property
-    def can_officer_process(self):
-        """
-        :return: True if the application is in one of the processable status for Assessor role.
-        """
-        officer_view_state = ['draft','approved','declined','temp','discarded', 'closed']
-        if self.processing_status in officer_view_state:
-            return False
-        else:
-            return True
-    
+
     @property
     def can_user_edit(self):
         """
         :return: True if the application is in one of the editable status.
         """
-        return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        user_editable_state = ['draft',]
+        return self.processing_status in user_editable_state
 
     @property
     def can_user_view(self):
         """
         :return: True if the application is in one of the approved status.
         """
-        return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
+        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        user_viewable_state = ['current','historical']
+        return self.processing_status in user_viewable_state
+
+    @property
+    def can_user_action(self):
+        """
+        :return: True if the application is in one of the processable status for Assessor(species) role.
+        """
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            return True
 
     @property
     def is_discardable(self):
@@ -523,7 +464,8 @@ class Species(models.Model):
         1 - It is a draft
         2- or if the application has been pushed back to the user
         """
-        return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
+        # return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
+        return self.processing_status == 'draft'
 
     @property
     def is_deletable(self):
@@ -531,8 +473,9 @@ class Species(models.Model):
         An application can be deleted only if it is a draft and it hasn't been lodged yet
         :return:
         """
-        return self.customer_status == 'draft' and not self.species_number
-    
+        # return self.customer_status == 'draft' and not self.species_number
+        return self.processing_status == 'draft' and not self.species_number
+
     @property
     def is_flora_application(self):
         if self.group_type.name==GroupType.GROUP_TYPE_FLORA:
@@ -544,20 +487,33 @@ class Species(models.Model):
         if self.group_type.name==GroupType.GROUP_TYPE_FAUNA:
             return True
         return False
-    
+
     @property
     def allowed_assessors(self):
         group = None
         # TODO: Take application_type into account
-        if self.processing_status in [
-            Species.PROCESSING_STATUS_WITH_APPROVER,
-        ]:
-            group = self.get_approver_group()
-        elif self.processing_status in [
-            Species.PROCESSING_STATUS_WITH_REFERRAL,
-            Species.PROCESSING_STATUS_WITH_ASSESSOR,
-        ]:
-            group = self.get_assessor_group()
+        # if self.processing_status in [
+        #     Species.PROCESSING_STATUS_WITH_APPROVER,
+        # ]:
+        #     group = self.get_approver_group()
+        # elif self.processing_status in [
+        #     Species.PROCESSING_STATUS_WITH_REFERRAL,
+        #     Species.PROCESSING_STATUS_WITH_ASSESSOR,
+        # ]:
+        #     group = self.get_assessor_group()
+        # users = (
+        #     list(
+        #         map(
+        #             lambda id: retrieve_email_user(id),
+        #             group.get_system_group_member_ids(),
+        #         )
+        #     )
+        #     if group
+        #     else []
+        # )
+        # return users
+        #TODO We need specific species processing SysstemGroup
+        group = self.get_assessor_group()
         users = (
             list(
                 map(
@@ -577,7 +533,7 @@ class Species(models.Model):
     def get_approver_group(self):
         # TODO: Take application_type into account
         return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
-    
+
     @property
     def assessor_recipients(self):
         logger.info("assessor_recipients")
@@ -605,25 +561,25 @@ class Species(models.Model):
     #Check if the user is member of assessor group for the CS Proposal
     def is_approver(self,user):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
-    
-    def can_assess(self,user):
-        logger.info("can assess")
-        logger.info("user")
-        logger.info(type(user))
-        logger.info(user)
-        logger.info(user.id)
-        if self.processing_status in [
-            "with_assessor",
-            "with_referral",
-        ]:
-            logger.info("self.__assessor_group().get_system_group_member_ids()")
-            logger.info(self.get_assessor_group().get_system_group_member_ids())
-            return user.id in self.get_assessor_group().get_system_group_member_ids()
-        elif self.processing_status == Species.PROCESSING_STATUS_WITH_APPROVER:
-            return user.id in self.get_approver_group().get_system_group_member_ids()
-        else:
-            return False
-    
+
+    # def can_assess(self,user):
+    #     logger.info("can assess")
+    #     logger.info("user")
+    #     logger.info(type(user))
+    #     logger.info(user)
+    #     logger.info(user.id)
+    #     if self.processing_status in [
+    #         "with_assessor",
+    #         "with_referral",
+    #     ]:
+    #         logger.info("self.__assessor_group().get_system_group_member_ids()")
+    #         logger.info(self.get_assessor_group().get_system_group_member_ids())
+    #         return user.id in self.get_assessor_group().get_system_group_member_ids()
+    #     elif self.processing_status == Species.PROCESSING_STATUS_WITH_APPROVER:
+    #         return user.id in self.get_approver_group().get_system_group_member_ids()
+    #     else:
+    #         return False
+
     @property   
     def status_without_assessor(self):
         status_without_assessor = ['with_approver','approved','closed','declined','draft', 'with_referral']
@@ -631,31 +587,15 @@ class Species(models.Model):
             return True
         return False
 
-    def has_assessor_mode(self,user):
-        status_without_assessor = [
-            "with_approver",
-            "approved",
-            "closed",
-            "declined",
-            "draft",
-        ]
-        if self.processing_status in status_without_assessor:
+    def has_user_edit_mode(self,user):
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
             return False
-        
         else:
-            if self.assigned_officer:
-                if self.assigned_officer == user.id:
-                    return (
-                        user.id
-                        in self.get_assessor_group().get_system_group_member_ids()
-                    )
-                else:
-                    return False
-            else:
-                return (
-                    user.id in self.get_assessor_group().get_system_group_member_ids()
-                )
-    
+            return (
+                user.id in self.get_assessor_group().get_system_group_member_ids()
+            )
+
     def get_related_items(self,filter_type, **kwargs):
         return_list = []
         if filter_type == 'all':
@@ -684,7 +624,7 @@ class Species(models.Model):
         # serializer = RelatedItemsSerializer(return_list, many=True)
         # return serializer.data
         return return_list
-    
+
     @property
     def as_related_item(self):
         related_item = RelatedItem(
@@ -703,11 +643,10 @@ class Species(models.Model):
     @property
     def related_item_descriptor(self):
         return self.taxonomy.scientific_name
-    
+
     @property
     def related_item_status(self):
-        #return self.get_processing_status_display
-        return self.processing_status # TODO use the above to display as still no processing_status choices list
+        return self.get_processing_status_display
 
     @property
     def submitter_user(self):
@@ -753,6 +692,11 @@ class SpeciesUserAction(UserAction):
     
     ACTION_IMAGE_UPDATE= "Species Image document updated for Species {}"
     ACTION_IMAGE_DELETE= "Species Image document deleted for Species {}"
+    ACTION_EDIT_SPECIES= "Edit Species {}"
+    ACTION_CREATE_SPECIES= "Create new species {}"
+    ACTION_SAVE_SPECIES = "Save Species {}"
+    ACTION_CLOSE_CONSERVATIONSTATUS = "De list species {}"
+    ACTION_DISCARD_PROPOSAL = "Discard species proposal {}"
 
     class Meta:
         app_label = 'boranga'
@@ -814,6 +758,33 @@ class CommunityName(models.Model):
         return str(self.name)
 
 
+class CommunityTaxonomy(models.Model):
+    """
+    Description from wacensus, to get the main name then fill in everything else
+
+    Has a:
+    Used by:
+    - Community
+    Is:
+    - Table
+    """
+    community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
+    community_name = models.CharField(max_length=512,null=True, blank=True)
+    community_status = models.CharField(max_length=128, null=True, blank=True)
+    community_description = models.CharField(max_length=2048, null=True, blank=True)
+    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
+    previous_name = models.CharField(max_length=512,null=True, blank=True)
+    name_authority = models.ForeignKey(NameAuthority,
+                                       on_delete=models.CASCADE,null=True,blank=True)
+    name_comments = models.CharField(max_length=500,null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.community_name)  # TODO: is the most appropriate?
+
+
 class Community(models.Model):
     """
     A collection of 2 or more Species within a specific location.
@@ -826,90 +797,25 @@ class Community(models.Model):
     Is:
     - Table
     """
-    CUSTOMER_STATUS_DRAFT = 'draft'
-    CUSTOMER_STATUS_WITH_ASSESSOR = 'with_assessor'
-    CUSTOMER_STATUS_AMENDMENT_REQUIRED = 'amendment_required'
-    CUSTOMER_STATUS_APPROVED = 'approved'
-    CUSTOMER_STATUS_DECLINED = 'declined'
-    CUSTOMER_STATUS_DISCARDED = 'discarded'
-    CUSTOMER_STATUS_CLOSED = 'closed'
-    CUSTOMER_STATUS_PARTIALLY_APPROVED = 'partially_approved'
-    CUSTOMER_STATUS_PARTIALLY_DECLINED = 'partially_declined'
-    CUSTOMER_STATUS_CHOICES = ((CUSTOMER_STATUS_DRAFT, 'Draft'),
-                               (CUSTOMER_STATUS_WITH_ASSESSOR, 'Under Review'),
-                               (CUSTOMER_STATUS_AMENDMENT_REQUIRED, 'Amendment Required'),
-                               (CUSTOMER_STATUS_APPROVED, 'Approved'),
-                               (CUSTOMER_STATUS_DECLINED, 'Declined'),
-                               (CUSTOMER_STATUS_DISCARDED, 'Discarded'),
-                               (CUSTOMER_STATUS_CLOSED, 'DeListed'),
-                               (CUSTOMER_STATUS_PARTIALLY_APPROVED, 'Partially Approved'),
-                               (CUSTOMER_STATUS_PARTIALLY_DECLINED, 'Partially Declined'),
-                               )
-
-    # List of statuses from above that allow a customer to edit an application.
-    CUSTOMER_EDITABLE_STATE = ['draft',
-                                'amendment_required',
-                            ]
-
-    # List of statuses from above that allow a customer to view an application (read-only)
-    CUSTOMER_VIEWABLE_STATE = ['with_assessor', 'under_review', 'approved', 'declined','closed','partially_approved', 'partially_declined']
-
-    PROCESSING_STATUS_TEMP = 'temp'
     PROCESSING_STATUS_DRAFT = 'draft'
-    PROCESSING_STATUS_WITH_ASSESSOR = 'with_assessor'
-    PROCESSING_STATUS_WITH_REFERRAL = 'with_referral'
-    PROCESSING_STATUS_WITH_APPROVER = 'with_approver'
-    PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE = 'awaiting_applicant_respone'
-    PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE = 'awaiting_assessor_response'
-    PROCESSING_STATUS_AWAITING_RESPONSES = 'awaiting_responses'
-    PROCESSING_STATUS_APPROVED = 'approved'
-    PROCESSING_STATUS_DECLINED = 'declined'
-    PROCESSING_STATUS_DISCARDED = 'discarded'
-    PROCESSING_STATUS_CLOSED = 'closed'
-    PROCESSING_STATUS_PARTIALLY_APPROVED = 'partially_approved'
-    PROCESSING_STATUS_PARTIALLY_DECLINED = 'partially_declined'
+    PROCESSING_STATUS_CURRENT = 'current'
+    PROCESSING_STATUS_HISTORICAL = 'historical'
+    PROCESSING_STATUS_TO_BE_SPLIT = 'to_be_split'
+    PROCESSING_STATUS_TO_BE_COMBINED = 'to_be_combined'
+    PROCESSING_STATUS_TO_BE_RENAMED = 'to_be_renamed'
     PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_DRAFT, 'Draft'),
-                                 (PROCESSING_STATUS_WITH_ASSESSOR, 'With Assessor'),
-                                 (PROCESSING_STATUS_WITH_REFERRAL, 'With Referral'),
-                                 (PROCESSING_STATUS_WITH_APPROVER, 'With Approver'),
-                                 (PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE, 'Awaiting Applicant Response'),
-                                 (PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE, 'Awaiting Assessor Response'),
-                                 (PROCESSING_STATUS_AWAITING_RESPONSES, 'Awaiting Responses'),
-                                 (PROCESSING_STATUS_APPROVED, 'Approved'),
-                                 (PROCESSING_STATUS_DECLINED, 'Declined'),
-                                 (PROCESSING_STATUS_DISCARDED, 'Discarded'),
-                                 (PROCESSING_STATUS_CLOSED, 'DeListed'),
-                                 (PROCESSING_STATUS_PARTIALLY_APPROVED, 'Partially Approved'),
-                                 (PROCESSING_STATUS_PARTIALLY_DECLINED, 'Partially Declined'),
+                                 (PROCESSING_STATUS_CURRENT, 'Current'),
+                                 (PROCESSING_STATUS_HISTORICAL, 'Historical'),
+                                 (PROCESSING_STATUS_TO_BE_SPLIT, 'To Be Split'),
+                                 (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
+                                 (PROCESSING_STATUS_TO_BE_RENAMED, 'To Be Renamed'),
                                 )
-    REVIEW_STATUS_CHOICES = (
-        ('not_reviewed', 'Not Reviewed'), ('awaiting_amendments', 'Awaiting Amendments'), ('amended', 'Amended'),
-        ('accepted', 'Accepted'))
-    customer_status = models.CharField('Customer Status', max_length=40, choices=CUSTOMER_STATUS_CHOICES,
-                                       default=CUSTOMER_STATUS_CHOICES[0][0])
-
-    APPLICATION_TYPE_CHOICES = (
-        ('new_proposal', 'New Application'),
-        ('amendment', 'Amendment'),
-        ('renewal', 'Renewal'),
-        ('external', 'External'),
-    )
-
     RELATED_ITEM_CHOICES = [('species', 'Species'), ('conservation_status', 'Conservation Status')]
 
-    proposal_type = models.CharField('Application Status Type', max_length=40, choices=APPLICATION_TYPE_CHOICES,
-                                        default=APPLICATION_TYPE_CHOICES[0][0])
     community_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,on_delete=models.CASCADE)
     species = models.ManyToManyField(Species, null=True, blank=True)
-    community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
-    community_name = models.ForeignKey(CommunityName, on_delete=models.SET_NULL, null=True, blank=True)
-    community_status = models.CharField(max_length=128, null=True, blank=True)
-    community_description = models.CharField(max_length=2048, null=True, blank=True)
-    previous_name = models.CharField(max_length=512,null=True, blank=True)
-    name_authority = models.ForeignKey(NameAuthority,
-                                       on_delete=models.CASCADE,null=True,blank=True)
-    name_comments = models.CharField(max_length=500,null=True, blank=True)
+    taxonomy = models.ForeignKey(CommunityTaxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
                                on_delete=models.CASCADE, null=True, blank=True)
@@ -917,22 +823,12 @@ class Community(models.Model):
                                  default=None,
                                  on_delete=models.CASCADE, null=True, blank=True)
     last_data_curration_date = models.DateField(blank =True, null=True)
-    lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
     image_doc = models.ForeignKey('CommunityDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='community_image')
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
-    review_status = models.CharField('Review Status', max_length=30, choices=REVIEW_STATUS_CHOICES,
-                                     default=REVIEW_STATUS_CHOICES[0][0])
     lodgement_date = models.DateTimeField(blank=True, null=True) # TODO confirm if proposed date is the same or different
-    assigned_officer = models.IntegerField(null=True) #EmailUserRO
-    assigned_approver = models.IntegerField(null=True) #EmailUserRO
-    approved_by = models.IntegerField(null=True) #EmailUserRO
-    proposed_decline_status = models.BooleanField(default=False)
-    deficiency_data = models.TextField(null=True, blank=True) # deficiency comment
-    assessor_data = models.TextField(null=True, blank=True)  # assessor comment
-    approver_comment = models.TextField(blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -998,35 +894,35 @@ class Community(models.Model):
         # else:
         #     return 'submitter'
         return 'submitter'
-    
-    @property
-    def is_assigned(self):
-        return self.assigned_officer is not None
-    
-    @property
-    def can_officer_process(self):
-        """
-        :return: True if the application is in one of the processable status for Assessor role.
-        """
-        officer_view_state = ['draft','approved','declined','temp','discarded', 'closed']
-        if self.processing_status in officer_view_state:
-            return False
-        else:
-            return True
-    
+
     @property
     def can_user_edit(self):
         """
         :return: True if the application is in one of the editable status.
         """
-        return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        user_editable_state = ['draft',]
+        return self.processing_status in user_editable_state
 
     @property
     def can_user_view(self):
         """
         :return: True if the application is in one of the approved status.
         """
-        return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
+        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        user_viewable_state = ['current','historical']
+        return self.processing_status in user_viewable_state
+
+    @property
+    def can_user_action(self):
+        """
+        :return: True if the application is in one of the processable status for Assessor(species) role.
+        """
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            return True
 
     @property
     def is_discardable(self):
@@ -1035,7 +931,8 @@ class Community(models.Model):
         1 - It is a draft
         2- or if the application has been pushed back to the user
         """
-        return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
+        # return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
+        return self.processing_status == 'draft'
 
     @property
     def is_deletable(self):
@@ -1043,27 +940,29 @@ class Community(models.Model):
         An application can be deleted only if it is a draft and it hasn't been lodged yet
         :return:
         """
-        return self.customer_status == 'draft' and not self.conservation_status_number
-    
+        # return self.customer_status == 'draft' and not self.community_number
+        return self.processing_status == 'draft' and not self.community_number
+
     @property
     def is_community_application(self):
         if self.group_type.name==GroupType.GROUP_TYPE_COMMUNITY:
             return True
         return False
-    
+
     @property
     def allowed_assessors(self):
         group = None
-        # TODO: Take application_type into account
-        if self.processing_status in [
-            Community.PROCESSING_STATUS_WITH_APPROVER,
-        ]:
-            group = self.get_approver_group()
-        elif self.processing_status in [
-            Community.PROCESSING_STATUS_WITH_REFERRAL,
-            Community.PROCESSING_STATUS_WITH_ASSESSOR,
-        ]:
-            group = self.get_assessor_group()
+        # # TODO: Take application_type into account
+        # if self.processing_status in [
+        #     Community.PROCESSING_STATUS_WITH_APPROVER,
+        # ]:
+        #     group = self.get_approver_group()
+        # elif self.processing_status in [
+        #     Community.PROCESSING_STATUS_WITH_REFERRAL,
+        #     Community.PROCESSING_STATUS_WITH_ASSESSOR,
+        # ]:
+        #     group = self.get_assessor_group()
+        group = self.get_assessor_group()
         users = (
             list(
                 map(
@@ -1075,7 +974,7 @@ class Community(models.Model):
             else []
         )
         return users
-    
+
     def get_assessor_group(self):
         # TODO: Take application_type into account
         return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
@@ -1087,7 +986,7 @@ class Community(models.Model):
     # Group for editing the Approved CS(only specific fields)
     def get_editor_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
-    
+
     @property
     def assessor_recipients(self):
         logger.info("assessor_recipients")
@@ -1107,7 +1006,7 @@ class Community(models.Model):
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
-    
+
     #Check if the user is member of assessor group for the CS Proposal
     def is_assessor(self,user):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
@@ -1115,28 +1014,28 @@ class Community(models.Model):
     #Check if the user is member of assessor group for the CS Proposal
     def is_approver(self,user):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
-    
-    def can_assess(self,user):
-        logger.info("can assess")
-        logger.info("user")
-        logger.info(type(user))
-        logger.info(user)
-        logger.info(user.id)
-        if self.processing_status in [
-            # "on_hold",
-            # "with_qa_officer",
-            "with_assessor",
-            "with_referral",
-            "with_assessor_conditions",
-        ]:
-            logger.info("self.__assessor_group().get_system_group_member_ids()")
-            logger.info(self.get_assessor_group().get_system_group_member_ids())
-            return user.id in self.get_assessor_group().get_system_group_member_ids()
-        elif self.processing_status == Community.PROCESSING_STATUS_WITH_APPROVER:
-            return user.id in self.get_approver_group().get_system_group_member_ids()
-        else:
-            return False
-    
+
+    # def can_assess(self,user):
+    #     logger.info("can assess")
+    #     logger.info("user")
+    #     logger.info(type(user))
+    #     logger.info(user)
+    #     logger.info(user.id)
+    #     if self.processing_status in [
+    #         # "on_hold",
+    #         # "with_qa_officer",
+    #         "with_assessor",
+    #         "with_referral",
+    #         "with_assessor_conditions",
+    #     ]:
+    #         logger.info("self.__assessor_group().get_system_group_member_ids()")
+    #         logger.info(self.get_assessor_group().get_system_group_member_ids())
+    #         return user.id in self.get_assessor_group().get_system_group_member_ids()
+    #     elif self.processing_status == Community.PROCESSING_STATUS_WITH_APPROVER:
+    #         return user.id in self.get_approver_group().get_system_group_member_ids()
+    #     else:
+    #         return False
+
     @property   
     def status_without_assessor(self):
         status_without_assessor = ['with_approver','approved','closed','declined','draft', 'with_referral']
@@ -1144,30 +1043,14 @@ class Community(models.Model):
             return True
         return False
 
-    def has_assessor_mode(self,user):
-        status_without_assessor = [
-            "with_approver",
-            "approved",
-            "closed",
-            "declined",
-            "draft",
-        ]
-        if self.processing_status in status_without_assessor:
+    def has_user_edit_mode(self,user):
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
             return False
-        
         else:
-            if self.assigned_officer:
-                if self.assigned_officer == user.id:
-                    return (
-                        user.id
-                        in self.get_assessor_group().get_system_group_member_ids()
-                    )
-                else:
-                    return False
-            else:
-                return (
-                    user.id in self.get_assessor_group().get_system_group_member_ids()
-                )
+            return (
+                user.id in self.get_assessor_group().get_system_group_member_ids()
+            )
 
     @property
     def reference(self):
@@ -1201,7 +1084,7 @@ class Community(models.Model):
         # serializer = RelatedItemsSerializer(return_list, many=True)
         # return serializer.data
         return return_list
-    
+
     @property
     def as_related_item(self):
         related_item = RelatedItem(
@@ -1219,12 +1102,13 @@ class Community(models.Model):
 
     @property
     def related_item_descriptor(self):
-        return self.community_name
+        if self.taxonomy:
+            return self.taxonomy.community_name
+        return ''
 
     @property
     def related_item_status(self):
-        #return self.processing_status # TODO use the above to display as still no processing_status choices list
-        return 'Not available yet'
+        return self.processing_status
 
     def log_user_action(self, action, request):
         return CommunityUserAction.log_action(self, action, request.user.id)
@@ -1235,7 +1119,6 @@ class Community(models.Model):
             document.save()
             self.image_doc=document
             self.save()
-
 
 
 class CommunityLogDocument(Document):
@@ -1263,9 +1146,11 @@ class CommunityLogEntry(CommunicationsLogEntry):
 
 class CommunityUserAction(UserAction):
     
-    ACTION_SEND_PAYMENT_DUE_NOTIFICATION = "Send monthly invoice/BPAY payment due notification {} for application {} to {}"
     ACTION_IMAGE_UPDATE= "Community Image document updated for Community {}"
     ACTION_IMAGE_DELETE= "Community Image document deleted for Community {}"
+    ACTION_EDIT_COMMUNITY= "Edit Community {}"
+    ACTION_CREATE_COMMUNITY= "Create new community {}"
+    ACTION_SAVE_COMMUNITY = "Save Community {}"
 
 
 

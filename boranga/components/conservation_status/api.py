@@ -35,6 +35,7 @@ from boranga.components.species_and_communities.models import(
     Species,
     Community,
     Taxonomy,
+    CommunityTaxonomy,
     TaxonVernacular,
     PhylogeneticGroup,
     Genus,
@@ -93,7 +94,7 @@ class GetConservationListDict(views.APIView):
     def get(self, request, format=None):
         species_list = []
         species = Species.objects.all()
-        species = species.filter(~Q(taxonomy__scientific_name=None)) # TODO remove later as every species will have scientific name
+        species = species.filter(~Q(taxonomy=None)) # TODO remove later as every species will have scientific name
         if species:
             for specimen in species:
                 species_list.append({
@@ -102,12 +103,12 @@ class GetConservationListDict(views.APIView):
                     });
         community_list = []
         communities = Community.objects.all()
-        communities = communities.filter(~Q(community_name=None)) # TODO remove later as every community will have community name
+        communities = communities.filter(~Q(taxonomy=None)) # TODO remove later as every community will have community name
         if communities:
             for specimen in communities:
                 community_list.append({
                     'id': specimen.id,
-                    'name':specimen.community_name.name,
+                    'name':specimen.taxonomy.community_name,
                     });
         conservation_list = []
         lists = ConservationList.objects.filter(applies_to_wa=True)
@@ -151,12 +152,12 @@ class GetCSProfileDict(views.APIView):
                         });
         community_list = []
         communities = Community.objects.all()
-        communities = communities.filter(~Q(community_name=None)) # TODO remove later as every community will have community name
+        communities = communities.filter(~Q(taxonomy=None)) # TODO remove later as every community will have community name
         if communities:
             for specimen in communities:
                 community_list.append({
                     'id': specimen.id,
-                    'name':specimen.community_name.name,
+                    'name':specimen.taxonomy.community_name,
                     });
         conservation_list_values = []
         if group_type and (group_type == GroupType.GROUP_TYPE_FLORA or group_type == GroupType.GROUP_TYPE_FAUNA):
@@ -221,10 +222,10 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         filter_scientific_name = request.GET.get('filter_scientific_name')
         if queryset.model is ConservationStatus:
             if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-                queryset = queryset.filter(species__taxonomy__scientific_name=filter_scientific_name)
+                queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
         elif queryset.model is ConservationStatusReferral:
             if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-                queryset = queryset.filter(conservation_status__species__taxonomy__scientific_name=filter_scientific_name)
+                queryset = queryset.filter(conservation_status__species__taxonomy__id=filter_scientific_name)
 
         filter_common_name = request.GET.get('filter_common_name')
         if queryset.model is ConservationStatus:
@@ -397,25 +398,25 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         filter_community_migrated_id = request.GET.get('filter_community_migrated_id')
         if filter_community_migrated_id and not filter_community_migrated_id.lower() == 'all':
             if queryset.model is ConservationStatus:
-                queryset = queryset.filter(community__community_migrated_id=filter_community_migrated_id)
+                queryset = queryset.filter(community__taxonomy__id=filter_community_migrated_id)
             elif queryset.model is ConservationStatusReferral:
-                queryset = queryset.filter(conservation_status__community__community_migrated_id=filter_community_migrated_id)
+                queryset = queryset.filter(conservation_status__community__taxonomy__id=filter_community_migrated_id)
 
         # filter_community_name
         filter_community_name = request.GET.get('filter_community_name')
         if filter_community_name and not filter_community_name.lower() == 'all':
             if queryset.model is ConservationStatus:
-                queryset = queryset.filter(community__community_name=filter_community_name)
+                queryset = queryset.filter(community__taxonomy__id=filter_community_name)
             elif queryset.model is ConservationStatusReferral:
-                queryset = queryset.filter(conservation_status__community__community_name=filter_community_name)
+                queryset = queryset.filter(conservation_status__community__taxonomy__id=filter_community_name)
 
         # filter_community_status
         filter_community_status = request.GET.get('filter_community_status')
         if filter_community_status and not filter_community_status.lower() == 'all':
             if queryset.model is ConservationStatus:
-                queryset = queryset.filter(community__community_status=filter_community_status)
+                queryset = queryset.filter(community__taxonomy__id=filter_community_status)
             elif queryset.model is ConservationStatusReferral:
-                queryset = queryset.filter(conservation_status__community__community_status=filter_community_status)
+                queryset = queryset.filter(conservation_status__community__taxonomy__id=filter_community_status)
 
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
@@ -551,12 +552,12 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
         if filter_group_type and not filter_group_type.lower() == 'all':
             queryset = queryset.filter(application_type__name=filter_group_type)
         
-        # filter_scientific_name
+        # filter_scientific_name is the species_id
         filter_scientific_name = request.GET.get('filter_scientific_name')
         if filter_scientific_name and not filter_scientific_name.lower() == 'all':
             queryset = queryset.filter(species=filter_scientific_name)
 
-        # filter_community_name
+        # filter_community_name is the community_id
         filter_community_name = request.GET.get('filter_community_name')
         if filter_community_name and not filter_community_name.lower() == 'all':
             queryset = queryset.filter(community=filter_community_name)
@@ -1340,23 +1341,15 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         group_type = request.GET.get('group_type_name','')
         community_data_list = []
         if group_type:
-            community_qs = qs.filter(conservation_status__community__isnull=False).values_list('conservation_status__community', flat=True).distinct()
-            communities = Community.objects.filter(id__in=community_qs)
-            if communities:
-                for i in communities:
+            taxonomy_qs = qs.filter(conservation_status__community__isnull=False).values_list('conservation_status__community__taxonomy', flat=True).distinct()
+            names = CommunityTaxonomy.objects.filter(id__in=taxonomy_qs) # TODO will need to filter according to  group  selection
+            if names:
+                for name in names:
                     community_data_list.append({
-                        'id': i.id,
-                        'community_migrated_id':i.community_migrated_id,
-                        });
-        community_name_list = []
-        if group_type:
-            community_name = qs.filter(conservation_status__community__isnull=False).order_by('conservation_status__community').distinct('conservation_status__community').values_list('conservation_status__community__community_name', 'conservation_status__community__community_name__name').distinct()
-            #names = CommunityName.objects.filter(id__in=community_name_qs) # TODO will need to filter according to  group  selection
-            if community_name:
-                for name in community_name:
-                    community_name_list.append({
-                        'id': name[0],
-                        'name': name[1],
+                        'id': name.id,
+                        'community_migrated_id': name.community_migrated_id,
+                        'community_name': name.community_name,
+                        'community_status': name.community_status,
                         });
         conservation_list_dict = []
         cons_list_qs = qs.filter(conservation_status__community__isnull=False).values_list('conservation_status__conservation_list', flat=True).distinct()
@@ -1386,7 +1379,6 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                     });
         res_json = {
         "community_data_list":community_data_list,
-        "community_name_list":community_name_list,
         "conservation_list_dict":conservation_list_dict,
         "conservation_category_list":conservation_category_list,
         "processing_status_list": processing_status_list,

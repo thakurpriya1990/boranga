@@ -7,7 +7,7 @@
                         <label for="">Community ID:</label>
                         <select class="form-select" v-model="filterCSCommunityMigratedId">
                             <option value="all">All</option>
-                            <option v-for="community in communities_data_list" :value="community.community_migrated_id">
+                            <option v-for="community in communities_data_list" :value="community.id">
                                 {{community.community_migrated_id}}
                             </option>
                         </select>
@@ -18,8 +18,8 @@
                         <label for="">Community Name:</label>
                         <select class="form-select" v-model="filterCSCommunityName">
                             <option value="all">All</option>
-                            <option v-for="option in community_name_list" :value="option.id">
-                                {{option.name}}
+                            <option v-for="option in communities_data_list" :value="option.id">
+                                {{option.community_name}}
                             </option>
                         </select>
                     </div>
@@ -29,7 +29,7 @@
                         <label for="">Community Status:</label>
                         <select class="form-select" v-model="filterCSCommunityStatus">
                             <option value="all">All</option>
-                            <option v-for="community in communities_data_list" :value="community.community_status">
+                            <option v-for="community in communities_data_list" :value="community.id">
                                 {{community.community_status}}
                             </option>
                         </select>

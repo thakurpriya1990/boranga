@@ -9,6 +9,7 @@ from boranga.components.species_and_communities.models import(
 	Community,
 	Taxonomy,
 	TaxonVernacular,
+	CommunityTaxonomy,
 	NameAuthority,
 	SpeciesConservationAttributes,
 	CommunityConservationAttributes,
@@ -50,7 +51,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 	region = serializers.SerializerMethodField()
 	district = serializers.SerializerMethodField()
 	processing_status = serializers.CharField(source='get_processing_status_display')
-	assessor_process = serializers.SerializerMethodField(read_only=True)
+	user_process = serializers.SerializerMethodField(read_only=True)
 	class Meta:
 		model = Species
 		fields = (
@@ -69,7 +70,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'processing_status',
 				'can_user_edit',
 				'can_user_view',
-				'assessor_process',
+				'user_process',
 			)
 		datatables_always_serialize = (
                 'id',
@@ -87,7 +88,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			    'processing_status',
 				'can_user_edit',
 				'can_user_view',
-				'assessor_process',
+				'user_process',
 			)	
 
 	def get_group_type(self,obj):
@@ -157,31 +158,29 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 			return obj.district.name
 		return ''
 
-	def get_assessor_process(self,obj):
-        # Check if currently logged in user has access to process the proposal
+	def get_user_process(self,obj):
+        # Check if currently logged in user has access to process the Species
 		request = self.context['request']
 		template_group = self.context.get('template_group')
 		user = request.user
-		# if obj.can_officer_process and template_group == 'apiary':
-		# TODO if internal user proposal then check condition that he is not able to process
-		if obj.can_officer_process:
-			if obj.assigned_officer:
-				if obj.assigned_officer == user.id:
-					return True
-			elif user in obj.allowed_assessors:
+		if obj.can_user_action:
+			#TODO user should be SystemGroup SpeciesProcessGroup?
+			if user in obj.allowed_assessors:
 				return True
 		return False
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
 	group_type = serializers.SerializerMethodField()
 	#conservation_status = serializers.SerializerMethodField()
+	community_migrated_id = serializers.SerializerMethodField()
 	community_name = serializers.SerializerMethodField()
+	community_status = serializers.SerializerMethodField()
 	conservation_list = serializers.SerializerMethodField()
 	conservation_category = serializers.SerializerMethodField()
 	region = serializers.SerializerMethodField()
 	district = serializers.SerializerMethodField()
 	processing_status = serializers.CharField(source='get_processing_status_display')
-	assessor_process = serializers.SerializerMethodField(read_only=True)
+	user_process = serializers.SerializerMethodField(read_only=True)
 	class Meta:
 		model = Community
 		fields = (
@@ -199,7 +198,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 				'processing_status',
 				'can_user_edit',
 				'can_user_view',
-				'assessor_process',
+				'user_process',
 			)
 		datatables_always_serialize = (
                 'id',
@@ -216,7 +215,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 				'processing_status',
 				'can_user_edit',
 				'can_user_view',
-				'assessor_process',
+				'user_process',
 			)
 
 	def get_group_type(self,obj):
@@ -230,8 +229,18 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 	# 		return None
 
 	def get_community_name(self,obj):
-		if obj.community_name:
-			return obj.community_name.name
+		if obj.taxonomy:
+			return obj.taxonomy.community_name
+		return ''
+	
+	def get_community_migrated_id(self,obj):
+		if obj.taxonomy:
+			return obj.taxonomy.community_migrated_id
+		return ''
+
+	def get_community_status(self,obj):
+		if obj.taxonomy:
+			return obj.taxonomy.community_status
 		return ''
 
 	def get_conservation_list(self,obj):
@@ -268,18 +277,14 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 			return obj.district.name
 		return ''
 	
-	def get_assessor_process(self,obj):
-        # Check if currently logged in user has access to process the proposal
+	def get_user_process(self,obj):
+        # Check if currently logged in user has access to process the Species
 		request = self.context['request']
 		template_group = self.context.get('template_group')
 		user = request.user
-		# if obj.can_officer_process and template_group == 'apiary':
-		# TODO if internal user proposal then check condition that he is not able to process
-		if obj.can_officer_process:
-			if obj.assigned_officer:
-				if obj.assigned_officer == user.id:
-					return True
-			elif user in obj.allowed_assessors:
+		if obj.can_user_action:
+			#TODO user should be SystemGroup SpeciesProcessGroup?
+			if user in obj.allowed_assessors:
 				return True
 		return False
 
@@ -309,27 +314,6 @@ class TaxonomySerializer(serializers.ModelSerializer):
 				return ','.join(names_list)
 		except TaxonVernacular.DoesNotExist:
 			return ''
-
-# No need to Save Taxonomy details as readonly from NOMOS
-# class SaveTaxonomySerializer(serializers.ModelSerializer):
-# 	name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-# 	family_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-# 	genus_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-# 	phylogenetic_group_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-# 	class Meta:
-# 		model = Taxonomy
-# 		fields = (
-# 			'id',
-# 			'taxon_name_id',
-# 			'scientific_name',
-# 			'previous_name',
-# 			'family_id',
-# 			'genus_id',
-# 			'phylogenetic_group_id',
-# 			'name_authority_id',
-# 			'name_comments',
-# 			)
- 
 
 class SpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -476,8 +460,8 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 	taxonomy_details = serializers.SerializerMethodField()
 	conservation_attributes = serializers.SerializerMethodField()
 	distribution = serializers.SerializerMethodField()
-	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
 	image_doc=serializers.SerializerMethodField()
+	allowed_assessors = EmailUserSerializer(many=True)
 	
 	class Meta:
 		model = Species
@@ -486,17 +470,23 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			'species_number',
 			'group_type',
 			'taxonomy_id',
-			'region_id',
-			'district_id',
 			'conservation_status',
-			'processing_status',
-			'readonly',
-			'can_user_edit',
 			'taxonomy_details',
 			'conservation_attributes',
 			'distribution',
+			'region_id',
+			'district_id',
 			'last_data_curration_date',
 			'image_doc'
+			'processing_status',
+			'applicant',
+			'submitter',
+			'lodgement_date',
+			'readonly',
+			'can_user_edit',
+			'can_user_view',
+			'applicant_details',
+			'allowed_assessors',
 			)
 			
 	def get_readonly(self,obj):
@@ -526,9 +516,6 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			return SpeciesConservationStatusSerializer().data
 			#return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 	
-	def get_can_user_edit(self,obj):
-		return True
-
 	def get_conservation_attributes(self,obj):
 		try:
 			qs = SpeciesConservationAttributes.objects.get(species=obj)
@@ -549,9 +536,94 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			return obj.image_doc._file.url
 		return None
 
+	def get_processing_status(self,obj):
+		return obj.get_processing_status_display()
+
+
+class SpeciesSerializer(BaseSpeciesSerializer):
+    submitter = serializers.SerializerMethodField(read_only=True)
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    
+    def get_readonly(self,obj):
+        return obj.can_user_view
+
+    # Priya updated as gives error for submitter when resubmit after amendment request
+    def get_submitter(self,obj):
+        # if obj.submitter:
+        #     email_user = retrieve_email_user(obj.submitter)
+        #     return email_user.get_full_name()
+        # else:
+        #     return None
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return EmailUserSerializer(email_user).data
+        else:
+            return None
+
 
 class InternalSpeciesSerializer(BaseSpeciesSerializer):
-    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
+	submitter = serializers.SerializerMethodField(read_only=True)
+	processing_status = serializers.SerializerMethodField(read_only=True)
+	current_assessor = serializers.SerializerMethodField()
+	allowed_assessors = EmailUserSerializer(many=True)
+	user_edit_mode = serializers.SerializerMethodField()
+
+	class Meta:
+		model = Species
+		fields = (
+			'id',
+			'species_number',
+			'group_type',
+			'taxonomy_id',
+			'conservation_status',
+			'taxonomy_details',
+			'conservation_attributes',
+			'distribution',
+			'region_id',
+			'district_id',
+			'last_data_curration_date',
+			'image_doc',
+			'processing_status',
+			'readonly',
+			'can_user_edit',
+			'can_user_view',
+			'submitter',
+			'lodgement_date',
+			'current_assessor',
+			'allowed_assessors',
+			'user_edit_mode',
+			)
+
+	def get_submitter(self, obj):
+		if obj.submitter:
+			email_user = retrieve_email_user(obj.submitter)
+			return EmailUserSerializer(email_user).data
+		else:
+			return None
+
+	def get_readonly(self,obj):
+        # for internal add new conservation status change the below readonly
+        #return True
+        # Check if in 'draft' shouldn't be editable internal(if application is external) but should be editable(if internal_application)
+		if obj.can_user_edit:
+			return False
+		else:
+			return obj.can_user_view
+
+	def get_current_assessor(self, obj):
+		return {
+            "id": self.context["request"].user.id,
+            "name": self.context["request"].user.get_full_name(),
+            "email": self.context["request"].user.email,
+        }
+
+	def get_user_edit_mode(self,obj):
+		# TODO check if the proposal has been accepted or declined
+		request = self.context["request"]
+		user = (
+			request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+		)
+		return obj.has_user_edit_mode(user)
 
 
 class CommunityDistributionSerializer(serializers.ModelSerializer): 
@@ -559,6 +631,7 @@ class CommunityDistributionSerializer(serializers.ModelSerializer):
 	cal_extent_of_occurrences = serializers.SerializerMethodField() # calculated from occurence reports
 	cal_area_of_occupancy = serializers.SerializerMethodField() # calculated from occurence reports
 	cal_area_of_occupancy_actual = serializers.SerializerMethodField() # calculated from occurence reports
+
 	class Meta:
 		model = CommunityDistribution
 		fields = (
@@ -671,18 +744,31 @@ class SaveCommunityConservationAttributesSerializer(serializers.ModelSerializer)
 			'other_relevant_diseases',
 			)
 
+class CommunityTaxonomySerializer(serializers.ModelSerializer):
+	
+	class Meta:
+		model = CommunityTaxonomy
+		fields = (
+			'id',
+			'community_migrated_id',
+			'community_name',
+			'community_status',
+			'community_description',
+			'previous_name',
+			'name_authority_id',
+			'name_comments',
+			)
 
 class BaseCommunitySerializer(serializers.ModelSerializer):
 	species = serializers.SerializerMethodField()
 	group_type = serializers.SerializerMethodField(read_only=True)
+	taxonomy_details = serializers.SerializerMethodField()
 	conservation_status = serializers.SerializerMethodField()
 	distribution = serializers.SerializerMethodField()
 	conservation_attributes = serializers.SerializerMethodField()
 	readonly = serializers.SerializerMethodField(read_only=True)
-	last_data_curration_date = serializers.DateField(required=False,allow_null=True)
-	can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Species model depending on customer status
-	submitter= serializers.SerializerMethodField(read_only=True)
 	image_doc = serializers.SerializerMethodField()
+	allowed_assessors = EmailUserSerializer(many=True)
 
 	class Meta:
 		model = Community
@@ -691,27 +777,23 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
         	    'community_number',
         	    'species',
 			    'group_type',
-			    'community_migrated_id',
-			    'community_name_id',
-			    'community_description',
-			    'previous_name',
-			    'name_authority_id',
-			    'name_comments',
-			    'community_status',
+				'taxonomy_details',
 			    'region_id',
 			    'district_id',
 			    'conservation_status',
 			    'distribution',
 			    'conservation_attributes',
+			    'last_data_curration_date',
+				'image_doc',
+				'processing_status',
+				'lodgement_date',
+				'submitter',
 			    'readonly',
 			    'can_user_edit',
-			    'last_data_curration_date',
-				'submitter',
-				'lodgement_date',
-				'image_doc'
-
-                # tab field models
-                )
+				'can_user_view',
+				'applicant_details',
+				'allowed_assessors',
+				)
 
 	def get_species(self,obj):
 		return [s.id for s in obj.species.all()]
@@ -721,6 +803,15 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 	def get_group_type(self,obj):
 		return obj.group_type.name
+
+	# TODO not used on the form yet as gives error for new species as taxonomy = null 
+	def get_taxonomy_details(self,obj):
+		try:
+			if obj.taxonomy:
+				qs = obj.taxonomy
+				return CommunityTaxonomySerializer(qs).data
+		except CommunityTaxonomy.DoesNotExist:
+			return CommunityTaxonomySerializer().data
 
 	def get_conservation_status(self,obj):
 		try:
@@ -766,9 +857,95 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 			return obj.image_doc._file.url
 		return None
 
+	def get_processing_status(self,obj):
+		return obj.get_processing_status_display()
+
+
+class CommunitySerializer(BaseCommunitySerializer):
+    submitter = serializers.SerializerMethodField(read_only=True)
+    processing_status = serializers.SerializerMethodField(read_only=True)
+
+    def get_readonly(self,obj):
+        return obj.can_user_view
+
+    # Priya updated as gives error for submitter when resubmit after amendment request
+    def get_submitter(self,obj):
+        # if obj.submitter:
+        #     email_user = retrieve_email_user(obj.submitter)
+        #     return email_user.get_full_name()
+        # else:
+        #     return None
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return EmailUserSerializer(email_user).data
+        else:
+            return None
+
 
 class InternalCommunitySerializer(BaseCommunitySerializer):
-    can_user_edit = serializers.SerializerMethodField() #TODO need to add this property to Community model depending on customer status
+	submitter = serializers.SerializerMethodField(read_only=True)
+	processing_status = serializers.SerializerMethodField(read_only=True)
+	current_assessor = serializers.SerializerMethodField()
+	allowed_assessors = EmailUserSerializer(many=True)
+	user_edit_mode = serializers.SerializerMethodField()
+
+	class Meta:
+		model = Community
+		fields = (
+			'id',
+			'community_number',
+			'species',
+			'group_type',
+			'taxonomy_id',
+			'taxonomy_details',
+			'region_id',
+			'district_id',
+			'conservation_status',
+			'distribution',
+			'conservation_attributes',
+			'last_data_curration_date',
+			'image_doc',
+			'processing_status',
+			'lodgement_date',
+			'submitter',
+			'readonly',
+			'can_user_edit',
+			'can_user_view',
+			'current_assessor',
+			'allowed_assessors',
+			'user_edit_mode',
+			)
+
+	def get_submitter(self, obj):
+		if obj.submitter:
+			email_user = retrieve_email_user(obj.submitter)
+			return EmailUserSerializer(email_user).data
+		else:
+			return None
+
+	def get_readonly(self,obj):
+        # for internal add new conservation status change the below readonly
+        #return True
+        # Check if in 'draft' shouldn't be editable internal(if application is external) but should be editable(if internal_application)
+		if obj.can_user_edit:
+			return False
+		else:
+			return obj.can_user_view
+
+	def get_current_assessor(self, obj):
+		return {
+            "id": self.context["request"].user.id,
+            "name": self.context["request"].user.get_full_name(),
+            "email": self.context["request"].user.email,
+        }
+
+	def get_user_edit_mode(self,obj):
+		# TODO check if the proposal has been accepted or declined
+		request = self.context["request"]
+		user = (
+			request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+		)
+		return obj.has_user_edit_mode(user)
 
 
 
@@ -783,11 +960,12 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
 				'taxonomy_id',
 			    'region_id',
 			    'district_id',
-			    'processing_status',
 			    'last_data_curration_date',
-			    'readonly',
-			    'can_user_edit',
-			    )
+			    'submitter',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                )
         read_only_fields=('id','group_type')
 
 
@@ -804,25 +982,24 @@ class CreateSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class SaveCommunitySerializer(BaseCommunitySerializer):
-    region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-    district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-    name_authority_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-    community_name_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-    class Meta:
-        model = Community
-        fields = ('id',
+	region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	taxonomy_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	
+	class Meta:
+		model = Community
+		fields = ('id',
 			    'group_type',
-			    'community_migrated_id',
-			    'community_name_id',
-			    'community_status',
-			    'name_authority_id',
+				'taxonomy_id',
 			    'region_id',
 			    'district_id',
 			    'last_data_curration_date',
+				'submitter',
 			    'readonly',
 			    'can_user_edit',
+                'can_user_view',
 			    )
-        read_only_fields=('id','group_type')
+		read_only_fields=('id','group_type')
 
 
 class CreateCommunitySerializer(BaseCommunitySerializer):
