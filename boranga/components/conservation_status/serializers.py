@@ -146,13 +146,15 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
             )   
 
     def get_scientific_name(self,obj):
-        if obj.species.taxonomy:
-            return obj.species.taxonomy.scientific_name
+        if obj.species:
+            if obj.species.taxonomy:
+                return obj.species.taxonomy.scientific_name
         return ''
 
     def get_community_name(self,obj):
-        if obj.community.taxonomy:
-            return obj.community.taxonomy.community_name
+        if obj.community:
+            if obj.community.taxonomy:
+                return obj.community.taxonomy.community_name
         return ''
 
     def get_conservation_list(self,obj):
