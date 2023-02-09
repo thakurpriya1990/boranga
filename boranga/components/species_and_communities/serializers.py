@@ -304,7 +304,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
 			'family_id',
 			'genus_id',
 			'phylogenetic_group_id',
-			'name_authority_id',
+			'name_authority',
 			'name_comments',
 			)
 		

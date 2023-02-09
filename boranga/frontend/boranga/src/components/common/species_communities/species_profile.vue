@@ -75,11 +75,13 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Authority:</label>
                 <div class="col-sm-9">
-                    <select :disabled="true" class="form-select" v-model="name_authority_id">
+                    <!-- <select :disabled="true" class="form-select" v-model="name_authority_id">
                         <option v-for="option in name_authority_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
-                    </select>
+                    </select> -->
+                    <input :disabled="true" type="text" class="form-control" id="name_authority" placeholder="" 
+                    v-model="name_authority"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -475,7 +477,7 @@ export default {
                 phylogenetic_group_id: null,
                 family_id: null,
                 genus_id: null,
-                name_authority_id: null,
+                name_authority: null,
                 name_comments: null,
             }
         },
@@ -578,7 +580,7 @@ export default {
                           vm.phylogenetic_group_id = choice.phylogenetic_group_id;
                           vm.family_id = choice.family_id;
                           vm.genus_id = choice.genus_id;
-                          vm.name_authority_id = choice.name_authority_id;
+                          vm.name_authority = choice.name_authority;
                           vm.name_comments = choice.name_comments;
                         }
                     }

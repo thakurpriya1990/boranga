@@ -303,8 +303,9 @@ class Taxonomy(models.Model):
     phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True)
     name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
     previous_name = models.CharField(max_length=512,null=True, blank=True)
-    name_authority = models.ForeignKey(NameAuthority,
-                                       on_delete=models.CASCADE,null=True,blank=True)
+    # name_authority = models.ForeignKey(NameAuthority,
+    #                                    on_delete=models.CASCADE,null=True,blank=True)
+    name_authority = models.CharField(max_length=500,null=True, blank=True)
     name_comments = models.CharField(max_length=500,null=True, blank=True)
 
     class Meta:
