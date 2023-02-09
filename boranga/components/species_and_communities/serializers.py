@@ -297,6 +297,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
 			'id',
 			'taxon_name_id',
 			'scientific_name',
+			'kingdom_name',
 			# need to fetch common name in multiple select
 			'common_name',
 			'previous_name',

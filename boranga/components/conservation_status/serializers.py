@@ -252,8 +252,9 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         return ''
 
     def get_scientific_name(self,obj):
-        if obj.species.taxonomy:
-            return obj.species.taxonomy.scientific_name
+        if obj.species:
+            if obj.species.taxonomy:
+                return obj.species.taxonomy.scientific_name
         return ''
 
     def get_common_name(self,obj):

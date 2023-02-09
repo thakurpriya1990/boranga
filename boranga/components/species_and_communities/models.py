@@ -154,6 +154,29 @@ class GroupType(models.Model):
     def __str__(self):
         return self.get_name_display()
 
+    @property
+    def flora_kingdoms(self):
+        return Kingdom.objects.get(grouptype__name=GROUP_TYPE_FLORA).value_list('kingdom_name', flat=True)
+
+    @property
+    def fauna_kingdoms(self):
+        return Kingdom.objects.get(grouptype__name=GROUP_TYPE_FAUNA).value_list('kingdom_name', flat=True)
+
+
+class Kingdom(models.Model):
+    """
+    create GroupType related Kingdoms matching the NOMOS api kingdom name 
+    """
+    grouptype = models.ForeignKey(GroupType,on_delete = models.CASCADE, null=True, blank=True, related_name='kingdoms')
+    kingdom_id = models.CharField(max_length=100, null=True, blank=True)
+    kingdom_name = models.CharField(max_length=100, null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return self.kingdom_name
+
 
 class Contact(models.Model):
     """
@@ -272,6 +295,8 @@ class Taxonomy(models.Model):
     """
     taxon_name_id = models.IntegerField(null=True, blank=True)  # flora and fauna, name
     scientific_name = models.CharField(max_length=512,null=True, blank=True)
+    kingdom_id = models.CharField(max_length=100,null=True, blank=True)
+    kingdom_name = models.CharField(max_length=512,null=True, blank=True)
     family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True)
     genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
     # phylogenetic_group is only used for Fauna 
@@ -834,7 +859,7 @@ class Community(models.Model):
         app_label = 'boranga'
 
     def __str__(self):
-        return '{}-{}'.format(self.community_number,self.community_name)
+        return '{}'.format(self.community_number)
 
     def save(self, *args, **kwargs):
         # Prefix "C" char to community_number.
