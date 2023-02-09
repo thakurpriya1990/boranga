@@ -601,8 +601,15 @@ export default {
             if(vm.species_community.distribution.aoo_auto == true){
                 vm.species_community.distribution.area_of_occupancy=vm.species_community.distribution.cal_area_of_occupancy;
             }
-            //--------get api taxon_names
-            vm.$http.get(api_endpoints.taxonomy+'/taxon_names.json').then((response) => {
+            //--------get api taxon_names depending on flora/fauna
+            let taxon_api_url=null;
+            if(vm.isFauna){
+                taxon_api_url=api_endpoints.taxonomy+'/fauna_taxon_names.json';
+            }
+            else{
+                taxon_api_url=api_endpoints.taxonomy+'/flora_taxon_names.json';
+            }
+            vm.$http.get(taxon_api_url).then((response) => {
                 vm.taxon_names = response.body;
             });
             //------fetch list of values

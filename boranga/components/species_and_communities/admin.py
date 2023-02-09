@@ -12,6 +12,7 @@ from boranga.components.species_and_communities.models import (
     Family,
     PhylogeneticGroup,
     Genus,
+    Kingdom,
     )
 
 
@@ -42,3 +43,4 @@ admin.site.register(ThreatCategory)
 admin.site.register(Family)
 admin.site.register(PhylogeneticGroup)
 admin.site.register(Genus)
+admin.site.register(Kingdom)

@@ -29,6 +29,7 @@ from boranga.components.main.related_item import RelatedItemsSerializer
 
 from boranga.components.species_and_communities.models import (
     GroupType,
+    Kingdom,
     Species,
     TaxonVernacular,
     ScientificName,
@@ -321,6 +322,22 @@ class TaxonomyViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET',], detail=False)
     def taxon_names(self, request, *args, **kwargs):
         qs = self.get_queryset()
+        serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['GET',], detail=False)
+    def flora_taxon_names(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        flora_kingdoms=Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FLORA).values_list('kingdom_id', flat=True)
+        qs=qs.filter(kingdom_id__in=flora_kingdoms)
+        serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
+        return Response(serializer.data)
+    
+    @list_route(methods=['GET',], detail=False)
+    def fauna_taxon_names(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        fauna_kingdoms=Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FAUNA).values_list('kingdom_id', flat=True)
+        qs=qs.filter(kingdom_id__in=fauna_kingdoms)
         serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
         return Response(serializer.data)
 

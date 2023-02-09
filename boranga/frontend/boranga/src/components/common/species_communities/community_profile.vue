@@ -66,7 +66,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Authority:</label>
                 <div class="col-sm-9">
-                    <select :disabled="species_community.readonly" class="form-select" id="community_name_authority"
+                    <select :disabled="true" class="form-select" id="community_name_authority"
                         v-model="name_authority_id">
                         <option v-for="option in name_authority_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            

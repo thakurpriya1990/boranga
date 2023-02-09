@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
 import requests
-from boranga.components.species_and_communities.models import Taxonomy, TaxonVernacular
+from boranga.components.species_and_communities.models import Kingdom
 
 
 import itertools
@@ -53,22 +53,17 @@ class Command(BaseCommand):
                 #     logger.error('{}\n{}'.format(err_msg, str(e)))
                 #     errors.append(err_msg)
 
-                taxon_url='https://wagyl.bio.wa.gov.au/api/v1/taxon_names'
-                taxon_res=requests.get(taxon_url, headers={'Authorization': token})
-                tres=taxon_res.json()
-                #logger.info('Taxon data:{} '.format(tres))
+                kingdom_url='https://wagyl.bio.wa.gov.au/api/v1/kingdoms'
+                kingdom_res=requests.get(kingdom_url, headers={'Authorization': token})
+                tres=kingdom_res.json()
                 try:
                     for t in tres:
-                        obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t['taxon_name_id'], defaults={'scientific_name' : t['scientific_name'], 'kingdom_id' : t['kingdom_id'], 'kingdom_name' : t['kingdom']['kingdom_name']})
+                        obj, created=Kingdom.objects.update_or_create(kingdom_id=t['kingdom_id'], defaults={'kingdom_name' : t['kingdom_name']})
                         #logger.info('Taxon {}'.format(obj.scientific_name))
                         updates.append(obj.id)
                         
-                        # if created:
-                        #     #spc, spc_created= Species.objects.update_or_create(taxonomy_id=obj.id)
-                        #     tax_ver, tax_ver_created=TaxonVernacular.objects.update_or_create(taxonomy_id=obj.id, defaults={'taxon_name_id' : obj.taxon_name_id})
-                        #     logger.info('TaxonVernacular {}'.format(tax_ver))
                 except Exception as e:
-                    err_msg = 'Create taxon:'
+                    err_msg = 'Create kingdom:'
                     logger.error('{}\n{}'.format(err_msg, str(e)))
                     errors.append(err_msg)
 
