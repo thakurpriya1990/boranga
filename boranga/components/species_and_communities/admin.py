@@ -2,6 +2,7 @@ from django.contrib.gis import admin
 from import_export.admin import ImportExportMixin
 from django.db.models import Q
 from boranga.components.species_and_communities.models import (
+    GroupType,
     District, 
     DocumentCategory, 
     NameAuthority, 
@@ -34,6 +35,7 @@ class DocumentSubCategoryAdmin(admin.ModelAdmin):
     list_display = ['document_sub_category_name', 'document_category']
 
 # Each of the following models will be available to Django Admin.
+admin.site.register(GroupType)
 admin.site.register(Region)
 admin.site.register(District)
 admin.site.register(NameAuthority)

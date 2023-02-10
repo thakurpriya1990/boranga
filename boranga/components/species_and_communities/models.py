@@ -314,6 +314,15 @@ class Taxonomy(models.Model):
     def __str__(self):
         return str(self.scientific_name)  # TODO: is the most appropriate?
 
+    @property
+    def taxon_previous_name(self):
+        if self.new_taxon.all():
+            # cross_ref = CrossReference.objects.get(new_taxonomy_id=self.id)
+            # return cross_ref.old_taxonomy.scientific_name
+            # if taxon has more than one previous names
+            previous_names_list=self.new_taxon.all().values_list('old_taxonomy__scientific_name', flat=True)
+            return ','.join(previous_names_list)
+
 
 class TaxonVernacular(models.Model):
     """
@@ -331,6 +340,24 @@ class TaxonVernacular(models.Model):
 
     def __str__(self):
         return str(self.vernacular_name)  # TODO: is the most appropriate?
+
+
+class CrossReference(models.Model):
+    """
+    Previous Name(old name) of taxon which is also derived from taxon
+    """
+    cross_reference_id = models.IntegerField(null=True, blank=True)
+    cross_reference_type = models.CharField(max_length=512,null=True, blank=True)
+    old_name_id = models.IntegerField(null=True, blank=True)
+    new_name_id = models.IntegerField(null=True, blank=True)
+    old_taxonomy = models.ForeignKey(Taxonomy, on_delete=models.CASCADE, null=True, related_name="old_taxon")
+    new_taxonomy = models.ForeignKey(Taxonomy, on_delete=models.CASCADE, null=True, related_name="new_taxon")
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.cross_reference_id)  # TODO: is the most appropriate?
 
 
 class Species(models.Model):

@@ -39,7 +39,7 @@
                 <label for="" class="col-sm-3 control-label">Previous Name:</label>
                 <div class="col-sm-9">
                     <input :disabled="true" type="text" class="form-control" id="previous_name" placeholder="" 
-                    v-model="previous_name"/>
+                    v-model="taxon_previous_name"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -473,7 +473,7 @@ export default {
                 species_display: '',
                 common_name: null,
                 taxon_name_id: null,
-                previous_name:null,
+                taxon_previous_name:null,
                 phylogenetic_group_id: null,
                 family_id: null,
                 genus_id: null,
@@ -576,7 +576,7 @@ export default {
                           vm.species_display = choice.scientific_name;
                           vm.common_name = choice.common_name;
                           vm.taxon_name_id = choice.taxon_name_id;
-                          vm.previous_name = choice.previous_name;
+                          vm.taxon_previous_name = choice.taxon_previous_name;
                           vm.phylogenetic_group_id = choice.phylogenetic_group_id;
                           vm.family_id = choice.family_id;
                           vm.genus_id = choice.genus_id;
