@@ -1,6 +1,7 @@
 import datetime
 import logging
 from django.db import models
+from django.db.models import Q
 from boranga.components.main.models import (
     CommunicationsLogEntry, 
     UserAction,
@@ -320,7 +321,9 @@ class Taxonomy(models.Model):
             # cross_ref = CrossReference.objects.get(new_taxonomy_id=self.id)
             # return cross_ref.old_taxonomy.scientific_name
             # if taxon has more than one previous names
-            previous_names_list=self.new_taxon.all().values_list('old_taxonomy__scientific_name', flat=True)
+            # previous_names_list=self.new_taxon.all().values_list('old_taxonomy__scientific_name', flat=True)
+            # commented the above as gives None scientific_name if there is no old_taxon instance in Taxonomy api data
+            previous_names_list = CrossReference.objects.filter(~Q(old_taxonomy__scientific_name=None), new_taxonomy=self.id).values_list('old_taxonomy__scientific_name', flat=True)
             return ','.join(previous_names_list)
 
 

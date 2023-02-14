@@ -62,7 +62,7 @@ class Command(BaseCommand):
                         author = t['author'] if 'author' in t else ''
                         notes = t['notes'] if 'notes' in t else ''
                         
-                        obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t['taxon_name_id'], defaults={'scientific_name' : t['scientific_name'],
+                        obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t['taxon_name_id'], defaults={'scientific_name' : t['canonical_name'],
                                                                                                             'kingdom_id' : t['kingdom_id'],
                                                                                                             'kingdom_name' : t['kingdom']['kingdom_name'],
                                                                                                             'name_authority' : author,
