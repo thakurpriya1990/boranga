@@ -32,7 +32,7 @@ class Command(BaseCommand):
         'scope': 'READER',
         'username': username,
         'password': passwd }]
-        logger.info('username: {} Password: {}'.format(username, passwd))
+        # logger.info('username: {} Password: {}'.format(username, passwd))
 
         try:
             res=requests.post(my_url, data=data1[0])
