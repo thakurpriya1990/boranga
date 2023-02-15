@@ -354,7 +354,7 @@ class GetSpeciesProfileDict(views.APIView):
                     'family_id': taxon.family_id,
                     'phylogenetic_group_id': taxon.phylogenetic_group_id,
                     'genus_id': taxon.genus_id,
-                    'name_authority_id': taxon.name_authority_id,
+                    'name_authority': taxon.name_authority,
                     'name_comments': taxon.name_comments,
                     });
         name_authority_list = []

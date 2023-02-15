@@ -149,6 +149,7 @@ class GetCSProfileDict(views.APIView):
                     species_list.append({
                         'id': specimen.id,
                         'name':specimen.taxonomy.scientific_name,
+                        'taxon_previous_name':specimen.taxonomy.taxon_previous_name,
                         });
         community_list = []
         communities = Community.objects.all()

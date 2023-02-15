@@ -77,7 +77,7 @@
                 <label for="" class="col-sm-4 control-label">Previous Name:</label>
                 <div class="col-sm-8">
                     <input readonly type="text" class="form-control" id="previous_name" placeholder="" 
-                    v-model="conservation_status_obj.previous_name"/>
+                    v-model="taxon_previous_name"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -207,6 +207,7 @@ export default {
                 referral_comments_boxes: [],
                 // to display the species selected 
                 species_display: '',
+                taxon_previous_name:'',
                 //---Comment box attributes
 
                 deficiency_readonly : !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? false : true,
@@ -266,6 +267,7 @@ export default {
                         if(choice.id === this.conservation_status_obj.species_id)
                         {
                           this.species_display = choice.name;
+                          this.taxon_previous_name = choice.taxon_previous_name;
                         }
                     }
             },

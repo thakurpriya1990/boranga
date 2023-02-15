@@ -530,7 +530,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     conservation_criteria = serializers.SerializerMethodField()
-    previous_name = serializers.SerializerMethodField()
     allowed_assessors = EmailUserSerializer(many=True)
 
     class Meta:
@@ -539,7 +538,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
                 'id',
                 'group_type',
                 'species_id',
-                'previous_name',
                 'community_id',
                 'conservation_status_number',
                 'conservation_list_id',
@@ -580,15 +578,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_conservation_criteria(self,obj):
         return [c.id for c in obj.conservation_criteria.all()]
-
-    def get_previous_name(self,obj):
-        try:
-            if obj.species:
-                taxonomy = Taxonomy.objects.get(species=obj.species)
-                if taxonomy.previous_name:
-                    return taxonomy.previous_name
-        except Taxonomy.DoesNotExist:
-            return ''
 
     def get_processing_status(self,obj):
         return obj.get_processing_status_display()
@@ -697,7 +686,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 'id',
                 'group_type',
                 'species_id',
-                'previous_name',
                 'community_id',
                 'conservation_status_number',
                 'conservation_list_id',
@@ -835,7 +823,6 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
                 'id',
                 'group_type',
                 'species_id',
-                'previous_name',
                 'conservation_status_number',
                 'conservation_list_id',
                 'conservation_category_id',

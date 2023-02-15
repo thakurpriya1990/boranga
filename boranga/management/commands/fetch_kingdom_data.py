@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Fetch nomos data'
+    help = 'Fetch Kingdom data'
 
     def handle(self, *args, **options):
         #logger.info('Running command {}')
