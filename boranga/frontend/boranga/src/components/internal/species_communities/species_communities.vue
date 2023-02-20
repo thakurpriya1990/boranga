@@ -509,21 +509,21 @@ export default {
         },
         splitSpecies: async function(){
             this.$refs.species_split.species_community_original = this.species_community;
-            let newSpeciesId1 = 867
+            let newSpeciesId1 = null
             try {
                 const createUrl = api_endpoints.species+"/";
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                // let savedSpecies = await Vue.http.post(createUrl, payload);
-                // if (savedSpecies) {
-                    //newSpeciesId1 = savedSpecies.body.id;
+                let savedSpecies = await Vue.http.post(createUrl, payload);
+                if (savedSpecies) {
+                    newSpeciesId1 = savedSpecies.body.id;
                     Vue.http.get(`/api/species/${newSpeciesId1}/internal_species.json`).then(res => {
                         this.$refs.species_split.new_species_list.push(res.body.species_obj); //--temp species_obj
                     },
                     err => {
                     console.log(err);
                     });
-                //}
+                }
             }
             catch (err) {
                 console.log(err);
@@ -531,21 +531,21 @@ export default {
                     return err;
                 }
             }
-            let newSpeciesId2 = 868
+            let newSpeciesId2 = null
             try {
                 const createUrl = api_endpoints.species+"/";
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id
-                // let savedSpecies = await Vue.http.post(createUrl, payload);
-                // if (savedSpecies) {
-                //     newSpeciesId2 = savedSpecies.body.id;
+                let savedSpecies = await Vue.http.post(createUrl, payload);
+                if (savedSpecies) {
+                    newSpeciesId2 = savedSpecies.body.id;
                     Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
                         this.$refs.species_split.new_species_list.push(res.body.species_obj); //--temp species_obj
                     },
                     err => {
                     console.log(err);
                     });
-                // }
+                }
             }
             catch (err) {
                 console.log(err);
