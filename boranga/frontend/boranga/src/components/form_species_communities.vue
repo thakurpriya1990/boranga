@@ -8,9 +8,9 @@
                     class="nav-link" 
                     id="pills-profile-tab" 
                     data-bs-toggle="pill" 
-                    href="#pills-profile" 
+                    :href="'#' + profileBody" 
                     role="tab" 
-                    aria-controls="pills-profile" 
+                    :aria-controls="profileBody" 
                     aria-selected="true">
                   Profile
                 </a>
@@ -20,10 +20,10 @@
                     class="nav-link" 
                     id="pills-documents-tab" 
                     data-bs-toggle="pill" 
-                    href="#pills-documents" 
+                    :href="'#' + documentBody" 
                     role="tab" 
                     aria-controls="pills-documents" 
-                    aria-selected="false"
+                    :aria-selected="documentBody"
                     @click="tabClicked()">
                   Documents
                 </a>
@@ -33,9 +33,9 @@
                     class="nav-link" 
                     id="pills-threats-tab" 
                     data-bs-toggle="pill" 
-                    href="#pills-threats" 
+                    :href="'#' + threatBody " 
                     role="tab" 
-                    aria-controls="pills-threats" 
+                    :aria-controls="threatBody" 
                     aria-selected="false"
                     @click="tabClicked()">
                   Threats
@@ -46,9 +46,9 @@
                     class="nav-link" 
                     id="pills-related-items-tab" 
                     data-bs-toggle="pill" 
-                    href="#pills-related-items" 
+                    :href="'#' + relatedItemBody" 
                     role="tab" 
-                    aria-controls="pills-related-items" 
+                    :aria-controls="relatedItemBody" 
                     aria-selected="false"
                     @click="tabClicked()">
                   Related Items
@@ -56,7 +56,7 @@
               </li>
             </ul>
             <div class="tab-content" id="pills-tabContent">
-              <div class="tab-pane fade show active" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+              <div class="tab-pane fade show active" :id="profileBody" role="tabpanel" aria-labelledby="pills-profile-tab">
                 <Community
                     v-if="isCommunity"  
                     ref="community_information" 
@@ -72,7 +72,7 @@
                     :species_community="species_community">
                 </Species>
               </div>
-              <div class="tab-pane fade" id="pills-documents" role="tabpanel" aria-labelledby="pills-documents-tab">
+              <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
                 <CommunityDocuments 
                     v-if="isCommunity"
                     :key="reloadcount"
@@ -90,7 +90,7 @@
                     :species_community="species_community">
                 </SpeciesDocuments>
               </div>
-              <div class="tab-pane fade" id="pills-threats" role="tabpanel" aria-labelledby="pills-threats-tab">
+              <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
                 <CommunityThreats 
                     v-if="isCommunity"
                     :key="reloadcount"
@@ -108,7 +108,7 @@
                     :species_community="species_community">
                 </SpeciesThreats>
               </div>
-              <div class="tab-pane fade" id="pills-related-items" role="tabpanel" aria-labelledby="pills-related-items-tab">
+              <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems 
                     :key="reloadcount"
                     ref="species_communities_related_items" 
@@ -147,7 +147,12 @@
             },
         },
         data:function () {
+            let vm = this;
             return{
+                profileBody: 'profileBody' + vm._uid,
+                documentBody: 'documentBody' + vm._uid,
+                threatBody: 'threatBody' + vm._uid,
+                relatedItemBody: 'relatedItemBody' + vm._uid,
                 values:null,
                 reloadcount:0,
             }
