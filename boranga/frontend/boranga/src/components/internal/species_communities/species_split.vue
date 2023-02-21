@@ -19,23 +19,26 @@
                                             :aria-controls="originalBody" 
                                             aria-selected="true">
                                             <!-- @click="tabClicked()"> -->
-                                        Original
+                                        Original {{ this.species_community_original?this.species_community_original.species_number:'' }}
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    <!-- <li v-for="(species, index) in new_species_list" :key="'li' + species.id" class="nav-item" role="tablist">
+                                        <button :class="0==index ? 'nav-link':'nav-link'" aria-current="page" href="#" data-bs-toggle="tab" :data-bs-target="'#nav-' + index" role="tab">{{ species.name }} Test</button>
+                                    </li> -->
+                                    <li class="nav-item" v-for="(species, index) in new_species_list" :key="'li' + species.id" >
                                         <a 
                                             class="nav-link" 
                                             id="pills-species1-tab" 
                                             data-bs-toggle="pill" 
-                                            :href="'#' + species1Body" 
+                                            :href="'#species-body-' + index" 
                                             role="tab" 
-                                            :aria-controls="species1Body" 
+                                            :aria-controls="'species-body-' + index" 
                                             aria-selected="false">
                                             <!-- @click="tabClicked()"> -->
-                                        Species 1
-                                        </a><span>x</span>
+                                        {{ species. species_number}}
+                                        </a><span :id=index>x</span>
                                     </li>
-                                    <li class="nav-item">
+                                    <!-- <li class="nav-item">
                                         <a 
                                             class="nav-link" 
                                             id="pills-species2-tab" 
@@ -44,11 +47,10 @@
                                             role="tab" 
                                             :aria-controls="species2Body" 
                                             aria-selected="false">
-                                            <!-- @click="tabClicked()"> -->
                                         Species 2
                                         </a>
                                         <span>x</span>
-                                    </li>
+                                    </li> -->
                                     <li>
                                         <a href="#" id="btnAdd"><i class="icon-plus-sign-alt"></i>Add</a>
                                     </li>
@@ -62,22 +64,22 @@
                                             :is_internal="true">
                                         </SpeciesCommunitiesComponent>
                                     </div>
-                                    <div class="tab-pane fade" :id="species1Body" role="tabpanel" aria-labelledby="pills-species1-tab">
-                                        <SpeciesCommunitiesComponent v-if="new_species_list[0]!=null"
-                                            ref="species_communities_species1" 
-                                            :species_community.sync="new_species_list[0]" 
-                                            id="species_one" 
+                                    <div v-for="(species, index) in new_species_list" :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index" role="tabpanel"  :aria-labelledby="'pills-species' + index + '-tab'" > <!-- :id="species1Body" aria-labelledby="pills-species1-tab" -->
+                                        <SpeciesCommunitiesComponent
+                                            :ref="'species_communities_species' + index" 
+                                            :species_community.sync="species" 
+                                            :id="'species-'+ index" 
                                             :is_internal="true">
                                         </SpeciesCommunitiesComponent>
                                     </div>
-                                    <div class="tab-pane fade" :id="species2Body" role="tabpanel" aria-labelledby="pills-species2-tab">
+                                    <!-- <div class="tab-pane fade" :id="species2Body" role="tabpanel" aria-labelledby="pills-species2-tab">
                                         <SpeciesCommunitiesComponent v-if="new_species_list[1]!=null"
                                             ref="species_communities_species2" 
                                             :species_community.sync="new_species_list[1]" 
                                             id="species_two" 
                                             :is_internal="true">
                                         </SpeciesCommunitiesComponent>
-                                    </div>
+                                    </div> -->
                                 </div>
                             </div>
                         </div>
@@ -129,9 +131,6 @@ export default {
             species2Body: 'species2Body' + vm._uid,
             species_community_original:null,
             isModalOpen:false,
-            reloadcount:0,
-            reloadcount1:1,
-            reloadcount2:2,
             new_species_list:[],
             form:null,
             errors: false,
@@ -153,26 +152,10 @@ export default {
     },
     methods:{
         //----function to resolve datatable exceeding beyond the div
-        createTabs: function(){
+        createTab: function(){
             let vm=this;
-            console.log(this.new_species_list.length);
-            for(let i=0; i<=this.new_species_list.length; i++){
-                console.log("loop"+i)
-                var nextTab = $('#split_pills-tab li').length+1;
-                console.log(nextTab)
-                let speciesBody= 'speciesBody'+ nextTab + vm._uid;
-                // create the tab
-                $('<li class="nav-item"><a class="nav-link" id="pills-species'+ nextTab +'-tab" data-bs-toggle="pill" :href="#'+speciesBody+'" role="tab" aria-controls="'+speciesBody+'" aria-selected="true"> Species '+nextTab+'</a></li>').appendTo('#split_pills-tab');
-
-                // create the tab content
-                $('<div class="tab-pane fade" :id="'+speciesBody+'" role="tabpanel" aria-labelledby="pills-species'+ nextTab +'-tab"></div>').appendTo('.tab-content');
-                // <SpeciesCommunitiesComponent ref="species_communities_species'+ nextTab+' :species_community.sync='+vm.new_species_list[i]+' id="species'+ nextTab+' :is_internal="true"></SpeciesCommunitiesComponent> 
-
-                // make the new tab active
-                // $('#tabs a:last').tab('show');
-
-            }
-
+            // TODO create new species and then add the instance onject to the array
+            vm.new_species_list.push(vm.new_species_list[0]);
         },
         tabClicked: function(){
         },
@@ -194,37 +177,80 @@ export default {
         sendData:function(){
              let vm = this;
         },
+        discardSpecies:function (species_id) {
+            let vm = this;
+            try{
+                vm.$http.delete(api_endpoints.discard_species_proposal(species_id));
+            }
+            catch (err) {
+                console.log(err);
+                if (this.is_internal) {
+                    return err;
+                }
+            }
+            // swal({
+            //     title: "Discard Application",
+            //     text: "Are you sure you want to discard this species?",
+            //     type: "warning",
+            //     showCancelButton: true,
+            //     confirmButtonText: 'Discard Species',
+            //     confirmButtonColor:'#d9534f'
+            // }).then(() => {
+            //     vm.$http.delete(api_endpoints.discard_species_proposal(species_id))
+            //     .then((response) => {
+            //         swal(
+            //             'Discarded',
+            //             'The Species has been discarded',
+            //             'success'
+            //         )
+            //         vm.$refs.flora_datatable.vmDataTable.ajax.reload();
+            //     }, (error) => {
+            //         console.log(error);
+            //     });
+            // },(error) => {
+
+            // });
+        },
         eventListeners:function () {
             let vm = this;
             $(".nav-pills").on("click", "span", function () {
-                var anchor = $(this).siblings('a');
-                $(anchor.attr('href')).remove();
-                $(this).parent().remove();
-                $(".nav-pills li").children('a').first().click();
+                let species_obj= vm.new_species_list[$(this).attr('id')];
+                vm.discardSpecies(species_obj.id);
+                vm.new_species_list.splice($(this).attr('id'),1);
+
+
+                // var anchor = $(this).siblings('a');
+                // $(anchor.attr('href')).remove();
+                // $(this).parent().remove();
+                // $(".nav-pills li").children('a').first().click();
             });
 
             $('#btnAdd').click(function (e) {
-                var nextTab = $('#split_pills-tab li').length+1;
-                console.log(vm.new_species_list[0])
-                let speciesBody= 'speciesBody'+ nextTab + vm._uid;
-                // create the tab
-                $('<li class="nav-item"><a class="nav-link" id="pills-species'+ nextTab +'-tab" data-bs-toggle="pill" :href="#'+speciesBody+'" role="tab" aria-controls="'+speciesBody+'" aria-selected="true"> Species '+nextTab+'</a></li>').appendTo('#split_pills-tab');
-                let i=0;
-                // create the tab content
-                $('<div class="tab-pane fade" :id="'+speciesBody+'" role="tabpanel" aria-labelledby="pills-species'+ nextTab +'-tab"></div>').appendTo('.tab-content');
-
-                let species_data_app = createApp(SpeciesCommunitiesComponent, {
-                        // props
-                        ref: 'species_communities_species'+ nextTab,
-                        species_community: vm.new_species_list[0],
-                        id: 'species'+ nextTab,
-                        is_internal: true,
-                    })
-                
-                species_data_app.mount('#' + speciesBody)
-
-                // <SpeciesCommunitiesComponent ref="species_communities_species'+ nextTab+' :species_community.sync='+vm.new_species_list[i]+' id="species'+ nextTab+' :is_internal="true"></SpeciesCommunitiesComponent> 
-
+                //vm.createTab();
+                let newSpeciesId = 925
+                try {
+                    const createUrl = api_endpoints.species+"/";
+                    let payload = new Object();
+                    payload.group_type_id = vm.species_community_original.group_type_id;
+                    // Vue.http.post(createUrl, payload).then(resp => {
+                    //     newSpeciesId = resp.body.id;
+                        Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
+                            vm.new_species_list.push(res.body.species_obj); //--temp species_obj
+                        },
+                        err => {
+                        console.log(err);
+                        });
+                    // }, (error) => {
+                    //  console.log(error);
+                    // });
+                }
+                catch (err) {
+                    console.log(err);
+                    if (this.is_internal) {
+                        return err;
+                    }
+                }
+                //$('.nav-pills a:last').show();
             });
                     
         },
@@ -234,14 +260,12 @@ export default {
         vm.form = document.forms.splitSpeciesForm;
         //vm.addFormValidations();
         this.$nextTick(()=>{
-            //vm.createTabs();
             vm.eventListeners();
         });
    },
    created:function() {
         let vm = this;
         this.$nextTick(()=>{
-            //vm.createTabs();
         });
    }
 }
