@@ -816,11 +816,75 @@ class SpeciesViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
+    def species_split_save(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object() 
+                request_data = request.data
+                if request_data['submitter']:
+                    request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
+                if(request_data.get('distribution')):
+                    distribution_instance, created = SpeciesDistribution.objects.get_or_create(species=instance)
+                    serializer = SpeciesDistributionSerializer(distribution_instance, data = request_data.get('distribution'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('conservation_attributes')):
+                    conservation_attributes_instance, created = SpeciesConservationAttributes.objects.get_or_create(species=instance)
+                    serializer = SaveSpeciesConservationAttributesSerializer(conservation_attributes_instance, data = request_data.get('conservation_attributes'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+
+                serializer = SaveSpeciesSerializer(instance, data = request_data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    saved_instance = serializer.save()
+
+                    instance.log_user_action(SpeciesUserAction.ACTION_SAVE_SPECIES.format(instance.species_number), request)
+
+            return redirect(reverse('internal'))
+        
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             #instance.submit(request,self)
             species_form_submit(instance, request)
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            # return redirect(reverse('internal'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def species_split_submit(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.processing_status = 'historical'
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)

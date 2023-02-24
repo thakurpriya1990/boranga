@@ -14,6 +14,13 @@ from boranga.components.species_and_communities.models import (
     PhylogeneticGroup,
     Genus,
     Kingdom,
+    FloweringPeriod,
+    FruitingPeriod,
+    FloraRecruitmentType,
+    SeedViabilityGerminationInfo,
+    RootMorphology,
+    PollinatorInformation,
+    PostFireHabitatInteraction,
     )
 
 
@@ -46,3 +53,10 @@ admin.site.register(Family)
 admin.site.register(PhylogeneticGroup)
 admin.site.register(Genus)
 admin.site.register(Kingdom)
+admin.site.register(FloweringPeriod)
+admin.site.register(FruitingPeriod)
+admin.site.register(FloraRecruitmentType)
+admin.site.register(SeedViabilityGerminationInfo)
+admin.site.register(RootMorphology)
+admin.site.register(PollinatorInformation)
+admin.site.register(PostFireHabitatInteraction)

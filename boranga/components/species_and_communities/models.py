@@ -414,6 +414,7 @@ class Species(models.Model):
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
+    parent_species = models.ForeignKey('self', on_delete=models.CASCADE, null = True, blank=True, related_name='parent')
     
     class Meta:
         app_label = 'boranga'

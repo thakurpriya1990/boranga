@@ -28,7 +28,7 @@
                                     <li class="nav-item" v-for="(species, index) in new_species_list" :key="'li' + species.id" >
                                         <a 
                                             class="nav-link" 
-                                            id="pills-species1-tab" 
+                                            :id="'pills-species-' + index + '-tab'" 
                                             data-bs-toggle="pill" 
                                             :href="'#species-body-' + index" 
                                             role="tab" 
@@ -65,12 +65,13 @@
                                         </SpeciesCommunitiesComponent>
                                     </div>
                                     <div v-for="(species, index) in new_species_list" :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index" role="tabpanel"  :aria-labelledby="'pills-species' + index + '-tab'" > <!-- :id="species1Body" aria-labelledby="pills-species1-tab" -->
-                                        <SpeciesCommunitiesComponent
+                                        <SpeciesSplitForm
                                             :ref="'species_communities_species' + index" 
-                                            :species_community.sync="species" 
+                                            :species_community.sync="species"
+                                            :species_original="species_community_original" 
                                             :id="'species-'+ index" 
                                             :is_internal="true">
-                                        </SpeciesCommunitiesComponent>
+                                        </SpeciesSplitForm>
                                     </div>
                                     <!-- <div class="tab-pane fade" :id="species2Body" role="tabpanel" aria-labelledby="pills-species2-tab">
                                         <SpeciesCommunitiesComponent v-if="new_species_list[1]!=null"
@@ -88,8 +89,9 @@
             </div>
 
             <div slot="footer">
-                <!-- <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button> -->
-                <button type="button" class="btn btn-default" @click="ok">Submit</button>
+                <!-- <button type="button" class="btn btn-default" @click="ok">Submit</button> -->
+                <button v-if="submitSpeciesSplit" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                <button v-else class="btn btn-default" @click.prevent="ok()" :disabled="submitSpeciesSplit">Submit</button>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
             </div>
         </modal>
@@ -104,6 +106,7 @@ import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import FileField2 from '@/components/forms/filefield2.vue'
 import SpeciesCommunitiesComponent from '@/components/form_species_communities.vue'
+import SpeciesSplitForm from '@/components/form_species_split.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
 export default {
     name:'SpeciesSplit',
@@ -112,6 +115,7 @@ export default {
         alert,
         FileField2,
         SpeciesCommunitiesComponent,
+        SpeciesSplitForm,
     },
     props:{
         species_community: {
@@ -130,6 +134,7 @@ export default {
             species1Body: 'species1Body' + vm._uid,
             species2Body: 'species2Body' + vm._uid,
             species_community_original:null,
+            submitSpeciesSplit:false,
             isModalOpen:false,
             new_species_list:[],
             form:null,
@@ -148,6 +153,10 @@ export default {
         title: function(){
             //return this.processing_status == 'With Approver' ? 'Approve Conservation Status' : 'Propose to approve Conservation Status';
             return this.species_community_original!=null? 'Split Species '+this.species_community_original.species_number : 'Split Species';
+        },
+        species_split_form_url: function() {
+            var vm = this;
+            return `/api/species/${vm.species_community_original.id}/species_split_save.json`;
         },
     },
     methods:{
@@ -170,12 +179,107 @@ export default {
             this.close()
         },
         close:function () {
+            // let vm =this;
+            // for(var i=0 ; i<= vm.new_species_list.length; i++ )
+            // {
+            //     vm.discardSpecies(vm.new_species_list[i].id);
+            // }
+            // vm.new_species_list=null;
             this.isModalOpen = false;
             //this.approval = {};
             this.errors = false;
         },
-        sendData:function(){
-             let vm = this;
+        save_before_submit: async function(new_species) {
+            //console.log('save before submit');
+            let vm = this;
+            vm.saveError=false;
+
+            let payload = new Object();
+            Object.assign(payload, new_species);
+            const result = await vm.$http.post(`/api/species/${new_species.id}/species_split_save.json`,payload).then(res=>{
+                //return true;
+            },err=>{
+                        var errorText=helpers.apiVueResourceError(err); 
+                        swal(
+                                'Submit Error',
+                                //helpers.apiVueResourceError(err),
+                                errorText,
+                                'error'
+                            )
+                        vm.submitSpeciesSplit=false;
+                        vm.saveError=true;
+                //return false;
+            });
+            return result;
+        },
+        sendData:async function(){
+            let vm = this;
+
+            // var missing_data= vm.can_submit();
+            // if(missing_data!=true){
+            //     swal({
+            //         title: "Please fix following errors before submitting",
+            //         text: missing_data,
+            //         type:'error'
+            //     })
+            //     //vm.paySubmitting=false;
+            //     return false;
+            // }
+            
+            vm.submitSpeciesSplit=true;
+            swal({
+                title: "Submit",
+                text: "Are you sure you want to submit this Species Spit?",
+                type: "question",
+                showCancelButton: true,
+                confirmButtonText: "submit"
+            }).then(async () => {
+                console.log(vm.new_species_list.length);
+                for (let index=0 ; index<vm.new_species_list.length; index++){
+                    let new_species = vm.new_species_list[index]
+                    console.log(index+'---------------'+new_species);
+                    let result = await vm.save_before_submit(new_species);
+                    if(!vm.saveError){
+                        let payload = new Object();
+                        Object.assign(payload, new_species);
+                        let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/submit')
+                        vm.$http.post(submit_url,payload).then(res=>{
+                            vm.new_species = res.body;
+                            // vm.$router.push({
+                            //     name: 'internal-species-communities-dash'
+                            // });
+                        },err=>{
+                            swal(
+                                'Submit Error',
+                                helpers.apiVueResourceError(err),
+                                'error'
+                            )
+                        });
+                    }
+                }
+
+                //------set original species to historical
+                let payload = new Object();
+                Object.assign(payload, vm.species_community_original);
+                let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/species_split_submit')
+                vm.$http.post(submit_url,payload).then(res=>{
+                    vm.species_community_original = res.body;
+                    // TODO Not sure where it should go after the split process
+                    vm.$router.push({
+                        name: 'internal-species-communities-dash'
+                    });
+                },err=>{
+                    swal(
+                        'Submit Error',
+                        helpers.apiVueResourceError(err),
+                        'error'
+                    )
+                });
+                
+            },(error) => {
+                vm.submitSpeciesSplit=false;
+            });
+
         },
         discardSpecies:function (species_id) {
             let vm = this;
@@ -188,28 +292,6 @@ export default {
                     return err;
                 }
             }
-            // swal({
-            //     title: "Discard Application",
-            //     text: "Are you sure you want to discard this species?",
-            //     type: "warning",
-            //     showCancelButton: true,
-            //     confirmButtonText: 'Discard Species',
-            //     confirmButtonColor:'#d9534f'
-            // }).then(() => {
-            //     vm.$http.delete(api_endpoints.discard_species_proposal(species_id))
-            //     .then((response) => {
-            //         swal(
-            //             'Discarded',
-            //             'The Species has been discarded',
-            //             'success'
-            //         )
-            //         vm.$refs.flora_datatable.vmDataTable.ajax.reload();
-            //     }, (error) => {
-            //         console.log(error);
-            //     });
-            // },(error) => {
-
-            // });
         },
         eventListeners:function () {
             let vm = this;
@@ -227,22 +309,23 @@ export default {
 
             $('#btnAdd').click(function (e) {
                 //vm.createTab();
-                let newSpeciesId = 925
+                let newSpeciesId = null
                 try {
                     const createUrl = api_endpoints.species+"/";
                     let payload = new Object();
                     payload.group_type_id = vm.species_community_original.group_type_id;
-                    // Vue.http.post(createUrl, payload).then(resp => {
-                    //     newSpeciesId = resp.body.id;
+                    payload.parent_species_id = vm.species_community_original.id;
+                    Vue.http.post(createUrl, payload).then(resp => {
+                        newSpeciesId = resp.body.id;
                         Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
                             vm.new_species_list.push(res.body.species_obj); //--temp species_obj
                         },
                         err => {
                         console.log(err);
                         });
-                    // }, (error) => {
-                    //  console.log(error);
-                    // });
+                    }, (error) => {
+                     console.log(error);
+                    });
                 }
                 catch (err) {
                     console.log(err);
@@ -250,7 +333,8 @@ export default {
                         return err;
                     }
                 }
-                //$('.nav-pills a:last').show();
+                // not working
+                $('#split_pills-tab li:last').show();
             });
                     
         },
