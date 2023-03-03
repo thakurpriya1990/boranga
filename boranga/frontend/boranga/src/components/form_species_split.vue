@@ -41,7 +41,7 @@
                   Threats
                 </a>
               </li>
-              <li class="nav-item">
+              <!-- <li class="nav-item">
                 <a 
                     class="nav-link" 
                     id="pills-related-items-tab" 
@@ -53,11 +53,12 @@
                     @click="tabClicked()">
                   Related Items
                 </a>
-              </li>
+              </li> -->
             </ul>
             <div class="tab-content" id="pills-tabContent">
               <div class="tab-pane fade show active" :id="profileBody" role="tabpanel" aria-labelledby="pills-profile-tab">
                 <SpeciesProfile
+                    :key="reloadcount"
                     ref="species_information" 
                     id="speciesInformation" 
                     :is_internal="is_internal"
@@ -71,7 +72,8 @@
                     ref="species_documents" 
                     id="speciesDocuments" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
+                    :species_community="species_community"
+                    :species_original="species_original">
                 </SpeciesDocuments>
               </div>
               <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
@@ -83,7 +85,7 @@
                     :species_community="species_community">
                 </SpeciesThreats>
               </div>
-              <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
+              <!-- <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems 
                     :key="reloadcount"
                     ref="species_communities_related_items" 
@@ -91,7 +93,7 @@
                     :ajax_url="related_items_ajax_url"
                     :filter_list_url="related_items_filter_list_url">
                 </RelatedItems>
-              </div>
+              </div> -->
             </div>
         </div>
     </div>
@@ -99,9 +101,9 @@
 
 <script>
     import SpeciesProfile from '@/components/common/species_communities/species_split/species_split_profile.vue'
-    import SpeciesDocuments from '@/components/common/species_communities/documents.vue'
+    import SpeciesDocuments from '@/components/common/species_communities/species_split/species_split_documents.vue'
     import SpeciesThreats from '@/components/common/species_communities/species_threats.vue'
-    import RelatedItems from '@/components/common/table_related_items.vue'
+    //import RelatedItems from '@/components/common/table_related_items.vue'
 
     export default {
         props:{
@@ -131,13 +133,14 @@
                 relatedItemBody: 'relatedItemBody' + vm._uid,
                 values:null,
                 reloadcount:0,
+                document_selection:null,
             }
         },
         components: {
             SpeciesProfile,
             SpeciesDocuments,
             SpeciesThreats,
-            RelatedItems,
+            //RelatedItems,
         },
         computed:{
             related_items_ajax_url: function(){
@@ -161,7 +164,6 @@
             eventListener: function(){
               let vm=this;
             },
-
         },
         mounted: function() {
             let vm = this;

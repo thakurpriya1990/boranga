@@ -21,6 +21,8 @@ from boranga.components.species_and_communities.models import (
     RootMorphology,
     PollinatorInformation,
     PostFireHabitatInteraction,
+    FaunaBreeding,
+    BreedingPeriod,
     )
 
 
@@ -60,3 +62,5 @@ admin.site.register(SeedViabilityGerminationInfo)
 admin.site.register(RootMorphology)
 admin.site.register(PollinatorInformation)
 admin.site.register(PostFireHabitatInteraction)
+admin.site.register(FaunaBreeding)
+admin.site.register(BreedingPeriod)

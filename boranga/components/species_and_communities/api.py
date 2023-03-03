@@ -879,6 +879,36 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    # used to submit the new species created while spliting
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def split_new_species_submit(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                #instance.submit(request,self)
+                species_form_submit(instance, request)
+                # copy/clone the original species document and create new for new split species
+                instance.clone_documents(request)
+                instance.save()
+
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            # return redirect(reverse('internal'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    # Used to submit the original species after split data is submitted 
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
     def species_split_submit(self, request, *args, **kwargs):

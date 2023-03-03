@@ -65,7 +65,7 @@
                                 <div class="separator"></div>
                             </div>
                             <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction"> -->
-                            <div class="col-sm-12 top-buffer-s">
+                            <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
                                 <template v-if="hasUserEditMode">
                                     <div class="row">
                                         <div class="col-sm-12">
@@ -192,6 +192,9 @@ export default {
     computed: {
         csrf_token: function() {
           return helpers.getCookie('csrftoken')
+        },
+        isCommunity: function(){
+            return this.species_community.group_type === "community"
         },
         species_community_form_url: function() {
           return (this.species_community.group_type === "community") ? 
@@ -519,7 +522,10 @@ export default {
                 if (savedSpecies) {
                     newSpeciesId1 = savedSpecies.body.id;
                     Vue.http.get(`/api/species/${newSpeciesId1}/internal_species.json`).then(res => {
-                        this.$refs.species_split.new_species_list.push(res.body.species_obj); //--temp species_obj
+                        let species_obj=res.body.species_obj;
+                        //--- to add empty documents array
+                        species_obj.documents=[]
+                        this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
                     },
                     err => {
                     console.log(err);
@@ -532,29 +538,32 @@ export default {
                     return err;
                 }
             }
-            let newSpeciesId2 = null
-            try {
-                const createUrl = api_endpoints.species+"/";
-                let payload = new Object();
-                payload.group_type_id = this.species_community.group_type_id
-                payload.parent_species_id = this.species_community.id;
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId2 = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
-                        this.$refs.species_split.new_species_list.push(res.body.species_obj); //--temp species_obj
-                    },
-                    err => {
-                    console.log(err);
-                    });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
+            // let newSpeciesId2 = null
+            // try {
+            //     const createUrl = api_endpoints.species+"/";
+            //     let payload = new Object();
+            //     payload.group_type_id = this.species_community.group_type_id
+            //     payload.parent_species_id = this.species_community.id;
+            //     let savedSpecies = await Vue.http.post(createUrl, payload);
+            //     if (savedSpecies) {
+            //         newSpeciesId2 = savedSpecies.body.id;
+            //         Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
+            //             let species_obj=res.body.species_obj;
+            //             // to add documents id array from original species
+            //             species_obj.documents=[]
+            //             this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
+            //         },
+            //         err => {
+            //         console.log(err);
+            //         });
+            //     }
+            // }
+            // catch (err) {
+            //     console.log(err);
+            //     if (this.is_internal) {
+            //         return err;
+            //     }
+            // }
             this.$refs.species_split.isModalOpen = true;
         },
     },

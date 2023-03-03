@@ -242,7 +242,7 @@ export default {
                     if(!vm.saveError){
                         let payload = new Object();
                         Object.assign(payload, new_species);
-                        let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/submit')
+                        let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/split_new_species_submit')
                         vm.$http.post(submit_url,payload).then(res=>{
                             vm.new_species = res.body;
                             // vm.$router.push({
@@ -318,7 +318,10 @@ export default {
                     Vue.http.post(createUrl, payload).then(resp => {
                         newSpeciesId = resp.body.id;
                         Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
-                            vm.new_species_list.push(res.body.species_obj); //--temp species_obj
+                            //vm.new_species_list.push(res.body.species_obj); //--temp species_obj
+                            let species_obj=res.body.species_obj;
+                            species_obj.documents=[]
+                            vm.new_species_list.push(species_obj); //--temp species_obj
                         },
                         err => {
                         console.log(err);

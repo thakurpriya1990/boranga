@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 from django.db import models
 from django.db.models import Q
 from boranga.components.main.models import (
@@ -8,6 +9,7 @@ from boranga.components.main.models import (
     Document
     )
 import json
+import subprocess
 from django.db import models,transaction
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -211,7 +213,7 @@ class NameAuthority(models.Model):
     def __str__(self):
         return str(self.name)
 
-
+# Not used any more
 class ScientificName(models.Model):
     """
     # list derived from WACensus
@@ -720,6 +722,34 @@ class Species(models.Model):
             document.save()
             self.image_doc=document
             self.save()
+
+    def clone_documents(self,request):
+        with transaction.atomic():
+            try:
+                # clone documents from original species to new species
+                original_species_documents = request.data['documents']
+                for doc_id in original_species_documents:
+                    new_species_doc=SpeciesDocument.objects.get(id=doc_id)
+                    original_species=new_species_doc.species
+                    new_species_doc.species = self
+                    new_species_doc.id = None
+                    new_species_doc.document_number = ''
+                    new_species_doc._file.name = u'boranga/species/{}/species_documents/{}'.format(self.id, new_species_doc.name)
+                    new_species_doc.can_delete = True
+                    new_species_doc.save()
+
+                    check_path = os.path.exists('private-media/boranga/species/{}/species_documents/'.format(self.id))
+                    if check_path == True:
+                        # copy documents on file system
+                        subprocess.call('cp -p private-media/boranga/species/{}/species_documents/{}  private-media/boranga/species/{}/species_documents/'.format(original_species.id, new_species_doc.name, self.id), shell=True)
+                    else:
+                        # create new directory
+                        os.makedirs('private-media/boranga/species/{}/species_documents/'.format(self.id), mode=0o777)
+                        # then copy documents on file system
+                        subprocess.call('cp -p private-media/boranga/species/{}/species_documents/{}  private-media/boranga/species/{}/species_documents/'.format(original_species.id, new_species_doc.name, self.id), shell=True)
+
+            except:
+                raise
 
 
 class SpeciesLogDocument(Document):
