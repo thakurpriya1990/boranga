@@ -435,6 +435,11 @@ export default {
                 type: Object,
                 required:true
             },
+            // this prop is only send from split species form to make the original species readonly
+            is_readonly:{
+              type: Boolean,
+              default: false
+            }
         },
         data:function () {
             let vm = this;
@@ -486,12 +491,19 @@ export default {
         },
         computed: {
             isReadOnly: function(){
-                let action = this.$route.query.action;
-                if(action === "edit" && this.species_community && this.species_community.user_edit_mode){
-                    return false;
+                // this prop (is_readonly = true) is only send from split species form to make the original species readonly
+                if(this.is_readonly){
+                    return  this.is_readonly;
                 }
+                //---else the normal serializer value
                 else{
-                    return this.species_community.readonly;
+                    let action = this.$route.query.action;
+                    if(action === "edit" && this.species_community && this.species_community.user_edit_mode){
+                        return false;
+                    }
+                    else{
+                        return this.species_community.readonly;
+                    }
                 }
             },
         },

@@ -69,7 +69,8 @@
                     ref="species_information" 
                     id="speciesInformation" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
+                    :species_community="species_community"
+                    :is_readonly="is_readonly">
                 </Species>
               </div>
               <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
@@ -145,6 +146,11 @@
               type: Boolean,
               default: false
             },
+            // this prop is only send from split species form to make the original species readonly
+            is_readonly:{
+              type: Boolean,
+              default: false
+            }
         },
         data:function () {
             let vm = this;

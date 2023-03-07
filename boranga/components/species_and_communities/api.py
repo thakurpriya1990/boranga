@@ -1088,7 +1088,6 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     def upload_image(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            #import ipdb; ipdb.set_trace()
             instance.upload_image(request)
             with transaction.atomic():
                 instance.save()
@@ -1110,7 +1109,6 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     def delete_image(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            #import ipdb; ipdb.set_trace()
             #instance.upload_image(request)
             with transaction.atomic():
                 instance.image_doc=None
@@ -1488,6 +1486,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
+            instance.species.log_user_action(SpeciesUserAction.ACTION_DISCARD_DOCUMENT.format(instance.id,instance.species.species_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1507,6 +1506,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             instance.visible = True
             instance.save()
             serializer = self.get_serializer(instance)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.id,instance.species.species_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1542,6 +1542,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.add_documents(request)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.id,instance.species.species_number),request)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1554,6 +1555,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
             instance.add_documents(request)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.id,instance.species.species_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1579,6 +1581,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
+            instance.community.log_user_action(CommunityUserAction.ACTION_DISCARD_DOCUMENT.format(instance.id,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1597,6 +1600,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = True
             instance.save()
+            instance.community.log_user_action(CommunityUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.id,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1633,6 +1637,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.add_documents(request)
+            instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.id,instance.community.community_number),request)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1645,6 +1650,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
             instance.add_documents(request)
+            instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.id,instance.community.community_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1730,6 +1736,10 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
+            if instance.species:
+                instance.species.log_user_action(SpeciesUserAction.ACTION_DISCARD_THREAT.format(instance.threat_number,instance.species.species_number),request)
+            elif instance.community:
+                instance.community.log_user_action(CommunityUserAction.ACTION_DISCARD_THREAT.format(instance.threat_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1748,6 +1758,11 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = True
             instance.save()
+            if instance.species:
+                instance.species.log_user_action(SpeciesUserAction.ACTION_REINSTATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
+            elif instance.community:
+                instance.community.log_user_action(CommunityUserAction.ACTION_REINSTATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
+            serializer = self.get_serializer(instance)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1766,6 +1781,11 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             serializer = SaveConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            if instance.species:
+                instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
+            elif instance.community:
+                instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
+            serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1777,6 +1797,11 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             serializer = SaveConservationThreatSerializer(data= json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
+            if instance.species:
+                instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.species.species_number),request)
+            elif instance.community:
+                instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
+            serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())

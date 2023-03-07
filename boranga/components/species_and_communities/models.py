@@ -777,11 +777,24 @@ class SpeciesLogEntry(CommunicationsLogEntry):
 
 class SpeciesUserAction(UserAction):
     
-    ACTION_IMAGE_UPDATE= "Species Image document updated for Species {}"
-    ACTION_IMAGE_DELETE= "Species Image document deleted for Species {}"
     ACTION_EDIT_SPECIES= "Edit Species {}"
     ACTION_CREATE_SPECIES= "Create new species {}"
     ACTION_SAVE_SPECIES = "Save Species {}"
+    ACTION_IMAGE_UPDATE= "Species Image document updated for Species {}"
+    ACTION_IMAGE_DELETE= "Species Image document deleted for Species {}"
+
+    # Document
+    ACTION_ADD_DOCUMENT= "Document {} uploaded for Species {}"
+    ACTION_UPDATE_DOCUMENT= "Document {} updated for Species {}"
+    ACTION_DISCARD_DOCUMENT= "Document {} discarded for Species {}"
+    ACTION_REINSTATE_DOCUMENT= "Document {} reinstated for Species {}"
+
+    # Threat
+    ACTION_ADD_THREAT= "Threat {} added for Species {}"
+    ACTION_UPDATE_THREAT= "Threat {} updated for Species {}"
+    ACTION_DISCARD_THREAT= "Threat {} discarded for Species {}"
+    ACTION_REINSTATE_THREAT= "Threat {} reinstated for Species {}"
+
     ACTION_CLOSE_CONSERVATIONSTATUS = "De list species {}"
     ACTION_DISCARD_PROPOSAL = "Discard species proposal {}"
 
@@ -1233,11 +1246,23 @@ class CommunityLogEntry(CommunicationsLogEntry):
 
 class CommunityUserAction(UserAction):
     
-    ACTION_IMAGE_UPDATE= "Community Image document updated for Community {}"
-    ACTION_IMAGE_DELETE= "Community Image document deleted for Community {}"
     ACTION_EDIT_COMMUNITY= "Edit Community {}"
     ACTION_CREATE_COMMUNITY= "Create new community {}"
     ACTION_SAVE_COMMUNITY = "Save Community {}"
+    ACTION_IMAGE_UPDATE= "Community Image document updated for Community {}"
+    ACTION_IMAGE_DELETE= "Community Image document deleted for Community {}"
+
+    # Document
+    ACTION_ADD_DOCUMENT= "Document {} uploaded for Community {}"
+    ACTION_UPDATE_DOCUMENT= "Document {} updated for Community {}"
+    ACTION_DISCARD_DOCUMENT= "Document {} discarded for Community {}"
+    ACTION_REINSTATE_DOCUMENT= "Document {} reinstated for Community {}"
+
+    # Threat
+    ACTION_ADD_THREAT= "Threat {} added for Community {}"
+    ACTION_UPDATE_THREAT= "Threat {} updated for Community {}"
+    ACTION_DISCARD_THREAT= "Threat {} discarded for Community {}"
+    ACTION_REINSTATE_THREAT= "Threat {} reinstated for Community {}"
 
 
 

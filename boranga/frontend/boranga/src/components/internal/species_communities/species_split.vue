@@ -61,10 +61,11 @@
                                             ref="species_communities_original" 
                                             :species_community.sync="species_community_original" 
                                             id="species_original" 
-                                            :is_internal="true">
+                                            :is_internal="true"
+                                            :is_readonly="true"> <!-- this prop is only send from split species form to make the original species readonly -->
                                         </SpeciesCommunitiesComponent>
                                     </div>
-                                    <div v-for="(species, index) in new_species_list" :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index" role="tabpanel"  :aria-labelledby="'pills-species' + index + '-tab'" > <!-- :id="species1Body" aria-labelledby="pills-species1-tab" -->
+                                    <div v-for="(species, index) in new_species_list" :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index" role="tabpanel"  :aria-labelledby="'pills-species' + index + '-tab'" >
                                         <SpeciesSplitForm
                                             :ref="'species_communities_species' + index" 
                                             :species_community.sync="species"
