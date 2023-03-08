@@ -27,8 +27,7 @@ def species_form_submit(species_instance,request):
         with transaction.atomic():
             if species_instance.can_user_edit:
                 species_instance.submitter = request.user.id
-                species_insta
-                nce.lodgement_date = timezone.now()
+                species_instance.lodgement_date = timezone.now()
                 # Create a log entry for the proposal
                 species_instance.log_user_action(SpeciesUserAction.ACTION_CREATE_SPECIES.format(species_instance.species_number),request)
                 # Create a log entry for the organisation

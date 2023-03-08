@@ -737,6 +737,7 @@ class Species(models.Model):
                     new_species_doc._file.name = u'boranga/species/{}/species_documents/{}'.format(self.id, new_species_doc.name)
                     new_species_doc.can_delete = True
                     new_species_doc.save()
+                    new_species_doc.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(new_species_doc.document_number,new_species_doc.species.species_number),request)
 
                     check_path = os.path.exists('private-media/boranga/species/{}/species_documents/'.format(self.id))
                     if check_path == True:
@@ -784,7 +785,7 @@ class SpeciesUserAction(UserAction):
     ACTION_IMAGE_DELETE= "Species Image document deleted for Species {}"
 
     # Document
-    ACTION_ADD_DOCUMENT= "Document {} uploaded for Species {}"
+    ACTION_ADD_DOCUMENT= "Document {} added for Species {}"
     ACTION_UPDATE_DOCUMENT= "Document {} updated for Species {}"
     ACTION_DISCARD_DOCUMENT= "Document {} discarded for Species {}"
     ACTION_REINSTATE_DOCUMENT= "Document {} reinstated for Species {}"

@@ -1486,7 +1486,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
-            instance.species.log_user_action(SpeciesUserAction.ACTION_DISCARD_DOCUMENT.format(instance.id,instance.species.species_number),request)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_DISCARD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1506,7 +1506,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             instance.visible = True
             instance.save()
             serializer = self.get_serializer(instance)
-            instance.species.log_user_action(SpeciesUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.id,instance.species.species_number),request)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1542,7 +1542,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.add_documents(request)
-            instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.id,instance.species.species_number),request)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1555,7 +1555,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
             instance.add_documents(request)
-            instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.id,instance.species.species_number),request)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1581,7 +1581,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
-            instance.community.log_user_action(CommunityUserAction.ACTION_DISCARD_DOCUMENT.format(instance.id,instance.community.community_number),request)
+            instance.community.log_user_action(CommunityUserAction.ACTION_DISCARD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1600,7 +1600,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = True
             instance.save()
-            instance.community.log_user_action(CommunityUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.id,instance.community.community_number),request)
+            instance.community.log_user_action(CommunityUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1637,7 +1637,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.add_documents(request)
-            instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.id,instance.community.community_number),request)
+            instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1650,7 +1650,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
             instance.add_documents(request)
-            instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.id,instance.community.community_number),request)
+            instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
