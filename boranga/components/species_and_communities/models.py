@@ -397,7 +397,7 @@ class Species(models.Model):
                                  (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
                                  (PROCESSING_STATUS_TO_BE_RENAMED, 'To Be Renamed'),
                                 )
-    RELATED_ITEM_CHOICES = [('conservation_status', 'Conservation Status')]
+    RELATED_ITEM_CHOICES = [('species', 'species'),('conservation_status', 'Conservation Status')]
     
     species_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,
@@ -658,7 +658,7 @@ class Species(models.Model):
     def get_related_items(self,filter_type, **kwargs):
         return_list = []
         if filter_type == 'all':
-            related_field_names = ['conservation_status',]
+            related_field_names = ['parent_species','conservation_status',]
         else:
             related_field_names = [filter_type,]
         all_fields = self._meta.get_fields()
