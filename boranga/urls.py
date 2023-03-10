@@ -22,6 +22,7 @@ from boranga.components.approvals import api as approval_api
 from boranga.components.compliances import api as compliances_api
 from boranga.components.species_and_communities import api as species_communities_api
 from boranga.components.conservation_status import api as conservation_status_api
+from boranga.components.meetings import api as meeting_api
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 
 # API patterns
@@ -53,6 +54,7 @@ router.register(r'cs_referrals',conservation_status_api.ConservationStatusReferr
 # router.register(r'species_conservation_status',conservation_status_api.SpeciesConservationStatusViewSet)
 # router.register(r'community_conservation_status',conservation_status_api.CommunityConservationStatusViewSet)
 router.register(r'cs_amendment_request',conservation_status_api.ConservationStatusAmendmentRequestViewSet)
+router.register(r'meeting_paginated',meeting_api.MeetingPaginatedViewSet)
 
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)

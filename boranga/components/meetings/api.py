@@ -23,3 +23,63 @@ from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.renderers import DatatablesRenderer
 from copy import deepcopy
 from django.shortcuts import render, redirect, get_object_or_404
+
+from boranga.components.meetings.models import( 
+    Meeting,
+    
+)
+
+from boranga.components.meetings.serializers import(
+    ListMeetingSerializer,
+)
+
+
+class MeetingFilterBackend(DatatablesFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        total_count = queryset.count()
+
+        # filter_group_type
+        filter_meeting_type = request.GET.get('meeting_status')
+        if queryset.model is Meeting:
+            if filter_meeting_type:
+                #queryset = queryset.filter(species__group_type__name=filter_group_type)
+                #changed to application_type (ie group_type)
+                queryset = queryset
+        
+        getter = request.query_params.get
+        fields = self.get_fields(getter)
+        ordering = self.get_ordering(getter, fields)
+        queryset = queryset.order_by(*ordering)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        try:
+            queryset = super(MeetingFilterBackend, self).filter_queryset(request, queryset, view)
+        except Exception as e:
+            print(e)
+        setattr(view, '_datatables_total_count', total_count)
+        return queryset
+
+class MeetingRenderer(DatatablesRenderer):
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+            data['recordsTotal'] = renderer_context['view']._datatables_total_count
+        return super(MeetingRenderer, self).render(data, accepted_media_type, renderer_context)
+    
+
+class MeetingPaginatedViewSet(viewsets.ModelViewSet):
+    filter_backends = (MeetingFilterBackend,)
+    pagination_class = DatatablesPageNumberPagination
+    renderer_classes = (MeetingRenderer,)
+    queryset = Meeting.objects.none()
+    serializer_class = ListMeetingSerializer
+    page_size = 10
+
+    def get_queryset(self):
+        #request_user = self.request.user
+        qs = Meeting.objects.none()
+
+        if is_internal(self.request):
+            qs = Meeting.objects.all()
+
+        return qs
