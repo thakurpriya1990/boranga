@@ -23,6 +23,7 @@ import SpeciesCommunities from '../species_communities/species_communities.vue'
 import ConservationStatusDash from '../conservation_status/dashboard.vue'
 import ConservationStatus from '../conservation_status/conservation_status.vue'
 import ConservationStatusReferral from '../conservation_status/referral.vue'
+import MeetingsDash from '../meetings/dashboard.vue'
 export default
 {
     path: '/internal',
@@ -53,6 +54,11 @@ export default
             path: 'conservation-status',
             component: ConservationStatusDash,
             name:"internal-conservation_status-dash"
+        },
+        {
+            path: 'meetings',
+            component: MeetingsDash,
+            name:"internal-meetings-dash"
         },
         {
             path: 'approval/:approval_id',
