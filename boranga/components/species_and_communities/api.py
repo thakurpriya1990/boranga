@@ -844,7 +844,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
 
                     instance.log_user_action(SpeciesUserAction.ACTION_SAVE_SPECIES.format(instance.species_number), request)
 
-            return redirect(reverse('internal'))
+            return Response()
         
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -890,6 +890,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 species_form_submit(instance, request)
                 # copy/clone the original species document and create new for new split species
                 instance.clone_documents(request)
+                instance.clone_threats(request)
                 instance.save()
 
             serializer = self.get_serializer(instance)

@@ -132,7 +132,6 @@ export default {
         let vm = this;
         return {
             originalBody: 'originalBody' + vm._uid,
-            species1Body: 'species1Body' + vm._uid,
             species2Body: 'species2Body' + vm._uid,
             species_community_original:null,
             submitSpeciesSplit:false,
@@ -180,12 +179,14 @@ export default {
             this.close()
         },
         close:function () {
-            // let vm =this;
-            // for(var i=0 ; i<= vm.new_species_list.length; i++ )
-            // {
-            //     vm.discardSpecies(vm.new_species_list[i].id);
-            // }
-            // vm.new_species_list=null;
+            let vm =this;
+            if(vm.new_species_list.length > 0){
+                for(var index=0 ; index< vm.new_species_list.length; index++ )
+                {
+                    vm.discardSpecies((vm.new_species_list[index]).id);
+                }
+            }
+            vm.new_species_list=[];
             this.isModalOpen = false;
             //this.approval = {};
             this.errors = false;
@@ -198,7 +199,7 @@ export default {
             let payload = new Object();
             Object.assign(payload, new_species);
             const result = await vm.$http.post(`/api/species/${new_species.id}/species_split_save.json`,payload).then(res=>{
-                //return true;
+                return true;
             },err=>{
                         var errorText=helpers.apiVueResourceError(err); 
                         swal(
@@ -209,7 +210,7 @@ export default {
                             )
                         vm.submitSpeciesSplit=false;
                         vm.saveError=true;
-                //return false;
+                        return false;
             });
             return result;
         },
@@ -235,10 +236,10 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: "submit"
             }).then(async () => {
-                console.log(vm.new_species_list.length);
+                //let submit_new_species=[];
                 for (let index=0 ; index<vm.new_species_list.length; index++){
                     let new_species = vm.new_species_list[index]
-                    console.log(index+'---------------'+new_species);
+                    
                     let result = await vm.save_before_submit(new_species);
                     if(!vm.saveError){
                         let payload = new Object();
@@ -246,41 +247,67 @@ export default {
                         let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/split_new_species_submit')
                         vm.$http.post(submit_url,payload).then(res=>{
                             vm.new_species = res.body;
-                            // vm.$router.push({
-                            //     name: 'internal-species-communities-dash'
-                            // });
+                            //submit_new_species.push(vm.new_species.id);
+                            if(index==vm.new_species_list.length-1)
+                            {
+                                vm.submit_original_species();
+                            }
                         },err=>{
                             swal(
                                 'Submit Error',
                                 helpers.apiVueResourceError(err),
                                 'error'
                             )
+                            vm.saveError=true;
                         });
                     }
                 }
-
-                //------set original species to historical
-                let payload = new Object();
-                Object.assign(payload, vm.species_community_original);
-                let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/species_split_submit')
-                vm.$http.post(submit_url,payload).then(res=>{
-                    vm.species_community_original = res.body;
-                    // TODO Not sure where it should go after the split process
-                    vm.$router.push({
-                        name: 'internal-species-communities-dash'
-                    });
-                },err=>{
-                    swal(
-                        'Submit Error',
-                        helpers.apiVueResourceError(err),
-                        'error'
-                    )
-                });
                 
+                //------set original species to historical
+                // this.$nextTick(()=>{
+                //     if((!vm.saveError) && submit_new_species.length == vm.new_species_list.length){
+                //         let payload = new Object();
+                //         Object.assign(payload, vm.species_community_original);
+                //         let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/species_split_submit')
+                //         vm.$http.post(submit_url,payload).then(res=>{
+                //             vm.species_community_original = res.body;
+                //             // TODO Not sure where it should go after the split process
+                //             vm.$router.push({
+                //                 name: 'internal-species-communities-dash'
+                //             });
+                //         },err=>{
+                //             swal(
+                //                 'Submit Error',
+                //                 helpers.apiVueResourceError(err),
+                //                 'error'
+                //             )
+                //         });
+                //     }
+                // }
+                    
             },(error) => {
                 vm.submitSpeciesSplit=false;
             });
 
+        },
+        submit_original_species: function(){
+            let vm=this;
+            let payload = new Object();
+            Object.assign(payload, vm.species_community_original);
+            let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/species_split_submit')
+            vm.$http.post(submit_url,payload).then(res=>{
+                vm.species_community_original = res.body;
+                // TODO Not sure where it should go after the split process
+                vm.$router.push({
+                    name: 'internal-species-communities-dash'
+                });
+            },err=>{
+                swal(
+                    'Submit Error',
+                    helpers.apiVueResourceError(err),
+                    'error'
+                )
+            });
         },
         discardSpecies:function (species_id) {
             let vm = this;
@@ -321,7 +348,10 @@ export default {
                         Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
                             //vm.new_species_list.push(res.body.species_obj); //--temp species_obj
                             let species_obj=res.body.species_obj;
+                            //---documents array added to store the select document ids in from the child component
                             species_obj.documents=[]
+                            //---threats array added to store the select threat ids in from the child component
+                            species_obj.threats=[]
                             vm.new_species_list.push(species_obj); //--temp species_obj
                         },
                         err => {

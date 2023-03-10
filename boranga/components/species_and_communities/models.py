@@ -752,6 +752,22 @@ class Species(models.Model):
             except:
                 raise
 
+    def clone_threats(self,request):
+        with transaction.atomic():
+            try:
+                # clone threats from original species to new species
+                original_species_threats = request.data['threats']
+                for threat_id in original_species_threats:
+                    new_species_threat=ConservationThreat.objects.get(id=threat_id)
+                    new_species_threat.species = self
+                    new_species_threat.id = None
+                    new_species_threat.threat_number = ''
+                    new_species_threat.save()
+                    new_species_threat.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(new_species_threat.threat_number,new_species_threat.species.species_number),request)
+
+            except:
+                raise
+
 
 class SpeciesLogDocument(Document):
     log_entry = models.ForeignKey('SpeciesLogEntry',related_name='documents', on_delete=models.CASCADE)

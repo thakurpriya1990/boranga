@@ -1,7 +1,6 @@
 <template lang="html">
     <div id="species_split_documents">
         <FormSection :formCollapse="false" label="Documents" Index="documents">
-            <!-- <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small> -->
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <input class="form-check-input" type="radio" :id="'doc_select_all'+species_community.id" name="documentSelect" value="selectAll" @click="selectDocumentOption($event)"/>
@@ -46,7 +45,7 @@ export default {
             let vm = this;
             return{
                 uuid:0,
-                panelBody: "species-documents-"+vm._uid,
+                panelBody: "species-split-documents-"+vm._uid,
                 values:null,
                 // to store all the documents of original on first load.
                 original_species_documents:[],
@@ -203,13 +202,13 @@ export default {
         computed: {
         },
         methods:{
-            updatedDocuments(){
-                this.$refs.documents_datatable.vmDataTable.ajax.reload();
-            },
             selectDocumentOption(e){
                 let vm=this;
+                //--fetch the value of selected radio btn
                 let selected_option=e.target.value;
+                //----set the selected value to the parent variable so as to get the data when tab is reloaded/refreshed
                 vm.$parent.document_selection=selected_option;
+
                 if(selected_option == "selectAll"){
                     //-- copy all original species documents to new species documents array
                     vm.species_community.documents=vm.original_species_documents;

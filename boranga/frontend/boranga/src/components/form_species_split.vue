@@ -82,7 +82,8 @@
                     ref="species_threats" 
                     id="speciesThreats" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
+                    :species_community="species_community"
+                    :species_original="species_original">
                 </SpeciesThreats>
               </div>
               <!-- <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
@@ -102,7 +103,7 @@
 <script>
     import SpeciesProfile from '@/components/common/species_communities/species_split/species_split_profile.vue'
     import SpeciesDocuments from '@/components/common/species_communities/species_split/species_split_documents.vue'
-    import SpeciesThreats from '@/components/common/species_communities/species_threats.vue'
+    import SpeciesThreats from '@/components/common/species_communities/species_split/species_split_threats.vue'
     //import RelatedItems from '@/components/common/table_related_items.vue'
 
     export default {
@@ -134,6 +135,7 @@
                 values:null,
                 reloadcount:0,
                 document_selection:null,
+                threat_selection:null,
             }
         },
         components: {

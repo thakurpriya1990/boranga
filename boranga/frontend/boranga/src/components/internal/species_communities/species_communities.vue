@@ -525,6 +525,8 @@ export default {
                         let species_obj=res.body.species_obj;
                         //--- to add empty documents array
                         species_obj.documents=[]
+                        //---empty threats array added to store the select threat ids in from the child component
+                        species_obj.threats=[]
                         this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
                     },
                     err => {
@@ -551,6 +553,8 @@ export default {
             //             let species_obj=res.body.species_obj;
             //             // to add documents id array from original species
             //             species_obj.documents=[]
+            //             //---empty threats array added to store the select threat ids in from the child component
+            //             species_obj.threats=[]
             //             this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
             //         },
             //         err => {
