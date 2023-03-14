@@ -41,7 +41,7 @@
                   Threats
                 </a>
               </li>
-              <li class="nav-item">
+              <!-- <li class="nav-item">
                 <a 
                     class="nav-link" 
                     id="pills-related-items-tab" 
@@ -53,63 +53,40 @@
                     @click="tabClicked()">
                   Related Items
                 </a>
-              </li>
+              </li> -->
             </ul>
             <div class="tab-content" id="pills-tabContent">
               <div class="tab-pane fade show active" :id="profileBody" role="tabpanel" aria-labelledby="pills-profile-tab">
-                <Community
-                    v-if="isCommunity"  
-                    ref="community_information" 
-                    id="communityInformation" 
-                    :is_internal="is_internal"
-                    :species_community="species_community">
-                </Community>
-                <Species
-                    v-else
+                <SpeciesProfile
+                    :key="reloadcount"
                     ref="species_information" 
                     id="speciesInformation" 
                     :is_internal="is_internal"
                     :species_community="species_community"
-                    :is_readonly="is_readonly">
-                </Species>
+                    :species_original="species_original">
+                </SpeciesProfile>
               </div>
               <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
-                <CommunityDocuments 
-                    v-if="isCommunity"
-                    :key="reloadcount"
-                    ref="community_documents" 
-                    id="communityDocuments" 
-                    :is_internal="is_internal"
-                    :species_community="species_community">
-                </CommunityDocuments>
                 <SpeciesDocuments 
-                    v-else 
                     :key="reloadcount"
                     ref="species_documents" 
                     id="speciesDocuments" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
+                    :species_community="species_community"
+                    :species_original="species_original">
                 </SpeciesDocuments>
               </div>
               <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
-                <CommunityThreats 
-                    v-if="isCommunity"
-                    :key="reloadcount"
-                    ref="community_threats" 
-                    id="communityThreats" 
-                    :is_internal="is_internal"
-                    :species_community="species_community">
-                </CommunityThreats>
                 <SpeciesThreats
-                    v-else 
                     :key="reloadcount"
                     ref="species_threats" 
                     id="speciesThreats" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
+                    :species_community="species_community"
+                    :species_original="species_original">
                 </SpeciesThreats>
               </div>
-              <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
+              <!-- <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems 
                     :key="reloadcount"
                     ref="species_communities_related_items" 
@@ -117,23 +94,24 @@
                     :ajax_url="related_items_ajax_url"
                     :filter_list_url="related_items_filter_list_url">
                 </RelatedItems>
-              </div>
+              </div> -->
             </div>
         </div>
     </div>
 </template>
 
 <script>
-    import Species from '@/components/common/species_communities/species_profile.vue'
-    import Community from '@/components/common/species_communities/community_profile.vue'
-    import SpeciesDocuments from '@/components/common/species_communities/documents.vue'
-    import CommunityDocuments from '@/components/common/species_communities/community_documents.vue'
-    import SpeciesThreats from '@/components/common/species_communities/species_threats.vue'
-    import CommunityThreats from '@/components/common/species_communities/community_threats.vue'
-    import RelatedItems from '@/components/common/table_related_items.vue'
+    import SpeciesProfile from '@/components/common/species_communities/species_split/species_split_profile.vue'
+    import SpeciesDocuments from '@/components/common/species_communities/species_split/species_split_documents.vue'
+    import SpeciesThreats from '@/components/common/species_communities/species_split/species_split_threats.vue'
+    //import RelatedItems from '@/components/common/table_related_items.vue'
 
     export default {
         props:{
+            species_original:{
+                type: Object,
+                required:true
+            },
             species_community:{
                 type: Object,
                 required:true
@@ -146,11 +124,6 @@
               type: Boolean,
               default: false
             },
-            // this prop is only send from split species form to make the original species readonly
-            is_readonly:{
-              type: Boolean,
-              default: false
-            }
         },
         data:function () {
             let vm = this;
@@ -161,36 +134,22 @@
                 relatedItemBody: 'relatedItemBody' + vm._uid,
                 values:null,
                 reloadcount:0,
+                document_selection:null,
+                threat_selection:null,
             }
         },
         components: {
-            Species,
-            Community,
+            SpeciesProfile,
             SpeciesDocuments,
-            CommunityDocuments,
             SpeciesThreats,
-            CommunityThreats,
-            RelatedItems,
+            //RelatedItems,
         },
         computed:{
-            isCommunity: function(){
-                return this.species_community.group_type == "community"
-            },
             related_items_ajax_url: function(){
-              if(this.isCommunity){
-                return '/api/community/' + this.species_community.id + '/get_related_items/'
-              }
-              else{
                 return '/api/species/' + this.species_community.id + '/get_related_items/'
-              }
             },
             related_items_filter_list_url: function(){
-              if(this.isCommunity){
-                return '/api/community/filter_list.json'
-              }
-              else{
                 return '/api/species/filter_list.json'
-              }
             },
         },
         methods:{
@@ -207,7 +166,6 @@
             eventListener: function(){
               let vm=this;
             },
-
         },
         mounted: function() {
             let vm = this;

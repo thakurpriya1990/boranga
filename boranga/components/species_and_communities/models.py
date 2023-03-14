@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 from django.db import models
 from django.db.models import Q
 from boranga.components.main.models import (
@@ -8,6 +9,7 @@ from boranga.components.main.models import (
     Document
     )
 import json
+import subprocess
 from django.db import models,transaction
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -211,7 +213,7 @@ class NameAuthority(models.Model):
     def __str__(self):
         return str(self.name)
 
-
+# Not used any more
 class ScientificName(models.Model):
     """
     # list derived from WACensus
@@ -395,7 +397,7 @@ class Species(models.Model):
                                  (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
                                  (PROCESSING_STATUS_TO_BE_RENAMED, 'To Be Renamed'),
                                 )
-    RELATED_ITEM_CHOICES = [('conservation_status', 'Conservation Status')]
+    RELATED_ITEM_CHOICES = [('species', 'species'),('conservation_status', 'Conservation Status')]
     
     species_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,
@@ -414,6 +416,8 @@ class Species(models.Model):
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
+    # parent will the original species  from the split functionality
+    parent_species = models.ForeignKey('self', on_delete=models.CASCADE, null = True, blank=True, related_name='parent')
     
     class Meta:
         app_label = 'boranga'
@@ -568,7 +572,7 @@ class Species(models.Model):
         #     else []
         # )
         # return users
-        #TODO We need specific species processing SysstemGroup
+        #TODO We need specific species processing SystemGroup
         group = self.get_assessor_group()
         users = (
             list(
@@ -655,7 +659,7 @@ class Species(models.Model):
     def get_related_items(self,filter_type, **kwargs):
         return_list = []
         if filter_type == 'all':
-            related_field_names = ['conservation_status',]
+            related_field_names = ['parent_species','conservation_status',]
         else:
             related_field_names = [filter_type,]
         all_fields = self._meta.get_fields()
@@ -720,6 +724,51 @@ class Species(models.Model):
             self.image_doc=document
             self.save()
 
+    def clone_documents(self,request):
+        with transaction.atomic():
+            try:
+                # clone documents from original species to new species
+                original_species_documents = request.data['documents']
+                for doc_id in original_species_documents:
+                    new_species_doc=SpeciesDocument.objects.get(id=doc_id)
+                    original_species=new_species_doc.species
+                    new_species_doc.species = self
+                    new_species_doc.id = None
+                    new_species_doc.document_number = ''
+                    new_species_doc._file.name = u'boranga/species/{}/species_documents/{}'.format(self.id, new_species_doc.name)
+                    new_species_doc.can_delete = True
+                    new_species_doc.save()
+                    new_species_doc.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(new_species_doc.document_number,new_species_doc.species.species_number),request)
+
+                    check_path = os.path.exists('private-media/boranga/species/{}/species_documents/'.format(self.id))
+                    if check_path == True:
+                        # copy documents on file system
+                        subprocess.call('cp -p private-media/boranga/species/{}/species_documents/{}  private-media/boranga/species/{}/species_documents/'.format(original_species.id, new_species_doc.name, self.id), shell=True)
+                    else:
+                        # create new directory
+                        os.makedirs('private-media/boranga/species/{}/species_documents/'.format(self.id), mode=0o777)
+                        # then copy documents on file system
+                        subprocess.call('cp -p private-media/boranga/species/{}/species_documents/{}  private-media/boranga/species/{}/species_documents/'.format(original_species.id, new_species_doc.name, self.id), shell=True)
+
+            except:
+                raise
+
+    def clone_threats(self,request):
+        with transaction.atomic():
+            try:
+                # clone threats from original species to new species
+                original_species_threats = request.data['threats']
+                for threat_id in original_species_threats:
+                    new_species_threat=ConservationThreat.objects.get(id=threat_id)
+                    new_species_threat.species = self
+                    new_species_threat.id = None
+                    new_species_threat.threat_number = ''
+                    new_species_threat.save()
+                    new_species_threat.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(new_species_threat.threat_number,new_species_threat.species.species_number),request)
+
+            except:
+                raise
+
 
 class SpeciesLogDocument(Document):
     log_entry = models.ForeignKey('SpeciesLogEntry',related_name='documents', on_delete=models.CASCADE)
@@ -746,11 +795,24 @@ class SpeciesLogEntry(CommunicationsLogEntry):
 
 class SpeciesUserAction(UserAction):
     
-    ACTION_IMAGE_UPDATE= "Species Image document updated for Species {}"
-    ACTION_IMAGE_DELETE= "Species Image document deleted for Species {}"
     ACTION_EDIT_SPECIES= "Edit Species {}"
     ACTION_CREATE_SPECIES= "Create new species {}"
     ACTION_SAVE_SPECIES = "Save Species {}"
+    ACTION_IMAGE_UPDATE= "Species Image document updated for Species {}"
+    ACTION_IMAGE_DELETE= "Species Image document deleted for Species {}"
+
+    # Document
+    ACTION_ADD_DOCUMENT= "Document {} added for Species {}"
+    ACTION_UPDATE_DOCUMENT= "Document {} updated for Species {}"
+    ACTION_DISCARD_DOCUMENT= "Document {} discarded for Species {}"
+    ACTION_REINSTATE_DOCUMENT= "Document {} reinstated for Species {}"
+
+    # Threat
+    ACTION_ADD_THREAT= "Threat {} added for Species {}"
+    ACTION_UPDATE_THREAT= "Threat {} updated for Species {}"
+    ACTION_DISCARD_THREAT= "Threat {} discarded for Species {}"
+    ACTION_REINSTATE_THREAT= "Threat {} reinstated for Species {}"
+
     ACTION_CLOSE_CONSERVATIONSTATUS = "De list species {}"
     ACTION_DISCARD_PROPOSAL = "Discard species proposal {}"
 
@@ -1202,11 +1264,23 @@ class CommunityLogEntry(CommunicationsLogEntry):
 
 class CommunityUserAction(UserAction):
     
-    ACTION_IMAGE_UPDATE= "Community Image document updated for Community {}"
-    ACTION_IMAGE_DELETE= "Community Image document deleted for Community {}"
     ACTION_EDIT_COMMUNITY= "Edit Community {}"
     ACTION_CREATE_COMMUNITY= "Create new community {}"
     ACTION_SAVE_COMMUNITY = "Save Community {}"
+    ACTION_IMAGE_UPDATE= "Community Image document updated for Community {}"
+    ACTION_IMAGE_DELETE= "Community Image document deleted for Community {}"
+
+    # Document
+    ACTION_ADD_DOCUMENT= "Document {} uploaded for Community {}"
+    ACTION_UPDATE_DOCUMENT= "Document {} updated for Community {}"
+    ACTION_DISCARD_DOCUMENT= "Document {} discarded for Community {}"
+    ACTION_REINSTATE_DOCUMENT= "Document {} reinstated for Community {}"
+
+    # Threat
+    ACTION_ADD_THREAT= "Threat {} added for Community {}"
+    ACTION_UPDATE_THREAT= "Threat {} updated for Community {}"
+    ACTION_DISCARD_THREAT= "Threat {} discarded for Community {}"
+    ACTION_REINSTATE_THREAT= "Threat {} reinstated for Community {}"
 
 
 

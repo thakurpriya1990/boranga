@@ -816,11 +816,106 @@ class SpeciesViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
+    def species_split_save(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object() 
+                request_data = request.data
+                if request_data['submitter']:
+                    request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
+                if(request_data.get('distribution')):
+                    distribution_instance, created = SpeciesDistribution.objects.get_or_create(species=instance)
+                    serializer = SpeciesDistributionSerializer(distribution_instance, data = request_data.get('distribution'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('conservation_attributes')):
+                    conservation_attributes_instance, created = SpeciesConservationAttributes.objects.get_or_create(species=instance)
+                    serializer = SaveSpeciesConservationAttributesSerializer(conservation_attributes_instance, data = request_data.get('conservation_attributes'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+
+                serializer = SaveSpeciesSerializer(instance, data = request_data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    saved_instance = serializer.save()
+
+                    instance.log_user_action(SpeciesUserAction.ACTION_SAVE_SPECIES.format(instance.species_number), request)
+
+            return Response()
+        
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             #instance.submit(request,self)
             species_form_submit(instance, request)
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            # return redirect(reverse('internal'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    # used to submit the new species created while spliting
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def split_new_species_submit(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                #instance.submit(request,self)
+                species_form_submit(instance, request)
+                # copy/clone the original species document and create new for new split species
+                instance.clone_documents(request)
+                instance.clone_threats(request)
+                instance.save()
+
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            # return redirect(reverse('internal'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    # Used to submit the original species after split data is submitted 
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def species_split_submit(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.processing_status = 'historical'
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
@@ -994,7 +1089,6 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     def upload_image(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            #import ipdb; ipdb.set_trace()
             instance.upload_image(request)
             with transaction.atomic():
                 instance.save()
@@ -1016,7 +1110,6 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     def delete_image(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            #import ipdb; ipdb.set_trace()
             #instance.upload_image(request)
             with transaction.atomic():
                 instance.image_doc=None
@@ -1394,6 +1487,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
+            instance.species.log_user_action(SpeciesUserAction.ACTION_DISCARD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1413,6 +1507,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             instance.visible = True
             instance.save()
             serializer = self.get_serializer(instance)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1448,6 +1543,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.add_documents(request)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1460,6 +1556,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
             instance.add_documents(request)
+            instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1485,6 +1582,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
+            instance.community.log_user_action(CommunityUserAction.ACTION_DISCARD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1503,6 +1601,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = True
             instance.save()
+            instance.community.log_user_action(CommunityUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1539,6 +1638,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.add_documents(request)
+            instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1551,6 +1651,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
             instance.add_documents(request)
+            instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1636,6 +1737,10 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
+            if instance.species:
+                instance.species.log_user_action(SpeciesUserAction.ACTION_DISCARD_THREAT.format(instance.threat_number,instance.species.species_number),request)
+            elif instance.community:
+                instance.community.log_user_action(CommunityUserAction.ACTION_DISCARD_THREAT.format(instance.threat_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1654,6 +1759,11 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = True
             instance.save()
+            if instance.species:
+                instance.species.log_user_action(SpeciesUserAction.ACTION_REINSTATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
+            elif instance.community:
+                instance.community.log_user_action(CommunityUserAction.ACTION_REINSTATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
+            serializer = self.get_serializer(instance)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1672,6 +1782,11 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             serializer = SaveConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            if instance.species:
+                instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
+            elif instance.community:
+                instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
+            serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1683,6 +1798,11 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             serializer = SaveConservationThreatSerializer(data= json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
+            if instance.species:
+                instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.species.species_number),request)
+            elif instance.community:
+                instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
+            serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())

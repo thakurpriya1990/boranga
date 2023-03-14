@@ -470,6 +470,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			'id',
 			'species_number',
 			'group_type',
+			'group_type_id',
 			'taxonomy_id',
 			'conservation_status',
 			'taxonomy_details',
@@ -488,6 +489,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			'can_user_view',
 			'applicant_details',
 			'allowed_assessors',
+			'parent_species',
 			)
 			
 	def get_readonly(self,obj):
@@ -575,6 +577,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 			'id',
 			'species_number',
 			'group_type',
+			'group_type_id',
 			'taxonomy_id',
 			'conservation_status',
 			'taxonomy_details',
@@ -593,6 +596,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 			'current_assessor',
 			'allowed_assessors',
 			'user_edit_mode',
+			'parent_species',
 			)
 
 	def get_submitter(self, obj):
@@ -925,8 +929,6 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 			return None
 
 	def get_readonly(self,obj):
-        # for internal add new conservation status change the below readonly
-        #return True
         # Check if in 'draft' shouldn't be editable internal(if application is external) but should be editable(if internal_application)
 		if obj.can_user_edit:
 			return False
@@ -971,13 +973,15 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class CreateSpeciesSerializer(BaseSpeciesSerializer):
-    group_type_id = serializers.IntegerField(required=True, write_only= True)
-    class Meta:
-        model = Species
-        fields = ('id',
+	group_type_id = serializers.IntegerField(required=True, write_only= True)
+	parent_species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	class Meta:
+		model = Species
+		fields = ('id',
 			    'group_type_id',
+				'parent_species_id',
 			    )
-        read_only_fields = (
+		read_only_fields = (
             'id',
             )
 

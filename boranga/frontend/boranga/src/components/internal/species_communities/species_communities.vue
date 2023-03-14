@@ -64,8 +64,24 @@
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
+                            <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction"> -->
+                            <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
+                                <template v-if="hasUserEditMode">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <strong>Action</strong><br/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="splitSpecies()">Split</button><br/>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -121,6 +137,7 @@
             </div>
         </div>
         </div>
+        <SpeciesSplit ref="species_split" :species_community="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse"/>
     </div>
 </template>
 <script>
@@ -133,6 +150,7 @@ import Workflow from '@common-utils/workflow.vue'
 //import MoreReferrals from '@common-utils/more_referrals.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
+import SpeciesSplit from './species_split.vue'
 import {
     api_endpoints,
     helpers
@@ -162,6 +180,7 @@ export default {
         Submission,
         Workflow,
         ProposalSpeciesCommunities,
+        SpeciesSplit,
     },
     filters: {
         formatDate: function(data){
@@ -173,6 +192,9 @@ export default {
     computed: {
         csrf_token: function() {
           return helpers.getCookie('csrftoken')
+        },
+        isCommunity: function(){
+            return this.species_community.group_type === "community"
         },
         species_community_form_url: function() {
           return (this.species_community.group_type === "community") ? 
@@ -397,7 +419,7 @@ export default {
                                 errorText,
                                 'error'
                             )
-                        vm.submitConservationStatus=false;
+                        vm.submitSpeciesCommunity=false;
                         vm.saveError=true;
                 //return false;
             });
@@ -482,6 +504,71 @@ export default {
             vm.$http.post(vm.proposal_form_url,formData).then(res=>{
                 },err=>{
             });
+        },
+        refreshFromResponse:function(response){
+            let vm = this;
+            vm.original_species_community = helpers.copyObject(response.body);
+            vm.species_community = helpers.copyObject(response.body);
+        },
+        splitSpecies: async function(){
+            this.$refs.species_split.species_community_original = this.species_community;
+            let newSpeciesId1 = null
+            try {
+                const createUrl = api_endpoints.species+"/";
+                let payload = new Object();
+                payload.group_type_id = this.species_community.group_type_id;
+                payload.parent_species_id = this.species_community.id;
+                let savedSpecies = await Vue.http.post(createUrl, payload);
+                if (savedSpecies) {
+                    newSpeciesId1 = savedSpecies.body.id;
+                    Vue.http.get(`/api/species/${newSpeciesId1}/internal_species.json`).then(res => {
+                        let species_obj=res.body.species_obj;
+                        //--- to add empty documents array
+                        species_obj.documents=[]
+                        //---empty threats array added to store the select threat ids in from the child component
+                        species_obj.threats=[]
+                        this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
+                    },
+                    err => {
+                    console.log(err);
+                    });
+                }
+            }
+            catch (err) {
+                console.log(err);
+                if (this.is_internal) {
+                    return err;
+                }
+            }
+            // let newSpeciesId2 = null
+            // try {
+            //     const createUrl = api_endpoints.species+"/";
+            //     let payload = new Object();
+            //     payload.group_type_id = this.species_community.group_type_id
+            //     payload.parent_species_id = this.species_community.id;
+            //     let savedSpecies = await Vue.http.post(createUrl, payload);
+            //     if (savedSpecies) {
+            //         newSpeciesId2 = savedSpecies.body.id;
+            //         Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
+            //             let species_obj=res.body.species_obj;
+            //             // to add documents id array from original species
+            //             species_obj.documents=[]
+            //             //---empty threats array added to store the select threat ids in from the child component
+            //             species_obj.threats=[]
+            //             this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
+            //         },
+            //         err => {
+            //         console.log(err);
+            //         });
+            //     }
+            // }
+            // catch (err) {
+            //     console.log(err);
+            //     if (this.is_internal) {
+            //         return err;
+            //     }
+            // }
+            this.$refs.species_split.isModalOpen = true;
         },
     },
     mounted: function() {

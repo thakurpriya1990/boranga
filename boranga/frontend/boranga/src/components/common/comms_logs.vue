@@ -521,7 +521,6 @@ export default {
         },
         initialisePopovers: function(){
             if (!this.popoversInitialised){
-                console.log(this._uid)
                 this.initialiseActionLogs();
                 this.initialiseCommLogs();
                 this.popoversInitialised = true;
