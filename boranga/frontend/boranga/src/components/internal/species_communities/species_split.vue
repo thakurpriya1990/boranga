@@ -236,10 +236,9 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: "submit"
             }).then(async () => {
-                //let submit_new_species=[];
                 for (let index=0 ; index<vm.new_species_list.length; index++){
                     let new_species = vm.new_species_list[index]
-                    
+                    //-- save new species before submit
                     let result = await vm.save_before_submit(new_species);
                     if(!vm.saveError){
                         let payload = new Object();
@@ -247,7 +246,6 @@ export default {
                         let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/split_new_species_submit')
                         vm.$http.post(submit_url,payload).then(res=>{
                             vm.new_species = res.body;
-                            //submit_new_species.push(vm.new_species.id);
                             if(index==vm.new_species_list.length-1)
                             {
                                 vm.submit_original_species();
@@ -262,29 +260,6 @@ export default {
                         });
                     }
                 }
-                
-                //------set original species to historical
-                // this.$nextTick(()=>{
-                //     if((!vm.saveError) && submit_new_species.length == vm.new_species_list.length){
-                //         let payload = new Object();
-                //         Object.assign(payload, vm.species_community_original);
-                //         let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/species_split_submit')
-                //         vm.$http.post(submit_url,payload).then(res=>{
-                //             vm.species_community_original = res.body;
-                //             // TODO Not sure where it should go after the split process
-                //             vm.$router.push({
-                //                 name: 'internal-species-communities-dash'
-                //             });
-                //         },err=>{
-                //             swal(
-                //                 'Submit Error',
-                //                 helpers.apiVueResourceError(err),
-                //                 'error'
-                //             )
-                //         });
-                //     }
-                // }
-                    
             },(error) => {
                 vm.submitSpeciesSplit=false;
             });

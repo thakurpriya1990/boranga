@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="species_threats">
-        <FormSection :formCollapse="false" label="Threats" Index="threats">
+        <FormSection :formCollapse="false" label="Threats" :Index="threatBody">
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <div class="text-end">
@@ -43,7 +43,8 @@ export default {
             let vm = this;
             return{
                 uuid:0,
-                panelBody: "species-threats-"+vm._uid,
+                threatBody: "threatBody"+ vm._uid,
+                panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 threat_url: api_endpoints.threat,
                 threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',

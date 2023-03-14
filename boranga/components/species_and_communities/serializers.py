@@ -929,8 +929,6 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 			return None
 
 	def get_readonly(self,obj):
-        # for internal add new conservation status change the below readonly
-        #return True
         # Check if in 'draft' shouldn't be editable internal(if application is external) but should be editable(if internal_application)
 		if obj.can_user_edit:
 			return False

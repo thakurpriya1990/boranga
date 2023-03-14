@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="species_documents">
-        <FormSection :formCollapse="false" label="Documents" Index="documents">
+        <FormSection :formCollapse="false" label="Documents" :Index="documentBody">
             <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
@@ -44,6 +44,7 @@ export default {
             let vm = this;
             return{
                 uuid:0,
+                documentBody: "documentBody"+vm._uid,
                 panelBody: "species-documents-"+vm._uid,
                 values:null,
                 species_document_url: api_endpoints.species_documents,

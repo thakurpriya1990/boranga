@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="species_split_threats">
-        <FormSection :formCollapse="false" label="Threats" Index="threats">
+        <FormSection :formCollapse="false" label="Threats" :Index="threatBody">
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <input class="form-check-input" type="radio" :id="'threat_select_all'+species_community.id" name="threatSelect" value="selectAll" @click="selectThreatOption($event)"/>
@@ -46,7 +46,8 @@ export default {
             let vm = this;
             return{
                 uuid:0,
-                panelBody: "species-split-threats-"+vm._uid,
+                threatBody: "threatBody"+ vm._uid,
+                panelBody: "species-split-threats-"+ vm._uid,
                 values:null,
                 // to store all the documents of original on first load.
                 original_species_threats:[],

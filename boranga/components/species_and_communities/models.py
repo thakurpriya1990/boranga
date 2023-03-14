@@ -416,6 +416,7 @@ class Species(models.Model):
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
+    # parent will the original species  from the split functionality
     parent_species = models.ForeignKey('self', on_delete=models.CASCADE, null = True, blank=True, related_name='parent')
     
     class Meta:
@@ -571,7 +572,7 @@ class Species(models.Model):
         #     else []
         # )
         # return users
-        #TODO We need specific species processing SysstemGroup
+        #TODO We need specific species processing SystemGroup
         group = self.get_assessor_group()
         users = (
             list(
