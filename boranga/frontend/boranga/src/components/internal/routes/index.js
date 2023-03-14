@@ -20,7 +20,6 @@ import ParkEntryFeesDashboard from '../park_entry_fees_dashboard.vue'
 import DistrictProposal from '../district_proposals/district_proposal.vue'
 import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
 import SpeciesCommunities from '../species_communities/species_communities.vue'
-import SpeciesSplitTabsParent from '../species_communities/species_split_tabs_parent.vue'
 import ConservationStatusDash from '../conservation_status/dashboard.vue'
 import ConservationStatus from '../conservation_status/conservation_status.vue'
 import ConservationStatusReferral from '../conservation_status/referral.vue'
@@ -213,12 +212,6 @@ export default
                 },
             ]
         },
-        {
-            path: 'species-split-tabs',
-            component: SpeciesSplitTabsParent,
-            name: "internal-species-split-tabs"
-        },
-
         {
             path: 'conservation_status',
             component: {

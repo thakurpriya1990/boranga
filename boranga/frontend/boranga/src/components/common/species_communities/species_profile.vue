@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="species">
-        <FormSection :formCollapse="false" label="Taxonomy" Index="taxonomy">
+        <FormSection :formCollapse="false" label="Taxonomy" :Index="taxonBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
                 <div class="col-sm-9">
@@ -92,7 +92,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Distribution" Index="distribution">
+        <FormSection :formCollapse="false" label="Distribution" :Index="distributionBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
@@ -187,7 +187,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Conservation Attributes" Index="conservation_attributes">
+        <FormSection :formCollapse="false" label="Conservation Attributes" :Index="conservationBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Habitat/Growth Form:</label>
                 <div class="col-sm-9">
@@ -402,7 +402,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="General" Index="general">
+        <FormSection :formCollapse="false" label="General" :Index="generalBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
                 <div class="col-sm-9">
@@ -451,6 +451,10 @@ export default {
                     keepInvalid:true,
                     allowInputToggle:true,
                 },
+                taxonBody: 'taxonBody' + vm._uid,
+                distributionBody: 'distributionBody' + vm._uid,
+                conservationBody: 'conservationBody' + vm._uid,
+                generalBody: 'generalBody' + vm._uid,
                 //---to show fields related to Fauna
                 isFauna: vm.species_community.group_type==="fauna"?true:false,
                 //----list of values dictionary
