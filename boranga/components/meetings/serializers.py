@@ -11,14 +11,13 @@ from django.db.models import Q
 
 
 class ListMeetingSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Meeting
         fields = (
                 'id',
                 'start_date',
                 'end_date',
-                'scientific_name',
                 'location',
                 'title',
                 
@@ -27,7 +26,6 @@ class ListMeetingSerializer(serializers.ModelSerializer):
                 'id',
                 'start_date',
                 'end_date',
-                'scientific_name',
                 'location',
                 'title',
             )  

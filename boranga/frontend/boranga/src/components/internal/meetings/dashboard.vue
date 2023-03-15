@@ -32,8 +32,7 @@
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-meeting" role="tabpanel" aria-labelledby="pills-meeting-tab">
                 <FormSection :formCollapse="false" label="Meeting" Index="meeting">
-                    <!-- <SpeciesFloraDashTable v-if="isFlora" ref="flora_table" level="internal" :group_type_name="group_name" 
-                    :group_type_id="getGroupId" :url="species_url" /> -->
+                    <MeetingsDashTable ref="meetings_table" level="internal"  :url="meetings_url" />
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-committee" role="tabpanel" aria-labelledby="pills-committee-tab">
@@ -49,6 +48,7 @@
 <script>
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+import MeetingsDashTable from './meetings_datatable.vue'
 import {
   api_endpoints,
   helpers
@@ -63,6 +63,7 @@ export default {
             //filterGroupType: 'flora',  // TODO : need to set to default user preferance as cannot call click event of Tab onload
             group_types: [],
             group_name: null,
+            meetings_url: api_endpoints.meetings_paginated,
             
         }
     
@@ -72,6 +73,7 @@ export default {
         // SpeciesFloraDashTable,
         // SpeciesFaunaDashTable,
         // CommunitiesDashTable,
+        MeetingsDashTable,
         FormSection,
     },
     computed: {
