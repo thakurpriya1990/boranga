@@ -45,6 +45,15 @@ class MeetingFilterBackend(DatatablesFilterBackend):
                 #queryset = queryset.filter(species__group_type__name=filter_group_type)
                 #changed to application_type (ie group_type)
                 queryset = queryset
+
+        filter_start_date = request.GET.get('filter_start_date')
+        filter_end_date = request.GET.get('filter_end_date')
+        if queryset.model is Meeting:
+            if filter_start_date:
+                queryset = queryset.filter(start_date=filter_start_date)
+
+            if filter_end_date:
+                queryset = queryset.filter(end_date=filter_end_date)
         
         getter = request.query_params.get
         fields = self.get_fields(getter)

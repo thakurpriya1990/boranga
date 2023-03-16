@@ -1,10 +1,31 @@
 <template id="meetings_datatable">
     <div>
-            <datatable 
-            ref="meetings_datatable" 
-            :id="datatable_id" 
-            :dtOptions="datatable_options" 
-            :dtHeaders="datatable_headers"/>
+        <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Start Date:</label>
+                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="start_date" v-model="filterStartDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">End Date:</label>
+                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="end_date" v-model="filterEndDate">
+                    </div>
+                </div>
+            </div>
+        </CollapsibleFilters>
+        <div class="row">
+            <div class="col-lg-12">
+                <datatable 
+                ref="meetings_datatable" 
+                :id="datatable_id" 
+                :dtOptions="datatable_options" 
+                :dtHeaders="datatable_headers"/>
+            </div>
+
+        </div>
     </div>
 </template>
 <script>
@@ -15,6 +36,8 @@ import {
 from '@/utils/hooks'
 import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
+import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
+import moment from 'moment'
 
 export default {
     name: 'MeetingsDatatable',
@@ -23,22 +46,58 @@ export default {
             type: String,
             required: true
         },
+        filterStartDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterStartDate',
+        },
+        filterEndDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterEndDate',
+        },
     },
     data: function() {
         let vm = this;
         return {
 
             datatable_id: 'meetings-datatable-'+vm._uid,
+            dateFormat: 'DD/MM/YYYY',
+            timeFormat: 'h:mm:ss a',
+            filterStartDate: sessionStorage.getItem(this.filterStartDate_cache) ?
+            sessionStorage.getItem(this.filterStartDate_cache) : '',
+
+            filterEndDate: sessionStorage.getItem(this.filterEndDate_cache) ?
+            sessionStorage.getItem(this.filterEndDate_cache) : '',
             
         }
     },
     components:{
         datatable,
+        CollapsibleFilters,
     },
     watch:{
-
+        filterStartDate: function(){
+            let vm = this;
+            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterStartDate_cache, vm.filterStartDate);
+        },
+        filterEndDate: function(){
+            let vm = this;
+            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterEndDate_cache, vm.filterEndDate);
+        },
     },
     computed:{
+        filterApplied: function(){
+            if(
+                this.filterStartDate === '' &&
+                this.filterEndDate === ''){
+                return false
+            } else {
+                return true
+            }
+        },
         datatable_headers: function(){
             return ['Number','Location','Title', 'Start Date', 'End date', 'Action']
             
@@ -87,7 +146,8 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     if (full.start_date){
-                        return full.start_date
+                        //return full.start_date
+                        return moment(full.start_date).format('DD/MM/YYYY') + moment(full.start_date).format(' h:mm:ss a')
                     }
                     // Should not reach here
                     return ''
@@ -103,7 +163,8 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     if (full.end_date){
-                        return full.end_date
+                        //return full.end_date
+                        return moment(full.end_date).format('DD/MM/YYYY') + moment(full.end_date).format(' h:mm:ss a')
                     }
                     // Should not reach here
                     return ''
@@ -188,6 +249,8 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
+                        d.filter_start_date = vm.filterStartDate;
+                        d.filter_end_date = vm.filterEndDate;
                         // d.filter_group_type = vm.group_type_name;
                         // d.filter_scientific_name = vm.filterCSFaunaScientificName;
                         // d.filter_common_name = vm.filterCSFaunaCommonName;
@@ -219,6 +282,10 @@ export default {
         },
     },
     methods:{
+        collapsible_component_mounted: function(){
+            this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+        },
+
         constructMeetingsTable: function(){
             this.$refs.meetings_datatable.vmDataTable.clear().draw();
             // if(this.species_community.conservation_status){
