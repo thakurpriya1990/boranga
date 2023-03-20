@@ -29,3 +29,18 @@ class ListMeetingSerializer(serializers.ModelSerializer):
                 'location',
                 'title',
             )  
+        
+class MeetingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Meeting
+        fields = (
+                'id',
+                'start_date',
+                'end_date',
+                'location',
+                'title',
+                'meeting_type'
+                
+            )
+        

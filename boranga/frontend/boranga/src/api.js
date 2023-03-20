@@ -113,6 +113,8 @@ module.exports = {
     filter_list_cs_referrals:         "/api/cs_referrals/filter_list.json",
     filter_list_cs_referrals_community:"/api/cs_referrals/community_filter_list.json",
 
+    meeting:"/api/meeting",
+
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",
     //list_proposals:"/api/list_proposal/?format=datatables",

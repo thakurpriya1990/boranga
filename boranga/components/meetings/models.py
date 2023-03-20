@@ -39,7 +39,17 @@ class Meeting(models.Model):
     Has a:
     - Contact
     """
+    MEETING = 'meeting'
+    COMMITTEE_MEETING = 'committee_meeting'
+
+    MEETING_TYPE_CHOICES = (
+        (MEETING, 'meeting'),
+        (COMMITTEE_MEETING, 'Committee Meeting'),
+        
+    )
     
+    meeting_type = models.CharField('Meeting Type', max_length=30, choices=MEETING_TYPE_CHOICES,
+                                     default=MEETING_TYPE_CHOICES[0][0])
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(max_length=128, blank=True, null=True)

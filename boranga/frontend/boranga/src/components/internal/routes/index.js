@@ -60,6 +60,26 @@ export default
             component: MeetingsDash,
             name:"internal-meetings-dash"
         },
+        // {
+        //     path: 'meeting',
+        //     component: {
+        //         render(c)
+        //         {
+        //             return c('router-view')
+        //         },
+        //     },
+        //     children: [
+        //         {
+        //             path: ':meeting_id',
+        //             component: {
+        //                 render(c)
+        //                 {
+        //                     return c('router-view')
+        //                 },
+        //             },
+        //         },
+        //     ]
+        // },
         {
             path: 'approval/:approval_id',
             component: Approval,

@@ -16,6 +16,11 @@
                 </div>
             </div>
         </CollapsibleFilters>
+        <div class="col-md-12">
+            <div class="text-end">
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createMeeting"><i class="fa-solid fa-circle-plus"></i> Add Meeting</button>
+            </div>
+        </div>
         <div class="row">
             <div class="col-lg-12">
                 <datatable 
@@ -38,6 +43,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import moment from 'moment'
+import Vue from 'vue'
 
 export default {
     name: 'MeetingsDatatable',
@@ -302,7 +308,29 @@ export default {
                 conservation_list_id: conservationStatus,
                 effective_status_date: conservationStatus,
             }).draw();
-        }
+        },
+         createMeeting: async function () {
+            let newMeetingId = null
+            try {
+                    const createUrl = api_endpoints.meeting+"/";
+                    let payload = new Object();
+                    payload.meeting_type = this.meeting_type
+                    let savedMeeting = await Vue.http.post(createUrl, payload);
+                    if (savedMeeting) {
+                        newMeetingId = savedMeeting.body.id;
+                    }
+                }
+            catch (err) {
+                console.log(err);
+                if (this.is_internal) {
+                    return err;
+                }
+            }
+            this.$router.push({
+                name: 'internal-meeting',
+                params: {meeting_id: newMeetingId},
+                });
+        },
     },
     created: function() {
         this.$nextTick(() => {

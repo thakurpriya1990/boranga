@@ -31,6 +31,7 @@ from boranga.components.meetings.models import(
 
 from boranga.components.meetings.serializers import(
     ListMeetingSerializer,
+    MeetingSerializer,
 )
 
 
@@ -92,3 +93,32 @@ class MeetingPaginatedViewSet(viewsets.ModelViewSet):
             qs = Meeting.objects.all()
 
         return qs
+    
+class MeetingViewSet(viewsets.ModelViewSet):
+    queryset = Meeting.objects.all()
+    serializer_class = MeetingSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            meeting_type=request.data.get('meeting_type')
+            data = {
+                'meeting_type': meeting_type,                
+            }
+            serializer = self.get_serializer(data= request.data)
+            #serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception = True)
+            instance = serializer.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
