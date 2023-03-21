@@ -483,7 +483,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "taxonomy__family__name",
+                name: "taxonomy__family_fk__scientific_name",
             }
         },
         column_genera: function(){

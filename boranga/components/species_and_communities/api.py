@@ -192,12 +192,14 @@ class GetSpeciesFilterDict(views.APIView):
                         });
         family_list = []
         if group_type:
-            families = Family.objects.all() # TODO will need to filter according to  group  selection
+            # TODO first do I need to filter the flora/fauna staxon and then get the family data
+            families_dict = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
+            families = Taxonomy.objects.filter(id__in=families_dict)
             if families:
                 for family in families:
                     family_list.append({
                         'id': family.id,
-                        'name': family.name,
+                        'name': family.scientific_name,
                         });
         phylogenetic_group_list = []
         if group_type:
@@ -351,7 +353,7 @@ class GetSpeciesProfileDict(views.APIView):
                     'name': taxon.scientific_name,
                     'taxon_name_id': taxon.taxon_name_id,
                     'previous_name': taxon.previous_name,
-                    'family_id': taxon.family_id,
+                    'family_id': taxon.family_fk_id,
                     'phylogenetic_group_id': taxon.phylogenetic_group_id,
                     'genus_id': taxon.genus_id,
                     'name_authority': taxon.name_authority,
@@ -365,11 +367,13 @@ class GetSpeciesProfileDict(views.APIView):
                     'name':name.name,
                     });
         family_list = []
-        families = Family.objects.all()
+        # filter taxons that are having family_id and the fetch distinct family_id
+        families_dict = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct()
+        families = Taxonomy.objects.filter(id__in=families_dict)
         if families:
             for family in families:
                 family_list.append({'id': family.id,
-                    'name':family.name,
+                    'name':family.scientific_name,
                     });
         phylo_group_list = []
         phylo_groups = PhylogeneticGroup.objects.all()
@@ -550,11 +554,12 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         
         filter_family = request.GET.get('filter_family')
         if filter_family and not filter_family.lower() == 'all':
-            queryset = queryset.filter(taxonomy__family__id=filter_family)
+            queryset = queryset.filter(taxonomy__family_fk_id=filter_family)
 
         filter_genus = request.GET.get('filter_genus')
         if filter_genus and not filter_genus.lower() == 'all':
             queryset = queryset.filter(taxonomy__genus__id=filter_genus)
+
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
             queryset = queryset.filter(conservation_status__conservation_list=filter_conservation_list).distinct()

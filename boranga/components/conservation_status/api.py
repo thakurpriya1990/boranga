@@ -247,10 +247,10 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         filter_family = request.GET.get('filter_family')
         if queryset.model is ConservationStatus:
             if filter_family and not filter_family.lower() == 'all':
-                queryset = queryset.filter(species__taxonomy__family__id=filter_family)
+                queryset = queryset.filter(species__taxonomy__family_fk_id=filter_family)
         elif queryset.model is ConservationStatusReferral:
             if filter_family and not filter_family.lower() == 'all':
-                queryset = queryset.filter(conservation_status__species__taxonomy__family__id=filter_family)
+                queryset = queryset.filter(conservation_status__species__taxonomy__family_fk_id=filter_family)
 
         filter_genus = request.GET.get('filter_genus')
         if queryset.model is ConservationStatus:
@@ -1263,13 +1263,16 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         family_list = []
         if group_type:
             taxonomy_qs = qs.filter(conservation_status__species__group_type__name=group_type).values_list('conservation_status__species__taxonomy', flat=True).distinct()
-            family_qs = Taxonomy.objects.filter(id__in=taxonomy_qs).values_list('family', flat=True).distinct()
-            families = Family.objects.filter(id__in=family_qs) # TODO will need to filter according to  group  selection
+            # family_qs = Taxonomy.objects.filter(id__in=taxonomy_qs).values_list('family', flat=True).distinct()
+            # families = Family.objects.filter(id__in=family_qs) # TODO will need to filter according to  group  selection
+            families_qs = Taxonomy.objects.filter(Q(id__in=taxonomy_qs) & ~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
+            families = Taxonomy.objects.filter(id__in=families_qs)
+            
             if families:
                 for family in families:
                     family_list.append({
                         'id': family.id,
-                        'name': family.name,
+                        'name': family.scientific_name,
                         });
         phylogenetic_group_list = []
         if group_type:

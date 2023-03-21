@@ -108,8 +108,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
 	def get_family(self,obj):
 		if obj.taxonomy:
-			if obj.taxonomy.family:
-				return obj.taxonomy.family.name
+			if obj.taxonomy.family_fk:
+				return obj.taxonomy.family_fk.scientific_name
 		return ''
 
 	def get_genus(self,obj):
@@ -301,7 +301,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
 			# need to fetch common name in multiple select
 			'common_name',
 			'taxon_previous_name',
-			'family_id',
+			'family_fk_id',
 			'genus_id',
 			'phylogenetic_group_id',
 			'name_authority',
