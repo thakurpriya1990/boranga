@@ -257,6 +257,7 @@ if len(GIT_COMMIT_HASH) == 0:
 #]
 
 #NOMOS login details
+NOMOS_URL = env('NOMOS_URL')
 NOMOS_USERNAME = env('NOMOS_USERNAME')
 NOMOS_PASSWORD = env('NOMOS_PASSWORD')
 

@@ -23,7 +23,7 @@ class Command(BaseCommand):
         errors = []
         updates = []
         
-        my_url='https://wagyl.bio.wa.gov.au/api/token'
+        my_url='{}/token'.format(settings.NOMOS_URL)
         
         username= settings.NOMOS_USERNAME
         passwd= settings.NOMOS_PASSWORD
@@ -41,7 +41,7 @@ class Command(BaseCommand):
                 r['access_token']
                 token='{} {}'.format(r['token_type'], r['access_token'])
                 
-                rank_url='https://wagyl.bio.wa.gov.au/api/v1/taxon_ranks'
+                rank_url='{}/v1/taxon_ranks'.format(settings.NOMOS_URL)
                 rank_res=requests.get(rank_url, headers={'Authorization': token})
                 rank_res=rank_res.json()
                 #logger.info('Croos Reference data:{} '.format(cres))

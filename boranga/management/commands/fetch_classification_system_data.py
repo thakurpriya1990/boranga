@@ -23,7 +23,7 @@ class Command(BaseCommand):
         errors = []
         updates = []
         
-        my_url='https://wagyl.bio.wa.gov.au/api/token'
+        my_url= "{}/token".format(settings.NOMOS_URL)
         
         username= settings.NOMOS_USERNAME
         passwd= settings.NOMOS_PASSWORD
@@ -41,7 +41,7 @@ class Command(BaseCommand):
                 r['access_token']
                 token='{} {}'.format(r['token_type'], r['access_token'])
                 
-                class_sys_url='https://wagyl.bio.wa.gov.au/api/v1/classification_systems'
+                class_sys_url='{}/v1/classification_systems'.format(settings.NOMOS_URL)
                 class_sys_res=requests.get(class_sys_url, headers={'Authorization': token})
                 class_sys_res=class_sys_res.json()
                 

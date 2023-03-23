@@ -23,7 +23,7 @@ class Command(BaseCommand):
         errors = []
         updates = []
         
-        my_url='https://wagyl.bio.wa.gov.au/api/token'
+        my_url='{}/token'.format(settings.NOMOS_URL)
         
         username= settings.NOMOS_USERNAME
         passwd= settings.NOMOS_PASSWORD
@@ -41,18 +41,8 @@ class Command(BaseCommand):
                 r['access_token']
                 token='{} {}'.format(r['token_type'], r['access_token'])
                 logger.info('Access token {}'.format(token))
-                #token example
-                # users_url='https://wagyl.bio.wa.gov.au/api/v1/users?range=%5B0%2C20%5D'
-                # token='{} {}'.format(r['token_type'], r['access_token'])
-                # user_res=requests.get(users_url, headers={'Authorization': token})
-                # if user_res.status_code==200:
-                #     users=user_res.json()
-                #     #logger.info('Users response {}'.format(users))
-                # else:
-                #     err_msg = 'Users API failed with status code {}'.format(res.status_code)
-                #     logger.error('{}\n{}'.format(err_msg, str(e)))
-                #     errors.append(err_msg)
-                taxon_url='https://wagyl.bio.wa.gov.au/api/v1/taxon_names?range=[0,500]'
+                
+                taxon_url='{}/v1/taxon_names?range=[0,500]'.format(settings.NOMOS_URL)
                 taxon_res=requests.get(taxon_url, headers={'Authorization': token})
                 tres=taxon_res.json()
                 #logger.info('Taxon data:{} '.format(tres))
@@ -78,7 +68,7 @@ class Command(BaseCommand):
 
                             except Taxonomy.DoesNotExist:
                                 #  create taxon for the family_nid(taxon_name_id) in the hierarchy
-                                family_url='https://wagyl.bio.wa.gov.au/api/v1/taxon_names/{}'.format(family_nid)
+                                family_url='{}/v1/taxon_names/{}'.format(settings.NOMOS_URL,family_nid)
                                 family_res=requests.get(family_url, headers={'Authorization': token})
                                 fres=family_res.json()
                                 try:
@@ -129,7 +119,7 @@ class Command(BaseCommand):
                         # check if tha taxon has classification_systems_ids and then create the informal group records for taxon which will be the "phylo group for a taxon"
                         if obj:
                             if t["classification_system_ids"]:
-                                informal_grp_url='https://wagyl.bio.wa.gov.au/api/v1/informal_groups?filter={}{}{}'.format('{"taxon_name_id":',obj.taxon_name_id,'}')
+                                informal_grp_url='{}/v1/informal_groups?filter={}{}{}'.format(settings.NOMOS_URL,'{"taxon_name_id":',obj.taxon_name_id,'}')
                                 informal_grp_res=requests.get(informal_grp_url, headers={'Authorization': token})
                                 gres=informal_grp_res.json()
                                 try:

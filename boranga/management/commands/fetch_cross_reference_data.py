@@ -23,7 +23,7 @@ class Command(BaseCommand):
         errors = []
         updates = []
         
-        my_url='https://wagyl.bio.wa.gov.au/api/token'
+        my_url='{}/token'.format(settings.NOMOS_URL)
         
         username= settings.NOMOS_USERNAME
         passwd= settings.NOMOS_PASSWORD
@@ -40,13 +40,9 @@ class Command(BaseCommand):
                 r=res.json()
                 r['access_token']
                 token='{} {}'.format(r['token_type'], r['access_token'])
-                #logger.info('Access token {}'.format(token))
-                #token example
-                # users_url='https://wagyl.bio.wa.gov.au/api/v1/users?range=%5B0%2C20%5D'
-                # token='{} {}'.format(r['token_type'], r['access_token'])
                 
 
-                cross_url='https://wagyl.bio.wa.gov.au/api/v1/cross_references'
+                cross_url='{}/v1/cross_references'.format(settings.NOMOS_URL)
                 cross_res=requests.get(cross_url, headers={'Authorization': token})
                 cres=cross_res.json()
                 #logger.info('Croos Reference data:{} '.format(cres))

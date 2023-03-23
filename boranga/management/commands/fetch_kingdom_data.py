@@ -23,7 +23,7 @@ class Command(BaseCommand):
         errors = []
         updates = []
         
-        my_url='https://wagyl.bio.wa.gov.au/api/token'
+        my_url='{}/token'.format(settings.NOMOS_URL)
         
         username= settings.NOMOS_USERNAME
         passwd= settings.NOMOS_PASSWORD
@@ -41,19 +41,8 @@ class Command(BaseCommand):
                 r['access_token']
                 token='{} {}'.format(r['token_type'], r['access_token'])
                 logger.info('Access token {}'.format(token))
-                #token example
-                # users_url='https://wagyl.bio.wa.gov.au/api/v1/users?range=%5B0%2C20%5D'
-                # token='{} {}'.format(r['token_type'], r['access_token'])
-                # user_res=requests.get(users_url, headers={'Authorization': token})
-                # if user_res.status_code==200:
-                #     users=user_res.json()
-                #     #logger.info('Users response {}'.format(users))
-                # else:
-                #     err_msg = 'Users API failed with status code {}'.format(res.status_code)
-                #     logger.error('{}\n{}'.format(err_msg, str(e)))
-                #     errors.append(err_msg)
-
-                kingdom_url='https://wagyl.bio.wa.gov.au/api/v1/kingdoms'
+                
+                kingdom_url='{}/v1/kingdoms'.format(settings.NOMOS_URL)
                 kingdom_res=requests.get(kingdom_url, headers={'Authorization': token})
                 tres=kingdom_res.json()
                 try:
