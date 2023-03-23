@@ -454,6 +454,7 @@ export default {
                 taxonBody: 'taxonBody' + vm._uid,
                 distributionBody: 'distributionBody' + vm._uid,
                 conservationBody: 'conservationBody' + vm._uid,
+                distributionBody: 'distributionBody' + vm._uid,
                 generalBody: 'generalBody' + vm._uid,
                 //---to show fields related to Fauna
                 isFauna: vm.species_community.group_type==="fauna"?true:false,
@@ -594,7 +595,7 @@ export default {
                           vm.taxon_name_id = choice.taxon_name_id;
                           vm.taxon_previous_name = choice.taxon_previous_name;
                           vm.phylogenetic_group_id = choice.phylogenetic_group_id;
-                          vm.family_id = choice.family_id;
+                          vm.family_id = choice.family_fk_id;
                           vm.genus_id = choice.genus_id;
                           vm.name_authority = choice.name_authority;
                           vm.name_comments = choice.name_comments;
@@ -629,6 +630,7 @@ export default {
             }
             vm.$http.get(taxon_api_url).then((response) => {
                 vm.taxon_names = response.body;
+                this.loadTaxonomydetails();
             });
             //------fetch list of values
             const res = await Vue.http.get('/api/species_profile_dict/');
@@ -716,7 +718,6 @@ export default {
                 name: null,
             });
             this.filterDistrict();
-            this.loadTaxonomydetails();
         },
         mounted: function(){
             let vm = this;

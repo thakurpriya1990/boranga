@@ -171,8 +171,8 @@ class Kingdom(models.Model):
     create GroupType related Kingdoms matching the NOMOS api kingdom name 
     """
     grouptype = models.ForeignKey(GroupType,on_delete = models.CASCADE, null=True, blank=True, related_name='kingdoms')
-    kingdom_id = models.CharField(max_length=100, null=True, blank=True)
-    kingdom_name = models.CharField(max_length=100, null=True, blank=True)
+    kingdom_id = models.CharField(max_length=100, null=True, blank=True)  # nomos data
+    kingdom_name = models.CharField(max_length=100, null=True, blank=True) # nomos data
 
     class Meta:
         app_label = 'boranga'
@@ -286,6 +286,27 @@ class Genus(models.Model):
         return str(self.name)
 
 
+class TaxonomyRank(models.Model):
+    """
+    Description from wacensus, to get the Kingdomwise taxon rank for particular taxon_name_id
+
+    Used by:
+    - Taxonomy
+    Is:
+    - Table
+    """
+    kingdom_id = models.IntegerField(null=True, blank=True)  # nomos data
+    kingdom_fk = models.ForeignKey(Kingdom, on_delete=models.SET_NULL, null=True, blank=True, related_name="ranks")
+    taxon_rank_id = models.IntegerField(null=True, blank=True)  # nomos data
+    rank_name = models.CharField(max_length=512,null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.rank_name)  # TODO: is the most appropriate?
+
+
 class Taxonomy(models.Model):
     """
     Description from wacensus, to get the main name then fill in everything else
@@ -296,10 +317,15 @@ class Taxonomy(models.Model):
     Is:
     - Table
     """
-    taxon_name_id = models.IntegerField(null=True, blank=True)  # flora and fauna, name
+    taxon_name_id = models.IntegerField(null=True, blank=True)
     scientific_name = models.CharField(max_length=512,null=True, blank=True)
     kingdom_id = models.CharField(max_length=100,null=True, blank=True)
+    kingdom_fk = models.ForeignKey(Kingdom, on_delete=models.SET_NULL, null=True, blank=True, related_name="taxons")
     kingdom_name = models.CharField(max_length=512,null=True, blank=True)
+    taxon_rank_id = models.IntegerField(null=True, blank=True)
+    taxonomy_rank_fk = models.ForeignKey(TaxonomyRank, on_delete=models.SET_NULL, null=True, blank=True, related_name="taxons")
+    family_nid = models.IntegerField(null=True, blank=True)
+    family_fk = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name="taxon_family")
     family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True)
     genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
     # phylogenetic_group is only used for Fauna 
@@ -310,6 +336,7 @@ class Taxonomy(models.Model):
     #                                    on_delete=models.CASCADE,null=True,blank=True)
     name_authority = models.CharField(max_length=500,null=True, blank=True)
     name_comments = models.CharField(max_length=500,null=True, blank=True)
+    path = models.CharField(max_length=512,null=True, blank=True) # hierarchy for given taxon
 
     class Meta:
         app_label = 'boranga'
@@ -363,6 +390,44 @@ class CrossReference(models.Model):
 
     def __str__(self):
         return str(self.cross_reference_id)  # TODO: is the most appropriate?
+
+
+class ClassificationSystem(models.Model):
+    """
+    Classification Suystem for a taxon
+
+    Used by:
+    -InformalGroup
+    """
+    classification_system_id = models.IntegerField(null=True, blank=True)
+    class_type = models.CharField(max_length=100,null=True, blank=True)
+    class_desc = models.CharField(max_length=100,null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.class_desc)  # TODO: is the most appropriate?
+
+
+class InformalGroup(models.Model):
+    """
+    Classification informal group of taxon which is also derived from taxon
+    informal_group_id is the phylo group for taxon
+    """
+    # may need to add the classisfication system id
+    classification_system_id = models.IntegerField(null=True, blank=True)
+    classification_system_fk = models.ForeignKey(ClassificationSystem, on_delete=models.CASCADE, null=True, related_name="informal_groups")
+    informal_group_id = models.IntegerField(null=True, blank=True)
+    taxon_name_id = models.IntegerField(null=True, blank=True)
+    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.CASCADE, null=True, related_name="informal_groups")
+
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.informal_group_id)  # TODO: is the most appropriate?
 
 
 class Species(models.Model):

@@ -23,7 +23,7 @@ class Command(BaseCommand):
         errors = []
         updates = []
         
-        my_url='https://wagyl.bio.wa.gov.au/api/token'
+        my_url='{}/token'.format(settings.NOMOS_URL)
         
         username= settings.NOMOS_USERNAME
         passwd= settings.NOMOS_PASSWORD
@@ -32,21 +32,15 @@ class Command(BaseCommand):
         'scope': 'READER',
         'username': username,
         'password': passwd }]
-        logger.info('username: {} Password: {}'.format(username, passwd))
-
+        
         try:
             res=requests.post(my_url, data=data1[0])
             if res.status_code==200:
                 r=res.json()
                 r['access_token']
                 token='{} {}'.format(r['token_type'], r['access_token'])
-                #logger.info('Access token {}'.format(token))
-                #token example
-                # users_url='https://wagyl.bio.wa.gov.au/api/v1/users?range=%5B0%2C20%5D'
-                # token='{} {}'.format(r['token_type'], r['access_token'])
-                
-
-                vern_url='https://wagyl.bio.wa.gov.au/api/v1/vernaculars'
+    
+                vern_url='{}/v1/vernaculars'.format(settings.NOMOS_URL)
                 vern_res=requests.get(vern_url, headers={'Authorization': token})
                 vres=vern_res.json()
                 #logger.info('Taxon data:{} '.format(vres))
