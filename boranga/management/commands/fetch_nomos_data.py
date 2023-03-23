@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
 import requests
-from boranga.components.species_and_communities.models import Taxonomy, TaxonVernacular, TaxonomyRank, Kingdom
+from boranga.components.species_and_communities.models import Taxonomy, TaxonVernacular, TaxonomyRank, Kingdom, ClassificationSystem, InformalGroup
 
 
 import itertools
@@ -126,6 +126,30 @@ class Command(BaseCommand):
                         #logger.info('Taxon {}'.format(obj.scientific_name))
                         updates.append(obj.id)
                         
+                        # check if tha taxon has classification_systems_ids and then create the informal group records for taxon which will be the "phylo group for a taxon"
+                        if obj:
+                            if t["classification_system_ids"]:
+                                informal_grp_url='https://wagyl.bio.wa.gov.au/api/v1/informal_groups?filter={}{}{}'.format('{"taxon_name_id":',obj.taxon_name_id,'}')
+                                informal_grp_res=requests.get(informal_grp_url, headers={'Authorization': token})
+                                gres=informal_grp_res.json()
+                                try:
+                                    for g in gres:
+                                        # classification system id
+                                        classification_system_id = g['classification_system_id']
+                                        classification_system_fk = ClassificationSystem.objects.get(classification_system_id=classification_system_id)
+
+                                        obj, created=InformalGroup.objects.update_or_create(informal_group_id=g['informal_group_id'],
+                                                                                        defaults={
+                                                                                            'classification_system_id': classification_system_id,
+                                                                                            'classification_system_fk': classification_system_fk,
+                                                                                            'taxon_name_id': g['taxon_name_id'],
+                                                                                            'taxonomy': obj,
+                                                                                        })
+                                except Exception as e:
+                                    err_msg = 'Create informal group:'
+                                    logger.error('{}\n{}'.format(err_msg, str(e)))
+                                    errors.append(err_msg)
+
                         # if created:
                         #     #spc, spc_created= Species.objects.update_or_create(taxonomy_id=obj.id)
                         #     tax_ver, tax_ver_created=TaxonVernacular.objects.update_or_create(taxonomy_id=obj.id, defaults={'taxon_name_id' : obj.taxon_name_id})

@@ -9,6 +9,8 @@ from boranga.components.species_and_communities.models import(
 	Community,
 	Taxonomy,
 	TaxonVernacular,
+	InformalGroup,
+	ClassificationSystem,
 	CommunityTaxonomy,
 	NameAuthority,
 	SpeciesConservationAttributes,
@@ -120,8 +122,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
 	def get_phylogenetic_group(self,obj):
 		if obj.taxonomy:
-			if obj.taxonomy.phylogenetic_group:
-				return obj.taxonomy.phylogenetic_group.name
+			if obj.taxonomy.informal_groups:
+				return obj.taxonomy.informal_groups.all().values_list('classification_system_fk_id__class_desc', flat=True)
 		return ''
 
 	def get_conservation_list(self,obj):
@@ -291,6 +293,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 
 class TaxonomySerializer(serializers.ModelSerializer):
 	common_name = serializers.SerializerMethodField()
+	phylogenetic_group_id = serializers.SerializerMethodField()
 	class Meta:
 		model = Taxonomy
 		fields = (
@@ -315,6 +318,14 @@ class TaxonomySerializer(serializers.ModelSerializer):
 				return ','.join(names_list)
 		except TaxonVernacular.DoesNotExist:
 			return ''
+
+	def get_phylogenetic_group_id(self,obj):
+		try:
+			if obj.informal_groups:
+				informal_group = InformalGroup.objects.get(taxonomy=obj.id)
+				return informal_group.classification_system_fk_id
+		except InformalGroup.DoesNotExist:
+			return None
 
 class SpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 	class Meta:

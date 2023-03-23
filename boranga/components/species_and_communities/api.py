@@ -32,6 +32,7 @@ from boranga.components.species_and_communities.models import (
     Kingdom,
     Species,
     TaxonVernacular,
+    ClassificationSystem,
     ScientificName,
     Taxonomy,
     Family,
@@ -203,12 +204,12 @@ class GetSpeciesFilterDict(views.APIView):
                         });
         phylogenetic_group_list = []
         if group_type:
-            phylo_groups = PhylogeneticGroup.objects.all() # TODO will need to filter according to  group  selection
+            phylo_groups = ClassificationSystem.objects.all() # TODO will need to filter according to  group  selection
             if phylo_groups:
                 for group in phylo_groups:
                     phylogenetic_group_list.append({
                         'id': group.id,
-                        'name': group.name,
+                        'name': group.class_desc,
                         });
         genus_list = []
         if group_type:
@@ -376,11 +377,11 @@ class GetSpeciesProfileDict(views.APIView):
                     'name':family.scientific_name,
                     });
         phylo_group_list = []
-        phylo_groups = PhylogeneticGroup.objects.all()
+        phylo_groups = ClassificationSystem.objects.all()
         if phylo_groups:
             for group in phylo_groups:
                 phylo_group_list.append({'id': group.id,
-                    'name':group.name,
+                    'name':group.class_desc,
                     });
         genus_list = []
         generas = Genus.objects.all()
@@ -550,7 +551,7 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
 
         filter_phylogenetic_group = request.GET.get('filter_phylogenetic_group')
         if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == 'all':
-            queryset = queryset.filter(taxonomy__phylogenetic_group__id=filter_phylogenetic_group)
+            queryset = queryset.filter(taxonomy__informal_groups__classification_system_fk_id=filter_phylogenetic_group)
         
         filter_family = request.GET.get('filter_family')
         if filter_family and not filter_family.lower() == 'all':
@@ -564,7 +565,7 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
             queryset = queryset.filter(conservation_status__conservation_list=filter_conservation_list).distinct()
 
-        filter_conservation_category = request.GET.get('filter_conserzvation_category')
+        filter_conservation_category = request.GET.get('filter_conservation_category')
         if filter_conservation_category and not filter_conservation_category.lower() == 'all':
             queryset = queryset.filter(conservation_status__conservation_category=filter_conservation_category).distinct()
 

@@ -427,7 +427,7 @@ class InformalGroup(models.Model):
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.cross_reference_id)  # TODO: is the most appropriate?
+        return str(self.informal_group_id)  # TODO: is the most appropriate?
 
 
 class Species(models.Model):

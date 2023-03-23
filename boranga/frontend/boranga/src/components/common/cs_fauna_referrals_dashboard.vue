@@ -30,6 +30,16 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
+                        <label for="">Phylo Group:</label>
+                        <select class="form-select" v-model="filterCSRefFaunaPhylogeneticGroup">
+                            <option value="all">All</option>
+                            <option v-for="option in phylogenetic_group_list" :value="option.id">
+                                {{option.name}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
                         <label for="">Family:</label>
                         <select class="form-select" v-model="filterCSRefFaunaFamily">
                             <option value="all">All</option>
@@ -149,6 +159,11 @@ export default {
             required: false,
             default: 'filterCSRefFaunaCommonName',
         },
+        filterCSRefFaunaPhylogeneticGroup_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSRefFaunaPhylogeneticGroup',
+        },
         filterCSRefFaunaFamily_cache: {
             type: String,
             required: false,
@@ -197,6 +212,9 @@ export default {
             filterCSRefFaunaCommonName: sessionStorage.getItem(this.filterCSRefFaunaCommonName_cache) ? 
                                     sessionStorage.getItem(this.filterCSRefFaunaCommonName_cache) : 'all',
 
+            filterCSRefFaunaPhylogeneticGroup: sessionStorage.getItem(this.filterCSRefFaunaPhylogeneticGroup_cache) ? 
+            sessionStorage.getItem(this.filterCSRefFaunaPhylogeneticGroup_cache) : 'all',
+
             filterCSRefFaunaFamily: sessionStorage.getItem(this.filterCSRefFaunaFamily_cache) ? 
                                 sessionStorage.getItem(this.filterCSRefFaunaFamily_cache) : 'all',
 
@@ -223,6 +241,7 @@ export default {
             scientific_name_list: [],
             common_name_list: [],
             family_list: [],
+            phylogenetic_group_list: [],
             genus_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
@@ -247,6 +266,11 @@ export default {
             let vm = this;
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSRefFaunaCommonName_cache, vm.filterCSRefFaunaCommonName);  
+        },
+        filterCSRefFaunaPhylogeneticGroup: function() {
+            let vm = this;
+            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSRefFaunaPhylogeneticGroup_cache, vm.filterCSRefFaunaPhylogeneticGroup);  
         },
         filterCSRefFaunaFamily: function() {
             let vm = this;
@@ -294,6 +318,7 @@ export default {
         filterApplied: function(){
             if(this.filterCSRefFaunaScientificName === 'all' && 
                 this.filterCSRefFaunaCommonName === 'all' && 
+                this.filterCSRefFaunaPhylogeneticGroup === 'all' && 
                 this.filterCSRefFaunaFamily === 'all' && 
                 this.filterCSRefFaunaGenus === 'all' && 
                 this.filterCSRefFaunaConservationList === 'all' && 
@@ -553,6 +578,7 @@ export default {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_scientific_name = vm.filterCSRefFaunaScientificName;
                         d.filter_common_name = vm.filterCSRefFaunaCommonName;
+                        d.filter_phylogenetic_group = vm.filterCSRefFaunaPhylogeneticGroup;
                         d.filter_family = vm.filterCSRefFaunaFamily;
                         d.filter_genus = vm.filterCSRefFaunaGenus;
                         d.filter_conservation_list = vm.filterCSRefFaunaConservationList;
@@ -625,6 +651,7 @@ export default {
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
+                vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
                 vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
