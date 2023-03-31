@@ -97,14 +97,14 @@ class InternalComplianceView(DetailView):
 class BorangaRoutingView(TemplateView):
     template_name = 'boranga/index.html'
 
-    #def get(self, *args, **kwargs):
-        #if self.request.user.is_authenticated:
-        #    if is_internal(self.request):
-        #        return redirect('internal')
-        #    return redirect('external')
-        #kwargs['form'] = LoginForm
-        #return super(BorangaRoutingView, self).get(*args, **kwargs)
-        #return redirect('/accounts/login')
+    # def get(self, *args, **kwargs):
+    #     if self.request.user.is_authenticated:
+    #        if is_internal(self.request):
+    #            return redirect('internal')
+    #        return redirect('external')
+    #     kwargs['form'] = LoginForm
+    #     return super(BorangaRoutingView, self).get(*args, **kwargs)
+    #     return redirect('/accounts/login')
 
 
 class BorangaContactView(TemplateView):

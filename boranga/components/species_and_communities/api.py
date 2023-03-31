@@ -343,6 +343,17 @@ class TaxonomyViewSet(viewsets.ModelViewSet):
         qs=qs.filter(kingdom_id__in=fauna_kingdoms)
         serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
         return Response(serializer.data)
+    
+    # @list_route(methods=['GET',], detail=True)
+    # def get_taxon_species(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     species = None
+    #     try:
+    #         species = Species.objects.get(taxonomy=instance).id
+    #     except Species.DoesNotExist:
+    #         species = None
+    #     return Response(species)
+
 
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):

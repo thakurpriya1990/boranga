@@ -76,6 +76,9 @@
                                         <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="splitSpecies()">Split</button><br/>
                                         </div>
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="combineSpecies()">Combine</button><br/>
+                                        </div>
                                     </div>
                                 </template>
                             </div>
@@ -138,6 +141,7 @@
         </div>
         </div>
         <SpeciesSplit ref="species_split" :species_community="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse"/>
+        <SpeciesCombine ref="species_combine" :species_community="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse"/>
     </div>
 </template>
 <script>
@@ -151,6 +155,7 @@ import Workflow from '@common-utils/workflow.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import SpeciesSplit from './species_split.vue'
+import SpeciesCombine from './species_combine.vue'
 import {
     api_endpoints,
     helpers
@@ -181,6 +186,7 @@ export default {
         Workflow,
         ProposalSpeciesCommunities,
         SpeciesSplit,
+        SpeciesCombine,
     },
     filters: {
         formatDate: function(data){
@@ -569,6 +575,39 @@ export default {
             //     }
             // }
             this.$refs.species_split.isModalOpen = true;
+        },
+        combineSpecies: async function(){
+            this.$refs.species_combine.original_species_combine_list.push(this.species_community); //--push current original into the array
+            let newSpeciesId = null
+            try {
+                const createUrl = api_endpoints.species+"/";
+                let payload = new Object();
+                payload.group_type_id = this.species_community.group_type_id;
+                //----will have multiple parents in the array
+                payload.parent_species_id = this.species_community.id;
+                let savedSpecies = await Vue.http.post(createUrl, payload);
+                if (savedSpecies) {
+                    newSpeciesId = savedSpecies.body.id;
+                    Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
+                        let species_obj=res.body.species_obj;
+                        //--- to add empty documents array
+                        species_obj.documents=[]
+                        //---empty threats array added to store the selected threat ids in from the child component
+                        species_obj.threats=[]
+                        this.$refs.species_combine.new_combine_species = species_obj; //---assign the new created species to the modal obj
+                    },
+                    err => {
+                    console.log(err);
+                    });
+                }
+            }
+            catch (err) {
+                console.log(err);
+                if (this.is_internal) {
+                    return err;
+                }
+            }
+            this.$refs.species_combine.isModalOpen = true;
         },
     },
     mounted: function() {

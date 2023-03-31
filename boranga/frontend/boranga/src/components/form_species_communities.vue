@@ -64,6 +64,14 @@
                     :is_internal="is_internal"
                     :species_community="species_community">
                 </Community>
+                <!-- <SpeciesForCombine  
+                    v-else-if="combine"
+                    ref="species_information" 
+                    id="speciesInformation" 
+                    :is_internal="is_internal"
+                    :species_community="species_community"
+                    :is_readonly="is_readonly">
+                </SpeciesForCombine> -->
                 <Species
                     v-else
                     ref="species_information" 
@@ -72,6 +80,7 @@
                     :species_community="species_community"
                     :is_readonly="is_readonly">
                 </Species>
+
               </div>
               <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
                 <CommunityDocuments 
@@ -125,6 +134,7 @@
 
 <script>
     import Species from '@/components/common/species_communities/species_profile.vue'
+    //import SpeciesForCombine from '@/components/common/species_communities/species_original_profile_demo.vue'
     import Community from '@/components/common/species_communities/community_profile.vue'
     import SpeciesDocuments from '@/components/common/species_communities/documents.vue'
     import CommunityDocuments from '@/components/common/species_communities/community_documents.vue'
@@ -150,6 +160,10 @@
             is_readonly:{
               type: Boolean,
               default: false
+            },
+            combine:{
+              type: Boolean,
+              default: false
             }
         },
         data:function () {
@@ -165,6 +179,7 @@
         },
         components: {
             Species,
+            //SpeciesForCombine,
             Community,
             SpeciesDocuments,
             CommunityDocuments,

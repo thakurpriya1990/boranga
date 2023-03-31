@@ -28,7 +28,7 @@
                   Documents
                 </a>
               </li>
-              <li class="nav-item">
+              <!-- <li class="nav-item">
                 <a 
                     class="nav-link" 
                     id="pills-threats-tab" 
@@ -40,7 +40,7 @@
                     @click="tabClicked()">
                   Threats
                 </a>
-              </li>
+              </li> -->
             </ul>
             <div class="tab-content" id="pills-tabContent">
               <div class="tab-pane fade show active" :id="profileBody" role="tabpanel" aria-labelledby="pills-profile-tab">
@@ -50,20 +50,22 @@
                     id="speciesInformation" 
                     :is_internal="is_internal"
                     :species_community="species_community"
-                    :species_original="species_original">
+                    :original_species_combine_list="original_species_combine_list">
                 </SpeciesProfile>
               </div>
               <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
-                <SpeciesDocuments 
-                    :key="reloadcount"
-                    ref="species_documents" 
-                    id="speciesDocuments" 
-                    :is_internal="is_internal"
-                    :species_community="species_community"
-                    :species_original="species_original">
-                </SpeciesDocuments>
+                <div v-for="species in original_species_combine_list">
+                    <SpeciesDocuments 
+                        :key="reloadcount"
+                        ref="species_documents" 
+                        id="speciesDocuments" 
+                        :is_internal="is_internal"
+                        :species_community="species_community"
+                        :species_original="species">
+                    </SpeciesDocuments>
+                </div>
               </div>
-              <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
+              <!-- <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
                 <SpeciesThreats
                     :key="reloadcount"
                     ref="species_threats" 
@@ -72,22 +74,22 @@
                     :species_community="species_community"
                     :species_original="species_original">
                 </SpeciesThreats>
-              </div>
+              </div> -->
             </div>
         </div>
     </div>
 </template>
 
 <script>
-    import SpeciesProfile from '@/components/common/species_communities/species_split/species_split_profile.vue'
-    import SpeciesDocuments from '@/components/common/species_communities/species_split/species_split_documents.vue'
-    import SpeciesThreats from '@/components/common/species_communities/species_split/species_split_threats.vue'
+    import SpeciesProfile from '@/components/common/species_communities/species_combine/species_combine_profile.vue'
+    import SpeciesDocuments from '@/components/common/species_communities/species_combine/species_combine_documents.vue'
+    // import SpeciesThreats from '@/components/common/species_communities/species_combine/species_split_threats.vue'
     //import RelatedItems from '@/components/common/table_related_items.vue'
 
     export default {
         props:{
-            species_original:{
-                type: Object,
+            original_species_combine_list:{
+                type: Array,
                 required:true
             },
             species_community:{
@@ -119,7 +121,7 @@
         components: {
             SpeciesProfile,
             SpeciesDocuments,
-            SpeciesThreats,
+            // SpeciesThreats,
             //RelatedItems,
         },
         computed:{
