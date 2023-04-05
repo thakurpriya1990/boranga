@@ -160,12 +160,6 @@ export default {
         },
     },
     methods:{
-        //----function to resolve datatable exceeding beyond the div
-        createTab: function(){
-            let vm=this;
-            // TODO create new species and then add the instance onject to the array
-            vm.new_species_list.push(vm.new_species_list[0]);
-        },
         tabClicked: function(){
         },
         ok:function () {
@@ -241,11 +235,14 @@ export default {
                     //-- save new species before submit
                     let result = await vm.save_before_submit(new_species);
                     if(!vm.saveError){
+                        // add the parent species to the new species object
+                        new_species.parent_species=[vm.species_community_original];
                         let payload = new Object();
                         Object.assign(payload, new_species);
                         let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/split_new_species_submit')
                         vm.$http.post(submit_url,payload).then(res=>{
                             vm.new_species = res.body;
+                            //-- to change status of original species only after all new split species are submitted
                             if(index==vm.new_species_list.length-1)
                             {
                                 vm.submit_original_species();
@@ -269,7 +266,7 @@ export default {
             let vm=this;
             let payload = new Object();
             Object.assign(payload, vm.species_community_original);
-            let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/species_split_submit')
+            let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/change_status_historical')
             vm.$http.post(submit_url,payload).then(res=>{
                 vm.species_community_original = res.body;
                 // TODO Not sure where it should go after the split process
@@ -311,7 +308,6 @@ export default {
             });
 
             $('#btnAdd').click(function (e) {
-                //vm.createTab();
                 let newSpeciesId = null
                 try {
                     const createUrl = api_endpoints.species+"/";

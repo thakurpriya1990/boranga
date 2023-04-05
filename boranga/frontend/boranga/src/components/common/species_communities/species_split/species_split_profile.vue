@@ -762,7 +762,7 @@ import {
 }
 from '@/utils/hooks'
 export default {
-        name: 'Species',
+        name: 'SpeciesSplitProfile',
         props:{
             species_community:{
                 type: Object,

@@ -30,7 +30,7 @@ from '@/utils/hooks'
 
 
 export default {
-        name: 'SpeciesDocuments',
+        name: 'SpeciesCombineDocuments',
         props:{
             species_community:{
                 type: Object,
@@ -46,7 +46,7 @@ export default {
             return{
                 uuid:0,
                 documentBody: 'documentBody' + vm._uid,
-                panelBody: "species-split-documents-"+vm._uid,
+                panelBody: "species-combine-documents-"+vm._uid,
                 values:null,
                 // to store all the documents of original on first load.
                 original_species_documents:[],
@@ -207,8 +207,7 @@ export default {
                 let vm=this;
                 //--fetch the value of selected radio btn
                 let selected_option=e.target.value;
-                //----set the selected value to the parent variable so as to get the data when tab is reloaded/refreshed
-                //vm.$parent.document_selection=selected_option;
+                //----set the selected value to the original species object so as to get the data when tab is reloaded/refreshed
                 vm.species_original.document_selection = selected_option;
  
                 if(selected_option == "selectAll"){
@@ -256,10 +255,8 @@ export default {
                     }
                     else{
                         document.getElementById('doc_select_individual'+vm.species_original.id).checked=true;
-                        //$('#doc_select_individual').checked=true;
                     }
                 }
-            
                 vm.addEventListeners();
             });
         },
@@ -268,10 +265,6 @@ export default {
 </script>
 
 <style lang="css" scoped>
-    /*ul, li {
-        zoom:1;
-        display: inline;
-    }*/
     fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;

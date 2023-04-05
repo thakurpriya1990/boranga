@@ -71,8 +71,8 @@
 
             <div slot="footer">
                 <!-- <button type="button" class="btn btn-default" @click="ok">Submit</button> -->
-                <button v-if="submitSpeciesSplit" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                <button v-else class="btn btn-default" @click.prevent="ok()" :disabled="submitSpeciesSplit">Submit</button>
+                <button v-if="submitSpeciesCombine" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                <button v-else class="btn btn-default" @click.prevent="ok()" :disabled="submitSpeciesCombine">Submit</button>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
             </div>
         </modal>
@@ -118,7 +118,7 @@ export default {
             newSpeciesBody: 'newSpeciesBody' + vm._uid,
             speciesBody: 'speciesBody' + vm._uid,
             new_combine_species:null,
-            submitSpeciesSplit:false,
+            submitSpeciesCombine:false,
             isModalOpen:false,
             original_species_combine_list:[],
             form:null,
@@ -164,7 +164,7 @@ export default {
         },
         close:function () {
             let vm =this;
-            //vm.discardSpecies(vm.new_combine_species.id);
+            vm.discardSpecies(vm.new_combine_species.id);
             vm.original_species_combine_list=[];
             this.isModalOpen = false;
             this.errors = false;
@@ -186,7 +186,7 @@ export default {
                                 errorText,
                                 'error'
                             )
-                        vm.submitSpeciesSplit=false;
+                        vm.submitSpeciesCombine=false;
                         vm.saveError=true;
                         return false;
             });
@@ -206,61 +206,65 @@ export default {
             //     return false;
             // }
             
-            vm.submitSpeciesSplit=true;
+            vm.submitSpeciesCombine=true;
             swal({
                 title: "Submit",
-                text: "Are you sure you want to submit this Species Spit?",
+                text: "Are you sure you want to submit this Species Combine?",
                 type: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit"
             }).then(async () => {
-                for (let index=0 ; index<vm.original_species_combine_list.length; index++){
-                    let new_species = vm.original_species_combine_list[index]
-                    //-- save new species before submit
-                    let result = await vm.save_before_submit(new_species);
-                    if(!vm.saveError){
-                        let payload = new Object();
-                        Object.assign(payload, new_species);
-                        let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/split_new_species_submit')
-                        vm.$http.post(submit_url,payload).then(res=>{
-                            vm.new_species = res.body;
-                            if(index==vm.original_species_combine_list.length-1)
-                            {
-                                vm.submit_original_species();
-                            }
-                        },err=>{
-                            swal(
-                                'Submit Error',
-                                helpers.apiVueResourceError(err),
-                                'error'
-                            )
-                            vm.saveError=true;
-                        });
-                    }
+                //---save and submit the new combine species
+                let new_species = vm.new_combine_species;
+                //-- save new species before submit
+                let result = await vm.save_before_submit(new_species);
+                if(!vm.saveError){
+                    // add the parent species array to the new species object
+                    new_species.parent_species=vm.original_species_combine_list;
+                    let payload = new Object();
+                    Object.assign(payload, new_species);
+                    let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/combine_new_species_submit')
+                    vm.$http.post(submit_url,payload).then(res=>{
+                        vm.new_species = res.body;
+                        vm.submit_original_species();
+                    },err=>{
+                        swal(
+                            'Submit Error',
+                            helpers.apiVueResourceError(err),
+                            'error'
+                        )
+                        vm.saveError=true;
+                    });
                 }
+
             },(error) => {
-                vm.submitSpeciesSplit=false;
+                vm.submitSpeciesCombine=false;
             });
 
         },
         submit_original_species: function(){
             let vm=this;
-            let payload = new Object();
-            Object.assign(payload, vm.new_combine_species);
-            let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.new_combine_species.id+'/species_split_submit')
-            vm.$http.post(submit_url,payload).then(res=>{
-                vm.new_combine_species = res.body;
-                // TODO Not sure where it should go after the split process
-                vm.$router.push({
-                    name: 'internal-species-communities-dash'
+            for (let index=0 ; index<vm.original_species_combine_list.length; index++){
+                let old_species = vm.original_species_combine_list[index];
+                let payload = new Object();
+                Object.assign(payload, old_species);
+                let submit_url = helpers.add_endpoint_json(api_endpoints.species,old_species.id+'/change_status_historical')
+                vm.$http.post(submit_url,payload).then(res=>{
+                    old_species = res.body; 
+                    // TODO Not sure where it should go after the combine process
+                    if(index==vm.original_species_combine_list.length-1){
+                        vm.$router.push({
+                            name: 'internal-species-communities-dash'
+                        });
+                    }
+                },err=>{
+                    swal(
+                        'Submit Error',
+                        helpers.apiVueResourceError(err),
+                        'error'
+                    )
                 });
-            },err=>{
-                swal(
-                    'Submit Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
-            });
+            }
         },
         discardSpecies:function (species_id) {
             let vm = this;
@@ -309,42 +313,6 @@ export default {
         },
         eventListeners:function () {
             let vm = this;
-            // $('#combine-pills-tab').on("click", "span", function () {
-            //     console.log($(this))
-            //     let species_obj= vm.original_species_combine_list[$(this).attr('id')];
-            //     vm.original_species_combine_list.splice($(this).attr('id'),1);
-
-
-            //     // var anchor = $(this).siblings('a');
-            //     // $(anchor.attr('href')).remove();
-            //     // $(this).parent().remove();
-            //     // $(".nav-pills li").children('a').first().click();
-            // });
-
-            // $('#combineSpeciesBtnAdd').click(function (e) {
-            //     //vm.createTab();
-            //     let newSpeciesId = null
-            //     try {
-            //         addCombineSpeciesId = 1164;
-            //         Vue.http.get(`/api/species/${addCombineSpeciesId}/internal_species.json`).then(res => {
-            //             //vm.original_species_combine_list.push(res.body.species_obj); //--temp species_obj
-            //             let species_obj=res.body.species_obj;
-            //             vm.original_species_combine_list.push(species_obj); //--temp species_obj
-            //         },
-            //         err => {
-            //         console.log(err);
-            //         });
-            //     }
-            //     catch (err) {
-            //         console.log(err);
-            //         if (this.is_internal) {
-            //             return err;
-            //         }
-            //     }
-            //     // not working
-            //     $('#combine-pills-tab li:last').show();
-            // });
-                    
         },
    },
    mounted:function () {

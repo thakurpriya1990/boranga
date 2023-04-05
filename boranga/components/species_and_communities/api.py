@@ -783,6 +783,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     def species_list(self, request, *args, **kwargs):
         # TODO filter Species that's approved(submitted) only 
         qs= Species.objects.all()
+        qs= qs.filter(Q(processing_status='current'))
         serializer = SpeciesSerializer(qs, many=True)
         res_json = {
          "data":serializer.data
@@ -905,6 +906,11 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 #instance.submit(request,self)
                 species_form_submit(instance, request)
+                # add parent id to new species instance
+                parent_species_arr= request.data.get('parent_species')
+                for species in parent_species_arr:
+                    species_instance = Species.objects.get(id = species.get('id'))
+                    instance.parent_species.add(species_instance)
                 # copy/clone the original species document and create new for new split species
                 instance.clone_documents(request)
                 instance.clone_threats(request)
@@ -926,10 +932,46 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    # Used to submit the original species after split data is submitted 
+    # used to submit the new species created while combining
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
-    def species_split_submit(self, request, *args, **kwargs):
+    def combine_new_species_submit(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                #instance.submit(request,self)
+                species_form_submit(instance, request)
+                # add parent ids to new species instance
+                parent_species_arr= request.data.get('parent_species')
+                for species in parent_species_arr:
+                    species_instance = Species.objects.get(id = species.get('id'))
+                    instance.parent_species.add(species_instance)
+                
+                # copy/clone the original species document and create new for new split species
+                instance.clone_documents(request)
+                instance.clone_threats(request)
+                instance.save()
+
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            # return redirect(reverse('internal'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    # Used to submit the original species after split/combine data is submitted 
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def change_status_historical(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             instance.processing_status = 'historical'

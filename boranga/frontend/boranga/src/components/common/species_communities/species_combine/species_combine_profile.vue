@@ -1,5 +1,5 @@
 <template lang="html">
-    <div id="species">
+    <div id="species_combine_profile">
         <FormSection :formCollapse="false" label="Taxonomy" :Index="taxonBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
@@ -834,7 +834,7 @@ import {
 }
 from '@/utils/hooks'
 export default {
-        name: 'Species',
+        name: 'SpeciesCombineProfile',
         props:{
             species_community:{
                 type: Object,
@@ -848,13 +848,6 @@ export default {
         data:function () {
             let vm = this;
             return{
-                datepickerOptions:{
-                    format: 'DD/MM/YYYY',
-                    showClear:true,
-                    useCurrent:false,
-                    keepInvalid:true,
-                    allowInputToggle:true,
-                },
                 taxonBody: 'taxonBody' + vm._uid,
                 distributionBody: 'distributionBody' + vm._uid,
                 conservationBody: 'conservationBody' + vm._uid,
@@ -1148,10 +1141,6 @@ export default {
 </script>
 
 <style lang="css" scoped>
-    /*ul, li {
-        zoom:1;
-        display: inline;
-    }*/
     fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;

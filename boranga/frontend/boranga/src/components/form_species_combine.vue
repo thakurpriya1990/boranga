@@ -28,7 +28,7 @@
                   Documents
                 </a>
               </li>
-              <!-- <li class="nav-item">
+              <li class="nav-item">
                 <a 
                     class="nav-link" 
                     id="pills-threats-tab" 
@@ -40,7 +40,7 @@
                     @click="tabClicked()">
                   Threats
                 </a>
-              </li> -->
+              </li>
             </ul>
             <div class="tab-content" id="pills-tabContent">
               <div class="tab-pane fade show active" :id="profileBody" role="tabpanel" aria-labelledby="pills-profile-tab">
@@ -65,16 +65,18 @@
                     </SpeciesDocuments>
                 </div>
               </div>
-              <!-- <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
-                <SpeciesThreats
-                    :key="reloadcount"
-                    ref="species_threats" 
-                    id="speciesThreats" 
-                    :is_internal="is_internal"
-                    :species_community="species_community"
-                    :species_original="species_original">
-                </SpeciesThreats>
-              </div> -->
+              <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
+                <div v-for="species in original_species_combine_list">
+                    <SpeciesThreats
+                        :key="reloadcount"
+                        ref="species_threats" 
+                        id="speciesThreats" 
+                        :is_internal="is_internal"
+                        :species_community="species_community"
+                        :species_original="species">
+                    </SpeciesThreats>
+                </div>
+              </div>
             </div>
         </div>
     </div>
@@ -83,9 +85,8 @@
 <script>
     import SpeciesProfile from '@/components/common/species_communities/species_combine/species_combine_profile.vue'
     import SpeciesDocuments from '@/components/common/species_communities/species_combine/species_combine_documents.vue'
-    // import SpeciesThreats from '@/components/common/species_communities/species_combine/species_split_threats.vue'
-    //import RelatedItems from '@/components/common/table_related_items.vue'
-
+    import SpeciesThreats from '@/components/common/species_communities/species_combine/species_combine_threats.vue'
+    
     export default {
         props:{
             original_species_combine_list:{
@@ -111,18 +112,14 @@
                 profileBody: 'profileBody' + vm._uid,
                 documentBody: 'documentBody' + vm._uid,
                 threatBody: 'threatBody' + vm._uid,
-                relatedItemBody: 'relatedItemBody' + vm._uid,
                 values:null,
                 reloadcount:0,
-                document_selection:null,
-                threat_selection:null,
             }
         },
         components: {
             SpeciesProfile,
             SpeciesDocuments,
-            // SpeciesThreats,
-            //RelatedItems,
+            SpeciesThreats,
         },
         computed:{
             related_items_ajax_url: function(){
@@ -137,12 +134,6 @@
             tabClicked: function(param){
                 this.reloadcount = this.reloadcount+1;
             },
-            /*set_tabs:function(){
-                let vm = this;
-
-                 set profile tab Active 
-                //$('#pills-tab a[href="#pills-profile"]').tab('show');
-            },*/
             eventListener: function(){
               let vm=this;
             },

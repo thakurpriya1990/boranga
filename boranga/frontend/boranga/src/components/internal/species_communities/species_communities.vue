@@ -523,7 +523,6 @@ export default {
                 const createUrl = api_endpoints.species+"/";
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                payload.parent_species_id = this.species_community.id;
                 let savedSpecies = await Vue.http.post(createUrl, payload);
                 if (savedSpecies) {
                     newSpeciesId1 = savedSpecies.body.id;
@@ -546,34 +545,33 @@ export default {
                     return err;
                 }
             }
-            // let newSpeciesId2 = null
-            // try {
-            //     const createUrl = api_endpoints.species+"/";
-            //     let payload = new Object();
-            //     payload.group_type_id = this.species_community.group_type_id
-            //     payload.parent_species_id = this.species_community.id;
-            //     let savedSpecies = await Vue.http.post(createUrl, payload);
-            //     if (savedSpecies) {
-            //         newSpeciesId2 = savedSpecies.body.id;
-            //         Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
-            //             let species_obj=res.body.species_obj;
-            //             // to add documents id array from original species
-            //             species_obj.documents=[]
-            //             //---empty threats array added to store the select threat ids in from the child component
-            //             species_obj.threats=[]
-            //             this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
-            //         },
-            //         err => {
-            //         console.log(err);
-            //         });
-            //     }
-            // }
-            // catch (err) {
-            //     console.log(err);
-            //     if (this.is_internal) {
-            //         return err;
-            //     }
-            // }
+            let newSpeciesId2 = null
+            try {
+                const createUrl = api_endpoints.species+"/";
+                let payload = new Object();
+                payload.group_type_id = this.species_community.group_type_id
+                let savedSpecies = await Vue.http.post(createUrl, payload);
+                if (savedSpecies) {
+                    newSpeciesId2 = savedSpecies.body.id;
+                    Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
+                        let species_obj=res.body.species_obj;
+                        // to add documents id array from original species
+                        species_obj.documents=[]
+                        //---empty threats array added to store the select threat ids in from the child component
+                        species_obj.threats=[]
+                        this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
+                    },
+                    err => {
+                    console.log(err);
+                    });
+                }
+            }
+            catch (err) {
+                console.log(err);
+                if (this.is_internal) {
+                    return err;
+                }
+            }
             this.$refs.species_split.isModalOpen = true;
         },
         combineSpecies: async function(){
@@ -583,8 +581,6 @@ export default {
                 const createUrl = api_endpoints.species+"/";
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                //----will have multiple parents in the array
-                payload.parent_species_id = this.species_community.id;
                 let savedSpecies = await Vue.http.post(createUrl, payload);
                 if (savedSpecies) {
                     newSpeciesId = savedSpecies.body.id;

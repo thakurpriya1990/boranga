@@ -127,6 +127,7 @@ export default {
    created:async function() {
         let vm = this;
         //-----fetch species_list
+        // TODO will need the species filtered with status current, etc. 
         const res = await Vue.http.get('/api/species/species_list.json');
         vm.species_list= res.body.data;
    }

@@ -30,7 +30,7 @@ from '@/utils/hooks'
 
 
 export default {
-        name: 'SpeciesDocuments',
+        name: 'SpeciesSplitDocuments',
         props:{
             species_community:{
                 type: Object,

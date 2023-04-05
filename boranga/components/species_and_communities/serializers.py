@@ -500,7 +500,6 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			'can_user_view',
 			'applicant_details',
 			'allowed_assessors',
-			'parent_species',
 			)
 			
 	def get_readonly(self,obj):
@@ -607,7 +606,6 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 			'current_assessor',
 			'allowed_assessors',
 			'user_edit_mode',
-			'parent_species',
 			)
 
 	def get_submitter(self, obj):
@@ -985,13 +983,11 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
 
 class CreateSpeciesSerializer(BaseSpeciesSerializer):
 	group_type_id = serializers.IntegerField(required=True, write_only= True)
-	parent_species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	class Meta:
 		model = Species
 		fields = ('id',
 			    'group_type_id',
-				'parent_species_id',
-			    )
+				)
 		read_only_fields = (
             'id',
             )

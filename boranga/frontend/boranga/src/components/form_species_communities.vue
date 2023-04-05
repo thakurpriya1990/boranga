@@ -161,10 +161,10 @@
               type: Boolean,
               default: false
             },
-            combine:{
-              type: Boolean,
-              default: false
-            }
+            // combine:{
+            //   type: Boolean,
+            //   default: false
+            // }
         },
         data:function () {
             let vm = this;
