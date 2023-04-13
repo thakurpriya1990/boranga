@@ -22,6 +22,7 @@ from boranga.components.approvals import api as approval_api
 from boranga.components.compliances import api as compliances_api
 from boranga.components.species_and_communities import api as species_communities_api
 from boranga.components.conservation_status import api as conservation_status_api
+from boranga.components.meetings import api as meeting_api
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 
 # API patterns
@@ -53,6 +54,7 @@ router.register(r'cs_referrals',conservation_status_api.ConservationStatusReferr
 # router.register(r'species_conservation_status',conservation_status_api.SpeciesConservationStatusViewSet)
 # router.register(r'community_conservation_status',conservation_status_api.CommunityConservationStatusViewSet)
 router.register(r'cs_amendment_request',conservation_status_api.ConservationStatusAmendmentRequestViewSet)
+router.register(r'meeting_paginated',meeting_api.MeetingPaginatedViewSet)
 
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)
@@ -74,6 +76,7 @@ router.register(r'global_settings', main_api.GlobalSettingsViewSet)
 router.register(r'assessments', proposal_api.ProposalAssessmentViewSet)
 router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 router.register(r'questions', main_api.QuestionViewSet)
+router.register(r'meeting',meeting_api.MeetingViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
@@ -99,7 +102,7 @@ api_patterns = [
     url(r'^api/scientific_name_lookup$', species_communities_api.GetScientificName.as_view(), name='get-scientific-name'),
     url(r'^api/cs_profile_dict$', conservation_status_api.GetCSProfileDict.as_view(), name='get-cs-profile-dict'),
     url(r'^api/conservation_list_dict',conservation_status_api.GetConservationListDict.as_view(),name='get-conservation-list-dict'),
-
+    url(r'^api/meeting_dict$', meeting_api.GetMeetingDict.as_view(), name='get-meeting-dict'),
     #url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
 
 
