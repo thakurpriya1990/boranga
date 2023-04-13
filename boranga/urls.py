@@ -102,7 +102,7 @@ api_patterns = [
     url(r'^api/scientific_name_lookup$', species_communities_api.GetScientificName.as_view(), name='get-scientific-name'),
     url(r'^api/cs_profile_dict$', conservation_status_api.GetCSProfileDict.as_view(), name='get-cs-profile-dict'),
     url(r'^api/conservation_list_dict',conservation_status_api.GetConservationListDict.as_view(),name='get-conservation-list-dict'),
-
+    url(r'^api/meeting_dict$', meeting_api.GetMeetingDict.as_view(), name='get-meeting-dict'),
     #url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
 
 

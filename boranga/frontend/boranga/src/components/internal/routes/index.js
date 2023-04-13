@@ -24,6 +24,7 @@ import ConservationStatusDash from '../conservation_status/dashboard.vue'
 import ConservationStatus from '../conservation_status/conservation_status.vue'
 import ConservationStatusReferral from '../conservation_status/referral.vue'
 import MeetingsDash from '../meetings/dashboard.vue'
+import Meeting from '../meetings/meeting.vue'
 export default
 {
     path: '/internal',
@@ -76,10 +77,22 @@ export default
         //                 {
         //                     return c('router-view')
         //                 },
+        //                 children: [
+        //                     {
+        //                         path: '/',
+        //                         component: Meeting,
+        //                         name:"internal-meeting1"
+        //                     },
+        //                 ]
         //             },
         //         },
         //     ]
         // },
+        {
+            path: 'meeting/:meeting_id',
+            component: Meeting,
+
+        },
         {
             path: 'approval/:approval_id',
             component: Approval,

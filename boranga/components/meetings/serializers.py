@@ -31,6 +31,9 @@ class ListMeetingSerializer(serializers.ModelSerializer):
             )  
         
 class MeetingSerializer(serializers.ModelSerializer):
+    #processing_status = serializers.SerializerMethodField(read_only=True)
+    start_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    end_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = Meeting
@@ -40,7 +43,25 @@ class MeetingSerializer(serializers.ModelSerializer):
                 'end_date',
                 'location',
                 'title',
-                'meeting_type'
+                'meeting_type',
+                'processing_status'
                 
             )
         
+    def get_processing_status(self,obj):
+        return obj.get_processing_status_display()
+    
+class EditMeetingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Meeting
+        fields = (
+                'id',
+                'start_date',
+                'end_date',
+                'location',
+                'title',
+                'meeting_type',
+                'processing_status'
+                
+            )

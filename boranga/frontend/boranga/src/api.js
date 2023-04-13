@@ -114,6 +114,7 @@ module.exports = {
     filter_list_cs_referrals_community:"/api/cs_referrals/community_filter_list.json",
 
     meeting:"/api/meeting",
+    meeting_dict:"/api/meeting_dict",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",

@@ -32,6 +32,7 @@ from boranga.components.meetings.models import(
 from boranga.components.meetings.serializers import(
     ListMeetingSerializer,
     MeetingSerializer,
+    EditMeetingSerializer,
 )
 
 
@@ -122,3 +123,63 @@ class MeetingViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+        
+    @detail_route(methods=['GET',], detail=True)
+    def internal_meeting(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)        
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                    raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+        
+    @detail_route(methods=['post'], detail=True)
+    def edit_meeting(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            # serializer_class = self.get_serializer()
+            # serializer = serializer_class(instance,context={'request':request})
+            serializer = self.get_serializer(instance)
+            # serializer.is_valid(raise_exception = True)
+            serializer = EditMeetingSerializer(instance, data= request.data)
+            serializer.is_valid(raise_exception = True)
+            serializer.save()        
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                    raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+        
+class GetMeetingDict(views.APIView):
+    
+    def get(self, request, format=None):
+        status_list=[]
+        status_choices= Meeting.PROCESSING_STATUS_CHOICES
+        for choice in status_choices:
+            status_list.append({
+                'id': choice[0],
+                'display_name': choice[1]
+            })
+        res_json = {
+        "status_list":status_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')

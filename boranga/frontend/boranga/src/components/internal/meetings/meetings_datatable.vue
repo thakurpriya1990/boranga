@@ -188,7 +188,7 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     let links = "";
-                    links +=  `<a href='/internal/meetings/${full.id}'>Continue</a><br/>`;
+                    links +=  `<a href='/internal/meeting/${full.id}'>Continue</a><br/>`;
                     return links;
                 }
             }

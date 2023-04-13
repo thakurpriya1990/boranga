@@ -41,12 +41,17 @@ class Meeting(models.Model):
     """
     MEETING = 'meeting'
     COMMITTEE_MEETING = 'committee_meeting'
+    PROCESSING_STATUS_DRAFT='draft'
+
 
     MEETING_TYPE_CHOICES = (
         (MEETING, 'meeting'),
         (COMMITTEE_MEETING, 'Committee Meeting'),
         
     )
+    PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_DRAFT, 'Draft'),
+                                 
+                                )
     
     meeting_type = models.CharField('Meeting Type', max_length=30, choices=MEETING_TYPE_CHOICES,
                                      default=MEETING_TYPE_CHOICES[0][0])
@@ -54,6 +59,8 @@ class Meeting(models.Model):
     end_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(max_length=128, blank=True, null=True)
     title = models.CharField(max_length=128, blank=True, null=True)
+    processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
+                                         default=PROCESSING_STATUS_CHOICES[0][0])
                                 
     class Meta:
         app_label = 'boranga'
