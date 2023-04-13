@@ -23,6 +23,8 @@ import SpeciesCommunities from '../species_communities/species_communities.vue'
 import ConservationStatusDash from '../conservation_status/dashboard.vue'
 import ConservationStatus from '../conservation_status/conservation_status.vue'
 import ConservationStatusReferral from '../conservation_status/referral.vue'
+import MeetingsDash from '../meetings/dashboard.vue'
+import Meeting from '../meetings/meeting.vue'
 export default
 {
     path: '/internal',
@@ -53,6 +55,43 @@ export default
             path: 'conservation-status',
             component: ConservationStatusDash,
             name:"internal-conservation_status-dash"
+        },
+        {
+            path: 'meetings',
+            component: MeetingsDash,
+            name:"internal-meetings-dash"
+        },
+        // {
+        //     path: 'meeting',
+        //     component: {
+        //         render(c)
+        //         {
+        //             return c('router-view')
+        //         },
+        //     },
+        //     children: [
+        //         {
+        //             path: ':meeting_id',
+        //             component: {
+        //                 render(c)
+        //                 {
+        //                     return c('router-view')
+        //                 },
+        //                 children: [
+        //                     {
+        //                         path: '/',
+        //                         component: Meeting,
+        //                         name:"internal-meeting1"
+        //                     },
+        //                 ]
+        //             },
+        //         },
+        //     ]
+        // },
+        {
+            path: 'meeting/:meeting_id',
+            component: Meeting,
+
         },
         {
             path: 'approval/:approval_id',
