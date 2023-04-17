@@ -79,6 +79,9 @@
                                         <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="combineSpecies()">Combine</button><br/>
                                         </div>
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="renameSpecies()">Rename</button><br/>
+                                        </div>
                                     </div>
                                 </template>
                             </div>
@@ -142,6 +145,7 @@
         </div>
         <SpeciesSplit ref="species_split" :species_community="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse"/>
         <SpeciesCombine ref="species_combine" :species_community="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse"/>
+        <SpeciesRename ref="species_rename" :species_community_original="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse"/>
     </div>
 </template>
 <script>
@@ -156,6 +160,7 @@ import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'
+import SpeciesRename from './species_rename.vue'
 import {
     api_endpoints,
     helpers
@@ -187,6 +192,7 @@ export default {
         ProposalSpeciesCommunities,
         SpeciesSplit,
         SpeciesCombine,
+        SpeciesRename,
     },
     filters: {
         formatDate: function(data){
@@ -596,6 +602,7 @@ export default {
                     console.log(err);
                     });
                 }
+                
             }
             catch (err) {
                 console.log(err);
@@ -605,6 +612,15 @@ export default {
             }
             this.$refs.species_combine.isModalOpen = true;
         },
+        renameSpecies: async function(){
+            let rename_species_obj = null;
+            let newRenameSpecies = await Vue.http.get(`/api/species/${this.species_community.id}/rename_deep_copy.json`)
+                if(newRenameSpecies){
+                    rename_species_obj=newRenameSpecies.body.species_obj;
+                    this.$refs.species_rename.new_rename_species = rename_species_obj;
+                    this.$refs.species_rename.isModalOpen= true;
+                }
+        }
     },
     mounted: function() {
         let vm = this;

@@ -86,7 +86,7 @@ export default {
             try {
                 Vue.http.get(`/api/species/${vm.combineSpeciesId}/internal_species.json`).then(res => {
                     let species_obj=res.body.species_obj;
-                    // user should not select the same ID if already exists in the array to combine
+                    // user should not able select the same ID if already exists in the array to combine
                     let hasSpecies=false;
                     for (const species of vm.$parent.original_species_combine_list){
                         if(species.id === species_obj.id){
@@ -127,9 +127,12 @@ export default {
    created:async function() {
         let vm = this;
         //-----fetch species_list
-        // TODO will need the species filtered with status current, etc. 
-        const res = await Vue.http.get('/api/species/species_list.json');
-        vm.species_list= res.body.data;
+        // species filtered with status current and grouptype, etc. 
+        vm.$http.get(api_endpoints.groupwise_species_dict+ '?group_type_name=' + this.$route.query.group_type_name).then((response) => {
+                vm.species_list = response.body.species_list;
+            },(error) => {
+                console.log(error);
+            })
    }
 }
 </script>

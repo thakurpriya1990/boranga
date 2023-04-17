@@ -4,7 +4,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" 
+                    <select :disabled="rename_species?false:isReadOnly" class="form-select" 
                         v-model="species_community.taxonomy_id" id="scientific_name" @change="loadTaxonomydetails()">
                         <option v-for="option in taxon_names" :value="option.id" v-bind:key="option.id">
                             {{ option.scientific_name }}                            
@@ -439,6 +439,11 @@ export default {
             is_readonly:{
               type: Boolean,
               default: false
+            },
+            // this prop is only send from rename species form to make the taxon select editable
+            rename_species:{
+              type: Boolean,
+              default: false
             }
         },
         data:function () {
@@ -496,7 +501,7 @@ export default {
         },
         computed: {
             isReadOnly: function(){
-                // this prop (is_readonly = true) is only send from split species form to make the original species readonly
+                // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
                 if(this.is_readonly){
                     return  this.is_readonly;
                 }

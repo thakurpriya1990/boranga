@@ -4,7 +4,7 @@
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <div class="text-end">
-                        <button type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
+                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
                             <i class="fa-solid fa-circle-plus"></i>
                                 Add Threat
                         </button>
@@ -37,6 +37,11 @@ export default {
             species_community:{
                 type: Object,
                 required:true
+            },
+            // this prop is only send from split species form to make the original species readonly
+            is_readonly:{
+              type: Boolean,
+              default: false
             },
         },
         data:function () {
@@ -224,6 +229,12 @@ export default {
             ThreatDetail,
         },
         computed: {
+            isReadOnly: function(){
+                // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
+                if(this.is_readonly){
+                    return  this.is_readonly;
+                }
+            },
         },
         watch:{
             

@@ -78,7 +78,8 @@
                     id="speciesInformation" 
                     :is_internal="is_internal"
                     :species_community="species_community"
-                    :is_readonly="is_readonly">
+                    :is_readonly="is_readonly"
+                    :rename_species="rename_species">
                 </Species>
 
               </div>
@@ -89,7 +90,8 @@
                     ref="community_documents" 
                     id="communityDocuments" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
+                    :species_community="species_community"
+                    :is_readonly="is_readonly">
                 </CommunityDocuments>
                 <SpeciesDocuments 
                     v-else 
@@ -97,7 +99,8 @@
                     ref="species_documents" 
                     id="speciesDocuments" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
+                    :species_community="species_community"
+                    :is_readonly="is_readonly">
                 </SpeciesDocuments>
               </div>
               <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
@@ -107,7 +110,8 @@
                     ref="community_threats" 
                     id="communityThreats" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
+                    :species_community="species_community"
+                    :is_readonly="is_readonly">
                 </CommunityThreats>
                 <SpeciesThreats
                     v-else 
@@ -115,7 +119,8 @@
                     ref="species_threats" 
                     id="speciesThreats" 
                     :is_internal="is_internal"
-                    :species_community="species_community">
+                    :species_community="species_community"
+                    :is_readonly="is_readonly">
                 </SpeciesThreats>
               </div>
               <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
@@ -158,6 +163,10 @@
             },
             // this prop is only send from split species form to make the original species readonly
             is_readonly:{
+              type: Boolean,
+              default: false
+            },
+            rename_species:{
               type: Boolean,
               default: false
             },

@@ -77,7 +77,7 @@
             </div>
         </modal>
 
-        <AddCombineSpecies ref="addCombineSpecies" ></AddCombineSpecies>
+        <AddCombineSpecies ref="addCombineSpecies"></AddCombineSpecies>
     </div>
 </template>
 
@@ -144,14 +144,6 @@ export default {
         },
     },
     methods:{
-        //----function to resolve datatable exceeding beyond the div
-        createTab: function(){
-            let vm=this;
-            // TODO create new species and then add the instance onject to the array
-            vm.original_species_combine_list.push(vm.original_species_combine_list[0]);
-        },
-        tabClicked: function(){
-        },
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
@@ -307,9 +299,6 @@ export default {
             //         return err;
             //     }
             // }
-            // // not working
-            // $('#combine-pills-tab li:last').show();
-
         },
         eventListeners:function () {
             let vm = this;
@@ -321,13 +310,23 @@ export default {
         //vm.addFormValidations();
         this.$nextTick(()=>{
             vm.eventListeners();
+            // was added to set the first species Tab active but the updated() method overrides it
+            var firstTabEl = document.querySelector('#combine-pills-tab li:nth-child(1) a')
+            var firstTab = new bootstrap.Tab(firstTabEl)
+            firstTab.show()
         });
    },
    created:function() {
         let vm = this;
         this.$nextTick(()=>{
         });
-   }
+   },
+   updated:function() {
+        //  to show the the added species active i.e the last Tab
+        var lastTabEl = document.querySelector('#combine-pills-tab li:nth-last-child(2) a')
+        var lastTab = new bootstrap.Tab(lastTabEl)
+        lastTab.show()
+   }, 
 }
 </script>
 

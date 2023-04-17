@@ -196,8 +196,8 @@
                         v-model="species.conservation_attributes.habitat_growth_form"/>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="habitat_frm_chk" :id="'habitat_frm_chk'+species.id" 
-                        @change="checkConservationInput('habitat_frm_chk'+species.id,'habitat_growth_form',species.conservation_attributes.habitat_growth_form)" />
+                        <input class="form-check-input" type="checkbox" name="habitat_frm_chk" :id="'habitat_frm_chk'+species.id" 
+                        @change="checkConservationInput('habitat_frm_chk','habitat_frm_chk'+species.id,'habitat_growth_form',species.conservation_attributes.habitat_growth_form)" />
                     </div>
                 </div>
             </div>
@@ -221,8 +221,8 @@
                         </select>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="flowering_prd_chk" :id="'flowering_prd_chk'+species.id" 
-                        @change="checkConservationInput('flowering_prd_chk'+species.id,'flowering_period_id',species.conservation_attributes.flowering_period_id)" />
+                        <input class="form-check-input" type="checkbox" name="flowering_prd_chk" :id="'flowering_prd_chk'+species.id" 
+                        @change="checkConservationInput('flowering_prd_chk','flowering_prd_chk'+species.id,'flowering_period_id',species.conservation_attributes.flowering_period_id)" />
                     </div>
                 </div>
             </div>
@@ -250,8 +250,8 @@
                         </select>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="fruiting_prd_chk" :id="'fruiting_prd_chk'+species.id" 
-                        @change="checkConservationInput('fruiting_prd_chk'+species.id,'fruiting_period_id',species.conservation_attributes.fruiting_period_id)" />
+                        <input class="form-check-input" type="checkbox" name="fruiting_prd_chk" :id="'fruiting_prd_chk'+species.id" 
+                        @change="checkConservationInput('fruiting_prd_chk','fruiting_prd_chk'+species.id,'fruiting_period_id',species.conservation_attributes.fruiting_period_id)" />
                     </div>
                 </div>
             </div>
@@ -279,8 +279,8 @@
                         </select>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="flora_recruit_type_chk" :id="'flora_recruit_type_chk'+species.id" 
-                        @change="checkConservationInput('flora_recruit_type_chk'+species.id,'flora_recruitment_type_id', species.conservation_attributes.flora_recruitment_type_id)" />
+                        <input class="form-check-input" type="checkbox" name="flora_recruit_type_chk" :id="'flora_recruit_type_chk'+species.id" 
+                        @change="checkConservationInput('flora_recruit_type_chk','flora_recruit_type_chk'+species.id,'flora_recruitment_type_id', species.conservation_attributes.flora_recruitment_type_id)" />
                     </div>
                 </div>
             </div>
@@ -308,8 +308,8 @@
                         </select>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="seed_viability_chk" :id="'seed_viability_chk'+species.id" 
-                        @change="checkConservationInput('seed_viability_chk'+species.id, 'seed_viability_germination_info_id', species.conservation_attributes.seed_viability_germination_info_id)" />
+                        <input class="form-check-input" type="checkbox" name="seed_viability_chk" :id="'seed_viability_chk'+species.id" 
+                        @change="checkConservationInput('seed_viability_chk','seed_viability_chk'+species.id, 'seed_viability_germination_info_id', species.conservation_attributes.seed_viability_germination_info_id)" />
                     </div>
                 </div>
             </div>
@@ -337,8 +337,8 @@
                         </select>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="root_morphology_chk" :id="'root_morphology_chk'+species.id" 
-                        @change="checkConservationInput('root_morphology_chk'+species.id,'root_morphology_id', species.conservation_attributes.root_morphology_id)" />
+                        <input class="form-check-input" type="checkbox" name="root_morphology_chk" :id="'root_morphology_chk'+species.id" 
+                        @change="checkConservationInput('root_morphology_chk','root_morphology_chk'+species.id,'root_morphology_id', species.conservation_attributes.root_morphology_id)" />
                     </div>
                 </div>
             </div>
@@ -366,8 +366,8 @@
                         </select>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="pollinator_chk" :id="'pollinator_chk'+species.id" 
-                        @change="checkConservationInput('pollinator_chk'+species.id,'pollinator_information_id', species.conservation_attributes.pollinator_information_id)" />
+                        <input class="form-check-input" type="checkbox" name="pollinator_chk" :id="'pollinator_chk'+species.id" 
+                        @change="checkConservationInput('pollinator_chk','pollinator_chk'+species.id,'pollinator_information_id', species.conservation_attributes.pollinator_information_id)" />
                     </div>
                 </div>
             </div>
@@ -395,8 +395,8 @@
                         </select>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="breeding_prd_chk" :id="'breeding_prd_chk'+species.id" 
-                        @change="checkConservationInput('breeding_prd_chk'+species.id,'breeding_period_id', species.conservation_attributes.breeding_period_id)" />
+                        <input class="form-check-input" type="checkbox" name="breeding_prd_chk" :id="'breeding_prd_chk'+species.id" 
+                        @change="checkConservationInput('breeding_prd_chk','breeding_prd_chk'+species.id,'breeding_period_id', species.conservation_attributes.breeding_period_id)" />
                     </div>
                 </div>
             </div>
@@ -424,8 +424,8 @@
                         </div>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="breeding_type_chk" :id="'breeding_type_chk'+species.id" 
-                        @change="checkConservationInput('breeding_type_chk'+species.id,'fauna_breeding_id', species.conservation_attributes.fauna_breeding_id)" />
+                        <input class="form-check-input" type="checkbox" name="breeding_type_chk" :id="'breeding_type_chk'+species.id" 
+                        @change="checkConservationInput('breeding_type_chk','breeding_type_chk'+species.id,'fauna_breeding_id', species.conservation_attributes.fauna_breeding_id)" />
                     </div>
                 </div>
             </div>
@@ -450,8 +450,8 @@
                         v-model="species.conservation_attributes.fauna_reproductive_capacity"/>
                     </div>
                     <div class="col-sm-1">
-                        <input class="form-check-input" type="radio" name="reproductive_cap_chk" :id="'reproductive_cap_chk'+species.id" 
-                        @change="checkConservationInput('reproductive_cap_chk'+species.id,'fauna_reproductive_capacity', species.conservation_attributes.fauna_reproductive_capacity)" />
+                        <input class="form-check-input" type="checkbox" name="reproductive_cap_chk" :id="'reproductive_cap_chk'+species.id" 
+                        @change="checkConservationInput('reproductive_cap_chk','reproductive_cap_chk'+species.id,'fauna_reproductive_capacity', species.conservation_attributes.fauna_reproductive_capacity)" />
                     </div>
                 </div>
             </div>
@@ -473,9 +473,9 @@
                         v-model="species.conservation_attributes.time_to_maturity"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="maturity_time_chk" :id="'maturity_time_chk'+species.id" 
-                        @change="checkConservationInput('maturity_time_chk'+species.id,'time_to_maturity', species.conservation_attributes.time_to_maturity)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="maturity_time_chk" :id="'maturity_time_chk'+species.id" 
+                        @change="checkConservationInput('maturity_time_chk','maturity_time_chk'+species.id,'time_to_maturity', species.conservation_attributes.time_to_maturity)" />
                     </div>
                 </div>
             </div>
@@ -496,9 +496,9 @@
                         v-model="species.conservation_attributes.generation_length"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="generation_chk" :id="'generation_chk'+species.id" 
-                        @change="checkConservationInput('generation_chk'+species.id,'generation_length', species.conservation_attributes.generation_length)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="generation_chk" :id="'generation_chk'+species.id" 
+                        @change="checkConservationInput('generation_chk','generation_chk'+species.id,'generation_length', species.conservation_attributes.generation_length)" />
                     </div>
                 </div>
             </div>
@@ -519,9 +519,9 @@
                         v-model="species.conservation_attributes.average_lifespan"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="lifespan_chk" :id="'lifespan_chk'+species.id" 
-                        @change="checkConservationInput('lifespan_chk'+species.id,'average_lifespan', species.conservation_attributes.average_lifespan)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="lifespan_chk" :id="'lifespan_chk'+species.id" 
+                        @change="checkConservationInput('lifespan_chk','lifespan_chk'+species.id,'average_lifespan', species.conservation_attributes.average_lifespan)" />
                     </div>
                 </div>
             </div>
@@ -543,9 +543,9 @@
                         v-model="species.conservation_attributes.minimum_fire_interval"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="fire_interval_chk" :id="'fire_interval_chk'+species.id" 
-                        @change="checkConservationInput('fire_interval_chk'+species.id,'minimum_fire_interval', species.conservation_attributes.minimum_fire_interval)" />
+                        <!-- checkInput(checkbox_name, checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="fire_interval_chk" :id="'fire_interval_chk'+species.id" 
+                        @change="checkConservationInput('fire_interval_chk','fire_interval_chk'+species.id,'minimum_fire_interval', species.conservation_attributes.minimum_fire_interval)" />
                     </div>
                 </div>
             </div>
@@ -565,9 +565,9 @@
                         <input :disabled="true" type="text" class="form-control" id="response_to_fire" placeholder="" v-model="species.conservation_attributes.response_to_fire"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="fire_resp_chk" :id="'fire_resp_chk'+species.id" 
-                        @change="checkConservationInput('fire_resp_chk'+species.id,'response_to_fire', species.conservation_attributes.response_to_fire)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="fire_resp_chk" :id="'fire_resp_chk'+species.id" 
+                        @change="checkConservationInput('fire_resp_chk','fire_resp_chk'+species.id,'response_to_fire', species.conservation_attributes.response_to_fire)" />
                     </div>
                 </div>
             </div>
@@ -590,9 +590,9 @@
                         </select>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="fire_habitat_chk" :id="'fire_habitat_chk'+species.id" 
-                        @change="checkConservationInput('fire_habitat_chk'+species.id,'post_fire_habitat_interaction_id', species.conservation_attributes.post_fire_habitat_interaction_id)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="fire_habitat_chk" :id="'fire_habitat_chk'+species.id" 
+                        @change="checkConservationInput('fire_habitat_chk','fire_habitat_chk'+species.id,'post_fire_habitat_interaction_id', species.conservation_attributes.post_fire_habitat_interaction_id)" />
                     </div>
                 </div>
             </div>
@@ -617,9 +617,9 @@
                         v-model="species.conservation_attributes.response_to_disturbance"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="disturbance_resp_chk" :id="'disturbance_resp_chk'+species.id" 
-                        @change="checkConservationInput('disturbance_resp_chk'+species.id,'response_to_disturbance', species.conservation_attributes.response_to_disturbance)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="disturbance_resp_chk" :id="'disturbance_resp_chk'+species.id" 
+                        @change="checkConservationInput('disturbance_resp_chk','disturbance_resp_chk'+species.id,'response_to_disturbance', species.conservation_attributes.response_to_disturbance)" />
                     </div>
                 </div>
             </div>
@@ -640,9 +640,9 @@
                         placeholder="" v-model="species.conservation_attributes.habitat"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="habitat_chk" :id="'habitat_chk'+species.id" 
-                        @change="checkConservationInput('habitat_chk'+species.id,'habitat', species.conservation_attributes.habitat)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="habitat_chk" :id="'habitat_chk'+species.id" 
+                        @change="checkConservationInput('habitat_chk','habitat_chk'+species.id,'habitat', species.conservation_attributes.habitat)" />
                     </div>
                 </div>
             </div>
@@ -662,9 +662,9 @@
                         placeholder="" v-model="species.conservation_attributes.hydrology"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="hydrology_chk" :id="'hydrology_chk'+species.id" 
-                        @change="checkConservationInput('hydrology_chk'+species.id,'hydrology', species.conservation_attributes.hydrology)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="hydrology_chk" :id="'hydrology_chk'+species.id" 
+                        @change="checkConservationInput('hydrology_chk','hydrology_chk'+species.id,'hydrology', species.conservation_attributes.hydrology)" />
                     </div>
                 </div>
             </div>
@@ -684,9 +684,9 @@
                         placeholder="" v-model="species.conservation_attributes.diet_and_food_source"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="diet_src_chk" :id="'diet_src_chk'+species.id" 
-                        @change="checkConservationInput('diet_src_chk'+species.id,'diet_and_food_source', species.conservation_attributes.diet_and_food_source)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="diet_src_chk" :id="'diet_src_chk'+species.id" 
+                        @change="checkConservationInput('diet_src_chk','diet_src_chk'+species.id,'diet_and_food_source', species.conservation_attributes.diet_and_food_source)" />
                     </div>
                 </div>
             </div>
@@ -706,9 +706,9 @@
                         placeholder="" v-model="species.conservation_attributes.home_range"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="home_rng_chk" :id="'home_rng_chk'+species.id" 
-                        @change="checkConservationInput('home_rng_chk'+species.id,'home_range', species.conservation_attributes.home_range)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="home_rng_chk" :id="'home_rng_chk'+species.id" 
+                        @change="checkConservationInput('home_rng_chk','home_rng_chk'+species.id,'home_range', species.conservation_attributes.home_range)" />
                     </div>
                 </div>
             </div>
@@ -729,9 +729,9 @@
                         placeholder="" v-model="species.conservation_attributes.research_requirements"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="research_req_chk" :id="'research_req_chk'+species.id" 
-                        @change="checkConservationInput('research_req_chk'+species.id,'research_requirements', species.conservation_attributes.research_requirements)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="research_req_chk" :id="'research_req_chk'+species.id" 
+                        @change="checkConservationInput('research_req_chk','research_req_chk'+species.id,'research_requirements', species.conservation_attributes.research_requirements)" />
                     </div>
                 </div>
             </div>
@@ -753,9 +753,9 @@
                         placeholder="" v-model="species.conservation_attributes.response_to_dieback"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="dieback_resp_chk" :id="'dieback_resp_chk'+species.id" 
-                        @change="checkConservationInput('dieback_resp_chk'+species.id,'response_to_dieback', species.conservation_attributes.response_to_dieback)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="dieback_resp_chk" :id="'dieback_resp_chk'+species.id" 
+                        @change="checkConservationInput('dieback_resp_chk','dieback_resp_chk'+species.id,'response_to_dieback', species.conservation_attributes.response_to_dieback)" />
                     </div>
                 </div>
             </div>
@@ -777,9 +777,9 @@
                         placeholder="" v-model="species.conservation_attributes.other_relevant_diseases"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="disease_chk" :id="'disease_chk'+species.id" 
-                        @change="checkConservationInput('disease_chk'+species.id,'other_relevant_diseases', species.conservation_attributes.other_relevant_diseases)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="disease_chk" :id="'disease_chk'+species.id" 
+                        @change="checkConservationInput('disease_chk','disease_chk'+species.id,'other_relevant_diseases', species.conservation_attributes.other_relevant_diseases)" />
                     </div>
                 </div>
             </div>
@@ -801,9 +801,9 @@
                         <input :disabled="true" type="text" class="form-control" id="department_file_numbers" placeholder="" v-model="species.distribution.department_file_numbers"/>
                     </div>
                     <div class="col-sm-1">
-                        <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
-                        <input class="form-check-input" type="radio" name="dept_file_chk" :id="'dept_file_chk'+species.id" 
-                        @change="checkDistributionInput('dept_file_chk'+species.id,'department_file_numbers', species.distribution.department_file_numbers)" />
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
+                        <input class="form-check-input" type="checkbox" name="dept_file_chk" :id="'dept_file_chk'+species.id" 
+                        @change="checkDistributionInput('dept_file_chk','dept_file_chk'+species.id,'department_file_numbers', species.distribution.department_file_numbers)" />
                     </div>
                 </div>
             </div>
@@ -999,20 +999,38 @@ export default {
                     this.species_community.conservation_attributes.habitat_growth_form=null;
                 }
             },
-            checkConservationInput: function(chkbox,obj_field,value){
+            checkConservationInput: function(chkbox_name,chkbox_id,obj_field,value){
                 // if checkbox is checked copy value from original  species to new species
-                if($("#"+chkbox).is(':checked')== true){
+                if($("#"+chkbox_id).is(':checked')== true){
                     this.species_community.conservation_attributes[obj_field] = value;
                 }else{
                     this.species_community.conservation_attributes[obj_field]=null;
                 }
+                //--- to select only one checkbox at a time in a group
+                let chkbox_name_arr=document.getElementsByName(chkbox_name);
+                for(var i=0; i<chkbox_name_arr.length; i++)
+                {
+                    if(chkbox_name_arr[i].id != chkbox_id)
+                    {
+                        chkbox_name_arr[i].checked = false;
+                    }
+                }
             },
-            checkDistributionInput: function(chkbox,obj_field,value){
+            checkDistributionInput: function(chkbox_name,chkbox_id,obj_field,value){
                 // if checkbox is checked copy value from original  species to new species
-                if($("#"+chkbox).is(':checked')== true){
+                if($("#"+chkbox_id).is(':checked')== true){
                     this.species_community.distribution[obj_field] = value;
                 }else{
                     this.species_community.distribution[obj_field]=null;
+                }
+                //--- to select only one checkbox at a time in a group
+                let chkbox_name_arr=document.getElementsByName(chkbox_name);
+                for(var i=0; i<chkbox_name_arr.length; i++)
+                {
+                    if(chkbox_name_arr[i].id != chkbox_id)
+                    {
+                        chkbox_name_arr[i].checked = false;
+                    }
                 }
             },
             //----------------------------------------------------------------
