@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from boranga.helpers import is_internal
 from boranga.forms import *
 from boranga.components.conservation_status.models import ConservationStatus,ConservationStatusReferral
+from boranga.components.species_and_communities.models import Species, Community
 from boranga.components.proposals.models import Referral, Proposal, HelpPage
 from boranga.components.compliances.models import Compliance
 from boranga.components.proposals.mixins import ReferralOwnerMixin
@@ -56,6 +57,30 @@ class ExternalView(LoginRequiredMixin, TemplateView):
         if hasattr(settings, 'DEV_APP_BUILD_URL') and settings.DEV_APP_BUILD_URL:
             context['app_build_url'] = settings.DEV_APP_BUILD_URL
         return context
+
+class InternalSpeciesView(DetailView):
+    model = Species
+    template_name = 'boranga/dash/index.html'
+
+    def get(self, *args, **kwargs):
+        if self.request.user.is_authenticated():
+            if is_internal(self.request):
+                #return redirect('internal-proposal-detail')
+                return super(InternalSpeciesView, self).get(*args, **kwargs)
+        kwargs['form'] = LoginForm
+        return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
+
+class InternalCommunityView(DetailView):
+    model = Community
+    template_name = 'boranga/dash/index.html'
+
+    def get(self, *args, **kwargs):
+        if self.request.user.is_authenticated():
+            if is_internal(self.request):
+                #return redirect('internal-proposal-detail')
+                return super(InternalCommunityView, self).get(*args, **kwargs)
+        kwargs['form'] = LoginForm
+        return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
 
 class ExternalConservationStatusView(DetailView):
     model = ConservationStatus

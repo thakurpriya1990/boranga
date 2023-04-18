@@ -10,7 +10,13 @@ import os
 from copy import deepcopy
 from datetime import datetime
 import time
-from boranga.components.conservation_status.email import send_external_submit_email_notification,send_submit_email_notification
+from boranga.components.species_and_communities.email import (
+    send_species_create_email_notification, 
+    send_community_create_email_notification, 
+    send_user_species_create_email_notification,
+    send_user_community_create_email_notification
+)
+
 from boranga.components.species_and_communities.models import(
     Species,
     Community,
@@ -37,20 +43,15 @@ def species_form_submit(species_instance,request):
                 #applicant_field.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(cs_proposal.id),request)
 
                 
-                # ret1 = send_submit_email_notification(request, species_instance)
-                # ret2 = send_external_submit_email_notification(request, species_instance)
+                ret1 = send_species_create_email_notification(request, species_instance)
+                ret2 = send_user_species_create_email_notification(request, species_instance)
 
-                # if ret1 and ret2:
-                #     species_instance.processing_status = 'current'
-                #     #cs_proposal.documents.all().update(can_delete=False)
-                #     species_instance.save()
-                # else:
-                #     raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
-                
-                species_instance.processing_status = 'current'
-                # species_instance.documents.all().update(can_delete=False)
-                species_instance.save()
-                
+                if ret1 and ret2:
+                    species_instance.processing_status = 'current'
+                    # species_instance.documents.all().update(can_delete=False)
+                    species_instance.save()
+                else:
+                    raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
                 return species_instance
 
             else:
@@ -70,19 +71,15 @@ def community_form_submit(community_instance,request):
                 #applicant_field.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(cs_proposal.id),request)
 
                 
-                # ret1 = send_submit_email_notification(request, community_instance)
-                # ret2 = send_external_submit_email_notification(request, community_instance)
+                ret1 = send_community_create_email_notification(request, community_instance)
+                ret2 = send_user_community_create_email_notification(request, community_instance)
 
-                # if ret1 and ret2:
-                #     community_instance.processing_status = 'current'
-                #     #community_instance.documents.all().update(can_delete=False)
-                #     community_instance.save()
-                # else:
-                #     raise ValidationError('An error occurred while submitting form (Submit email notifications failed)')
-                
-                community_instance.processing_status = 'current'
-                # community_instance.documents.all().update(can_delete=False)
-                community_instance.save()
+                if ret1 and ret2:
+                    community_instance.processing_status = 'current'
+                    # community_instance.documents.all().update(can_delete=False)
+                    community_instance.save()
+                else:
+                    raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
                 
                 return community_instance
 

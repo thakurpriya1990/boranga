@@ -14,6 +14,7 @@ from django.db import models,transaction
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from boranga.components.main.related_item import RelatedItem
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from boranga.ledger_api_utils import retrieve_email_user
 from ledger_api_client.managed_models import SystemGroup
 from boranga.settings import (
