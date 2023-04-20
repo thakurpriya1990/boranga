@@ -50,28 +50,32 @@
                     id="speciesInformation" 
                     :is_internal="is_internal"
                     :species_community="species_community"
-                    :species_original="species_original">
+                    :original_species_combine_list="original_species_combine_list">
                 </SpeciesProfile>
               </div>
               <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
-                <SpeciesDocuments 
-                    :key="reloadcount"
-                    ref="species_documents" 
-                    id="speciesDocuments" 
-                    :is_internal="is_internal"
-                    :species_community="species_community"
-                    :species_original="species_original">
-                </SpeciesDocuments>
+                <div v-for="species in original_species_combine_list">
+                    <SpeciesDocuments 
+                        :key="reloadcount"
+                        ref="species_documents" 
+                        id="speciesDocuments" 
+                        :is_internal="is_internal"
+                        :species_community="species_community"
+                        :species_original="species">
+                    </SpeciesDocuments>
+                </div>
               </div>
               <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
-                <SpeciesThreats
-                    :key="reloadcount"
-                    ref="species_threats" 
-                    id="speciesThreats" 
-                    :is_internal="is_internal"
-                    :species_community="species_community"
-                    :species_original="species_original">
-                </SpeciesThreats>
+                <div v-for="species in original_species_combine_list">
+                    <SpeciesThreats
+                        :key="reloadcount"
+                        ref="species_threats" 
+                        id="speciesThreats" 
+                        :is_internal="is_internal"
+                        :species_community="species_community"
+                        :species_original="species">
+                    </SpeciesThreats>
+                </div>
               </div>
             </div>
         </div>
@@ -79,15 +83,14 @@
 </template>
 
 <script>
-    import SpeciesProfile from '@/components/common/species_communities/species_split/species_split_profile.vue'
-    import SpeciesDocuments from '@/components/common/species_communities/species_split/species_split_documents.vue'
-    import SpeciesThreats from '@/components/common/species_communities/species_split/species_split_threats.vue'
-    //import RelatedItems from '@/components/common/table_related_items.vue'
-
+    import SpeciesProfile from '@/components/common/species_communities/species_combine/species_combine_profile.vue'
+    import SpeciesDocuments from '@/components/common/species_communities/species_combine/species_combine_documents.vue'
+    import SpeciesThreats from '@/components/common/species_communities/species_combine/species_combine_threats.vue'
+    
     export default {
         props:{
-            species_original:{
-                type: Object,
+            original_species_combine_list:{
+                type: Array,
                 required:true
             },
             species_community:{
@@ -109,18 +112,14 @@
                 profileBody: 'profileBody' + vm._uid,
                 documentBody: 'documentBody' + vm._uid,
                 threatBody: 'threatBody' + vm._uid,
-                relatedItemBody: 'relatedItemBody' + vm._uid,
                 values:null,
                 reloadcount:0,
-                document_selection:null,
-                threat_selection:null,
             }
         },
         components: {
             SpeciesProfile,
             SpeciesDocuments,
             SpeciesThreats,
-            //RelatedItems,
         },
         computed:{
             related_items_ajax_url: function(){
@@ -135,12 +134,6 @@
             tabClicked: function(param){
                 this.reloadcount = this.reloadcount+1;
             },
-            /*set_tabs:function(){
-                let vm = this;
-
-                 set profile tab Active 
-                //$('#pills-tab a[href="#pills-profile"]').tab('show');
-            },*/
             eventListener: function(){
               let vm=this;
             },

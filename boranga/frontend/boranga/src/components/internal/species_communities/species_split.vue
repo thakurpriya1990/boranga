@@ -8,7 +8,7 @@
                         <div>
                             <div class="col-md-12">
 
-                                <ul v-if="is_internal" class="nav nav-pills mb-3" id="split_pills-tab" role="tablist">
+                                <ul v-if="is_internal" class="nav nav-pills mb-3" id="split-pills-tab" role="tablist">
                                     <li class="nav-item">
                                         <a 
                                             class="nav-link" 
@@ -55,7 +55,7 @@
                                         <a href="#" id="btnAdd"><i class="icon-plus-sign-alt"></i>Add</a>
                                     </li>
                                 </ul>
-                                <div class="tab-content" id="split_pills-tabContent">
+                                <div class="tab-content" id="split-pills-tabContent">
                                     <div class="tab-pane fade show active" :id="originalBody" role="tabpanel" aria-labelledby="pills-original-tab">
                                         <SpeciesCommunitiesComponent v-if="species_community_original!=null"
                                             ref="species_communities_original" 
@@ -160,12 +160,6 @@ export default {
         },
     },
     methods:{
-        //----function to resolve datatable exceeding beyond the div
-        createTab: function(){
-            let vm=this;
-            // TODO create new species and then add the instance onject to the array
-            vm.new_species_list.push(vm.new_species_list[0]);
-        },
         tabClicked: function(){
         },
         ok:function () {
@@ -241,11 +235,14 @@ export default {
                     //-- save new species before submit
                     let result = await vm.save_before_submit(new_species);
                     if(!vm.saveError){
+                        // add the parent species to the new species object
+                        new_species.parent_species=[vm.species_community_original];
                         let payload = new Object();
                         Object.assign(payload, new_species);
                         let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/split_new_species_submit')
                         vm.$http.post(submit_url,payload).then(res=>{
                             vm.new_species = res.body;
+                            //-- to change status of original species only after all new split species are submitted
                             if(index==vm.new_species_list.length-1)
                             {
                                 vm.submit_original_species();
@@ -269,7 +266,7 @@ export default {
             let vm=this;
             let payload = new Object();
             Object.assign(payload, vm.species_community_original);
-            let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/species_split_submit')
+            let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/change_status_historical')
             vm.$http.post(submit_url,payload).then(res=>{
                 vm.species_community_original = res.body;
                 // TODO Not sure where it should go after the split process
@@ -311,7 +308,6 @@ export default {
             });
 
             $('#btnAdd').click(function (e) {
-                //vm.createTab();
                 let newSpeciesId = null
                 try {
                     const createUrl = api_endpoints.species+"/";
@@ -342,8 +338,6 @@ export default {
                         return err;
                     }
                 }
-                // not working
-                $('#split_pills-tab li:last').show();
             });
                     
         },
@@ -360,7 +354,13 @@ export default {
         let vm = this;
         this.$nextTick(()=>{
         });
-   }
+   },
+   updated:function() {
+        //  to show the the added species active i.e the last Tab
+        var lastTabEl = document.querySelector('#split-pills-tab li:nth-last-child(2) a')
+        var lastTab = new bootstrap.Tab(lastTabEl)
+        lastTab.show();
+   },
 }
 </script>
 

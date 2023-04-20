@@ -1,0 +1,39 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+	{% if species_community_proposal.is_flora_application %}
+		<p>The Species flora has been created, the species number is {{ species_community_proposal.species_number }}</p>
+
+		Submitter: {{ submitter }}<br>
+		Lodgement date: {{ species_community_proposal.lodgement_date }}
+
+		<p>
+            You can view this species using the following link:
+        </p>
+        <a href="{{url}}">Access Species</a>
+
+	{% elif species_community_proposal.is_fauna_application %}
+		<p>The Species Fauna has been created, the species number is {{ species_community_proposal.species_number }}</p>
+
+		Submitter: {{ submitter }}<br>
+		Lodgement date: {{ species_community_proposal.lodgement_date }}
+
+		<p>
+            You can view this species using the following link:
+        </p>
+        <a href="{{url}}">Access Species</a>
+
+	{% else %}
+
+		<p>The Community has been created, the community number is {{ species_community_proposal.community_number }}</p>
+
+		Submitter: {{ submitter }}<br>
+		Lodgement date: {{ species_community_proposal.lodgement_date }}
+
+		<p>
+            You can view this community using the following link:
+        </p>
+        <a href="{{url}}">Access Community</a>
+
+	{% endif %}
+{%  endblock %}

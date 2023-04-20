@@ -233,7 +233,7 @@
             </div>
 
             <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }}Fruiting Period:</label>
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Fruiting Period:</label>
                 <div class="col-sm-8">
                     <select :disabled="true" class="form-select" 
                         v-model="species_original.conservation_attributes.fruiting_period_id">
@@ -416,7 +416,7 @@
             </div>
 
             <div class="row mb-3" v-show="isFauna">
-                <label for="" class="col-sm-3 control-label">Fauna Reproductive capacity:</label>
+                <label for="" class="col-sm-3 control-label"> {{ species_original.species_number }} Fauna Reproductive capacity:</label>
                 <div class="col-sm-8">
                     <input :disabled="true" type="number" class="form-control" 
                     id="fauna_reproductive_capacity" placeholder="" 
@@ -762,7 +762,7 @@ import {
 }
 from '@/utils/hooks'
 export default {
-        name: 'Species',
+        name: 'SpeciesSplitProfile',
         props:{
             species_community:{
                 type: Object,

@@ -1,14 +1,14 @@
 <template lang="html">
-    <div id="species_threats">
+    <div id="species_split_threats">
         <FormSection :formCollapse="false" label="Threats" :Index="threatBody">
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
-                    <div class="text-end">
-                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
-                            <i class="fa-solid fa-circle-plus"></i>
-                                Add Threat
-                        </button>
-                    </div>
+                    <input class="form-check-input" type="radio" :id="'threat_select_all'+species_original.id" name="threatSelect" value="selectAll" @click="selectThreatOption($event)"/>
+                    <label>Copy all threats from Species {{species_original.species_number}}</label>
+                </div>
+                <div class="col-sm-12">
+                    <input class="form-check-input" type="radio" :id="'threat_select_individual'+species_original.id" name="threatSelect" value="individual" @click="selectThreatOption($event)"/>
+                    <label>Decide per threat</label>
                 </div>
                 <div>
                     <datatable ref="threats_datatable" :id="panelBody" :dtOptions="threats_options"
@@ -16,13 +16,11 @@
                 </div>
             </form>
         </FormSection>
-        <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="threat_url"></ThreatDetail>
     </div>
 </template>
 <script>
-import Vue from 'vue' 
+import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
-import ThreatDetail from './add_threat.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
   api_endpoints,
@@ -32,16 +30,15 @@ from '@/utils/hooks'
 
 
 export default {
-        name: 'SpeciesThreats',
+        name: 'SpeciesCombineThreats',
         props:{
             species_community:{
                 type: Object,
                 required:true
             },
-            // this prop is only send from split species form to make the original species readonly
-            is_readonly:{
-              type: Boolean,
-              default: false
+            species_original:{
+                type: Object,
+                required:true
             },
         },
         data:function () {
@@ -49,8 +46,10 @@ export default {
             return{
                 uuid:0,
                 threatBody: "threatBody"+ vm._uid,
-                panelBody: "species-threats-"+ vm._uid,
+                panelBody: "species-combine-threats-"+ vm._uid,
                 values:null,
+                // to store all the documents of original on first load.
+                original_species_threats:[],
                 threat_url: api_endpoints.threat,
                 threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
                                 'Current Impact?', 'Potential Impact?','Action'],
@@ -67,7 +66,7 @@ export default {
                         { responsivePriority: 2, targets: -1 },
                     ],
                     ajax:{
-                        "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/threats'),
+                        "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_original.id+'/threats'),
                         "dataSrc": ''
                     },
                     order: [],
@@ -80,7 +79,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> Excel',
                             className: 'btn btn-primary ml-2',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                         {
@@ -88,7 +87,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> CSV',
                             className: 'btn btn-primary',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                     ],
@@ -204,164 +203,94 @@ export default {
                         {
                             data: "id",
                             mRender:function (data,type,full){
-                                let links = '';
-                                if(full.visible){
-                                    links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                               // to store the original species documents for the use of radio btn options on first load so that no need to call api to get the documents ids
+                               if(!vm.original_species_threats.includes(full.id)){
+                                    vm.original_species_threats.push(full.id)
+                                };
+
+                                if(vm.species_community.threats.includes(full.id)){
+                                    return `<input class='form-check-input' type="checkbox" id="threat_chkbox-${vm.species_community.id}-${full.id}" data-add-threat="${full.id}"  checked>`;
                                 }
                                 else{
-                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                                    return `<input class='form-check-input' type="checkbox" id="threat_chkbox-${vm.species_community.id}-${full.id}" data-add-threat="${full.id}">`;
                                 }
-                                return links;
                             }
                         },
                     ],
                     processing:true,
                     initComplete: function() {
                         helpers.enablePopovers();
-                    }, 
+                    },
                 }
             }
         },
         components: {
             FormSection,
             datatable,
-            ThreatDetail,
         },
         computed: {
-            isReadOnly: function(){
-                // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
-                if(this.is_readonly){
-                    return  this.is_readonly;
-                }
-            },
-        },
-        watch:{
-            
         },
         methods:{
-            newThreat: function(){
+            selectThreatOption(e){
                 let vm=this;
-                this.$refs.threat_detail.threat_id = '';
-                //----for adding new species Threat
-                var new_species_threat_another={
-                    species: vm.species_community.id,
-                    source:  vm.species_community.id,
-                    threat_category: '',
-                    threat_agent: '',
-                    comment: '',
-                    current_impact: '',
-                    potential_impact: '',
-                    potential_threat_onset: '',
-                    date_observed: null,
+                //--fetch the value of selected radio btn
+                let selected_option=e.target.value;
+                //----set the selected value to the original species object so as to get the data when tab is reloaded/refreshed
+                vm.species_original.threat_selection = selected_option;
+
+                if(selected_option == "selectAll"){
+                    //---first need to delete the original_species_threats from the new_arr if added from the "Decide individual" option to avoid duplication
+                    vm.species_community.threats = vm.species_community.threats.filter(x => vm.original_species_threats.indexOf(x) == -1);  //--"filter" used to delete one array from another
+                    //-- copy all original species threats to new species threats array
+                    //---use '...' spread operator to add one arr elemnents to other
+                    vm.species_community.threats.push(...vm.original_species_threats);
+                    this.$refs.threats_datatable.vmDataTable.ajax.reload();
                 }
-                this.$refs.threat_detail.threatObj=new_species_threat_another;
-                this.$refs.threat_detail.threat_action='add';
-                this.$refs.threat_detail.isModalOpen = true;
-            },
-            editThreat: function(id){
-                let vm=this;
-                this.$refs.threat_detail.threat_id = id;
-                this.$refs.threat_detail.threat_action='edit';
-                Vue.http.get(helpers.add_endpoint_json(api_endpoints.threat,id)).then((response) => {
-                      this.$refs.threat_detail.threatObj=response.body; 
-                      this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
-                    },
-                  err => { 
-                            console.log(err);
-                      });
-                this.$refs.threat_detail.isModalOpen = true;
-            },
-            discardThreat:function (id) {
-                let vm = this;
-                swal({
-                    title: "Remove Threat",
-                    text: "Are you sure you want to remove this Threat?",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: 'Remove Threat',
-                    confirmButtonColor:'#d9534f'
-                }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/discard'))
-                    .then((response) => {
-                        swal(
-                            'Discarded',
-                            'Your threat has been removed',
-                            'success'
-                        )
-                        vm.$refs.threats_datatable.vmDataTable.ajax.reload();
-                    }, (error) => {
-                        console.log(error);
-                    });
-                },(error) => {
-
-                });
-            },
-            reinstateThreat:function (id) {
-                let vm = this;
-                swal({
-                    title: "Reinstate Threat",
-                    text: "Are you sure you want to Reinstate this Threat?",
-                    type: "question",
-                    showCancelButton: true,
-                    confirmButtonText: 'Reinstate Threat',
-                }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/reinstate'))
-                    .then((response) => {
-                        swal(
-                            'Reinstated',
-                            'Your threat has been reinstated',
-                            'success'
-                        )
-                        vm.$refs.threats_datatable.vmDataTable.ajax.reload();
-                    }, (error) => {
-                        console.log(error);
-                    });
-                },(error) => {
-
-                });
-            },
-            updatedThreats(){
-                this.$refs.threats_datatable.vmDataTable.ajax.reload();
+                else if(selected_option == "individual"){
+                    //----empty only the current original species array from the new species array as will contain other original combine species threat_id's as well 
+                    vm.species_community.threats = vm.species_community.threats.filter(x => vm.original_species_threats.indexOf(x) == -1); //--"filter" used to delete one array from another
+                    this.$refs.threats_datatable.vmDataTable.ajax.reload();
+                }
             },
             addEventListeners:function (){
                 let vm=this;
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-edit-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-edit-threat');
-                    vm.editThreat(id);
+                vm.$refs.threats_datatable.vmDataTable.on('click', 'input[data-add-threat]', function(e) {
+                    //e.preventDefault();
+                    let id = $(this).attr('data-add-threat');
+                    let chkbox = $(this).attr('id');
+                    if($("#"+chkbox).is(':checked')== true){
+                        if(!vm.species_community.threats.includes(id)){
+                            vm.species_community.threats.push(parseInt(id));
+                        }
+                    }
+                    else{
+                        let threat_arr=vm.species_community.threats;
+                        //---remove document id from array (for this arr.splice is used)
+                        var index = threat_arr.indexOf(id);
+                        vm.species_community.threats.splice(index,1);
+                    }
                 });
-                // External Discard listener
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-discard-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-discard-threat');
-                    vm.discardThreat(id);
-                });
-                // External Reinstate listener
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-reinstate-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-reinstate-threat');
-                    vm.reinstateThreat(id);
-                });
-            },
-            refreshFromResponse: function(){
-                this.$refs.threats_datatable.vmDataTable.ajax.reload();
             },
         },
         mounted: function(){
             let vm = this;
             this.$nextTick(() => {
+                if(vm.species_original.threat_selection!=null){
+                    
+                    if(vm.species_original.threat_selection==="selectAll"){
+                        document.getElementById('threat_select_all'+vm.species_original.id).checked=true;
+                    }
+                    else{
+                        document.getElementById('threat_select_individual'+vm.species_original.id).checked=true;
+                    }
+                }
                 vm.addEventListeners();
-        });
+            });
         }
     }
 </script>
 
 <style lang="css" scoped>
-    /*ul, li {
-        zoom:1;
-        display: inline;
-    }*/
     fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;

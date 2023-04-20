@@ -97,6 +97,7 @@ module.exports = {
     community_filter_dict:"/api/community_filter_dict",
     region_district_filter_dict:"/api/region_district_filter_dict",
     scientific_name_lookup:"/api/scientific_name_lookup",
+    groupwise_species_dict:"/api/groupwise_species_dict",
 
     //conservation Status profile page list of value dict
     cs_profile_dict:"/api/cs_profile_dict",

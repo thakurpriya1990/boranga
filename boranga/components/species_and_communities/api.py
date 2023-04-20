@@ -1,6 +1,8 @@
 import traceback
 import pytz
 import json
+import os
+import subprocess
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -132,33 +134,24 @@ class GetScientificName(views.APIView):
             return Response({"results": data_transform})
         return Response()
 
-
-# class GetSpeciesDict(views.APIView):
-#     def get(self, request, format=None):
-#         group_type = request.GET.get('group_type_name','')
-#         species_list = []
-#         if group_type:
-#             species = Species.objects.filter(group_type__name=group_type)
-#             if species:
-#                 for specimen in species:
-#                     species_list.append({
-#                         'species_id': specimen.id,
-#                         'common_name':specimen.common_name,
-#                         });
-#         scientific_name_list = []
-#         if group_type:
-#             names = ScientificName.objects.all()
-#             if names:
-#                 for name in names:
-#                     scientific_name_list.append({
-#                         'id': name.id,
-#                         'name': name.name,
-#                         });
-#         res_json = {
-#         "species_list":species_data_list,
-#         }
-#         res_json = json.dumps(res_json)
-#         return HttpResponse(res_json, content_type='application/json')
+# dict used on combine select species pop-up
+class GetSpeciesDict(views.APIView):
+    def get(self, request, format=None):
+        group_type = request.GET.get('group_type_name','')
+        species_list = []
+        if group_type:
+            species = Species.objects.filter(group_type__name=group_type, processing_status='current')
+            if species:
+                for specimen in species:
+                    species_list.append({
+                        'id': specimen.id,
+                        'scientific_name':specimen.taxonomy.scientific_name,
+                        });
+        res_json = {
+        "species_list":species_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
 
 
 class GetSpeciesFilterDict(views.APIView):
@@ -331,18 +324,35 @@ class TaxonomyViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET',], detail=False)
     def flora_taxon_names(self, request, *args, **kwargs):
         qs = self.get_queryset()
-        flora_kingdoms=Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FLORA).values_list('kingdom_id', flat=True)
-        qs=qs.filter(kingdom_id__in=flora_kingdoms)
+        flora_kingdoms = Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FLORA).values_list('kingdom_id', flat=True)
+        qs = qs.filter(kingdom_id__in=flora_kingdoms)
+        # to filter taxon which are not used in Species yet
+        # species = Species.objects.filter(~Q(taxonomy=None) , Q(group_type__name=GroupType.GROUP_TYPE_FLORA)).values_list('taxonomy', flat=True)
+        # qs = qs.filter(~Q(id__in=species))
         serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
         return Response(serializer.data)
     
     @list_route(methods=['GET',], detail=False)
     def fauna_taxon_names(self, request, *args, **kwargs):
         qs = self.get_queryset()
-        fauna_kingdoms=Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FAUNA).values_list('kingdom_id', flat=True)
+        fauna_kingdoms = Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FAUNA).values_list('kingdom_id', flat=True)
         qs=qs.filter(kingdom_id__in=fauna_kingdoms)
+        # to filter taxon which are not used in Species yet
+        # species = Species.objects.filter(~Q(taxonomy=None) , Q(group_type__name=GroupType.GROUP_TYPE_FAUNA)).values_list('taxonomy', flat=True)
+        # qs = qs.filter(~Q(id__in=species))
         serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
         return Response(serializer.data)
+    
+    # @list_route(methods=['GET',], detail=True)
+    # def get_taxon_species(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     species = None
+    #     try:
+    #         species = Species.objects.get(taxonomy=instance).id
+    #     except Species.DoesNotExist:
+    #         species = None
+    #     return Response(species)
+
 
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
@@ -772,6 +782,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     def species_list(self, request, *args, **kwargs):
         # TODO filter Species that's approved(submitted) only 
         qs= Species.objects.all()
+        qs= qs.filter(Q(processing_status='current'))
         serializer = SpeciesSerializer(qs, many=True)
         res_json = {
          "data":serializer.data
@@ -894,6 +905,11 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 #instance.submit(request,self)
                 species_form_submit(instance, request)
+                # add parent id to new species instance
+                parent_species_arr= request.data.get('parent_species')
+                for species in parent_species_arr:
+                    species_instance = Species.objects.get(id = species.get('id'))
+                    instance.parent_species.add(species_instance)
                 # copy/clone the original species document and create new for new split species
                 instance.clone_documents(request)
                 instance.clone_threats(request)
@@ -915,10 +931,46 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    # Used to submit the original species after split data is submitted 
+    # used to submit the new species created while combining
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
-    def species_split_submit(self, request, *args, **kwargs):
+    def combine_new_species_submit(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                #instance.submit(request,self)
+                species_form_submit(instance, request)
+                # add parent ids to new species instance
+                parent_species_arr= request.data.get('parent_species')
+                for species in parent_species_arr:
+                    species_instance = Species.objects.get(id = species.get('id'))
+                    instance.parent_species.add(species_instance)
+                
+                # copy/clone the original species document and create new for new split species
+                instance.clone_documents(request)
+                instance.clone_threats(request)
+                instance.save()
+
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            # return redirect(reverse('internal'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    # Used to submit the original species after split/combine data is submitted 
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def change_status_historical(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             instance.processing_status = 'historical'
@@ -938,6 +990,114 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def rename_deep_copy(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                # related items to instance that needs to create for new rename instance as well
+                instance_documents = SpeciesDocument.objects.filter(species=instance.id)
+                instance_threats = ConservationThreat.objects.filter(species=instance.id)
+                instance_conservation_attributes = SpeciesConservationAttributes.objects.filter(species=instance.id)
+                instance_distribution = SpeciesDistribution.objects.filter(species=instance.id)
+
+                # clone the species instance into new rename instance
+                new_rename_instance = instance
+                new_rename_instance.id = None
+                new_rename_instance.taxonomy_id = None
+                new_rename_instance.species_number = ''
+                new_rename_instance.processing_status = 'draft'
+                new_rename_instance.save()
+
+                for new_document in instance_documents:
+                    new_doc_instance= new_document
+                    new_doc_instance.species = new_rename_instance
+                    new_doc_instance.id = None
+                    new_doc_instance.document_number = ''
+                    new_doc_instance._file.name = u'boranga/species/{}/species_documents/{}'.format(new_rename_instance.id, new_doc_instance.name)
+                    new_doc_instance.can_delete = True
+                    new_doc_instance.save()
+                    new_doc_instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(new_doc_instance.document_number,new_doc_instance.species.species_number),request)
+
+                    check_path = os.path.exists('private-media/boranga/species/{}/species_documents/'.format(new_rename_instance.id))
+                    if check_path == True:
+                        # copy documents on file system
+                        subprocess.call('cp -p private-media/boranga/species/{}/species_documents/{}  private-media/boranga/species/{}/species_documents/'.format(instance.id, new_doc_instance.name, new_rename_instance.id), shell=True)
+                    else:
+                        # create new directory
+                        os.makedirs('private-media/boranga/species/{}/species_documents/'.format(new_rename_instance.id), mode=0o777)
+                        # then copy documents on file system
+                        subprocess.call('cp -p private-media/boranga/species/{}/species_documents/{}  private-media/boranga/species/{}/species_documents/'.format(instance.id, new_doc_instance.name, new_rename_instance.id), shell=True)
+
+                for new_threat in instance_threats:
+                    new_threat_instance = new_threat
+                    new_threat_instance.species = new_rename_instance
+                    new_threat_instance.id = None
+                    new_threat_instance.threat_number = ''
+                    new_threat_instance.save()
+                    new_threat_instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(new_threat_instance.threat_number,new_threat_instance.species.species_number),request)
+                
+                for new_cons_attr in instance_conservation_attributes:
+                    new_cons_attr_instance = new_cons_attr
+                    new_cons_attr_instance.species = new_rename_instance
+                    new_cons_attr_instance.id = None
+                    new_cons_attr_instance.save()
+                
+                for new_distribution in instance_distribution:
+                    new_distribution.species = new_rename_instance
+                    new_distribution.id = None
+                    new_distribution.save()
+                
+                serializer = InternalSpeciesSerializer(new_rename_instance,context={'request':request})
+                res_json = {
+                "species_obj":serializer.data
+                }
+                res_json = json.dumps(res_json)
+                return HttpResponse(res_json, content_type='application/json')
+
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    # used to submit the new species created while combining
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def rename_new_species_submit(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                species_form_submit(instance, request)
+                # add parent ids to new species instance
+                parent_species_arr= request.data.get('parent_species')
+                for species in parent_species_arr:
+                    species_instance = Species.objects.get(id = species.get('id'))
+                    instance.parent_species.add(species_instance)
+                
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            # return redirect(reverse('internal'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
 
     def create(self, request, *args, **kwargs):
         try:

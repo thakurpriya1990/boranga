@@ -1,11 +1,11 @@
 <template lang="html">
     <div id="species">
-        <FormSection :formCollapse="false" label="Taxonomy" :Index="taxonBody">
+        <FormSection :formCollapse="false" label="TaxonomyCombine" :Index="taxonBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
                 <div class="col-sm-9">
-                    <select :disabled="rename_species?false:isReadOnly" class="form-select" 
-                        v-model="species_community.taxonomy_id" id="scientific_name" @change="loadTaxonomydetails()">
+                    <select class="form-select" 
+                        v-model="species_community.taxonomy_id" id="selectTaxon" @change="loadTaxonomydetails(this)">
                         <option v-for="option in taxon_names" :value="option.id" v-bind:key="option.id">
                             {{ option.scientific_name }}                            
                         </option>
@@ -429,7 +429,7 @@ import {
 }
 from '@/utils/hooks'
 export default {
-        name: 'Species',
+        name: 'SpeciesProfileDemo',
         props:{
             species_community:{
                 type: Object,
@@ -437,11 +437,6 @@ export default {
             },
             // this prop is only send from split species form to make the original species readonly
             is_readonly:{
-              type: Boolean,
-              default: false
-            },
-            // this prop is only send from rename species form to make the taxon select editable
-            rename_species:{
               type: Boolean,
               default: false
             }
@@ -494,6 +489,9 @@ export default {
                 genus_id: null,
                 name_authority: null,
                 name_comments: null,
+                original_species_obj : {
+                        
+                },
             }
         },
         components: {
@@ -501,7 +499,7 @@ export default {
         },
         computed: {
             isReadOnly: function(){
-                // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
+                // this prop (is_readonly = true) is only send from split species form to make the original species readonly
                 if(this.is_readonly){
                     return  this.is_readonly;
                 }
@@ -591,7 +589,7 @@ export default {
             },
             loadTaxonomydetails: function(){
                 let vm=this;
-                //console.log(vm.taxon_names);
+                // //console.log(vm.taxon_names);
                 for(let choice of vm.taxon_names){
                         if(choice.id === vm.species_community.taxonomy_id)
                         {
@@ -606,6 +604,42 @@ export default {
                           vm.name_comments = choice.name_comments;
                         }
                     }
+                
+                    Vue.http.get(`/api/taxonomy/${vm.species_community.taxonomy_id}/get_taxon_species`).then((response) => {
+                        let taxon_species = response.body;
+                        try {
+                            Vue.http.get(`/api/species/${taxon_species}/internal_species.json`).then(res => {
+                                let species_obj=res.body.species_obj;
+                                // user should not select the same ID if already exists in the array to combine
+                                let hasSpecies=false;
+                                // for (const species of vm.$parent.original_species_combine_list){
+                                //     if(species.id === species_obj.id){
+                                //         hasSpecies=true;
+                                //     }
+                                // }
+                                // if(hasSpecies==true){
+                                //     swal({
+                                //         title: "Please fix following errors",
+                                //         text: "Species To combine already exists",
+                                //         type:'error'
+                                //     })
+                                // }
+                                // else{
+                                //     vm.species_community=species_obj; //--temp species_obj
+                                // }
+                                vm.species_community=species_obj; //--temp species_obj
+                            },
+                            err => {
+                            console.log(err);
+                            });
+                        }
+                        catch (err) {
+                            console.log(err);
+                            if (this.is_internal) {
+                                return err;
+                            }
+                        }
+                });
             },
             eventListeners:function (){
             },
@@ -727,7 +761,7 @@ export default {
         mounted: function(){
             let vm = this;
             //vm.eventListeners();
-        }
+            }
     }
 </script>
 

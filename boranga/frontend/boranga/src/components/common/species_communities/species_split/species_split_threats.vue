@@ -31,7 +31,7 @@ from '@/utils/hooks'
 
 
 export default {
-        name: 'SpeciesThreats',
+        name: 'SpeciesSplitThreats',
         props:{
             species_community:{
                 type: Object,

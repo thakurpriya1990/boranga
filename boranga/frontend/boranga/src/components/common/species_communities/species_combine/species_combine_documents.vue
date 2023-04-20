@@ -1,13 +1,13 @@
 <template lang="html">
-    <div id="species_split_documents">
+    <div id="species_combine_documents">
         <FormSection :formCollapse="false" label="Documents" :Index="documentBody">
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
-                    <input class="form-check-input" type="radio" :id="'doc_select_all'+species_community.id" name="documentSelect" value="selectAll" @click="selectDocumentOption($event)"/>
-                    <label>Copy all documents to Species {{species_community.species_number}}</label>
+                    <input class="form-check-input" type="radio" :id="'doc_select_all'+species_original.id" name="documentSelect" value="selectAll" @click="selectDocumentOption($event)"/>
+                    <label>Copy all documents from Species {{species_original.species_number}}</label>
                 </div>
                 <div class="col-sm-12">
-                    <input class="form-check-input" type="radio" :id="'doc_select_individual'+species_community.id" name="documentSelect" value="individual" @click="selectDocumentOption($event)"/>
+                    <input class="form-check-input" type="radio" :id="'doc_select_individual'+species_original.id" name="documentSelect" value="individual" @click="selectDocumentOption($event)"/>
                     <label>Decide per document</label>
                 </div>
                 <div>
@@ -30,7 +30,7 @@ from '@/utils/hooks'
 
 
 export default {
-        name: 'SpeciesSplitDocuments',
+        name: 'SpeciesCombineDocuments',
         props:{
             species_community:{
                 type: Object,
@@ -46,7 +46,7 @@ export default {
             return{
                 uuid:0,
                 documentBody: 'documentBody' + vm._uid,
-                panelBody: "species-split-documents-"+vm._uid,
+                panelBody: "species-combine-documents-"+vm._uid,
                 values:null,
                 // to store all the documents of original on first load.
                 original_species_documents:[],
@@ -207,17 +207,21 @@ export default {
                 let vm=this;
                 //--fetch the value of selected radio btn
                 let selected_option=e.target.value;
-                //----set the selected value to the parent variable so as to get the data when tab is reloaded/refreshed
-                vm.$parent.document_selection=selected_option;
-
+                //----set the selected value to the original species object so as to get the data when tab is reloaded/refreshed
+                vm.species_original.document_selection = selected_option;
+ 
                 if(selected_option == "selectAll"){
+                    //---first need to delete the original_species_documents from the new_arr if added from the "Decide individual" option to avoid duplication
+                    vm.species_community.documents = vm.species_community.documents.filter(x => vm.original_species_documents.indexOf(x) == -1);  //--"filter" used to delete one array from another
                     //-- copy all original species documents to new species documents array
-                    vm.species_community.documents=vm.original_species_documents;
+                    //---use '...' spread operator to add one arr elemnents to other
+                    vm.species_community.documents.push(...vm.original_species_documents);
                     this.$refs.documents_datatable.vmDataTable.ajax.reload();
                 }
                 else if(selected_option == "individual"){
-                    //----empty the array to later select individual
-                    vm.species_community.documents=[];
+                    //----empty only the current original species array from the new species array as will contain other original combine species document_id's as well 
+                    vm.species_community.documents = vm.species_community.documents.filter(x => vm.original_species_documents.indexOf(x) == -1); //--"filter" used to delete one array from another
+                    // vm.species_community.documents=[];
                     this.$refs.documents_datatable.vmDataTable.ajax.reload();
                 }
             },
@@ -244,21 +248,16 @@ export default {
         mounted: function(){
             let vm = this;
             this.$nextTick(() => {
-                vm.addEventListeners();
-                //vm.initialiseSearch();
-                if(vm.$parent.document_selection!=null){
-
-                    if(vm.$parent.document_selection==="selectAll"){
-                        //alert(vm.$parent.document_selection)
-                        document.getElementById('doc_select_all'+vm.species_community.id).checked=true;
+                if(vm.species_original.document_selection!=null){
+                    
+                    if(vm.species_original.document_selection==="selectAll"){
+                        document.getElementById('doc_select_all'+vm.species_original.id).checked=true;
                     }
                     else{
-                        //alert(vm.$parent.document_selection)
-                        document.getElementById('doc_select_individual'+vm.species_community.id).checked=true;
-                        //$('#doc_select_individual').checked=true;
+                        document.getElementById('doc_select_individual'+vm.species_original.id).checked=true;
                     }
                 }
-
+                vm.addEventListeners();
             });
         },
 
@@ -266,10 +265,6 @@ export default {
 </script>
 
 <style lang="css" scoped>
-    /*ul, li {
-        zoom:1;
-        display: inline;
-    }*/
     fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
