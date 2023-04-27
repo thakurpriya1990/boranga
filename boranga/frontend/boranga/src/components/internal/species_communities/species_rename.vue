@@ -176,7 +176,10 @@ export default {
                         let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/rename_new_species_submit')
                         vm.$http.post(submit_url,payload).then(res=>{
                             vm.new_species = res.body;
-                            vm.submit_original_species();
+                            vm.$router.push({
+                                name: 'internal-species-communities-dash'
+                            });
+                            //vm.submit_original_species();
                         },err=>{
                             swal(
                                 'Submit Error',
@@ -192,28 +195,29 @@ export default {
                 });
             }
         },
-        submit_original_species: function(){
-            let vm=this;
-            let payload = new Object();
-            Object.assign(payload, vm.species_community_original);
-            let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/change_status_historical')
-            vm.$http.post(submit_url,payload).then(res=>{
-                vm.species_community_original = res.body;
-                // TODO Not sure where it should go after the split process
-                vm.$router.push({
-                    name: 'internal-species-communities-dash'
-                });
-            },err=>{
-                swal(
-                    'Submit Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
-            });
-        },
-        eventListeners:function () {
-            let vm = this;
-        },
+        // the below not used as the original species has already been send in the  rename_new_species_submit method
+        // submit_original_species: function(){
+        //     let vm=this;
+        //     let payload = new Object();
+        //     Object.assign(payload, vm.species_community_original);
+        //     let submit_url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community_original.id+'/change_status_historical')
+        //     vm.$http.post(submit_url,payload).then(res=>{
+        //         vm.species_community_original = res.body;
+        //         // TODO Not sure where it should go after the split process
+        //         vm.$router.push({
+        //             name: 'internal-species-communities-dash'
+        //         });
+        //     },err=>{
+        //         swal(
+        //             'Submit Error',
+        //             helpers.apiVueResourceError(err),
+        //             'error'
+        //         )
+        //     });
+        // },
+        // eventListeners:function () {
+        //     let vm = this;
+        // },
    },
    mounted:function () {
         let vm =this;

@@ -14,7 +14,8 @@ from boranga.components.species_and_communities.email import (
     send_species_create_email_notification, 
     send_community_create_email_notification, 
     send_user_species_create_email_notification,
-    send_user_community_create_email_notification
+    send_user_community_create_email_notification,
+    send_species_rename_email_notification,
 )
 
 from boranga.components.species_and_communities.models import(
@@ -23,6 +24,11 @@ from boranga.components.species_and_communities.models import(
     GroupType,
     SpeciesUserAction,
     CommunityUserAction,
+)
+
+from boranga.components.conservation_status.models import(
+    ConservationStatusUserAction,
+    ConservationStatus,
 )
 
 
@@ -85,3 +91,52 @@ def community_form_submit(community_instance,request):
 
             else:
                 raise ValidationError('You can\'t submit this community at this moment')
+
+def combine_species_original_submit(species_instance,request):
+        with transaction.atomic():
+            if species_instance.processing_status == 'current':
+                species_instance.processing_status = 'historical'
+                species_instance.save()
+                 # change current active conservation status of the original species to inactive
+                try:
+                    if species_instance.processing_status == 'historical':
+                        species_cons_status = ConservationStatus.objects.get(species=species_instance, processing_status='approved')
+                        if species_cons_status:
+                            species_cons_status.customer_status='closed'
+                            species_cons_status.processing_status='closed'
+                            species_cons_status.save()
+                            #add the log_user_action
+                            species_cons_status.log_user_action(ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(species_cons_status.conservation_status_number),request)
+                except ConservationStatus.DoesNotExist:
+                    pass
+                
+                return species_instance
+
+            else:
+                raise ValidationError('You can\'t submit this species at this moment')
+
+def rename_species_original_submit(species_instance,request):
+        with transaction.atomic():
+            if species_instance.processing_status == 'current':
+                species_instance.processing_status = 'historical'
+                species_instance.save()
+                #  send the rename species email notification
+                send_species_rename_email_notification(request, species_instance)
+
+                 # change current active conservation status of the original species to inactive
+                try:
+                    if species_instance.processing_status == 'historical':
+                        species_cons_status = ConservationStatus.objects.get(species=species_instance, processing_status='approved')
+                        if species_cons_status:
+                            species_cons_status.customer_status='closed'
+                            species_cons_status.processing_status='closed'
+                            species_cons_status.save()
+                            #add the log_user_action
+                            species_cons_status.log_user_action(ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(species_cons_status.conservation_status_number),request)
+                except ConservationStatus.DoesNotExist:
+                    pass
+                
+                return species_instance
+
+            else:
+                raise ValidationError('You can\'t submit this species at this moment')

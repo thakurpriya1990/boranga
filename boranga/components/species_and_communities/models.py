@@ -614,6 +614,18 @@ class Species(models.Model):
             return True
         return False
 
+    # used in split email template
+    @property
+    def child_species(self):
+        child_species=Species.objects.filter(parent_species=self)
+        return child_species
+    
+     # used in split/combine email template
+    @property
+    def parent_species_list(self):
+        parent_species=self.parent_species.all()
+        return parent_species
+
     @property
     def allowed_assessors(self):
         group = None

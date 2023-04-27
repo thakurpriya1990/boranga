@@ -26,8 +26,19 @@ from copy import deepcopy
 from django.shortcuts import render, redirect, get_object_or_404
 
 from boranga.components.main.decorators import basic_exception_handler
-from boranga.components.species_and_communities.utils import species_form_submit,community_form_submit
+from boranga.components.species_and_communities.utils import (
+    species_form_submit,
+    community_form_submit,
+    combine_species_original_submit,
+    rename_species_original_submit,
+)
 from boranga.components.main.related_item import RelatedItemsSerializer
+
+from boranga.components.species_and_communities.email import (
+    send_species_split_email_notification, 
+    send_species_combine_email_notification,
+    send_species_rename_email_notification,
+)
 
 from boranga.components.species_and_communities.models import (
     GroupType,
@@ -76,6 +87,7 @@ from boranga.components.conservation_status.models import(
     ConservationChangeCode,
     ConservationStatus,
     ConservationList,
+    ConservationStatusUserAction,
 )
 from boranga.components.species_and_communities.serializers import (
     ListSpeciesSerializer,
@@ -940,16 +952,21 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 #instance.submit(request,self)
                 species_form_submit(instance, request)
-                # add parent ids to new species instance
-                parent_species_arr= request.data.get('parent_species')
-                for species in parent_species_arr:
-                    species_instance = Species.objects.get(id = species.get('id'))
-                    instance.parent_species.add(species_instance)
                 
                 # copy/clone the original species document and create new for new split species
                 instance.clone_documents(request)
                 instance.clone_threats(request)
                 instance.save()
+                # add parent ids to new species instance
+                parent_species_arr= request.data.get('parent_species')
+                for species in parent_species_arr:
+                    parent_instance = Species.objects.get(id = species.get('id'))
+                    instance.parent_species.add(parent_instance)
+                    # set the original species from the combine list to historical and its conservation status to 'closed'
+                    combine_species_original_submit(parent_instance,request)
+                
+                #  send the combine species email notification
+                send_species_combine_email_notification(request, instance)
 
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
@@ -967,16 +984,32 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    # Used to submit the original species after split/combine data is submitted 
+    # Used to submit the original species after split data is submitted 
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
     def change_status_historical(self, request, *args, **kwargs):
         try:
-            instance = self.get_object()
-            instance.processing_status = 'historical'
-            instance.save()
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            species_instance = self.get_object()
+            species_instance.processing_status = 'historical'
+
+            ret1 = send_species_split_email_notification(request, species_instance)
+            if ret1:
+                species_instance.save()
+                 # change current active conservation status of the original species to inactive
+                try:
+                    if species_instance.processing_status == 'historical':
+                        species_cons_status = ConservationStatus.objects.get(species=species_instance, processing_status='approved')
+                        if species_cons_status:
+                            species_cons_status.customer_status='closed'
+                            species_cons_status.processing_status='closed'
+                            species_cons_status.save()
+                            #add the log_user_action
+                            species_cons_status.log_user_action(ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(species_cons_status.conservation_status_number),request)
+                except ConservationStatus.DoesNotExist:
+                    pass
+
+                serializer = self.get_serializer(species_instance)
+                return Response(serializer.data)
             # return redirect(reverse('internal'))
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1078,8 +1111,10 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 # add parent ids to new species instance
                 parent_species_arr= request.data.get('parent_species')
                 for species in parent_species_arr:
-                    species_instance = Species.objects.get(id = species.get('id'))
-                    instance.parent_species.add(species_instance)
+                    parent_instance = Species.objects.get(id = species.get('id'))
+                    instance.parent_species.add(parent_instance)
+                    # set the original species from the rename  to historical and its conservation status to 'closed'
+                    rename_species_original_submit(parent_instance,request)
                 
             serializer = self.get_serializer(instance)
             return Response(serializer.data)

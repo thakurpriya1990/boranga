@@ -34,6 +34,21 @@ class UserCreateSpeciesSendNotificationEmail(TemplateEmailBase):
     html_template = 'boranga/emails/send_user_create_notification.html'
     txt_template = 'boranga/emails/send_user_create_notification.txt'
 
+class SplitSpeciesSendNotificationEmail(TemplateEmailBase):
+    subject = 'A Species has been split.'
+    html_template = 'boranga/emails/send_split_notification.html'
+    txt_template = 'boranga/emails/send_split_notification.txt'
+
+class CombineSpeciesSendNotificationEmail(TemplateEmailBase):
+    subject = 'The Species has been combined.'
+    html_template = 'boranga/emails/send_combine_notification.html'
+    txt_template = 'boranga/emails/send_combine_notification.txt'
+
+class RenameSpeciesSendNotificationEmail(TemplateEmailBase):
+    subject = 'A Species has been renamed.'
+    html_template = 'boranga/emails/send_rename_notification.html'
+    txt_template = 'boranga/emails/send_rename_notification.txt'
+
 class CreateCommunitySendNotificationEmail(TemplateEmailBase):
     subject = 'A new Community has been created.'
     html_template = 'boranga/emails/send_create_notification.html'
@@ -103,6 +118,86 @@ def send_user_species_create_email_notification(request, species_proposal):
     # else:
     #     _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
     #_log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
+    return msg
+
+# here species_proposal is the original species from split functionality
+def send_species_split_email_notification(request, species_proposal):
+    email = SplitSpeciesSendNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-conservation-status-dashboard',kwargs={}))
+    if "-internal" not in url:
+        # add it. This email is for internal staff
+        url = '-internal.{}'.format(settings.SITE_DOMAIN).join(url.split('.' + settings.SITE_DOMAIN))
+
+    context = {
+        'species_proposal': species_proposal,
+        'url': url
+    }
+
+    all_ccs = []
+
+    msg = email.send(EmailUser.objects.get(id=species_proposal.submitter).email,cc=all_ccs,
+        context=context
+        )
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_species_email(msg, species_proposal, sender=sender)
+    # if species_proposal.org_applicant:
+    #     _log_org_email(msg, species_proposal.org_applicant, species_proposal.submitter, sender=sender)
+    # else:
+    #     _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
+    return msg
+
+#  here species_proposal is the new species created in combine species functionality
+def send_species_combine_email_notification(request, species_proposal):
+    email = CombineSpeciesSendNotificationEmail()
+    # TODO this url is doe conservation status dash, will need to add one more url for occurrences dash
+    url = request.build_absolute_uri(reverse('internal-conservation-status-dashboard',kwargs={}))
+    if "-internal" not in url:
+        # add it. This email is for internal staff
+        url = '-internal.{}'.format(settings.SITE_DOMAIN).join(url.split('.' + settings.SITE_DOMAIN))
+
+    context = {
+        'species_proposal': species_proposal,
+        'url': url
+    }
+
+    all_ccs = []
+
+    msg = email.send(EmailUser.objects.get(id=species_proposal.submitter).email,cc=all_ccs,
+        context=context
+        )
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_species_email(msg, species_proposal, sender=sender)
+    # if species_proposal.org_applicant:
+    #     _log_org_email(msg, species_proposal.org_applicant, species_proposal.submitter, sender=sender)
+    # else:
+    #     _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
+    return msg
+
+# here species_proposal is the original species from rename functionality
+def send_species_rename_email_notification(request, species_proposal):
+    email = RenameSpeciesSendNotificationEmail()
+    # TODO this url is doe conservation status dash, will need to add one more url for occurrences dash
+    url = request.build_absolute_uri(reverse('internal-conservation-status-dashboard',kwargs={}))
+    if "-internal" not in url:
+        # add it. This email is for internal staff 
+        url = '-internal.{}'.format(settings.SITE_DOMAIN).join(url.split('.' + settings.SITE_DOMAIN))
+
+    context = {
+        'species_proposal': species_proposal,
+        'url': url
+    }
+
+    all_ccs = []
+
+    msg = email.send(EmailUser.objects.get(id=species_proposal.submitter).email,cc=all_ccs, 
+        context=context
+        )
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_species_email(msg, species_proposal, sender=sender)
+    # if species_proposal.org_applicant:
+    #     _log_org_email(msg, species_proposal.org_applicant, species_proposal.submitter, sender=sender)
+    # else:
+    #     _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
     return msg
 
 def send_community_create_email_notification(request, community_proposal):

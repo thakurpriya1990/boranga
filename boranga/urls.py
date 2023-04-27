@@ -139,6 +139,7 @@ urlpatterns = [
     #following url is defined so that to include url path when sending Proposal amendment request to user.
     url(r'^external/conservation_status/(?P<cs_proposal_pk>\d+)/$', views.ExternalConservationStatusView.as_view(), name='external-conservation-status-detail'),
     url(r'^internal/conservation_status/(?P<cs_proposal_pk>\d+)/$', views.InternalConservationStatusView.as_view(), name='internal-conservation-status-detail'),
+    url(r'^internal/conservation-status/', views.InternalConservationStatusDashboardView.as_view(), name='internal-conservation-status-dashboard'),
     url(r'^internal/conservation_status/(?P<cs_proposal_pk>\d+)/cs_referral/(?P<referral_pk>\d+)/$', views.ConservationStatusReferralView.as_view(), name='internal-conservation-status-referral-detail'),
     url(r'^internal/species_communities/(?P<species_proposal_pk>\d+)/$', views.InternalSpeciesView.as_view(), name='internal-species-detail'),
     url(r'^internal/species_communities/(?P<community_proposal_pk>\d+)/$', views.InternalCommunityView.as_view(), name='internal-community-detail'),

@@ -1,0 +1,24 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+        The following species 
+        {% for org_species in species_proposal.parent_species_list %}
+                {{ org_species.species_number }} - {{ org_species.taxonomy.scientific_name }} 
+        {% endfor %} has been combined into the new species  
+        {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }} .
+        
+        <p>
+            You will need to manage conservation status and occurrences of the new species.
+        </p>
+        <p>
+            The conservation status originally associated with historical species has been set to closed.
+            You will need to create a new Conservation Status and link to this newly created species <a href="{{url}}">click here</a>
+        </p>
+        <p>
+            The occurrence status originally associated with historical species has been set to closed.
+            You will need to create a new Occurrence and link to this newly created species <a href="{{url}}">click here</a>
+        </p>
+        <p>
+            These actions are also available from the respective dashboard pages.
+        </p>
+    {%  endblock %}
