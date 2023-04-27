@@ -99,6 +99,10 @@ class InternalConservationStatusView(DetailView):
         kwargs['form'] = LoginForm
         return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
 
+class InternalConservationStatusDashboardView(DetailView):
+    model = ConservationStatus
+    template_name = 'boranga/dash/index.html'
+
 class ConservationStatusReferralView(ReferralOwnerMixin, DetailView):
     model = ConservationStatusReferral
     template_name = 'boranga/dash/index.html'

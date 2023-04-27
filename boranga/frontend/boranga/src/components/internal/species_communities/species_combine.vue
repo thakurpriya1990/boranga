@@ -218,7 +218,10 @@ export default {
                     let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/combine_new_species_submit')
                     vm.$http.post(submit_url,payload).then(res=>{
                         vm.new_species = res.body;
-                        vm.submit_original_species();
+                        //vm.submit_original_species();
+                        vm.$router.push({
+                            name: 'internal-species-communities-dash'
+                        });
                     },err=>{
                         swal(
                             'Submit Error',
@@ -234,30 +237,31 @@ export default {
             });
 
         },
-        submit_original_species: function(){
-            let vm=this;
-            for (let index=0 ; index<vm.original_species_combine_list.length; index++){
-                let old_species = vm.original_species_combine_list[index];
-                let payload = new Object();
-                Object.assign(payload, old_species);
-                let submit_url = helpers.add_endpoint_json(api_endpoints.species,old_species.id+'/change_status_historical')
-                vm.$http.post(submit_url,payload).then(res=>{
-                    old_species = res.body; 
-                    // TODO Not sure where it should go after the combine process
-                    if(index==vm.original_species_combine_list.length-1){
-                        vm.$router.push({
-                            name: 'internal-species-communities-dash'
-                        });
-                    }
-                },err=>{
-                    swal(
-                        'Submit Error',
-                        helpers.apiVueResourceError(err),
-                        'error'
-                    )
-                });
-            }
-        },
+        // the below not used as the original species has already been send in the  combine_new_species_submit method
+        // submit_original_species: function(){
+        //     let vm=this;
+        //     for (let index=0 ; index<vm.original_species_combine_list.length; index++){
+        //         let old_species = vm.original_species_combine_list[index];
+        //         let payload = new Object();
+        //         Object.assign(payload, old_species);
+        //         let submit_url = helpers.add_endpoint_json(api_endpoints.species,old_species.id+'/change_status_historical')
+        //         vm.$http.post(submit_url,payload).then(res=>{
+        //             old_species = res.body; 
+        //             // TODO Not sure where it should go after the combine process
+        //             if(index==vm.original_species_combine_list.length-1){
+        //                 vm.$router.push({
+        //                     name: 'internal-species-communities-dash'
+        //                 });
+        //             }
+        //         },err=>{
+        //             swal(
+        //                 'Submit Error',
+        //                 helpers.apiVueResourceError(err),
+        //                 'error'
+        //             )
+        //         });
+        //     }
+        // },
         discardSpecies:function (species_id) {
             let vm = this;
             try{

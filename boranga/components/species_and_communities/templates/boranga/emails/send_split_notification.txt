@@ -1,0 +1,19 @@
+{%  extends 'boranga/emails/base_email.txt' %}
+
+{%  block content %}
+        The following species {{ species_proposal.species_number}}  - {{ species_proposal.taxonomy.scientific_name}}  has been split into following new species,
+         {% for new_species in species_proposal.child_species %}
+            {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }}
+        {% endfor %}
+        
+        You will need to manage conservation status and occurrences of the new species.
+        
+        The conservation status originally associated with historical species has been set to delisted.
+        You will need to create a new Conservation Status and link to this newly created species {{url}}
+        
+        The occurrence status originally associated with historical species has been set to delisted.
+        You will need to create a new Occurrence and link to this newly created species {{url}}
+        
+        These actions are also available from the respective dashboard pages.
+
+{%  endblock %}
