@@ -738,30 +738,6 @@ export default {
                 
             })*/
         },
-
-        check_assessor: function(proposal){
-            let vm = this;
-            if (proposal.assigned_officer)
-                {
-                    { if(proposal.assigned_officer== vm.profile.full_name)
-                        return true;
-                    else
-                        return false;
-                }
-            }
-            else{
-                 var assessor = proposal.allowed_assessors.filter(function(elem){
-                    return(elem.id=vm.profile.id)
-                });
-                
-                if (assessor.length > 0)
-                    return true;
-                else
-                    return false;
-              
-            }
-            
-        },
     },
 
 

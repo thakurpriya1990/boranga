@@ -215,9 +215,9 @@ export default {
         //         )
         //     });
         // },
-        // eventListeners:function () {
-        //     let vm = this;
-        // },
+        eventListeners:function () {
+            let vm = this;
+        },
    },
    mounted:function () {
         let vm =this;

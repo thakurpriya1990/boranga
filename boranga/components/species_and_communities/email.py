@@ -74,7 +74,7 @@ def send_species_create_email_notification(request, species_proposal):
         'url': url
     }
 
-    msg = email.send(species_proposal.assessor_recipients, context=context)
+    msg = email.send(species_proposal.species_processor_recipients, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     _log_species_email(msg, species_proposal, sender=sender)
     # if species_proposal.org_applicant:
@@ -214,7 +214,7 @@ def send_community_create_email_notification(request, community_proposal):
         'url': url
     }
 
-    msg = email.send(community_proposal.assessor_recipients, context=context)
+    msg = email.send(community_proposal.community_processor_recipients, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     _log_community_email(msg, community_proposal, sender=sender)
     # if community_proposal.org_applicant:

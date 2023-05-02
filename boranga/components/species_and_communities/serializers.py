@@ -167,7 +167,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 		user = request.user
 		if obj.can_user_action:
 			#TODO user should be SystemGroup SpeciesProcessGroup?
-			if user in obj.allowed_assessors:
+			if user in obj.allowed_species_processors:
 				return True
 		return False
 
@@ -286,7 +286,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 		user = request.user
 		if obj.can_user_action:
 			#TODO user should be SystemGroup SpeciesProcessGroup?
-			if user in obj.allowed_assessors:
+			if user in obj.allowed_community_processors:
 				return True
 		return False
 
@@ -473,7 +473,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 	conservation_attributes = serializers.SerializerMethodField()
 	distribution = serializers.SerializerMethodField()
 	image_doc=serializers.SerializerMethodField()
-	allowed_assessors = EmailUserSerializer(many=True)
+	allowed_species_processors = EmailUserSerializer(many=True)
 	
 	class Meta:
 		model = Species
@@ -499,7 +499,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			'can_user_edit',
 			'can_user_view',
 			'applicant_details',
-			'allowed_assessors',
+			'allowed_species_processors',
 			)
 			
 	def get_readonly(self,obj):
@@ -578,7 +578,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 	submitter = serializers.SerializerMethodField(read_only=True)
 	processing_status = serializers.SerializerMethodField(read_only=True)
 	current_assessor = serializers.SerializerMethodField()
-	allowed_assessors = EmailUserSerializer(many=True)
+	allowed_species_processors = EmailUserSerializer(many=True)
 	user_edit_mode = serializers.SerializerMethodField()
 
 	class Meta:
@@ -604,7 +604,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 			'submitter',
 			'lodgement_date',
 			'current_assessor',
-			'allowed_assessors',
+			'allowed_species_processors',
 			'user_edit_mode',
 			)
 
@@ -782,7 +782,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 	conservation_attributes = serializers.SerializerMethodField()
 	readonly = serializers.SerializerMethodField(read_only=True)
 	image_doc = serializers.SerializerMethodField()
-	allowed_assessors = EmailUserSerializer(many=True)
+	allowed_community_processors = EmailUserSerializer(many=True)
 
 	class Meta:
 		model = Community
@@ -806,7 +806,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 			    'can_user_edit',
 				'can_user_view',
 				'applicant_details',
-				'allowed_assessors',
+				'allowed_community_processors',
 				)
 
 	def get_species(self,obj):
@@ -900,7 +900,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 	submitter = serializers.SerializerMethodField(read_only=True)
 	processing_status = serializers.SerializerMethodField(read_only=True)
 	current_assessor = serializers.SerializerMethodField()
-	allowed_assessors = EmailUserSerializer(many=True)
+	allowed_community_processors = EmailUserSerializer(many=True)
 	user_edit_mode = serializers.SerializerMethodField()
 
 	class Meta:
@@ -926,7 +926,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 			'can_user_edit',
 			'can_user_view',
 			'current_assessor',
-			'allowed_assessors',
+			'allowed_community_processors',
 			'user_edit_mode',
 			)
 
