@@ -100,7 +100,7 @@ class Command(BaseCommand):
                                     errors.append(err_msg)
                                 
                         
-                        obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t['taxon_name_id'], defaults={'scientific_name' : t['canonical_name'],
+                        taxon_obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t['taxon_name_id'], defaults={'scientific_name' : t['canonical_name'],
                                                                                                             'kingdom_id' : t['kingdom_id'],
                                                                                                             'kingdom_fk' : kingdom_fk,
                                                                                                             'kingdom_name' : t['kingdom']['kingdom_name'],
@@ -114,15 +114,16 @@ class Command(BaseCommand):
                                                                                                             'path' : t['path'],
                                                                                                             })
                         #logger.info('Taxon {}'.format(obj.scientific_name))
-                        updates.append(obj.id)
+                        updates.append(taxon_obj.id)
                         
                         # check if tha taxon has classification_systems_ids and then create the informal group records for taxon which will be the "phylo group for a taxon"
-                        if obj:
+                        if taxon_obj:
                             if t["classification_system_ids"]:
-                                informal_grp_url='{}/v1/informal_groups?filter={}{}{}'.format(settings.NOMOS_URL,'{"taxon_name_id":',obj.taxon_name_id,'}')
+                                informal_grp_url='{}/v1/informal_groups?filter={}{}{}'.format(settings.NOMOS_URL,'{"taxon_name_id":',taxon_obj.taxon_name_id,'}')
                                 informal_grp_res=requests.get(informal_grp_url, headers={'Authorization': token})
                                 gres=informal_grp_res.json()
                                 try:
+                                    #A taxon can have more than one informal groups
                                     for g in gres:
                                         # classification system id
                                         classification_system_id = g['classification_system_id']
@@ -133,10 +134,32 @@ class Command(BaseCommand):
                                                                                             'classification_system_id': classification_system_id,
                                                                                             'classification_system_fk': classification_system_fk,
                                                                                             'taxon_name_id': g['taxon_name_id'],
-                                                                                            'taxonomy': obj,
+                                                                                            'taxonomy': taxon_obj,
                                                                                         })
                                 except Exception as e:
                                     err_msg = 'Create informal group:'
+                                    logger.error('{}\n{}'.format(err_msg, str(e)))
+                                    errors.append(err_msg)
+                        
+                        # check if the taxon has all_vernaculars and then create the TaxonVernacular records for taxon which will be the "common names"
+                        if taxon_obj:
+                            all_vernaculars = t['all_vernaculars'] if 'all_vernaculars' in t else ''
+                            if all_vernaculars != '':
+                                vern_url='{}/v1/vernaculars?filter={}{}{}'.format(settings.NOMOS_URL,'{"taxon_name_id":',taxon_obj.taxon_name_id,'}')
+                                vern_res=requests.get(vern_url, headers={'Authorization': token})
+                                vres=vern_res.json()
+                                try:
+                                    #A taxon can have more than one vernaculars(common names)
+                                    for v in vres:
+                                        obj, created=TaxonVernacular.objects.update_or_create(vernacular_id=v['vernacular_id'],
+                                                                                            defaults={
+                                                                                                'vernacular_name' : v['vernacular_name'],
+                                                                                                'taxonomy': taxon_obj,
+                                                                                                'taxon_name_id' : taxon_obj.taxon_name_id,
+                                                                                            })
+
+                                except Exception as e:
+                                    err_msg = 'Create Taxon Vernacular:'
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
                                     errors.append(err_msg)
 
