@@ -3,7 +3,15 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
 import requests
-from boranga.components.species_and_communities.models import Taxonomy, TaxonVernacular, TaxonomyRank, Kingdom, ClassificationSystem, InformalGroup
+from boranga.components.species_and_communities.models import(
+    Taxonomy,
+    TaxonVernacular,
+    TaxonomyRank,
+    Kingdom,
+    ClassificationSystem,
+    InformalGroup,
+    CrossReference,
+)
 
 
 import itertools
@@ -162,11 +170,70 @@ class Command(BaseCommand):
                                     err_msg = 'Create Taxon Vernacular:'
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
                                     errors.append(err_msg)
+                            
+                        # check if the taxon has previous name in cross_reference table as in new_name_id field and then get the old_name_id
+                        if taxon_obj:
+                            x_ref_url='{}/v1/cross_references?filter={}{}{}'.format(settings.NOMOS_URL,'{"new_name_id":',taxon_obj.taxon_name_id,'}')
+                            x_ref_res=requests.get(x_ref_url, headers={'Authorization': token})
+                            xres=x_ref_res.json()
+                            try:
+                                #A taxon can have more than one previous names
+                                for x in xres:
+                                    old_name_id = x['old_name_id'] if 'old_name_id' in x else None
+                                    old_taxon_fk = None
+                                    if old_name_id:
+                                        try:
+                                            old_taxon_fk = Taxonomy.objects.get(taxon_name_id=old_name_id)
 
-                        # if created:
-                        #     #spc, spc_created= Species.objects.update_or_create(taxonomy_id=obj.id)
-                        #     tax_ver, tax_ver_created=TaxonVernacular.objects.update_or_create(taxonomy_id=obj.id, defaults={'taxon_name_id' : obj.taxon_name_id})
-                        #     logger.info('TaxonVernacular {}'.format(tax_ver))
+                                        except Taxonomy.DoesNotExist:
+                                            #  create taxon for the old(taxon_name_id) in the hierarchy
+                                            old_taxon_url='{}/v1/taxon_names/{}'.format(settings.NOMOS_URL,old_name_id)
+                                            old_taxon_res=requests.get(old_taxon_url, headers={'Authorization': token})
+                                            ores=old_taxon_res.json()
+                                            try:
+                                                old_taxon_author = ores['author'] if 'author' in ores else ''
+                                                old_taxon_notes = ores['notes'] if 'notes' in ores else ''
+
+                                                # kingdom
+                                                old_taxon_kingdom_fk = Kingdom.objects.get(kingdom_id = ores['kingdom_id'])
+
+                                                # Taxon rank from the hierarchy
+                                                old_taxon_rank_id = ores['rank_id']
+                                                old_taxon_rank_fk = TaxonomyRank.objects.get(taxon_rank_id = old_taxon_rank_id)
+
+                                                old_taxon_obj, created=Taxonomy.objects.update_or_create(taxon_name_id=ores['taxon_name_id'], 
+                                                                                                defaults={'scientific_name' : ores['canonical_name'],
+                                                                                                    'kingdom_id' : ores['kingdom_id'],
+                                                                                                    'kingdom_fk' : old_taxon_kingdom_fk,
+                                                                                                    'kingdom_name' : ores['kingdom']['kingdom_name'],
+                                                                                                    'name_authority' : old_taxon_author,
+                                                                                                    'name_comments' : old_taxon_notes,
+                                                                                                    'name_currency' : ores['is_current'],
+                                                                                                    'taxon_rank_id' : old_taxon_rank_id,
+                                                                                                    'taxonomy_rank_fk' : old_taxon_rank_fk,
+                                                                                                    'path' : ores['path'],
+                                                                                                })
+                                                old_taxon_fk = old_taxon_obj
+                                            except Exception as e:
+                                                err_msg = 'Create Old Name(Previous Name) taxon:'
+                                                logger.error('{}\n{}'.format(err_msg, str(e)))
+                                                errors.append(err_msg)
+
+                                    
+                                    x_ref_obj, created=CrossReference.objects.update_or_create(cross_reference_id=x['cross_reference_id'],
+                                                                                        defaults={
+                                                                                            'cross_reference_type' : x['cross_reference_type'],
+                                                                                            'old_name_id': old_name_id,
+                                                                                            'new_name_id': taxon_obj.taxon_name_id,
+                                                                                            'old_taxonomy': old_taxon_fk,
+                                                                                            'new_taxonomy': taxon_obj,
+                                                                                        })
+
+                            except Exception as e:
+                                err_msg = 'Create Taxon Cross Reference:'
+                                logger.error('{}\n{}'.format(err_msg, str(e)))
+                                errors.append(err_msg)
+
                 except Exception as e:
                     err_msg = 'Create taxon:'
                     logger.error('{}\n{}'.format(err_msg, str(e)))
