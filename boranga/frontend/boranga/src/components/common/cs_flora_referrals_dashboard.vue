@@ -4,19 +4,18 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Scientific Name:</label>
+                        <!-- <label for="">Scientific Name:</label>
                         <select class="form-select" v-model="filterCSRefFloraScientificName">
                             <option value="all">All</option>
                             <option v-for="option in scientific_name_list" :value="option.id">{{option.name}}
                             </option>
-                        </select>
-                        <!-- <label for="scientific_name_lookup">Scientific Name:</label>
+                        </select> -->
+                        <label for="scientific_name_lookup">Scientific Name:</label>
                         <select 
                             id="scientific_name_lookup"  
                             name="scientific_name_lookup"  
                             ref="scientific_name_lookup" 
-                            class="form-control" /> -->
-                            <!-- v-model="filterCSRefFloraScientificName" /> -->
+                            class="form-control" /> 
                     </div>
                 </div>
                 <div class="col-md-3">

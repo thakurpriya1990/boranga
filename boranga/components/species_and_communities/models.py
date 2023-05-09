@@ -200,6 +200,7 @@ class Contact(models.Model):
         return '{}, {}'.format(self.last_name, self.first_name)
 
 
+# TODO Model not used anymore
 class NameAuthority(models.Model):
     """
 
@@ -215,7 +216,7 @@ class NameAuthority(models.Model):
     def __str__(self):
         return str(self.name)
 
-# Not used any more
+# TODO Not used any more
 class ScientificName(models.Model):
     """
     # list derived from WACensus
@@ -233,6 +234,7 @@ class ScientificName(models.Model):
         return str(self.name)
 
 
+# TODO Model not used anymore
 class Family(models.Model):
     """
     # list derived from WACensus
@@ -252,6 +254,7 @@ class Family(models.Model):
         return str(self.name)
 
 
+# TODO Model not used anymore
 class PhylogeneticGroup(models.Model):
     """
     # list derived from WACensus
@@ -328,12 +331,12 @@ class Taxonomy(models.Model):
     taxonomy_rank_fk = models.ForeignKey(TaxonomyRank, on_delete=models.SET_NULL, null=True, blank=True, related_name="taxons")
     family_nid = models.IntegerField(null=True, blank=True)
     family_fk = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name="taxon_family")
-    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True)
-    genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True) # TODO this field is not used
+    genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True) 
     # phylogenetic_group is only used for Fauna 
-    phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True)
+    phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True) # TODO this field is not used anymore
     name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
-    previous_name = models.CharField(max_length=512,null=True, blank=True)
+    previous_name = models.CharField(max_length=512,null=True, blank=True) # TODO this field is not used anymore
     # name_authority = models.ForeignKey(NameAuthority,
     #                                    on_delete=models.CASCADE,null=True,blank=True)
     name_authority = models.CharField(max_length=500,null=True, blank=True)
@@ -970,6 +973,7 @@ class SpeciesDistribution(models.Model):
         return str(self.id)  # TODO: is the most appropriate?
 
 
+# TODO Model not used anymore
 class CommunityName(models.Model):
     """
     # list derived from TEC
@@ -1498,6 +1502,7 @@ class CommitteeMeeting(models.Model):
         return str(self.date)
 
 
+# TODO Model not used at the moment
 class SpeciesAttributes(models.Model):
     """
     Do no know what this is but is required for SpeciesDocuments
@@ -1525,6 +1530,7 @@ class SpeciesAttributes(models.Model):
         return str(self.name_reference)  # TODO: is the most appropriate?
 
 
+# TODO Model not used at the moment
 class Source(models.Model):
     """
 
@@ -1837,6 +1843,7 @@ class ConservationThreat(models.Model):
             return self.community.id
 
 
+# TODO Model not used at the moment
 class ConservationPlan(models.Model):
     """
     Each occurrence of each species can have one or more plan to protect it.

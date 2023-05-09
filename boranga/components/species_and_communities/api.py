@@ -137,14 +137,88 @@ class GetGroupTypeDict(views.APIView):
 
 class GetScientificName(views.APIView):
     def get(self, request, format=None):
-        #private_moorings = request.GET.get('private_moorings')
+        group_type_id = request.GET.get('group_type_id', '')
         search_term = request.GET.get('term', '')
         if search_term:
             if search_term:
-                data = ScientificName.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
-            data_transform = [{'id': species['id'], 'text': species['name']} for species in data]
+                data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+            data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
             return Response({"results": data_transform})
         return Response()
+
+
+class GetCommonName(views.APIView):
+    def get(self, request, format=None):
+        group_type_id = request.GET.get('group_type_id', '')
+        search_term = request.GET.get('term', '')
+        if search_term:
+            if search_term:
+                data = TaxonVernacular.objects.filter(vernacular_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id).values('id', 'vernacular_name')[:10]
+            data_transform = [{'id': vern['id'], 'text': vern['vernacular_name']} for vern in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetFamily(views.APIView):
+    def get(self, request, format=None):
+        group_type_id = request.GET.get('group_type_id', '')
+        search_term = request.GET.get('term', '')
+        if search_term:
+            if search_term:
+                family_ids = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
+                data = Taxonomy.objects.filter(id__in=family_ids, scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+            data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetGenera(views.APIView):
+    def get(self, request, format=None):
+        #  group_type_id  retrive as may need to use later
+        group_type_id = request.GET.get('group_type_id', '')
+        search_term = request.GET.get('term', '')
+        if search_term:
+            if search_term:
+                data = Genus.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
+            data_transform = [{'id': taxon['id'], 'text': taxon['name']} for taxon in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetPhyloGroup(views.APIView):
+    def get(self, request, format=None):
+        #  group_type_id  retrive as may need to use later
+        group_type_id = request.GET.get('group_type_id', '')
+        search_term = request.GET.get('term', '')
+        if search_term:
+            if search_term:
+                data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
+            data_transform = [{'id': group['id'], 'text': group['class_desc']} for group in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetCommunityId(views.APIView):
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        if search_term:
+            if search_term:
+                data = CommunityTaxonomy.objects.filter(community_migrated_id__icontains=search_term).values('id', 'community_migrated_id')[:10]
+            data_transform = [{'id': community['id'], 'text': community['community_migrated_id']} for community in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetCommunityName(views.APIView):
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        if search_term:
+            if search_term:
+                data = CommunityTaxonomy.objects.filter(community_name__icontains=search_term).values('id', 'community_name')[:10]
+            data_transform = [{'id': community['id'], 'text': community['community_name']} for community in data]
+            return Response({"results": data_transform})
+        return Response()
+
 
 # dict used on combine select species pop-up
 class GetSpeciesDict(views.APIView):
