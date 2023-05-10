@@ -4,24 +4,36 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Community ID:</label>
+                        <!-- <label for="">Community ID:</label>
                         <select class="form-select" v-model="filterCommunityMigratedId">
                             <option value="all">All</option>
                             <option v-for="community in communities_data_list" :value="community.community_migrated_id">
                                 {{community.community_migrated_id}}
                             </option>
-                        </select>
+                        </select> -->
+                        <label for="community_id_lookup">Community ID:</label>
+                        <select 
+                            id="community_id_lookup"  
+                            name="community_id_lookup"  
+                            ref="community_id_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Community Name:</label>
+                        <!-- <label for="">Community Name:</label>
                         <select class="form-select" v-model="filterCommunityName">
                             <option value="all">All</option>
                             <option v-for="community in communities_data_list" :value="community.community_name">
                                 {{community.community_name}}
                             </option>
-                        </select>
+                        </select> -->
+                        <label for="community_name_lookup">Community Name:</label>
+                        <select 
+                            id="community_name_lookup"  
+                            name="community_name_lookup"  
+                            ref="community_name_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -182,10 +194,6 @@ export default {
         return {
             datatable_id: 'communities-datatable-'+vm._uid,
      
-            //Profile to check if user has access to process Proposal
-            profile: {},
-            is_payment_admin: false,
-            
             // selected values for filtering
             filterCommunityMigratedId: sessionStorage.getItem(this.filterCommunityMigratedId_cache) ? 
                                 sessionStorage.getItem(this.filterCommunityMigratedId_cache) : 'all',
@@ -619,6 +627,78 @@ export default {
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
+        initialiseCommunityNameLookup: function(){
+                let vm = this;
+                $(vm.$refs.community_name_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Community Name",
+                    ajax: {
+                        url: api_endpoints.community_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCommunityName = data;
+                    sessionStorage.setItem("filterCommunityNameText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCommunityName = 'all';
+                    sessionStorage.setItem("filterCommunityNameText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-community_name_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseCommunityIdLookup: function(){
+                let vm = this;
+                $(vm.$refs.community_id_lookup).select2({
+                    minimumInputLength: 1,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Community ID",
+                    ajax: {
+                        url: api_endpoints.community_id_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCommunityMigratedId = data;
+                    sessionStorage.setItem("filterCommunityMigratedIdText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCommunityMigratedId = 'all';
+                    sessionStorage.setItem("filterCommunityMigratedIdText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-community_id_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
         fetchFilterLists: function(){
             let vm = this;
             vm.$http.get(api_endpoints.community_filter_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
@@ -727,23 +807,9 @@ export default {
                 }
             );
         },
-        fetchProfile: function(){
-            let vm = this;
-            /*Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-                vm.is_payment_admin=response.body.is_payment_admin;
-                              
-            },(error) => {
-                console.log(error);
-                
-            })*/
-        },
     },
-
-
     mounted: function(){
         this.fetchFilterLists();
-        this.fetchProfile();
         let vm = this;
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
@@ -752,8 +818,23 @@ export default {
             }, 100 );
         });
         this.$nextTick(() => {
+            vm.initialiseCommunityNameLookup();
+            vm.initialiseCommunityIdLookup();
             vm.initialiseSearch();
             vm.addEventListeners();
+            // -- to set the select2 field with the session value if exists onload()
+            if(sessionStorage.getItem("filterCommunityName")!='all' && sessionStorage.getItem("filterCommunityName")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCommunityNameText"), vm.filterCommunityName, false, true);
+                $('#community_name_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterCommunityMigratedId")!='all' && sessionStorage.getItem("filterCommunityMigratedId")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCommunityMigratedIdText"), vm.filterCommunityMigratedId, false, true);
+                $('#community_id_lookup').append(newOption);
+            }
         });
     }
 }

@@ -639,7 +639,7 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         # filter_scientific_name
         filter_scientific_name = request.GET.get('filter_scientific_name')
         if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-            queryset = queryset.filter(taxonomy__scientific_name=filter_scientific_name)
+            queryset = queryset.filter(taxonomy=filter_scientific_name)
 
         filter_common_name = request.GET.get('filter_common_name')
         if filter_common_name and not filter_common_name.lower() == 'all':
@@ -736,12 +736,12 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         #filter_community_migrated_id
         filter_community_migrated_id = request.GET.get('filter_community_migrated_id')
         if filter_community_migrated_id and not filter_community_migrated_id.lower() == 'all':
-            queryset = queryset.filter(taxonomy__community_migrated_id=filter_community_migrated_id)
+            queryset = queryset.filter(taxonomy=filter_community_migrated_id)
 
         # filter_community_name
         filter_community_name = request.GET.get('filter_community_name')
         if filter_community_name and not filter_community_name.lower() == 'all':
-            queryset = queryset.filter(taxonomy__community_name=filter_community_name)
+            queryset = queryset.filter(taxonomy=filter_community_name)
 
         # filter_community_status
         filter_community_status = request.GET.get('filter_community_status')

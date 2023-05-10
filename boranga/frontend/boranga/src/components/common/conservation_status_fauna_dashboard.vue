@@ -4,78 +4,51 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Scientific Name:</label>
-                        <select class="form-select" v-model="filterCSFaunaScientificName">
-                            <option value="all">All</option>
-                            <option v-for="option in scientific_name_list" :value="option.id">{{option.name}}
-                            </option>
-                        </select> -->
-                        <label for="scientific_name_lookup">Scientific Name:</label>
+                        <label for="cs_scientific_name_lookup">Scientific Name:</label>
                         <select 
-                            id="scientific_name_lookup"  
-                            name="scientific_name_lookup"  
-                            ref="scientific_name_lookup" 
+                            id="cs_scientific_name_lookup"  
+                            name="cs_scientific_name_lookup"  
+                            ref="cs_scientific_name_lookup" 
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Common Name:</label>
-                        <select class="form-select" v-model="filterCSFaunaCommonName">
-                            <option value="all">All</option>
-                            <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
-                        <label for="common_name_lookup">Common Name:</label>
+                        <label for="cs_common_name_lookup">Common Name:</label>
                         <select 
-                            id="common_name_lookup"  
-                            name="common_name_lookup"  
-                            ref="common_name_lookup" 
+                            id="cs_common_name_lookup"  
+                            name="cs_common_name_lookup"  
+                            ref="cs_common_name_lookup" 
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Phylo Group:</label>
-                        <select class="form-select" v-model="filterCSFaunaPhylogeneticGroup">
-                            <option value="all">All</option>
-                            <option v-for="option in phylogenetic_group_list" :value="option.id">
-                                {{option.name}}</option>
-                        </select> -->
-                        <label for="phylo_group_lookup">Phylo Group:</label>
+                        <label for="cs_phylo_group_lookup">Phylo Group:</label>
                         <select 
-                            id="phylo_group_lookup"  
-                            name="phylo_group_lookup"  
-                            ref="phylo_group_lookup" 
+                            id="cs_phylo_group_lookup"  
+                            name="cs_phylo_group_lookup"  
+                            ref="cs_phylo_group_lookup" 
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Family:</label>
-                        <select class="form-select" v-model="filterCSFaunaFamily">
-                            <option value="all">All</option>
-                            <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
-                        <label for="family_lookup">Family:</label>
+                        <label for="cs_family_lookup">Family:</label>
                         <select 
-                            id="family_lookup"  
-                            name="family_lookup"  
-                            ref="family_lookup" 
+                            id="cs_family_lookup"  
+                            name="cs_family_lookup"  
+                            ref="cs_family_lookup" 
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Genera:</label>
-                        <select class="form-select" v-model="filterCSFaunaGenus">
-                            <option value="all">All</option>
-                            <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
-                        <label for="genera_lookup">Genera:</label>
+                        <label for="cs_genera_lookup">Genera:</label>
                         <select 
-                            id="genera_lookup"  
-                            name="genera_lookup"  
-                            ref="genera_lookup" 
+                            id="cs_genera_lookup"  
+                            name="cs_genera_lookup"  
+                            ref="cs_genera_lookup" 
                             class="form-control" />
                     </div>
                 </div>
@@ -823,7 +796,7 @@ export default {
         },
         initialiseScientificNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.scientific_name_lookup).select2({
+                $(vm.$refs.cs_scientific_name_lookup).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -857,14 +830,14 @@ export default {
                     sessionStorage.setItem("filterCSFaunaScientificNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-scientific_name_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cs_scientific_name_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
         },
         initialiseCommonNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.common_name_lookup).select2({
+                $(vm.$refs.cs_common_name_lookup).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -894,14 +867,14 @@ export default {
                     sessionStorage.setItem("filterCSFaunaCommonNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-common_name_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cs_common_name_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
         },
         initialisePhyloGroupLookup: function(){
                 let vm = this;
-                $(vm.$refs.phylo_group_lookup).select2({
+                $(vm.$refs.cs_phylo_group_lookup).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -931,14 +904,14 @@ export default {
                     sessionStorage.setItem("filterCSFaunaPhylogeneticGroupText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-phylo_group_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cs_phylo_group_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
         },
         initialiseFamilyLookup: function(){
                 let vm = this;
-                $(vm.$refs.family_lookup).select2({
+                $(vm.$refs.cs_family_lookup).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -969,14 +942,14 @@ export default {
                 }).
                 on("select2:open",function (e) {
                     //const searchField = $(".select2-search__field")
-                    const searchField = $('[aria-controls="select2-family_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cs_family_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
         },
         initialiseGeneraLookup: function(){
                 let vm = this;
-                $(vm.$refs.genera_lookup).select2({
+                $(vm.$refs.cs_genera_lookup).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -1007,7 +980,7 @@ export default {
                 }).
                 on("select2:open",function (e) {
                     //const searchField = $(".select2-search__field")
-                    const searchField = $('[aria-controls="select2-genera_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cs_genera_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
@@ -1187,32 +1160,32 @@ export default {
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaScientificNameText"), vm.filterCSFaunaScientificName, false, true);
-                $('#scientific_name_lookup').append(newOption);
+                $('#cs_scientific_name_lookup').append(newOption);
                 //$('#scientific_name_lookup').append(newOption).trigger('change');
             }
             if(sessionStorage.getItem("filterCSFaunaCommonName")!='all' && sessionStorage.getItem("filterCSFaunaCommonName")!=null)
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaCommonNameText"), vm.filterCSFaunaCommonName, false, true);
-                $('#common_name_lookup').append(newOption);
+                $('#cs_common_name_lookup').append(newOption);
             }
             if(sessionStorage.getItem("filterCSFaunaPhylogeneticGroup")!='all' && sessionStorage.getItem("filterCSFaunaPhylogeneticGroup")!=null)
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaPhylogeneticGroupText"), vm.filterCSFaunaPhylogeneticGroup, false, true);
-                $('#phylo_group_lookup').append(newOption);
+                $('#cs_phylo_group_lookup').append(newOption);
             }
             if(sessionStorage.getItem("filterCSFaunaFamily")!='all' && sessionStorage.getItem("filterCSFaunaFamily")!=null)
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaFamilyText"), vm.filterCSFaunaFamily, false, true);
-                $('#family_lookup').append(newOption);
+                $('#cs_family_lookup').append(newOption);
             }
             if(sessionStorage.getItem("filterCSFaunaGenus")!='all' && sessionStorage.getItem("filterCSFaunaGenus")!=null)
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaGenusText"), vm.filterCSFaunaGenus, false, true);
-                $('#genera_lookup').append(newOption);
+                $('#cs_genera_lookup').append(newOption);
             }
         });
     }

@@ -4,35 +4,21 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Community ID:</label>
-                        <select class="form-select" v-model="filterCSCommunityMigratedId">
-                            <option value="all">All</option>
-                            <option v-for="community in communities_data_list" :value="community.id">
-                                {{community.community_migrated_id}}
-                            </option>
-                        </select> -->
-                        <label for="community_id_lookup">Community ID:</label>
+                        <label for="cs_community_id_lookup">Community ID:</label>
                         <select 
-                            id="community_id_lookup"  
-                            name="community_id_lookup"  
-                            ref="community_id_lookup" 
+                            id="cs_community_id_lookup"  
+                            name="cs_community_id_lookup"  
+                            ref="cs_community_id_lookup" 
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Community Name:</label>
-                        <select class="form-select" v-model="filterCSCommunityName">
-                            <option value="all">All</option>
-                            <option v-for="option in communities_data_list" :value="option.id">
-                                {{option.community_name}}
-                            </option>
-                        </select> -->
-                        <label for="community_name_lookup">Community Name:</label>
+                        <label for="cs_community_name_lookup">Community Name:</label>
                         <select 
-                            id="community_name_lookup"  
-                            name="community_name_lookup"  
-                            ref="community_name_lookup" 
+                            id="cs_community_name_lookup"  
+                            name="cs_community_name_lookup"  
+                            ref="cs_community_name_lookup" 
                             class="form-control" />
                     </div>
                 </div>
@@ -733,7 +719,7 @@ export default {
         },
         initialiseCommunityNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.community_name_lookup).select2({
+                $(vm.$refs.cs_community_name_lookup).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -762,14 +748,14 @@ export default {
                     sessionStorage.setItem("filterCSCommunityNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-community_name_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cs_community_name_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
         },
         initialiseCommunityIdLookup: function(){
                 let vm = this;
-                $(vm.$refs.community_id_lookup).select2({
+                $(vm.$refs.cs_community_id_lookup).select2({
                     minimumInputLength: 1,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -798,7 +784,7 @@ export default {
                     sessionStorage.setItem("filterCSCommunityMigratedIdText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-community_id_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cs_community_id_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
@@ -971,13 +957,13 @@ export default {
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSCommunityNameText"), vm.filterCSCommunityName, false, true);
-                $('#community_name_lookup').append(newOption);
+                $('#cs_community_name_lookup').append(newOption);
             }
             if(sessionStorage.getItem("filterCSCommunityMigratedId")!='all' && sessionStorage.getItem("filterCSCommunityMigratedId")!=null)
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSCommunityMigratedIdText"), vm.filterCSCommunityMigratedId, false, true);
-                $('#community_id_lookup').append(newOption);
+                $('#cs_community_id_lookup').append(newOption);
             }
         });
     }
