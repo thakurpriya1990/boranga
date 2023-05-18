@@ -96,7 +96,15 @@ module.exports = {
     group_types_dict:"/api/group_types_dict",
     community_filter_dict:"/api/community_filter_dict",
     region_district_filter_dict:"/api/region_district_filter_dict",
+    species_lookup:"/api/species_lookup",
+    communities_lookup:"/api/communities_lookup",
     scientific_name_lookup:"/api/scientific_name_lookup",
+    common_name_lookup:"/api/common_name_lookup",
+    family_lookup:"/api/family_lookup",
+    genera_lookup:"/api/genera_lookup",
+    phylo_group_lookup:"/api/phylo_group_lookup",
+    community_id_lookup:"/api/community_id_lookup",
+    community_name_lookup:"/api/community_name_lookup",
     groupwise_species_dict:"/api/groupwise_species_dict",
 
     //conservation Status profile page list of value dict

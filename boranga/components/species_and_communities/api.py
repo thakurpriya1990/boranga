@@ -134,17 +134,145 @@ class GetGroupTypeDict(views.APIView):
                 group_type_list.append({'id': group.id,'name':group.name, 'display':group.get_name_display()});
         return Response(group_type_list)
 
+# used for external conservation status dash
+class GetSpecies(views.APIView):
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        if search_term:
+            exculde_status = ['draft']
+            data = Species.objects.filter(~Q(processing_status__in=exculde_status))
+            data = data.filter(taxonomy__scientific_name__icontains=search_term).values('id', 'taxonomy__scientific_name')[:10]
+            data_transform = [{'id': taxon['id'], 'text': taxon['taxonomy__scientific_name']} for taxon in data]
+            return Response({"results": data_transform})
+        return Response()
+
+# used for external conservation status dash
+class GetCommunities(views.APIView):
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        if search_term:
+            exculde_status = ['draft']
+            data = Community.objects.filter(~Q(processing_status__in=exculde_status))
+            data = data.filter(taxonomy__community_name__icontains=search_term).values('id', 'taxonomy__community_name')[:10]
+            data_transform = [{'id': taxon['id'], 'text': taxon['taxonomy__community_name']} for taxon in data]
+            return Response({"results": data_transform})
+        return Response()
+
 
 class GetScientificName(views.APIView):
     def get(self, request, format=None):
-        #private_moorings = request.GET.get('private_moorings')
+        group_type_id = request.GET.get('group_type_id', '')
         search_term = request.GET.get('term', '')
+        cs_referral = request.GET.get('cs_referral', '')
         if search_term:
-            if search_term:
-                data = ScientificName.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
-            data_transform = [{'id': species['id'], 'text': species['name']} for species in data]
+            data_transform = []
+            if cs_referral != '':
+                #TODO may need to change the query for referral
+                data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+            else:
+                data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+            data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
             return Response({"results": data_transform})
         return Response()
+
+
+class GetCommonName(views.APIView):
+    def get(self, request, format=None):
+        group_type_id = request.GET.get('group_type_id', '')
+        search_term = request.GET.get('term', '')
+        cs_referral = request.GET.get('cs_referral', '')
+        if search_term:
+            if cs_referral != '':
+                #TODO may need to change the query for referral
+                data = TaxonVernacular.objects.filter(vernacular_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id).values('id', 'vernacular_name')[:10]
+            else:
+                data = TaxonVernacular.objects.filter(vernacular_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id).values('id', 'vernacular_name')[:10]
+            data_transform = [{'id': vern['id'], 'text': vern['vernacular_name']} for vern in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetFamily(views.APIView):
+    def get(self, request, format=None):
+        group_type_id = request.GET.get('group_type_id', '')
+        search_term = request.GET.get('term', '')
+        cs_referral = request.GET.get('cs_referral', '')
+        if search_term:
+            if cs_referral != '':
+                #TODO may need to change the query for referral
+                family_ids = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
+                data = Taxonomy.objects.filter(id__in=family_ids, scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+            else:
+                family_ids = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
+                data = Taxonomy.objects.filter(id__in=family_ids, scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+            data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetGenera(views.APIView):
+    def get(self, request, format=None):
+        #  group_type_id  retrive as may need to use later
+        group_type_id = request.GET.get('group_type_id', '')
+        search_term = request.GET.get('term', '')
+        cs_referral = request.GET.get('cs_referral', '')
+        if search_term:
+            if cs_referral != '':
+                #TODO may need to change the query for referral
+                data = Genus.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
+            else:
+                data = Genus.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
+            data_transform = [{'id': taxon['id'], 'text': taxon['name']} for taxon in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetPhyloGroup(views.APIView):
+    def get(self, request, format=None):
+        #  group_type_id  retrive as may need to use later
+        group_type_id = request.GET.get('group_type_id', '')
+        search_term = request.GET.get('term', '')
+        cs_referral = request.GET.get('cs_referral', '')
+        if search_term:
+            if cs_referral != '':
+                #TODO may need to change the query for referral
+                data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
+            else:
+                data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
+            data_transform = [{'id': group['id'], 'text': group['class_desc']} for group in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetCommunityId(views.APIView):
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        cs_referral = request.GET.get('cs_referral', '')
+        if search_term:
+            if cs_referral != '':
+                #TODO may need to change the query for referral
+                data = CommunityTaxonomy.objects.filter(community_migrated_id__icontains=search_term).values('id', 'community_migrated_id')[:10]
+            else:
+                data = CommunityTaxonomy.objects.filter(community_migrated_id__icontains=search_term).values('id', 'community_migrated_id')[:10]
+            data_transform = [{'id': community['id'], 'text': community['community_migrated_id']} for community in data]
+            return Response({"results": data_transform})
+        return Response()
+
+
+class GetCommunityName(views.APIView):
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        cs_referral = request.GET.get('cs_referral', '')
+        if search_term:
+            if cs_referral != '':
+                #TODO may need to change the query for referral
+                data = CommunityTaxonomy.objects.filter(community_name__icontains=search_term).values('id', 'community_name')[:10] 
+            else:
+                data = CommunityTaxonomy.objects.filter(community_name__icontains=search_term).values('id', 'community_name')[:10]
+            data_transform = [{'id': community['id'], 'text': community['community_name']} for community in data]
+            return Response({"results": data_transform})
+        return Response()
+
 
 # dict used on combine select species pop-up
 class GetSpeciesDict(views.APIView):
@@ -178,53 +306,53 @@ class GetSpeciesFilterDict(views.APIView):
         #                 'species_id': specimen.id,
         #                 'common_name':specimen.common_name,
         #                 });
-        scientific_name_list = []
-        if group_type:
-            names = Taxonomy.objects.all() # TODO will need to filter according to  group  selection
-            if names:
-                for name in names:
-                    scientific_name_list.append({
-                        'id': name.id,
-                        'name': name.scientific_name,
-                        });
-        common_name_list = []
-        if group_type:
-            names = TaxonVernacular.objects.all() # TODO will need to filter according to  group  selection
-            if names:
-                for name in names:
-                    common_name_list.append({
-                        'id': name.id,
-                        'name': name.vernacular_name,
-                        });
-        family_list = []
-        if group_type:
-            # TODO first do I need to filter the flora/fauna staxon and then get the family data
-            families_dict = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
-            families = Taxonomy.objects.filter(id__in=families_dict)
-            if families:
-                for family in families:
-                    family_list.append({
-                        'id': family.id,
-                        'name': family.scientific_name,
-                        });
-        phylogenetic_group_list = []
-        if group_type:
-            phylo_groups = ClassificationSystem.objects.all() # TODO will need to filter according to  group  selection
-            if phylo_groups:
-                for group in phylo_groups:
-                    phylogenetic_group_list.append({
-                        'id': group.id,
-                        'name': group.class_desc,
-                        });
-        genus_list = []
-        if group_type:
-            generas = Genus.objects.all() # TODO will need to filter according to  group  selection
-            if generas:
-                for genus in generas:
-                    genus_list.append({
-                        'id': genus.id,
-                        'name': genus.name,
-                        });
+        # scientific_name_list = []
+        # if group_type:
+        #     names = Taxonomy.objects.all() # TODO will need to filter according to  group  selection
+        #     if names:
+        #         for name in names:
+        #             scientific_name_list.append({
+        #                 'id': name.id,
+        #                 'name': name.scientific_name,
+        #                 });
+        # common_name_list = []
+        # if group_type:
+        #     names = TaxonVernacular.objects.all() # TODO will need to filter according to  group  selection
+        #     if names:
+        #         for name in names:
+        #             common_name_list.append({
+        #                 'id': name.id,
+        #                 'name': name.vernacular_name,
+        #                 });
+        # family_list = []
+        # if group_type:
+        #     # TODO first do I need to filter the flora/fauna staxon and then get the family data
+        #     families_dict = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
+        #     families = Taxonomy.objects.filter(id__in=families_dict)
+        #     if families:
+        #         for family in families:
+        #             family_list.append({
+        #                 'id': family.id,
+        #                 'name': family.scientific_name,
+        #                 });
+        # phylogenetic_group_list = []
+        # if group_type:
+        #     phylo_groups = ClassificationSystem.objects.all() # TODO will need to filter according to  group  selection
+        #     if phylo_groups:
+        #         for group in phylo_groups:
+        #             phylogenetic_group_list.append({
+        #                 'id': group.id,
+        #                 'name': group.class_desc,
+        #                 });
+        # genus_list = []
+        # if group_type:
+        #     generas = Genus.objects.all() # TODO will need to filter according to  group  selection
+        #     if generas:
+        #         for genus in generas:
+        #             genus_list.append({
+        #                 'id': genus.id,
+        #                 'name': genus.name,
+        #                 });
         conservation_list_dict = []
         conservation_lists = ConservationList.objects.filter(applies_to_species=True)
         if conservation_lists:
@@ -243,11 +371,11 @@ class GetSpeciesFilterDict(views.APIView):
                     'conservation_list_id': choice.conservation_list_id,
                     });
         res_json = {
-        "scientific_name_list": scientific_name_list,
-        "common_name_list": common_name_list,
-        "family_list": family_list,
-        "phylogenetic_group_list":phylogenetic_group_list,
-        "genus_list":genus_list,
+        # "scientific_name_list": scientific_name_list,
+        # "common_name_list": common_name_list,
+        # "family_list": family_list,
+        # "phylogenetic_group_list":phylogenetic_group_list,
+        # "genus_list":genus_list,
         "conservation_list_dict":conservation_list_dict,
         "conservation_category_list":conservation_category_list,
         }
@@ -257,18 +385,18 @@ class GetSpeciesFilterDict(views.APIView):
 class GetCommunityFilterDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
-        community_data_list = []
-        if group_type:
-            # communities = Community.objects.filter(group_type__name=group_type)
-            names = CommunityTaxonomy.objects.all()
-            if names:
-                for name in names:
-                    community_data_list.append({
-                        'id': name.id,
-                        'community_name': name.community_name,
-                        'community_migrated_id': name.community_migrated_id,
-                        'community_status':name.community_status
-                        });
+        # community_data_list = []
+        # if group_type:
+        #     # communities = Community.objects.filter(group_type__name=group_type)
+        #     names = CommunityTaxonomy.objects.all()
+        #     if names:
+        #         for name in names:
+        #             community_data_list.append({
+        #                 'id': name.id,
+        #                 'community_name': name.community_name,
+        #                 'community_migrated_id': name.community_migrated_id,
+        #                 'community_status':name.community_status
+        #                 });
         conservation_list_dict = []
         conservation_lists = ConservationList.objects.filter(applies_to_communities=True)
         if conservation_lists:
@@ -287,7 +415,7 @@ class GetCommunityFilterDict(views.APIView):
                     'conservation_list_id': choice.conservation_list_id,
                     });
         res_json = {
-        "community_data_list":community_data_list,
+        # "community_data_list":community_data_list,
         "conservation_list_dict":conservation_list_dict,
         "conservation_category_list":conservation_category_list,
         }
@@ -565,7 +693,7 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         # filter_scientific_name
         filter_scientific_name = request.GET.get('filter_scientific_name')
         if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-            queryset = queryset.filter(taxonomy__scientific_name=filter_scientific_name)
+            queryset = queryset.filter(taxonomy=filter_scientific_name)
 
         filter_common_name = request.GET.get('filter_common_name')
         if filter_common_name and not filter_common_name.lower() == 'all':
@@ -662,12 +790,12 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         #filter_community_migrated_id
         filter_community_migrated_id = request.GET.get('filter_community_migrated_id')
         if filter_community_migrated_id and not filter_community_migrated_id.lower() == 'all':
-            queryset = queryset.filter(taxonomy__community_migrated_id=filter_community_migrated_id)
+            queryset = queryset.filter(taxonomy=filter_community_migrated_id)
 
         # filter_community_name
         filter_community_name = request.GET.get('filter_community_name')
         if filter_community_name and not filter_community_name.lower() == 'all':
-            queryset = queryset.filter(taxonomy__community_name=filter_community_name)
+            queryset = queryset.filter(taxonomy=filter_community_name)
 
         # filter_community_status
         filter_community_status = request.GET.get('filter_community_status')

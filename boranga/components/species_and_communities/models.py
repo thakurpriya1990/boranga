@@ -21,6 +21,7 @@ from boranga.settings import (
     GROUP_NAME_ASSESSOR,
     GROUP_NAME_APPROVER,
     GROUP_NAME_EDITOR,
+    GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR,
 )
 
 
@@ -199,6 +200,7 @@ class Contact(models.Model):
         return '{}, {}'.format(self.last_name, self.first_name)
 
 
+# TODO Model not used anymore
 class NameAuthority(models.Model):
     """
 
@@ -214,7 +216,7 @@ class NameAuthority(models.Model):
     def __str__(self):
         return str(self.name)
 
-# Not used any more
+# TODO Not used any more
 class ScientificName(models.Model):
     """
     # list derived from WACensus
@@ -232,6 +234,7 @@ class ScientificName(models.Model):
         return str(self.name)
 
 
+# TODO Model not used anymore
 class Family(models.Model):
     """
     # list derived from WACensus
@@ -251,6 +254,7 @@ class Family(models.Model):
         return str(self.name)
 
 
+# TODO Model not used anymore
 class PhylogeneticGroup(models.Model):
     """
     # list derived from WACensus
@@ -327,12 +331,12 @@ class Taxonomy(models.Model):
     taxonomy_rank_fk = models.ForeignKey(TaxonomyRank, on_delete=models.SET_NULL, null=True, blank=True, related_name="taxons")
     family_nid = models.IntegerField(null=True, blank=True)
     family_fk = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name="taxon_family")
-    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True)
-    genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True) # TODO this field is not used
+    genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True) 
     # phylogenetic_group is only used for Fauna 
-    phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True)
+    phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True) # TODO this field is not used anymore
     name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
-    previous_name = models.CharField(max_length=512,null=True, blank=True)
+    previous_name = models.CharField(max_length=512,null=True, blank=True) # TODO this field is not used anymore
     # name_authority = models.ForeignKey(NameAuthority,
     #                                    on_delete=models.CASCADE,null=True,blank=True)
     name_authority = models.CharField(max_length=500,null=True, blank=True)
@@ -663,6 +667,22 @@ class Species(models.Model):
             else []
         )
         return users
+    @property
+    def allowed_species_processors(self):
+        group = None
+        #TODO We need specific species processing SystemGroup
+        group = self.get_species_processor_group()
+        users = (
+            list(
+                map(
+                    lambda id: retrieve_email_user(id),
+                    group.get_system_group_member_ids(),
+                )
+            )
+            if group
+            else []
+        )
+        return users
 
     def get_assessor_group(self):
         # TODO: Take application_type into account
@@ -671,6 +691,19 @@ class Species(models.Model):
     def get_approver_group(self):
         # TODO: Take application_type into account
         return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+    
+    def get_species_processor_group(self):
+        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
+    
+    @property
+    def species_processor_recipients(self):
+        logger.info("species_processor_recipients")
+        recipients = []
+        group_ids = self.get_species_processor_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
 
     @property
     def assessor_recipients(self):
@@ -692,13 +725,16 @@ class Species(models.Model):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
-    #Check if the user is member of assessor group for the CS Proposal
+    #Check if the user is member of assessor group 
     def is_assessor(self,user):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
 
     #Check if the user is member of assessor group for the CS Proposal
     def is_approver(self,user):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
+    
+    def is_species_processor(self,user):
+            return user.id in self.get_species_processor_group().get_system_group_member_ids()
 
     # def can_assess(self,user):
     #     logger.info("can assess")
@@ -731,7 +767,7 @@ class Species(models.Model):
             return False
         else:
             return (
-                user.id in self.get_assessor_group().get_system_group_member_ids()
+                user.id in self.get_species_processor_group().get_system_group_member_ids()
             )
 
     def get_related_items(self,filter_type, **kwargs):
@@ -937,6 +973,7 @@ class SpeciesDistribution(models.Model):
         return str(self.id)  # TODO: is the most appropriate?
 
 
+# TODO Model not used anymore
 class CommunityName(models.Model):
     """
     # list derived from TEC
@@ -1171,6 +1208,22 @@ class Community(models.Model):
         )
         return users
 
+    @property
+    def allowed_community_processors(self):
+        group = None
+        group = self.get_community_processor_group()
+        users = (
+            list(
+                map(
+                    lambda id: retrieve_email_user(id),
+                    group.get_system_group_member_ids(),
+                )
+            )
+            if group
+            else []
+        )
+        return users
+
     def get_assessor_group(self):
         # TODO: Take application_type into account
         return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
@@ -1182,6 +1235,10 @@ class Community(models.Model):
     # Group for editing the Approved CS(only specific fields)
     def get_editor_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
+
+    def get_community_processor_group(self):
+        # TODO: Take application_type into account
+        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
 
     @property
     def assessor_recipients(self):
@@ -1203,6 +1260,16 @@ class Community(models.Model):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
+    @property
+    def community_processor_recipients(self):
+        logger.info("acommunity_processor_recipients")
+        recipients = []
+        group_ids = self.get_community_processor_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
+
     #Check if the user is member of assessor group for the CS Proposal
     def is_assessor(self,user):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
@@ -1210,6 +1277,10 @@ class Community(models.Model):
     #Check if the user is member of assessor group for the CS Proposal
     def is_approver(self,user):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+    #Check if the user is member of processor group
+    def is_community_processor(self,user):
+            return user.id in self.get_community_processor_group().get_system_group_member_ids()
 
     # def can_assess(self,user):
     #     logger.info("can assess")
@@ -1245,7 +1316,7 @@ class Community(models.Model):
             return False
         else:
             return (
-                user.id in self.get_assessor_group().get_system_group_member_ids()
+                user.id in self.get_community_processor_group().get_system_group_member_ids()
             )
 
     @property
@@ -1431,6 +1502,7 @@ class CommitteeMeeting(models.Model):
         return str(self.date)
 
 
+# TODO Model not used at the moment
 class SpeciesAttributes(models.Model):
     """
     Do no know what this is but is required for SpeciesDocuments
@@ -1458,6 +1530,7 @@ class SpeciesAttributes(models.Model):
         return str(self.name_reference)  # TODO: is the most appropriate?
 
 
+# TODO Model not used at the moment
 class Source(models.Model):
     """
 
@@ -1770,6 +1843,7 @@ class ConservationThreat(models.Model):
             return self.community.id
 
 
+# TODO Model not used at the moment
 class ConservationPlan(models.Model):
     """
     Each occurrence of each species can have one or more plan to protect it.

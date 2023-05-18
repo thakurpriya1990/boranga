@@ -4,49 +4,79 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Scientific Name:</label>
+                        <!-- <label for="">Scientific Name:</label>
                         <select class="form-select" v-model="filterFloraScientificName">
                             <option value="all">All</option>
                             <option v-for="option in scientific_name_list" :value="option.name">{{option.name}}
                             </option>
-                        </select>
+                        </select> -->
+                        <label for="scientific_name_lookup">Scientific Name:</label>
+                        <select 
+                            id="scientific_name_lookup"  
+                            name="scientific_name_lookup"  
+                            ref="scientific_name_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Common Name:</label>
+                        <!-- <label for="">Common Name:</label>
                         <select class="form-select" v-model="filterFloraCommonName">
                             <option value="all">All</option>
                             <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
-                        </select>
+                        </select> -->
+                        <label for="common_name_lookup">Common Name:</label>
+                        <select 
+                            id="common_name_lookup"  
+                            name="common_name_lookup"  
+                            ref="common_name_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Phylo Group:</label>
+                        <!-- <label for="">Phylo Group:</label>
                         <select class="form-select" v-model="filterFloraPhylogeneticGroup">
                             <option value="all">All</option>
                             <option v-for="option in phylogenetic_group_list" :value="option.id">
                                 {{option.name}}</option>
-                        </select>
+                        </select> -->
+                        <label for="phylo_group_lookup">Phylo Group:</label>
+                        <select 
+                            id="phylo_group_lookup"  
+                            name="phylo_group_lookup"  
+                            ref="phylo_group_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Family:</label>
+                        <!-- <label for="">Family:</label>
                         <select class="form-select" v-model="filterFloraFamily">
                             <option value="all">All</option>
                             <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
-                        </select>
+                        </select> -->
+                        <label for="family_lookup">Family:</label>
+                        <select 
+                            id="family_lookup"  
+                            name="family_lookup"  
+                            ref="family_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Genera:</label>
+                        <!-- <label for="">Genera:</label>
                         <select class="form-select" v-model="filterFloraGenus">
                             <option value="all">All</option>
                             <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
-                        </select>
+                        </select> -->
+                        <label for="genera_lookup">Genera:</label>
+                        <select 
+                            id="genera_lookup"  
+                            name="genera_lookup"  
+                            ref="genera_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -73,7 +103,7 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterFloraApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            <option v-for="status in species_status" :value="status.value">{{ status.name }}</option>
                         </select>
                     </div>
                 </div>
@@ -272,16 +302,11 @@ export default {
             ],
             internal_status:[
                 {value: 'draft', name: 'Draft'},
-                {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'with_referral', name: 'With Referral'},
-                {value: 'with_approver', name: 'With Approver'},
-                {value: 'approved', name: 'Approved'},
-                {value: 'declined', name: 'Declined'},
-                {value: 'discarded', name: 'Discarded'},
-                {value: 'closed', name: 'Closed'},
+                {value: 'current', name: 'Current'},
+                {value: 'historical', name: 'Historical'},
             ],
             
-            proposal_status: [],
+            species_status: [],
         }
     },
     components:{
@@ -734,6 +759,197 @@ export default {
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
+        initialiseScientificNameLookup: function(){
+                let vm = this;
+                $(vm.$refs.scientific_name_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Scientific Name",
+                    ajax: {
+                        url: api_endpoints.scientific_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                            }
+                            return query;
+                        },
+                        // results: function (data, page) { // parse the results into the format expected by Select2.
+                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
+                        //     return {results: data};
+                        // },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterFloraScientificName = data;
+                    sessionStorage.setItem("filterFloraScientificNameText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterFloraScientificName = 'all';
+                    sessionStorage.setItem("filterFloraScientificNameText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-scientific_name_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseCommonNameLookup: function(){
+                let vm = this;
+                $(vm.$refs.common_name_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Common Name",
+                    ajax: {
+                        url: api_endpoints.common_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterFloraCommonName = data;
+                    sessionStorage.setItem("filterFloraCommonNameText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterFloraCommonName = 'all';
+                    sessionStorage.setItem("filterFloraCommonNameText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-common_name_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseFamilyLookup: function(){
+                let vm = this;
+                $(vm.$refs.family_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Family",
+                    ajax: {
+                        url: api_endpoints.family_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterFloraFamily = data;
+                    sessionStorage.setItem("filterFloraFamilyText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterFloraFamily = 'all';
+                    sessionStorage.setItem("filterFloraFamilyText",'');
+                }).
+                on("select2:open",function (e) {
+                    //const searchField = $(".select2-search__field")
+                    const searchField = $('[aria-controls="select2-family_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseGeneraLookup: function(){
+                let vm = this;
+                $(vm.$refs.genera_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Genera",
+                    ajax: {
+                        url: api_endpoints.genera_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterFloraGenus = data;
+                    sessionStorage.setItem("filterFloraGenusText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterFloraGenus = 'all';
+                    sessionStorage.setItem("filterFloraGenusText",'');
+                }).
+                on("select2:open",function (e) {
+                    //const searchField = $(".select2-search__field")
+                    const searchField = $('[aria-controls="select2-genera_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialisePhyloGroupLookup: function(){
+                let vm = this;
+                $(vm.$refs.phylo_group_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Phylo Group",
+                    ajax: {
+                        url: api_endpoints.phylo_group_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterFloraPhylogeneticGroup = data;
+                    sessionStorage.setItem("filterFloraPhylogeneticGroupText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterFloraPhylogeneticGroup = 'all';
+                    sessionStorage.setItem("filterFloraPhylogeneticGroupText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-phylo_group_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
         fetchFilterLists: function(){
             let vm = this;
             //large FilterList of Species Values object
@@ -747,9 +963,7 @@ export default {
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
-                vm.proposal_status = vm.internal_status;
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
-                //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
+                vm.species_status = vm.internal_status;
             },(error) => {
                 console.log(error);
             })
@@ -858,30 +1072,6 @@ export default {
                 
             })*/
         },
-
-        check_assessor: function(proposal){
-            let vm = this;
-            if (proposal.assigned_officer)
-                {
-                    { if(proposal.assigned_officer== vm.profile.full_name)
-                        return true;
-                    else
-                        return false;
-                }
-            }
-            else{
-                 var assessor = proposal.allowed_assessors.filter(function(elem){
-                    return(elem.id=vm.profile.id)
-                });
-                
-                if (assessor.length > 0)
-                    return true;
-                else
-                    return false;
-              
-            }
-            
-        },
     },
 
     mounted: function(){
@@ -895,8 +1085,45 @@ export default {
             }, 100 );
         });
         this.$nextTick(() => {
+            vm.initialiseScientificNameLookup();
+            vm.initialiseCommonNameLookup();
+            vm.initialisePhyloGroupLookup();
+            vm.initialiseFamilyLookup();
+            vm.initialiseGeneraLookup();
             vm.initialiseSearch();
             vm.addEventListeners();
+            // -- to set the select2 field with the session value if exists onload()
+            if(sessionStorage.getItem("filterFloraScientificName")!='all' && sessionStorage.getItem("filterFloraScientificName")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterFloraScientificNameText"), vm.filterFloraScientificName, false, true);
+                $('#scientific_name_lookup').append(newOption);
+                //$('#scientific_name_lookup').append(newOption).trigger('change');
+            }
+            if(sessionStorage.getItem("filterFloraCommonName")!='all' && sessionStorage.getItem("filterFloraCommonName")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterFloraCommonNameText"), vm.filterFloraCommonName, false, true);
+                $('#common_name_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterFloraPhylogeneticGroup")!='all' && sessionStorage.getItem("filterFloraPhylogeneticGroup")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterFloraPhylogeneticGroupText"), vm.filterFloraPhylogeneticGroup, false, true);
+                $('#phylo_group_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterFloraFamily")!='all' && sessionStorage.getItem("filterFloraFamily")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterFloraFamilyText"), vm.filterFloraFamily, false, true);
+                $('#family_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterFloraGenus")!='all' && sessionStorage.getItem("filterFloraGenus")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterFloraGenusText"), vm.filterFloraGenus, false, true);
+                $('#genera_lookup').append(newOption);
+            }
         });
     }
 }

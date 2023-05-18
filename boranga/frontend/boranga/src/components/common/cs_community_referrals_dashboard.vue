@@ -4,24 +4,36 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Community ID:</label>
+                        <!-- <label for="">Community ID:</label>
                         <select class="form-select" v-model="filterCSRefCommunityMigratedId">
                             <option value="all">All</option>
                             <option v-for="option in communities_data_list" :value="option.id">
                                 {{option.community_migrated_id}}
                             </option>
-                        </select>
+                        </select> -->
+                        <label for="cs_ref_community_id_lookup">Community ID:</label>
+                        <select 
+                            id="cs_ref_community_id_lookup"  
+                            name="cs_ref_community_id_lookup"  
+                            ref="cs_ref_community_id_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Community Name:</label>
+                        <!-- <label for="">Community Name:</label>
                         <select class="form-select" v-model="filterCSRefCommunityName">
                             <option value="all">All</option>
                             <option v-for="option in communities_data_list" :value="option.id">
                                 {{option.community_name}}
                             </option>
-                        </select>
+                        </select> -->
+                        <label for="cs_ref_community_name_lookup">Community Name:</label>
+                        <select 
+                            id="cs_ref_community_name_lookup"  
+                            name="cs_ref_community_name_lookup"  
+                            ref="cs_ref_community_name_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -559,7 +571,80 @@ export default {
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
-
+        initialiseCommunityNameLookup: function(){
+                let vm = this;
+                $(vm.$refs.cs_ref_community_name_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Community Name",
+                    ajax: {
+                        url: api_endpoints.community_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                cs_referral: true,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCSRefCommunityName = data;
+                    sessionStorage.setItem("filterCSRefCommunityNameText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCSRefCommunityName = 'all';
+                    sessionStorage.setItem("filterCSRefCommunityNameText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-cs_ref_community_name_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseCommunityIdLookup: function(){
+                let vm = this;
+                $(vm.$refs.cs_ref_community_id_lookup).select2({
+                    minimumInputLength: 1,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Community ID",
+                    ajax: {
+                        url: api_endpoints.community_id_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                cs_referral: true,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCSRefCommunityMigratedId = data;
+                    sessionStorage.setItem("filterCSRefCommunityMigratedIdText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCSRefCommunityMigratedId = 'all';
+                    sessionStorage.setItem("filterCSRefCommunityMigratedIdText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-cs_ref_community_id_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
         fetchFilterLists: function(){
             let vm = this;
 
@@ -626,8 +711,23 @@ export default {
             }, 100 );
         });
         this.$nextTick(() => {
+            vm.initialiseCommunityNameLookup();
+            vm.initialiseCommunityIdLookup();
             vm.initialiseSearch();
             vm.addEventListeners();
+            // -- to set the select2 field with the session value if exists onload()
+            if(sessionStorage.getItem("filterCSRefCommunityName")!='all' && sessionStorage.getItem("filterCSRefCommunityName")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSRefCommunityNameText"), vm.filterCSRefCommunityName, false, true);
+                $('#cs_ref_community_name_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterCSRefCommunityMigratedId")!='all' && sessionStorage.getItem("filterCSRefCommunityMigratedId")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSRefCommunityMigratedIdText"), vm.filterCSRefCommunityMigratedId, false, true);
+                $('#cs_ref_community_id_lookup').append(newOption);
+            }
         });
     }
 }

@@ -4,7 +4,7 @@ from ledger_api_client.managed_models import SystemGroup
 from django.conf import settings
 from django.core.cache import cache
 
-from boranga.settings import GROUP_NAME_ASSESSOR, GROUP_NAME_APPROVER
+from boranga.settings import GROUP_NAME_ASSESSOR, GROUP_NAME_APPROVER, GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR
 
 import logging
 logger = logging.getLogger(__name__)
@@ -52,6 +52,18 @@ def is_approver(user_id):
         user_id = user_id.id
     assessor_group = SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
     return True if user_id in assessor_group.get_system_group_member_ids() else False
+
+def is_species_processor(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    species_group = SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
+    return True if user_id in species_group.get_system_group_member_ids() else False
+
+def is_community_processor(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    community_group = SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
+    return True if user_id in community_group.get_system_group_member_ids() else False
 
 def in_dbca_domain(request):
     user = request.user

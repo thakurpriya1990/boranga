@@ -24,6 +24,7 @@ GROUP_NAME_ASSESSOR = 'ProposalAssessorGroup'
 GROUP_NAME_APPROVER = 'ProposalApproverGroup'
 GROUP_NAME_EDITOR = 'ConservationStatusEditorGroup'
 GROUP_NAME_REFERRAL = 'ProposalReferralGroup'
+GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR = 'SpeciesCommunitiesProcessorGroup'
 
 
 if env('CONSOLE_EMAIL_BACKEND', False):
