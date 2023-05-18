@@ -93,24 +93,6 @@ logger = logging.getLogger(__name__)
 # used for external CS Dash filter
 class GetConservationListDict(views.APIView):
     def get(self, request, format=None):
-        species_list = []
-        species = Species.objects.all()
-        species = species.filter(~Q(taxonomy=None)) # TODO remove later as every species will have scientific name
-        if species:
-            for specimen in species:
-                species_list.append({
-                    'id': specimen.id,
-                    'name':specimen.taxonomy.scientific_name,
-                    });
-        community_list = []
-        communities = Community.objects.all()
-        communities = communities.filter(~Q(taxonomy=None)) # TODO remove later as every community will have community name
-        if communities:
-            for specimen in communities:
-                community_list.append({
-                    'id': specimen.id,
-                    'name':specimen.taxonomy.community_name,
-                    });
         conservation_list = []
         lists = ConservationList.objects.filter(applies_to_wa=True)
         if lists:
@@ -129,8 +111,6 @@ class GetConservationListDict(views.APIView):
                     'conservation_list_id': choice.conservation_list_id,
                     });
         res_json = {
-        "species_list":species_list,
-        "community_list":community_list,
         "conservation_list":conservation_list,
         "conservation_category_list":conservation_category_list,
         }

@@ -103,7 +103,7 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterFloraApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            <option v-for="status in species_status" :value="status.value">{{ status.name }}</option>
                         </select>
                     </div>
                 </div>
@@ -302,16 +302,11 @@ export default {
             ],
             internal_status:[
                 {value: 'draft', name: 'Draft'},
-                {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'with_referral', name: 'With Referral'},
-                {value: 'with_approver', name: 'With Approver'},
-                {value: 'approved', name: 'Approved'},
-                {value: 'declined', name: 'Declined'},
-                {value: 'discarded', name: 'Discarded'},
-                {value: 'closed', name: 'Closed'},
+                {value: 'current', name: 'Current'},
+                {value: 'historical', name: 'Historical'},
             ],
             
-            proposal_status: [],
+            species_status: [],
         }
     },
     components:{
@@ -968,9 +963,7 @@ export default {
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
-                vm.proposal_status = vm.internal_status;
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
-                //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
+                vm.species_status = vm.internal_status;
             },(error) => {
                 console.log(error);
             })

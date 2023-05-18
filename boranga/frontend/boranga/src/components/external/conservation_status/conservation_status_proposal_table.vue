@@ -14,22 +14,22 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Scientific Name:</label>
-                        <select class="form-select" v-model="filterCSScientificName">
-                            <option value="all">All</option>
-                            <option v-for="option in scientific_name_list" :value="option.id">{{option.name}}
-                            </option>
-                        </select>
+                        <label for="cs_scientific_name_lookup">Scientific Name:</label>
+                        <select 
+                            id="cs_scientific_name_lookup"  
+                            name="cs_scientific_name_lookup"  
+                            ref="cs_scientific_name_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Community Name:</label>
-                        <select class="form-select" v-model="filterCSCommunityName">
-                            <option value="all">All</option>
-                            <option v-for="option in community_name_list" :value="option.id">{{option.name}}
-                            </option>
-                        </select>
+                        <label for="cs_community_name_lookup">Community Name:</label>
+                        <select 
+                            id="cs_community_name_lookup"  
+                            name="cs_community_name_lookup"  
+                            ref="cs_community_name_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -136,10 +136,10 @@ export default {
             required: false,
             default: 'filterCSScientificName',
         },
-        filterCSCommunityName_cache: {
+        filterCSExCommunityName_cache: {
             type: String,
             required: false,
-            default: 'filterCSCommunityName',
+            default: 'filterCSExCommunityName',
         },
         filterCSConservationList_cache: {
             type: String,
@@ -175,8 +175,8 @@ export default {
             filterCSScientificName: sessionStorage.getItem(this.filterCSScientificName_cache) ? 
                                    sessionStorage.getItem(this.filterCSScientificName_cache) : 'all',
 
-            filterCSCommunityName: sessionStorage.getItem(this.filterCSCommunityName_cache) ? 
-                                   sessionStorage.getItem(this.filterCSCommunityName_cache) : 'all',
+            filterCSExCommunityName: sessionStorage.getItem(this.filterCSExCommunityName_cache) ? 
+                                   sessionStorage.getItem(this.filterCSExCommunityName_cache) : 'all',
 
             filterCSConservationList: sessionStorage.getItem(this.filterCSConservationList_cache) ? 
                                     sessionStorage.getItem(this.filterCSConservationList_cache) : 'all',
@@ -190,8 +190,6 @@ export default {
             //Filter list for scientific name and common name
             group_types: [],
             filterListsSpecies: {},
-            scientific_name_list: [],
-            community_name_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
             filtered_conservation_category_list: [],
@@ -223,10 +221,10 @@ export default {
             vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSScientificName_cache, vm.filterCSScientificName);  
         },
-        filterCSCommunityName: function(){
+        filterCSExCommunityName: function(){
             let vm = this;
             vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityName_cache, vm.filterCSCommunityName);  
+            sessionStorage.setItem(vm.filterCSExCommunityName_cache, vm.filterCSExCommunityName);  
         },
         filterCSScientificName: function(){
             let vm = this;
@@ -259,7 +257,7 @@ export default {
         filterApplied: function(){
             if(this.filterCSGroupType === 'all' && 
                 this.filterCSScientificName === 'all' && 
-                this.filterCSCommunityName === 'all' &&
+                this.filterCSExCommunityName === 'all' &&
                 this.filterCSConservationList === 'all' && 
                 this.filterCSConservationCategory === 'all' && 
                 this.filterCSApplicationStatus === 'all'){ 
@@ -461,7 +459,7 @@ export default {
                     "data": function ( d ) {
                         d.filter_group_type = vm.filterCSGroupType;
                         d.filter_scientific_name = vm.filterCSScientificName;
-                        d.filter_community_name = vm.filterCSCommunityName;
+                        d.filter_community_name = vm.filterCSExCommunityName;
                         d.filter_conservation_list = vm.filterCSConservationList;
                         d.filter_conservation_category = vm.filterCSConservationCategory;
                         d.filter_application_status = vm.filterCSApplicationStatus
@@ -489,13 +487,13 @@ export default {
         },
         initialiseScientificNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.scientific_name_lookup).select2({
+                $(vm.$refs.cs_scientific_name_lookup).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Scientific Name",
                     ajax: {
-                        url: api_endpoints.scientific_name_lookup,
+                        url: api_endpoints.species_lookup,
                         dataType: 'json',
                         data: function(params) {
                             var query = {
@@ -510,14 +508,51 @@ export default {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSScientificName = data;
+                    sessionStorage.setItem("filterCSScientificNameText", e.params.data.text);
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.filterCSScientificName = null;
+                    vm.filterCSScientificName = 'all';
+                    sessionStorage.setItem("filterCSScientificNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    //const searchField = $(".select2-search__field")
-                    const searchField = $('[aria-controls="select2-scientific_name_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cs_scientific_name_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseCommunityNameLookup: function(){
+                let vm = this;
+                $(vm.$refs.cs_community_name_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Community Name",
+                    ajax: {
+                        url: api_endpoints.communities_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCSExCommunityName = data;
+                    sessionStorage.setItem("filterCSExCommunityNameText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCSExCommunityName = 'all';
+                    sessionStorage.setItem("filterCSExCommunityNameText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-cs_community_name_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
@@ -527,8 +562,6 @@ export default {
             //large FilterList
             vm.$http.get(api_endpoints.conservation_list_dict).then((response) => {
                 vm.filterListsCS = response.body;
-                vm.scientific_name_list = vm.filterListsCS.species_list;
-                vm.community_name_list = vm.filterListsCS.community_list;
                 vm.conservation_list_dict = vm.filterListsCS.conservation_list;
                 vm.conservation_category_list = vm.filterListsCS.conservation_category_list;
                 vm.filterConservationCategory();
@@ -677,8 +710,22 @@ export default {
         });
         this.$nextTick(() => {
             vm.initialiseScientificNameLookup();
+            vm.initialiseCommunityNameLookup();
             vm.addEventListeners();
             vm.initialiseSearch();
+            // -- to set the select2 field with the session value if exists onload()
+            if(sessionStorage.getItem("filterCSScientificName")!='all' && sessionStorage.getItem("filterCSScientificName")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSScientificNameText"), vm.filterCSScientificName, false, true);
+                $('#cs_scientific_name_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterCSExCommunityName")!='all' && sessionStorage.getItem("filterCSExCommunityName")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSExCommunityNameText"), vm.filterCSExCommunityName, false, true);
+                $('#cs_community_name_lookup').append(newOption);
+            }
         });
     }
 }

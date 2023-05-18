@@ -4,56 +4,79 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Scientific Name:</label>
+                        <!-- <label for="">Scientific Name:</label>
                         <select class="form-select" v-model="filterCSRefFaunaScientificName">
                             <option value="all">All</option>
                             <option v-for="option in scientific_name_list" :value="option.id">{{option.name}}
                             </option>
-                        </select>
-                        <!-- <label for="scientific_name_lookup">Scientific Name:</label>
+                        </select> -->
+                        <label for="cs_ref_scientific_name_lookup">Scientific Name:</label>
                         <select 
-                            id="scientific_name_lookup"  
-                            name="scientific_name_lookup"  
-                            ref="scientific_name_lookup" 
-                            class="form-control" /> -->
-                            <!-- v-model="filterCSRefFaunaScientificName" /> -->
+                            id="cs_ref_scientific_name_lookup"  
+                            name="cs_ref_scientific_name_lookup"  
+                            ref="cs_ref_scientific_name_lookup" 
+                            class="form-control" /> 
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Common Name:</label>
+                        <!-- <label for="">Common Name:</label>
                         <select class="form-select" v-model="filterCSRefFaunaCommonName">
                             <option value="all">All</option>
                             <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
-                        </select>
+                        </select> -->
+                        <label for="cs_ref_common_name_lookup">Common Name:</label>
+                        <select 
+                            id="cs_ref_common_name_lookup"  
+                            name="cs_ref_common_name_lookup"  
+                            ref="cs_ref_common_name_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Phylo Group:</label>
+                        <!-- <label for="">Phylo Group:</label>
                         <select class="form-select" v-model="filterCSRefFaunaPhylogeneticGroup">
                             <option value="all">All</option>
                             <option v-for="option in phylogenetic_group_list" :value="option.id">
                                 {{option.name}}</option>
-                        </select>
+                        </select> -->
+                        <label for="cs_ref_phylo_group_lookup">Phylo Group:</label>
+                        <select 
+                            id="cs_ref_phylo_group_lookup"  
+                            name="cs_ref_phylo_group_lookup"  
+                            ref="cs_ref_phylo_group_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Family:</label>
+                        <!-- <label for="">Family:</label>
                         <select class="form-select" v-model="filterCSRefFaunaFamily">
                             <option value="all">All</option>
                             <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
-                        </select>
+                        </select> -->
+                        <label for="cs_ref_family_lookup">Family:</label>
+                        <select 
+                            id="cs_ref_family_lookup"  
+                            name="cs_ref_family_lookup"  
+                            ref="cs_ref_family_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Genera:</label>
+                        <!-- <label for="">Genera:</label>
                         <select class="form-select" v-model="filterCSRefFaunaGenus">
                             <option value="all">All</option>
                             <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
-                        </select>
+                        </select> -->
+                        <label for="cs_ref_genera_lookup">Genera:</label>
+                        <select 
+                            id="cs_ref_genera_lookup"  
+                            name="cs_ref_genera_lookup"  
+                            ref="cs_ref_genera_lookup" 
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -610,7 +633,7 @@ export default {
         },
         initialiseScientificNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.scientific_name_lookup).select2({
+                $(vm.$refs.cs_ref_scientific_name_lookup).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -622,6 +645,8 @@ export default {
                             var query = {
                                 term: params.term,
                                 type: 'public',
+                                group_type_id: vm.group_type_id,
+                                cs_referral: true,
                             }
                             return query;
                         },
@@ -631,14 +656,169 @@ export default {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefFaunaScientificName = data;
+                    sessionStorage.setItem("filterCSRefFaunaScientificNameText", e.params.data.text);
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.filterCSRefFaunaScientificName = null;
+                    vm.filterCSRefFaunaScientificName = 'all';
+                    sessionStorage.setItem("filterCSRefFaunaScientificNameText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-cs_ref_scientific_name_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseCommonNameLookup: function(){
+                let vm = this;
+                $(vm.$refs.cs_ref_common_name_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Common Name",
+                    ajax: {
+                        url: api_endpoints.common_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                                cs_referral: true,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCSRefFaunaCommonName = data;
+                    sessionStorage.setItem("filterCSRefFaunaCommonNameText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCSRefFaunaCommonName = 'all';
+                    sessionStorage.setItem("filterCSRefFaunaCommonNameText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-cs_ref_common_name_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialisePhyloGroupLookup: function(){
+                let vm = this;
+                $(vm.$refs.cs_ref_phylo_group_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Phylo Group",
+                    ajax: {
+                        url: api_endpoints.phylo_group_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                                cs_referral: true,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCSRefFaunaPhylogeneticGroup = data;
+                    sessionStorage.setItem("filterCSRefFaunaPhylogeneticGroupText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCSRefFaunaPhylogeneticGroup = 'all';
+                    sessionStorage.setItem("filterCSRefFaunaPhylogeneticGroupText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-cs_ref_phylo_group_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseFamilyLookup: function(){
+                let vm = this;
+                $(vm.$refs.cs_ref_family_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Family",
+                    ajax: {
+                        url: api_endpoints.family_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                                cs_referral: true,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCSRefFaunaFamily = data;
+                    sessionStorage.setItem("filterCSRefFaunaFamilyText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCSRefFaunaFamily = 'all';
+                    sessionStorage.setItem("filterCSRefFaunaFamilyText",'');
                 }).
                 on("select2:open",function (e) {
                     //const searchField = $(".select2-search__field")
-                    const searchField = $('[aria-controls="select2-scientific_name_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cs_ref_family_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseGeneraLookup: function(){
+                let vm = this;
+                $(vm.$refs.cs_ref_genera_lookup).select2({
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Genera",
+                    ajax: {
+                        url: api_endpoints.genera_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                                cs_referral: true,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCSRefFaunaGenus = data;
+                    sessionStorage.setItem("filterCSRefFaunaGenusText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCSRefFaunaGenus = 'all';
+                    sessionStorage.setItem("filterCSRefFaunaGenusText",'');
+                }).
+                on("select2:open",function (e) {
+                    //const searchField = $(".select2-search__field")
+                    const searchField = $('[aria-controls="select2-cs_ref_genera_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
@@ -712,8 +892,44 @@ export default {
         });
         this.$nextTick(() => {
             vm.initialiseScientificNameLookup();
+            vm.initialiseCommonNameLookup();
+            vm.initialisePhyloGroupLookup();
+            vm.initialiseFamilyLookup();
+            vm.initialiseGeneraLookup();
             vm.initialiseSearch();
             vm.addEventListeners();
+
+            // -- to set the select2 field with the session value if exists onload()
+            if(sessionStorage.getItem("filterCSRefFaunaScientificName")!='all' && sessionStorage.getItem("filterCSRefFaunaScientificName")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaScientificNameText"), vm.filterCSRefFaunaScientificName, false, true);
+                $('#cs_ref_scientific_name_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterCSRefFaunaCommonName")!='all' && sessionStorage.getItem("filterCSRefFaunaCommonName")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaCommonNameText"), vm.filterCSRefFaunaCommonName, false, true);
+                $('#cs_ref_common_name_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterCSRefFaunaPhylogeneticGroup")!='all' && sessionStorage.getItem("filterCSRefFaunaPhylogeneticGroup")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaPhylogeneticGroupText"), vm.filterCSRefFaunaPhylogeneticGroup, false, true);
+                $('#cs_ref_phylo_group_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterCSRefFaunaFamily")!='all' && sessionStorage.getItem("filterCSRefFaunaFamily")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaFamilyText"), vm.filterCSRefFaunaFamily, false, true);
+                $('#cs_ref_family_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterCSRefFaunaGenus")!='all' && sessionStorage.getItem("filterCSRefFaunaGenus")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaGenusText"), vm.filterCSRefFaunaGenus, false, true);
+                $('#cs_ref_genera_lookup').append(newOption);
+            }
         });
     }
 }
