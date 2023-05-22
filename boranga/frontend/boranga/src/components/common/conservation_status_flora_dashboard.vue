@@ -404,11 +404,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
+                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
             if (this.is_internal){
-                return ['Number','Species','Scientific Name', 'Common Name','Conservation List', 
-                    'Conservation Category', 'Region', 'District','Effective From Date', 'Effective To Date', 'Status', 'Action']
+                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
+                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -474,7 +474,7 @@ export default {
                 name: "species__taxonomy__vernaculars__vernacular_name",
             }
         },
-        /*column_family: function(){
+        column_family: function(){
             return {
                 data: "family",
                 orderable: true,
@@ -501,7 +501,7 @@ export default {
                 //'createdCell': helpers.dtPopoverCellFn,
                 name: "species__taxonomy__genus__name",
             }
-        },*/
+        },
         column_conservation_list: function(){
             return {
                 data: "conservation_list",
@@ -660,14 +660,14 @@ export default {
                     vm.column_species_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
-                    /*vm.column_family,
-                    vm.column_genera,*/
                     vm.column_conservation_list,
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
+                    vm.column_family,
+                    vm.column_genera,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -679,15 +679,15 @@ export default {
                     vm.column_number,
                     vm.column_species_number,
                     vm.column_scientific_name,
-                    vm.column_common_name,
-                    /*vm.column_family,
-                    vm.column_genera,*/
+                    vm.column_common_name, 
                     vm.column_conservation_list,
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
+                    vm.column_family,
+                    vm.column_genera,
                     vm.column_status,
                     vm.column_action,
                 ]

@@ -251,7 +251,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Ecological Community Ecological and Biological Information:
+                <label for="" class="col-sm-3 control-label">Ecological Community and Biological Information:
                 </label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" 

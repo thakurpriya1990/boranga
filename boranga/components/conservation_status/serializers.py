@@ -266,8 +266,8 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_family(self,obj):
         if obj.species:
-            if obj.species.taxonomy.family:
-                return obj.species.taxonomy.family.name
+            if obj.species.taxonomy.family_fk:
+                return obj.species.taxonomy.family_fk.scientific_name
         return ''
 
     def get_genus(self,obj):
