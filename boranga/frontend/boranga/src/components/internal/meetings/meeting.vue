@@ -13,12 +13,12 @@
                 :disable_add_entry="false"
             />
 
-            <!-- <Submission v-if="canSeeSubmission"
+            <Submission v-if="canSeeSubmission"
                 :submitter_first_name="submitter_first_name"
                 :submitter_last_name="submitter_last_name"
                 :lodgement_date="meeting_obj.lodgement_date"
                 class="mt-2"
-            /> -->
+            />
             
             <div class="top-buffer-s">
                 <div class="card card-default">
@@ -210,39 +210,39 @@ export default {
         class_ncols: function(){
             return this.comparing ? 'col-md-12' : 'col-md-8';
         },
-        // submitter_first_name: function(){
-        //     if (this.meeting_obj.submitter){
-        //         return this.meeting_obj.submitter.first_name
-        //     } else {
-        //         return ''
-        //     }
-        // },
-        // submitter_last_name: function(){
-        //     if (this.meeting_obj.submitter){
-        //         return this.meeting_obj.submitter.last_name
-        //     } else {
-        //         return ''
-        //     }
-        // },
-        // submitter_id: function(){
-        //     if (this.meeting_obj.submitter){
-        //         return this.meeting_obj.submitter.id
-        //     } else {
-        //         //eturn this.meeting_obj.applicant_obj.id
-        //     }
-        // },
-        // submitter_email: function(){
-        //     if (this.meeting_obj.submitter){
-        //         return this.meeting_obj.submitter.email
-        //     } else {
-        //         //return this.meeting_obj.applicant_obj.email
-        //     }
-        // },
-        // canSeeSubmission: function(){
-        //     /*return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)*/
-
-        //     return true; // TODO the Processing Status based value
-        // },
+        submitter_first_name: function(){
+            if (this.meeting_obj.submitter){
+                return this.meeting_obj.submitter.first_name
+            } else {
+                return ''
+            }
+        },
+        submitter_last_name: function(){
+            if (this.meeting_obj.submitter){
+                return this.meeting_obj.submitter.last_name
+            } else {
+                return ''
+            }
+        },
+        submitter_id: function(){
+            if (this.meeting_obj.submitter){
+                return this.meeting_obj.submitter.id
+            } else {
+                //eturn this.meeting_obj.applicant_obj.id
+            }
+        },
+        submitter_email: function(){
+            if (this.meeting_obj.submitter){
+                return this.meeting_obj.submitter.email
+            } else {
+                //return this.meeting_obj.applicant_obj.email
+            }
+        },
+        canSeeSubmission: function(){
+            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
+            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
+            return true
+        },
         canEditStatus: function(){
             return this.meeting_obj ? this.meeting_obj.can_user_edit: 'false';
         },

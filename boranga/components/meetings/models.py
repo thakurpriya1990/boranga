@@ -88,6 +88,8 @@ class Meeting(models.Model):
     title = models.CharField(max_length=128, blank=True, null=True)
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
+    lodgement_date = models.DateTimeField(blank=True, null=True)
+    submitter = models.IntegerField(null=True) #EmailUserRO
                                 
     class Meta:
         app_label = 'boranga'

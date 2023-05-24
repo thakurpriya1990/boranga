@@ -56,6 +56,7 @@ class CreateMeetingSerializer(serializers.ModelSerializer):
 
 class MeetingSerializer(serializers.ModelSerializer):
     #processing_status = serializers.SerializerMethodField(read_only=True)
+    submitter = serializers.SerializerMethodField(read_only=True)
     start_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     end_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
@@ -71,10 +72,19 @@ class MeetingSerializer(serializers.ModelSerializer):
                 'meeting_type',
                 'processing_status',
                 'can_user_edit',
+                'lodgement_date',
+                'submitter',
             )
-        
+    
     def get_processing_status(self,obj):
         return obj.get_processing_status_display()
+    
+    def get_submitter(self, obj):
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return EmailUserSerializer(email_user).data
+        else:
+            return None
     
 class EditMeetingSerializer(serializers.ModelSerializer):
 
