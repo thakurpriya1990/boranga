@@ -139,6 +139,9 @@ module.exports = {
     discard_species_proposal:function (id) {
       return `/api/species/${id}.json`;
     },
+    discard_meeting:function (id) {
+      return `/api/meeting/${id}.json`;
+    },
     discard_vessel:function (id) {
       return `/api/vessels/${id}.json`;
     },

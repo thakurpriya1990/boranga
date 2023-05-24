@@ -1,6 +1,7 @@
 import traceback
 import pytz
 import json
+from django.utils import timezone
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -31,8 +32,11 @@ from boranga.components.meetings.models import(
 
 from boranga.components.meetings.serializers import(
     ListMeetingSerializer,
+    CreateMeetingSerializer,
     MeetingSerializer,
     EditMeetingSerializer,
+    MeetingLogEntrySerializer,
+    MeetingUserActionSerializer,
 )
 
 
@@ -50,12 +54,18 @@ class MeetingFilterBackend(DatatablesFilterBackend):
 
         filter_start_date = request.GET.get('filter_start_date')
         filter_end_date = request.GET.get('filter_end_date')
+        # import ipdb; ipdb.set_trace()
         if queryset.model is Meeting:
             if filter_start_date:
-                queryset = queryset.filter(start_date=filter_start_date)
+                queryset = queryset.filter(start_date__gte=filter_start_date)
 
             if filter_end_date:
-                queryset = queryset.filter(end_date=filter_end_date)
+                queryset = queryset.filter(end_date__lte=filter_end_date)
+
+        filter_meeting_status = request.GET.get('filter_meeting_status')
+        if filter_meeting_status and not filter_meeting_status.lower() == 'all':
+            if queryset.model is Meeting:
+                queryset = queryset.filter(processing_status=filter_meeting_status)
         
         getter = request.query_params.get
         fields = self.get_fields(getter)
@@ -105,7 +115,7 @@ class MeetingViewSet(viewsets.ModelViewSet):
             data = {
                 'meeting_type': meeting_type,                
             }
-            serializer = self.get_serializer(data= request.data)
+            serializer = CreateMeetingSerializer(data= request.data)
             #serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception = True)
             instance = serializer.save()
@@ -164,6 +174,73 @@ class MeetingViewSet(viewsets.ModelViewSet):
             else:
                 if hasattr(e,'message'):
                     raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['GET',], detail=True)
+    def comms_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.comms_logs.all()
+            serializer = MeetingLogEntrySerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def add_comms_log(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                mutable=request.data._mutable
+                request.data._mutable=True
+                request.data['meeting'] = u'{}'.format(instance.id)
+                request.data['staff'] = u'{}'.format(request.user.id)
+                request.data._mutable=mutable
+                serializer = MeetingLogEntrySerializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                comms = serializer.save()
+                # Save the files
+                for f in request.FILES:
+                    document = comms.documents.create()
+                    document.name = str(request.FILES[f])
+                    document._file = request.FILES[f]
+                    document.save()
+                # End Save Documents
+
+                return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def action_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.action_logs.all()
+            serializer = MeetingUserActionSerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

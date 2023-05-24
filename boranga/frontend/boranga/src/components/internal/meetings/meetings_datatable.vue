@@ -5,13 +5,22 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Start Date:</label>
-                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="start_date" v-model="filterStartDate">
+                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="start_date" v-model="filterMeetingStartDate">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">End Date:</label>
-                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="end_date" v-model="filterEndDate">
+                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="end_date" v-model="filterMeetingEndDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Status:</label>
+                        <select class="form-select" v-model="filterMeetingStatus">
+                            <option value="all">All</option>
+                            <option v-for="status in meeting_status" :value="status.value">{{ status.name }}</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -52,15 +61,20 @@ export default {
             type: String,
             required: true
         },
-        filterStartDate_cache: {
+        filterMeetingStartDate_cache: {
             type: String,
             required: false,
-            default: 'filterStartDate',
+            default: 'filterMeetingStartDate',
         },
-        filterEndDate_cache: {
+        filterMeetingEndDate_cache: {
             type: String,
             required: false,
-            default: 'filterEndDate',
+            default: 'filterMeetingEndDate',
+        },
+        filterMeetingStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterMeetingStatus',
         },
     },
     data: function() {
@@ -68,13 +82,19 @@ export default {
         return {
 
             datatable_id: 'meetings-datatable-'+vm._uid,
-            dateFormat: 'DD/MM/YYYY',
-            timeFormat: 'h:mm:ss a',
-            filterStartDate: sessionStorage.getItem(this.filterStartDate_cache) ?
-            sessionStorage.getItem(this.filterStartDate_cache) : '',
+            
+            filterMeetingStartDate: sessionStorage.getItem(this.filterMeetingStartDate_cache) ?sessionStorage.getItem(this.filterMeetingStartDate_cache) : '',
 
-            filterEndDate: sessionStorage.getItem(this.filterEndDate_cache) ?
-            sessionStorage.getItem(this.filterEndDate_cache) : '',
+            filterMeetingEndDate: sessionStorage.getItem(this.filterMeetingEndDate_cache) ?sessionStorage.getItem(this.filterMeetingEndDate_cache) : '',
+
+            filterMeetingStatus: sessionStorage.getItem(this.filterMeetingStatus_cache) ?sessionStorage.getItem(this.filterMeetingStatus_cache) : 'all',
+
+            internal_status:[
+                {value: 'draft', name: 'Draft'},
+                {value: 'scheduled', name: 'Scheduled'},
+            ],
+            
+            meeting_status: [],
             
         }
     },
@@ -83,39 +103,49 @@ export default {
         CollapsibleFilters,
     },
     watch:{
-        filterStartDate: function(){
+        filterMeetingStartDate: function(){
             let vm = this;
             vm.$refs.meetings_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterStartDate_cache, vm.filterStartDate);
+            sessionStorage.setItem(vm.filterMeetingStartDate_cache, vm.filterMeetingStartDate);
         },
-        filterEndDate: function(){
+        filterMeetingEndDate: function(){
             let vm = this;
             vm.$refs.meetings_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterEndDate_cache, vm.filterEndDate);
+            sessionStorage.setItem(vm.filterMeetingEndDate_cache, vm.filterMeetingEndDate);
+        },
+        filterMeetingStatus: function() {
+            let vm = this;
+            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterMeetingStatus_cache, vm.filterMeetingStatus);
+        },
+        filterApplied: function(){
+            if (this.$refs.collapsible_filters){
+                this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+            }
         },
     },
     computed:{
         filterApplied: function(){
-            if(
-                this.filterStartDate === '' &&
-                this.filterEndDate === ''){
+            if(this.filterMeetingStartDate === '' && 
+                this.filterMeetingEndDate === '' && 
+                this.filterMeetingStatus === 'all'){
                 return false
             } else {
                 return true
             }
         },
         datatable_headers: function(){
-            return ['Number','Location','Title', 'Start Date', 'End date', 'Action']
+            return ['Number','Location','Title', 'Start Date', 'End date', 'Status' , 'Action']
             
         },
         column_id: function(){
             return {
-                data: "id",
+                data: "meeting_number",
                 orderable: true,
                 searchable: false,
                 visible: true,
                 'render': function(data, type, full){
-                    return full.id
+                    return full.meeting_number
                 },
                 name: "id",
             }
@@ -178,6 +208,23 @@ export default {
                 name: "end_date",
             }
         },
+        column_status: function(){
+            return {
+                // 9. Workflow Status
+                data: "processing_status",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.processing_status){
+                        return full.processing_status;
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "processing_status",
+            }
+        },
         column_action: function(){
             let vm = this
             return {
@@ -189,6 +236,16 @@ export default {
                 'render': function(data, type, full){
                     let links = "";
                     links +=  `<a href='/internal/meeting/${full.id}'>Continue</a><br/>`;
+                    if (full.can_user_edit) {
+                            links +=  `<a href='/internal/meeting/${full.id}>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-meeting='${full.id}'>Discard</a><br/>`;
+                        }
+                        else{
+                            //if(full.user_process){   
+                                links +=  `<a href='/internal/meeting/${full.id}?action=edit'>Edit</a><br/>`;    
+                            //}
+                            links +=  `<a href='/internal/meeting/${full.id}?action=view'>View</a><br/>`;
+                        }
                     return links;
                 }
             }
@@ -207,6 +264,7 @@ export default {
                 vm.column_title,
                 vm.column_start_date,
                 vm.column_end_date,
+                vm.column_status,
                 vm.column_action,
             ]
             search = true
@@ -255,22 +313,10 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
-                        d.filter_start_date = vm.filterStartDate;
-                        d.filter_end_date = vm.filterEndDate;
+                        d.filter_start_date = vm.filterMeetingStartDate;
+                        d.filter_end_date = vm.filterMeetingEndDate;
+                        d.filter_meeting_status = vm.filterMeetingStatus;
                         // d.filter_group_type = vm.group_type_name;
-                        // d.filter_scientific_name = vm.filterCSFaunaScientificName;
-                        // d.filter_common_name = vm.filterCSFaunaCommonName;
-                        // d.filter_phylogenetic_group = vm.filterCSFaunaPhylogeneticGroup;
-                        // d.filter_family = vm.filterCSFaunaFamily;
-                        // d.filter_genus = vm.filterCSFaunaGenus;
-                        // d.filter_conservation_list = vm.filterCSFaunaConservationList;
-                        // d.filter_conservation_category = vm.filterCSFaunaConservationCategory;
-                        // d.filter_region = vm.filterCSFaunaRegion;
-                        // d.filter_district = vm.filterCSFaunaDistrict;
-                        // d.filter_application_status = vm.filterCSFaunaApplicationStatus;
-                        // d.filter_effective_from_date = vm.filterCSFaunaEffectiveFromDate;
-                        // d.filter_effective_to_date = vm.filterCSFaunaEffectiveToDate;
-                        // d.is_internal = vm.is_internal;
                     }
                 },
                 //dom: 'lBfrtip',
@@ -294,27 +340,13 @@ export default {
 
         constructMeetingsTable: function(){
             this.$refs.meetings_datatable.vmDataTable.clear().draw();
-            // if(this.species_community.conservation_status){
-            //     for(let i=0; i<this.species_community.conservation_status.length; i++){
-            //         this.addConservationStatusToTable(this.species_community.conservation_status[i]);
-            //     }
-            // }
         },
-        addConservationStatusToTable: function(conservationStatus){
-            this.$refs.conservation_status_datatable.vmDataTable.row.add({
-                conservation_list: conservationStatus,
-                conservation_category: conservationStatus,
-                conservation_criteria: conservationStatus,
-                conservation_list_id: conservationStatus,
-                effective_status_date: conservationStatus,
-            }).draw();
-        },
-         createMeeting: async function () {
+        createMeeting: async function () {
             let newMeetingId = null
             try {
                     const createUrl = api_endpoints.meeting+"/";
                     let payload = new Object();
-                    payload.meeting_type = this.meeting_type
+                    payload.meeting_type = 'meeting';
                     let savedMeeting = await Vue.http.post(createUrl, payload);
                     if (savedMeeting) {
                         newMeetingId = savedMeeting.body.id;
@@ -331,13 +363,55 @@ export default {
                 params: {meeting_id: newMeetingId},
                 });
         },
+        fetchFilterLists: function () {
+            let vm = this;
+            vm.meeting_status = vm.internal_status;
+
+        },
+        discardMeeting:function (meeting_id) {
+            let vm = this;
+            swal({
+                title: "Discard Meeting",
+                text: "Are you sure you want to discard this meeting?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: 'Discard Meeting',
+                confirmButtonColor:'#d9534f'
+            }).then(() => {
+                vm.$http.delete(api_endpoints.discard_meeting(meeting_id))
+                .then((response) => {
+                    swal(
+                        'Discarded',
+                        'Your meeting has been discarded',
+                        'success'
+                    )
+                    vm.$refs.meetings_datatable.vmDataTable.ajax.reload();
+                }, (error) => {
+                    console.log(error);
+                });
+            },(error) => {
+
+            });
+        },
+        addEventListeners: function(){
+            let vm = this;
+            // External Discard listener
+            vm.$refs.meetings_datatable.vmDataTable.on('click', 'a[data-discard-meeting]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-discard-meeting');
+                vm.discardMeeting(id);
+            });
+        },
+    },
+    mounted: function() {
+        let vm = this;
+        vm.fetchFilterLists();
     },
     created: function() {
+        let vm = this;
         this.$nextTick(() => {
-            this.constructMeetingsTable();
-            // if(this.species_community.conservation_status){
-            //     this.constructConservationStatusTable();
-            // }
+            //vm.constructMeetingsTable();
+            vm.addEventListeners();
         });
     },
 }

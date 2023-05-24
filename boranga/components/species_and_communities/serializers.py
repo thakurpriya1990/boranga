@@ -1142,8 +1142,8 @@ class SpeciesUserActionSerializer(serializers.ModelSerializer):
 		model = SpeciesUserAction
 		fields = '__all__'
 
-	def get_who(self, conservation_status_user_action):
-		email_user = retrieve_email_user(conservation_status_user_action.who)
+	def get_who(self, species_user_action):
+		email_user = retrieve_email_user(species_user_action.who)
 		fullname = email_user.get_full_name()
 		return fullname
 
@@ -1228,8 +1228,8 @@ class CommunityUserActionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = CommunityUserAction
 		fields = '__all__'
-	def get_who(self, conservation_status_user_action):
-		email_user = retrieve_email_user(conservation_status_user_action.who)
+	def get_who(self, community_user_action):
+		email_user = retrieve_email_user(community_user_action.who)
 		fullname = email_user.get_full_name()
 		return fullname 
 
