@@ -1137,6 +1137,8 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     scientific_name = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
+    family = serializers.SerializerMethodField()
+    genus = serializers.SerializerMethodField()
     # community related fields
     community_number = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
@@ -1165,6 +1167,8 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             'scientific_name',
             'conservation_list',
             'conservation_category',
+            'family',
+            'genus',
             'community_number',
             'community_migrated_id',
             'community_name',
@@ -1236,6 +1240,18 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     def get_conservation_category(self,obj):
         if obj.conservation_status.conservation_category:
             return obj.conservation_status.conservation_category.code
+        return ''
+    
+    def get_family(self,obj):
+        if obj.conservation_status.species:
+            if obj.conservation_status.species.taxonomy.family_fk:
+                return obj.conservation_status.species.taxonomy.family_fk.scientific_name
+        return ''
+
+    def get_genus(self,obj):
+        if obj.conservation_status.species:
+            if obj.conservation_status.species.taxonomy.genus:
+                return obj.conservation_status.species.taxonomy.genus.name
         return ''
 
 
