@@ -110,9 +110,10 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-select" v-model="filterFloraRegion">
+                        <select class="form-select" v-model="filterFloraRegion"
+                        @change="filterDistrict($event)">
                             <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
+                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">{{region.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -121,7 +122,7 @@
                         <label for="">District:</label>
                         <select class="form-select" v-model="filterFloraDistrict">
                             <option value="all">All</option>
-                            <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
+                            <option v-for="district in filtered_district_list" :value="district.id">{{district.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -290,6 +291,7 @@ export default {
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
+            filtered_district_list: [],
             
             // filtering options
             external_status:[
@@ -963,6 +965,7 @@ export default {
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
+                vm.filterDistrict();
                 vm.species_status = vm.internal_status;
             },(error) => {
                 console.log(error);
@@ -988,6 +991,23 @@ export default {
                         {
                           this.filtered_conservation_category_list.push(choice);
                         }
+                    }
+                });
+        },
+        //-------filter district dropdown dependent on region selected
+        filterDistrict: function(event) {
+                this.$nextTick(() => {
+                    if(event){
+                      this.filterFloraDistrict='all'; //-----to remove the previous selection
+                    }
+                    this.filtered_district_list=[];
+                    //---filter districts as per region selected
+                    for(let choice of this.district_list){
+                        if(choice.region_id.toString() === this.filterFloraRegion.toString())
+                        {
+                          this.filtered_district_list.push(choice);
+                        }
+                        
                     }
                 });
         },

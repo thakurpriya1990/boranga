@@ -442,13 +442,15 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
         return ''
 
     def get_community_migrated_id(self,obj):
-        if obj.community.taxonomy:
-            return obj.community.taxonomy.community_migrated_id
+        if obj.community:
+            if obj.community.taxonomy:
+                return obj.community.taxonomy.community_migrated_id
         return ''
 
     def get_community_name(self,obj):
-        if obj.community.taxonomy:
-            return obj.community.taxonomy.community_name
+        if obj.community:
+            if obj.community.taxonomy:
+                return obj.community.taxonomy.community_name
         return ''
 
     def get_community_status(self,obj):
