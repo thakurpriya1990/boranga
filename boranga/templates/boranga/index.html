@@ -17,6 +17,7 @@
 {% endblock %}
 
 {% block content %}
+{% with system_name=settings.SYSTEM_NAME %}
     <div class="container">
         <div class="row">
             <div class="col-md-8">
@@ -33,7 +34,7 @@
                         <form method="post" action=" url "social:complete" backend="email" ">
                             {% csrf_token %}
                             <div id="submit-container">
-                                % bootstrap_button 'Submit' button_class='btn-primary' %
+                                {% comment %} % bootstrap_button 'Submit' button_class='btn-primary' % {% endcomment %}
                             </div>
                         </form>
                         <p>Submit your email to login or start the new-user registration process.</p>
@@ -51,4 +52,5 @@
             </div>
         </div>
     </div>
+{% endwith %}
 {% endblock %}
