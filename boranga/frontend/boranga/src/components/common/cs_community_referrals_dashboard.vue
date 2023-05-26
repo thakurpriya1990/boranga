@@ -78,9 +78,10 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSRefCommunityRegion">
+                        <select class="form-select" v-model="filterCSRefCommunityRegion"
+                        @change="filterDistrict($event)">
                             <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
+                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">{{region.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -89,7 +90,7 @@
                         <label for="">District:</label>
                         <select class="form-select" v-model="filterCSRefCommunityDistrict">
                             <option value="all">All</option>
-                            <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
+                            <option v-for="district in filtered_district_list" :value="district.id">{{district.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -215,7 +216,7 @@ export default {
             region_list: [],
             district_list: [],
             proposal_status: [],
-
+            filtered_district_list: [],
         }
     },
     components:{
@@ -290,7 +291,7 @@ export default {
             }
         },
         datatable_headers: function(){
-           return ['Number', 'Community','Community Id' ,'Community Name', 'Conservation List' , 'Conservation Category',      /*'Region', 'District',*/ 'Status', 'Action']
+           return ['Number', 'Community','Community Id' ,'Community Name', 'Conservation List' , 'Conservation Category', 'Family', 'Genera', /*'Region', 'District',*/ 'Status', 'Action']
         },
         column_number: function(){
             return {
@@ -393,6 +394,34 @@ export default {
                 name: "conservation_status__conservation_category__code",
             }
         },
+        column_family: function(){
+            return {
+                data: "family",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(value, type){
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
+                },
+                //'createdCell': helpers.dtPopoverCellFn,
+                name: "species__taxonomy__family__name",
+            }
+        },
+        column_genera: function(){
+            return {
+                data: "genus",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(value, type){
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
+                },
+                //'createdCell': helpers.dtPopoverCellFn,
+                name: "species__taxonomy__genus__name",
+            }
+        },
         column_status: function(){
             return {
                 data: "processing_status",
@@ -488,6 +517,8 @@ export default {
                 /*vm.column_community_status,*/
                 vm.column_conservation_list,
                 vm.column_conservation_category,
+                vm.column_family,
+                vm.column_genera,
                 /*vm.column_region,
                 vm.column_district,*/
                 vm.column_status,
@@ -654,6 +685,7 @@ export default {
                 vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 vm.filterConservationCategory();
+                vm.filterDistrict();
                 vm.proposal_status = vm.filterListsCommunities.processing_status_list
             },(error) => {
                 console.log(error);
@@ -679,6 +711,23 @@ export default {
                         {
                           this.filtered_conservation_category_list.push(choice);
                         }
+                    }
+                });
+        },
+          //-------filter district dropdown dependent on region selected
+          filterDistrict: function(event) {
+                this.$nextTick(() => {
+                    if(event){
+                      this.filterCSRefCommunityDistrict='all'; //-----to remove the previous selection
+                    }
+                    this.filtered_district_list=[];
+                    //---filter districts as per region selected
+                    for(let choice of this.district_list){
+                        if(choice.region_id.toString() === this.filterCSRefCommunityRegion.toString())
+                        {
+                          this.filtered_district_list.push(choice);
+                        }
+                        
                     }
                 });
         },
