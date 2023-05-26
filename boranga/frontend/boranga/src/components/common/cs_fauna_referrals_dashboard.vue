@@ -110,9 +110,10 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaRegion">
+                        <select class="form-select" v-model="filterCSRefFaunaRegion"
+                        @change="filterDistrict($event)">
                             <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id">{{region.name}}</option>
+                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">{{region.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -121,7 +122,7 @@
                         <label for="">District:</label>
                         <select class="form-select" v-model="filterCSRefFaunaDistrict">
                             <option value="all">All</option>
-                            <option v-for="district in district_list" :value="district.id">{{district.name}}</option>
+                            <option v-for="district in filtered_district_list" :value="district.id">{{district.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -273,6 +274,7 @@ export default {
             region_list: [],
             district_list: [],
             proposal_status: [],
+            filtered_district_list: [],
         }
     },
     components:{
@@ -356,7 +358,7 @@ export default {
         },
         datatable_headers: function(){
             return ['Number','Species','Scientific Name','Conservation List', 
-                    'Conservation Category'/*, 'Region', 'District'*/,'Status', 'Action']
+                    'Conservation Category', 'Family', 'Genera' /*, 'Region', 'District'*/,'Status', 'Action']
         },
         column_number: function(){
             return {
@@ -447,6 +449,34 @@ export default {
                     return ''
                 },
                 name: "conservation_status__conservation_category__code",
+            }
+        },
+        column_family: function(){
+            return {
+                data: "family",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(value, type){
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
+                },
+                //'createdCell': helpers.dtPopoverCellFn,
+                name: "species__taxonomy__family__name",
+            }
+        },
+        column_genera: function(){
+            return {
+                data: "genus",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(value, type){
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
+                },
+                //'createdCell': helpers.dtPopoverCellFn,
+                name: "species__taxonomy__genus__name",
             }
         },
         column_status: function(){
@@ -541,11 +571,11 @@ export default {
                 vm.column_number,
                 vm.column_species_number,
                 vm.column_scientific_name,
-                /*vm.column_common_name,
-                vm.column_family,
-                vm.column_genera,*/
+                /*vm.column_common_name,*/
                 vm.column_conservation_list,
                 vm.column_conservation_category,
+                vm.column_family,
+                vm.column_genera,
                 /*vm.column_region,
                 vm.column_district,*/
                 vm.column_status,
@@ -836,6 +866,7 @@ export default {
                 vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
+                vm.filterDistrict();
                 vm.proposal_status = vm.filterListsSpecies.processing_status_list;
             },(error) => {
                 console.log(error);
@@ -863,6 +894,23 @@ export default {
                         }
                     }
                 //});
+        },
+         //-------filter district dropdown dependent on region selected
+         filterDistrict: function(event) {
+                this.$nextTick(() => {
+                    if(event){
+                      this.filterCSRefFaunaDistrict='all'; //-----to remove the previous selection
+                    }
+                    this.filtered_district_list=[];
+                    //---filter districts as per region selected
+                    for(let choice of this.district_list){
+                        if(choice.region_id.toString() === this.filterCSRefFaunaRegion.toString())
+                        {
+                          this.filtered_district_list.push(choice);
+                        }
+                        
+                    }
+                });
         },
         addEventListeners: function(){
             let vm = this;

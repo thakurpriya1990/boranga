@@ -522,7 +522,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			qs = ConservationStatus.objects.get(
         		species=obj ,
         		conservation_list__applies_to_wa=True,
-        		processing_status='current'
+        		processing_status='approved'
         	)
 			return SpeciesConservationStatusSerializer(qs).data
 		except ConservationStatus.DoesNotExist:
@@ -832,7 +832,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 			qs = ConservationStatus.objects.get(
 				community=obj ,
 				conservation_list__applies_to_wa=True,
-				processing_status='current')
+				processing_status='approved')
 			return CommunityConservationStatusSerializer(qs).data
 		except ConservationStatus.DoesNotExist:
 			return CommunityConservationStatusSerializer().data
