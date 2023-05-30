@@ -135,7 +135,7 @@ export default {
             }
         },
         datatable_headers: function(){
-            return ['Number','Location','Title', 'Start Date', 'End date', 'Status' , 'Action']
+            return ['Number', 'Title', 'Location', 'Start Date', 'End date', 'Status' , 'Action']
             
         },
         column_id: function(){
@@ -235,16 +235,15 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     let links = "";
-                    links +=  `<a href='/internal/meeting/${full.id}'>Continue</a><br/>`;
                     if (full.can_user_edit) {
-                            links +=  `<a href='/internal/meeting/${full.id}>Continue</a><br/>`;
+                            links +=  `<a href='/internal/meetings/${full.id}'>Continue</a><br/>`;
                             links +=  `<a href='#${full.id}' data-discard-meeting='${full.id}'>Discard</a><br/>`;
                         }
-                        else{
+                    else{
                             //if(full.user_process){   
-                                links +=  `<a href='/internal/meeting/${full.id}?action=edit'>Edit</a><br/>`;    
+                                links +=  `<a href='/internal/meetings/${full.id}?action=edit'>Edit</a><br/>`;    
                             //}
-                            links +=  `<a href='/internal/meeting/${full.id}?action=view'>View</a><br/>`;
+                            links +=  `<a href='/internal/meetings/${full.id}?action=view'>View</a><br/>`;
                         }
                     return links;
                 }
@@ -260,8 +259,8 @@ export default {
             
             columns = [
                 vm.column_id,
-                vm.column_location,
                 vm.column_title,
+                vm.column_location,
                 vm.column_start_date,
                 vm.column_end_date,
                 vm.column_status,
@@ -359,7 +358,7 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-meeting',
+                name: 'internal-meetings',
                 params: {meeting_id: newMeetingId},
                 });
         },

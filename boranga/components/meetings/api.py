@@ -27,7 +27,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from boranga.components.meetings.models import( 
     Meeting,
-    
+    MeetingRoom,
+    MeetingUserAction,
+    Minutes,
 )
 
 from boranga.components.meetings.serializers import(
@@ -37,6 +39,9 @@ from boranga.components.meetings.serializers import(
     EditMeetingSerializer,
     MeetingLogEntrySerializer,
     MeetingUserActionSerializer,
+    SaveMeetingSerializer,
+    MinutesSerializer,
+    SaveMinutesSerializer,
 )
 
 
@@ -133,7 +138,7 @@ class MeetingViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-        
+
     @detail_route(methods=['GET',], detail=True)
     def internal_meeting(self, request, *args, **kwargs):
         try:
@@ -146,6 +151,61 @@ class MeetingViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             if hasattr(e,'error_dict'):
                     raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def meeting_save(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object() 
+                request_data = request.data
+                # to resolve error for serializer submitter id as object is received in request
+                if request_data['submitter']:
+                    request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
+                serializer=SaveMeetingSerializer(instance, data = request_data, partial=True)
+
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    saved_instance = serializer.save()
+
+                    # # add the updated Current conservation criteria list [1,2] to the cs instance,
+                    # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+
+                    instance.log_user_action(MeetingUserAction.ACTION_SAVE_MEETING.format(instance.meeting_number), request)
+
+            return redirect(reverse('internal'))
+
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def submit(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.submit(request,self)
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            # return redirect(reverse('internal'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
             else:
                 if hasattr(e,'message'):
                     raise serializers.ValidationError(e.message)
@@ -174,6 +234,24 @@ class MeetingViewSet(viewsets.ModelViewSet):
             else:
                 if hasattr(e,'message'):
                     raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['GET',], detail=True)
+    def minutes(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.meeting_minutes.all()
+            qs = qs.order_by('-uploaded_date')
+            serializer = MinutesSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -244,11 +322,26 @@ class MeetingViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-        
+
+
 class GetMeetingDict(views.APIView):
     
     def get(self, request, format=None):
-        status_list=[]
+        location_list = []
+        locations = MeetingRoom.objects.all()
+        if locations:
+            for option in locations:
+                location_list.append({'id': option.id,
+                    'name':option.room_name,
+                    });
+        meeting_type_list = []
+        meeting_type_choices= Meeting.MEETING_TYPE_CHOICES
+        for choice in meeting_type_choices:
+            meeting_type_list.append({
+                'id': choice[0],
+                'display_name': choice[1]
+            })
+        status_list = []
         status_choices= Meeting.PROCESSING_STATUS_CHOICES
         for choice in status_choices:
             status_list.append({
@@ -256,7 +349,87 @@ class GetMeetingDict(views.APIView):
                 'display_name': choice[1]
             })
         res_json = {
+        "location_list":location_list,
+        "meeting_type_list":meeting_type_list,
         "status_list":status_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
+
+
+class MinutesViewSet(viewsets.ModelViewSet):
+    queryset = Minutes.objects.all().order_by('id')
+    serializer_class = MinutesSerializer
+
+    @detail_route(methods=['GET',], detail=True)
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = False
+            instance.save()
+            instance.meeting.log_user_action(MeetingUserAction.ACTION_DISCARD_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
+            instance.save()
+            serializer = self.get_serializer(instance)
+            instance.meeting.log_user_action(MeetingUserAction.ACTION_REINSTATE_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SaveMinutesSerializer(instance, data=json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            instance.add_minutes_documents(request)
+            instance.meeting.log_user_action(MeetingUserAction.ACTION_UPDATE_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
+            return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = SaveMinutesSerializer(data= json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception = True)
+            instance = serializer.save()
+            instance.add_minutes_documents(request)
+            instance.meeting.log_user_action(MeetingUserAction.ACTION_ADD_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))

@@ -62,9 +62,9 @@ export default
             name:"internal-meetings-dash"
         },
         {
-            path: 'meeting/:meeting_id',
+            path: 'meetings/:meeting_id',
             component: Meeting,
-            name:"internal-meeting"
+            name:"internal-meetings"
 
         },
         {

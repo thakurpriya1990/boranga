@@ -2,35 +2,61 @@
     <div id="communityStatus">
         <FormSection :formCollapse="false" label="Meeting" Index="meeting">
             <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Title:</label>
+                <div class="col-sm-8">
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="title" placeholder="" 
+                    v-model="meeting_obj.title"/>
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Start Date/ Time:</label>
                 <div class="col-sm-8">
                     <!-- <input :disabled="meeting_obj.readonly" type="datetime-local" class="form-control"  id="start_time" v-model="meeting_obj.start_date"> -->
-                    <input type="datetime-local" class="form-control" name="start_date" 
+                    <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date" 
                                         ref="start_date" v-model="meeting_obj.start_date" />
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">End Date/ Time:</label>
                 <div class="col-sm-8">
-                    <input :disabled="meeting_obj.readonly" type="datetime-local" class="form-control"  id="end_date" v-model="meeting_obj.end_date">
+                    <input :disabled="isReadOnly" type="datetime-local" class="form-control"  id="end_date" v-model="meeting_obj.end_date">
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Title:</label>
+                <label for="" class="col-sm-4 control-label">Meeting Type:</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="title" placeholder="" 
-                    v-model="meeting_obj.title"/>
+                    <select :disabled="isReadOnly" 
+                        style="width:100%;" class="form-select"  
+                        ref="meeting_status_select" 
+                        v-model="meeting_obj.meeting_type" >
+                        <option v-for="option in meeting_type_list" :value="option.id" :key="option.id">
+                            {{option.display_name}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Location:</label>
+                <div class="col-sm-8">
+                    <select :disabled="isReadOnly" 
+                        style="width:100%;" class="form-select"  
+                        ref="meeting_status_select" 
+                        v-model="meeting_obj.location_id" >
+                        <option v-for="option in location_list" :value="option.id" :key="option.id">
+                            {{option.name}}
+                        </option>
+                    </select>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Meeting status:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" 
-                        style="width:100%;" class="form-select input-sm"  
+                        style="width:100%;" class="form-select"  
                         ref="meeting_status_select" 
                         v-model="meeting_obj.processing_status" >
-                        <option v-for="c in status_list" :value="c.value" :key="c.value">
-                            {{c.name}}
+                        <option v-for="option in status_list" :value="option.id" :key="option.id">
+                            {{option.display_name}}
                         </option>
                     </select>
                 </div>
@@ -77,12 +103,11 @@ export default {
                     allowInputToggle:true,
                 },
                 isShowComment: false,
+                location_list: [],
+                meeting_type_list: [],
                 //----list of values dictionary
                 meeting_dict: {},
-                status_list:[
-                {value: 'draft', name: 'Draft'},
-                {value: 'scheduled', name: 'Scheduled'},
-            ],
+                status_list:[],
             }
         },
         components: {
@@ -93,14 +118,20 @@ export default {
                 return this.meeting_obj.processing_status=="scheduled" ? true : false;
             },
             isReadOnly: function(){
-                // let action = this.$route.query.action;
-                // if(action === "edit" && this.meeting_obj && this.meeting_obj.assessor_mode.has_assessor_mode){
-                //     return false;
-                // }
-                // else{
-                //     return this.meeting_obj.readonly;
-                // }
-                return false;
+                let action = this.$route.query.action;
+                // if(action === "edit" && this.meeting && this.meeting.user_edit_mode){
+                    //     return false;
+                    // }
+                    // else{
+                        //     return this.meeting.readonly;
+                        // }
+                //  TODO add the appropriate logic as above
+                if(action === "view" && this.meeting_obj){
+                    return true;
+                }
+                else{
+                    return false;
+                }
             },
         },
         watch:{
@@ -112,14 +143,23 @@ export default {
         },
         created: async function() {
             let vm=this;
-            // //------fetch list of values
-            // vm.$http.get(api_endpoints.meeting_dict).then((response) => {
-            //     vm.meeting_dict = response.body;
-            //     vm.status_list = vm.meeting_dict.status_list;
-                
-            // },(error) => {
-            //     console.log(error);
-            // })
+            //------fetch list of values
+            vm.$http.get(api_endpoints.meeting_dict).then((response) => {
+                vm.meeting_dict = response.body;
+                //--meeting room list
+                vm.location_list = vm.meeting_dict.location_list;
+                vm.location_list.splice(0,0,
+                {
+                    id: null,
+                    name: null,
+                });
+                //--meeting type list
+                vm.meeting_type_list = vm.meeting_dict.meeting_type_list;
+                //--status choices list
+                vm.status_list = vm.meeting_dict.status_list;
+            },(error) => {
+                console.log(error);
+            })
         },
         mounted: function(){
             let vm = this;

@@ -29,46 +29,32 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <strong>Status</strong><br/>
-                                {{ meeting_obj.processing_status }}
+                                {{ meeting_obj.processing_status_display }}
                             </div>
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
-                            <template>
-                                
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                            </template>
-                            
-                            
-                            <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                                <template v-if="meeting_obj.processing_status == 'With Assessor' || meeting_obj.processing_status == 'With Referral'">
+                            <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction"> -->
+                            <div class="col-sm-12 top-buffer-s">
+                                <!-- <template v-if="hasUserEditMode">
                                     <div class="row">
                                         <div class="col-sm-12">
                                             <strong>Action</strong><br/>
                                         </div>
                                     </div>
-                                    
-                                </template>
-                                <template v-else-if="meeting_obj.processing_status == 'With Approver'">
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <strong>Action</strong><br/>
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="splitSpecies()">Split</button><br/>
                                         </div>
-                                    </div>
-
-                                    <div class="row">
                                         <div class="col-sm-12">
-                                            <label class="control-label pull-left"  for="Name">Approver Comments</label>
-                                            <textarea class="form-control" name="name" v-model="approver_comment"></textarea><br>
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="combineSpecies()">Combine</button><br/>
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="renameSpecies()">Rename</button><br/>
                                         </div>
                                     </div>
-                                </template>
-                            </div> -->
+                                </template> -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -90,6 +76,13 @@
                                     :is_internal="true">
                                     <!-- TODO add hasAssessorMode props to ProposalMeeting -->
                                 </MeetingSection>
+                                <Minutes
+                                    ref="minutes" 
+                                    :meeting_obj="meeting_obj" 
+                                    id="Minutes" 
+                                    :is_internal="true">
+                                    <!-- TODO add hasAssessorMode props to ProposalMeeting -->
+                                </Minutes>
                                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                 <input type='hidden' name="meeting_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
@@ -114,13 +107,13 @@
                                             </div>
                                         </div>
 
-                                        <!-- <div v-else-if="hasAssessorMode" class="container">
+                                        <div v-else-if="hasUserEditMode" class="container">
                                             <div class="col-md-12 text-end">
                                                 <button v-if="savingMeeting" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                                 <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
                                             </div>
-                                        </div> -->
+                                        </div>
                                     </div>
                                 </div>
                             </form>
@@ -144,6 +137,7 @@ import Workflow from '@common-utils/workflow.vue'
 
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import MeetingSection from './meeting_section.vue'
+import Minutes from './minutes.vue'
 import {
     api_endpoints,
     helpers
@@ -162,14 +156,6 @@ export default {
             saveExitMeeting: false,
             submitMeeting: false,
             submitting: false,
-            saveExitCSProposal: false,
-            savingCSProposal:false,
-            department_users : [],
-            selected_referral: '',
-            referral_text: '',
-            approver_comment: '',
-            sendingReferral: false,
-            changingStatus:false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.meeting,vm.$route.params.meeting_id+'/comms_log'),
@@ -185,6 +171,7 @@ export default {
         Submission,
         Workflow,
         MeetingSection,
+        Minutes,
         
     },
     filters: {
@@ -200,7 +187,7 @@ export default {
         },
         meeting_form_url: function(){
             if(this.meeting_obj.id){
-                return `/api/meeting/${this.meeting_obj.id}/edit_meeting.json`;
+                return `/api/meeting/${this.meeting_obj.id}/meeting_save.json`;
             }
             else{
                 return `/api/meeting.json`;
@@ -245,6 +232,16 @@ export default {
         },
         canEditStatus: function(){
             return this.meeting_obj ? this.meeting_obj.can_user_edit: 'false';
+        },
+        hasUserEditMode:function(){
+            // Need to check for approved status as to show 'Save changes' button only when edit and not while view
+            if(this.$route.query.action == 'edit'){
+                //return this.meeting && this.meeting.user_edit_mode ? true : false;
+                return true;
+            }
+            else{
+                return false;
+            }
         },
         // isFinalised: function(){
         //     return this.meeting_obj.processing_status == 'Declined' || this.meeting_obj.processing_status == 'Approved';
@@ -311,7 +308,8 @@ export default {
             vm.saveExitMeeting=false;
             // redirect back to dashboard
             vm.$router.push({
-                    name: 'internal-meeting-dash'
+                    name: 'internal-meetings-dash'
+                    
                 });
         },
         save_before_submit: async function(e) {
@@ -321,7 +319,7 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            const result = await vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            const result = await vm.$http.post(vm.meeting_form_url,payload).then(res=>{
                 //return true;
             },err=>{
                         var errorText=helpers.apiVueResourceError(err); 
@@ -340,12 +338,7 @@ export default {
         can_submit: function(){
             let vm=this;
             let blank_fields=[]
-            // TODO check blank 
-            /*if (vm.meeting_obj.application_type==vm.application_type_tclass) {
-            } 
-            else if (vm.meeting_obj.application_type==vm.application_type_event) {
-                blank_fields=vm.can_submit_event();
-            }*/
+            
             blank_fields=vm.can_submit_meeting();
             
             if(blank_fields.length==0){
@@ -358,31 +351,15 @@ export default {
         can_submit_meeting: function(){
             let vm=this;
             let blank_fields=[]
-            if (vm.meeting_obj.group_type == 'flora' || vm.meeting_obj.group_type == 'fauna'){
-                if (vm.meeting_obj.species_id == null || vm.meeting_obj.species_id == ''){
-                    blank_fields.push(' Species is missing')
+            if (vm.meeting_obj.title == null || vm.meeting_obj.title == ''){
+                    blank_fields.push(' Title is missing')
                 }
-            }
             else{
-                if (vm.meeting_obj.community_id == null || vm.meeting_obj.community_id == ''){
-                    blank_fields.push(' Community is missing')
+                if (vm.meeting_obj.meeting_type == null || vm.meeting_obj.meeting_type == ''){
+                    blank_fields.push(' Please select meeting type')
                 }
             }
-            if (vm.meeting_obj.conservation_list_id == null || vm.meeting_obj.conservation_list_id == ''){
-                blank_fields.push(' Conservation List is missing')
-            }
-            if (vm.meeting_obj.conservation_category_id == null || vm.meeting_obj.conservation_category_id == ''){
-                blank_fields.push(' Conservation Category is missing')
-            }
-            if (vm.meeting_obj.conservation_criteria.length == 0){
-                blank_fields.push(' Conservation criteria is missing')
-            }
-            if (vm.meeting_obj.comment == null || vm.meeting_obj.comment == ''){
-                blank_fields.push(' Conservation comment is missing')
-            }
-            /*if(vm.$refs.proposal_filming.$refs.filming_other_details.$refs.deed_poll_doc.documents.length==0){
-                blank_fields.push(' Deed poll document is missing')
-            }*/
+            
             return blank_fields
         },
         submit: async function(){
@@ -395,13 +372,12 @@ export default {
                     text: missing_data,
                     type:'error'
                 })
-                //vm.paySubmitting=false;
                 return false;
             }
             vm.submitMeeting=true;
             swal({
-                title: "Submit New Conservation Status Application",
-                text: "Are you sure you want to submit this application?",
+                title: "Submit New Meeting",
+                text: "Are you sure you want to submit this meeting?",
                 type: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit"
@@ -419,7 +395,7 @@ export default {
                         // });
                     // TODO router should push to submit_cs_proposal for internal side 
                         vm.$router.push({
-                            name: 'internal-meeting-dash'
+                            name: 'internal-meetings-dash'
                         });
                     },err=>{
                         swal(
@@ -438,7 +414,7 @@ export default {
             let vm = this;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            vm.$http.post(vm.meeting_form_url,payload).then(res=>{
                 },err=>{
             });
         },

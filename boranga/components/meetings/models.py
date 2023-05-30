@@ -1,5 +1,6 @@
 import logging
 import datetime
+from django.utils import timezone
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
@@ -120,6 +121,42 @@ class Meeting(models.Model):
         # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
         user_editable_state = ['draft',]
         return self.processing_status in user_editable_state
+    
+    def submit(self,request,viewset):
+        from boranga.components.proposals.utils import save_proponent_data
+        with transaction.atomic():
+            if self.can_user_edit:
+                # Save the data first
+                # save_proponent_data(self,request,viewset)
+                # Check if the special fields have been completed
+                # missing_fields = self.__check_proposal_filled_out()
+                # if missing_fields:
+                #     error_text = 'The proposal has these missing fields, {}'.format(','.join(missing_fields))
+                #     raise exceptions.ProposalMissingFields(detail=error_text)
+                self.submitter = request.user.id
+                self.lodgement_date = timezone.now()
+                # Create a log entry for the proposal
+                self.log_user_action(MeetingUserAction.ACTION_CREATE_MEETING.format(self.id),request)
+                # Create a log entry for the organisation
+                # TODO handle the error "'EmailUserRO' object has no attribute 'log_user_action'" for below
+                # applicant_field=getattr(self, self.applicant_field)
+                # applicant_field.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(self.id),request)
+
+                # ret1 = send_submit_email_notification(request, self)
+                # ret2 = send_external_submit_email_notification(request, self)
+
+                # if ret1 and ret2:
+                #     self.processing_status = 'with_assessor'
+                #     self.customer_status = 'with_assessor'
+                #     self.documents.all().update(can_delete=False)
+                #     self.save()
+                self.processing_status = 'scheduled'
+                # self.documents.all().update(can_delete=False)
+                self.save()
+                # else:
+                #     raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
+            else:
+                raise ValidationError('You can\'t edit this meeting at this moment')
 
 
 class MeetingLogDocument(Document):
@@ -218,3 +255,24 @@ class Minutes(Document):
             new_minute_id = 'MN{}'.format(str(self.pk))
             self.minutes_number = new_minute_id
             self.save()
+    
+    def add_minutes_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                # if not data.get('update'):
+                #     documents_qs = self.filter(input_name='species_doc', visible=True)
+                #     documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    self._file=_file
+                    self.name=_file.name
+                    self.input_name = data['input_name']
+                    self.can_delete = True
+                    self.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
