@@ -58,6 +58,41 @@ class MeetingRoom(models.Model):
         return str(self.room_name)
 
 
+class CommitteeMembers(models.Model):
+    """
+
+    The Committee members info
+    The Admin data
+
+    """
+    first_name = models.CharField(max_length=128, blank=True, null=True)
+    last_name = models.CharField(max_length=128, blank=True, null=True)
+    email = models.CharField(max_length=328, blank=True, null=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.email)
+
+
+class Committee(models.Model):
+    """
+
+    The Commitee used for the meeting attendees 
+    The Admin data
+
+    """
+    name = models.CharField(max_length=328, blank=True, null=True)
+    members = models.ManyToManyField(CommitteeMembers, null=True, blank=True, related_name='committee_members')
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
 class Meeting(models.Model):
     """
     A change in conservation status for a species is executed during Committee Meetings. 
@@ -73,7 +108,7 @@ class Meeting(models.Model):
 
 
     MEETING_TYPE_CHOICES = (
-        (MEETING, 'meeting'),
+        (MEETING, 'Meeting'),
         (COMMITTEE_MEETING, 'Committee Meeting'),
         
     )
@@ -87,6 +122,9 @@ class Meeting(models.Model):
     end_date = models.DateTimeField(blank=True, null=True)
     location = models.ForeignKey(MeetingRoom, on_delete=models.SET_NULL, null=True, blank=True, related_name="meetings")
     title = models.CharField(max_length=128, blank=True, null=True)
+    attendees = models.CharField(max_length=1208, blank=True, null=True)
+    committee = models.ForeignKey(Committee, on_delete=models.SET_NULL, null=True, blank=True, related_name="committee")
+    selected_committee_members = models.ManyToManyField(CommitteeMembers, null=True, blank=True)
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     lodgement_date = models.DateTimeField(blank=True, null=True)

@@ -454,6 +454,7 @@ export default {
         Vue.http.get(`/api/meeting/${to.params.meeting_id}/internal_meeting.json`).then(res => {
               next(vm => {
                 vm.meeting_obj = res.body;
+                vm.meeting_obj.sel_committee_members_arr=[];
               });
             },
             err => {

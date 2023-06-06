@@ -125,6 +125,7 @@ module.exports = {
     meeting:"/api/meeting",
     meeting_dict:"/api/meeting_dict",
     minutes:"/api/minutes.json",
+    committee:"/api/committee",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",

@@ -30,6 +30,8 @@ from boranga.components.meetings.models import(
     MeetingRoom,
     MeetingUserAction,
     Minutes,
+    Committee,
+    CommitteeMembers,
 )
 
 from boranga.components.meetings.serializers import(
@@ -42,6 +44,7 @@ from boranga.components.meetings.serializers import(
     SaveMeetingSerializer,
     MinutesSerializer,
     SaveMinutesSerializer,
+    CommitteeMembersSerializer,
 )
 
 
@@ -163,7 +166,7 @@ class MeetingViewSet(viewsets.ModelViewSet):
     def meeting_save(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                instance = self.get_object() 
+                instance = self.get_object()
                 request_data = request.data
                 # to resolve error for serializer submitter id as object is received in request
                 if request_data['submitter']:
@@ -173,9 +176,8 @@ class MeetingViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
                     saved_instance = serializer.save()
-
-                    # # add the updated Current conservation criteria list [1,2] to the cs instance,
-                    # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+                    # add the committee selected members to the meeting
+                    saved_instance.selected_committee_members.set(request_data.get('sel_committee_members_arr'))
 
                     instance.log_user_action(MeetingUserAction.ACTION_SAVE_MEETING.format(instance.meeting_number), request)
 
@@ -348,10 +350,18 @@ class GetMeetingDict(views.APIView):
                 'id': choice[0],
                 'display_name': choice[1]
             })
+        committee_list = []
+        committees= Committee.objects.all()
+        for option in committees:
+            committee_list.append({
+                'id': option.id,
+                'name': option.name
+            })
         res_json = {
         "location_list":location_list,
         "meeting_type_list":meeting_type_list,
         "status_list":status_list,
+        "committee_list":committee_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
@@ -433,3 +443,26 @@ class MinutesViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+
+class CommitteeViewSet(viewsets.ModelViewSet):
+    queryset = Committee.objects.all()
+    serializer_class = None
+    
+    @detail_route(methods=['GET',], detail=True)
+    def committee_members(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.members.all()
+            qs = qs.order_by('-first_name')
+            serializer = CommitteeMembersSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))    

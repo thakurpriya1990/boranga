@@ -7,6 +7,8 @@ from boranga.components.meetings.models import(
         MeetingLogEntry,
 	    MeetingUserAction,
         Minutes,
+        Committee,
+        CommitteeMembers,
     )
 from boranga.components.main.serializers import CommunicationLogEntrySerializer, EmailUserSerializer
 from boranga.ledger_api_utils import retrieve_email_user
@@ -61,6 +63,7 @@ class MeetingSerializer(serializers.ModelSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     start_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     end_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    selected_committee_members = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Meeting
@@ -72,6 +75,9 @@ class MeetingSerializer(serializers.ModelSerializer):
                 'location_id',
                 'title',
                 'meeting_type',
+                'attendees',
+                'committee_id',
+                'selected_committee_members',
                 'processing_status',
                 'processing_status_display',
                 'can_user_edit',
@@ -88,10 +94,14 @@ class MeetingSerializer(serializers.ModelSerializer):
             return EmailUserSerializer(email_user).data
         else:
             return None
+    
+    def get_selected_committee_members(self,obj):
+        return [m.id for m in obj.selected_committee_members.all()]
 
 
 class SaveMeetingSerializer(serializers.ModelSerializer):
     location_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    committee_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     start_date = serializers.DateTimeField(required=False,allow_null=True)
     end_date = serializers.DateTimeField(required=False,allow_null=True)
     class Meta:
@@ -102,6 +112,8 @@ class SaveMeetingSerializer(serializers.ModelSerializer):
                 'end_date',
                 'meeting_type',
 			    'location_id',
+                'attendees',
+                'committee_id',
                 'processing_status',
 				'submitter',
                 'can_user_edit',
@@ -121,6 +133,7 @@ class EditMeetingSerializer(serializers.ModelSerializer):
                 'location',
                 'title',
                 'meeting_type',
+                'attendees',
                 'processing_status',
                 'can_user_edit',
             )
@@ -194,3 +207,15 @@ class SaveMinutesSerializer(serializers.ModelSerializer):
 			'document_category',
 			'document_sub_category',
 			)
+
+
+class CommitteeMembersSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = CommitteeMembers
+		fields = (
+			'id',
+			'first_name',
+			'last_name',
+			'email',
+		)
+		read_only_fields = ('id','email')
