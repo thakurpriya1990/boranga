@@ -61,36 +61,10 @@ export default
             component: MeetingsDash,
             name:"internal-meetings-dash"
         },
-        // {
-        //     path: 'meeting',
-        //     component: {
-        //         render(c)
-        //         {
-        //             return c('router-view')
-        //         },
-        //     },
-        //     children: [
-        //         {
-        //             path: ':meeting_id',
-        //             component: {
-        //                 render(c)
-        //                 {
-        //                     return c('router-view')
-        //                 },
-        //                 children: [
-        //                     {
-        //                         path: '/',
-        //                         component: Meeting,
-        //                         name:"internal-meeting1"
-        //                     },
-        //                 ]
-        //             },
-        //         },
-        //     ]
-        // },
         {
-            path: 'meeting/:meeting_id',
+            path: 'meetings/:meeting_id',
             component: Meeting,
+            name:"internal-meetings"
 
         },
         {
@@ -242,11 +216,6 @@ export default
                             component: SpeciesCommunities,
                             name:"internal-species-communities"
                         },
-                        {
-                            path: 'referral/:referral_id',
-                            component: Referral,
-                            name:"internal-species-communities-referral"
-                        }
                     ]
                 },
             ]
@@ -283,8 +252,6 @@ export default
                 },
             ]
         },
-
-
         {
             path: 'proposal_compare',
             component: {

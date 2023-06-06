@@ -332,7 +332,7 @@ class Taxonomy(models.Model):
     family_nid = models.IntegerField(null=True, blank=True)
     family_fk = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name="taxon_family")
     family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True) # TODO this field is not used
-    genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True) 
+    genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
     # phylogenetic_group is only used for Fauna 
     phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True) # TODO this field is not used anymore
     name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no

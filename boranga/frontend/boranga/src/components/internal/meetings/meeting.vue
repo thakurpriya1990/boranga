@@ -1,12 +1,12 @@
 <template lang="html">
     <div v-if="meeting_obj" class="container" id="internalMeeting">
       <div class="row" style="padding-bottom: 50px;">
-        <h3>Meeting ID# - {{meeting_obj.id }}</h3>
+        <h3>Meeting ID# - {{meeting_obj.meeting_number }}</h3>
         
         <div v-if="!comparing" class="col-md-3">
            <!-- TODO -->
 
-           <!-- <CommsLogs
+           <CommsLogs
                 :comms_url="comms_url"
                 :logs_url="logs_url"
                 :comms_add_url="comms_add_url"
@@ -18,7 +18,7 @@
                 :submitter_last_name="submitter_last_name"
                 :lodgement_date="meeting_obj.lodgement_date"
                 class="mt-2"
-            /> -->
+            />
             
             <div class="top-buffer-s">
                 <div class="card card-default">
@@ -29,45 +29,31 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <strong>Status</strong><br/>
-                                {{ meeting_obj.processing_status }}
+                                {{ meeting_obj.processing_status_display }}
                             </div>
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
-                            <template>
-                                
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                            </template>
-                            
-                            
-                            <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                                <template v-if="meeting_obj.processing_status == 'With Assessor' || meeting_obj.processing_status == 'With Referral'">
+                            <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction"> -->
+                            <div class="col-sm-12 top-buffer-s">
+                                <!-- <template v-if="hasUserEditMode">
                                     <div class="row">
                                         <div class="col-sm-12">
                                             <strong>Action</strong><br/>
                                         </div>
                                     </div>
-                                    
-                                </template>
-                                <template v-else-if="meeting_obj.processing_status == 'With Approver'">
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <strong>Action</strong><br/>
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="splitSpecies()">Split</button><br/>
                                         </div>
-                                    </div>
-
-                                    <div class="row">
                                         <div class="col-sm-12">
-                                            <!-- <label class="control-label pull-left"  for="Name">Approver Comments</label>
-                                            <textarea class="form-control" name="name" v-model="approver_comment"></textarea><br> -->
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="combineSpecies()">Combine</button><br/>
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="renameSpecies()">Rename</button><br/>
                                         </div>
                                     </div>
-                                </template>
+                                </template> -->
                             </div>
                         </div>
                     </div>
@@ -90,12 +76,19 @@
                                     :is_internal="true">
                                     <!-- TODO add hasAssessorMode props to ProposalMeeting -->
                                 </MeetingSection>
+                                <Minutes
+                                    ref="minutes" 
+                                    :meeting_obj="meeting_obj" 
+                                    id="Minutes" 
+                                    :is_internal="true">
+                                    <!-- TODO add hasAssessorMode props to ProposalMeeting -->
+                                </Minutes>
                                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                 <input type='hidden' name="meeting_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
                                     <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
                                         <!--the below as internal proposal submission ELSE just saving proposal changes -->
-                                        <div v-if="meeting_obj.internal_user_edit" class="container">
+                                        <div v-if="meeting_obj.can_user_edit" class="container">
                                             <div class="col-md-12 text-end">
                                                 <button v-if="savingMeeting" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -114,7 +107,7 @@
                                             </div>
                                         </div>
 
-                                        <div v-else-if="hasAssessorMode" class="container">
+                                        <div v-else-if="hasUserEditMode" class="container">
                                             <div class="col-md-12 text-end">
                                                 <button v-if="savingMeeting" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -144,6 +137,7 @@ import Workflow from '@common-utils/workflow.vue'
 
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import MeetingSection from './meeting_section.vue'
+import Minutes from './minutes.vue'
 import {
     api_endpoints,
     helpers
@@ -162,14 +156,6 @@ export default {
             saveExitMeeting: false,
             submitMeeting: false,
             submitting: false,
-            saveExitCSProposal: false,
-            savingCSProposal:false,
-            department_users : [],
-            selected_referral: '',
-            referral_text: '',
-            approver_comment: '',
-            sendingReferral: false,
-            changingStatus:false,
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.meeting,vm.$route.params.meeting_id+'/comms_log'),
@@ -185,6 +171,7 @@ export default {
         Submission,
         Workflow,
         MeetingSection,
+        Minutes,
         
     },
     filters: {
@@ -200,7 +187,7 @@ export default {
         },
         meeting_form_url: function(){
             if(this.meeting_obj.id){
-                return `/api/meeting/${this.meeting_obj.id}/edit_meeting.json`;
+                return `/api/meeting/${this.meeting_obj.id}/meeting_save.json`;
             }
             else{
                 return `/api/meeting.json`;
@@ -239,43 +226,53 @@ export default {
             }
         },
         canSeeSubmission: function(){
-            /*return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)*/
-
-            return true; // TODO the Processing Status based value
+            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
+            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
+            return true
         },
         canEditStatus: function(){
             return this.meeting_obj ? this.meeting_obj.can_user_edit: 'false';
         },
-        isFinalised: function(){
-            return this.meeting_obj.processing_status == 'Declined' || this.meeting_obj.processing_status == 'Approved';
-        },
-        canLimitedAction: function(){
-            if (this.meeting_obj.processing_status == 'With Approver'){
-                return this.meeting_obj && (this.meeting_obj.processing_status == 'With Assessor' || this.meeting_obj.processing_status == 'With Referral') && !this.isFinalised && !this.meeting_obj.can_user_edit && (this.meeting_obj.current_assessor.id == this.meeting_obj.assigned_approver || this.meeting_obj.assigned_approver == null ) && this.meeting_obj.assessor_mode.assessor_can_assess? true : false;
-            }
-            else{
-                return this.meeting_obj && (this.meeting_obj.processing_status == 'With Assessor' || this.meeting_obj.processing_status == 'With Referral') && !this.isFinalised && !this.meeting_obj.can_user_edit && (this.meeting_obj.current_assessor.id == this.meeting_obj.assigned_officer || this.meeting_obj.assigned_officer == null ) && this.meeting_obj.assessor_mode.assessor_can_assess? true : false;
-            }
-        },
-        canAction: function(){
-            if (this.meeting_obj.processing_status == 'With Approver'){
-                return this.meeting_obj && (this.meeting_obj.processing_status == 'With Approver' || this.meeting_obj.processing_status == 'With Assessor') && !this.isFinalised && !this.meeting_obj.can_user_edit && (this.meeting_obj.current_assessor.id == this.meeting_obj.assigned_approver || this.meeting_obj.assigned_approver == null ) && this.meeting_obj.assessor_mode.assessor_can_assess? true : false;
-            }
-            else{
-                return this.meeting_obj && (this.meeting_obj.processing_status == 'With Approver' || this.meeting_obj.processing_status == 'With Assessor') && !this.isFinalised && !this.meeting_obj.can_user_edit && (this.meeting_obj.current_assessor.id == this.meeting_obj.assigned_officer || this.meeting_obj.assigned_officer == null ) && this.meeting_obj.assessor_mode.assessor_can_assess? true : false;
-            }
-        },
-        // canAssess: function(){
-        //     return this.meeting_obj && this.meeting_obj.assessor_mode.assessor_can_assess ? true : false;
-        // },
-        hasAssessorMode:function(){
+        hasUserEditMode:function(){
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-           return true;
+            if(this.$route.query.action == 'edit'){
+                //return this.meeting && this.meeting.user_edit_mode ? true : false;
+                return true;
+            }
+            else{
+                return false;
+            }
         },
-        isApprovalLevelDocument: function(){
-            //return this.meeting_obj && this.meeting_obj.processing_status == 'With Approver' && this.meeting_obj.approval_level != null && this.meeting_obj.approval_level_document == null ? true : false;
-            return false;
-        },
+        // isFinalised: function(){
+        //     return this.meeting_obj.processing_status == 'Declined' || this.meeting_obj.processing_status == 'Approved';
+        // },
+        // canLimitedAction: function(){
+        //     if (this.meeting_obj.processing_status == 'With Approver'){
+        //         return this.meeting_obj && (this.meeting_obj.processing_status == 'With Assessor' || this.meeting_obj.processing_status == 'With Referral') && !this.isFinalised && !this.meeting_obj.can_user_edit && (this.meeting_obj.current_assessor.id == this.meeting_obj.assigned_approver || this.meeting_obj.assigned_approver == null ) && this.meeting_obj.assessor_mode.assessor_can_assess? true : false;
+        //     }
+        //     else{
+        //         return this.meeting_obj && (this.meeting_obj.processing_status == 'With Assessor' || this.meeting_obj.processing_status == 'With Referral') && !this.isFinalised && !this.meeting_obj.can_user_edit && (this.meeting_obj.current_assessor.id == this.meeting_obj.assigned_officer || this.meeting_obj.assigned_officer == null ) && this.meeting_obj.assessor_mode.assessor_can_assess? true : false;
+        //     }
+        // },
+        // canAction: function(){
+        //     if (this.meeting_obj.processing_status == 'With Approver'){
+        //         return this.meeting_obj && (this.meeting_obj.processing_status == 'With Approver' || this.meeting_obj.processing_status == 'With Assessor') && !this.isFinalised && !this.meeting_obj.can_user_edit && (this.meeting_obj.current_assessor.id == this.meeting_obj.assigned_approver || this.meeting_obj.assigned_approver == null ) && this.meeting_obj.assessor_mode.assessor_can_assess? true : false;
+        //     }
+        //     else{
+        //         return this.meeting_obj && (this.meeting_obj.processing_status == 'With Approver' || this.meeting_obj.processing_status == 'With Assessor') && !this.isFinalised && !this.meeting_obj.can_user_edit && (this.meeting_obj.current_assessor.id == this.meeting_obj.assigned_officer || this.meeting_obj.assigned_officer == null ) && this.meeting_obj.assessor_mode.assessor_can_assess? true : false;
+        //     }
+        // },
+        // // canAssess: function(){
+        // //     return this.meeting_obj && this.meeting_obj.assessor_mode.assessor_can_assess ? true : false;
+        // // },
+        // hasAssessorMode:function(){
+        //     // Need to check for approved status as to show 'Save changes' button only when edit and not while view
+        //    return true;
+        // },
+        // isApprovalLevelDocument: function(){
+        //     //return this.meeting_obj && this.meeting_obj.processing_status == 'With Approver' && this.meeting_obj.approval_level != null && this.meeting_obj.approval_level_document == null ? true : false;
+        //     return false;
+        // },
     },
     methods: {
         commaToNewline(s){
@@ -311,7 +308,8 @@ export default {
             vm.saveExitMeeting=false;
             // redirect back to dashboard
             vm.$router.push({
-                    name: 'internal-meeting-dash'
+                    name: 'internal-meetings-dash'
+                    
                 });
         },
         save_before_submit: async function(e) {
@@ -321,7 +319,7 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            const result = await vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            const result = await vm.$http.post(vm.meeting_form_url,payload).then(res=>{
                 //return true;
             },err=>{
                         var errorText=helpers.apiVueResourceError(err); 
@@ -340,12 +338,7 @@ export default {
         can_submit: function(){
             let vm=this;
             let blank_fields=[]
-            // TODO check blank 
-            /*if (vm.meeting_obj.application_type==vm.application_type_tclass) {
-            } 
-            else if (vm.meeting_obj.application_type==vm.application_type_event) {
-                blank_fields=vm.can_submit_event();
-            }*/
+            
             blank_fields=vm.can_submit_meeting();
             
             if(blank_fields.length==0){
@@ -358,31 +351,15 @@ export default {
         can_submit_meeting: function(){
             let vm=this;
             let blank_fields=[]
-            if (vm.meeting_obj.group_type == 'flora' || vm.meeting_obj.group_type == 'fauna'){
-                if (vm.meeting_obj.species_id == null || vm.meeting_obj.species_id == ''){
-                    blank_fields.push(' Species is missing')
+            if (vm.meeting_obj.title == null || vm.meeting_obj.title == ''){
+                    blank_fields.push(' Title is missing')
                 }
-            }
             else{
-                if (vm.meeting_obj.community_id == null || vm.meeting_obj.community_id == ''){
-                    blank_fields.push(' Community is missing')
+                if (vm.meeting_obj.meeting_type == null || vm.meeting_obj.meeting_type == ''){
+                    blank_fields.push(' Please select meeting type')
                 }
             }
-            if (vm.meeting_obj.conservation_list_id == null || vm.meeting_obj.conservation_list_id == ''){
-                blank_fields.push(' Conservation List is missing')
-            }
-            if (vm.meeting_obj.conservation_category_id == null || vm.meeting_obj.conservation_category_id == ''){
-                blank_fields.push(' Conservation Category is missing')
-            }
-            if (vm.meeting_obj.conservation_criteria.length == 0){
-                blank_fields.push(' Conservation criteria is missing')
-            }
-            if (vm.meeting_obj.comment == null || vm.meeting_obj.comment == ''){
-                blank_fields.push(' Conservation comment is missing')
-            }
-            /*if(vm.$refs.proposal_filming.$refs.filming_other_details.$refs.deed_poll_doc.documents.length==0){
-                blank_fields.push(' Deed poll document is missing')
-            }*/
+            
             return blank_fields
         },
         submit: async function(){
@@ -395,13 +372,12 @@ export default {
                     text: missing_data,
                     type:'error'
                 })
-                //vm.paySubmitting=false;
                 return false;
             }
             vm.submitMeeting=true;
             swal({
-                title: "Submit New Conservation Status Application",
-                text: "Are you sure you want to submit this application?",
+                title: "Submit New Meeting",
+                text: "Are you sure you want to submit this meeting?",
                 type: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit"
@@ -419,7 +395,7 @@ export default {
                         // });
                     // TODO router should push to submit_cs_proposal for internal side 
                         vm.$router.push({
-                            name: 'internal-meeting-dash'
+                            name: 'internal-meetings-dash'
                         });
                     },err=>{
                         swal(
@@ -438,247 +414,17 @@ export default {
             let vm = this;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            vm.$http.post(vm.meeting_form_url,payload).then(res=>{
                 },err=>{
             });
-        },
-        initialiseAssignedOfficerSelect:function(reinit=false){
-            let vm=this;
-        },
-        refreshFromResponse:function(response){
-            let vm = this;
-            vm.original_meeting_obj = helpers.copyObject(response.body);
-            vm.meeting_obj = helpers.copyObject(response.body);
-            // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-            vm.$nextTick(() => {
-                vm.initialiseAssignedOfficerSelect(true);
-                vm.updateAssignedOfficerSelect();
-            });
-        },
-        
-        
-        fetchDeparmentUsers: function(){
-            let vm = this;
-            vm.loading.push('Loading Department Users');
-            vm.$http.get(api_endpoints.department_users).then((response) => {
-                vm.department_users = response.body
-                vm.loading.splice('Loading Department Users',1);
-            },(error) => {
-                console.log(error);
-                vm.loading.splice('Loading Department Users',1);
-            })
-        },
-        initialiseSelects: function(){
-            let vm = this;
-            if (!vm.initialisedSelects){
-                $(vm.$refs.department_users).select2({
-                minimumInputLength: 2,
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder:"Select Referrer",
-                ajax: {
-                    url: api_endpoints.users_api + '/get_department_users/',
-                    dataType: 'json',
-                    data: function(params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                        }
-                        return query;
-                    },
-                },
-                })
-                .on("select2:select", function (e) {
-                    //var selected = $(e.currentTarget);
-                    //vm.selected_referral = selected.val();
-                    let data = e.params.data.id;
-                    vm.selected_referral = data;
-                })
-                .on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_referral = null;
-                })
-                vm.initialiseAssignedOfficerSelect();
-                vm.initialisedSelects = true;
-            }
-        },
-        sendReferral: function(){
-            let vm = this;
-            //vm.save_wo();
-            //TODO in boranga below checkAssessorData()
-            //vm.checkAssessorData();
-            let formData = new FormData(vm.form);
-            vm.sendingReferral = true;
-            let payload = new Object();
-            Object.assign(payload, vm.meeting_obj);
-            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
-
-            let data = {'email':vm.selected_referral, 'text': vm.referral_text};
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.meeting,(vm.meeting_obj.id+'/assesor_send_referral')),JSON.stringify(data),{
-                emulateJSON:true
-            }).then((response) => {
-                vm.sendingReferral = false;
-                vm.original_meeting_obj = helpers.copyObject(response.body);
-                vm.meeting_obj = response.body;
-                swal(
-                    'Referral Sent',
-                    'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
-                    'success'
-                )
-                $(vm.$refs.department_users).val(null).trigger("change");
-                vm.selected_referral = '';
-                vm.referral_text = '';
-            }, (error) => {
-                console.log(error);
-                swal(
-                    'Referral Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-                vm.sendingReferral = false;
-            });
-
-
-          },err=>{
-          });
-        },
-        remindReferral:function(r){
-            let vm = this;
-
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/remind')).then(response => {
-                vm.original_meeting_obj = helpers.copyObject(response.body);
-                vm.meeting_obj = response.body;
-                //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                swal(
-                    'Referral Reminder',
-                    'A reminder has been sent to '+vm.department_users.find(d => d.id == r.referral).name,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        recallReferral:function(r){
-            let vm = this;
-            swal({
-                    title: "Loading...",
-                    //text: "Loading...",
-                    allowOutsideClick: false,
-                    allowEscapeKey:false,
-                    onOpen: () =>{
-                        swal.showLoading()
-                    }
-            })
-
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/recall')).then(response => {
-                swal.hideLoading();
-                swal.close();
-                vm.original_meeting_obj = helpers.copyObject(response.body);
-                vm.meeting_obj = response.body;
-                //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                swal(
-                    'Referral Recall',
-                    'The referall has been recalled from '+vm.department_users.find(d => d.id == r.referral).name,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        resendReferral:function(r){
-            let vm = this;
-
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/resend')).then(response => {
-                vm.original_meeting_obj = helpers.copyObject(response.body);
-                vm.meeting_obj = response.body;
-                //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                swal(
-                    'Referral Resent',
-                    'The referral has been resent to '+vm.department_users.find(d => d.id == r.referral).name,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        switchStatus: function(status){
-            let vm = this;
-            //vm.save_wo();
-            //let vm = this;
-            //if approver is pushing back proposal to Assessor then navigate the approver back to dashboard page
-            if(vm.meeting_obj.processing_status == 'With Approver' && status=='with_assessor') {
-                let data = {'status': status, 'approver_comment': vm.approver_comment}
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.meeting,(vm.meeting_obj.id+'/switch_status')),JSON.stringify(data),{
-                    emulateJSON:true,
-                })
-                .then((response) => {
-                    vm.meeting_obj = response.body;
-                    vm.original_meeting_obj = helpers.copyObject(response.body);
-                    vm.approver_comment='';
-                    vm.$nextTick(() => {
-                        vm.initialiseAssignedOfficerSelect(true);
-                        vm.updateAssignedOfficerSelect();
-                    });
-                    vm.$router.push({ path: '/internal/conservation-status/' });
-                }, (error) => {
-                    vm.meeting_obj = helpers.copyObject(vm.original_meeting_obj)
-                    swal(
-                        'Application Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
-                });
-            }
-            else{
-                let data = {'status': status, 'approver_comment': vm.approver_comment}
-                vm.changingStatus=true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.meeting,(vm.meeting_obj.id+'/switch_status')),JSON.stringify(data),{
-                    emulateJSON:true,
-                })
-                .then((response) => {
-                    vm.meeting_obj = response.body;
-                    vm.original_meeting_obj = helpers.copyObject(response.body);
-                    vm.approver_comment='';
-                    vm.$nextTick(() => {
-                        vm.initialiseAssignedOfficerSelect(true);
-                        vm.updateAssignedOfficerSelect();
-                    });
-                    vm.changingStatus=false;
-                }, (error) => {
-                    vm.meeting_obj = helpers.copyObject(vm.original_meeting_obj)
-                    swal(
-                        'Application Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
-                    vm.changingStatus=false;
-                });
-            }
         },
     },
     mounted: function() {
         let vm = this;
-        vm.fetchDeparmentUsers();
     },
     updated: function(){
         let vm = this;
         this.$nextTick(() => {
-            vm.initialiseSelects();
             vm.form = document.forms.new_meeting;
         });
     },
@@ -708,6 +454,7 @@ export default {
         Vue.http.get(`/api/meeting/${to.params.meeting_id}/internal_meeting.json`).then(res => {
               next(vm => {
                 vm.meeting_obj = res.body;
+                vm.meeting_obj.sel_committee_members_arr=[];
               });
             },
             err => {
