@@ -124,6 +124,7 @@ export default {
             successString: '',
             success:false,
             validDate: false,
+            title: null,
         }
     },
     computed: {
@@ -134,10 +135,9 @@ export default {
         delete_url: function() {
             //return (this.requirement.id) ? '/api/proposal_requirements/'+this.requirement.id+'/delete_document/' : '';
         },
-        title: function(){
-            return this.document_action == 'add' ? 'Add a new Document' : 'Edit a Document';
-        },
-
+        // title: function(){
+        //     return this.document_action == 'add' ? 'Add a new Document' : 'Edit a Document';
+        // },
     },
     watch: {
 

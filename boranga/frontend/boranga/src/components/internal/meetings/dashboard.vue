@@ -37,8 +37,6 @@
             </div>
             <div class="tab-pane" id="pills-committee" role="tabpanel" aria-labelledby="pills-committee-tab">
                 <FormSection :formCollapse="false" label="Committee Meeting" Index="committee">
-                    <!-- <SpeciesFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal" :group_type_name="group_name" 
-                    :group_type_id="getGroupId" :url="species_url"/> -->
                 </FormSection>
             </div>
         </div>
@@ -61,7 +59,6 @@ export default {
         return {
             user_preference:'meeting',    // TODO : set it to default user preference but for now is hardcoded value
             //filterGroupType: 'flora',  // TODO : need to set to default user preferance as cannot call click event of Tab onload
-            group_types: [],
             group_name: null,
             meetings_url: api_endpoints.meetings_paginated,
             
@@ -70,69 +67,12 @@ export default {
     },
     watch: {},
     components: {
-        // SpeciesFloraDashTable,
-        // SpeciesFaunaDashTable,
-        // CommunitiesDashTable,
         MeetingsDashTable,
         FormSection,
     },
     computed: {
-        /*------properties to show the user authenticated Tabs only-----------*/
-        // showFloraTab: function(){
-        //     return this.group_types.includes('flora');
-        // },
-        // showFaunaTab: function(){
-        //     return this.group_types.includes('fauna');
-        // },
-        // showCommunityTab: function(){
-        //     return this.group_types.includes('community');
-        // },
-        /*---------------------------------------------------------------------*/
-        /*---------properties to load group related vue components-------------*/
-        // isFlora: function(){
-        //     return this.group_name == 'flora';
-        // },
-        // isFauna: function(){
-        //     return this.group_name == 'fauna';
-        // },
-        // isCommunity: function(){
-        //     return this.group_name == 'community';
-        // },
-        /*---------------------------------------------------------------------*/
-        // getGroupId: function(){
-        //     for(var i=0; i<this.group_types.length; i++){
-        //         if(this.group_name === this.group_types[i].name){
-        //             return this.group_types[i].id;
-        //         }
-        //     }
-        // }
-
     },
     methods: {
-        set_tabs: function(){
-            let vm = this;
-            /* set user preference tab by default on load of dashboard (Note: doesn't affect on the load group component)*/
-            if(vm.user_preference === 'flora'){
-                $('#pills-tab a[href="#pills-flora"]').tab('show');
-            }
-            if(vm.user_preference === 'fauna'){
-                $('#pills-tab a[href="#pills-fauna"]').tab('show');
-            }
-            if(vm.user_preference === 'community'){
-                $('#pills-tab a[href="#pills-community"]').tab('show');
-            }
-        },
-        /*load_group_datatable: function(grouptype){
-            if(grouptype === 'flora'){
-                this.filterGroupType = grouptype;
-            }
-            else if(grouptype === 'fauna'){
-                this.filterGroupType = grouptype;
-            }
-            else if(grouptype === 'community'){
-                this.filterGroupType = grouptype;
-            }
-        },*/
         set_active_tab: function(tab_href_name, group_name){
             this.group_name=group_name;
             let elem = $('#pills-tab a[href="#' + tab_href_name + '"]')
@@ -143,18 +83,12 @@ export default {
         },
     },
     created: function () {
-        // this.$http.get(api_endpoints.group_types_dict).then((response) => {
-        //         this.group_types= response.body;
-        //         },(error) => {
-        //         console.log(error);
-        //     });
     },
     mounted: function () {
         let vm = this;
         this.$nextTick(function(){
             chevron_toggle.init();
             vm.set_active_tab('pills-'+vm.user_preference, vm.user_preference);
-            //this.getGroupId;
         })
     },
 

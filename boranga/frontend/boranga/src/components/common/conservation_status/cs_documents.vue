@@ -23,7 +23,7 @@
 <script>
 import Vue from 'vue' 
 import datatable from '@vue-utils/datatable.vue';
-import DocumentDetail from '@/components/common/species_communities/add_document.vue'
+import DocumentDetail from '@/components/common/add_document.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
   api_endpoints,
@@ -216,12 +216,14 @@ export default {
                 this.$refs.document_detail.documentObj=new_document_another;
                 this.$refs.document_detail.uploaded_document=[];
                 this.$refs.document_detail.document_action='add';
+                this.$refs.document_detail.title='Add a new Document';
                 this.$refs.document_detail.isModalOpen = true;
             },
             editDocument: function(id){
                 let vm=this;
                 this.$refs.document_detail.document_id = id;
                 this.$refs.document_detail.document_action='edit';
+                this.$refs.document_detail.title='Edit a Document';
                 Vue.http.get(helpers.add_endpoint_json(api_endpoints.conservation_status_documents,id)).then((response) => {
                       this.$refs.document_detail.documentObj=response.body; 
                       this.$refs.document_detail.documentObj.uploaded_date =  response.body.uploaded_date != null && response.body.uploaded_date != undefined ? moment(response.body.uploaded_date).format('yyyy-MM-DDTHH:mm'): '';

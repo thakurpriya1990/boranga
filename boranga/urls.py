@@ -54,7 +54,10 @@ router.register(r'cs_referrals',conservation_status_api.ConservationStatusReferr
 # router.register(r'species_conservation_status',conservation_status_api.SpeciesConservationStatusViewSet)
 # router.register(r'community_conservation_status',conservation_status_api.CommunityConservationStatusViewSet)
 router.register(r'cs_amendment_request',conservation_status_api.ConservationStatusAmendmentRequestViewSet)
+router.register(r'meeting',meeting_api.MeetingViewSet)
 router.register(r'meeting_paginated',meeting_api.MeetingPaginatedViewSet)
+router.register(r'minutes',meeting_api.MinutesViewSet)
+router.register(r'committee',meeting_api.CommitteeViewSet)
 
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)
@@ -76,7 +79,6 @@ router.register(r'global_settings', main_api.GlobalSettingsViewSet)
 router.register(r'assessments', proposal_api.ProposalAssessmentViewSet)
 router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 router.register(r'questions', main_api.QuestionViewSet)
-router.register(r'meeting',meeting_api.MeetingViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
