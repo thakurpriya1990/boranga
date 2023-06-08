@@ -19,6 +19,12 @@ def is_boranga_admin(context):
     return boranga_helpers.is_boranga_admin(request)
 
 @register.simple_tag(takes_context=True)
+def is_django_admin(context):
+    # checks if user is an AdminUser
+    request = context['request']
+    return boranga_helpers.is_django_admin(request)
+
+@register.simple_tag(takes_context=True)
 def is_internal(context):
     # checks if user is a departmentuser and logged in via single sign-on
     request = context['request']

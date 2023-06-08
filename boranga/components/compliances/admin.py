@@ -10,7 +10,7 @@ from boranga.components.compliances import models
 #class ComplianceAmendmentStatusAdmin(admin.ModelAdmin):
 #    list_display = ['status']
 
-@admin.register(models.ComplianceAmendmentReason)
+# @admin.register(models.ComplianceAmendmentReason)
 class ComplianceAmendmentReasonAdmin(admin.ModelAdmin):
     list_display = ['reason']
 

@@ -126,6 +126,11 @@ class InternalComplianceView(DetailView):
 class BorangaRoutingView(TemplateView):
     template_name = 'boranga/index.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['settings'] = settings
+        return context
+
     # def get(self, *args, **kwargs):
     #     if self.request.user.is_authenticated:
     #        if is_internal(self.request):

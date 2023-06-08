@@ -127,7 +127,7 @@ urlpatterns = [
     path(r'admin/', admin.site.urls),
     #url(r'^login/', LoginView.as_view(),name='login'),
     #path('login/', login, name='login'),
-    url(r'^logout/$', LogoutView.as_view(), {'next_page': '/'}, name='logout'),
+    # url(r'^logout/$', LogoutView.as_view(), {'next_page': '/'}, name='logout'),
     url(r'', include(api_patterns)),
     #url(r'^$', views.BorangaRoutingView.as_view(), name='ds_home'),
     url(r'^$', views.BorangaRoutingView.as_view(), name='home'),
