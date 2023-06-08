@@ -308,7 +308,7 @@ class GetSpeciesFilterDict(views.APIView):
         #                 });
         # scientific_name_list = []
         # if group_type:
-        #     names = Taxonomy.objects.all() # TODO will need to filter according to  group  selection
+        #     names = Taxonomy.objects.all()
         #     if names:
         #         for name in names:
         #             scientific_name_list.append({
@@ -317,7 +317,7 @@ class GetSpeciesFilterDict(views.APIView):
         #                 });
         # common_name_list = []
         # if group_type:
-        #     names = TaxonVernacular.objects.all() # TODO will need to filter according to  group  selection
+        #     names = TaxonVernacular.objects.all()
         #     if names:
         #         for name in names:
         #             common_name_list.append({
@@ -326,7 +326,6 @@ class GetSpeciesFilterDict(views.APIView):
         #                 });
         # family_list = []
         # if group_type:
-        #     # TODO first do I need to filter the flora/fauna staxon and then get the family data
         #     families_dict = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
         #     families = Taxonomy.objects.filter(id__in=families_dict)
         #     if families:
@@ -337,7 +336,7 @@ class GetSpeciesFilterDict(views.APIView):
         #                 });
         # phylogenetic_group_list = []
         # if group_type:
-        #     phylo_groups = ClassificationSystem.objects.all() # TODO will need to filter according to  group  selection
+        #     phylo_groups = ClassificationSystem.objects.all()
         #     if phylo_groups:
         #         for group in phylo_groups:
         #             phylogenetic_group_list.append({
@@ -346,7 +345,7 @@ class GetSpeciesFilterDict(views.APIView):
         #                 });
         # genus_list = []
         # if group_type:
-        #     generas = Genus.objects.all() # TODO will need to filter according to  group  selection
+        #     generas = Genus.objects.all()
         #     if generas:
         #         for genus in generas:
         #             genus_list.append({

@@ -1,0 +1,5 @@
+{% load users %}
+{% is_django_admin as is_django_admin_user %}
+{% if is_django_admin_user %}
+    <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a></li>
+{% endif %}
