@@ -623,7 +623,22 @@ export default {
 
             let columns = []
             let search = null
-            let buttons = []
+            let buttons = [
+                {
+                    text: '<i class="fa-solid fa-download"></i> Excel',
+                    className: 'btn btn-primary ml-2',
+                    action: function (e, dt, node, config) {
+                        vm.exportData("excel");
+                    }
+                },
+                {
+                    text: '<i class="fa-solid fa-download"></i> CSV',
+                    className: 'btn btn-primary',
+                    action: function (e, dt, node, config) {
+                        vm.exportData("csv");
+                    }
+                }
+            ]
             if(vm.is_external){
                 columns = [
                     vm.column_id,
@@ -641,7 +656,6 @@ export default {
                     vm.column_action,
                 ]
                 search = false
-                buttons = []
             }
             if(vm.is_internal){
                 columns = [
@@ -660,25 +674,6 @@ export default {
                     vm.column_action,
                 ]
                 search = true
-                buttons = [
-                    {
-                        extend: 'excel',
-                        text: '<i class="fa-solid fa-download"></i> Excel',
-                        className: 'btn btn-primary ml-2',
-                        exportOptions: {
-                            orthogonal: 'export' 
-                        }
-                    },
-                    {
-                        extend: 'csv',
-                        text: '<i class="fa-solid fa-download"></i> CSV',
-                        className: 'btn btn-primary',
-                        exportOptions: {
-                            orthogonal: 'export' 
-                        }
-                    },
-                ]
-
             }
 
             return {
@@ -1006,6 +1001,238 @@ export default {
                 params: {species_community_id: newFaunaId},
                 query: {group_type_name: this.group_type_name},
                 });
+        },
+        exportData: function (format) {
+            let vm = this;
+            const columns_new = {
+                "0": {
+                    "data": "id",
+                    "name": "id",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "false"
+                },
+                "1": {
+                    "data": "species_number",
+                    "name": "id",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "10": {
+                    "data": "district",
+                    "name": "district__name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "false"
+                },
+                "11": {
+                    "data": "processing_status",
+                    "name": "processing_status",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "12": {
+                    "data": "id",
+                    "name": "",
+                    "orderable": "false",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "false"
+                },
+                "2": {
+                    "data": "scientific_name",
+                    "name": "taxonomy__scientific_name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "3": {
+                    "data": "common_name",
+                    "name": "taxonomy__vernaculars__vernacular_name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "4": {
+                    "data": "phylogenetic_group",
+                    "name": "taxonomy__phylogenetic_group__name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "5": {
+                    "data": "family",
+                    "name": "taxonomy__family_fk__scientific_name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "6": {
+                    "data": "genus",
+                    "name": "taxonomy__genus__name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "7": {
+                    "data": "conservation_list",
+                    "name": "conservation_status__conservation_list__code",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "8": {
+                    "data": "conservation_category",
+                    "name": "conservation_status__conservation_category__code",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "9": {
+                    "data": "region",
+                    "name": "region__name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "false"
+                }
+            };
+
+            const object_load = {
+                columns: columns_new,
+                filter_group_type: vm.group_type_name,
+                filter_scientific_name: vm.filterFaunaScientificName,
+                filter_common_name: vm.filterFaunaCommonName,
+                filter_family: vm.filterFaunaFamily,
+                filter_phylogenetic_group: vm.filterFaunaPhylogeneticGroup,
+                filter_genus: vm.filterFaunaGenus,
+                filter_conservation_list: vm.filterFaunaConservationList,
+                filter_conservation_category: vm.filterFaunaConservationCategory,
+                filter_application_status: vm.filterFaunaApplicationStatus,
+                filter_region: vm.filterFaunaRegion,
+                filter_district: vm.filterFaunaDistrict,
+                is_internal: vm.is_internal,
+                export_format: format
+            };
+
+            const url = api_endpoints.species_internal_export;
+            const keyValuePairs = [];
+
+            for (const key in object_load) {
+                if (object_load.hasOwnProperty(key)) {
+                    const encodedKey = encodeURIComponent(key);
+                    let encodedValue = '';
+
+                    if (typeof object_load[key] === 'object') {
+                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
+                    }
+                    else {
+                        encodedValue = encodeURIComponent(object_load[key]);
+                    }
+                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
+                }
+            }
+            const params = keyValuePairs.join('&');
+            const fullUrl = `${url}?${params}`;
+            try {
+                if (format === "excel") {
+                    $.ajax({
+                        type: "GET",
+                        url: fullUrl,
+                        contentType: "application/vnd.ms-excel",
+                        dataType: "binary",
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+
+                        success: function (response, status, request) {
+                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
+                            var filename = contentDispositionHeader.split('filename=')[1];
+                            window.URL = window.URL || window.webkitURL;
+                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
+
+                            var downloadUrl = window.URL.createObjectURL(blob);
+                            var a = document.createElement("a");
+                            a.href = downloadUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(error);
+                        },
+                    });
+                }
+                else if (format === "csv") {
+                    $.ajax({
+                        type: "GET",
+                        url: fullUrl,
+                        success: function (response, status, request) {
+                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
+                            var filename = contentDispositionHeader.split('filename=')[1];
+                            window.URL = window.URL || window.webkitURL;
+                            var blob = new Blob([response], { type: "text/csv" });
+
+                            var downloadUrl = window.URL.createObjectURL(blob);
+                            var a = document.createElement("a");
+                            a.href = downloadUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(error);
+                        },
+                    });
+                }
+            }
+            catch (err) {
+                console.log(err);
+                if (vm.is_internal) {
+                    return err;
+                }
+            }
         },
         discardSpeciesProposal:function (species_id) {
             let vm = this;

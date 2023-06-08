@@ -85,6 +85,7 @@ module.exports = {
     proposals_paginated_internal:   "/api/proposal_paginated/proposals_internal/?format=datatables",
     referrals_paginated_internal:   "/api/proposal_paginated/referrals_internal/?format=datatables",
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
+    species_internal_export: "/api/species_paginated/species_export_excel",
     communities_paginated_internal: "/api/communities_paginated/communities_internal/?format=datatables",
     species_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/species_cs_internal/?format=datatables",
     species_conservation_status_referrals_paginated_internal: "/api/species_conservation_status_paginated/species_cs_referrals_internal/?format=datatables",
