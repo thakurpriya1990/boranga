@@ -28,16 +28,16 @@ class ProposalDocumentInline(admin.TabularInline):
     model = models.ProposalDocument
     extra = 0
 
-@admin.register(models.AmendmentReason)
+# @admin.register(models.AmendmentReason)
 class AmendmentReasonAdmin(admin.ModelAdmin):
     list_display = ['reason']
 
-@admin.register(models.Proposal)
+# @admin.register(models.Proposal)
 #class ProposalAdmin(VersionAdmin):
 class ProposalAdmin(admin.ModelAdmin):
     inlines =[ProposalDocumentInline,]
 
-@admin.register(models.ProposalAssessorGroup)
+# @admin.register(models.ProposalAssessorGroup)
 class ProposalAssessorGroupAdmin(admin.ModelAdmin):
     list_display = ['name','default']
     #filter_horizontal = ('members',)
@@ -62,7 +62,7 @@ class ProposalAssessorGroupAdmin(admin.ModelAdmin):
         return super(ProposalAssessorGroupAdmin, self).has_add_permission(request)
 
 
-@admin.register(models.ProposalApproverGroup)
+# @admin.register(models.ProposalApproverGroup)
 class ProposalApproverGroupAdmin(admin.ModelAdmin):
     list_display = ['name','default']
     #filter_horizontal = ('members',)
@@ -86,7 +86,7 @@ class ProposalApproverGroupAdmin(admin.ModelAdmin):
             return False
         return super(ProposalApproverGroupAdmin, self).has_add_permission(request)
 
-@admin.register(models.ProposalStandardRequirement)
+# @admin.register(models.ProposalStandardRequirement)
 class ProposalStandardRequirementAdmin(admin.ModelAdmin):
     list_display = ['code','text','obsolete', 'application_type', 'participant_number_required', 'default']
 
@@ -115,7 +115,7 @@ class HelpPageAdmin(admin.ModelAdmin):
         create_helppage_object(application_type='T Class', help_type=models.HelpPage.HELP_TEXT_INTERNAL)
         return HttpResponseRedirect("../")
 
-@admin.register(models.ChecklistQuestion)
+# @admin.register(models.ChecklistQuestion)
 class ChecklistQuestionAdmin(admin.ModelAdmin):
     list_display = ['text', 'application_type','list_type', 'obsolete','answer_type', 'order']
     ordering = ('order',)
@@ -127,7 +127,7 @@ class SystemMaintenanceAdmin(admin.ModelAdmin):
     readonly_fields = ('duration',)
     form = forms.SystemMaintenanceAdminForm
 
-@admin.register(ApplicationType)
+# @admin.register(ApplicationType)
 class ApplicationTypeAdmin(admin.ModelAdmin):
     #list_display = ['name', 'order', 'visible', 'max_renewals', 'max_renewal_period', 'application_fee']
     ordering = ('order',)
@@ -141,16 +141,16 @@ class OracleCodeInline(admin.TabularInline):
     max_num = 3
     can_delete = False
 
-@admin.register(RequiredDocument)
+# @admin.register(RequiredDocument)
 class RequiredDocumentAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(GlobalSettings)
+# @admin.register(GlobalSettings)
 class GlobalSettingsAdmin(admin.ModelAdmin):
     list_display = ['key', 'value']
     ordering = ('key',)
 
-@admin.register(models.ReferralRecipientGroup)
+# @admin.register(models.ReferralRecipientGroup)
 class ReferralRecipientGroupAdmin(admin.ModelAdmin):
     #filter_horizontal = ('members',)
     list_display = ['name']
@@ -162,7 +162,7 @@ class ReferralRecipientGroupAdmin(admin.ModelAdmin):
             kwargs["queryset"] = EmailUser.objects.filter(is_staff=True)
         return super(ReferralRecipientGroupAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
-@admin.register(models.QAOfficerGroup)
+# @admin.register(models.QAOfficerGroup)
 class QAOfficerGroupAdmin(admin.ModelAdmin):
     #filter_horizontal = ('members',)
     list_display = ['name']
@@ -180,7 +180,7 @@ class QAOfficerGroupAdmin(admin.ModelAdmin):
     ordering = ('id',)
 
 
-@admin.register(Question)
+# @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['question_text', 'answer_one', 'answer_two', 'answer_three', 'answer_four', 'application_type',]
     ordering = ('question_text',)
