@@ -11,7 +11,7 @@
 {% if is_boranga_admin_user or request.user.is_superuser %}
     <li role="separator" class="divider"></li>
 {% endif %}
-{% if request.user.is_superuser %}
+{% if is_boranga_admin_user %}
     <li><a class="dropdown-item" href="{% url 'mgt-commands' %}">Management Commands</a></li>
 {% endif %}
 {% if can_show_tests and request.user.is_superuser %}
