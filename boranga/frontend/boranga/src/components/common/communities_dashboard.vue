@@ -515,7 +515,22 @@ export default {
 
             let columns = []
             let search = null
-            let buttons = []
+            let buttons = [
+                {
+                    text: '<i class="fa-solid fa-download"></i> Excel',
+                    className: 'btn btn-primary ml-2',
+                    action: function (e, dt, node, config) {
+                        vm.exportData("excel");
+                    }
+                },
+                {
+                    text: '<i class="fa-solid fa-download"></i> CSV',
+                    className: 'btn btn-primary',
+                    action: function (e, dt, node, config) {
+                        vm.exportData("csv");
+                    }
+                }
+            ]
             if(vm.is_external){
                 columns = [
                     vm.column_id,
@@ -531,7 +546,6 @@ export default {
                     vm.column_action,
                 ]
                 search = false
-                buttons = []
             }
             if(vm.is_internal){
                 columns = [
@@ -548,25 +562,6 @@ export default {
                     vm.column_action,
                 ]
                 search = true
-                buttons = [
-                    {
-                        extend: 'excel',
-                        text: '<i class="fa-solid fa-download"></i> Excel',
-                        className: 'btn btn-primary ml-2',
-                        exportOptions: {
-                            orthogonal: 'export' 
-                        }
-                    },
-                    {
-                        extend: 'csv',
-                        text: '<i class="fa-solid fa-download"></i> CSV',
-                        className: 'btn btn-primary',
-                        exportOptions: {
-                            orthogonal: 'export' 
-                        }
-                    },
-                ]
-
             }
 
             return {
@@ -819,6 +814,216 @@ export default {
                     return filtered_submitter == original.submitter.email;
                 }
             );
+        },
+        exportData: function (format) {
+            let vm = this;
+            const columns_new = {
+                "0":{
+                    "data":"id",
+                    "name":"id",
+                    "searchable":"false",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "1":{
+                    "data":"community_number",
+                    "name":"id",
+                    "searchable":"true",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "2":{
+                    "data":"community_migrated_id",
+                    "name":"taxonomy__community_migrated_id",
+                    "searchable":"true",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "3":{
+                    "data":"community_name",
+                    "name":"taxonomy__community_name",
+                    "searchable":"true",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "4":{
+                    "data":"community_status",
+                    "name":"taxonomy__community_status",
+                    "searchable":"true",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "5":{
+                    "data":"conservation_list",
+                    "name":"conservation_status__conservation_list__code",
+                    "searchable":"true",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "6":{
+                    "data":"conservation_category",
+                    "name":"conservation_status__conservation_category__code",
+                    "searchable":"true",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "7":{
+                    "data":"region",
+                    "name":"region__name",
+                    "searchable":"false",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "8":{
+                    "data":"district",
+                    "name":"district__name",
+                    "searchable":"false",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "9":{
+                    "data":"processing_status",
+                    "name":"processing_status",
+                    "searchable":"true",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "10":{
+                    "data":"id",
+                    "name":"",
+                    "searchable":"false",
+                    "orderable":"false",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                }
+            };
+
+            const object_load = {
+                columns: columns_new,
+                filter_community_migrated_id: vm.filterCommunityMigratedId,
+                filter_group_type: vm.group_type_name,
+                filter_community_name: vm.filterCommunityName,
+                filter_community_status: vm.filterCommunityStatus,
+                filter_conservation_list: vm.filterCommunityConservationList,
+                filter_conservation_category: vm.filterCommunityConservationCategory,
+                filter_application_status: vm.filterCommunityApplicationStatus,
+                filter_region: vm.filterCommunityRegion,
+                filter_district: vm.filterCommunityDistrict,
+                is_internal: vm.is_internal,
+                export_format: format
+            };
+
+            const url = api_endpoints.communities_internal_export;
+            const keyValuePairs = [];
+
+            for (const key in object_load) {
+                if (object_load.hasOwnProperty(key)) {
+                    const encodedKey = encodeURIComponent(key);
+                    let encodedValue = '';
+
+                    if (typeof object_load[key] === 'object') {
+                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
+                    }
+                    else {
+                        encodedValue = encodeURIComponent(object_load[key]);
+                    }
+                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
+                }
+            }
+            const params = keyValuePairs.join('&');
+            const fullUrl = `${url}?${params}`;
+            try {
+                if (format === "excel") {
+                    $.ajax({
+                        type: "GET",
+                        url: fullUrl,
+                        contentType: "application/vnd.ms-excel",
+                        dataType: "binary",
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+
+                        success: function (response, status, request) {
+                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
+                            var filename = contentDispositionHeader.split('filename=')[1];
+                            window.URL = window.URL || window.webkitURL;
+                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
+
+                            var downloadUrl = window.URL.createObjectURL(blob);
+                            var a = document.createElement("a");
+                            a.href = downloadUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(error);
+                        },
+                    });
+                }
+                else if (format === "csv") {
+                    $.ajax({
+                        type: "GET",
+                        url: fullUrl,
+                        success: function (response, status, request) {
+                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
+                            var filename = contentDispositionHeader.split('filename=')[1];
+                            window.URL = window.URL || window.webkitURL;
+                            var blob = new Blob([response], { type: "text/csv" });
+
+                            var downloadUrl = window.URL.createObjectURL(blob);
+                            var a = document.createElement("a");
+                            a.href = downloadUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(error);
+                        },
+                    });
+                }
+            }
+            catch (err) {
+                console.log(err);
+                if (vm.is_internal) {
+                    return err;
+                }
+            }
         },
     },
     mounted: function(){

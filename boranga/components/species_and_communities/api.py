@@ -26,6 +26,7 @@ from copy import deepcopy
 from django.shortcuts import render, redirect, get_object_or_404
 import pandas as pd
 from openpyxl import Workbook
+from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 from io import BytesIO
 from django.db.models.query import QuerySet
@@ -782,7 +783,7 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
     
     @list_route(methods=['GET',], detail=False)
-    def species_export_excel(self, request, *args, **kwargs):
+    def species_internal_export(self, request, *args, **kwargs):
         
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
@@ -792,55 +793,64 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
         serializer = ListSpeciesSerializer(qs, context={'request': request}, many=True)
         serialized_data = serializer.data
 
-        filtered_data = []
-        for obj in serialized_data:
-            filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
-            filtered_data.append(filtered_obj)
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_data.append(filtered_obj)
 
-        def flatten_dict(d, parent_key='', sep='_'):
-            flattened_dict = {}
-            for k, v in d.items():
-                new_key = parent_key + sep + k if parent_key else k
-                if isinstance(v, dict):
-                    flattened_dict.update(flatten_dict(v, new_key, sep))
-                elif isinstance(v, QuerySet):
-                    values = list(v.values_list('classification_system_fk_id__class_desc', flat=True))
-                    flattened_dict[new_key] = ",".join(values)
+            def flatten_dict(d, parent_key='', sep='_'):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    elif isinstance(v, QuerySet):
+                        values = list(v.values_list('classification_system_fk_id__class_desc', flat=True))
+                        flattened_dict[new_key] = ",".join(values)
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = ['Number', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group', 'Region', 'District', 'Conservation List', 'Conservation Category', 'Processing Status']
+            df.columns = new_headings
+            column_order = ['Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Processing Status']
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_Species.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_Species.csv'
+                    response.write(csv_data)
+                    return response
+                
                 else:
-                    flattened_dict[new_key] = v
-            return flattened_dict
-
-        flattened_data = [flatten_dict(item) for item in filtered_data]
-        df = pd.DataFrame(flattened_data)
-
-        if export_format is not None:
-            if export_format == "excel":
-                buffer = BytesIO()
-                workbook = Workbook()
-                sheet_name = 'Sheet1'
-                sheet = workbook.active
-                sheet.title = sheet_name
-
-                for row in dataframe_to_rows(df, index=False, header=True):
-                    sheet.append(row)
-
-                workbook.save(buffer)
-                buffer.seek(0)
-                response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
-                response['Content-Disposition'] = 'attachment; filename=DBCA_Species.xlsx'
-                final_response = response
-                buffer.close()
-                return final_response
-            
-            elif export_format == "csv":
-                csv_data = df.to_csv(index=False)
-                response = HttpResponse(content_type='text/csv')
-                response['Content-Disposition'] = 'attachment; filename=DBCA_Species.csv'
-                response.write(csv_data)
-                return response
-            
-            else:
-                return Response(status=400, data="Format not valid")
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
 
 class CommunitiesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -932,6 +942,70 @@ class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
+    
+    @list_route(methods=['GET',], detail=False)
+    def communities_internal_export(self, request, *args, **kwargs):
+        
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get('export_format')
+        allowed_fields = ['conservation_status_number', 'community_number', 'community_migrated_id', 'community_name', 'community_status', 'region', 'district', 'conservation_list', 'conservation_category', 'processing_status']
+        serializer = ListCommunitiesSerializer(qs, context={'request': request}, many=True)
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key='', sep='_'):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = ['Number', 'Community Id', 'Community Name', 'Community Status', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Processing Status']
+            df.columns = new_headings
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_Communities.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_Communities.csv'
+                    response.write(csv_data)
+                    return response
+                
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
 
 
 class SpeciesViewSet(viewsets.ModelViewSet):
