@@ -1843,38 +1843,38 @@ class ConservationThreat(models.Model):
             return self.community.id
 
 
-# TODO Model not used at the moment
-class ConservationPlan(models.Model):
-    """
-    Each occurrence of each species can have one or more plan to protect it.
+# # TODO Model not used at the moment
+# class ConservationPlan(models.Model):
+#     """
+#     Each occurrence of each species can have one or more plan to protect it.
 
-    Has a:
-    - N/A
-    Used by:
-    - Species
-    Is:
-    - Table
-    """
-    region = models.ForeignKey(Region, 
-                               default=None,
-                               on_delete=models.CASCADE)
-    district = models.ForeignKey(District, 
-                                 default=None,
-                                 on_delete=models.CASCADE)
-    type = models.CharField(max_length=512,
-                            default="None")
-    comment = models.CharField(max_length=512,
-                               default="None")
-    source = models.CharField(max_length=1024,
-                              default="None")
+#     Has a:
+#     - N/A
+#     Used by:
+#     - Species
+#     Is:
+#     - Table
+#     """
+#     region = models.ForeignKey(Region, 
+#                                default=None,
+#                                on_delete=models.CASCADE)
+#     district = models.ForeignKey(District, 
+#                                  default=None,
+#                                  on_delete=models.CASCADE)
+#     type = models.CharField(max_length=512,
+#                             default="None")
+#     comment = models.CharField(max_length=512,
+#                                default="None")
+#     source = models.CharField(max_length=1024,
+#                               default="None")
 
-    species = models.ManyToManyField(Species, blank=False)
+#     species = models.ManyToManyField(Species, blank=False)
 
-    class Meta:
-        app_label = 'boranga'
+#     class Meta:
+#         app_label = 'boranga'
 
-    def __str__(self):
-        return str(self.threat_category)  # TODO: is the most appropriate?
+#     def __str__(self):
+#         return str(self.threat_category)  # TODO: is the most appropriate?
 
 # list used in Conservation Attributes
 class FloweringPeriod(models.Model):

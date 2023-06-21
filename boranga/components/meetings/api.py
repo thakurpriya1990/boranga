@@ -32,6 +32,7 @@ from boranga.components.meetings.models import(
     Minutes,
     Committee,
     CommitteeMembers,
+    AgendaItem,
 )
 
 from boranga.components.meetings.serializers import(
@@ -45,7 +46,11 @@ from boranga.components.meetings.serializers import(
     MinutesSerializer,
     SaveMinutesSerializer,
     CommitteeMembersSerializer,
+    ListAgendaItemSerializer,
+    AgendaItemSerializer,
 )
+
+from boranga.components.conservation_status.models import ConservationStatus
 
 
 class MeetingFilterBackend(DatatablesFilterBackend):
@@ -236,6 +241,71 @@ class MeetingViewSet(viewsets.ModelViewSet):
             else:
                 if hasattr(e,'message'):
                     raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    # used form the meeting Queue section datatable to show the agenda items for the meeting
+    @detail_route(methods=['GET',], detail=True)
+    def fetch_agenda_items(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.agenda_items.all()
+            serializer = ListAgendaItemSerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    # used to add the conservation status to the meeting agenda  items
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def add_agenda_item(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                request_data = request.data
+                if request_data['conservation_status_id']:
+                    cs = ConservationStatus.objects.get(id=request_data['conservation_status_id'])
+                    instance.agenda_items.create(conservation_status=cs)
+                agenda_items = [cs.conservation_status_id for cs in instance.agenda_items.all()]
+            return Response(agenda_items)
+
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    # used to remove the conservation status from the meeting agenda  items
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def remove_agenda_item(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                request_data = request.data
+                if request_data['conservation_status_id']:
+                    cs = ConservationStatus.objects.get(id=request_data['conservation_status_id'])
+                    agenda_item = AgendaItem.objects.get(meeting=instance, conservation_status=cs)
+                    agenda_item.delete()
+                agenda_items = [cs.conservation_status_id for cs in instance.agenda_items.all()]
+            return Response(agenda_items)
+
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -465,4 +535,50 @@ class CommitteeViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))    
+            raise serializers.ValidationError(str(e))
+
+
+class AgendaItemViewSet(viewsets.ModelViewSet):
+    #queryset = ProposalRequirement.objects.all()
+    queryset = AgendaItem.objects.none()
+    serializer_class = AgendaItemSerializer
+
+    def get_queryset(self):
+        qs = AgendaItem.objects.all()
+        return qs
+
+    @detail_route(methods=['GET',], detail=True)
+    def move_up(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.up()
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def move_down(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.down()
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
