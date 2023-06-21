@@ -38,7 +38,6 @@
                 :dtOptions="datatable_options" 
                 :dtHeaders="datatable_headers"/>
             </div>
-
         </div>
     </div>
 </template>

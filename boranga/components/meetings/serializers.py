@@ -9,8 +9,10 @@ from boranga.components.meetings.models import(
         Minutes,
         Committee,
         CommitteeMembers,
+        AgendaItem,
     )
 from boranga.components.main.serializers import CommunicationLogEntrySerializer, EmailUserSerializer
+from boranga.components.conservation_status.serializers import ListConservationStatusSerializer
 from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
 from django.db.models import Q
@@ -57,6 +59,53 @@ class CreateMeetingSerializer(serializers.ModelSerializer):
             'id',
             )
 
+class ListAgendaItemSerializer(serializers.ModelSerializer):
+    conservation_status_number = serializers.SerializerMethodField(read_only = True)
+    scientific_name = serializers.SerializerMethodField(read_only = True)
+    community_name = serializers.SerializerMethodField(read_only = True)
+    class Meta:
+            model = AgendaItem
+            fields = (
+                    'id',
+                    'meeting_id',
+                    'conservation_status_id',
+                    'conservation_status_number',
+                    'scientific_name',
+                    'community_name',
+                )
+
+    def get_conservation_status_number(self, obj):
+        if obj.conservation_status:
+            return obj.conservation_status.conservation_status_number
+        else:
+            return ''
+        
+    def get_scientific_name(self, obj):
+        if obj.conservation_status:
+            if obj.conservation_status.species:
+                return obj.conservation_status.species.taxonomy.scientific_name
+        else:
+            return ''
+    
+    def get_community_name(self, obj):
+        if obj.conservation_status:
+            if obj.conservation_status.community:
+                return obj.conservation_status.community.taxonomy.community_name
+        else:
+            return ''
+
+
+class AgendaItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AgendaItem
+        fields = (
+                'id',
+                'meeting',
+                'conservation_status',
+                'order',
+                )
+        read_only_fields = ('order','id')
+
 
 class MeetingSerializer(serializers.ModelSerializer):
     processing_status_display = serializers.SerializerMethodField(read_only=True)
@@ -64,6 +113,7 @@ class MeetingSerializer(serializers.ModelSerializer):
     start_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     end_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     selected_committee_members = serializers.SerializerMethodField(read_only=True)
+    agenda_items_arr = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Meeting
@@ -83,6 +133,7 @@ class MeetingSerializer(serializers.ModelSerializer):
                 'can_user_edit',
                 'lodgement_date',
                 'submitter',
+                'agenda_items_arr',
             )
     
     def get_processing_status_display(self,obj):
@@ -97,6 +148,9 @@ class MeetingSerializer(serializers.ModelSerializer):
     
     def get_selected_committee_members(self,obj):
         return [m.id for m in obj.selected_committee_members.all()]
+    
+    def get_agenda_items_arr(self,obj):
+        return [cs.conservation_status_id for cs in obj.agenda_items.all()]
 
 
 class SaveMeetingSerializer(serializers.ModelSerializer):

@@ -76,6 +76,13 @@
                                     :is_internal="true">
                                     <!-- TODO add hasAssessorMode props to ProposalMeeting -->
                                 </MeetingSection>
+                                <CSQueue
+                                    ref="cs_queue" 
+                                    :meeting_obj="meeting_obj" 
+                                    id="CSQueue" 
+                                    :is_internal="true">
+                                    <!-- TODO add hasAssessorMode props to ProposalMeeting -->
+                                </CSQueue>
                                 <Minutes
                                     ref="minutes" 
                                     :meeting_obj="meeting_obj" 
@@ -138,6 +145,7 @@ import Workflow from '@common-utils/workflow.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import MeetingSection from './meeting_section.vue'
 import Minutes from './minutes.vue'
+import CSQueue from './cs_queue.vue';
 import {
     api_endpoints,
     helpers
@@ -172,7 +180,7 @@ export default {
         Workflow,
         MeetingSection,
         Minutes,
-        
+        CSQueue,
     },
     filters: {
         formatDate: function(data){

@@ -351,6 +351,18 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         serializer = ListSpeciesConservationStatusSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
     
+    # used for Meeting Agenda Modal where status is 'ready_for_agenda'
+    @list_route(methods=['GET',], detail=False)
+    def agenda_cs_internal(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = qs.filter(processing_status=ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA)
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListSpeciesConservationStatusSerializer(result_page, context={'request': request}, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
+    
     @list_route(methods=['GET',], detail=False)
     def species_cs_internal_export(self, request, *args, **kwargs):
         
@@ -633,6 +645,17 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET',], detail=False)
     def community_cs_internal(self, request, *args, **kwargs):
         qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListCommunityConservationStatusSerializer(result_page, context={'request': request}, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
+    
+    @list_route(methods=['GET',], detail=False)
+    def agenda_cs_internal(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = qs.filter(processing_status=ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA)
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
