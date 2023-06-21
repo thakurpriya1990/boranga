@@ -61,6 +61,7 @@
                     :dtHeaders="members_headers"/>
                 </div>
             </div>
+
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Location:</label>
                 <div class="col-sm-8">
@@ -94,6 +95,7 @@
 import Vue from 'vue' ;
 import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
+
 import {
   api_endpoints,
   helpers
@@ -161,22 +163,22 @@ export default {
                          "<'row'<'col-sm-12'tr>>" +
                          "<'d-flex align-items-center'<'me-auto'i>p>",
                     buttons:[
-                        {
-                            extend: 'excel',
-                            text: '<i class="fa-solid fa-download"></i> Excel',
-                            className: 'btn btn-primary ml-2',
-                            exportOptions: {
-                                orthogonal: 'export' 
-                            }
-                        },
-                        {
-                            extend: 'csv',
-                            text: '<i class="fa-solid fa-download"></i> CSV',
-                            className: 'btn btn-primary',
-                            exportOptions: {
-                                orthogonal: 'export' 
-                            }
-                        },
+                        // {
+                        //     extend: 'excel',
+                        //     text: '<i class="fa-solid fa-download"></i> Excel',
+                        //     className: 'btn btn-primary ml-2',
+                        //     exportOptions: {
+                        //         orthogonal: 'export' 
+                        //     }
+                        // },
+                        // {
+                        //     extend: 'csv',
+                        //     text: '<i class="fa-solid fa-download"></i> CSV',
+                        //     className: 'btn btn-primary',
+                        //     exportOptions: {
+                        //         orthogonal: 'export' 
+                        //     }
+                        // },
                     ],
                     columns: [
                         {

@@ -104,7 +104,7 @@
             </div>
         </CollapsibleFilters>
 
-        <div v-if="addFloraCSVisibility" class="col-md-12">
+        <div v-if="addFloraCSVisibility && is_for_agenda==false" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add/Propose Conservation Satus</button>
             </div>
@@ -163,6 +163,17 @@ export default {
             type: String,
             required: true
         },
+        // when the datable need to be shown for agenda_items in meeting check this variable is true
+        is_for_agenda:{
+            type: Boolean,
+            default:false
+        },
+        // for adding agendaitems for the meeting_obj.id
+        meeting_obj:{
+            type: Object,
+            required:false
+        },
+        //-----------------------------
         filterCSFloraScientificName_cache: {
             type: String,
             required: false,
@@ -627,23 +638,33 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     let links = "";
-                    if (!vm.is_external){
-                        /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                        if(full.internal_user_edit)
-                        {
-                            links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
-                        }
-                        else{
-                            if(full.assessor_process){
-                                    links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
+                    if(vm.is_for_agenda==false){
+                        if (!vm.is_external){
+                            /*if(vm.check_assessor(full) && full.can_officer_process)*/
+                            if(full.internal_user_edit)
+                            {
+                                links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
+                                links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
                             }
                             else{
-                                if(full.assessor_edit){
-                                    links +=  `<a href='/internal/conservation_status/${full.id}?action=edit'>Edit</a><br/>`;
+                                if(full.assessor_process){
+                                        links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
                                 }
-                                links +=  `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
+                                else{
+                                    if(full.assessor_edit){
+                                        links +=  `<a href='/internal/conservation_status/${full.id}?action=edit'>Edit</a><br/>`;
+                                    }
+                                    links +=  `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
+                                }
                             }
+                        }
+                    }
+                    else{
+                        if(vm.meeting_obj.agenda_items_arr.includes(full.id)){
+                            links +=  `<a>Added</a><br/>`;
+                        }
+                        else{
+                            links +=  `<a href='#${full.id}' data-add-to-agenda='${full.id}'>Add</a><br/>`;
                         }
                     }
                     return links;
@@ -758,7 +779,7 @@ export default {
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",
-                buttons: buttons,
+                buttons: vm.is_for_agenda==false?buttons:[],
 
                 columns: columns,
                 processing: true,
@@ -1035,6 +1056,19 @@ export default {
 
             });
         },
+        addToMeetingAgenda:function (conservation_status_id) {
+            let vm=this;
+            let payload = new Object();
+            payload.conservation_status_id = conservation_status_id;
+            Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/add_agenda_item.json`,payload).then(res => {
+                vm.meeting_obj.agenda_items_arr=res.body;
+                vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload();
+                this.$emit('updateAgendaItems');
+            },
+            err => {
+              console.log(err);
+            });
+        },
         addEventListeners: function(){
             let vm = this;
             // internal Discard listener
@@ -1042,6 +1076,12 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-cs-proposal');
                 vm.discardCSProposal(id);
+            });
+
+            vm.$refs.flora_cs_datatable.vmDataTable.on('click', 'a[data-add-to-agenda]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-add-to-agenda');
+                vm.addToMeetingAgenda(id);
             });
         },
         initialiseSearch:function(){
@@ -1110,7 +1150,7 @@ export default {
             vm.initialiseCommonNameLookup();
             vm.initialiseFamilyLookup();
             vm.initialiseGeneraLookup();
-            vm.initialiseSearch();
+            //vm.initialiseSearch();
             vm.addEventListeners();
             
             // -- to set the select2 field with the session value if exists onload()

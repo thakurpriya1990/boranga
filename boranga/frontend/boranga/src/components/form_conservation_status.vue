@@ -33,7 +33,7 @@
                   class="nav-link" 
                   id="pills-related-items-tab" 
                   data-bs-toggle="pill" 
-                  data-bs-target="#pills-related-items" 
+                  href="#pills-related-items" 
                   role="tab" 
                   aria-controls="pills-related-items" 
                   aria-selected="false"

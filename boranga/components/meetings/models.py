@@ -31,6 +31,8 @@ from boranga.components.species_and_communities.models import (
     DocumentCategory,
     DocumentSubCategory,
 )
+from boranga.components.conservation_status.models import ConservationStatus
+from boranga.ordered_model import OrderedModel
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +97,7 @@ class Committee(models.Model):
 
 class Meeting(models.Model):
     """
-    A change in conservation status for a species is executed during Committee Meetings. 
+    A list of conservation status for a species is executed during Meetings or Committee Meetings. 
     It is necessary to capture these changes and the meetings that caused the change. 
 
     Has a:
@@ -123,8 +125,11 @@ class Meeting(models.Model):
     location = models.ForeignKey(MeetingRoom, on_delete=models.SET_NULL, null=True, blank=True, related_name="meetings")
     title = models.CharField(max_length=128, blank=True, null=True)
     attendees = models.CharField(max_length=1208, blank=True, null=True)
+    # if commitee meeting 
     committee = models.ForeignKey(Committee, on_delete=models.SET_NULL, null=True, blank=True, related_name="committee")
     selected_committee_members = models.ManyToManyField(CommitteeMembers, null=True, blank=True)
+    # Agenda items are all conservationstatus added to the meeting
+    agenda = models.ManyToManyField(ConservationStatus, null=True, blank=True)
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     lodgement_date = models.DateTimeField(blank=True, null=True)
@@ -314,3 +319,21 @@ class Minutes(Document):
             except:
                 raise
         return
+
+
+class AgendaItem(OrderedModel):
+    meeting = models.ForeignKey(Meeting,on_delete=models.CASCADE,related_name='agenda_items')
+    conservation_status = models.ForeignKey(ConservationStatus, on_delete=models.CASCADE)
+    # order = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+        unique_together = ("meeting", "conservation_status")
+        ordering = ["meeting", "order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["meeting", "order"],
+                name="unique agenda order per Meeting",
+            )
+        ]
+

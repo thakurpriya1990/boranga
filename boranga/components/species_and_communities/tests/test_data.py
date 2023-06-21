@@ -10,7 +10,7 @@ import django
 # Create your tests here.
 from boranga.components.species_and_communities.models import DISTRICT_SWAN_COASTAL, REGION_CHOICES, REGION_SOUTH_WEST, CommitteeMeeting, Contact, District, DocumentCategory, NameAuthority, Region, Species, GroupType,  \
     SpeciesAttributes, Taxonomy, Community, SpeciesDocument, ConservationThreat, \
-    ConservationPlan, SpeciesDistribution,CommunityDistribution, SpeciesConservationAttributes, ThreatCategory
+    SpeciesDistribution,CommunityDistribution, SpeciesConservationAttributes, ThreatCategory
 
 from boranga.components.conservation_status.models import(
     ConservationList,
@@ -306,13 +306,7 @@ def create_species_fauna():
                     _type = "Regular"
                     comment = "{} is a fauna plan.".format(fauna_row[8])
                     source = "WA Museum"
-                    conservation_plans = ConservationPlan.objects.create(region=region,
-                                                                         district=district,
-                                                                         type=_type,
-                                                                         comment=comment,
-                                                                         source=source,)
-                    conservation_plans.species.add(fauna)
-
+                    
                     department_file_numbers = fauna_row[3]
                     community_original_area = randrange(10000)
                     community_original_area_accuracy = randrange(1000)
@@ -439,13 +433,7 @@ def create_species_flora():
                         _type = "Regular"
                         comment = "{} is a fauna plan.".format(flora_row[8])
                         source = "WA Museum"
-                        conservation_plans = ConservationPlan.objects.create(region=region,
-                                                                            district=district,
-                                                                            type=_type,
-                                                                            comment=comment,
-                                                                            source=source,)
-                        conservation_plans.species.add(flora)
-
+                        
                         department_file_numbers = flora_row[3]
                         community_original_area = randrange(10000)
                         community_original_area_accuracy = randrange(1000)

@@ -70,22 +70,22 @@ export default {
                          "<'row'<'col-sm-12'tr>>" +
                          "<'d-flex align-items-center'<'me-auto'i>p>",
                     buttons:[
-                        {
-                            extend: 'excel',
-                            text: '<i class="fa-solid fa-download"></i> Excel',
-                            className: 'btn btn-primary ml-2',
-                            exportOptions: {
-                                orthogonal: 'export' 
-                            }
-                        },
-                        {
-                            extend: 'csv',
-                            text: '<i class="fa-solid fa-download"></i> CSV',
-                            className: 'btn btn-primary',
-                            exportOptions: {
-                                orthogonal: 'export' 
-                            }
-                        },
+                        // {
+                        //     extend: 'excel',
+                        //     text: '<i class="fa-solid fa-download"></i> Excel',
+                        //     className: 'btn btn-primary ml-2',
+                        //     exportOptions: {
+                        //         orthogonal: 'export' 
+                        //     }
+                        // },
+                        // {
+                        //     extend: 'csv',
+                        //     text: '<i class="fa-solid fa-download"></i> CSV',
+                        //     className: 'btn btn-primary',
+                        //     exportOptions: {
+                        //         orthogonal: 'export' 
+                        //     }
+                        // },
                     ],
                     columns: [
                         {

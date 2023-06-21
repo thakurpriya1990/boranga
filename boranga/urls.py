@@ -58,6 +58,7 @@ router.register(r'meeting',meeting_api.MeetingViewSet)
 router.register(r'meeting_paginated',meeting_api.MeetingPaginatedViewSet)
 router.register(r'minutes',meeting_api.MinutesViewSet)
 router.register(r'committee',meeting_api.CommitteeViewSet)
+router.register(r'meeting_agenda_items',meeting_api.AgendaItemViewSet)
 
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)

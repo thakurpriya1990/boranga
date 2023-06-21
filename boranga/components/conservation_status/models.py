@@ -223,6 +223,7 @@ class ConservationStatus(models.Model):
     """
     CUSTOMER_STATUS_DRAFT = 'draft'
     CUSTOMER_STATUS_WITH_ASSESSOR = 'with_assessor'
+    CUSTOMER_STATUS_READY_FOR_AGENDA = 'ready_for_agenda'
     CUSTOMER_STATUS_AMENDMENT_REQUIRED = 'amendment_required'
     CUSTOMER_STATUS_APPROVED = 'approved'
     CUSTOMER_STATUS_DECLINED = 'declined'
@@ -232,6 +233,7 @@ class ConservationStatus(models.Model):
     CUSTOMER_STATUS_PARTIALLY_DECLINED = 'partially_declined'
     CUSTOMER_STATUS_CHOICES = ((CUSTOMER_STATUS_DRAFT, 'Draft'),
                                (CUSTOMER_STATUS_WITH_ASSESSOR, 'Under Review'),
+                               (CUSTOMER_STATUS_READY_FOR_AGENDA, 'Under Review'),
                                (CUSTOMER_STATUS_AMENDMENT_REQUIRED, 'Amendment Required'),
                                (CUSTOMER_STATUS_APPROVED, 'Approved'),
                                (CUSTOMER_STATUS_DECLINED, 'Declined'),
@@ -254,6 +256,7 @@ class ConservationStatus(models.Model):
     PROCESSING_STATUS_WITH_ASSESSOR = 'with_assessor'
     PROCESSING_STATUS_WITH_REFERRAL = 'with_referral'
     PROCESSING_STATUS_WITH_APPROVER = 'with_approver'
+    PROCESSING_STATUS_READY_FOR_AGENDA = 'ready_for_agenda'
     PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE = 'awaiting_applicant_respone'
     PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE = 'awaiting_assessor_response'
     PROCESSING_STATUS_AWAITING_RESPONSES = 'awaiting_responses'
@@ -267,6 +270,7 @@ class ConservationStatus(models.Model):
                                  (PROCESSING_STATUS_WITH_ASSESSOR, 'With Assessor'),
                                  (PROCESSING_STATUS_WITH_REFERRAL, 'With Referral'),
                                  (PROCESSING_STATUS_WITH_APPROVER, 'With Approver'),
+                                 (PROCESSING_STATUS_READY_FOR_AGENDA, 'Ready For Agenda'),
                                  (PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE, 'Awaiting Applicant Response'),
                                  (PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE, 'Awaiting Assessor Response'),
                                  (PROCESSING_STATUS_AWAITING_RESPONSES, 'Awaiting Responses'),
