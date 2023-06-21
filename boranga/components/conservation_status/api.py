@@ -31,6 +31,13 @@ from boranga.components.main.decorators import basic_exception_handler
 
 from boranga.components.main.related_item import RelatedItemsSerializer
 
+import pandas as pd
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from openpyxl.utils.dataframe import dataframe_to_rows
+from io import BytesIO
+from django.db.models.query import QuerySet
+
 from boranga.components.species_and_communities.models import(
     Species,
     Community,
@@ -355,6 +362,73 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesConservationStatusSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
+    
+    @list_route(methods=['GET',], detail=False)
+    def species_cs_internal_export(self, request, *args, **kwargs):
+        
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get('export_format')
+        allowed_fields = ['species_number', 'scientific_name', 'common_name', 'family', 'genus', 'phylogenetic_group', 'region', 'district', 'conservation_list', 'conservation_category', 'processing_status', 'effective_from_date', 'effective_to_date', 'conservation_status_number']
+
+        serializer = ListSpeciesConservationStatusSerializer(qs, context={'request': request}, many=True)
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key='', sep='_'):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group', 'Region', 'District', 'Conservation List', 'Conservation Category',  'Processing Status', 'Effective From Date', 'Effective To Date']
+            df.columns = new_headings
+            column_order = ['Number', 'Species', 'Scientific Name', 'Common Name', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Processing Status']
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ConservationStatus_Species.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ConservationStatus_Species.csv'
+                    response.write(csv_data)
+                    return response
+                
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
 
     @list_route(methods=['GET',], detail=False)
     def species_cs_referrals_internal(self, request, *args, **kwargs):
@@ -374,6 +448,74 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTConservationStatusReferralSerializer(result_page, context={'request':request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
+    
+    @list_route(methods=['GET',], detail=False)
+    def species_cs_referrals_internal_export(self, request, *args, **kwargs):
+        
+        self.serializer_class = ConservationStatusReferralSerializer
+        qs = ConservationStatusReferral.objects.filter(referral=request.user.id) if is_internal(self.request) else ConservationStatusReferral.objects.none()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get('export_format')
+        allowed_fields = ['species_number', 'scientific_name', 'family', 'genus', 'conservation_list', 'conservation_category', 'processing_status', 'conservation_status_number']
+
+        serializer = DTConservationStatusReferralSerializer(qs, context={'request': request}, many=True)
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key='', sep='_'):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = ['Processing Status', 'Number', 'Species', 'Scientific Name', 'Conservation List', 'Conservation Category', 'Family', 'Genera']
+            df.columns = new_headings
+            column_order = ['Number', 'Species', 'Scientific Name', 'Conservation List', 'Conservation Category', 'Family', 'Genera', 'Processing Status']
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ConservationStatus_Species_Referrals.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ConservationStatus_Species_Referrals.csv'
+                    response.write(csv_data)
+                    return response
+                
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
 
 
 class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
@@ -522,6 +664,73 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
     @list_route(methods=['GET',], detail=False)
+    def community_cs_internal_export(self, request, *args, **kwargs):
+        
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get('export_format')
+        allowed_fields = ['conservation_status_number', 'community_number', 'community_migrated_id', 'community_name', 'community_status', 'region', 'district', 'conservation_list', 'conservation_category', 'processing_status', 'effective_from_date', 'effective_to_date']
+
+        serializer = ListCommunityConservationStatusSerializer(qs, context={'request': request}, many=True)
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key='', sep='_'):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = ['Number', 'Community', 'Community Id', 'Community Name', 'Community Status', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Processing Status', 'Effective From Date', 'Effective To Date']
+            df.columns = new_headings
+            column_order = ['Number', 'Community', 'Community Id', 'Community Name', 'Community Status', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Processing Status']
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ConservationStatus_Communities.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ConservationStatus_Communities.csv'
+                    response.write(csv_data)
+                    return response
+                
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
+
+    @list_route(methods=['GET',], detail=False)
     def community_cs_referrals_internal(self, request, *args, **kwargs):
         """
         Used by the internal Referred to me dashboard
@@ -539,6 +748,74 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTConservationStatusReferralSerializer(result_page, context={'request':request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
+
+    @list_route(methods=['GET',], detail=False)
+    def community_cs_referrals_internal_export(self, request, *args, **kwargs):
+        
+        self.serializer_class = ConservationStatusReferralSerializer
+        qs = ConservationStatusReferral.objects.filter(referral=request.user.id) if is_internal(self.request) else ConservationStatusReferral.objects.none()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get('export_format')
+        allowed_fields = ['family', 'genus', 'conservation_list', 'conservation_category', 'processing_status', 'community_number', 'community_migrated_id', 'community_name', 'conservation_status_number']
+
+        serializer = DTConservationStatusReferralSerializer(qs, context={'request': request}, many=True)
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key='', sep='_'):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = ['Processing Status', 'Number', 'Conservation List', 'Conservation Category', 'Family', 'Genera', 'Community', 'Community Id', 'Community Name']
+            df.columns = new_headings
+            column_order = ['Number', 'Community', 'Community Id', 'Community Name', 'Conservation List', 'Conservation Category', 'Family', 'Genera', 'Processing Status']
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ConservationStatus_Communities_Referrals.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ConservationStatus_Communities_Referrals.csv'
+                    response.write(csv_data)
+                    return response
+                
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
 
 
 class ConservationStatusFilterBackend(DatatablesFilterBackend):
