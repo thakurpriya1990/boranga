@@ -2,79 +2,20 @@
     <div>
         <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
             <div class="row">
-                <div class="col-md-3">
+                <!-- <div class="col-md-3">
                     <div class="form-group">
-                        <label for="cs_scientific_name_lookup">Scientific Name:</label>
+                        <label for="cp_non_current_name_lookup">Non-current Name:</label>
                         <select 
-                            id="cs_scientific_name_lookup"  
-                            name="cs_scientific_name_lookup"  
-                            ref="cs_scientific_name_lookup" 
+                            id="cp_non_current_name_lookup"  
+                            name="cp_non_current_name_lookup"  
+                            ref="cp_non_current_name_lookup" 
                             class="form-control" />
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="cs_common_name_lookup">Common Name:</label>
-                        <select 
-                            id="cs_common_name_lookup"  
-                            name="cs_common_name_lookup"  
-                            ref="cs_common_name_lookup" 
-                            class="form-control" />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="cs_phylo_group_lookup">Phylo Group:</label>
-                        <select 
-                            id="cs_phylo_group_lookup"  
-                            name="cs_phylo_group_lookup"  
-                            ref="cs_phylo_group_lookup" 
-                            class="form-control" />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="cs_family_lookup">Family:</label>
-                        <select 
-                            id="cs_family_lookup"  
-                            name="cs_family_lookup"  
-                            ref="cs_family_lookup" 
-                            class="form-control" />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="cs_genera_lookup">Genera:</label>
-                        <select 
-                            id="cs_genera_lookup"  
-                            name="cs_genera_lookup"  
-                            ref="cs_genera_lookup" 
-                            class="form-control" />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSFaunaConservationList" 
-                        @change="filterConservationCategory($event)">
-                            <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation Category:</label>
-                        <select class="form-select" v-model="filterCSFaunaConservationCategory">
-                            <option value="all">All</option>
-                            <option v-for="list in filtered_conservation_category_list" :value="list.id">{{list.code}}</option>
-                        </select>
-                    </div>
-                </div>
+                </div> -->
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Status:</label>
-                        <select class="form-select" v-model="filterCSFaunaApplicationStatus">
+                        <select class="form-select" v-model="filterCPFaunaApplicationStatus">
                             <option value="all">All</option>
                             <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
                         </select>
@@ -82,8 +23,18 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
+                        <label for="cp_type">Type:</label>
+                        <select 
+                            id="cp_type"  
+                            name="cp_type"  
+                            ref="cp_type" 
+                            class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
                         <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSFaunaRegion"
+                        <select class="form-select" v-model="filterCPFaunaRegion"
                         @change="filterDistrict($event)">
                             <option value="all">All</option>
                             <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">{{region.name}}</option>
@@ -93,37 +44,79 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">District:</label>
-                        <select class="form-select" v-model="filterCSFaunaDistrict">
+                        <select class="form-select" v-model="filterCPFaunaDistrict">
                             <option value="all">All</option>
                             <option v-for="district in filtered_district_list" :value="district.id">{{district.name}}</option>
                         </select>
                     </div>
                 </div>
+                <!-- <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="cp_approval_status">Approval Status:</label>
+                        <select 
+                            id="cp_approval_status"  
+                            name="cp_approval_status"  
+                            ref="cp_approval_status" 
+                            class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="cp_commonwealth_status">Commonwealth Status:</label>
+                        <select 
+                            id="cp_commonwealth_status"  
+                            name="cp_commonwealth_status"  
+                            ref="cp_commonwealth_status" 
+                            class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="cp_wa_status">Western Australia Status:</label>
+                        <select 
+                            id="cp_wa_status"  
+                            name="cp_wa_status"  
+                            ref="cp_wa_status" 
+                            class="form-control" />
+                    </div>
+                </div> -->
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Effective From Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveFromDate">
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCPFaunaEffectiveFromDate">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Effective To Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveToDate">
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCPFaunaEffectiveToDate">
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Review Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="review_date" v-model="filterCPFaunaReviewDate">
+                    </div>
+                </div>
+                <!-- <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Review Date To:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="review_date_to" v-model="filterCPFaunaReviewToDate">
+                    </div>
+                </div> -->
             </div>
         </CollapsibleFilters>
-        
-        <div v-if="addFaunaCSVisibility" class="col-md-12">
+
+        <div v-if="addFaunaCPVisibility" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Plan</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaConservationPlan"><i class="fa-solid fa-circle-plus"></i> Add Conservation Plan</button>
             </div>
         </div>
 
         <div class="row">
             <div class="col-lg-12">
                 <datatable
-                        ref="fauna_cs_datatable"
+                        ref="fauna_cp_datatable"
                         :id="datatable_id"
                         :dtOptions="datatable_options"
                         :dtHeaders="datatable_headers"
@@ -138,6 +131,8 @@ import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
 import Vue from 'vue'
+require("select2/dist/css/select2.min.css");
+require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
 import {
     api_endpoints,
     helpers
@@ -166,123 +161,75 @@ export default {
             type: String,
             required: true
         },
-        filterCSFaunaScientificName_cache: {
+        filterCPFaunaType_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaScientificName',
+            default: 'filterCPFaunaType',
         },
-        filterCSFaunaCommonName_cache: {
+        filterCPFaunaRegion_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaCommonName',
+            default: 'filterCPFaunaRegion',
         },
-        filterCSFaunaPhylogeneticGroup_cache: {
+        filterCPFaunaDistrict_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaPhylogeneticGroup',
+            default: 'filterCPFaunaDistrict',
         },
-        filterCSFaunaFamily_cache: {
+        filterCPFaunaApplicationStatus_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaFamily',
+            default: 'filterCPFaunaApplicationStatus',
         },
-        filterCSFaunaGenus_cache: {
+        filterCPFaunaEffectiveFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaGenus',
+            default: 'filterCPFaunaEffectiveFromDate',
         },
-        filterCSFaunaConservationList_cache: {
+        filterCPFaunaEffectiveToDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaConservationList',
+            default: 'filterCPFaunaEffectiveToDate',
         },
-        filterCSFaunaConservationCategory_cache: {
+        filterCPFaunaReviewDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaConservationCategory',
+            default: 'filterCPFaunaReviewDate',
         },
-        filterCSFaunaRegion_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFaunaRegion',
-        },
-        filterCSFaunaDistrict_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFaunaDistrict',
-        },
-        filterCSFaunaApplicationStatus_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFaunaApplicationStatus',
-        },
-        filterCSFaunaEffectiveFromDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFaunaEffectiveFromDate',
-        },
-        filterCSFaunaEffectiveToDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFaunaEffectiveToDate',
-        },
+
     },
     data() {
         let vm = this;
         return {
-            datatable_id: 'species_fauna_cs-datatable-'+vm._uid,
+            datatable_id: 'species_fauna_cp-datatable-'+vm._uid,
      
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
             
             // selected values for filtering
-            filterCSFaunaScientificName: sessionStorage.getItem(this.filterCSFaunaScientificName_cache) ? 
-                                    sessionStorage.getItem(this.filterCSFaunaScientificName_cache) : 'all',
+            filterCPFaunaType: sessionStorage.getItem(this.filterCPFaunaType_cache) ? 
+                                    sessionStorage.getItem(this.filterCPFaunaType_cache) : 'all',            
 
-            filterCSFaunaCommonName: sessionStorage.getItem(this.filterCSFaunaCommonName_cache) ? 
-                                    sessionStorage.getItem(this.filterCSFaunaCommonName_cache) : 'all',
+            filterCPFaunaRegion: sessionStorage.getItem(this.filterCPFaunaRegion_cache) ? 
+                                    sessionStorage.getItem(this.filterCPFaunaRegion_cache) : 'all',
 
-            filterCSFaunaPhylogeneticGroup: sessionStorage.getItem(this.filterCSFaunaPhylogeneticGroup_cache) ? 
-                                            sessionStorage.getItem(this.filterCSFaunaPhylogeneticGroup_cache) : 'all',
+            filterCPFaunaDistrict: sessionStorage.getItem(this.filterCPFaunaDistrict_cache) ? 
+                                    sessionStorage.getItem(this.filterCPFaunaDistrict_cache) : 'all',
 
-            filterCSFaunaFamily: sessionStorage.getItem(this.filterCSFaunaFamily_cache) ? 
-                                sessionStorage.getItem(this.filterCSFaunaFamily_cache) : 'all',
+            filterCPFaunaApplicationStatus: sessionStorage.getItem(this.filterCPFaunaApplicationStatus_cache) ?
+                                    sessionStorage.getItem(this.filterCPFaunaApplicationStatus_cache) : 'all',
 
-            filterCSFaunaGenus: sessionStorage.getItem(this.filterCSFaunaGenus_cache) ? 
-                                sessionStorage.getItem(this.filterCSFaunaGenus_cache) : 'all',
+            filterCPFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCPFaunaEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCPFaunaEffectiveFromDate_cache) : '',
 
-            filterCSFaunaConservationList: sessionStorage.getItem(this.filterCSFaunaConservationList_cache) ? 
-                                    sessionStorage.getItem(this.filterCSFaunaConservationList_cache) : 'all',
+            filterCPFaunaEffectiveToDate: sessionStorage.getItem(this.filterCPFaunaEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCPFaunaEffectiveToDate_cache) : '',
 
-            filterCSFaunaConservationCategory: sessionStorage.getItem(this.filterCSFaunaConservationCategory_cache) ? 
-                                    sessionStorage.getItem(this.filterCSFaunaConservationCategory_cache) : 'all',
-
-            filterCSFaunaRegion: sessionStorage.getItem(this.filterCSFaunaRegion_cache) ? 
-                                    sessionStorage.getItem(this.filterCSFaunaRegion_cache) : 'all',
-
-            filterCSFaunaDistrict: sessionStorage.getItem(this.filterCSFaunaDistrict_cache) ? 
-                                    sessionStorage.getItem(this.filterCSFaunaDistrict_cache) : 'all',
-
-            filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
-                                    sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'all',
-
-            filterCSFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFaunaEffectiveFromDate_cache) ?
-            sessionStorage.getItem(this.filterCSFaunaEffectiveFromDate_cache) : '',
-
-            filterCSFaunaEffectiveToDate: sessionStorage.getItem(this.filterCSFaunaEffectiveToDate_cache) ?
-            sessionStorage.getItem(this.filterCSFaunaEffectiveToDate_cache) : '',
+            filterCPFaunaReviewDate: sessionStorage.getItem(this.filterCPFaunaReviewDate_cache) ?
+            sessionStorage.getItem(this.filterCPFaunaReviewDate_cache) : '',
 
             //Filter list for scientific name and common name
-            filterListsSpecies: {},
-            scientific_name_list: [],
-            common_name_list: [],
-            family_list: [],
-            genus_list: [],
-            phylogenetic_group_list: [],
-            conservation_list_dict: [],
-            filtered_conservation_category_list: [],
-            conservation_category_list: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
@@ -317,65 +264,40 @@ export default {
         FormSection,
     },
     watch:{
-        filterCSFaunaScientificName: function(){
+        filterCPFaunaType: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaScientificName_cache, vm.filterCSFaunaScientificName);  
+            vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCPFaunaType_cache, vm.filterCPFaunaType);
         },
-        filterCSFaunaCommonName: function() {
+        filterCPFaunaRegion: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaCommonName_cache, vm.filterCSFaunaCommonName);  
+            vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCPFaunaRegion_cache, vm.filterCPFaunaRegion);
         },
-        filterCSFaunaPhylogeneticGroup: function() {
+        filterCPFaunaDistrict: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
-            sessionStorage.setItem(vm.filterCSFaunaPhylogeneticGroup_cache, vm.filterCSFaunaPhylogeneticGroup);
+            vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCPFaunaDistrict_cache, vm.filterCPFaunaDistrict);
         },
-        filterCSFaunaFamily: function() {
+        filterCPFaunaEffectiveFromDate: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaFamily_cache, vm.filterCSFaunaFamily);  
+            vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCPFaunaEffectiveFromDate_cache, vm.filterCPFaunaEffectiveFromDate);
         },
-        filterCSFaunaGenus: function() {
+        filterCPFaunaEffectiveToDate: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaGenus_cache, vm.filterCSFaunaGenus);  
+            vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCPFaunaEffectiveToDate_cache, vm.filterCPFaunaEffectiveToDate);
         },
-        filterCSFaunaConservationList: function() {
+        filterCPFaunaApplicationStatus: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
-            sessionStorage.setItem(vm.filterCSFaunaConservationList_cache, vm.filterCSFaunaConservationList);
+            vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterCPFaunaApplicationStatus_cache, vm.filterCPFaunaApplicationStatus);
         },
-        filterCSFaunaConservationCategory: function() {
+        filterCPFaunaReviewDate: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
-            sessionStorage.setItem(vm.filterCSFaunaConservationCategory_cache, vm.filterCSFaunaConservationCategory);
-        },
-        filterCSFaunaRegion: function(){
-            let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaRegion_cache, vm.filterCSFaunaRegion);
-        },
-        filterCSFaunaDistrict: function(){
-            let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaDistrict_cache, vm.filterCSFaunaDistrict);
-        },
-        filterCSFaunaEffectiveFromDate: function(){
-            let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaEffectiveFromDate_cache, vm.filterCSFaunaEffectiveFromDate);
-        },
-        filterCSFaunaEffectiveToDate: function(){
-            let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaEffectiveToDate_cache, vm.filterCSFaunaEffectiveToDate);
-        },
-        filterCSFaunaApplicationStatus: function() {
-            let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
-            sessionStorage.setItem(vm.filterCSFaunaApplicationStatus_cache, vm.filterCSFaunaApplicationStatus);
+            vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCPFaunaReviewDate_cache, vm.filterCPFaunaReviewDate);
         },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
@@ -386,18 +308,13 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCSFaunaScientificName === 'all' && 
-                this.filterCSFaunaCommonName === 'all' && 
-                this.filterCSFaunaPhylogeneticGroup === 'all' && 
-                this.filterCSFaunaFamily === 'all' && 
-                this.filterCSFaunaGenus === 'all' && 
-                this.filterCSFaunaConservationList === 'all' && 
-                this.filterCSFaunaConservationCategory === 'all' && 
-                this.filterCSFaunaRegion === 'all' && 
-                this.filterCSFaunaDistrict === 'all' && 
-                this.filterCSFaunaApplicationStatus === 'all' &&
-                this.filterCSFaunaEffectiveFromDate === '' &&
-                this.filterCSFaunaEffectiveToDate === ''){
+            if(this.filterCPFaunaType === 'all' && 
+                this.filterCPFaunaRegion === 'all' && 
+                this.filterCPFaunaDistrict === 'all' && 
+                this.filterCPFaunaApplicationStatus === 'all' &&
+                this.filterCPFaunaEffectiveFromDate === '' &&
+                this.filterCPFaunaEffectiveToDate === '' &&
+                this.filterCPFaunaReviewDate === ''){
                 return false
             } else {
                 return true
@@ -412,21 +329,24 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
-        addFaunaCSVisibility: function() {
+        addFaunaCPVisibility: function() {
             let visibility = false;
-            if (this.is_internal) {
+            /*if (this.is_internal) {
                 visibility = true;
-            }
+            }*/
+            visibility = true;
             return visibility;
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                // return ['Number', 'Type', 'WA Plan number', 
+                //    'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due', 'Approval Status', 'Commonwealth Status', 'Western Australia Status',  'Status', 'Action']
+                return ['Number', 'Type', 'WA Plan number', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due', 'Status', 'Action']
             }
             if (this.is_internal){
-                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
-                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                // return ['Number', 'Type', 'WA Plan number', 
+                //    'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due', 'Approval Status', 'Commonwealth Status', 'Western Australia Status', 'Status', 'Action']
+                return ['Number', 'Type', 'WA Plan number', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -443,113 +363,38 @@ export default {
         },
         column_number: function(){
             return {
-                data: "conservation_status_number",
+                data: "conservation_plan_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    return full.conservation_status_number
+                    return full.conservation_plan_number
                 },
-                name: "id",
+                name: "conservation_plan_number",
             }
         },
-        column_species_number: function(){
+        column_plan_type: function(){
             return {
-                data: "species_number",
+                data: "plan_type",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    return full.species_number
+                    return full.plan_type
                 },
-                name: "species__species_number",
+                name: "plan_type",
             }
         },
-        column_scientific_name: function(){
+        column_wa_plan_number: function(){
             return {
-                data: "scientific_name",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                name: "species__taxonomy__scientific_name",
-            }
-        },
-        column_common_name: function(){
-            return {
-                data: "common_name",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__vernaculars__vernacular_name",
-            }
-        },
-        column_family: function(){
-            return {
-                data: "family",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__family__name",
-            }
-        },
-        column_genera: function(){
-            return {
-                data: "genus",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__genus__name",
-            }
-        },
-        column_conservation_list: function(){
-            return {
-                data: "conservation_list",
+                data: "wa_plan_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if(full.conservation_list){
-                        return full.conservation_list;
-                    }
-                    // Should not reach here
-                    return ''
+                    return full.wa_plan_number
                 },
-                name: "conservation_list__code",
-            }
-        },
-        column_conservation_category: function(){
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, full){
-                    if(full.conservation_category){
-                        return full.conservation_category;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_category__code",
+                name: "wa_plan_number",
             }
         },
         column_status: function(){
@@ -573,7 +418,7 @@ export default {
             return {
                 data: "region",
                 orderable: true,
-                searchable: false, // handles by filter_queryset override method
+                searchable: true, // handles by filter_queryset override method
                 visible: true,
                 'render': function(data, type, full){
                     if (full.region){
@@ -582,14 +427,14 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "species__region__name",
+                name: "region__name",
             }
         },
         column_district: function(){
             return {
                 data: "district",
                 orderable: true,
-                searchable: false, // handles by filter_queryset override method
+                searchable: true, // handles by filter_queryset override method
                 visible: true,
                 'render': function(data, type, full){
                     if (full.district){
@@ -598,7 +443,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "species__district__name",
+                name: "district__name",
             }
         },
         column_effective_from_date: function(){
@@ -614,7 +459,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "conservationstatusissuanceapprovaldetails__effective_from_date",
+                name: "effective_from_date",
             }
         },
         column_effective_to_date: function(){
@@ -630,7 +475,23 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "conservationstatusissuanceapprovaldetails__effective_to_date",
+                name: "effective_to_date",
+            }
+        },
+        column_review_date: function(){
+            return {
+                data: "next_review_date",
+                orderable: true,
+                searchable: true, // handles by filter_queryset override method
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.next_review_date){
+                        return full.next_review_date
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "next_review_date",
             }
         },
         column_action: function(){
@@ -652,7 +513,7 @@ export default {
                         }
                         else{
                             if(full.assessor_process){
-                                    links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`; 
+                                    links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
                             }
                             else{
                                 if(full.assessor_edit){
@@ -687,20 +548,23 @@ export default {
                     }
                 }
             ]
-            if (vm.is_external) {
+            if(vm.is_external){
                 columns = [
                     vm.column_number,
-                    vm.column_species_number,
-                    vm.column_scientific_name,
-                    vm.column_common_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
+                    vm.column_plan_type,
+                    vm.column_wa_plan_number,
+                    // vm.column_species_number,
+                    // vm.column_scientific_name,
+                    // vm.column_common_name,
+                    // vm.column_conservation_list,
+                    // vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
-                    vm.column_family,
-                    vm.column_genera,
+                    vm.column_next_review_date,
+                    // vm.column_family,
+                    // vm.column_genera,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -709,17 +573,20 @@ export default {
             if(vm.is_internal){
                 columns = [
                     vm.column_number,
-                    vm.column_species_number,
-                    vm.column_scientific_name,
-                    vm.column_common_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
+                    vm.column_plan_type,
+                    vm.column_wa_plan_number,
+                    // vm.column_species_number,
+                    // vm.column_scientific_name,
+                    // vm.column_common_name,
+                    // vm.column_conservation_list,
+                    // vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
-                    vm.column_family,
-                    vm.column_genera,
+                    vm.column_next_review_date,
+                    // vm.column_family,
+                    // vm.column_genera,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -751,18 +618,13 @@ export default {
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
                         d.filter_group_type = vm.group_type_name;
-                        d.filter_scientific_name = vm.filterCSFaunaScientificName;
-                        d.filter_common_name = vm.filterCSFaunaCommonName;
-                        d.filter_phylogenetic_group = vm.filterCSFaunaPhylogeneticGroup;
-                        d.filter_family = vm.filterCSFaunaFamily;
-                        d.filter_genus = vm.filterCSFaunaGenus;
-                        d.filter_conservation_list = vm.filterCSFaunaConservationList;
-                        d.filter_conservation_category = vm.filterCSFaunaConservationCategory;
-                        d.filter_region = vm.filterCSFaunaRegion;
-                        d.filter_district = vm.filterCSFaunaDistrict;
-                        d.filter_application_status = vm.filterCSFaunaApplicationStatus;
-                        d.filter_effective_from_date = vm.filterCSFaunaEffectiveFromDate;
-                        d.filter_effective_to_date = vm.filterCSFaunaEffectiveToDate;
+                        d.filter_plan_type = vm.filterCPFaunaType;
+                        d.filter_region = vm.filterCPFaunaRegion;
+                        d.filter_district = vm.filterCPFaunaDistrict;
+                        d.filter_application_status = vm.filterCPFaunaApplicationStatus;
+                        d.filter_effective_from_date = vm.filterCPFaunaEffectiveFromDate;
+                        d.filter_effective_to_date = vm.filterCPFaunaEffectiveToDate;
+                        d.filter_review_date = vm.filterCPFaunaReviewDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -785,210 +647,19 @@ export default {
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
-        initialiseScientificNameLookup: function(){
-                let vm = this;
-                $(vm.$refs.cs_scientific_name_lookup).select2({
-                    minimumInputLength: 2,
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Scientific Name",
-                    ajax: {
-                        url: api_endpoints.scientific_name_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
-                        // results: function (data, page) { // parse the results into the format expected by Select2.
-                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
-                        //     return {results: data};
-                        // },
-                    },
-                }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.filterCSFaunaScientificName = data; // this is id session
-                    sessionStorage.setItem("filterCSFaunaScientificNameText", e.params.data.text); // this is name session
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterCSFaunaScientificName = 'all';
-                    sessionStorage.setItem("filterCSFaunaScientificNameText",'');
-                }).
-                on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-cs_scientific_name_lookup-results"]')
-                    // move focus to select2 field
-                    searchField[0].focus();
-                });
-        },
-        initialiseCommonNameLookup: function(){
-                let vm = this;
-                $(vm.$refs.cs_common_name_lookup).select2({
-                    minimumInputLength: 2,
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Common Name",
-                    ajax: {
-                        url: api_endpoints.common_name_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
-                    },
-                }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.filterCSFaunaCommonName = data;
-                    sessionStorage.setItem("filterCSFaunaCommonNameText", e.params.data.text);
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterCSFaunaCommonName = 'all';
-                    sessionStorage.setItem("filterCSFaunaCommonNameText",'');
-                }).
-                on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-cs_common_name_lookup-results"]')
-                    // move focus to select2 field
-                    searchField[0].focus();
-                });
-        },
-        initialisePhyloGroupLookup: function(){
-                let vm = this;
-                $(vm.$refs.cs_phylo_group_lookup).select2({
-                    minimumInputLength: 2,
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Phylo Group",
-                    ajax: {
-                        url: api_endpoints.phylo_group_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
-                    },
-                }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.filterCSFaunaPhylogeneticGroup = data;
-                    sessionStorage.setItem("filterCSFaunaPhylogeneticGroupText", e.params.data.text);
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterCSFaunaPhylogeneticGroup = 'all';
-                    sessionStorage.setItem("filterCSFaunaPhylogeneticGroupText",'');
-                }).
-                on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-cs_phylo_group_lookup-results"]')
-                    // move focus to select2 field
-                    searchField[0].focus();
-                });
-        },
-        initialiseFamilyLookup: function(){
-                let vm = this;
-                $(vm.$refs.cs_family_lookup).select2({
-                    minimumInputLength: 2,
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Family",
-                    ajax: {
-                        url: api_endpoints.family_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
-                    },
-                }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.filterCSFaunaFamily = data;
-                    sessionStorage.setItem("filterCSFaunaFamilyText", e.params.data.text);
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterCSFaunaFamily = 'all';
-                    sessionStorage.setItem("filterCSFaunaFamilyText",'');
-                }).
-                on("select2:open",function (e) {
-                    //const searchField = $(".select2-search__field")
-                    const searchField = $('[aria-controls="select2-cs_family_lookup-results"]')
-                    // move focus to select2 field
-                    searchField[0].focus();
-                });
-        },
-        initialiseGeneraLookup: function(){
-                let vm = this;
-                $(vm.$refs.cs_genera_lookup).select2({
-                    minimumInputLength: 2,
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Genera",
-                    ajax: {
-                        url: api_endpoints.genera_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
-                    },
-                }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.filterCSFaunaGenus = data;
-                    sessionStorage.setItem("filterCSFaunaGenusText", e.params.data.text);
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterCSFaunaGenus = 'all';
-                    sessionStorage.setItem("filterCSFaunaGenusText",'');
-                }).
-                on("select2:open",function (e) {
-                    //const searchField = $(".select2-search__field")
-                    const searchField = $('[aria-controls="select2-cs_genera_lookup-results"]')
-                    // move focus to select2 field
-                    searchField[0].focus();
-                });
-        },
+        
         fetchFilterLists: function(){
             let vm = this;
             //large FilterList of Species Values object
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
-                vm.filterListsSpecies = response.body;
-                vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
-                vm.common_name_list = vm.filterListsSpecies.common_name_list;
-                vm.family_list = vm.filterListsSpecies.family_list;
-                vm.genus_list = vm.filterListsSpecies.genus_list;
-                vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
-                vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
-                vm.filterConservationCategory();
+                // vm.filterListsSpecies = response.body;
+                // vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
+                // vm.common_name_list = vm.filterListsSpecies.common_name_list;
+                // vm.family_list = vm.filterListsSpecies.family_list;
+                // vm.genus_list = vm.filterListsSpecies.genus_list;
+                // vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
+                // vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
+                // vm.filterConservationCategory();
                 vm.filterDistrict();
                 vm.proposal_status = vm.internal_status;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
@@ -1004,32 +675,16 @@ export default {
                 console.log(error);
             })
         },
-        //-------filter category dropdown dependent on conservation_list selected
-        filterConservationCategory: function(event) {
-                //this.$nextTick(() => {
-                    if(event){
-                      this.filterCSFaunaConservationCategory='all'; //-----to remove the previous selection
-                    }
-                    this.filtered_conservation_category_list=[];
-                    //---filter conservation_categories as per cons_list selected
-                    for(let choice of this.conservation_category_list){
-                        if(choice.conservation_list_id.toString() === this.filterCSFaunaConservationList.toString())
-                        {
-                          this.filtered_conservation_category_list.push(choice);
-                        }
-                    }
-                //});
-        },
          //-------filter district dropdown dependent on region selected
          filterDistrict: function(event) {
                 this.$nextTick(() => {
                     if(event){
-                      this.filterCSFaunaDistrict='all'; //-----to remove the previous selection
+                      this.filterCPFaunaDistrict='all'; //-----to remove the previous selection
                     }
                     this.filtered_district_list=[];
                     //---filter districts as per region selected
                     for(let choice of this.district_list){
-                        if(choice.region_id.toString() === this.filterCSFaunaRegion.toString())
+                        if(choice.region_id.toString() === this.filterCPFaunaRegion.toString())
                         {
                           this.filtered_district_list.push(choice);
                         }
@@ -1037,16 +692,16 @@ export default {
                     }
                 });
         },
-        createFaunaConservationStatus: async function () {
-            let newFaunaCSId = null
+        createFaunaConservationPlan: async function () {
+            let newFaunaCPId = null
             try {
                     const createUrl = api_endpoints.conservation_status+"/";
                     let payload = new Object();
                     payload.application_type_id = this.group_type_id
                     payload.internal_application = true
-                    let savedFaunaCS = await Vue.http.post(createUrl, payload);
-                    if (savedFaunaCS) {
-                        newFaunaCSId = savedFaunaCS.body.id;
+                    let savedFaunaCP = await Vue.http.post(createUrl, payload);
+                    if (savedFaunaCP) {
+                        newFaunaCPId = savedFaunaCP.body.id;
                     }
                 }
             catch (err) {
@@ -1056,11 +711,11 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-conservation_status',
-                params: {conservation_status_id: newFaunaCSId},
+                name: 'internal-conservation_plan',
+                params: {conservation_plan_id: newFaunaCPId},
                 });
         },
-        discardCSProposal:function (conservation_status_id) {
+        discardCSProposal:function (conservation_plan_id) {
             let vm = this;
             swal({
                 title: "Discard Application",
@@ -1070,14 +725,14 @@ export default {
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
+                vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_plan_id))
                 .then((response) => {
                     swal(
                         'Discarded',
                         'Your proposal has been discarded',
                         'success'
                     )
-                    vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload();
+                    vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload();
                 }, (error) => {
                     console.log(error);
                 });
@@ -1087,8 +742,8 @@ export default {
         },
         addEventListeners: function(){
             let vm = this;
-            // External Discard listener
-            vm.$refs.fauna_cs_datatable.vmDataTable.on('click', 'a[data-discard-cs-proposal]', function(e) {
+            // internal Discard listener
+            vm.$refs.fauna_cp_datatable.vmDataTable.on('click', 'a[data-discard-cs-proposal]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-cs-proposal');
                 vm.discardCSProposal(id);
@@ -1099,7 +754,7 @@ export default {
         },
         submitterSearch:function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.table.dataTableExt.afnFiltering.push(
+            vm.$refs.fauna_cp_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
                     if (filtered_submitter == 'All'){ return true; } 
@@ -1140,7 +795,7 @@ export default {
                     return false;
               
             }
-
+            
         },
         exportData: function (format) {
             let vm = this;
@@ -1270,18 +925,13 @@ export default {
             const object_load = {
                 columns: columns_new,
                 filter_group_type: vm.group_type_name,
-                filter_scientific_name: vm.filterCSFaunaScientificName,
-                filter_common_name: vm.filterCSFaunaCommonName,
-                filter_family: vm.filterCSFaunaFamily,
-                filter_phylogenetic_group: vm.filterCSFaunaPhylogeneticGroup,
-                filter_genus: vm.filterCSFaunaGenus,
-                filter_conservation_list: vm.filterCSFaunaConservationList,
-                filter_conservation_category: vm.filterCSFaunaConservationCategory,
-                filter_application_status: vm.filterCSFaunaApplicationStatus,
-                filter_region: vm.filterCSFaunaRegion,
-                filter_district: vm.filterCSFaunaDistrict,
-                filter_effective_from_date: vm.filterCSFaunaEffectiveFromDate,
-                filter_effective_to_date: vm.filterCSFaunaEffectiveToDate,
+                filter_plan_type: vm.filterCPFaunaType,
+                filter_region: vm.filterCPFaunaRegion,
+                filter_district: vm.filterCPFaunaDistrict,
+                filter_application_status: vm.filterCPFaunaApplicationStatus,
+                filter_effective_from_date: vm.filterCPFaunaEffectiveFromDate,
+                filter_effective_to_date: vm.filterCPFaunaEffectiveToDate,
+                filter_review_date: vm.filterCPFaunaReviewDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };
@@ -1380,46 +1030,35 @@ export default {
             }, 100 );
         });
         this.$nextTick(() => {
-            vm.initialiseScientificNameLookup();
-            vm.initialiseCommonNameLookup();
-            vm.initialisePhyloGroupLookup();
-            vm.initialiseFamilyLookup();
-            vm.initialiseGeneraLookup();
             vm.initialiseSearch();
             vm.addEventListeners();
-
+            
             // -- to set the select2 field with the session value if exists onload()
-            if(sessionStorage.getItem("filterCSFaunaScientificName")!='all' && sessionStorage.getItem("filterCSFaunaScientificName")!=null)
-            {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterCSFaunaScientificNameText"), vm.filterCSFaunaScientificName, false, true);
-                $('#cs_scientific_name_lookup').append(newOption);
-                //$('#scientific_name_lookup').append(newOption).trigger('change');
-            }
-            if(sessionStorage.getItem("filterCSFaunaCommonName")!='all' && sessionStorage.getItem("filterCSFaunaCommonName")!=null)
-            {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterCSFaunaCommonNameText"), vm.filterCSFaunaCommonName, false, true);
-                $('#cs_common_name_lookup').append(newOption);
-            }
-            if(sessionStorage.getItem("filterCSFaunaPhylogeneticGroup")!='all' && sessionStorage.getItem("filterCSFaunaPhylogeneticGroup")!=null)
-            {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterCSFaunaPhylogeneticGroupText"), vm.filterCSFaunaPhylogeneticGroup, false, true);
-                $('#cs_phylo_group_lookup').append(newOption);
-            }
-            if(sessionStorage.getItem("filterCSFaunaFamily")!='all' && sessionStorage.getItem("filterCSFaunaFamily")!=null)
-            {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterCSFaunaFamilyText"), vm.filterCSFaunaFamily, false, true);
-                $('#cs_family_lookup').append(newOption);
-            }
-            if(sessionStorage.getItem("filterCSFaunaGenus")!='all' && sessionStorage.getItem("filterCSFaunaGenus")!=null)
-            {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterCSFaunaGenusText"), vm.filterCSFaunaGenus, false, true);
-                $('#cs_genera_lookup').append(newOption);
-            }
+            // if(sessionStorage.getItem("filterCSFaunaScientificName")!='all' && sessionStorage.getItem("filterCSFaunaScientificName")!=null)
+            // {
+            //     // contructor new Option(text, value, defaultSelected, selected)
+            //     var newOption = new Option(sessionStorage.getItem("filterCSFaunaScientificNameText"), vm.filterCSFaunaScientificName, false, true);
+            //     $('#cp_scientific_name_lookup').append(newOption);
+            //     //$('#scientific_name_lookup').append(newOption).trigger('change');
+            // }
+            // if(sessionStorage.getItem("filterCSFaunaCommonName")!='all' && sessionStorage.getItem("filterCSFaunaCommonName")!=null)
+            // {
+            //     // contructor new Option(text, value, defaultSelected, selected)
+            //     var newOption = new Option(sessionStorage.getItem("filterCSFaunaCommonNameText"), vm.filterCSFaunaCommonName, false, true);
+            //     $('#cp_non_current_name_lookup').append(newOption);
+            // }
+            // if(sessionStorage.getItem("filterCSFaunaFamily")!='all' && sessionStorage.getItem("filterCSFaunaFamily")!=null)
+            // {
+            //     // contructor new Option(text, value, defaultSelected, selected)
+            //     var newOption = new Option(sessionStorage.getItem("filterCSFaunaFamilyText"), vm.filterCSFaunaFamily, false, true);
+            //     $('#cs_family_lookup').append(newOption);
+            // }
+            // if(sessionStorage.getItem("filterCSFaunaGenus")!='all' && sessionStorage.getItem("filterCSFaunaGenus")!=null)
+            // {
+            //     // contructor new Option(text, value, defaultSelected, selected)
+            //     var newOption = new Option(sessionStorage.getItem("filterCSFaunaGenusText"), vm.filterCSFaunaGenus, false, true);
+            //     $('#cs_genera_lookup').append(newOption);
+            // }
         });
     }
 }

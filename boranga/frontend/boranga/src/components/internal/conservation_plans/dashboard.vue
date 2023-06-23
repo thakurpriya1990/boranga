@@ -46,7 +46,7 @@
                     <ConservationPlansFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="species_cs_url" />
+                    :url="species_cp_url" />
                 </FormSection>
                 <!-- <FormSection :formCollapse="false" label="Conservation Status - Flora Applications Referred To Me" Index="flora_cs">
                     <CSFloraReferralsDashTable v-if="isFlora" ref="flora_referral_table"
@@ -60,7 +60,7 @@
                     <ConservationPlansFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="species_cs_url"/>
+                    :url="species_cp_url"/>
                 </FormSection>
                 <!-- <FormSection :formCollapse="false" label="Conservation Status - Fauna Applications Referred To Me" Index="fauna_cs">
                     <CSFaunaReferralsDashTable v-if="isFauna" ref="fauna_referral_table"
@@ -74,7 +74,7 @@
                     <ConservationPlansCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="community_cs_url"/>
+                    :url="community_cp_url"/>
                 </FormSection>
                 <!-- <FormSection :formCollapse="false" label="Conservation Status - Community Applications Referred To Me" Index="community_cs">
                     <CSCommunityReferralsDashTable v-if="isCommunity" ref="community_referral_table"
@@ -105,10 +105,10 @@ export default {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
             group_name: null,
-            species_cs_url: api_endpoints.species_conservation_status_paginated_internal,
-            species_cs_referrals_url: api_endpoints.species_conservation_status_referrals_paginated_internal,
-            community_cs_url: api_endpoints.community_conservation_status_paginated_internal,
-            community_cs_referrals_url: api_endpoints.community_conservation_status_referrals_paginated_internal,
+            species_cp_url: api_endpoints.species_conservation_plans_paginated_internal,
+            //species_cs_referrals_url: api_endpoints.species_conservation_status_referrals_paginated_internal,
+            community_cp_url: api_endpoints.community_conservation_plans_paginated_internal,
+            //community_cs_referrals_url: api_endpoints.community_conservation_status_referrals_paginated_internal,
         }
     },
     watch: {},
