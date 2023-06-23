@@ -69,6 +69,11 @@ export default
 
         },
         {
+            path: 'conservation-plans',
+            component: ConservationPlansDash,
+            name:"internal-conservation_plan-dash"
+        },
+        {
             path: 'approval/:approval_id',
             component: Approval,
 
