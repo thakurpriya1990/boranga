@@ -523,7 +523,8 @@ class CommitteeViewSet(viewsets.ModelViewSet):
     def committee_members(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            qs = instance.members.all()
+            qs=CommitteeMembers.objects.filter(committee=instance)
+            # qs = instance.members.all()
             qs = qs.order_by('-first_name')
             serializer = CommitteeMembersSerializer(qs,many=True, context={'request':request})
             return Response(serializer.data)

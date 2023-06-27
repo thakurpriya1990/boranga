@@ -242,10 +242,10 @@ export default {
             
             // selected values for filtering
             filterCSFloraScientificName: sessionStorage.getItem(this.filterCSFloraScientificName_cache) ? 
-                                   sessionStorage.getItem(this.filterCSFloraScientificName_cache) : 'all',
+                                    sessionStorage.getItem(this.filterCSFloraScientificName_cache) : 'all',
             
-                                   filterCSFloraCommonName: sessionStorage.getItem(this.filterCSFloraCommonName_cache) ? 
-                                    sessionStorage.getItem(this.filterCSFloraCommonName_cache) : 'all',
+            filterCSFloraCommonName: sessionStorage.getItem(this.filterCSFloraCommonName_cache) ? 
+                                sessionStorage.getItem(this.filterCSFloraCommonName_cache) : 'all',
 
             filterCSFloraFamily: sessionStorage.getItem(this.filterCSFloraFamily_cache) ? 
                                 sessionStorage.getItem(this.filterCSFloraFamily_cache) : 'all',

@@ -62,7 +62,10 @@
                                             <ConservationStatusFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
                                             :group_type_name="group_name"
                                             :group_type_id="getGroupId"
-                                            :url="species_agenda_cs_url"/>
+                                            :url="species_agenda_cs_url"
+                                            :is_for_agenda="for_agenda"
+                                            :meeting_obj="meeting_obj" 
+                                            @updateAgendaItems="updateAgendaItems"/>
                                         </FormSection>
                                     </div>
                                     <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
@@ -70,7 +73,10 @@
                                             <ConservationStatusCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                                             :group_type_name="group_name"
                                             :group_type_id="getGroupId"
-                                            :url="community_agenda_cs_url"/>
+                                            :url="community_agenda_cs_url"
+                                            :is_for_agenda="for_agenda"
+                                            :meeting_obj="meeting_obj" 
+                                            @updateAgendaItems="updateAgendaItems"/>
                                         </FormSection>
                                     </div>
                                 </div>

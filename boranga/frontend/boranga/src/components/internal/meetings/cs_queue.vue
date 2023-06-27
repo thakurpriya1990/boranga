@@ -46,8 +46,9 @@ export default {
             cs_queue_headers:[
                     "Order",
                     "Number",
+                    "Type",
                     "Scientific Name",
-                    "Conservation Status Number",
+                    "CS Number",
                     "Action",
             ],
             cs_queue_options:{
@@ -76,14 +77,29 @@ export default {
                         orderable: false
                     },
                     {
-                        data: "id",
-                        'render': function(data, type, row,meta){
-                            return meta.row+1;
+                        data: null,
+                        // the below is simple incremental index column but doesn't work if you are sorting
+                        // data: "id",
+                        // searchable: true,
+                        // 'render': function(data, type, row,meta){
+                        //     //return meta.row+1;
+                        //     return data.meta+1;
+                        // },
+                        // orderable: false
+                    },
+                    {
+                        data: "group_type",
+                        searchable: true,
+                        mRender: function(data, type, full){
+                            if (full.group_type){
+                                return full.group_type;
+                            }
                         },
                         orderable: false
                     },
                     {
                         data: "scientific_name",
+                        searchable: true,
                         'render': function(value, type, full){
                             let result = helpers.dtPopover(value, 30, 'hover');
                             return type=='export' ? value : result;
@@ -92,6 +108,7 @@ export default {
                     },
                     {
                         data: "conservation_status_number",
+                        searchable: true,
                         mRender: function(data, type, full){
                             if (full.conservation_status_number){
                                 return full.conservation_status_number;
@@ -103,31 +120,25 @@ export default {
                         data: "conservation_status_id",
                         mRender:function (data,type,full) {
                             let links = '';
-                            return `<a href='#${full.conservation_status_id}' data-remove-agenda-item='${full.conservation_status_id}'>Remove</a><br/>`;
+                            links += `<a href='#${full.conservation_status_id}' data-remove-agenda-item='${full.conservation_status_id}'>Remove</a><br/>`
+                            links +=  `<a href='/internal/conservation_status/${full.conservation_status_id}?action=view'>View</a><br/>`;
+                            return links;
+
                         },
                         orderable: false
                     },
                 ],
+                columnDefs: [
+                    {
+                        "searchable": false,
+                        "orderable": false,
+                        "targets": 1 // target means the column no.
+                    },
+                ],
+                "order": [
+                    [1, "desc"]
+                ],
                 processing: true,
-                rowCallback: function ( row, data, index) {
-                    console.log('inside row')
-                },
-                drawCallback: function (settings) {
-                    console.log('inside draw;')
-                    $(vm.$refs.cs_queue_datatable.table).find('tr:last .dtMoveDown').remove();
-                    $(vm.$refs.cs_queue_datatable.table).children('tbody').find('tr:first .dtMoveUp').remove();
-
-                    // Remove previous binding before adding it
-                    $('.dtMoveUp').unbind('click');
-                    $('.dtMoveDown').unbind('click');
-
-                    // Bind clicks to functions
-                    $('.dtMoveUp').click(vm.moveUp);
-                    $('.dtMoveDown').click(vm.moveDown);
-                },
-                preDrawCallback: function (settings) {
-                    console.log('inside pre');
-                },
                 initComplete: function() {
                     helpers.enablePopovers();
                     vm.addTableListeners();
@@ -150,8 +161,11 @@ export default {
     methods:{
         updateAgendaItems(){
             let vm=this;
-            vm.constructCSQueueTable();
+            // vm.constructCSQueueTable();
+            // vm.addTableListeners, is passed to table relaod function as to call that function to set the sort arrow correctly
+            vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(vm.addTableListeners,false);
         },
+        // This function was used to call api and then add row to datatable manually on ANY ACTION
         constructCSQueueTable: function(){
             let vm = this;
             Vue.http.get(`/api/meeting/${vm.meeting_obj.id}/fetch_agenda_items.json`).then(res => {
@@ -176,6 +190,14 @@ export default {
                 var id = $(this).attr('data-remove-agenda-item');
                 vm.removeAgendaItem(id);
             });
+            // to add the incremental row number column to the table
+            vm.$refs.cs_queue_datatable.vmDataTable.on('order.dt search.dt', function() {
+                vm.$refs.cs_queue_datatable.vmDataTable.column(1, {
+                    search: 'applied',
+                }).nodes().each(function(cell, i) {
+                    cell.innerHTML = i + 1;
+                });
+            }).draw();
         },
         removeAgendaItem:function (conservation_status_id) {
             let vm = this;
@@ -198,7 +220,8 @@ export default {
                     )
                     vm.meeting_obj.agenda_items_arr=res.body;
                     //vm.constructCSQueueTable();
-                    vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload();
+                    // vm.addTableListeners, is passed to table relaod function as to call that function to set the sort arrow correctly
+                    vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(vm.addTableListeners, false);
                 }, (error) => {
                     console.log(error);
                 });
