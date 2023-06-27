@@ -60,6 +60,7 @@ class CreateMeetingSerializer(serializers.ModelSerializer):
             )
 
 class ListAgendaItemSerializer(serializers.ModelSerializer):
+    group_type = serializers.SerializerMethodField(read_only=True)
     conservation_status_number = serializers.SerializerMethodField(read_only = True)
     scientific_name = serializers.SerializerMethodField(read_only = True)
     community_name = serializers.SerializerMethodField(read_only = True)
@@ -68,6 +69,7 @@ class ListAgendaItemSerializer(serializers.ModelSerializer):
             fields = (
                     'id',
                     'meeting_id',
+                    'group_type',
                     'conservation_status_id',
                     'conservation_status_number',
                     'scientific_name',
@@ -79,13 +81,18 @@ class ListAgendaItemSerializer(serializers.ModelSerializer):
             return obj.conservation_status.conservation_status_number
         else:
             return ''
-        
+    
+    def get_group_type(self, obj):
+        if obj.conservation_status:
+            if obj.conservation_status.application_type:
+                 return obj.conservation_status.application_type.name
+
     def get_scientific_name(self, obj):
         if obj.conservation_status:
             if obj.conservation_status.species:
                 return obj.conservation_status.species.taxonomy.scientific_name
-        else:
-            return ''
+            elif obj.conservation_status.community:
+                    return obj.conservation_status.community.taxonomy.community_name
     
     def get_community_name(self, obj):
         if obj.conservation_status:
