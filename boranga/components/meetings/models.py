@@ -60,6 +60,23 @@ class MeetingRoom(models.Model):
         return str(self.room_name)
 
 
+class Committee(models.Model):
+    """
+
+    The Commitee used for the meeting attendees 
+    The Admin data
+
+    """
+    name = models.CharField(max_length=328, blank=True, null=True)
+    # members = models.ManyToManyField(CommitteeMembers, null=True, blank=True, related_name='committee_members')
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.name)
+
+
 class CommitteeMembers(models.Model):
     """
 
@@ -70,6 +87,7 @@ class CommitteeMembers(models.Model):
     first_name = models.CharField(max_length=128, blank=True, null=True)
     last_name = models.CharField(max_length=128, blank=True, null=True)
     email = models.CharField(max_length=328, blank=True, null=True)
+    committee = models.ForeignKey('Committee', on_delete=models.CASCADE, null=True, blank= True)
 
     class Meta:
         app_label = 'boranga'
@@ -78,21 +96,21 @@ class CommitteeMembers(models.Model):
         return str(self.email)
 
 
-class Committee(models.Model):
-    """
+# class Committee(models.Model):
+#     """
 
-    The Commitee used for the meeting attendees 
-    The Admin data
+#     The Commitee used for the meeting attendees 
+#     The Admin data
 
-    """
-    name = models.CharField(max_length=328, blank=True, null=True)
-    members = models.ManyToManyField(CommitteeMembers, null=True, blank=True, related_name='committee_members')
+#     """
+#     name = models.CharField(max_length=328, blank=True, null=True)
+#     members = models.ManyToManyField(CommitteeMembers, null=True, blank=True, related_name='committee_members')
 
-    class Meta:
-        app_label = 'boranga'
+#     class Meta:
+#         app_label = 'boranga'
 
-    def __str__(self):
-        return str(self.name)
+#     def __str__(self):
+#         return str(self.name)
 
 
 class Meeting(models.Model):
@@ -330,10 +348,10 @@ class AgendaItem(OrderedModel):
         app_label = 'boranga'
         unique_together = ("meeting", "conservation_status")
         ordering = ["meeting", "order"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["meeting", "order"],
-                name="unique agenda order per Meeting",
-            )
-        ]
+        # constraints = [
+        #     models.UniqueConstraint(
+        #         fields=["meeting", "order"],
+        #         name="unique agenda order per Meeting",
+        #     )
+        # ]
 
