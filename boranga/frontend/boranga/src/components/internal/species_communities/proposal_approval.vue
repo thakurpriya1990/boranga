@@ -3,7 +3,7 @@
         <template v-if="isFinalised">
             <div class="col-md-12 alert alert-success" v-if="proposal.processing_status == 'Approved'">
                 <p>The licence has been issued and has been emailed to {{proposal.applicant}}</p>
-                <p v-if="proposal.proposed_issuance_approval">Expiry date: {{proposal.proposed_issuance_approval.expiry_date}}
+                <p v-if="proposal.proposed_issuance_approval">Expiry date: {{proposal.proposed_issuance_approval.expiry_date}}</p>
                 <p>Licence: <a target="_blank" :href="proposal.permit">licence.pdf</a></p>
             </div>
             <div v-else class="col-md-12 alert alert-warning">

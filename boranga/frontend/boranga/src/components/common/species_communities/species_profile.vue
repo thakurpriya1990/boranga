@@ -750,8 +750,9 @@ export default {
     }
     input[type=text], select {
         width: 100%;
+        padding: 0.375rem 2.25rem 0.375rem 0.75rem;
     }
-    input[type=number],{
+    input[type=number]{
         width: 50%;
     }
 </style>

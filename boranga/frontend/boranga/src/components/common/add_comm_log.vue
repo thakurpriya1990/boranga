@@ -291,4 +291,8 @@ export default {
 }
 .top-buffer{margin-top: 5px;}
 .top-buffer-2x{margin-top: 10px;}
+
+input[type=text], select {
+        padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+    }
 </style>
