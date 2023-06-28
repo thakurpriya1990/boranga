@@ -95,7 +95,7 @@
             </div>
         </CollapsibleFilters>
 
-        <div v-if="addCommunityCSVisibility && is_for_agenda==false"" class="col-md-12">
+        <div v-if="addCommunityCSVisibility && is_for_agenda==false" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
             </div>
