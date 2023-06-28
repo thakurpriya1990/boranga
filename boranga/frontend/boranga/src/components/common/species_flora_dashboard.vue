@@ -1425,5 +1425,7 @@ export default {
     font-family: 'Courier New', Courier monospace;
     margin: 5px;
 }
-
+/* .select2-container .select2-selection--single .select2-selection__rendered {
+   z-index:1;
+} */
 </style>

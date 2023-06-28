@@ -923,7 +923,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             qs= ConservationStatus.objects.all()
             return qs
         elif is_customer(self.request):
-            user_orgs = [org.id for org in user.boranga_organisations.all()]
+            # user_orgs = [org.id for org in user.boranga_organisations.all()]
             queryset =  ConservationStatus.objects.filter( Q(submitter = user.id) )
             return queryset
         logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
