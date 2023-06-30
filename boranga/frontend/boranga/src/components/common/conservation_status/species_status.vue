@@ -81,7 +81,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Proposed Conservation List:</label>
+                <label for="" class="col-sm-4 control-label">{{conservation_list_label}}:</label>
                 <div class="col-sm-8">
                     <select :disabled="conservation_status_obj.readonly" class="form-select" 
                         v-model="conservation_status_obj.conservation_list_id" id="conservation_list" 
@@ -115,6 +115,27 @@
                             {{c.code}}
                         </option>
                     </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Current Conservation List:</label>
+                <div class="col-sm-8">
+                    <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder="" 
+                    v-model="conservation_status_obj.curr_conservation_list"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Current Conservation Category:</label>
+                <div class="col-sm-8">
+                    <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder="" 
+                    v-model="conservation_status_obj.curr_conservation_category"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label">Current Conservation Criteria:</label>
+                <div class="col-sm-8">
+                    <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder="" 
+                    v-model="conservation_status_obj.curr_conservation_criteria"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -249,6 +270,9 @@ export default {
                     return this.conservation_status_obj.readonly;
                 }
             },
+            conservation_list_label: function(){
+                return this.conservation_status_obj.processing_status == "Approved"? "Conservation List" : "Proposed Conservation List"
+            }
         },
         watch:{
         },
@@ -390,7 +414,10 @@ export default {
         created: async function() {
             let vm=this;
             //------fetch list of values
-            vm.$http.get(api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type).then((response) => {
+            let action = this.$route.query.action;
+            let dict_url= action == "view"? api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type+ '&action=' + action : 
+                                            api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type
+            vm.$http.get(dict_url).then((response) => {
                 vm.cs_profile_dict = response.body;
                 vm.species_list = vm.cs_profile_dict.species_list;
                 vm.species_list.splice(0,0,

@@ -9,8 +9,9 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-4">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Effective From Date</label>
-                                        <label v-else class="control-label pull-left"  for="Name">Proposed Effective From Date</label>
+                                        <!-- <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Effective From Date</label>
+                                        <label v-else class="control-label pull-left"  for="Name">Proposed Effective From Date</label> -->
+                                        <label class="control-label pull-left"  for="Name">Effective From Date</label>
                                     </div>
                                     <div class="col-sm-8">
                                         <div class="input-group date" style="width: 70%;">
@@ -29,8 +30,9 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-4">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Effective To Date</label>
-                                        <label v-else class="control-label pull-left"  for="Name">Proposed Effective To Date</label>
+                                        <!-- <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Effective To Date</label>
+                                        <label v-else class="control-label pull-left"  for="Name">Proposed Effective To Date</label> -->
+                                        <label class="control-label pull-left"  for="Name">Effective To Date</label>
                                     </div>
                                     <div class="col-sm-8">
                                         <div class="input-group date" style="width: 70%;">
@@ -51,8 +53,9 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-4">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Details</label>
-                                        <label v-else class="control-label pull-left"  for="Name">Proposed Details</label>
+                                        <!-- <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Details</label>
+                                        <label v-else class="control-label pull-left"  for="Name">Proposed Details</label> -->
+                                        <label class="control-label pull-left"  for="Name">Details</label>
                                     </div>
                                     <div class="col-sm-8">
                                         <textarea name="approval_details" class="form-control" style="width:70%;" v-model="approval.details"></textarea>
@@ -62,15 +65,17 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-4">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">CC email</label>
-                                        <label v-else class="control-label pull-left"  for="Name">Proposed CC email</label>
+                                        <!-- <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">CC email</label>
+                                        <label v-else class="control-label pull-left"  for="Name">Proposed CC email</label> -->
+                                        <label class="control-label pull-left"  for="Name">CC email</label>
                                     </div>
                                     <div class="col-sm-8">
                                             <input type="text" class="form-control" name="approval_cc" style="width:70%;" v-model="approval.cc_email">
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group" v-if="processing_status == 'With Approver'">
+                            <!-- <div class="form-group" v-if="processing_status == 'With Approver'"> -->
+                            <div class="form-group" v-if="processing_status == 'With Assessor' || processing_status == 'Ready For Agenda'">
                                 <div class="row mb-3">
                                     <div class="col-sm-4">
                                         <label class="control-label pull-left" >Approval Document</label>
@@ -171,7 +176,8 @@ export default {
             return vm.startDateError;
         },
         title: function(){
-            return this.processing_status == 'With Approver' ? 'Approve Conservation Status' : 'Propose to approve Conservation Status';
+            // return this.processing_status == 'With Approver' ? 'Approve Conservation Status' : 'Propose to approve Conservation Status';
+            return 'Approve Conservation Status';
         },
         // is_amendment: function(){
         //     return this.proposal_type == 'Amendment' ? true : false;

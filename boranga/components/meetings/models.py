@@ -130,6 +130,7 @@ class Meeting(models.Model):
     committee = models.ForeignKey(Committee, on_delete=models.SET_NULL, null=True, blank=True, related_name="committee")
     selected_committee_members = models.ManyToManyField(CommitteeMembers, null=True, blank=True)
     # Agenda items are all conservationstatus added to the meeting
+    # the below agenda field is not used to agenda items
     agenda = models.ManyToManyField(ConservationStatus, null=True, blank=True)
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
