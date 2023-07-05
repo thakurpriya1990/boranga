@@ -300,7 +300,8 @@ export default {
             internal_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'with_approver', name: 'With Approver'},
+                {value: 'ready_for_agenda', name: 'Ready For Agenda'},
+                // {value: 'with_approver', name: 'With Approver'},
                 {value: 'with_referral', name: 'With Referral'},
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},

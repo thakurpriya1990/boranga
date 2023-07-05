@@ -504,7 +504,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
         # if obj.can_officer_process and template_group == 'apiary':
         if obj.can_officer_process:
             if obj.assigned_officer:
-                if obj.assigned_officer == user:
+                if obj.assigned_officer == user.id:
                     return True
             elif user in obj.allowed_assessors:
                 return True
