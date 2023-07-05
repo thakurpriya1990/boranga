@@ -3,7 +3,7 @@
         <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
             <div class="row">
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_community_id">
                         <label for="cs_community_id_lookup">Community ID:</label>
                         <select 
                             id="cs_community_id_lookup"  
@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_community_name">
                         <label for="cs_community_name_lookup">Community Name:</label>
                         <select 
                             id="cs_community_name_lookup"  
@@ -52,7 +52,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSCommunityApplicationStatus">
@@ -80,13 +80,13 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Effective From Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveFromDate">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Effective To Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveToDate">
@@ -739,6 +739,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_community_name_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_community_name"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Community Name",
@@ -775,6 +776,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_community_id_lookup).select2({
                     minimumInputLength: 1,
+                    dropdownParent: $("#select_community_id"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Community ID",

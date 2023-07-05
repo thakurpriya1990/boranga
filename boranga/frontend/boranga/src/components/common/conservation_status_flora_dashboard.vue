@@ -3,7 +3,7 @@
         <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
             <div class="row">
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_scientific_name">
                         <label for="cs_scientific_name_lookup">Scientific Name:</label>
                         <select 
                             id="cs_scientific_name_lookup"  
@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_common_name">
                         <label for="cs_common_name_lookup">Common Name:</label>
                         <select 
                             id="cs_common_name_lookup"  
@@ -23,7 +23,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_family">
                         <label for="cs_family_lookup">Family:</label>
                         <select 
                             id="cs_family_lookup"  
@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_genera">
                         <label for="cs_genera_lookup">Genera:</label>
                         <select 
                             id="cs_genera_lookup"  
@@ -61,7 +61,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSFloraApplicationStatus">
@@ -89,13 +89,13 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Effective From Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFloraEffectiveFromDate">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Effective To Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFloraEffectiveToDate">
@@ -794,6 +794,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_scientific_name_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_scientific_name"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Scientific Name",
@@ -835,6 +836,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_common_name_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_common_name"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Common Name",
@@ -872,6 +874,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_family_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_family"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Family",
@@ -910,6 +913,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_genera_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_genera"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Genera",
