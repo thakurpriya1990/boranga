@@ -164,6 +164,9 @@ export default {
                       this.filteredDocumentSubCategories.push(choice);
                     }
                 }
+                this.filteredDocumentSubCategories = this.filteredDocumentSubCategories.slice().sort((a, b) => {
+                    return a.name.trim().localeCompare(b.name.trim());
+                });
             });
         },
         fetchSubCategory: function(category_id) {
@@ -271,6 +274,9 @@ export default {
         // documentCategories
         let returned_categories = await this.$http.get('/api/document_categories/document_category_choices/');
         Object.assign(this.documentCategories, returned_categories.body);
+        this.documentCategories = this.documentCategories.slice().sort((a, b) => {
+                    return a.name.trim().localeCompare(b.name.trim());
+                });
         // blank entry allows user to clear selection
         this.documentCategories.splice(0, 0, 
             {

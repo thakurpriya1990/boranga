@@ -578,6 +578,9 @@ export default {
                           this.filtered_district_list.push(choice);
                         }
                     }
+                    this.filtered_district_list = this.filtered_district_list.slice().sort((a, b) => {
+                        return a.name.trim().localeCompare(b.name.trim());
+                    });
                 });
             },
             checkDate: function(){
@@ -634,7 +637,10 @@ export default {
                 taxon_api_url=api_endpoints.taxonomy+'/flora_taxon_names.json';
             }
             vm.$http.get(taxon_api_url).then((response) => {
-                vm.taxon_names = response.body;
+                vm.taxon_names = response.body.slice().sort((a, b) => {
+                    // Compare the scientific_name property of each object
+                    return a.scientific_name.trim().localeCompare(b.scientific_name.trim());
+                });
                 this.loadTaxonomydetails();
             });
             //------fetch list of values
@@ -670,52 +676,80 @@ export default {
                     id: null,
                     name: null,
                 });
+            vm.flowering_period_list = vm.flowering_period_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.fruiting_period_list = vm.species_profile_dict.fruiting_period_list;
             vm.fruiting_period_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
+            vm.fruiting_period_list = vm.fruiting_period_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.flora_recruitment_type_list = vm.species_profile_dict.flora_recruitment_type_list;
             vm.flora_recruitment_type_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
+            vm.flora_recruitment_type_list = vm.flora_recruitment_type_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.seed_viability_germination_info_list = vm.species_profile_dict.seed_viability_germination_info_list;
             vm.seed_viability_germination_info_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
+            vm.seed_viability_germination_info_list = vm.seed_viability_germination_info_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.root_morphology_list = vm.species_profile_dict.root_morphology_list;
             vm.root_morphology_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
+            vm.root_morphology_list = vm.root_morphology_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.pollinator_info_list = vm.species_profile_dict.pollinator_info_list;
             vm.pollinator_info_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
+            vm.pollinator_info_list = vm.pollinator_info_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.post_fire_habitatat_interactions_list = vm.species_profile_dict.post_fire_habitatat_interactions_list;
             vm.post_fire_habitatat_interactions_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
+            vm.post_fire_habitatat_interactions_list = vm.post_fire_habitatat_interactions_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.breeding_period_list = vm.species_profile_dict.breeding_period_list;
             vm.breeding_period_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
-            vm.fauna_breeding_list = vm.species_profile_dict.fauna_breeding_list;
+            vm.breeding_period_list = vm.breeding_period_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
+            vm.fauna_breeding_list = vm.species_profile_dict.fauna_breeding_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             const response = await Vue.http.get('/api/region_district_filter_dict/');
             vm.filterRegionDistrict= response.body;
-            vm.region_list= vm.filterRegionDistrict.region_list;
+            vm.region_list = vm.filterRegionDistrict.region_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.district_list= vm.filterRegionDistrict.district_list;
             vm.region_list.splice(0,0,
             {
@@ -751,7 +785,7 @@ export default {
     input[type=text], select {
         width: 100%;
     }
-    input[type=number],{
+    input[type=number]{
         width: 50%;
     }
 </style>

@@ -1012,11 +1012,15 @@ export default {
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
+                vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict.slice().sort((a, b) => {
+                    return a.code.trim().localeCompare(b.code.trim());
+                });
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
                 vm.filterDistrict();
-                vm.proposal_status = vm.internal_status;
+                vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
+                        return a.name.trim().localeCompare(b.name.trim());
+                    });
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
@@ -1024,7 +1028,9 @@ export default {
             })
             vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
                 vm.filterRegionDistrict= response.body;
-                vm.region_list= vm.filterRegionDistrict.region_list;
+                vm.region_list= vm.filterRegionDistrict.region_list.slice().sort((a, b) => {
+                        return a.name.trim().localeCompare(b.name.trim());
+                    });
                 vm.district_list= vm.filterRegionDistrict.district_list;
             },(error) => {
                 console.log(error);
@@ -1044,6 +1050,9 @@ export default {
                           this.filtered_conservation_category_list.push(choice);
                         }
                     }
+                    this.filtered_conservation_category_list = this.filtered_conservation_category_list.slice().sort((a, b) => {
+                        return a.code.trim().localeCompare(b.code.trim());
+                    });
                 //});
         },
          //-------filter district dropdown dependent on region selected
@@ -1061,6 +1070,9 @@ export default {
                         }
                         
                     }
+                    this.filtered_district_list = this.filtered_district_list.slice().sort((a, b) => {
+                        return a.name.trim().localeCompare(b.name.trim());
+                    });
                 });
         },
         createFaunaConservationStatus: async function () {

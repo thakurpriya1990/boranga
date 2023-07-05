@@ -84,7 +84,7 @@
         </FormSection>
         <FormSection :formCollapse="false" label="Distribution" Index="distribution">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Region :</label>
+                <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)" v-model="species_community.region_id" placeholder="Select Region">
                         <option v-for="option in region_list" :value="option.id" v-bind:key="option.id">
@@ -425,6 +425,9 @@ export default {
                           this.filtered_district_list.push(choice);
                         }
                     }
+                    this.filtered_district_list = this.filtered_district_list.slice().sort((a, b) => {
+                        return a.name.trim().localeCompare(b.name.trim());
+                    });
                 });
             },
             checkDate: function(){
@@ -479,7 +482,9 @@ export default {
             vm.species_list= res.body.data;
             //--------get api taxon_names
             vm.$http.get(api_endpoints.community_taxonomy+'/taxon_names.json').then((response) => {
-                vm.taxon_names = response.body;
+                vm.taxon_names = response.body.slice().sort((a, b) => {
+                    return a.community_name.trim().localeCompare(b.community_name.trim());
+                });
             });
             //------fetch list of values
             const res_obj = await Vue.http.get('/api/community_profile_dict/');
@@ -502,15 +507,23 @@ export default {
                     id: null,
                     name: null,
                 });
+            vm.pollinator_info_list = vm.pollinator_info_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.post_fire_habitatat_interactions_list = vm.community_profile_dict.post_fire_habitatat_interactions_list;
             vm.post_fire_habitatat_interactions_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
+            vm.post_fire_habitatat_interactions_list = vm.post_fire_habitatat_interactions_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             const response = await Vue.http.get('/api/region_district_filter_dict/');
             vm.filterRegionDistrict= response.body;
-            vm.region_list= vm.filterRegionDistrict.region_list;
+            vm.region_list = vm.filterRegionDistrict.region_list.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
             vm.district_list= vm.filterRegionDistrict.district_list;
             vm.region_list.splice(0,0,
             {

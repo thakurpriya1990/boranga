@@ -95,7 +95,7 @@
             </div>
         </CollapsibleFilters>
 
-        <div v-if="addCommunityCSVisibility && is_for_agenda==false"" class="col-md-12">
+        <div v-if="addCommunityCSVisibility && is_for_agenda==false" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
             </div>
@@ -813,11 +813,15 @@ export default {
                 vm.filterListsCommunities= response.body;
                 vm.communities_data_list= vm.filterListsCommunities.community_data_list;
                 vm.community_name_list = vm.filterListsCommunities.community_name_list;
-                vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
+                vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict.slice().sort((a, b) => {
+                    return a.code.trim().localeCompare(b.code.trim());
+                });
                 vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 vm.filterConservationCategory();
                 vm.filterDistrict();
-                vm.proposal_status = vm.internal_status;
+                vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
+                    return a.name.trim().localeCompare(b.name.trim());
+                });
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
@@ -825,7 +829,9 @@ export default {
             })
             vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
                 vm.filterRegionDistrict= response.body;
-                vm.region_list= vm.filterRegionDistrict.region_list;
+                vm.region_list= vm.filterRegionDistrict.region_list.slice().sort((a, b) => {
+                    return a.name.trim().localeCompare(b.name.trim());
+                });
                 vm.district_list= vm.filterRegionDistrict.district_list;
             },(error) => {
                 console.log(error);
@@ -845,6 +851,9 @@ export default {
                           this.filtered_conservation_category_list.push(choice);
                         }
                     }
+                    this.filtered_conservation_category_list = this.filtered_conservation_category_list.slice().sort((a, b) => {
+                        return a.code.trim().localeCompare(b.code.trim());
+                    });
                 });
         },
          //-------filter district dropdown dependent on region selected
@@ -862,6 +871,9 @@ export default {
                         }
                         
                     }
+                    this.filtered_district_list = this.filtered_district_list.slice().sort((a, b) => {
+                        return a.name.trim().localeCompare(b.name.trim());
+                    });
                 });
         },
         createCommunityConservationStatus: async function () {
