@@ -17,9 +17,6 @@ from boranga.components.species_and_communities.models import(
     DocumentCategory,
     DocumentSubCategory,
 )
-from boranga.components.proposals.models import(
-    AmendmentReason,
-)
 from boranga.ledger_api_utils import retrieve_email_user
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -233,7 +230,7 @@ class ConservationStatus(models.Model):
     CUSTOMER_STATUS_PARTIALLY_DECLINED = 'partially_declined'
     CUSTOMER_STATUS_CHOICES = ((CUSTOMER_STATUS_DRAFT, 'Draft'),
                                (CUSTOMER_STATUS_WITH_ASSESSOR, 'Under Review'),
-                               (CUSTOMER_STATUS_READY_FOR_AGENDA, 'Under Review'),
+                               (CUSTOMER_STATUS_READY_FOR_AGENDA, 'In Meeting'),
                                (CUSTOMER_STATUS_AMENDMENT_REQUIRED, 'Amendment Required'),
                                (CUSTOMER_STATUS_APPROVED, 'Approved'),
                                (CUSTOMER_STATUS_DECLINED, 'Declined'),
@@ -249,7 +246,7 @@ class ConservationStatus(models.Model):
                             ]
 
     # List of statuses from above that allow a customer to view an application (read-only)
-    CUSTOMER_VIEWABLE_STATE = ['with_assessor', 'under_review', 'approved', 'declined','closed','partially_approved', 'partially_declined']
+    CUSTOMER_VIEWABLE_STATE = ['with_assessor', 'ready_for_agenda', 'under_review', 'approved', 'declined','closed','partially_approved', 'partially_declined']
 
     PROCESSING_STATUS_TEMP = 'temp'
     PROCESSING_STATUS_DRAFT = 'draft'
@@ -527,6 +524,7 @@ class ConservationStatus(models.Model):
         elif self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
         ]:
             group = self.get_assessor_group()
         # for tO SHOW edit action on dashoard of CS
@@ -595,7 +593,7 @@ class ConservationStatus(models.Model):
         logger.info(user.id)
         if self.processing_status in [
             # "on_hold",
-            # "with_qa_officer",
+            "ready_for_agenda",
             "with_assessor",
             "with_referral",
             "with_assessor_conditions",
@@ -865,8 +863,10 @@ class ConservationStatus(models.Model):
             try:
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
-                if self.processing_status != 'with_approver':
-                    raise ValidationError('You cannot decline if it is not with approver')
+                # if self.processing_status != 'with_approver':
+                #     raise ValidationError('You cannot decline if it is not with approver')
+                if self.processing_status not in ('with_assessor','ready_for_agenda'):
+                    raise ValidationError('You cannot decline the proposal if it is not with an assessor')
 
                 conservation_status_decline, success = ConservationStatusDeclinedDetails.objects.update_or_create(
                     conservation_status = self,
@@ -930,8 +930,15 @@ class ConservationStatus(models.Model):
 
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
-                if self.processing_status != 'with_approver':
-                    raise ValidationError('You cannot issue the approval if it is not with an approver')
+                # if self.processing_status != 'with_approver':
+                #     raise ValidationError('You cannot issue the approval if it is not with an approver')
+                if self.processing_status not in ('with_assessor','ready_for_agenda'):
+                    raise ValidationError('You cannot issue the approval if it is not with an assessor')
+                # not approve if the cs not set ina ny meeting for list with minister
+                if self.conservation_list.approval_level == 'minister':
+                    meeting_count = self.agendaitem_set.all().distinct().count()
+                    if meeting_count==0:
+                        raise ValidationError('You cannot issue the approval as meeting not set for the minister approval')
                 # Add the approval document first to to get the reference id in below model
                 proposal_approval_document = request.data['proposal_approval_document']
                 if proposal_approval_document != 'null':
@@ -1067,6 +1074,34 @@ class ConservationStatus(models.Model):
             except:
                 raise
     
+    def proposed_ready_for_agenda(self,request):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status != 'with_assessor':
+                    raise ValidationError('You cannot propose for ready for agenda if it is not with assessor')
+                # self.proposed_issuance_approval = {
+                #     'effective_from_date' : details.get('effective_from_date').strftime('%d/%m/%Y'),
+                #     'effective_to_date' : details.get('effective_to_date').strftime('%d/%m/%Y'),
+                #     'details': details.get('details'),
+                #     'cc_email':details.get('cc_email')
+                # }
+                # self.move_to_status(request,'with_approver', approver_comment)
+                # self.assigned_officer = None
+                self.processing_status = 'ready_for_agenda'
+                self.customer_status = 'ready_for_agenda'
+                self.save()
+                # Log proposal action
+                self.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(self.conservation_status_number),request)
+                # Log entry for organisation
+                # applicant_field=getattr(self, self.applicant_field)
+                # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(self.id),request)
+
+                # send_approver_approve_email_notification(request, self)
+            except:
+                raise
+    
     def get_related_items(self,filter_type, **kwargs):
         return_list = []
         if filter_type == 'all':
@@ -1167,6 +1202,7 @@ class ConservationStatusUserAction(UserAction):
     # Assessors
     ACTION_SAVE_ASSESSMENT_ = "Save assessment {}"
     ACTION_CONCLUDE_ASSESSMENT_ = "Conclude assessment {}"
+    ACTION_PROPOSED_READY_FOR_AGENDA = "Conservation status proposal {} has been proposed for ready for agenda"
     ACTION_PROPOSED_APPROVAL = "Conservation status proposal {} has been proposed for approval"
     ACTION_PROPOSED_DECLINE = "Conservation status proposal {} has been proposed for decline"
 
@@ -1568,11 +1604,23 @@ class ConservationStatusProposalRequest(models.Model):
         app_label = 'boranga'
 
 
+class ProposalAmendmentReason(models.Model):
+    reason = models.CharField('Reason', max_length=125)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Application Amendment Reason" # display name in Admin
+        verbose_name_plural = "Application Amendment Reasons"
+
+    def __str__(self):
+        return self.reason
+
+
 class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
     STATUS_CHOICES = (('requested', 'Requested'), ('amended', 'Amended'))
 
     status = models.CharField('Status', max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
-    reason = models.ForeignKey(AmendmentReason, blank=True, null=True, on_delete=models.SET_NULL)
+    reason = models.ForeignKey(ProposalAmendmentReason, blank=True, null=True, on_delete=models.SET_NULL)
     
     class Meta:
         app_label = 'boranga'

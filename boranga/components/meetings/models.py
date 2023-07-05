@@ -96,23 +96,6 @@ class CommitteeMembers(models.Model):
         return str(self.email)
 
 
-# class Committee(models.Model):
-#     """
-
-#     The Commitee used for the meeting attendees 
-#     The Admin data
-
-#     """
-#     name = models.CharField(max_length=328, blank=True, null=True)
-#     members = models.ManyToManyField(CommitteeMembers, null=True, blank=True, related_name='committee_members')
-
-#     class Meta:
-#         app_label = 'boranga'
-
-#     def __str__(self):
-#         return str(self.name)
-
-
 class Meeting(models.Model):
     """
     A list of conservation status for a species is executed during Meetings or Committee Meetings. 
@@ -147,6 +130,7 @@ class Meeting(models.Model):
     committee = models.ForeignKey(Committee, on_delete=models.SET_NULL, null=True, blank=True, related_name="committee")
     selected_committee_members = models.ManyToManyField(CommitteeMembers, null=True, blank=True)
     # Agenda items are all conservationstatus added to the meeting
+    # the below agenda field is not used to agenda items
     agenda = models.ManyToManyField(ConservationStatus, null=True, blank=True)
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
@@ -184,7 +168,6 @@ class Meeting(models.Model):
         return self.processing_status in user_editable_state
     
     def submit(self,request,viewset):
-        from boranga.components.proposals.utils import save_proponent_data
         with transaction.atomic():
             if self.can_user_edit:
                 # Save the data first

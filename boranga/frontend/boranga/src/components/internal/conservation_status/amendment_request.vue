@@ -123,7 +123,7 @@ export default {
         },
         fetchAmendmentChoices: function(){
             let vm = this;
-            vm.$http.get('/api/amendment_request_reason_choices.json').then((response) => {
+            vm.$http.get('/api/proposal_amendment_request_reason_choices.json').then((response) => {
                 vm.reason_choices = response.body;
             },(error) => {
                 console.log(error);

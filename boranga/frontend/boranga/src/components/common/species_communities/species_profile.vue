@@ -410,7 +410,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Last data curration date: </label>
+                <label for="" class="col-sm-3 control-label">Last data curation date: </label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="date" class="form-control" name="last_data_curration_date" 
                     ref="last_data_curration_date" @change="checkDate()" v-model="species_community.last_data_curration_date" />
@@ -784,6 +784,7 @@ export default {
     }
     input[type=text], select {
         width: 100%;
+        padding: 0.375rem 2.25rem 0.375rem 0.75rem;
     }
     input[type=number]{
         width: 50%;
