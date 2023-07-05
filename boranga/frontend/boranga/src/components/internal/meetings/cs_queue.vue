@@ -69,8 +69,8 @@ export default {
                             let links = '';
                             // TODO check permission to change the order
                             //if (vm.proposal.assessor_mode.has_assessor_mode){
-                            links +=  `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fa fa-angle-up"></i></a><br/>`;
-                            links +=  `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fa fa-angle-down"></i></a><br/>`;
+                            links +=  `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="bi bi-caret-up-fill"></i></a><br/>`;
+                            links +=  `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="bi bi-caret-down-fill"></i></a><br/>`;
                             //}
                             return links;
                         },

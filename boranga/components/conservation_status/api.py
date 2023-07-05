@@ -61,6 +61,7 @@ from boranga.components.conservation_status.models import(
     ConservationStatusUserAction,
     ConservationStatusAmendmentRequestDocument,
     ConservationStatusDocument,
+    ProposalAmendmentReason,
 )
 from boranga.components.conservation_status.serializers import(
     SendReferralSerializer,
@@ -128,6 +129,8 @@ class GetConservationListDict(views.APIView):
 class GetCSProfileDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get('group_type','')
+        # action is used to filter conservation list for WA or all
+        action = request.GET.get('action','')
         species_list = []
         if group_type:
             species = Species.objects.filter(group_type__name=group_type)
@@ -149,10 +152,19 @@ class GetCSProfileDict(views.APIView):
                     'name':specimen.taxonomy.community_name,
                     });
         conservation_list_values = []
+        list = []
         if group_type and (group_type == GroupType.GROUP_TYPE_FLORA or group_type == GroupType.GROUP_TYPE_FAUNA):
-            lists = ConservationList.objects.filter(applies_to_species=True)
+            # action is used to filter conservation list for WA or all
+            if action == "view":
+                lists = ConservationList.objects.filter(applies_to_species=True)
+            else:
+                lists = ConservationList.objects.filter(applies_to_species=True, applies_to_wa=True)
         elif group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            lists = ConservationList.objects.filter(applies_to_communities=True)
+            # action is used to filter conservation list for WA or all
+            if action == "view":
+                lists = ConservationList.objects.filter(applies_to_communities=True)
+            else:
+                lists = ConservationList.objects.filter(applies_to_communities=True, applies_to_wa=True)
         if lists:
             for option in lists:
                 conservation_list_values.append({
@@ -923,7 +935,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             qs= ConservationStatus.objects.all()
             return qs
         elif is_customer(self.request):
-            user_orgs = [org.id for org in user.boranga_organisations.all()]
+            # user_orgs = [org.id for org in user.boranga_organisations.all()]
             queryset =  ConservationStatus.objects.filter( Q(submitter = user.id) )
             return queryset
         logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
@@ -1311,6 +1323,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
     
+    # with new workflow not used at the moment
     @detail_route(methods=['POST',], detail=True)
     def proposed_decline(self, request, *args, **kwargs):
         try:
@@ -1357,6 +1370,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    # with new workflow not used at the moment
     @detail_route(methods=['POST',], detail=True)
     def proposed_approval(self, request, *args, **kwargs):
         try:
@@ -1385,7 +1399,6 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
     def final_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            # serializer = ProposedApprovalSerializer(data=request.data)
             serializer = ProposedApprovalSerializer(data= json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception=True)
             instance.final_approval(request,serializer.validated_data)
@@ -1417,6 +1430,28 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                 if not status in ['with_assessor','with_approver']:
                     raise serializers.ValidationError('The status provided is not allowed')
             instance.move_to_status(request,status, approver_comment)
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['POST',], detail=True)
+    def proposed_ready_for_agenda(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.proposed_ready_for_agenda(request)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
             serializer_class = self.internal_serializer_class()
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
@@ -1950,3 +1985,17 @@ class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+
+class AmendmentRequestReasonChoicesView(views.APIView):
+
+    renderer_classes = [JSONRenderer,]
+    def get(self,request, format=None):
+        choices_list = []
+        #choices = AmendmentRequest.REASON_CHOICES
+        choices=ProposalAmendmentReason.objects.all()
+        if choices:
+            for c in choices:
+                #choices_list.append({'key': c[0],'value': c[1]})
+                choices_list.append({'key': c.id,'value': c.reason})
+        return Response(choices_list)

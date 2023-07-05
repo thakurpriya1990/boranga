@@ -9,18 +9,20 @@
                             <div class="form-group">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label v-if=check_status() class="control-label"  for="Name">Details</label>
-                                        <label v-else class="control-label"  for="Name">Provide Reason for the proposed decline </label>
-                                        <textarea style="width: 70%;"class="form-control" name="reason" v-model="decline.reason"></textarea>
+                                        <!-- <label v-if=check_status() class="control-label"  for="Name">Details</label>
+                                        <label v-else class="control-label"  for="Name">Provide Reason for the proposed decline </label> -->
+                                        <label class="control-label"  for="Name">Details</label>
+                                        <textarea style="width: 70%;" class="form-control" name="reason" v-model="decline.reason"></textarea>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row" mb-3>
                                     <div class="col-sm-12">
-                                        <label v-if=check_status() class="control-label"  for="Name">CC email</label>
-                                        <label v-else class="control-label"  for="Name">Proposed CC email</label>
-                                        <input type="text" style="width: 70%;"class="form-control" name="cc_email" v-model="decline.cc_email"/>
+                                        <!-- <label v-if=check_status() class="control-label"  for="Name">CC email</label>
+                                        <label v-else class="control-label"  for="Name">Proposed CC email</label> -->
+                                        <label class="control-label"  for="Name">CC email</label>
+                                        <input type="text" style="width: 70%;" class="form-control" name="cc_email" v-model="decline.cc_email"/>
                                     </div>
                                 </div>
                             </div>
@@ -78,7 +80,8 @@ export default {
             return vm.errors;
         },
         title: function(){
-            return this.processing_status == 'With Approver' ? 'Decline': 'Proposed Decline';
+            //return this.processing_status == 'With Approver' ? 'Decline': 'Proposed Decline';
+            return 'Decline';
         }
     },
     methods:{
@@ -110,8 +113,35 @@ export default {
             vm.errors = false;
             let decline = JSON.parse(JSON.stringify(vm.decline));
             vm.decliningProposal = true;
-            if (vm.processing_status != 'With Approver'){
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_id+'/proposed_decline'),JSON.stringify(decline),{
+            // if (vm.processing_status != 'With Approver'){
+            //     vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_id+'/proposed_decline'),JSON.stringify(decline),{
+            //             emulateJSON:true,
+            //         }).then((response)=>{
+            //             vm.decliningProposal = false;
+            //             vm.close();
+            //             vm.$emit('refreshFromResponse',response);
+            //             vm.$router.push({ path: '/internal/conservation-status/' }); //Navigate to dashboard after propose decline.
+            //         },(error)=>{
+            //             vm.errors = true;
+            //             vm.decliningProposal = false;
+            //             vm.errorString = helpers.apiVueResourceError(error);
+            //         });
+            // }
+            // else{
+            //     vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_id+'/final_decline'),JSON.stringify(decline),{
+            //             emulateJSON:true,
+            //         }).then((response)=>{
+            //             vm.decliningProposal = false;
+            //             vm.close();
+            //             vm.$emit('refreshFromResponse',response);
+            //         },(error)=>{
+            //             vm.errors = true;
+            //             vm.decliningProposal = false;
+            //             vm.errorString = helpers.apiVueResourceError(error);
+            //         });
+            // }
+            if (vm.processing_status == 'With Assessor' || vm.processing_status == 'Ready For Agenda'){
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_id+'/final_decline'),JSON.stringify(decline),{
                         emulateJSON:true,
                     }).then((response)=>{
                         vm.decliningProposal = false;
@@ -123,20 +153,7 @@ export default {
                         vm.decliningProposal = false;
                         vm.errorString = helpers.apiVueResourceError(error);
                     });
-            }
-            else{
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_id+'/final_decline'),JSON.stringify(decline),{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        vm.decliningProposal = false;
-                        vm.close();
-                        vm.$emit('refreshFromResponse',response);
-                    },(error)=>{
-                        vm.errors = true;
-                        vm.decliningProposal = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
-            }
+                }
         },
     //     addFormValidations: function() {
     //         let vm = this;

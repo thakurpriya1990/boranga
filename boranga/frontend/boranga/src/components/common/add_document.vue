@@ -299,4 +299,7 @@ export default {
     .modal-input-row {
         margin-bottom: 20px;
     }
+    input[type=text], select {
+        padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+    }
 </style>
