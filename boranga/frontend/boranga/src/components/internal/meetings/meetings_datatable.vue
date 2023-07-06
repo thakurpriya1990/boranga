@@ -104,17 +104,17 @@ export default {
     watch:{
         filterMeetingStartDate: function(){
             let vm = this;
-            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterMeetingStartDate_cache, vm.filterMeetingStartDate);
         },
         filterMeetingEndDate: function(){
             let vm = this;
-            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterMeetingEndDate_cache, vm.filterMeetingEndDate);
         },
         filterMeetingStatus: function() {
             let vm = this;
-            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterMeetingStatus_cache, vm.filterMeetingStatus);
         },
         filterApplied: function(){
@@ -383,7 +383,7 @@ export default {
                         'Your meeting has been discarded',
                         'success'
                     )
-                    vm.$refs.meetings_datatable.vmDataTable.ajax.reload();
+                    vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 }, (error) => {
                     console.log(error);
                 });

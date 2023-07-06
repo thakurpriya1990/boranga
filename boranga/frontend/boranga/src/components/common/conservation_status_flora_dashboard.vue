@@ -320,57 +320,57 @@ export default {
     watch:{
         filterCSFloraScientificName: function(){
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraScientificName_cache, vm.filterCSFloraScientificName);  
         },
         filterCSFloraCommonName: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraCommonName_cache, vm.filterCSFloraCommonName);  
         },
         filterCSFloraFamily: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraFamily_cache, vm.filterCSFloraFamily);  
         },
         filterCSFloraGenus: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraGenus_cache, vm.filterCSFloraGenus);  
         },
         filterCSFloraConservationList: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSFloraConservationList_cache, vm.filterCSFloraConservationList);
         },
         filterCSFloraConservationCategory: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSFloraConservationCategory_cache, vm.filterCSFloraConservationCategory);
         },
         filterCSFloraRegion: function(){
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraRegion_cache, vm.filterCSFloraRegion);
         },
         filterCSFloraDistrict: function(){
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraDistrict_cache, vm.filterCSFloraDistrict);
         },
         filterCSFloraEffectiveFromDate: function(){
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraEffectiveFromDate_cache, vm.filterCSFloraEffectiveFromDate);
         },
         filterCSFloraEffectiveToDate: function(){
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraEffectiveToDate_cache, vm.filterCSFloraEffectiveToDate);
         },
         filterCSFloraApplicationStatus: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSFloraApplicationStatus_cache, vm.filterCSFloraApplicationStatus);
         },
         filterApplied: function(){
@@ -1048,7 +1048,7 @@ export default {
                         'Your proposal has been discarded',
                         'success'
                     )
-                    vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload();
+                    vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 }, (error) => {
                     console.log(error);
                 });
@@ -1062,7 +1062,7 @@ export default {
             payload.conservation_status_id = conservation_status_id;
             Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/add_agenda_item.json`,payload).then(res => {
                 vm.meeting_obj.agenda_items_arr=res.body;
-                vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload();
+                vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 this.$emit('updateAgendaItems');
             },
             err => {

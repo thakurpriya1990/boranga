@@ -231,6 +231,8 @@ export default {
         },
         addTableListeners: function(e) {
             let vm = this;
+            // for "...more" tooltip to work after reload
+            helpers.enablePopovers();
             // to remove the down arrow from last row
             $(vm.$refs.cs_queue_datatable.table).find('tr:last .dtMoveDown').remove();
             // to remove the up arroiw from first row

@@ -298,52 +298,52 @@ export default {
     watch:{
         filterFaunaScientificName: function(){
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterFaunaScientificName_cache, vm.filterFaunaScientificName);
         },
         filterFaunaCommonName: function() {
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call. 
             sessionStorage.setItem(vm.filterFaunaCommonName_cache, vm.filterFaunaCommonName);
         },
         filterFaunaPhylogeneticGroup: function() {
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call. 
             sessionStorage.setItem(vm.filterFaunaPhylogeneticGroup_cache, vm.filterFaunaPhylogeneticGroup);
         },
         filterFaunaFamily: function() {
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFaunaFamily_cache, vm.filterFaunaFamily);  
         },
         filterFaunaGenus: function() {
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFaunaGenus_cache, vm.filterFaunaGenus);  
         },
         filterFaunaConservationList: function() {
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterFaunaConservationList_cache, vm.filterFaunaConservationList);
         },
         filterFaunaConservationCategory: function() {
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterFaunaConservationCategory_cache, vm.filterFaunaConservationCategory);
         },
         filterFaunaApplicationStatus: function() {
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterFaunaApplicationStatus_cache, vm.filterFaunaApplicationStatus);
         },
         filterFaunaRegion: function(){
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFaunaRegion_cache, vm.filterFaunaRegion);
         },
         filterFaunaDistrict: function(){
             let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFaunaDistrict_cache, vm.filterFaunaDistrict);
         },
         filterApplied: function(){
@@ -1251,7 +1251,7 @@ export default {
                         'Your proposal has been discarded',
                         'success'
                     )
-                    vm.$refs.fauna_datatable.vmDataTable.ajax.reload();
+                    vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 }, (error) => {
                     console.log(error);
                 });
