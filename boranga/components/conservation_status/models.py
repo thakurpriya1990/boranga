@@ -44,6 +44,7 @@ from boranga.components.conservation_status.email import (
     send_proposal_approver_sendback_email_notification,
     send_conservation_status_decline_email_notification,
     send_conservation_status_approval_email_notification,
+    send_assessor_ready_for_agenda_email_notification,
     )
 
 
@@ -1102,7 +1103,7 @@ class ConservationStatus(models.Model):
                 # applicant_field=getattr(self, self.applicant_field)
                 # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(self.id),request)
 
-                # send_approver_approve_email_notification(request, self)
+                send_assessor_ready_for_agenda_email_notification(request, self)
             except:
                 raise
     

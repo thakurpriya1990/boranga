@@ -17,6 +17,7 @@ from boranga.helpers import is_internal
 from boranga.forms import *
 from boranga.components.conservation_status.models import ConservationStatus,ConservationStatusReferral
 from boranga.components.species_and_communities.models import Species, Community
+from boranga.components.meetings.models import Meeting
 from boranga.components.proposals.models import Referral, Proposal, HelpPage
 from boranga.components.compliances.models import Compliance
 from boranga.components.proposals.mixins import ReferralOwnerMixin
@@ -105,6 +106,10 @@ class InternalConservationStatusDashboardView(DetailView):
 
 class ConservationStatusReferralView(ReferralOwnerMixin, DetailView):
     model = ConservationStatusReferral
+    template_name = 'boranga/dash/index.html'
+
+class InternalMeetingDashboardView(DetailView):
+    model = Meeting
     template_name = 'boranga/dash/index.html'
 
 class ReferralView(ReferralOwnerMixin, DetailView):
