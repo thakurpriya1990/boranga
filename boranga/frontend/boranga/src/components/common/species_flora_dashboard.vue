@@ -319,52 +319,52 @@ export default {
     watch:{
         filterFloraScientificName: function(){
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraScientificName_cache, vm.filterFloraScientificName);  
         },
         filterFloraCommonName: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraCommonName_cache, vm.filterFloraCommonName);  
         },
         filterFloraFamily: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraFamily_cache, vm.filterFloraFamily);  
         },
         filterFloraPhylogeneticGroup: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call. 
             sessionStorage.setItem(vm.filterFloraPhylogeneticGroup_cache, vm.filterFloraPhylogeneticGroup);
         },
         filterFloraGenus: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraGenus_cache, vm.filterFloraGenus);  
         },
         filterFloraConservationList: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterFloraConservationList_cache, vm.filterFloraConservationList);
         },
         filterFloraConservationCategory: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterFloraConservationCategory_cache, vm.filterFloraConservationCategory);
         },
         filterFloraApplicationStatus: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterFloraApplicationStatus_cache, vm.filterFloraApplicationStatus);
         },
         filterFloraRegion: function(){
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraRegion_cache, vm.filterFloraRegion);
         },
         filterFloraDistrict: function(){
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraDistrict_cache, vm.filterFloraDistrict);
         },
         filterApplied: function(){
@@ -1278,7 +1278,7 @@ export default {
                         'Your proposal has been discarded',
                         'success'
                     )
-                    vm.$refs.flora_datatable.vmDataTable.ajax.reload();
+                    vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 }, (error) => {
                     console.log(error);
                 });

@@ -17,6 +17,9 @@ from boranga.components.species_and_communities.models import(
     DocumentCategory,
     DocumentSubCategory,
 )
+# from boranga.components.meetings.models import (
+#     AgendaItem,
+# )
 from boranga.ledger_api_utils import retrieve_email_user
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -41,6 +44,7 @@ from boranga.components.conservation_status.email import (
     send_proposal_approver_sendback_email_notification,
     send_conservation_status_decline_email_notification,
     send_conservation_status_approval_email_notification,
+    send_assessor_ready_for_agenda_email_notification,
     )
 
 
@@ -295,7 +299,7 @@ class ConservationStatus(models.Model):
         ('external', 'External'),
     )
 
-    RELATED_ITEM_CHOICES = [('species', 'Species'),('community', 'Community')]
+    RELATED_ITEM_CHOICES = [('species', 'Species'),('community', 'Community'),('agendaitem', 'Meeting Agenda Item')]
 
     # group_type of application
     application_type = models.ForeignKey(GroupType, on_delete=models.SET_NULL, blank=True, null=True)
@@ -936,9 +940,10 @@ class ConservationStatus(models.Model):
                     raise ValidationError('You cannot issue the approval if it is not with an assessor')
                 # not approve if the cs not set ina ny meeting for list with minister
                 if self.conservation_list.approval_level == 'minister':
-                    meeting_count = self.agendaitem_set.all().distinct().count()
-                    if meeting_count==0:
-                        raise ValidationError('You cannot issue the approval as meeting not set for the minister approval')
+                    # TODO may I need to check the the meeting status as schedules as well
+                    cs_meeting_count = self.agendaitem_set.filter(meeting__processing_status="scheduled").count()
+                    if cs_meeting_count==0:
+                        raise ValidationError('You cannot issue the approval as meeting not scheduled for the minister approval')
                 # Add the approval document first to to get the reference id in below model
                 proposal_approval_document = request.data['proposal_approval_document']
                 if proposal_approval_document != 'null':
@@ -1098,14 +1103,15 @@ class ConservationStatus(models.Model):
                 # applicant_field=getattr(self, self.applicant_field)
                 # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(self.id),request)
 
-                # send_approver_approve_email_notification(request, self)
+                send_assessor_ready_for_agenda_email_notification(request, self)
             except:
                 raise
     
     def get_related_items(self,filter_type, **kwargs):
         return_list = []
+        # import ipdb; ipdb.set_trace()
         if filter_type == 'all':
-            related_field_names = ['species', 'community',]
+            related_field_names = ['species', 'community', 'agendaitem']
         else:
             related_field_names = [filter_type,]
         all_fields = self._meta.get_fields()

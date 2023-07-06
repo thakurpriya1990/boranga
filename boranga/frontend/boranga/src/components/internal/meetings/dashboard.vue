@@ -11,10 +11,10 @@
                     role="tab"
                     aria-controls="pills-meeting"
                     aria-selected="true"
-                    @click="set_active_tab('pills-meeting','meeting')"
+                    @click="set_active_tab('meeting')"
                 >Meeting</a>
             </li>
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <a
                     class="nav-link"
                     id="pills-committee-tab"
@@ -23,9 +23,9 @@
                     role="tab"
                     aria-controls="pills-committee"
                     aria-selected="false"
-                    @click="set_active_tab('pills-committee','committee')"
+                    @click="set_active_tab('committee')"
                 >Committee Meeting</a>
-            </li>
+            </li> -->
             
         </ul>
 
@@ -35,10 +35,10 @@
                     <MeetingsDashTable ref="meetings_table" level="internal"  :url="meetings_url" />
                 </FormSection>
             </div>
-            <div class="tab-pane" id="pills-committee" role="tabpanel" aria-labelledby="pills-committee-tab">
+            <!-- <div class="tab-pane" id="pills-committee" role="tabpanel" aria-labelledby="pills-committee-tab">
                 <FormSection :formCollapse="false" label="Committee Meeting" Index="committee">
                 </FormSection>
-            </div>
+            </div> -->
         </div>
         
     </div>
@@ -73,9 +73,9 @@ export default {
     computed: {
     },
     methods: {
-        set_active_tab: function(tab_href_name, group_name){
+        set_active_tab: function(group_name){
             this.group_name=group_name;
-            let elem = $('#pills-tab a[href="#' + tab_href_name + '"]')
+            let elem = $('#pills-tab a[href="#pills-' + group_name + '"]')
             let tab = bootstrap.Tab.getInstance(elem)
             if(!tab)
                 tab = new bootstrap.Tab(elem)
@@ -88,7 +88,7 @@ export default {
         let vm = this;
         this.$nextTick(function(){
             chevron_toggle.init();
-            vm.set_active_tab('pills-'+vm.user_preference, vm.user_preference);
+            vm.set_active_tab(vm.user_preference);
         })
     },
 

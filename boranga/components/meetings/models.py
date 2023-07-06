@@ -131,7 +131,7 @@ class Meeting(models.Model):
     selected_committee_members = models.ManyToManyField(CommitteeMembers, null=True, blank=True)
     # Agenda items are all conservationstatus added to the meeting
     # the below agenda field is not used to agenda items
-    agenda = models.ManyToManyField(ConservationStatus, null=True, blank=True)
+    # agenda = models.ManyToManyField(ConservationStatus, null=True, blank=True)
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     lodgement_date = models.DateTimeField(blank=True, null=True)
@@ -329,6 +329,8 @@ class AgendaItem(OrderedModel):
 
     class Meta:
         app_label = 'boranga'
+        # the verbose name should be meeting as used in the Related items tab of CS
+        verbose_name = "Meeting Agenda Item" 
         unique_together = ("meeting", "conservation_status")
         ordering = ["meeting", "order"]
         # constraints = [
@@ -337,4 +339,30 @@ class AgendaItem(OrderedModel):
         #         name="unique agenda order per Meeting",
         #     )
         # ]
+    
+    def __str__(self):
+        return str(self.meeting)
+
+    @property
+    def as_related_item(self):
+        related_item = RelatedItem(
+            identifier=self.related_item_identifier,
+            model_name=self._meta.verbose_name,
+            descriptor=self.related_item_descriptor,
+            status=self.related_item_status,
+            action_url='<a href=/internal/meetings/{} target="_blank">View</a>'.format(self.meeting.id)
+        )
+        return related_item
+
+    @property
+    def related_item_identifier(self):
+        return self.meeting.meeting_number
+
+    @property
+    def related_item_descriptor(self):
+        return self.meeting.title
+
+    @property
+    def related_item_status(self):
+        return self.meeting.get_processing_status_display
 
