@@ -11,7 +11,7 @@
                     role="tab"
                     aria-controls="pills-flora"
                     aria-selected="true"
-                    @click="set_active_tab('pills-flora','flora')"
+                    @click="set_active_tab('flora')"
                 >Flora</a>
             </li>
             <li class="nav-item">
@@ -23,7 +23,7 @@
                     role="tab"
                     aria-controls="pills-fauna"
                     aria-selected="false"
-                    @click="set_active_tab('pills-fauna','fauna')"
+                    @click="set_active_tab('fauna')"
                 >Fauna</a>
             </li>
             <li class="nav-item">
@@ -35,7 +35,7 @@
                     role="tab"
                     aria-controls="pills-community"
                     aria-selected="false"
-                    @click="set_active_tab('pills-community','community')"
+                    @click="set_active_tab('community')"
                 >Communities</a>
             </li>
         </ul>
@@ -169,9 +169,10 @@ export default {
                 this.filterGroupType = grouptype;
             }
         },*/
-        set_active_tab: function(tab_href_name, group_name){
+        set_active_tab: function(group_name){
             this.group_name=group_name;
-            let elem = $('#pills-tab a[href="#' + tab_href_name + '"]')
+            localStorage.setItem("conservationStatusActiveTab",group_name);
+            let elem = $('#pills-tab a[href="#pills-' + group_name + '"]')
             let tab = bootstrap.Tab.getInstance(elem)
             if(!tab)
                 tab = new bootstrap.Tab(elem)
@@ -189,7 +190,12 @@ export default {
         let vm = this;
         this.$nextTick(function(){
             chevron_toggle.init();
-            vm.set_active_tab('pills-'+vm.user_preference, vm.user_preference);
+            if(localStorage.getItem('conservationStatusActiveTab')===null){
+                vm.set_active_tab(vm.user_preference);
+            }
+            else{
+                vm.set_active_tab(localStorage.getItem('conservationStatusActiveTab'));
+            }
             this.getGroupId;
         })
     },
