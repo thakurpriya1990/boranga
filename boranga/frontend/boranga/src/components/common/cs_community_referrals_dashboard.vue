@@ -227,43 +227,43 @@ export default {
     watch:{
         filterCSRefCommunityMigratedId: function(){
             let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSRefCommunityMigratedId_cache, vm.filterCSRefCommunityMigratedId);
         },
         filterCSRefCommunityName: function() {
             let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSRefCommunityName_cache, vm.filterCSRefCommunityName);
         },
         filterCSRefCommunityStatus: function() {
             let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSRefCommunityStatus_cache, vm.filterCSRefCommunityStatus);
         },
         filterCSRefCommunityConservationList: function() {
             let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSRefCommunityConservationList_cache, vm.filterCSRefCommunityConservationList);
         },
         filterCSRefCommunityConservationCategory: function() {
             let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSRefCommunityConservationCategory_cache, 
                 vm.filterCSRefCommunityConservationCategory);
         },
         filterCSRefCommunityRegion: function(){
             let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSRefCommunityRegion_cache, vm.filterCSRefCommunityRegion);
         },
         filterCSRefCommunityDistrict: function(){
             let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSRefCommunityDistrict_cache, vm.filterCSRefCommunityDistrict);
         },
         filterCSRefCommunityApplicationStatus: function() {
             let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(
                 vm.filterCSRefCommunityApplicationStatus_cache, vm.filterCSRefCommunityApplicationStatus
                 );

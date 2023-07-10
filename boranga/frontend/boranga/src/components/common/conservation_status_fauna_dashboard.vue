@@ -3,7 +3,7 @@
         <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
             <div class="row">
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_scientific_name">
                         <label for="cs_scientific_name_lookup">Scientific Name:</label>
                         <select 
                             id="cs_scientific_name_lookup"  
@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_common_name">
                         <label for="cs_common_name_lookup">Common Name:</label>
                         <select 
                             id="cs_common_name_lookup"  
@@ -23,7 +23,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_phylo_group">
                         <label for="cs_phylo_group_lookup">Phylo Group:</label>
                         <select 
                             id="cs_phylo_group_lookup"  
@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_family">
                         <label for="cs_family_lookup">Family:</label>
                         <select 
                             id="cs_family_lookup"  
@@ -43,7 +43,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_genera">
                         <label for="cs_genera_lookup">Genera:</label>
                         <select 
                             id="cs_genera_lookup"  
@@ -71,7 +71,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSFaunaApplicationStatus">
@@ -99,13 +99,13 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Effective From Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveFromDate">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Effective To Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveToDate">
@@ -316,7 +316,8 @@ export default {
             internal_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'with_approver', name: 'With Approver'},
+                {value: 'ready_for_agenda', name: 'Ready For Agenda'},
+                // {value: 'with_approver', name: 'With Approver'},
                 {value: 'with_referral', name: 'With Referral'},
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
@@ -335,62 +336,62 @@ export default {
     watch:{
         filterCSFaunaScientificName: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaScientificName_cache, vm.filterCSFaunaScientificName);  
         },
         filterCSFaunaCommonName: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaCommonName_cache, vm.filterCSFaunaCommonName);  
         },
         filterCSFaunaPhylogeneticGroup: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call. 
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call. 
             sessionStorage.setItem(vm.filterCSFaunaPhylogeneticGroup_cache, vm.filterCSFaunaPhylogeneticGroup);
         },
         filterCSFaunaFamily: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaFamily_cache, vm.filterCSFaunaFamily);  
         },
         filterCSFaunaGenus: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaGenus_cache, vm.filterCSFaunaGenus);  
         },
         filterCSFaunaConservationList: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSFaunaConservationList_cache, vm.filterCSFaunaConservationList);
         },
         filterCSFaunaConservationCategory: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSFaunaConservationCategory_cache, vm.filterCSFaunaConservationCategory);
         },
         filterCSFaunaRegion: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaRegion_cache, vm.filterCSFaunaRegion);
         },
         filterCSFaunaDistrict: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaDistrict_cache, vm.filterCSFaunaDistrict);
         },
         filterCSFaunaEffectiveFromDate: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaEffectiveFromDate_cache, vm.filterCSFaunaEffectiveFromDate);
         },
         filterCSFaunaEffectiveToDate: function(){
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaEffectiveToDate_cache, vm.filterCSFaunaEffectiveToDate);
         },
         filterCSFaunaApplicationStatus: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSFaunaApplicationStatus_cache, vm.filterCSFaunaApplicationStatus);
         },
         filterApplied: function(){
@@ -815,6 +816,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_scientific_name_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_scientific_name"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Scientific Name",
@@ -856,6 +858,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_common_name_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_common_name"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Common Name",
@@ -893,6 +896,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_phylo_group_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_phylo_group"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Phylo Group",
@@ -930,6 +934,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_family_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_family"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Family",
@@ -968,6 +973,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_genera_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_genera"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Genera",
@@ -1115,7 +1121,7 @@ export default {
                         'Your proposal has been discarded',
                         'success'
                     )
-                    vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload();
+                    vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 }, (error) => {
                     console.log(error);
                 });
@@ -1129,7 +1135,7 @@ export default {
             payload.conservation_status_id = conservation_status_id;
             Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/add_agenda_item.json`,payload).then(res => {
                 vm.meeting_obj.agenda_items_arr=res.body;
-                vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload();
+                vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 this.$emit('updateAgendaItems');
             },
             err => {

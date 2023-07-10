@@ -258,42 +258,42 @@ export default {
     watch:{
         filterCommunityMigratedId: function(){
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCommunityMigratedId_cache, vm.filterCommunityMigratedId);
         },
         filterCommunityName: function() {
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCommunityName_cache, vm.filterCommunityName);
         },
         filterCommunityStatus: function() {
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCommunityStatus_cache, vm.filterCommunityStatus);
         },
         filterCommunityConservationList: function() {
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCommunityConservationList_cache, vm.filterCommunityConservationList);
         },
         filterCommunityConservationCategory: function() {
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCommunityConservationCategory_cache, vm.filterCommunityConservationCategory);
         },
         filterCommunityApplicationStatus: function() {
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCommunityApplicationStatus_cache, vm.filterCommunityApplicationStatus);
         },
         filterCommunityRegion: function(){
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCommunityRegion_cache, vm.filterCommunityRegion);
         },
         filterCommunityDistrict: function(){
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCommunityDistrict_cache, vm.filterCommunityDistrict);
         },
         filterApplied: function(){
@@ -797,7 +797,7 @@ export default {
                         'Your proposal has been discarded',
                         'success'
                     )
-                    vm.$refs.communities_datatable.vmDataTable.ajax.reload();
+                    vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 }, (error) => {
                     console.log(error);
                 });

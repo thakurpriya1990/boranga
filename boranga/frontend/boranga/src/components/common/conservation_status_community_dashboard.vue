@@ -3,7 +3,7 @@
         <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
             <div class="row">
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_community_id">
                         <label for="cs_community_id_lookup">Community ID:</label>
                         <select 
                             id="cs_community_id_lookup"  
@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group" id="select_community_name">
                         <label for="cs_community_name_lookup">Community Name:</label>
                         <select 
                             id="cs_community_name_lookup"  
@@ -52,7 +52,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSCommunityApplicationStatus">
@@ -80,13 +80,13 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Effective From Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveFromDate">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Effective To Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveToDate">
@@ -272,7 +272,8 @@ export default {
             internal_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'with_approver', name: 'With Approver'},
+                {value: 'ready_for_agenda', name: 'Ready For Agenda'},
+                // {value: 'with_approver', name: 'With Approver'},
                 {value: 'with_referral', name: 'With Referral'},
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
@@ -292,53 +293,53 @@ export default {
     watch:{
         filterCSCommunityMigratedId: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityMigratedId_cache, vm.filterCSCommunityMigratedId);
         },
         filterCSCommunityName: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityName_cache, vm.filterCSCommunityName);
         },
         filterCSCommunityStatus: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityStatus_cache, vm.filterCSCommunityStatus);
         },
         filterCSCommunityConservationList: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityConservationList_cache, vm.filterCSCommunityConservationList);
         },
         filterCSCommunityConservationCategory: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityConservationCategory_cache, 
                 vm.filterCSCommunityConservationCategory);
         },
         filterCSCommunityRegion: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityRegion_cache, vm.filterCSCommunityRegion);
         },
         filterCSCommunityDistrict: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityDistrict_cache, vm.filterCSCommunityDistrict);
         },
         filterCSCommunityEffectiveFromDate: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityEffectiveFromDate_cache, vm.filterCSCommunityEffectiveFromDate);
         },
         filterCSCommunityEffectiveToDate: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityEffectiveToDate_cache, vm.filterCSCommunityEffectiveToDate);
         },
         filterCSCommunityApplicationStatus: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityApplicationStatus_cache, vm.filterCSCommunityApplicationStatus);
         },
         filterApplied: function(){
@@ -738,6 +739,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_community_name_lookup).select2({
                     minimumInputLength: 2,
+                    dropdownParent: $("#select_community_name"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Community Name",
@@ -774,6 +776,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.cs_community_id_lookup).select2({
                     minimumInputLength: 1,
+                    dropdownParent: $("#select_community_id"),
                     "theme": "bootstrap-5",
                     allowClear: true,
                     placeholder:"Select Community ID",
@@ -916,7 +919,7 @@ export default {
                         'Your proposal has been discarded',
                         'success'
                     )
-                    vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload();
+                    vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 }, (error) => {
                     console.log(error);
                 });
@@ -930,7 +933,7 @@ export default {
             payload.conservation_status_id = conservation_status_id;
             Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/add_agenda_item.json`,payload).then(res => {
                 vm.meeting_obj.agenda_items_arr=res.body;
-                vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload();
+                vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                 this.$emit('updateAgendaItems');
             },
             err => {
