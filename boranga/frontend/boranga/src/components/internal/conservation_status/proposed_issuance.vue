@@ -5,6 +5,7 @@
                 <div class="row">
                     <form class="form-horizontal" name="approvalForm">
                         <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                        <alert type="danger" v-if="!isEffectiveDateValid"><strong>Please select Effective To Date that is after Effective From Date</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
@@ -15,17 +16,16 @@
                                     </div>
                                     <div class="col-sm-8">
                                         <div class="input-group date" style="width: 70%;">
-                                            <input type="date" class="form-control" ref="start_date" placeholder="DD/MM/YYYY" v-model="approval.effective_from_date">
+                                            <input type="date" class="form-control" ref="start_date" placeholder="DD/MM/YYYY" v-model="approval.effective_from_date"
+                                            @change="validateEffectiveFromDate($event)">
                                             <!-- <span class="input-group-addon">
                                                 <span class="glyphicon glyphicon-calendar"></span>
                                             </span> -->
                                         </div>
+                                        <small style="color: red;" v-show="showstartDateError">This field is required</small>
                                     </div>
                                 </div>
-                                <div class="row" v-show="showstartDateError">
-                                    <alert  class="col-sm-12" type="danger"><strong>{{startDateErrorString}}</strong></alert>
-                    
-                                </div>
+                               
                             </div>
                             <div class="form-group">
                                 <div class="row mb-3">
@@ -37,17 +37,16 @@
                                     <div class="col-sm-8">
                                         <div class="input-group date" style="width: 70%;">
                                             <!--<input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date" :disabled="is_amendment">-->
-                                            <input type="date" class="form-control" ref="due_date" placeholder="DD/MM/YYYY" v-model="approval.effective_to_date">
+                                            <input type="date" class="form-control" ref="due_date" placeholder="DD/MM/YYYY" v-model="approval.effective_to_date"
+                                            @change="validateEffectiveToDate($event)">
                                             <!-- <span class="input-group-addon">
                                                 <span class="glyphicon glyphicon-calendar"></span>
                                             </span> -->
                                         </div>
+                                        <small style="color: red;" v-show="showtoDateError">This field is required</small>
                                     </div>
                                 </div>
-                                <div class="row" v-show="showtoDateError">
-                                    <alert  class="col-sm-12" type="danger"><strong>{{toDateErrorString}}</strong></alert>
-                    
-                                </div>
+                               
                                 
                             </div>
                             <div class="form-group">
@@ -58,7 +57,9 @@
                                         <label class="control-label pull-left"  for="Name">Details</label>
                                     </div>
                                     <div class="col-sm-8">
-                                        <textarea name="approval_details" class="form-control" style="width:70%;" v-model="approval.details"></textarea>
+                                        <textarea name="approval_details" ref="approval_details" class="form-control" style="width:70%;" v-model="approval.details"
+                                        @blur="validateDetails($event)"></textarea>
+                                        <small style="color: red;" v-show="showDetailsError">This field is required</small>
                                     </div>
                                 </div>
                             </div>
@@ -143,11 +144,10 @@ export default {
             issuingApproval: false,
             validation_form: null,
             errors: false,
-            toDateError:false,
-            startDateError:false,
+            showtoDateError:false,
+            showstartDateError:false,
+            showDetailsError:false,
             errorString: '',
-            toDateErrorString:'',
-            startDateErrorString:'',
             successString: '',
             success:false,
             datepickerOptions:{
@@ -167,13 +167,15 @@ export default {
             var vm = this;
             return vm.errors;
         },
-        showtoDateError: function() {
-            var vm = this;
-            return vm.toDateError;
-        },
-        showstartDateError: function() {
-            var vm = this;
-            return vm.startDateError;
+        isEffectiveDateValid: function () {
+            if(this.approval.effective_from_date && this.approval.effective_to_date){
+                const fromDate = new Date(this.approval.effective_from_date);
+                const toDate = new Date(this.approval.effective_to_date);
+                return fromDate < toDate;
+            }
+            else{
+                return true;
+            }
         },
         title: function(){
             // return this.processing_status == 'With Approver' ? 'Approve Conservation Status' : 'Propose to approve Conservation Status';
@@ -192,7 +194,8 @@ export default {
     methods:{
         ok:function () {
             let vm =this;
-            if($(vm.form).valid()){
+            let errors = vm.isError();
+            if(!errors && vm.isEffectiveDateValid){
                 vm.sendData();
                 //vm.$router.push({ path: '/internal' });
             }
@@ -259,111 +262,55 @@ export default {
             }
             
         },
-        addFormValidations: function() {
+        validateEffectiveFromDate: function(event){
             let vm = this;
-            vm.validation_form = $(vm.form).validate({
-                rules: {
-                    start_date:"required",
-                    due_date:"required",
-                    approval_details:"required",
-                },
-                messages: {
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
-            });
-       },
+            const value = event.target.value;
+            if(!value){
+                vm.showstartDateError = true;
+            }
+            else{
+                vm.showstartDateError = false;
+            }
+        },
+        validateEffectiveToDate: function(event){
+            let vm = this;
+            const value = event.target.value;
+            if(!value){
+                vm.showtoDateError = true;
+            }
+            else{
+                vm.showtoDateError = false;
+            }
+        },
+        validateDetails: function(event){
+            let vm = this;
+            const value = event.target.value;
+            if(!value){
+                vm.showDetailsError = true;
+            }
+            else{
+                vm.showDetailsError = false;
+            }
+        },        
+        isError: function () {
+            let vm = this;
+            let hasError = false;
+            if(!vm.approval.effective_from_date){
+                vm.showstartDateError = true;
+                hasError = true;
+            }
+            if(!vm.approval.effective_to_date){
+                vm.showtoDateError = true;
+                hasError = true;
+            }
+            if(!vm.approval.details || vm.approval.details == ""){
+                vm.showDetailsError = true;
+                hasError = true;
+            }
+            return hasError;
+        },
        eventListeners:function () {
             let vm = this;
-            // Initialise Date Picker
-            // $(vm.$refs.due_date).datetimepicker(vm.datepickerOptions);
-            // $(vm.$refs.due_date).on('dp.change', function(e){
-            //     if ($(vm.$refs.due_date).data('DateTimePicker').date()) {
-            //         if ($(vm.$refs.due_date).data('DateTimePicker').date() < $(vm.$refs.start_date).data('DateTimePicker').date()){
-            //             vm.toDateError = true;
-            //             vm.toDateErrorString = 'Please select Effective To date that is after Effective From date';
-            //             vm.approval.effective_to_date = ""
-            //         }
-            //         else{
-            //             vm.toDateError = false;
-            //             vm.toDateErrorString = '';
-            //             vm.approval.effective_to_date =  e.date.format('DD/MM/YYYY');
-            //         }
-            //     }
-            //     else if ($(vm.$refs.due_date).data('date') === "") {
-            //         vm.approval.effective_to_date = "";
-            //     }
-            //  });
-            // $(vm.$refs.start_date).datetimepicker(vm.datepickerOptions);
-            // $(vm.$refs.start_date).on('dp.change', function(e){
-            //     if ($(vm.$refs.start_date).data('DateTimePicker').date()) {
-            //         if (($(vm.$refs.due_date).data('DateTimePicker').date()!= null)&& ($(vm.$refs.due_date).data('DateTimePicker').date() < $(vm.$refs.start_date).data('DateTimePicker').date())){
-            //             vm.startDateError = true;
-            //             vm.startDateErrorString = 'Please select Effective From date that is before Effective To date';
-            //             vm.approval.effective_from_date = ""
-            //         }
-            //         else{
-            //             vm.startDateError = false;
-            //             vm.startDateErrorString = '';
-            //             vm.approval.effective_from_date =  e.date.format('DD/MM/YYYY');
-            //         }
-            //     }
-            //     else if ($(vm.$refs.start_date).data('date') === "") {
-            //         vm.approval.effective_from_date = "";
-            //     }
-            //  });
-
-             //--------Priya
-            $(vm.$refs.due_date).on('change', function(e){
-                if ($(vm.$refs.due_date)!=null) {
-                    if (new Date($(vm.$refs.due_date.value)) < Date.parse($(vm.$refs.start_date.value))){
-                        vm.toDateError = true;
-                        vm.toDateErrorString = 'Please select Effective To date that is after Effective From date';
-                        vm.approval.effective_to_date = ""
-                    }
-                    else{
-                        vm.toDateError = false;
-                        vm.toDateErrorString = '';
-                        vm.approval.effective_to_date =  vm.$refs.due_date;
-                    }
-                }
-                else if ($(vm.$refs.due_date) === "") {
-                    vm.approval.effective_to_date = "";
-                }
-             });
-            $(vm.$refs.start_date).on('change', function(e){
-                if ($(vm.$refs.start_date)!=null) {
-                    if (($(vm.$refs.due_date)!= null) && (Date.parse($(vm.$refs.due_date.value)) < Date.parse($(vm.$refs.start_date.value)))){
-                        vm.startDateError = true;
-                        vm.startDateErrorString = 'Please select Effective From date that is before Effective To date';
-                        vm.approval.effective_from_date = ""
-                    }
-                    else{
-                        vm.startDateError = false;
-                        vm.startDateErrorString = '';
-                        vm.approval.effective_from_date =  vm.$refs.start_date;
-                    }
-                }
-                else if ($(vm.$refs.start_date) === "") {
-                    vm.approval.effective_from_date = "";
-                }
-            });
        }
    },
    mounted:function () {
