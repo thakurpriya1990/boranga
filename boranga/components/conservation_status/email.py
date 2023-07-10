@@ -64,6 +64,11 @@ class ApproverApproveSendNotificationEmail(TemplateEmailBase):
     html_template = 'boranga/emails/cs_proposals/send_approver_approve_notification.html'
     txt_template = 'boranga/emails/cs_proposals/send_approver_approve_notification.txt'
 
+class AssessorReadyForAgendaSendNotificationEmail(TemplateEmailBase):
+    subject = 'A Proposal has been proposed ready for agenda.'
+    html_template = 'boranga/emails/cs_proposals/send_assessor_ready_for_agenda_notification.html'
+    txt_template = 'boranga/emails/cs_proposals/send_assessor_ready_for_agenda_notification.txt'
+
 class ApproverSendBackNotificationEmail(TemplateEmailBase):
     subject = 'A Proposal has been sent back by approver.'
     html_template = 'boranga/emails/cs_proposals/send_approver_sendback_notification.html'
@@ -415,6 +420,26 @@ def send_approver_approve_email_notification(request, conservation_status):
 
     msg = email.send(
         conservation_status.approver_recipients, 
+        context=context
+        )
+    #sender = request.user if request else EmailUser.objects.get(email__icontains=settings.DEFAULT_FROM_EMAIL)
+    sender = get_sender_user()
+    _log_conservation_status_email(msg, conservation_status, sender=sender)
+    # if conservation_status.org_applicant:
+    #     _log_org_email(msg, conservation_status.org_applicant, conservation_status.submitter, sender=sender)
+    # else:
+    #     _log_user_email(msg, conservation_status.submitter, conservation_status.submitter, sender=sender)
+
+def send_assessor_ready_for_agenda_email_notification(request, conservation_status):
+    email = AssessorReadyForAgendaSendNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-meeting-dashboard',kwargs={}))
+    context = {
+        'cs_proposal': conservation_status,
+        'url': url
+    }
+
+    msg = email.send(
+        conservation_status.assessor_recipients,
         context=context
         )
     #sender = request.user if request else EmailUser.objects.get(email__icontains=settings.DEFAULT_FROM_EMAIL)
