@@ -194,7 +194,6 @@ class GetCommonName(views.APIView):
             else:
                 data = TaxonVernacular.objects.filter(vernacular_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id).values('id', 'vernacular_name')[:10]
             data_transform = [{'id': vern['id'], 'text': vern['vernacular_name']} for vern in data]
-            data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
         return Response()
 
@@ -213,7 +212,6 @@ class GetFamily(views.APIView):
                 family_ids = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
                 data = Taxonomy.objects.filter(id__in=family_ids, scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
             data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
-            data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
         return Response()
 
@@ -231,7 +229,6 @@ class GetGenera(views.APIView):
             else:
                 data = Genus.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
             data_transform = [{'id': taxon['id'], 'text': taxon['name']} for taxon in data]
-            data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
         return Response()
 
@@ -249,7 +246,6 @@ class GetPhyloGroup(views.APIView):
             else:
                 data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
             data_transform = [{'id': group['id'], 'text': group['class_desc']} for group in data]
-            data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
         return Response()
 
@@ -265,7 +261,6 @@ class GetCommunityId(views.APIView):
             else:
                 data = CommunityTaxonomy.objects.filter(community_migrated_id__icontains=search_term).values('id', 'community_migrated_id')[:10]
             data_transform = [{'id': community['id'], 'text': community['community_migrated_id']} for community in data]
-            data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
         return Response()
 
@@ -281,7 +276,6 @@ class GetCommunityName(views.APIView):
             else:
                 data = CommunityTaxonomy.objects.filter(community_name__icontains=search_term).values('id', 'community_name')[:10]
             data_transform = [{'id': community['id'], 'text': community['community_name']} for community in data]
-            data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
         return Response()
 

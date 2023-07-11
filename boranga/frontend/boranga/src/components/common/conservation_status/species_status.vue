@@ -323,18 +323,12 @@ export default {
                               this.filtered_conservation_category_list.push(choice);
                             }
                         }
-                    this.filtered_conservation_category_list = this.filtered_conservation_category_list.slice().sort((a, b) => {
-                        return a.code.trim().localeCompare(b.code.trim());
-                    });
                     for(let choice of this.conservation_criteria_list){
                             if(choice.conservation_list_id === this.conservation_status_obj.conservation_list_id)
                             {
                               this.filtered_conservation_criteria_list.push(choice);
                             }
                         }
-                    this.filtered_conservation_criteria_list = this.filtered_conservation_criteria_list.slice().sort((a, b) => {
-                        return a.code.trim().localeCompare(b.code.trim());
-                    });
                 });
             },
             generateReferralCommentBoxes: function(){
@@ -391,17 +385,13 @@ export default {
                                             api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type
             vm.$http.get(dict_url).then((response) => {
                 vm.cs_profile_dict = response.body;
-                vm.species_list = vm.cs_profile_dict.species_list.slice().sort((a, b) => {
-                    return a.name.trim().localeCompare(b.name.trim());
-                });
+                vm.species_list = vm.cs_profile_dict.species_list;
                 vm.species_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
-                vm.conservation_list_values = vm.cs_profile_dict.conservation_list_values.slice().sort((a, b) => {
-                    return a.code.trim().localeCompare(b.code.trim());
-                });
+                vm.conservation_list_values = vm.cs_profile_dict.conservation_list_values;
                 vm.conservation_list_values.splice(0,0,
                 {
                     id: null,

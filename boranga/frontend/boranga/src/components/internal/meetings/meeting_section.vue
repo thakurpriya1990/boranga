@@ -356,17 +356,13 @@ export default {
             vm.$http.get(api_endpoints.meeting_dict).then((response) => {
                 vm.meeting_dict = response.body;
                 //--meeting room list
-                vm.location_list = vm.meeting_dict.location_list.slice().sort((a, b) => {
-                    return a.name.trim().localeCompare(b.name.trim());
-                });
+                vm.location_list = vm.meeting_dict.location_list;
                 vm.location_list.splice(0,0,
                 {
                     id: null,
                     name: null,
                 });
-                vm.committee_list = vm.meeting_dict.committee_list.slice().sort((a, b) => {
-                    return a.name.trim().localeCompare(b.name.trim());
-                });
+                vm.committee_list = vm.meeting_dict.committee_list;
                 vm.committee_list.splice(0,0,
                 {
                     id: null,

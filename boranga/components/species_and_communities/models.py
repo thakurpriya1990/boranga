@@ -114,6 +114,7 @@ class Region(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['name']
         
     def __str__(self):
         return self.get_name_display()
@@ -128,6 +129,7 @@ class District(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['name']
     def __str__(self):
         return self.get_name_display()
 
@@ -212,6 +214,7 @@ class NameAuthority(models.Model):
         app_label = 'boranga'
         verbose_name = "Name Authority"
         verbose_name_plural = "Name Authorities"
+        ordering = ['name']
 
     def __str__(self):
         return str(self.name)
@@ -286,6 +289,7 @@ class Genus(models.Model):
         app_label = 'boranga'
         verbose_name = "Genus"
         verbose_name_plural = "Genera"
+        ordering = ['name']
 
     def __str__(self):
         return str(self.name)
@@ -345,6 +349,7 @@ class Taxonomy(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['scientific_name']
 
     def __str__(self):
         return str(self.scientific_name)  # TODO: is the most appropriate?
@@ -374,6 +379,7 @@ class TaxonVernacular(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['vernacular_name']
 
     def __str__(self):
         return str(self.vernacular_name)  # TODO: is the most appropriate?
@@ -410,6 +416,7 @@ class ClassificationSystem(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['class_desc']
 
     def __str__(self):
         return str(self.class_desc)  # TODO: is the most appropriate?
@@ -1013,6 +1020,7 @@ class CommunityTaxonomy(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['community_name']
 
     def __str__(self):
         return str(self.community_name)  # TODO: is the most appropriate?
@@ -1564,6 +1572,7 @@ class DocumentCategory(models.Model):
         app_label = 'boranga'
         verbose_name = "Document Category"
         verbose_name_plural = "Document Categories"
+        ordering = ['document_category_name']
 
     def __str__(self):
         return str(self.document_category_name)
@@ -1590,6 +1599,7 @@ class DocumentSubCategory(models.Model):
         app_label = 'boranga'
         verbose_name = "Document Sub Category"
         verbose_name_plural = "Document Sub Categories"
+        ordering = ['document_sub_category_name']
 
     def __str__(self):
         return str(self.document_sub_category_name)
@@ -1889,6 +1899,7 @@ class FloweringPeriod(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['period']
 
     def __str__(self):
         return str(self.period)
@@ -1906,6 +1917,7 @@ class FruitingPeriod(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['period']
 
     def __str__(self):
         return str(self.period)
@@ -1923,6 +1935,7 @@ class FloraRecruitmentType(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['recruitment_type']
 
     def __str__(self):
         return str(self.recruitment_type)
@@ -1940,6 +1953,7 @@ class SeedViabilityGerminationInfo(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['name']
 
     def __str__(self):
         return str(self.name)
@@ -1959,6 +1973,7 @@ class RootMorphology(models.Model):
         app_label = 'boranga'
         verbose_name = "Root Morphology"
         verbose_name_plural = "Root Morphologies"
+        ordering = ['name']
 
     def __str__(self):
         return str(self.name)
@@ -1976,6 +1991,7 @@ class PollinatorInformation(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['name']
 
     def __str__(self):
         return str(self.name)
@@ -1993,6 +2009,7 @@ class PostFireHabitatInteraction(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['name']
 
     def __str__(self):
         return str(self.name)
@@ -2010,6 +2027,7 @@ class BreedingPeriod(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['period']
 
     def __str__(self):
         return str(self.period)
@@ -2027,6 +2045,7 @@ class FaunaBreeding(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['breeding_type']
 
     def __str__(self):
         return str(self.breeding_type)

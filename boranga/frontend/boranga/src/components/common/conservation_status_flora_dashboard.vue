@@ -957,9 +957,7 @@ export default {
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.genus_list = vm.filterListsSpecies.genus_list;
-                vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict.slice().sort((a, b) => {
-                    return a.code.trim().localeCompare(b.code.trim());
-                });
+                vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
                 vm.filterDistrict();
@@ -973,9 +971,7 @@ export default {
             })
             vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
                 vm.filterRegionDistrict= response.body;
-                vm.region_list= vm.filterRegionDistrict.region_list.slice().sort((a, b) => {
-                        return a.name.trim().localeCompare(b.name.trim());
-                    });
+                vm.region_list= vm.filterRegionDistrict.region_list;
                 vm.district_list= vm.filterRegionDistrict.district_list;
             },(error) => {
                 console.log(error);
@@ -995,9 +991,6 @@ export default {
                           this.filtered_conservation_category_list.push(choice);
                         }
                     }
-                    this.filtered_conservation_category_list = this.filtered_conservation_category_list.slice().sort((a, b) => {
-                        return a.code.trim().localeCompare(b.code.trim());
-                    });
                 //});
         },
          //-------filter district dropdown dependent on region selected
@@ -1015,9 +1008,6 @@ export default {
                         }
                         
                     }
-                    this.filtered_district_list = this.filtered_district_list.slice().sort((a, b) => {
-                        return a.name.trim().localeCompare(b.name.trim());
-                    });
                 });
         },
         createFloraConservationStatus: async function () {

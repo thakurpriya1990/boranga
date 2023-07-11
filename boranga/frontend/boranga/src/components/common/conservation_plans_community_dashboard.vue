@@ -4,21 +4,21 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="cs_community_id_lookup">Community ID:</label>
+                        <label for="cp_community_id_lookup">Community ID:</label>
                         <select 
-                            id="cs_community_id_lookup"  
-                            name="cs_community_id_lookup"  
-                            ref="cs_community_id_lookup" 
+                            id="cp_community_id_lookup"  
+                            name="cp_community_id_lookup"  
+                            ref="cp_community_id_lookup" 
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="cs_community_name_lookup">Community Name:</label>
+                        <label for="cp_community_name_lookup">Community Name:</label>
                         <select 
-                            id="cs_community_name_lookup"  
-                            name="cs_community_name_lookup"  
-                            ref="cs_community_name_lookup" 
+                            id="cp_community_name_lookup"  
+                            name="cp_community_name_lookup"  
+                            ref="cp_community_name_lookup" 
                             class="form-control" />
                     </div>
                 </div>
@@ -104,7 +104,7 @@
         <div class="row">
             <div class="col-lg-12">
                 <datatable
-                        ref="cs_communities_datatable"
+                        ref="cp_communities_datatable"
                         :id="datatable_id"
                         :dtOptions="datatable_options"
                         :dtHeaders="datatable_headers"
@@ -201,7 +201,7 @@ export default {
     data() {
         let vm = this;
         return {
-            datatable_id: 'cs-communities-datatable-'+vm._uid,
+            datatable_id: 'cp-communities-datatable-'+vm._uid,
      
             //Profile to check if user has access to process Proposal
             profile: {},
@@ -282,53 +282,53 @@ export default {
     watch:{
         filterCSCommunityMigratedId: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityMigratedId_cache, vm.filterCSCommunityMigratedId);
         },
         filterCSCommunityName: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityName_cache, vm.filterCSCommunityName);
         },
         filterCSCommunityStatus: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityStatus_cache, vm.filterCSCommunityStatus);
         },
         filterCSCommunityConservationList: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityConservationList_cache, vm.filterCSCommunityConservationList);
         },
         filterCSCommunityConservationCategory: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityConservationCategory_cache, 
                 vm.filterCSCommunityConservationCategory);
         },
         filterCSCommunityRegion: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityRegion_cache, vm.filterCSCommunityRegion);
         },
         filterCSCommunityDistrict: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityDistrict_cache, vm.filterCSCommunityDistrict);
         },
         filterCSCommunityEffectiveFromDate: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityEffectiveFromDate_cache, vm.filterCSCommunityEffectiveFromDate);
         },
         filterCSCommunityEffectiveToDate: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityEffectiveToDate_cache, vm.filterCSCommunityEffectiveToDate);
         },
         filterCSCommunityApplicationStatus: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSCommunityApplicationStatus_cache, vm.filterCSCommunityApplicationStatus);
         },
         filterApplied: function(){
@@ -581,7 +581,7 @@ export default {
                         if(full.internal_user_edit)
                         {
                             links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-cp-proposal='${full.id}'>Discard</a><br/>`;
                         }
                         else{
                             if(full.assessor_process){
@@ -716,7 +716,7 @@ export default {
         },
         initialiseCommunityNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.cs_community_name_lookup).select2({
+                $(vm.$refs.cp_community_name_lookup).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -745,14 +745,14 @@ export default {
                     sessionStorage.setItem("filterCSCommunityNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-cs_community_name_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cp_community_name_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
         },
         initialiseCommunityIdLookup: function(){
                 let vm = this;
-                $(vm.$refs.cs_community_id_lookup).select2({
+                $(vm.$refs.cp_community_id_lookup).select2({
                     minimumInputLength: 1,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -781,7 +781,7 @@ export default {
                     sessionStorage.setItem("filterCSCommunityMigratedIdText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-cs_community_id_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-cp_community_id_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
@@ -877,14 +877,14 @@ export default {
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
+                vm.$http.delete(api_endpoints.discard_cp_proposal(conservation_status_id))
                 .then((response) => {
                     swal(
                         'Discarded',
                         'Your proposal has been discarded',
                         'success'
                     )
-                    vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload();
+                    vm.$refs.cp_communities_datatable.vmDataTable.ajax.reload();
                 }, (error) => {
                     console.log(error);
                 });
@@ -895,9 +895,9 @@ export default {
         addEventListeners: function(){
             let vm = this;
             // internal Discard listener
-            vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-discard-cs-proposal]', function(e) {
+            vm.$refs.cp_communities_datatable.vmDataTable.on('click', 'a[data-discard-cp-proposal]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-cs-proposal');
+                var id = $(this).attr('data-discard-cp-proposal');
                 vm.discardCSProposal(id);
             });
         },
@@ -906,7 +906,7 @@ export default {
         },
         submitterSearch:function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.table.dataTableExt.afnFiltering.push(
+            vm.$refs.cp_communities_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
                     if (filtered_submitter == 'All'){ return true; } 
@@ -1081,7 +1081,7 @@ export default {
                 export_format: format
             };
 
-            const url = api_endpoints.community_cs_internal_export;
+            const url = api_endpoints.community_cp_internal_export;
             const keyValuePairs = [];
 
             for (const key in object_load) {
@@ -1184,13 +1184,13 @@ export default {
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSCommunityNameText"), vm.filterCSCommunityName, false, true);
-                $('#cs_community_name_lookup').append(newOption);
+                $('#cp_community_name_lookup').append(newOption);
             }
             if(sessionStorage.getItem("filterCSCommunityMigratedId")!='all' && sessionStorage.getItem("filterCSCommunityMigratedId")!=null)
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSCommunityMigratedIdText"), vm.filterCSCommunityMigratedId, false, true);
-                $('#cs_community_id_lookup').append(newOption);
+                $('#cp_community_id_lookup').append(newOption);
             }
         });
     }
