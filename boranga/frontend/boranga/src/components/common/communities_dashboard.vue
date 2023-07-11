@@ -700,7 +700,9 @@ export default {
                 vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 vm.filterConservationCategory();
                 vm.filterDistrict();
-                vm.community_status = vm.internal_status;
+                vm.community_status = vm.internal_status.slice().sort((a, b) => {
+                    return a.name.trim().localeCompare(b.name.trim());
+                });
             },(error) => {
                 console.log(error);
             })

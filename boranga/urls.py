@@ -22,6 +22,7 @@ from boranga.components.approvals import api as approval_api
 from boranga.components.compliances import api as compliances_api
 from boranga.components.species_and_communities import api as species_communities_api
 from boranga.components.conservation_status import api as conservation_status_api
+from boranga.components.conservation_plan import api as conservation_plans_api
 from boranga.components.meetings import api as meeting_api
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 
@@ -47,6 +48,8 @@ router.register(r'community_documents',species_communities_api.CommunityDocument
 router.register(r'threat',species_communities_api.ConservationThreatViewSet)
 router.register(r'species_conservation_status_paginated',conservation_status_api.SpeciesConservationStatusPaginatedViewSet)
 router.register(r'community_conservation_status_paginated',conservation_status_api.CommunityConservationStatusPaginatedViewSet)
+router.register(r'species_conservation_plans_paginated',conservation_plans_api.SpeciesConservationPlansPaginatedViewSet)
+#router.register(r'community_conservation_plans_paginated',conservation_plans_api.CommunityConservationPlansPaginatedViewSet)
 router.register(r'conservation_status_paginated',conservation_status_api.ConservationStatusPaginatedViewSet)
 router.register(r'conservation_status',conservation_status_api.ConservationStatusViewSet)
 router.register(r'conservation_status_documents',conservation_status_api.ConservationStatusDocumentViewSet)

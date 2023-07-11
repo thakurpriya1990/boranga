@@ -84,7 +84,7 @@
         </FormSection>
         <FormSection :formCollapse="false" label="Distribution" Index="distribution">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Region :</label>
+                <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)" v-model="species_community.region_id" placeholder="Select Region">
                         <option v-for="option in region_list" :value="option.id" v-bind:key="option.id">
@@ -510,7 +510,7 @@ export default {
                 });
             const response = await Vue.http.get('/api/region_district_filter_dict/');
             vm.filterRegionDistrict= response.body;
-            vm.region_list= vm.filterRegionDistrict.region_list;
+            vm.region_list = vm.filterRegionDistrict.region_list;
             vm.district_list= vm.filterRegionDistrict.district_list;
             vm.region_list.splice(0,0,
             {

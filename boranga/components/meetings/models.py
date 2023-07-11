@@ -55,6 +55,7 @@ class MeetingRoom(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['room_name']
 
     def __str__(self):
         return str(self.room_name)
@@ -72,6 +73,7 @@ class Committee(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['name']
 
     def __str__(self):
         return str(self.name)

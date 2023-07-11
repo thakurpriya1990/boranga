@@ -1022,7 +1022,9 @@ export default {
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
                 vm.filterDistrict();
-                vm.proposal_status = vm.internal_status;
+                vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
+                        return a.name.trim().localeCompare(b.name.trim());
+                    });
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {

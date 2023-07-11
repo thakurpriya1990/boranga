@@ -961,13 +961,15 @@ export default {
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
                 vm.filterDistrict();
-                vm.species_status = vm.internal_status;
+                vm.species_status = vm.internal_status.slice().sort((a, b) => {
+                    return a.name.trim().localeCompare(b.name.trim());
+                });
             },(error) => {
                 console.log(error);
             })
             vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
                 vm.filterRegionDistrict= response.body;
-                vm.region_list= vm.filterRegionDistrict.region_list;
+                vm.region_list = vm.filterRegionDistrict.region_list;
                 vm.district_list= vm.filterRegionDistrict.district_list;
             },(error) => {
                 console.log(error);

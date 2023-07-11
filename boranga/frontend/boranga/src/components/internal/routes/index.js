@@ -25,7 +25,7 @@ import ConservationStatus from '../conservation_status/conservation_status.vue'
 import ConservationStatusReferral from '../conservation_status/referral.vue'
 import MeetingsDash from '../meetings/dashboard.vue'
 import Meeting from '../meetings/meeting.vue'
-import ConservationPlanDash from '../conservation_plan/dashboard.vue'
+import ConservationPlansDash from '../conservation_plans/dashboard.vue'
 export default
 {
     path: '/internal',
@@ -69,8 +69,8 @@ export default
 
         },
         {
-            path: 'conservation-plan',
-            component: ConservationPlanDash,
+            path: 'conservation-plans',
+            component: ConservationPlansDash,
             name:"internal-conservation_plan-dash"
         },
         {
@@ -92,6 +92,11 @@ export default
             path: 'search',
             component: Search,
             name:"internal-search"
+        },
+        {
+            path: 'conservation-plans',
+            component: ConservationPlansDash,
+            name:"internal-conservation-plans-dash"
         },
         // {
         //     path: 'payment',
