@@ -84,7 +84,7 @@ class SpeciesConservationPlansFilterBackend(DatatablesFilterBackend):
         filter_region = request.GET.get('filter_region')
         if queryset.model is ConservationPlan:
             if filter_region and not filter_region.lower() == 'all':
-                queryset = queryset.filter(species__region=filter_region)
+                queryset = queryset.filter(region=filter_region)
         # elif queryset.model is ConservationStatusReferral:
         #     if filter_region and not filter_region.lower() == 'all':
         #         queryset = queryset.filter(conservation_status__species__region=filter_region)
@@ -92,7 +92,7 @@ class SpeciesConservationPlansFilterBackend(DatatablesFilterBackend):
         filter_district = request.GET.get('filter_district')
         if queryset.model is ConservationPlan:
             if filter_district and not filter_district.lower() == 'all':
-                queryset = queryset.filter(species__district=filter_district)
+                queryset = queryset.filter(district=filter_district)
         # elif queryset.model is ConservationStatusReferral:
         #     if filter_district and not filter_district.lower() == 'all':
         #         queryset = queryset.filter(conservation_status__species__district=filter_district)
@@ -101,10 +101,10 @@ class SpeciesConservationPlansFilterBackend(DatatablesFilterBackend):
         filter_effective_to_date = request.GET.get('filter_effective_to_date')
         if queryset.model is ConservationPlan:
             if filter_effective_from_date:
-                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date)
+                queryset = queryset.filter(effective_from__gte=filter_effective_from_date)
 
             if filter_effective_to_date:
-                queryset = queryset.filter(conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date)
+                queryset = queryset.filter(effective_to__lte=filter_effective_to_date)
 
         filter_review_date = request.GET.get('filter_review_date')
         if queryset.model is ConservationPlan:
