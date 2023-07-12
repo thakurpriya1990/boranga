@@ -73,6 +73,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 				'can_user_edit',
 				'can_user_view',
 				'user_process',
+				'comment'
 			)
 		datatables_always_serialize = (
                 'id',
@@ -91,6 +92,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 				'can_user_edit',
 				'can_user_view',
 				'user_process',
+				'comment'
 			)	
 
 	def get_group_type(self,obj):
@@ -201,6 +203,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 				'can_user_edit',
 				'can_user_view',
 				'user_process',
+				'comment'
 			)
 		datatables_always_serialize = (
                 'id',
@@ -218,6 +221,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 				'can_user_edit',
 				'can_user_view',
 				'user_process',
+				'comment'
 			)
 
 	def get_group_type(self,obj):
@@ -431,6 +435,7 @@ class SpeciesDistributionSerializer(serializers.ModelSerializer):
 			'cal_area_of_occupancy_actual',
 			'aoo_actual_auto',
 			'number_of_iucn_locations',
+			'number_of_iucn_subpopulations'
 			)
 
 	def get_cal_number_of_occurrences(self,obj):
@@ -462,6 +467,7 @@ class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
 			'area_of_occupancy_actual',
 			'aoo_actual_auto',
 			'number_of_iucn_locations',
+			'number_of_iucn_subpopulations'
 			)
 
 
@@ -500,6 +506,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 			'can_user_view',
 			'applicant_details',
 			'allowed_species_processors',
+			'comment'
 			)
 			
 	def get_readonly(self,obj):
@@ -606,6 +613,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 			'current_assessor',
 			'allowed_species_processors',
 			'user_edit_mode',
+			'comment'
 			)
 
 	def get_submitter(self, obj):
@@ -663,6 +671,7 @@ class CommunityDistributionSerializer(serializers.ModelSerializer):
 			'cal_area_of_occupancy_actual',
 			'aoo_actual_auto',
 			'number_of_iucn_locations',
+			'number_of_iucn_subpopulations',
 			'community_original_area',
 			'community_original_area_accuracy',
 			'community_original_area_reference',
@@ -697,6 +706,7 @@ class SaveCommunityDistributionSerializer(serializers.ModelSerializer):
 			'area_of_occupancy_actual',
 			'aoo_actual_auto',
 			'number_of_iucn_locations',
+			'number_of_iucn_subpopulations',
 			'community_original_area',
 			'community_original_area_accuracy',
 			'community_original_area_reference',
@@ -807,6 +817,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 				'can_user_view',
 				'applicant_details',
 				'allowed_community_processors',
+				'comment'
 				)
 
 	def get_species(self,obj):
@@ -928,6 +939,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 			'current_assessor',
 			'allowed_community_processors',
 			'user_edit_mode',
+			'comment'
 			)
 
 	def get_submitter(self, obj):
@@ -977,6 +989,7 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
                 'readonly',
                 'can_user_edit',
                 'can_user_view',
+				'comment'
                 )
         read_only_fields=('id','group_type')
 
@@ -1010,6 +1023,7 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
 			    'readonly',
 			    'can_user_edit',
                 'can_user_view',
+				'comment'
 			    )
 		read_only_fields=('id','group_type')
 

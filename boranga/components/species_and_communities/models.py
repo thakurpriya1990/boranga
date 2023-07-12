@@ -495,6 +495,7 @@ class Species(models.Model):
     submitter = models.IntegerField(null=True) #EmailUserRO 
     # parents will the original species  from the split/combine functionality
     parent_species = models.ManyToManyField('self', null = True, blank=True, related_name='parent')
+    comment = models.CharField(max_length=500,null=True, blank=True)
     
     class Meta:
         app_label = 'boranga'
@@ -971,6 +972,7 @@ class SpeciesDistribution(models.Model):
     area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
+    number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
     species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_distribution")
 
     class Meta:
@@ -1070,6 +1072,7 @@ class Community(models.Model):
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True) # TODO confirm if proposed date is the same or different
+    comment = models.CharField(max_length=500,null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -1475,6 +1478,7 @@ class CommunityDistribution(models.Model):
     area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
+    number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
     # Community Ecological Attributes
     community_original_area = models.IntegerField(null=True, blank=True)
     community_original_area_accuracy = models.IntegerField(null=True, blank=True)

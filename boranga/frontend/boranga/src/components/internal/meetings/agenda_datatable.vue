@@ -87,7 +87,7 @@
             </div>
 
             <div slot="footer">
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary pull-right" @click="cancel">Close</button>
             </div>
         </modal>
     </div>
