@@ -117,6 +117,7 @@ class ConservationList(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['code']
 
     def __str__(self):
         return str(self.code)
@@ -152,6 +153,7 @@ class ConservationCategory(models.Model):
         app_label = 'boranga'
         verbose_name = "Conservation Category"
         verbose_name_plural = "Conservation Categories"
+        ordering = ['code']
 
     def __str__(self):
         return str(self.code)
@@ -185,6 +187,7 @@ class ConservationCriteria(models.Model):
 
     class Meta:
         app_label = 'boranga'
+        ordering = ['code']
 
     def __str__(self):
         return str(self.code)

@@ -163,7 +163,7 @@ if DEV_STATIC and not DEV_STATIC_URL:
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 
 # Department details
-SYSTEM_NAME = "boranga system"
+SYSTEM_NAME = "Boranga System"
 SYSTEM_NAME_SHORT = env('SYSTEM_NAME_SHORT', 'BGA')
 SITE_PREFIX = env('SITE_PREFIX')
 SITE_DOMAIN = env('SITE_DOMAIN')

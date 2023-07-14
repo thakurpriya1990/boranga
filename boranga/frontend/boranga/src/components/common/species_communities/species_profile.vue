@@ -784,7 +784,7 @@ export default {
             vm.fauna_breeding_list = vm.species_profile_dict.fauna_breeding_list;
             const response = await Vue.http.get('/api/region_district_filter_dict/');
             vm.filterRegionDistrict= response.body;
-            vm.region_list= vm.filterRegionDistrict.region_list;
+            vm.region_list = vm.filterRegionDistrict.region_list;
             vm.district_list= vm.filterRegionDistrict.district_list;
             vm.region_list.splice(0,0,
             {

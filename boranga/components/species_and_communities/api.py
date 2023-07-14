@@ -182,6 +182,7 @@ class GetScientificName(views.APIView):
                 #TODO may need to change the query for referral
                 data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
                 data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
+                data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif cs_species != '':
                 exculde_status = ['draft']
                 data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
@@ -198,6 +199,7 @@ class GetScientificName(views.APIView):
                 else:
                     data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
                     data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
+                    data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
         return Response()
 

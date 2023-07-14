@@ -934,7 +934,9 @@ export default {
                 vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
                 vm.filterConservationCategory();
                 vm.filterDistrict();
-                vm.species_status = vm.internal_status;
+                vm.species_status = vm.internal_status.slice().sort((a, b) => {
+                    return a.name.trim().localeCompare(b.name.trim());
+                });
             },(error) => {
                 console.log(error);
             })

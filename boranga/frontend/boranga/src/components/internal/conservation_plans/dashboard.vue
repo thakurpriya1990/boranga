@@ -1,5 +1,5 @@
 <template>
-    <div class="container" id="internalConservationPlanDash">
+    <div class="container" id="internalConservationPlansDash">
 
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
             <li class="nav-item">
@@ -42,38 +42,55 @@
 
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-                <FormSection :formCollapse="false" label="Conservation Plan - Flora" Index="flora">
-                    <ConservationStatusFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
+                <FormSection :formCollapse="false" label="Conservation Plans - Flora" Index="flora">
+                    <ConservationPlansFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="species_cs_url" />
+                    :url="species_cp_url" />
                 </FormSection>
+                <!-- <FormSection :formCollapse="false" label="Conservation Status - Flora Applications Referred To Me" Index="flora_cs">
+                    <CSFloraReferralsDashTable v-if="isFlora" ref="flora_referral_table"
+                    :group_type_name="group_name"
+                    :group_type_id="getGroupId"
+                    :url="species_cs_referrals_url" />
+                </FormSection> -->
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-                <FormSection :formCollapse="false" label="Conservation Plan - Fauna" Index="fauna">
-                    <ConservationStatusFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
+                <FormSection :formCollapse="false" label="Conservation Plans - Fauna" Index="fauna">
+                    <ConservationPlansFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="species_cs_url"/>
+                    :url="species_cp_url"/>
                 </FormSection>
+                <!-- <FormSection :formCollapse="false" label="Conservation Status - Fauna Applications Referred To Me" Index="fauna_cs">
+                    <CSFaunaReferralsDashTable v-if="isFauna" ref="fauna_referral_table"
+                    :group_type_name="group_name"
+                    :group_type_id="getGroupId"
+                    :url="species_cs_referrals_url" />
+                </FormSection> -->
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-                <FormSection :formCollapse="false" label="Conservation Plan - Community" Index="community">
-                    <ConservationStatusCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
+                <FormSection :formCollapse="false" label="Conservation Plans - Community" Index="community">
+                    <ConservationPlansCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="community_cs_url"/>
+                    :url="community_cp_url"/>
                 </FormSection>
+                <!-- <FormSection :formCollapse="false" label="Conservation Status - Community Applications Referred To Me" Index="community_cs">
+                    <CSCommunityReferralsDashTable v-if="isCommunity" ref="community_referral_table"
+                    :group_type_name="group_name"
+                    :group_type_id="getGroupId"
+                    :url="community_cs_referrals_url" />
+                </FormSection> -->
             </div>
         </div>
 
     </div>
 </template>
 <script>
-import datatable from '@/utils/vue/datatable.vue'
-import ConservationStatusFloraDashTable from '@common-utils/conservation_status_flora_dashboard.vue'
-import ConservationStatusFaunaDashTable from '@common-utils/conservation_status_fauna_dashboard.vue'
-import ConservationStatusCommunityDashTable from '@common-utils/conservation_status_community_dashboard.vue'
+import ConservationPlansFloraDashTable from '@common-utils/conservation_plans_flora_dashboard.vue'
+import ConservationPlansFaunaDashTable from '@common-utils/conservation_plans_fauna_dashboard.vue'
+import ConservationPlansCommunityDashTable from '@common-utils/conservation_plans_community_dashboard.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
 import {
   api_endpoints,
@@ -81,22 +98,24 @@ import {
 }
 from '@/utils/hooks'
 export default {
-    name: 'InternalConservationPlanDashboard',
+    name: 'InternalConservationPlansDash',
     data() {
         let vm = this;
         return {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
             group_name: null,
-            species_cs_url: api_endpoints.species_conservation_status_paginated_internal,
-            community_cs_url: api_endpoints.community_conservation_status_paginated_internal,
+            species_cp_url: api_endpoints.species_conservation_plans_paginated_internal,
+            //species_cs_referrals_url: api_endpoints.species_conservation_status_referrals_paginated_internal,
+            community_cp_url: api_endpoints.community_conservation_plans_paginated_internal,
+            //community_cs_referrals_url: api_endpoints.community_conservation_status_referrals_paginated_internal,
         }
     },
     watch: {},
     components: {
-        ConservationStatusFloraDashTable,
-        ConservationStatusFaunaDashTable,
-        ConservationStatusCommunityDashTable,
+        ConservationPlansFloraDashTable,
+        ConservationPlansFaunaDashTable,
+        ConservationPlansCommunityDashTable,
         FormSection,
     },
     computed: {

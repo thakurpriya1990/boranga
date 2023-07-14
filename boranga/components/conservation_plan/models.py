@@ -296,5 +296,5 @@ class ConservationPlanCommunity(models.Model):
         app_label = 'boranga'
 
     def __str__(self):
-        return str(self.species)  # TODO: is the most appropriate?
+        return str(self.community)  # TODO: is the most appropriate?
     
