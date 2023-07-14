@@ -52,13 +52,18 @@
 
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Community Name:</label>
-                <div class="col-sm-8">
-                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
+                <div class="col-sm-8" :id="select_community_name">
+                    <!-- <select :disabled="conservation_status_obj.readonly" class="form-select" 
                         v-model="conservation_status_obj.community_id" id="community_name" @change="getCommunityDisplay()">
                         <option v-for="option in community_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
-                    </select>
+                    </select> -->
+                    <select :disabled="conservation_status_obj.readonly"
+                        :id="community_name_lookup"  
+                        :name="community_name_lookup"  
+                        :ref="community_name_lookup" 
+                        class="form-control" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -67,13 +72,6 @@
                     <textarea disabled class="form-control" rows="3" id="community_display" v-model="community_display"/>
                 </div>
             </div>
-            <!-- <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Previous Name:</label>
-                <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="previous_name" placeholder="" 
-                    v-model="conservation_status_obj.previous_name"/>
-                </div>
-            </div> -->
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">{{ conservation_list_label }}:</label>
                 <div class="col-sm-8">
@@ -198,13 +196,8 @@ export default {
         data:function () {
             let vm = this;
             return{
-                datepickerOptions:{
-                    format: 'DD/MM/YYYY',
-                    showClear:true,
-                    useCurrent:false,
-                    keepInvalid:true,
-                    allowInputToggle:true,
-                },
+                community_name_lookup: 'community_name_lookup' + vm._uid,
+                select_community_name: "select_community_name"+ vm._uid,
                 isShowComment: false,
                 //----list of values dictionary
                 cs_community_profile_dict: {},
@@ -274,20 +267,55 @@ export default {
         watch:{
         },
         methods:{
-            /*checkDate: function(){
-                let vm=this;
-                if(vm.$refs.last_data_curration_date.value){
-                    vm.conservation_status_obj.last_data_curration_date = vm.$refs.last_data_curration_date.value;
-                }
-                else{
-                    vm.conservation_status_obj.last_data_curration_date=null;
-                }
-            },*/
+            initialiseCommunityNameLookup: function(){
+                let vm = this;
+                $(vm.$refs[vm.community_name_lookup]).select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $("#"+vm.select_community_name),
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Community Name",
+                    ajax: {
+                        url: api_endpoints.community_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                cs_community: true,
+                            }
+                            return query;
+                        },
+                        // results: function (data, page) { // parse the results into the format expected by Select2.
+                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
+                        //     return {results: data};
+                        // },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.conservation_status_obj.community_id = data
+                    vm.community_display = e.params.data.text;
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.conservation_status_obj.species_id = ''
+                    vm.community_display = '';
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-'+vm.community_name_lookup+'-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+            },
             getCommunityDisplay: function(){
                 for(let choice of this.community_list){
                         if(choice.id === this.conservation_status_obj.community_id)
                         {
-                          this.community_display = choice.name;
+                            var newOption = new Option(choice.name, choice.id, false, true);
+                            $('#'+ this.community_name_lookup).append(newOption);
+                            this.community_display = choice.name;
                         }
                     }
             },
@@ -373,11 +401,6 @@ export default {
             vm.$http.get(dict_url).then((response) => {
                 vm.cs_profile_dict = response.body;
                 vm.community_list = vm.cs_profile_dict.community_list;
-                vm.community_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
                 vm.conservation_list_values = vm.cs_profile_dict.conservation_list_values;
                 vm.conservation_list_values.splice(0,0,
                 {
@@ -398,6 +421,7 @@ export default {
         mounted: function(){
             let vm = this;
             this.$nextTick(()=>{
+                vm.initialiseCommunityNameLookup();
                 vm.eventListeners();
             });
         }

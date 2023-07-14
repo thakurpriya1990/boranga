@@ -108,13 +108,13 @@ module.exports = {
     species_lookup:"/api/species_lookup",
     communities_lookup:"/api/communities_lookup",
     scientific_name_lookup:"/api/scientific_name_lookup",
+    //taxon_name_lookup:"/api/taxon_name_lookup",
     common_name_lookup:"/api/common_name_lookup",
     family_lookup:"/api/family_lookup",
     genera_lookup:"/api/genera_lookup",
     phylo_group_lookup:"/api/phylo_group_lookup",
     community_id_lookup:"/api/community_id_lookup",
     community_name_lookup:"/api/community_name_lookup",
-    groupwise_species_dict:"/api/groupwise_species_dict",
 
     //conservation Status profile page list of value dict
     cs_profile_dict:"/api/cs_profile_dict",

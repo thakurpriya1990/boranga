@@ -161,11 +161,11 @@ class GroupType(models.Model):
 
     @property
     def flora_kingdoms(self):
-        return Kingdom.objects.get(grouptype__name=GROUP_TYPE_FLORA).value_list('kingdom_name', flat=True)
+        return Kingdom.objects.get(grouptype__name=GroupType.GROUP_TYPE_FLORA).value_list('kingdom_name', flat=True)
 
     @property
     def fauna_kingdoms(self):
-        return Kingdom.objects.get(grouptype__name=GROUP_TYPE_FAUNA).value_list('kingdom_name', flat=True)
+        return Kingdom.objects.get(grouptype__name=GroupType.GROUP_TYPE_FAUNA).value_list('kingdom_name', flat=True)
 
 
 class Kingdom(models.Model):

@@ -133,8 +133,8 @@ class GetCSProfileDict(views.APIView):
         action = request.GET.get('action','')
         species_list = []
         if group_type:
-            species = Species.objects.filter(group_type__name=group_type)
-            species = species.filter(~Q(taxonomy=None)) # TODO remove later as every species will have taxonomy
+            exculde_status = ['draft']
+            species = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None) & Q(group_type__name=group_type))
             if species:
                 for specimen in species:
                     species_list.append({
@@ -143,8 +143,8 @@ class GetCSProfileDict(views.APIView):
                         'taxon_previous_name':specimen.taxonomy.taxon_previous_name,
                         });
         community_list = []
-        communities = Community.objects.all()
-        communities = communities.filter(~Q(taxonomy=None)) # TODO remove later as every community will have community name
+        exculde_status = ['draft']
+        communities = Community.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None)) # TODO remove later as every community will have community name
         if communities:
             for specimen in communities:
                 community_list.append({
