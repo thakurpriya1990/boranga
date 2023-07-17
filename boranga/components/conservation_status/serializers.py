@@ -531,6 +531,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
 class BaseConservationStatusSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
+    group_type_id = serializers.SerializerMethodField(read_only=True)
     conservation_criteria = serializers.SerializerMethodField()
     allowed_assessors = EmailUserSerializer(many=True)
     list_approval_level = serializers.SerializerMethodField(read_only=True)
@@ -540,6 +541,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
         fields = (
                 'id',
                 'group_type',
+                'group_type_id',
                 'species_id',
                 'community_id',
                 'conservation_status_number',
@@ -579,6 +581,14 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             return obj.community.group_type.name
         else:
             return obj.application_type.name
+    
+    def get_group_type_id(self,obj):
+        if obj.species:
+            return obj.species.group_type.id
+        elif obj.community:
+            return obj.community.group_type.id
+        else:
+            return obj.application_type.id
 
     def get_conservation_criteria(self,obj):
         return [c.id for c in obj.conservation_criteria.all()]
@@ -698,6 +708,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         fields = (
                 'id',
                 'group_type',
+                'group_type_id',
                 'species_id',
                 'community_id',
                 'conservation_status_number',

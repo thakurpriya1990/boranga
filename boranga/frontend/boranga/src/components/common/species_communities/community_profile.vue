@@ -9,22 +9,20 @@
                     </select>
                 </div>
             </div>
-            <!-- <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Community Name:</label>
-                <div class="col-sm-9">
-                    <textarea :disabled="species_community.readonly" type="text" class="form-control" id="community_name" placeholder=""
-                     v-model="species_community.community_name"/>
-                </div>
-            </div> -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community Name:</label>
-                <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
+                <div class="col-sm-9" :id="select_community_name">
+                    <!-- <select :disabled="isReadOnly" class="form-select"
                         v-model="species_community.taxonomy_id" id="community_name" @change="loadTaxonomydetails()">
                         <option v-for="option in taxon_names" :value="option.id" v-bind:key="option.id">
                             {{ option.community_name }}
                         </option>
-                    </select>
+                    </select> -->
+                    <select :disabled="isReadOnly"
+                        :id="community_name_lookup"  
+                        :name="community_name_lookup"  
+                        :ref="community_name_lookup" 
+                        class="form-control" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -324,17 +322,11 @@ export default {
         data:function () {
             let vm = this;
             return{
-                datepickerOptions:{
-                    format: 'DD/MM/YYYY',
-                    showClear:true,
-                    useCurrent:false,
-                    keepInvalid:true,
-                    allowInputToggle:true,
-                },
+                community_name_lookup: 'community_name_lookup' + vm._uid,
+                select_community_name: "select_community_name"+ vm._uid,
                 species_list: [],
                 taxon_names: [],
                 community_profile_dict: {},
-                community_name_list: [],
                 name_authority_list: [],
                 pollinator_info_list: [],
                 post_fire_habitatat_interactions_list: [],
@@ -436,21 +428,76 @@ export default {
                     vm.species_community.last_data_curration_date=null;
                 }
             },
+            initialiseCommunityNameLookup: function(){
+                let vm = this;
+                $(vm.$refs[vm.community_name_lookup]).select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $("#"+vm.select_community_name),
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Community Name",
+                    ajax: {
+                        url: api_endpoints.community_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                taxon_details: true,
+                            }
+                            return query;
+                        },
+                        // results: function (data, page) { // parse the results into the format expected by Select2.
+                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
+                        //     return {results: data};
+                        // },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.species_community.taxonomy_id = data
+                    vm.community_name_display = e.params.data.community_name;
+                    vm.community_migrated_id = e.params.data.community_migrated_id;
+                    vm.community_status = e.params.data.community_status;
+                    vm.community_description = e.params.data.community_description;
+                    vm.previous_name = e.params.data.previous_name;
+                    vm.name_authority_id = e.params.data.name_authority_id;
+                    vm.name_comments = e.params.data.name_comments;
+                    // vm.filterFloraScientificName = data;
+                    // sessionStorage.setItem("filterFloraScientificNameText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.taxonomy_id = ''
+                    vm.community_name_display = '';
+                    vm.community_migrated_id = '';
+                    vm.community_status = '';
+                    vm.community_description = '';
+                    vm.previous_name = '';
+                    vm.name_authority_id = '';
+                    vm.name_comments = '';
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-'+vm.community_name_lookup+'-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+            },
             loadTaxonomydetails: function(){
                 let vm=this;
-                //console.log(vm.taxon_names);
-                for(let choice of vm.taxon_names){
-                        if(choice.id === vm.species_community.taxonomy_id)
-                        {
-                          vm.community_name_display = choice.community_name;
-                          vm.community_migrated_id = choice.community_migrated_id;
-                          vm.community_status = choice.community_status;
-                          vm.community_description = choice.community_description;
-                          vm.previous_name = choice.previous_name;
-                          vm.name_authority_id = choice.name_authority_id;
-                          vm.name_comments = choice.name_comments;
-                        }
-                    }
+                if(vm.species_community.taxonomy_details!=null){
+                    var newOption = new Option(vm.species_community.taxonomy_details.community_name, vm.species_community.taxonomy_id, false, true);
+                    // newOption.setAttribute('data-select2-id', '2');
+                    $('#'+ vm.community_name_lookup).append(newOption);
+                    vm.community_name_display = vm.species_community.taxonomy_details.community_name;
+                    vm.community_migrated_id = vm.species_community.taxonomy_details.community_migrated_id;
+                    vm.community_status = vm.species_community.taxonomy_details.community_status;
+                    vm.community_description = vm.species_community.taxonomy_details.community_description;
+                    vm.previous_name = vm.species_community.taxonomy_details.previous_name;
+                    vm.name_authority_id = vm.species_community.taxonomy_details.name_authority_id;
+                    vm.name_comments = vm.species_community.taxonomy_details.name_comments;
+                }
             },
             eventListeners:function (){
                 let vm=this;
@@ -478,18 +525,12 @@ export default {
             const res = await Vue.http.get('/api/species/species_list.json');
             vm.species_list= res.body.data;
             //--------get api taxon_names
-            vm.$http.get(api_endpoints.community_taxonomy+'/taxon_names.json').then((response) => {
-                vm.taxon_names = response.body;
-            });
+            // vm.$http.get(api_endpoints.community_taxonomy+'/taxon_names.json').then((response) => {
+            //     vm.taxon_names = response.body;
+            // });
             //------fetch list of values
             const res_obj = await Vue.http.get('/api/community_profile_dict/');
             vm.community_profile_dict = res_obj.body;
-            vm.community_name_list = vm.community_profile_dict.community_name_list;
-            vm.community_name_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
             vm.name_authority_list = vm.community_profile_dict.name_authority_list;
             vm.name_authority_list.splice(0,0,
                 {
@@ -518,11 +559,12 @@ export default {
                 name: null,
             });
             this.filterDistrict();
-            this.loadTaxonomydetails();
+            // this.loadTaxonomydetails();
         },
         mounted: function(){
             let vm = this;
-
+            vm.initialiseCommunityNameLookup();
+            vm.loadTaxonomydetails();
             // Initialise select2 for Species
             $(vm.$refs.species_select).select2({
                 "theme": "bootstrap-5",

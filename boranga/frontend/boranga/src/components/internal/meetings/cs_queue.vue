@@ -130,7 +130,6 @@ export default {
                 ],
                 columnDefs: [
                     {
-                        "searchable": false,
                         "orderable": false,
                         "targets": 1 // target means the column no.
                     },
@@ -138,6 +137,7 @@ export default {
                 "order": [
                     [1, "desc"]
                 ],
+                searching:true,
                 processing: true,
                 initComplete: function() {
                     helpers.enablePopovers();

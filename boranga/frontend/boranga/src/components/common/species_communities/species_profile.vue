@@ -3,13 +3,18 @@
         <FormSection :formCollapse="false" label="Taxonomy" :Index="taxonBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
-                <div class="col-sm-9">
-                    <select :disabled="rename_species?false:isReadOnly" class="form-select" 
+                <div class="col-sm-9" :id="select_scientific_name">
+                    <!-- <select :disabled="rename_species?false:isReadOnly" class="form-select" 
                         v-model="species_community.taxonomy_id" id="scientific_name" @change="loadTaxonomydetails()">
                         <option v-for="option in taxon_names" :value="option.id" v-bind:key="option.id">
                             {{ option.scientific_name }}                            
                         </option>
-                    </select>
+                    </select> -->
+                    <select :disabled="rename_species?false:isReadOnly"
+                        :id="scientific_name_lookup"  
+                        :name="scientific_name_lookup"  
+                        :ref="scientific_name_lookup" 
+                        class="form-control" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -456,6 +461,8 @@ export default {
                     keepInvalid:true,
                     allowInputToggle:true,
                 },
+                scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
+                select_scientific_name: "select_scientific_name"+ vm._uid,
                 taxonBody: 'taxonBody' + vm._uid,
                 distributionBody: 'distributionBody' + vm._uid,
                 conservationBody: 'conservationBody' + vm._uid,
@@ -589,23 +596,85 @@ export default {
                     vm.species_community.last_data_curration_date=null;
                 }
             },
+            initialiseScientificNameLookup: function(){
+                let vm = this;
+                $(vm.$refs[vm.scientific_name_lookup]).select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $("#"+vm.select_scientific_name),
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Scientific Name",
+                    ajax: {
+                        url: api_endpoints.scientific_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.species_community.group_type_id,
+                                taxon_details: true,
+                            }
+                            return query;
+                        },
+                        // results: function (data, page) { // parse the results into the format expected by Select2.
+                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
+                        //     return {results: data};
+                        // },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.species_community.taxonomy_id = data
+                    vm.species_display = e.params.data.scientific_name;
+                    vm.common_name = e.params.data.common_name;
+                    vm.taxon_name_id = e.params.data.taxon_name_id;
+                    vm.taxon_previous_name = e.params.data.taxon_previous_name;
+                    vm.phylogenetic_group_id = e.params.data.phylogenetic_group_id;
+                    vm.family_id = e.params.data.family_fk_id;
+                    vm.genus_id = e.params.data.genus_id;
+                    vm.name_authority = e.params.data.name_authority;
+                    vm.name_comments = e.params.data.name_comments;
+                    // vm.filterFloraScientificName = data;
+                    // sessionStorage.setItem("filterFloraScientificNameText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.taxonomy_id = ''
+                    vm.species_display = '';
+                    vm.common_name = '';
+                    vm.taxon_name_id = '';
+                    vm.taxon_previous_name = '';
+                    vm.phylogenetic_group_id = '';
+                    vm.family_id = '';
+                    vm.genus_id = '';
+                    vm.name_authority = '';
+                    vm.name_comments = '';
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-'+vm.scientific_name_lookup+'-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+            },
             loadTaxonomydetails: function(){
                 let vm=this;
                 //console.log(vm.taxon_names);
-                for(let choice of vm.taxon_names){
-                        if(choice.id === vm.species_community.taxonomy_id)
-                        {
-                          vm.species_display = choice.scientific_name;
-                          vm.common_name = choice.common_name;
-                          vm.taxon_name_id = choice.taxon_name_id;
-                          vm.taxon_previous_name = choice.taxon_previous_name;
-                          vm.phylogenetic_group_id = choice.phylogenetic_group_id;
-                          vm.family_id = choice.family_fk_id;
-                          vm.genus_id = choice.genus_id;
-                          vm.name_authority = choice.name_authority;
-                          vm.name_comments = choice.name_comments;
-                        }
-                    }
+                
+                if(vm.species_community.taxonomy_details!=null){
+                    var newOption = new Option(vm.species_community.taxonomy_details.scientific_name, vm.species_community.taxonomy_id, false, true);
+                    // newOption.setAttribute('data-select2-id', '2');
+                    $('#'+ vm.scientific_name_lookup).append(newOption);
+                    vm.species_display = vm.species_community.taxonomy_details.scientific_name;
+                    vm.common_name = vm.species_community.taxonomy_details.common_name;
+                    vm.taxon_name_id = vm.species_community.taxonomy_details.taxon_name_id;
+                    vm.taxon_previous_name = vm.species_community.taxonomy_details.taxon_previous_name;
+                    vm.phylogenetic_group_id = vm.species_community.taxonomy_details.phylogenetic_group_id;
+                    vm.family_id = vm.species_community.taxonomy_details.family_fk_id;
+                    vm.genus_id = vm.species_community.taxonomy_details.genus_id;
+                    vm.name_authority = vm.species_community.taxonomy_details.name_authority;
+                    vm.name_comments = vm.species_community.taxonomy_details.name_comments;
+                }
             },
             eventListeners:function (){
             },
@@ -626,17 +695,17 @@ export default {
                 vm.species_community.distribution.area_of_occupancy=vm.species_community.distribution.cal_area_of_occupancy;
             }
             //--------get api taxon_names depending on flora/fauna
-            let taxon_api_url=null;
-            if(vm.isFauna){
-                taxon_api_url=api_endpoints.taxonomy+'/fauna_taxon_names.json';
-            }
-            else{
-                taxon_api_url=api_endpoints.taxonomy+'/flora_taxon_names.json';
-            }
-            vm.$http.get(taxon_api_url).then((response) => {
-                vm.taxon_names = response.body;
-                this.loadTaxonomydetails();
-            });
+            // let taxon_api_url=null;
+            // if(vm.isFauna){
+            //     taxon_api_url=api_endpoints.taxonomy+'/fauna_taxon_names.json';
+            // }
+            // else{
+            //     taxon_api_url=api_endpoints.taxonomy+'/flora_taxon_names.json';
+            // }
+            // vm.$http.get(taxon_api_url).then((response) => {
+            //     vm.taxon_names = response.body;
+            //     this.loadTaxonomydetails();
+            // });
             //------fetch list of values
             const res = await Vue.http.get('/api/species_profile_dict/');
             vm.species_profile_dict = res.body;
@@ -727,6 +796,8 @@ export default {
         mounted: function(){
             let vm = this;
             //vm.eventListeners();
+            vm.initialiseScientificNameLookup();
+            vm.loadTaxonomydetails();
         }
     }
 </script>

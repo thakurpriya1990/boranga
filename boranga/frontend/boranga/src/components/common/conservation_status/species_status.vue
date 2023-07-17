@@ -58,13 +58,12 @@
 
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Scientific Name:</label>
-                <div class="col-sm-8">
-                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
-                        v-model="conservation_status_obj.species_id" id="scientific_name" @change="getSpeciesDisplay()">
-                        <option v-for="option in species_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
-                        </option>
-                    </select>
+                <div class="col-sm-8" :id="select_scientific_name">
+                    <select :disabled="conservation_status_obj.readonly"
+                        :id="scientific_name_lookup"  
+                        :name="scientific_name_lookup"  
+                        :ref="scientific_name_lookup" 
+                        class="form-control" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -204,13 +203,8 @@ export default {
         data:function () {
             let vm = this;
             return{
-                datepickerOptions:{
-                    format: 'DD/MM/YYYY',
-                    showClear:true,
-                    useCurrent:false,
-                    keepInvalid:true,
-                    allowInputToggle:true,
-                },
+                scientific_name_lookup: 'scientific_name_lookup' + vm.conservation_status_obj.id,
+                select_scientific_name: "select_scientific_name"+ vm.conservation_status_obj.id,
                 isShowComment: false,
                 //---to show fields related to Fauna
                 isFauna: vm.conservation_status_obj.group_type==="fauna"?true:false,
@@ -224,7 +218,6 @@ export default {
                 filtered_prop_conservation_criteria_list: [],
                 filtered_conservation_category_list: [],
                 filtered_conservation_criteria_list: [],
-                previous_name_list: [],
                 referral_comments_boxes: [],
                 // to display the species selected 
                 species_display: '',
@@ -286,21 +279,60 @@ export default {
         watch:{
         },
         methods:{
-            /*checkDate: function(){
-                let vm=this;
-                if(vm.$refs.last_data_curration_date.value){
-                    vm.conservation_status_obj.last_data_curration_date = vm.$refs.last_data_curration_date.value;
-                }
-                else{
-                    vm.conservation_status_obj.last_data_curration_date=null;
-                }
-            },*/
+            initialiseScientificNameLookup: function(){
+                let vm = this;
+                $(vm.$refs[vm.scientific_name_lookup]).select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $("#"+vm.select_scientific_name),
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Scientific Name",
+                    ajax: {
+                        url: api_endpoints.scientific_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.conservation_status_obj.group_type_id,
+                                cs_species: true,
+                            }
+                            return query;
+                        },
+                        // results: function (data, page) { // parse the results into the format expected by Select2.
+                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
+                        //     return {results: data};
+                        // },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.conservation_status_obj.species_id = data
+                    vm.species_display = e.params.data.text;
+                    vm.taxon_previous_name = e.params.data.taxon_previous_name;
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.conservation_status_obj.species_id = ''
+                    vm.species_display = '';
+                    vm.taxon_previous_name = '';
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-'+vm.scientific_name_lookup+'-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+            },
             getSpeciesDisplay: function(){
-                for(let choice of this.species_list){
-                        if(choice.id === this.conservation_status_obj.species_id)
+                let vm = this;
+                for(let choice of vm.species_list){
+                        if(choice.id === vm.conservation_status_obj.species_id)
                         {
-                          this.species_display = choice.name;
-                          this.taxon_previous_name = choice.taxon_previous_name;
+                            var newOption = new Option(choice.name, choice.id, false, true);
+                            $('#'+ vm.scientific_name_lookup).append(newOption);
+                            vm.species_display = choice.name;
+                            vm.taxon_previous_name = choice.taxon_previous_name;
                         }
                     }
             },
@@ -386,12 +418,8 @@ export default {
             vm.$http.get(dict_url).then((response) => {
                 vm.cs_profile_dict = response.body;
                 vm.species_list = vm.cs_profile_dict.species_list;
-                vm.species_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
                 vm.conservation_list_values = vm.cs_profile_dict.conservation_list_values;
+                
                 vm.conservation_list_values.splice(0,0,
                 {
                     id: null,
@@ -412,6 +440,7 @@ export default {
             let vm = this;
             this.$nextTick(()=>{
                 vm.eventListeners();
+                vm.initialiseScientificNameLookup();
             });
         },
     }

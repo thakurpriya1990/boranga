@@ -292,12 +292,15 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 
 
 class TaxonomySerializer(serializers.ModelSerializer):
+	# text is added as need for select2 format
+	text = serializers.SerializerMethodField()
 	common_name = serializers.SerializerMethodField()
 	phylogenetic_group_id = serializers.SerializerMethodField()
 	class Meta:
 		model = Taxonomy
 		fields = (
 			'id',
+			'text',
 			'taxon_name_id',
 			'scientific_name',
 			'kingdom_name',
@@ -311,6 +314,9 @@ class TaxonomySerializer(serializers.ModelSerializer):
 			'name_comments',
 			)
 		
+	def get_text(self,obj):
+		return obj.scientific_name
+
 	def get_common_name(self,obj):
 		try:
 			if obj.vernaculars:
@@ -759,11 +765,13 @@ class SaveCommunityConservationAttributesSerializer(serializers.ModelSerializer)
 			)
 
 class CommunityTaxonomySerializer(serializers.ModelSerializer):
+	text = serializers.SerializerMethodField()
 	
 	class Meta:
 		model = CommunityTaxonomy
 		fields = (
 			'id',
+			'text',
 			'community_migrated_id',
 			'community_name',
 			'community_status',
@@ -772,6 +780,9 @@ class CommunityTaxonomySerializer(serializers.ModelSerializer):
 			'name_authority_id',
 			'name_comments',
 			)
+
+	def get_text(self,obj):
+		return obj.community_name
 
 class BaseCommunitySerializer(serializers.ModelSerializer):
 	species = serializers.SerializerMethodField()

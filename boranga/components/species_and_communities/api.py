@@ -145,7 +145,7 @@ class GetSpecies(views.APIView):
         search_term = request.GET.get('term', '')
         if search_term:
             exculde_status = ['draft']
-            data = Species.objects.filter(~Q(processing_status__in=exculde_status))
+            data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
             data = data.filter(taxonomy__scientific_name__icontains=search_term).values('id', 'taxonomy__scientific_name')[:10]
             data_transform = [{'id': taxon['id'], 'text': taxon['taxonomy__scientific_name']} for taxon in data]
             return Response({"results": data_transform})
@@ -164,23 +164,46 @@ class GetCommunities(views.APIView):
         return Response()
 
 
+# used on dashboards and forms
 class GetScientificName(views.APIView):
     def get(self, request, format=None):
         group_type_id = request.GET.get('group_type_id', '')
         search_term = request.GET.get('term', '')
         cs_referral = request.GET.get('cs_referral', '')
+        # used for conservation status form
+        cs_species = request.GET.get('cs_species', '')
+        # used on combine select(+) species pop-up
+        combine_species = request.GET.get('combine_species', '')
+        # taxon_details is send from species profile form to get all the taxon details as well
+        taxon_details = request.GET.get('taxon_details', '')
         if search_term:
             data_transform = []
             if cs_referral != '':
                 #TODO may need to change the query for referral
                 data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+                data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
+                data_transform = sorted(data_transform, key=lambda x: x['text'])
+            elif cs_species != '':
+                exculde_status = ['draft']
+                data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
+                data = data.filter(taxonomy__scientific_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id)[:10]
+                data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name, 'taxon_previous_name': species.taxonomy.taxon_previous_name} for species in data]
+                data_transform = sorted(data_transform, key=lambda x: x['text'])
+            elif combine_species != '':
+                data = Species.objects.filter(Q(processing_status='current') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
+                data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name} for species in data]
+                data_transform = sorted(data_transform, key=lambda x: x['text'])
             else:
-                data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
-            data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
-            data_transform = sorted(data_transform, key=lambda x: x['text'])
+                if taxon_details != '':
+                    qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
+                    serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
+                    data_transform = serializer.data
+                else:
+                    data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+                    data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
+                    data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
         return Response()
-
 
 class GetCommonName(views.APIView):
     def get(self, request, format=None):
@@ -269,95 +292,32 @@ class GetCommunityName(views.APIView):
     def get(self, request, format=None):
         search_term = request.GET.get('term', '')
         cs_referral = request.GET.get('cs_referral', '')
+        taxon_details = request.GET.get('taxon_details', '')
+        cs_community = request.GET.get('cs_community', '')
         if search_term:
             if cs_referral != '':
                 #TODO may need to change the query for referral
                 data = CommunityTaxonomy.objects.filter(community_name__icontains=search_term).values('id', 'community_name')[:10] 
+                data_transform = [{'id': taxon['id'], 'text': taxon['community_name']} for taxon in data]
+            elif cs_community != '':
+                exculde_status = ['draft']
+                data = Community.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None) & Q(taxonomy__community_name__icontains=search_term))[:10]
+                data_transform = [{'id': community.id, 'text': community.taxonomy.community_name} for community in data]
             else:
-                data = CommunityTaxonomy.objects.filter(community_name__icontains=search_term).values('id', 'community_name')[:10]
-            data_transform = [{'id': community['id'], 'text': community['community_name']} for community in data]
+                if taxon_details != '':
+                    qs = CommunityTaxonomy.objects.filter(community_name__icontains=search_term)[:10]
+                    serializer = CommunityTaxonomySerializer(qs, context={'request': request}, many=True)
+                    data_transform = serializer.data
+                else:
+                    data = CommunityTaxonomy.objects.filter(community_name__icontains=search_term).values('id', 'community_name')[:10]
+                    data_transform = [{'id': taxon['id'], 'text': taxon['community_name']} for taxon in data]
             return Response({"results": data_transform})
         return Response()
-
-
-# dict used on combine select species pop-up
-class GetSpeciesDict(views.APIView):
-    def get(self, request, format=None):
-        group_type = request.GET.get('group_type_name','')
-        species_list = []
-        if group_type:
-            species = Species.objects.filter(group_type__name=group_type, processing_status='current')
-            if species:
-                for specimen in species:
-                    species_list.append({
-                        'id': specimen.id,
-                        'scientific_name':specimen.taxonomy.scientific_name,
-                        });
-        res_json = {
-        "species_list":species_list,
-        }
-        res_json = json.dumps(res_json)
-        return HttpResponse(res_json, content_type='application/json')
 
 
 class GetSpeciesFilterDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
-        # species_data_list = []
-        # if group_type:
-        #     species = Species.objects.filter(group_type__name=group_type)
-        #     if species:
-        #         for specimen in species:
-        #             species_data_list.append({
-        #                 'species_id': specimen.id,
-        #                 'common_name':specimen.common_name,
-        #                 });
-        # scientific_name_list = []
-        # if group_type:
-        #     names = Taxonomy.objects.all()
-        #     if names:
-        #         for name in names:
-        #             scientific_name_list.append({
-        #                 'id': name.id,
-        #                 'name': name.scientific_name,
-        #                 });
-        # common_name_list = []
-        # if group_type:
-        #     names = TaxonVernacular.objects.all()
-        #     if names:
-        #         for name in names:
-        #             common_name_list.append({
-        #                 'id': name.id,
-        #                 'name': name.vernacular_name,
-        #                 });
-        # family_list = []
-        # if group_type:
-        #     families_dict = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct() # fetch all distinct the family_nid(taxon_name_id) for each taxon
-        #     families = Taxonomy.objects.filter(id__in=families_dict)
-        #     if families:
-        #         for family in families:
-        #             family_list.append({
-        #                 'id': family.id,
-        #                 'name': family.scientific_name,
-        #                 });
-        # phylogenetic_group_list = []
-        # if group_type:
-        #     phylo_groups = ClassificationSystem.objects.all()
-        #     if phylo_groups:
-        #         for group in phylo_groups:
-        #             phylogenetic_group_list.append({
-        #                 'id': group.id,
-        #                 'name': group.class_desc,
-        #                 });
-        # genus_list = []
-        # if group_type:
-        #     generas = Genus.objects.all()
-        #     if generas:
-        #         for genus in generas:
-        #             genus_list.append({
-        #                 'id': genus.id,
-        #                 'name': genus.name,
-        #                 });
         conservation_list_dict = []
         conservation_lists = ConservationList.objects.filter(applies_to_species=True)
         if conservation_lists:
@@ -376,11 +336,6 @@ class GetSpeciesFilterDict(views.APIView):
                     'conservation_list_id': choice.conservation_list_id,
                     });
         res_json = {
-        # "scientific_name_list": scientific_name_list,
-        # "common_name_list": common_name_list,
-        # "family_list": family_list,
-        # "phylogenetic_group_list":phylogenetic_group_list,
-        # "genus_list":genus_list,
         "conservation_list_dict":conservation_list_dict,
         "conservation_category_list":conservation_category_list,
         }
@@ -390,18 +345,6 @@ class GetSpeciesFilterDict(views.APIView):
 class GetCommunityFilterDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get('group_type_name','')
-        # community_data_list = []
-        # if group_type:
-        #     # communities = Community.objects.filter(group_type__name=group_type)
-        #     names = CommunityTaxonomy.objects.all()
-        #     if names:
-        #         for name in names:
-        #             community_data_list.append({
-        #                 'id': name.id,
-        #                 'community_name': name.community_name,
-        #                 'community_migrated_id': name.community_migrated_id,
-        #                 'community_status':name.community_status
-        #                 });
         conservation_list_dict = []
         conservation_lists = ConservationList.objects.filter(applies_to_communities=True)
         if conservation_lists:
@@ -420,7 +363,6 @@ class GetCommunityFilterDict(views.APIView):
                     'conservation_list_id': choice.conservation_list_id,
                     });
         res_json = {
-        # "community_data_list":community_data_list,
         "conservation_list_dict":conservation_list_dict,
         "conservation_category_list":conservation_category_list,
         }
@@ -466,22 +408,24 @@ class TaxonomyViewSet(viewsets.ModelViewSet):
         serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
         return Response(serializer.data)
 
+    #  not used for species profile now
     @list_route(methods=['GET',], detail=False)
     def flora_taxon_names(self, request, *args, **kwargs):
         qs = self.get_queryset()
-        flora_kingdoms = Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FLORA).values_list('kingdom_id', flat=True)
-        qs = qs.filter(kingdom_id__in=flora_kingdoms)
+        flora_kingdoms = Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FLORA).values_list('id', flat=True)
+        qs = qs.filter(kingdom_fk_id__in=flora_kingdoms)
         # to filter taxon which are not used in Species yet
         # species = Species.objects.filter(~Q(taxonomy=None) , Q(group_type__name=GroupType.GROUP_TYPE_FLORA)).values_list('taxonomy', flat=True)
         # qs = qs.filter(~Q(id__in=species))
         serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
         return Response(serializer.data)
     
+    #  not used for species profile now
     @list_route(methods=['GET',], detail=False)
     def fauna_taxon_names(self, request, *args, **kwargs):
         qs = self.get_queryset()
-        fauna_kingdoms = Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FAUNA).values_list('kingdom_id', flat=True)
-        qs=qs.filter(kingdom_id__in=fauna_kingdoms)
+        fauna_kingdoms = Kingdom.objects.filter(grouptype__name=GroupType.GROUP_TYPE_FAUNA).values_list('id', flat=True)
+        qs=qs.filter(kingdom_fk_id__in=fauna_kingdoms)
         # to filter taxon which are not used in Species yet
         # species = Species.objects.filter(~Q(taxonomy=None) , Q(group_type__name=GroupType.GROUP_TYPE_FAUNA)).values_list('taxonomy', flat=True)
         # qs = qs.filter(~Q(id__in=species))
@@ -501,20 +445,6 @@ class TaxonomyViewSet(viewsets.ModelViewSet):
 
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
-        scientific_name_list = []
-        taxons = Taxonomy.objects.all()
-        if taxons:
-            for taxon in taxons:
-                scientific_name_list.append({'id': taxon.id,
-                    'name': taxon.scientific_name,
-                    'taxon_name_id': taxon.taxon_name_id,
-                    'previous_name': taxon.previous_name,
-                    'family_id': taxon.family_fk_id,
-                    'phylogenetic_group_id': taxon.phylogenetic_group_id,
-                    'genus_id': taxon.genus_id,
-                    'name_authority': taxon.name_authority,
-                    'name_comments': taxon.name_comments,
-                    });
         name_authority_list = []
         name_authorities = NameAuthority.objects.all()
         if name_authorities:
@@ -609,7 +539,6 @@ class GetSpeciesProfileDict(views.APIView):
                     'name':option.breeding_type,
                     });
         res_json = {
-        "scientific_name_list": scientific_name_list,
         "name_authority_list": name_authority_list,
         "family_list": family_list,
         "genus_list": genus_list,
@@ -636,6 +565,7 @@ class CommunityTaxonomyViewSet(viewsets.ModelViewSet):
         qs = CommunityTaxonomy.objects.all()
         return qs
 
+    # not used for community profile now
     @list_route(methods=['GET',], detail=False)
     def taxon_names(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -644,19 +574,6 @@ class CommunityTaxonomyViewSet(viewsets.ModelViewSet):
 
 class GetCommunityProfileDict(views.APIView):
     def get(self, request, format=None):
-        community_name_list = []
-        taxons = CommunityTaxonomy.objects.all()
-        if taxons:
-            for taxon in taxons:
-                community_name_list.append({'id': taxon.id,
-                    'name': taxon.community_name,
-                    'community_migrated_id': taxon.community_migrated_id,
-                    'community_status': taxon.community_status,
-                    'previous_name': taxon.previous_name,
-                    'community_description': taxon.community_description,
-                    'name_authority_id': taxon.name_authority_id,
-                    'name_comments': taxon.name_comments,
-                    });
         name_authority_list = []
         name_authorities = NameAuthority.objects.all()
         if name_authorities:
@@ -679,7 +596,6 @@ class GetCommunityProfileDict(views.APIView):
                     'name':option.name,
                     });
         res_json = {
-        "community_name_list":community_name_list,
         "name_authority_list":name_authority_list,
         "pollinator_info_list": pollinator_info_list,
         "post_fire_habitatat_interactions_list": post_fire_habitatat_interactions_list,
@@ -1056,6 +972,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         res_json = json.dumps(related_type) 
         return HttpResponse(res_json, content_type='application/json')
 
+    # used for species field on community profile
     @detail_route(methods=['GET',], detail=False)
     @renderer_classes((JSONRenderer,))
     def species_list(self, request, *args, **kwargs):

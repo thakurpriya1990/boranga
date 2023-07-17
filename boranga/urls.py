@@ -104,7 +104,6 @@ api_patterns = [
     url(r'^api/community_filter_dict',species_communities_api.GetCommunityFilterDict.as_view(),name='get-community-filter-dict'),
     url(r'^api/region_district_filter_dict',species_communities_api.GetRegionDistrictFilterDict.as_view(),name='get-region_district_filter_dict'),
     url(r'^api/species_profile_dict',species_communities_api.GetSpeciesProfileDict.as_view(),name='get-species-profile-dict'),
-    url(r'^api/groupwise_species_dict',species_communities_api.GetSpeciesDict.as_view(),name='get-groupwise-species-dict'),
     url(r'^api/community_profile_dict',species_communities_api.GetCommunityProfileDict.as_view(),name='get-community-profile-dict'),
     url(r'^api/species_lookup$', species_communities_api.GetSpecies.as_view(), name='get-species'),
     url(r'^api/communities_lookup$', species_communities_api.GetCommunities.as_view(), name='get-communities'),

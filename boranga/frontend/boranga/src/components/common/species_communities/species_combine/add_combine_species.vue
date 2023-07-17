@@ -8,11 +8,16 @@
                         <div>
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 control-label">Species:</label>
-                                <div class="col-sm-9">
-                                    <select class="form-select" 
+                                <div class="col-sm-9" :id="select_scientific_name">
+                                    <!-- <select class="form-select" 
                                         v-model="combineSpeciesId" id="scientific_name">
                                         <option v-for="s in species_list" :value="s.id" :key="s.id">{{s.id}} - {{s.scientific_name}}</option>
-                                    </select>
+                                    </select> -->
+                                    <select 
+                                    :id="scientific_name_lookup"  
+                                    :name="scientific_name_lookup"  
+                                    :ref="scientific_name_lookup" 
+                                    class="form-control" />
                                 </div>
                             </div>
                         </div>
@@ -50,6 +55,8 @@ export default {
             errorString: '',
             species_list: [],
             combineSpeciesId: null,
+            scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
+            select_scientific_name: "select_scientific_name"+ vm._uid,
         }
     },
     computed: {
@@ -68,6 +75,7 @@ export default {
     methods:{
         ok:function () {
             let vm =this;
+            vm.form = document.forms.addSpeciesToCombine;
             if($(vm.form).valid()){
                 vm.addSpeciesToCombineList()
             }
@@ -116,6 +124,47 @@ export default {
             }
             this.close()
         },
+        initialiseScientificNameLookup: function(){
+                let vm = this;
+                $(vm.$refs[vm.scientific_name_lookup]).select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $("#"+vm.select_scientific_name),
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Species",
+                    ajax: {
+                        url: api_endpoints.scientific_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.$parent.species_community.group_type_id,
+                                combine_species: true,
+                            }
+                            return query;
+                        },
+                        // results: function (data, page) { // parse the results into the format expected by Select2.
+                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
+                        //     return {results: data};
+                        // },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.combineSpeciesId = data
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.combineSpeciesId = ''
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-'+vm.scientific_name_lookup+'-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+            },
     },
     mounted:function () {
         let vm =this;
@@ -126,14 +175,13 @@ export default {
    },
    created:async function() {
         let vm = this;
-        //-----fetch species_list
-        // species filtered with status current and grouptype, etc. 
-        vm.$http.get(api_endpoints.groupwise_species_dict+ '?group_type_name=' + this.$route.query.group_type_name).then((response) => {
-                vm.species_list = response.body.species_list;
-            },(error) => {
-                console.log(error);
-            })
-   }
+   },
+   mounted: function(){
+            let vm = this;
+            this.$nextTick(()=>{
+                vm.initialiseScientificNameLookup();
+            });
+        },
 }
 </script>
 
