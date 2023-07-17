@@ -188,9 +188,11 @@ class GetScientificName(views.APIView):
                 data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
                 data = data.filter(taxonomy__scientific_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id)[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name, 'taxon_previous_name': species.taxonomy.taxon_previous_name} for species in data]
+                data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif combine_species != '':
                 data = Species.objects.filter(Q(processing_status='current') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name} for species in data]
+                data_transform = sorted(data_transform, key=lambda x: x['text'])
             else:
                 if taxon_details != '':
                     qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
