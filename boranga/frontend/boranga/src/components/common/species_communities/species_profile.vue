@@ -92,8 +92,15 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Comments:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="true" class="form-control" rows="3" id="comment" placeholder=""
+                    <textarea :disabled="true" class="form-control" rows="3" id="name_comments" placeholder=""
                     v-model="name_comments"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Comment:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
+                    v-model="species_community.comment"/>
                 </div>
             </div>
         </FormSection>
@@ -189,6 +196,13 @@
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="no_of_iucn_locations" 
                     placeholder="" v-model="species_community.distribution.number_of_iucn_locations"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Number of IUCN Sub-populations:</label>
+                <div class="col-sm-9">
+                    <input :disabled="isReadOnly" type="number" class="form-control" id="number_of_iucn_subpopulations"
+                    placeholder="" v-model="species_community.distribution.number_of_iucn_subpopulations"/>
                 </div>
             </div>
         </FormSection>
