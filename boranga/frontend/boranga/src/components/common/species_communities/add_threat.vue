@@ -12,7 +12,7 @@
                                       <label class="control-label pull-left">Category</label>
                                     </div>
                                     <div class="col-sm-9">
-                                      <select class="form-select" v-model="threatObj.threat_category">
+                                      <select :disabled="isReadOnly" class="form-select" v-model="threatObj.threat_category">
                                         <option  v-for="category in threat_category_list" :value="category.id" v-bind:key="category.id">
                                           {{ category.name }} 
                                         </option>
@@ -24,7 +24,7 @@
                                       <label class="control-label pull-left">Threat Agent</label>
                                     </div>
                                     <div class="col-sm-9">
-                                      <input type="text" class="form-control" v-model="threatObj.threat_agent"/>
+                                      <input :disabled="isReadOnly" type="text" class="form-control" v-model="threatObj.threat_agent"/>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -32,7 +32,7 @@
                                       <label class="control-label pull-left">Threat Comments</label>
                                     </div>
                                     <div class="col-sm-9">
-                                      <textarea class="form-control" v-model="threatObj.comment">
+                                      <textarea :disabled="isReadOnly" class="form-control" v-model="threatObj.comment">
                                       </textarea>                                
                                     </div>
                                 </div>
@@ -42,7 +42,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <div v-for="option in current_impact_list" class="form-check form-check-inline">
-                                              <input type="radio" class="form-check-input" :value="option.id" :id="'current_impact_'+option.id" v-bind:key="option.id" 
+                                              <input :disabled="isReadOnly"  type="radio" class="form-check-input" :value="option.id" :id="'current_impact_'+option.id" v-bind:key="option.id" 
                                               v-model="threatObj.current_impact"/>
                                                <label :for="'current_impact_'+option.id" >{{ option.name }}</label>
                                         </div>
@@ -54,7 +54,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <div v-for="option in potential_impact_list" class="form-check form-check-inline">
-                                          <input type="radio" class="form-check-input" :value="option.id" :id="'potential_impact_'+option.id" v-bind:key="option.id" 
+                                          <input :disabled="isReadOnly"  type="radio" class="form-check-input" :value="option.id" :id="'potential_impact_'+option.id" v-bind:key="option.id" 
                                             v-model="threatObj.potential_impact"/>
                                            <label :for="'potential_impact_'+option.id" >{{ option.name }}</label>
                                         </div>
@@ -66,7 +66,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <div v-for="option in potential_threat_onset_list" class="form-check form-check-inline ">
-                                          <input type="radio" class="form-check-input" :value="option.id" :id="'potential_threat_onset_'+option.id" v-bind:key="option.id" 
+                                          <input :disabled="isReadOnly"  type="radio" class="form-check-input" :value="option.id" :id="'potential_threat_onset_'+option.id" v-bind:key="option.id" 
                                                 v-model="threatObj.potential_threat_onset"/>
                                            <label :for="'potential_threat_onset_'+option.id" >{{ option.name }}</label>
                                         </div>
@@ -85,7 +85,7 @@
                                         <label for="" class="control-label pull-left">Date observed: </label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <input type="date" class="form-control" name="date_observed" 
+                                        <input :disabled="isReadOnly" type="date" class="form-control" name="date_observed" 
                                         ref="date_observed" v-model="threatObj.date_observed" />
                                     </div>
                                 </div>
@@ -157,9 +157,17 @@ export default {
             return vm.errors;
         },
         title: function(){
-            return this.threat_action == 'add' ? 'Add Threat' : 'Edit Threat';
+            var action = this.threat_action;
+            if (typeof action === "string" && action.length > 0) {
+            var capitalizedAction = action.charAt(0).toUpperCase() + action.slice(1);
+            return capitalizedAction + " Threat";
+            } else {
+            return "Invalid threat action"; // Or handle the error in an appropriate way
+            }
         },
-
+        isReadOnly: function(){
+            return this.threat_action === "view"? true:false;
+        }
     },
     watch: {
 
