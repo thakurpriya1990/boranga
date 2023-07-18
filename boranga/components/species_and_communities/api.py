@@ -176,6 +176,8 @@ class GetScientificName(views.APIView):
         combine_species = request.GET.get('combine_species', '')
         # taxon_details is send from species profile form to get all the taxon details as well
         taxon_details = request.GET.get('taxon_details', '')
+        # filter the taxon according to species processing status(e.g if draft the list should be only current= true)
+        species_id = request.GET.get('species_id','')
         if search_term:
             data_transform = []
             if cs_referral != '':
@@ -185,17 +187,23 @@ class GetScientificName(views.APIView):
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif cs_species != '':
                 exculde_status = ['draft']
+                # TODO do we need to check the taxonomy is_current=True as well
                 data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
                 data = data.filter(taxonomy__scientific_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id)[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name, 'taxon_previous_name': species.taxonomy.taxon_previous_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif combine_species != '':
+                # TODO do we need to check the taxonomy is_current=True as well 
                 data = Species.objects.filter(Q(processing_status='current') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             else:
                 if taxon_details != '':
-                    qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
+                    species_status = Species.objects.get(id=species_id).processing_status
+                    if species_status == Species.PROCESSING_STATUS_DRAFT:
+                        qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id, name_currency=True)[:10]
+                    else:
+                        qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
                     serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
                     data_transform = serializer.data
                 else:
