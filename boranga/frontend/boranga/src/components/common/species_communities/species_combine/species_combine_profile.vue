@@ -26,7 +26,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Common Name:</label>
                 <div class="col-sm-8">
-                    <input :disabled="true" type="text" class="form-control" id="common_name" placeholder="" 
+                    <textarea :disabled="true" class="form-control" rows="2" id="common_name" placeholder="" 
                     v-model="common_name"/>
                 </div>
             </div>

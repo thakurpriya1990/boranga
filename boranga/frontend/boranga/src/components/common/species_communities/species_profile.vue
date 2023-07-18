@@ -20,13 +20,13 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"></label>
                 <div class="col-sm-9">
-                    <textarea disabled class="form-control" rows="3" id="species_display" v-model="species_display"/>
+                    <textarea disabled class="form-control" rows="2" id="species_display" v-model="species_display"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Common Name:</label>
                 <div class="col-sm-9">
-                    <input :disabled="true" type="text" class="form-control" id="common_name" placeholder="" 
+                    <textarea :disabled="true" class="form-control" rows="2" id="common_name" placeholder="" 
                     v-model="common_name"/>
                 </div>
             </div>
