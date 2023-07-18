@@ -1,6 +1,7 @@
 <template lang="html">
     <div id="communityStatus">
         <FormSection :formCollapse="false" label="Meeting" Index="meeting">
+            <alert type="danger" v-if="!isMeetingDateValid"><strong>Please select End Date that is later than Start Date</strong></alert>
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Title:</label>
                 <div class="col-sm-8">
@@ -13,13 +14,14 @@
                 <div class="col-sm-8">
                     <!-- <input :disabled="meeting_obj.readonly" type="datetime-local" class="form-control"  id="start_time" v-model="meeting_obj.start_date"> -->
                     <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date" 
-                                        ref="start_date" v-model="meeting_obj.start_date" />
+                                        ref="start_date" v-model="meeting_obj.start_date" @change="validateMeetingDate()" />
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">End Date/ Time:</label>
                 <div class="col-sm-8">
-                    <input :disabled="isReadOnly" type="datetime-local" class="form-control"  id="end_date" v-model="meeting_obj.end_date">
+                    <input :disabled="isReadOnly" type="datetime-local" class="form-control"  id="end_date" v-model="meeting_obj.end_date"
+                    @change="validateMeetingDate()" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -94,6 +96,7 @@
 <script>
 import Vue from 'vue' ;
 import datatable from '@vue-utils/datatable.vue';
+import alert from '@vue-utils/alert.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 
 import {
@@ -130,6 +133,7 @@ export default {
                     keepInvalid:true,
                     allowInputToggle:true,
                 },
+                isMeetingDateValid:true,
                 isShowComment: false,
                 isCommitteeMeeting:false,
                 //----list of values dictionary
@@ -243,6 +247,7 @@ export default {
         components: {
             FormSection,
             datatable,
+            alert
         },
         computed: {
             isStatusApproved: function(){
@@ -348,6 +353,16 @@ export default {
                     //--to add only the requested memvbr to the sel_committee_members_arr
                     vm.renderMembersTable('add');
                 });
+            },
+            validateMeetingDate: function () {
+                if(this.meeting_obj.start_date && this.meeting_obj.end_date){
+                    const startDate = new Date(this.meeting_obj.start_date);
+                    const endDate = new Date(this.meeting_obj.end_date);
+                    this.isMeetingDateValid = startDate <= endDate;
+                }
+                else{
+                    this.isMeetingDateValid = true;
+                }
             },
         },
         created: async function() {

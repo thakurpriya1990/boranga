@@ -51,7 +51,11 @@ from boranga.components.meetings.serializers import(
 )
 
 from boranga.components.conservation_status.models import ConservationStatus
-
+import pandas as pd
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from openpyxl.utils.dataframe import dataframe_to_rows
+from io import BytesIO
 
 class MeetingFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -262,6 +266,62 @@ class MeetingViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+        
+    @detail_route(methods=['GET',], detail=True)
+    def export_agenda_items(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.agenda_items.all()
+        serializer = ListAgendaItemSerializer(qs,many=True)
+        export_format = request.GET.get('export_format')
+        allowed_fields = ['group_type', 'scientific_name', 'conservation_status_number']
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for i, obj in enumerate(serialized_data):
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_obj['Number'] = i + 1  # Assign sequential numbers starting from 1
+                filtered_data.append(filtered_obj)
+
+            df = pd.DataFrame(filtered_data)
+            new_headings = ['Group Type', 'Conservation Status Number', 'Scientific Name', 'Number']
+            df.columns = new_headings
+            column_order = ['Number', 'Group Type', 'Scientific Name', 'Conservation Status Number']
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_Meeting_AgendaItems.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_Meeting_AgendaItems.csv'
+                    response.write(csv_data)
+                    return response
+                
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
     
     # used to add the conservation status to the meeting agenda  items
     @detail_route(methods=['post'], detail=True)

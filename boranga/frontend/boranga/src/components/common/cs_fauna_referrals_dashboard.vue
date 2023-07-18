@@ -605,7 +605,7 @@ export default {
             return {
                 autoWidth: false,
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: "<b>Loading...</b>"
                 },
                 order: [
                     [0, 'desc']
