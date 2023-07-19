@@ -50,11 +50,13 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Phylogenetic Group:</label>
                 <div class="col-sm-8">
-                    <select :disabled="true" class="form-select" v-model="phylogenetic_group_id" id="phylogenetic_group">
+                    <!-- <select :disabled="true" class="form-select" v-model="phylogenetic_group_id" id="phylogenetic_group">
                         <option v-for="option in phylo_group_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
-                    </select>
+                    </select> -->
+                    <textarea :disabled="true" class="form-control" rows="1" id="phylogenetic_group" placeholder="" 
+                    v-model="phylogenetic_group"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -80,11 +82,6 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Authority:</label>
                 <div class="col-sm-8">
-                    <!-- <select :disabled="true" class="form-select" v-model="name_authority_id">
-                        <option v-for="option in name_authority_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
-                        </option>
-                    </select> -->
                     <input :disabled="true" type="text" class="form-control" id="name_authority" placeholder="" 
                     v-model="name_authority"/>
                 </div>
@@ -883,7 +880,6 @@ export default {
                 taxon_names: [],
                 species_profile_dict: {},
                 //scientific_name_list: [],
-                name_authority_list: [],
                 family_list: [],
                 genus_list: [],
                 phylo_group_list: [],
@@ -905,7 +901,7 @@ export default {
                 common_name: null,
                 taxon_name_id: null,
                 taxon_previous_name:null,
-                phylogenetic_group_id: null,
+                phylogenetic_group: null,
                 family_id: null,
                 genus_id: null,
                 name_authority: null,
@@ -1033,7 +1029,7 @@ export default {
                     vm.common_name = e.params.data.common_name;
                     vm.taxon_name_id = e.params.data.taxon_name_id;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
-                    vm.phylogenetic_group_id = e.params.data.phylogenetic_group_id;
+                    vm.phylogenetic_group = e.params.data.phylogenetic_group;
                     vm.family_id = e.params.data.family_fk_id;
                     vm.genus_id = e.params.data.genus_id;
                     vm.name_authority = e.params.data.name_authority;
@@ -1048,7 +1044,7 @@ export default {
                     vm.common_name = '';
                     vm.taxon_name_id = '';
                     vm.taxon_previous_name = '';
-                    vm.phylogenetic_group_id = '';
+                    vm.phylogenetic_group = '';
                     vm.family_id = '';
                     vm.genus_id = '';
                     vm.name_authority = '';
@@ -1068,7 +1064,7 @@ export default {
                     vm.common_name = vm.species_community.taxonomy_details.common_name;
                     vm.taxon_name_id = vm.species_community.taxonomy_details.taxon_name_id;
                     vm.taxon_previous_name = vm.species_community.taxonomy_details.taxon_previous_name;
-                    vm.phylogenetic_group_id = vm.species_community.taxonomy_details.phylogenetic_group_id;
+                    vm.phylogenetic_group = vm.species_community.taxonomy_details.phylogenetic_group;
                     vm.family_id = vm.species_community.taxonomy_details.family_fk_id;
                     vm.genus_id = vm.species_community.taxonomy_details.genus_id;
                     vm.name_authority = vm.species_community.taxonomy_details.name_authority;
@@ -1168,12 +1164,6 @@ export default {
             //------fetch list of values
             const res = await Vue.http.get('/api/species_profile_dict/');
             vm.species_profile_dict = res.body;
-            vm.name_authority_list = vm.species_profile_dict.name_authority_list;
-            vm.name_authority_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
             vm.family_list = vm.species_profile_dict.family_list;
             vm.family_list.splice(0,0,
                 {

@@ -193,7 +193,7 @@ class GetScientificName(views.APIView):
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name, 'taxon_previous_name': species.taxonomy.taxon_previous_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif combine_species != '':
-                # TODO do we need to check the taxonomy is_current=True as well 
+                # TODO do we need to check the taxonomy is_current=True as well
                 data = Species.objects.filter(Q(processing_status='current') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
@@ -453,13 +453,6 @@ class TaxonomyViewSet(viewsets.ModelViewSet):
 
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
-        name_authority_list = []
-        name_authorities = NameAuthority.objects.all()
-        if name_authorities:
-            for name in name_authorities:
-                name_authority_list.append({'id': name.id,
-                    'name':name.name,
-                    });
         family_list = []
         # filter taxons that are having family_id and the fetch distinct family_id
         families_dict = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct()
@@ -547,7 +540,6 @@ class GetSpeciesProfileDict(views.APIView):
                     'name':option.breeding_type,
                     });
         res_json = {
-        "name_authority_list": name_authority_list,
         "family_list": family_list,
         "genus_list": genus_list,
         "phylo_group_list": phylo_group_list,
