@@ -90,7 +90,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Name Comments:</label>
+                <label for="" class="col-sm-3 control-label">Nomos names comments:</label>
                 <div class="col-sm-8">
                     <textarea :disabled="true" class="form-control" rows="3" id="comment" placeholder=""
                     v-model="name_comments"/>
@@ -754,6 +754,22 @@
                     ref="last_data_curration_date" @change="checkDate()" v-model="species_community.last_data_curration_date" />
                 </div>
             </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Comment:</label>
+                <div class="col-sm-8">
+                    <textarea :disabled="true" class="form-control" rows="3" id="comment" placeholder="" v-model="species_original.comment"/>
+                </div>
+                <div class="col-sm-1">
+                    <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
+                    <input class="form-check-input" type="checkbox" :id="'comment_chk'+species_community.id" @change="checkCommentInput('comment_chk'+species_community.id,'comment')" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Comment:</label>
+                <div class="col-sm-8">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder="" v-model="species_community.comment"/>
+                </div>
+            </div>
         </FormSection>
     </div>
 </template>
@@ -1007,6 +1023,14 @@ export default {
                     this.species_community.distribution[obj_field] = this.species_original.distribution[obj_field];
                 }else{
                     this.species_community.distribution[obj_field]=null;
+                }
+            },
+            checkCommentInput: function(chkbox,obj_field){
+                // if checkbox is checked copy value from original  species to new species
+                if($("#"+chkbox).is(':checked')== true){
+                    this.species_community[obj_field] = this.species_original[obj_field];
+                }else{
+                    this.species_community[obj_field]=null;
                 }
             },
             //----------------------------------------------------------------

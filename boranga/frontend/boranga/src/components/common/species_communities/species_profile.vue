@@ -90,17 +90,10 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Name Comments:</label>
+                <label for="" class="col-sm-3 control-label">NOMOS names comments:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="true" class="form-control" rows="3" id="name_comments" placeholder=""
                     v-model="name_comments"/>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Comment:</label>
-                <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
-                    v-model="species_community.comment"/>
                 </div>
             </div>
         </FormSection>
@@ -433,6 +426,13 @@
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="date" class="form-control" name="last_data_curration_date" 
                     ref="last_data_curration_date" @change="checkDate()" v-model="species_community.last_data_curration_date" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Comment:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
+                    v-model="species_community.comment"/>
                 </div>
             </div>
         </FormSection>

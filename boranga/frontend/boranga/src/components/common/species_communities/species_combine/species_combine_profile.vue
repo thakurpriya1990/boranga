@@ -90,7 +90,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Name Comments:</label>
+                <label for="" class="col-sm-3 control-label">Name names comments:</label>
                 <div class="col-sm-8">
                     <textarea :disabled="true" class="form-control" rows="3" id="comment" placeholder=""
                     v-model="name_comments"/>
@@ -826,6 +826,24 @@
                     ref="last_data_curration_date" @change="checkDate()" v-model="species_community.last_data_curration_date" />
                 </div>
             </div>
+            <div>
+                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                    <label for="" class="col-sm-3 control-label">{{ species.species_number }} Comment:</label>
+                    <div class="col-sm-8">
+                        <textarea :disabled="true" class="form-control" rows="3" id="comment" placeholder="" v-model="species.comment"/>
+                    </div>
+                    <div class="col-sm-1">
+                        <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field, value) -->
+                        <input class="form-check-input" type="checkbox" name="comment_chk" :id="'comment_chk'+species.id" @change="checkCommentInput('comment_chk','comment_chk'+species.id,'comment', species.comment)" />
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Comment:</label>
+                <div class="col-sm-8">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder="" v-model="species_community.comment"/>
+                </div>
+            </div>
         </FormSection>
     </div>
 </template>
@@ -1088,6 +1106,23 @@ export default {
                     this.species_community.distribution[obj_field] = value;
                 }else{
                     this.species_community.distribution[obj_field]=null;
+                }
+                //--- to select only one checkbox at a time in a group
+                let chkbox_name_arr=document.getElementsByName(chkbox_name);
+                for(var i=0; i<chkbox_name_arr.length; i++)
+                {
+                    if(chkbox_name_arr[i].id != chkbox_id)
+                    {
+                        chkbox_name_arr[i].checked = false;
+                    }
+                }
+            },
+            checkCommentInput: function(chkbox_name,chkbox_id,obj_field,value){
+                // if checkbox is checked copy value from original  species to new species
+                if($("#"+chkbox_id).is(':checked')== true){
+                    this.species_community[obj_field] = value;
+                }else{
+                    this.species_community[obj_field]=null;
                 }
                 //--- to select only one checkbox at a time in a group
                 let chkbox_name_arr=document.getElementsByName(chkbox_name);
