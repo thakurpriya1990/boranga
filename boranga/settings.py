@@ -19,6 +19,8 @@ SHOW_DEBUG_TOOLBAR = env('SHOW_DEBUG_TOOLBAR', False)
 BUILD_TAG = env('BUILD_TAG', hashlib.md5(os.urandom(32)).hexdigest())  # URL of the Dev app.js served by webpack & express
 TEMPLATE_TITLE = 'Boranga System'
 LEDGER_TEMPLATE = 'bootstrap5'
+EMAIL_DELIVERY = env('EMAIL_DELIVERY', 'off')
+EMAIL_INSTANCE = env('EMAIL_INSTANCE', 'DEV')
 
 GROUP_NAME_ASSESSOR = 'ProposalAssessorGroup'
 GROUP_NAME_APPROVER = 'ProposalApproverGroup'
@@ -28,7 +30,8 @@ GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR = 'SpeciesCommunitiesProcessorGroup'
 
 
 if env('CONSOLE_EMAIL_BACKEND', False):
-   EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+   EMAIL_BACKEND = "wagov_utils.components.utils.email_backend.EmailBackend"
 
 
 if SHOW_DEBUG_TOOLBAR:

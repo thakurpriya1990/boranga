@@ -61,3 +61,4 @@ parso==0.7.1
 django-import-export==2.7.1
 babel==2.9.1
 pandas==2.0.2
+git+https://github.com/dbca-wa/wagov_utils
