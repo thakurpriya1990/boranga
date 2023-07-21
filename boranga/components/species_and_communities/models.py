@@ -1014,7 +1014,7 @@ class CommunityTaxonomy(models.Model):
     community_name = models.CharField(max_length=512,null=True, blank=True)
     community_status = models.CharField(max_length=128, null=True, blank=True)
     community_description = models.CharField(max_length=2048, null=True, blank=True)
-    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
+    name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the is_current name? true or false
     previous_name = models.CharField(max_length=512,null=True, blank=True)
     name_authority = models.ForeignKey(NameAuthority,
                                        on_delete=models.CASCADE,null=True,blank=True)

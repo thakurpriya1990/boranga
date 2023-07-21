@@ -23,6 +23,16 @@
                     </div>
                 </div>
                 <div class="col-md-3">
+                    <div class="form-group" id="select_phylo_group">
+                        <label for="cs_phylo_group_lookup">Phylo Group:</label>
+                        <select 
+                            id="cs_phylo_group_lookup"  
+                            name="cs_phylo_group_lookup"  
+                            ref="cs_phylo_group_lookup" 
+                            class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="form-group" id="select_family">
                         <label for="cs_family_lookup">Family:</label>
                         <select 
@@ -184,6 +194,11 @@ export default {
             required: false,
             default: 'filterCSFloraCommonName',
         },
+        filterCSFloraPhylogeneticGroup_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFloraPhylogeneticGroup',
+        },
         filterCSFloraFamily_cache: {
             type: String,
             required: false,
@@ -246,6 +261,9 @@ export default {
             
             filterCSFloraCommonName: sessionStorage.getItem(this.filterCSFloraCommonName_cache) ? 
                                 sessionStorage.getItem(this.filterCSFloraCommonName_cache) : 'all',
+            
+            filterCSFloraPhylogeneticGroup: sessionStorage.getItem(this.filterCSFloraPhylogeneticGroup_cache) ? 
+                        sessionStorage.getItem(this.filterCSFloraPhylogeneticGroup_cache) : 'all',
 
             filterCSFloraFamily: sessionStorage.getItem(this.filterCSFloraFamily_cache) ? 
                                 sessionStorage.getItem(this.filterCSFloraFamily_cache) : 'all',
@@ -328,6 +346,11 @@ export default {
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraCommonName_cache, vm.filterCSFloraCommonName);  
         },
+        filterCSFloraPhylogeneticGroup: function() {
+            let vm = this;
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call. 
+            sessionStorage.setItem(vm.filterCSFloraPhylogeneticGroup_cache, vm.filterCSFloraPhylogeneticGroup);
+        },
         filterCSFloraFamily: function() {
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -384,6 +407,7 @@ export default {
         filterApplied: function(){
             if(this.filterCSFloraScientificName === 'all' && 
                 this.filterCSFloraCommonName === 'all' && 
+                this.filterCSFloraPhylogeneticGroup === 'all' &&  
                 this.filterCSFloraFamily === 'all' && 
                 this.filterCSFloraGenus === 'all' && 
                 this.filterCSFloraConservationList === 'all' && 
@@ -759,6 +783,7 @@ export default {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_scientific_name = vm.filterCSFloraScientificName;
                         d.filter_common_name = vm.filterCSFloraCommonName;
+                        d.filter_phylogenetic_group = vm.filterCSFloraPhylogeneticGroup;
                         d.filter_family = vm.filterCSFloraFamily;
                         d.filter_genus = vm.filterCSFloraGenus;
                         d.filter_conservation_list = vm.filterCSFloraConservationList;
@@ -866,6 +891,44 @@ export default {
                 }).
                 on("select2:open",function (e) {
                     const searchField = $('[aria-controls="select2-cs_common_name_lookup-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialisePhyloGroupLookup: function(){
+                let vm = this;
+                $(vm.$refs.cs_phylo_group_lookup).select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $("#select_phylo_group"),
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Phylo Group",
+                    ajax: {
+                        url: api_endpoints.phylo_group_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                            }
+                            return query;
+                        },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterCSFloraPhylogeneticGroup = data;
+                    sessionStorage.setItem("filterCSFloraPhylogeneticGroupText", e.params.data.text);
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterCSFloraPhylogeneticGroup = 'all';
+                    sessionStorage.setItem("filterCSFloraPhylogeneticGroupText",'');
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-cs_phylo_group_lookup-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
                 });
@@ -1373,6 +1436,7 @@ export default {
         this.$nextTick(() => {
             vm.initialiseScientificNameLookup();
             vm.initialiseCommonNameLookup();
+            vm.initialisePhyloGroupLookup();
             vm.initialiseFamilyLookup();
             vm.initialiseGeneraLookup();
             //vm.initialiseSearch();
@@ -1391,6 +1455,12 @@ export default {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFloraCommonNameText"), vm.filterCSFloraCommonName, false, true);
                 $('#cs_common_name_lookup').append(newOption);
+            }
+            if(sessionStorage.getItem("filterCSFloraPhylogeneticGroup")!='all' && sessionStorage.getItem("filterCSFloraPhylogeneticGroup")!=null)
+            {
+                // contructor new Option(text, value, defaultSelected, selected)
+                var newOption = new Option(sessionStorage.getItem("filterCSFloraPhylogeneticGroupText"), vm.filterCSFloraPhylogeneticGroup, false, true);
+                $('#cs_phylo_group_lookup').append(newOption);
             }
             if(sessionStorage.getItem("filterCSFloraFamily")!='all' && sessionStorage.getItem("filterCSFloraFamily")!=null)
             {

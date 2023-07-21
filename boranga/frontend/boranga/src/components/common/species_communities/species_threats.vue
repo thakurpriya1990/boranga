@@ -206,6 +206,7 @@ export default {
                             mRender:function (data,type,full){
                                 let links = '';
                                 if(full.visible){
+                                    links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
                                     links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
                                     links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
                                 }
@@ -263,6 +264,19 @@ export default {
                 let vm=this;
                 this.$refs.threat_detail.threat_id = id;
                 this.$refs.threat_detail.threat_action='edit';
+                Vue.http.get(helpers.add_endpoint_json(api_endpoints.threat,id)).then((response) => {
+                      this.$refs.threat_detail.threatObj=response.body; 
+                      this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
+                    },
+                  err => { 
+                            console.log(err);
+                      });
+                this.$refs.threat_detail.isModalOpen = true;
+            },
+            viewThreat: function(id){
+                let vm=this;
+                this.$refs.threat_detail.threat_id = id;
+                this.$refs.threat_detail.threat_action='view';
                 Vue.http.get(helpers.add_endpoint_json(api_endpoints.threat,id)).then((response) => {
                       this.$refs.threat_detail.threatObj=response.body; 
                       this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
@@ -330,6 +344,11 @@ export default {
                     e.preventDefault();
                     var id = $(this).attr('data-edit-threat');
                     vm.editThreat(id);
+                });
+                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-view-threat]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-view-threat');
+                    vm.viewThreat(id);
                 });
                 // External Discard listener
                 vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-discard-threat]', function(e) {
