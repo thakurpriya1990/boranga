@@ -25,6 +25,9 @@ from boranga.components.conservation_status import api as conservation_status_ap
 from boranga.components.conservation_plan import api as conservation_plans_api
 from boranga.components.meetings import api as meeting_api
 from ledger_api_client.urls import urlpatterns as ledger_patterns
+from django import urls
+from django.contrib.auth import views as auth_views
+from django import conf
 
 # API patterns
 router = routers.DefaultRouter()
@@ -177,11 +180,16 @@ urlpatterns = [
 
 ] + ledger_patterns
 
-if settings.EMAIL_INSTANCE != 'PROD':
-    urlpatterns.append(path('accounts/', include('django.contrib.auth.urls')))
+# if settings.EMAIL_INSTANCE != 'PROD':
+#     urlpatterns.append(path('accounts/', include('django.contrib.auth.urls')))
 
 if settings.DEBUG:  # Serve media locally in development.
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# DBCA Template URLs
+urlpatterns.append(urls.path("logout/", auth_views.LogoutView.as_view(), {"next_page": "/"}, name="logout"))
+if conf.settings.ENABLE_DJANGO_LOGIN:
+    urlpatterns.append(urls.re_path(r"^ssologin/", auth_views.LoginView.as_view(), name="ssologin"))
 
 #if settings.SHOW_DEBUG_TOOLBAR:
 #    import debug_toolbar

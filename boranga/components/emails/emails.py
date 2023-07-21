@@ -8,6 +8,9 @@ from django.core.mail import EmailMultiAlternatives
 from django.template import loader, Template
 from django.utils.html import strip_tags
 
+# email
+from wagov_utils.components.utils.email import TemplateEmailBase as WAGovUtilsTemplateEmailBase
+
 from ledger_api_client.ledger_models import Document
 
 logger = logging.getLogger('log')
@@ -24,8 +27,22 @@ def _render(template, context):
 #def host_reverse(name, args=None, kwargs=None):
  #   return "{}{}".format(settings.DEFAULT_HOST, reverse(name, args=args, kwargs=kwargs))
 
+class TemplateEmailBase(WAGovUtilsTemplateEmailBase):
+    subject = ''
+    html_template = 'boranga/emails/base_email.html'
+    # txt_template can be None, in this case a 'tag-stripped' version of the html will be sent. (see send)
+    txt_template = 'boranga/emails/base-email.txt'
 
-class TemplateEmailBase(object):
+    def send_to_user(self, users, context=None):
+        filtered_emails = set(u.email for u in users if hasattr(u, "email"))
+        # Loop through users
+        for email in filtered_emails:
+            print (email)
+            # Send the email!
+            self.send(email, context=context)
+
+
+class OLDTemplateEmailBase(object):
     subject = ''
     html_template = 'boranga/emails/base_email.html'
     # txt_template can be None, in this case a 'tag-stripped' version of the html will be sent. (see send)
