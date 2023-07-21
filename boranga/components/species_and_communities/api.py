@@ -51,6 +51,7 @@ from boranga.components.species_and_communities.models import (
     Species,
     TaxonVernacular,
     ClassificationSystem,
+    InformalGroup,
     ScientificName,
     Taxonomy,
     Family,
@@ -273,10 +274,12 @@ class GetPhyloGroup(views.APIView):
         if search_term:
             if cs_referral != '':
                 #TODO may need to change the query for referral
-                data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
+                # data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
+                data = InformalGroup.objects.filter(classification_system_fk__class_desc__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id).distinct().values('classification_system_fk','classification_system_fk__class_desc')[:10]
             else:
-                data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
-            data_transform = [{'id': group['id'], 'text': group['class_desc']} for group in data]
+                # data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
+                data = InformalGroup.objects.filter(classification_system_fk__class_desc__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id).distinct().values('classification_system_fk','classification_system_fk__class_desc')[:10]
+            data_transform = [{'id': group['classification_system_fk'], 'text': group['classification_system_fk__class_desc']} for group in data]
             return Response({"results": data_transform})
         return Response()
 
