@@ -299,7 +299,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
 	# text is added as need for select2 format
 	text = serializers.SerializerMethodField()
 	common_name = serializers.SerializerMethodField()
-	phylogenetic_group_id = serializers.SerializerMethodField()
+	phylogenetic_group = serializers.SerializerMethodField()
 	class Meta:
 		model = Taxonomy
 		fields = (
@@ -313,7 +313,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
 			'taxon_previous_name',
 			'family_fk_id',
 			'genus_id',
-			'phylogenetic_group_id',
+			'phylogenetic_group',
 			'name_authority',
 			'name_comments',
 			)
@@ -329,13 +329,14 @@ class TaxonomySerializer(serializers.ModelSerializer):
 		except TaxonVernacular.DoesNotExist:
 			return ''
 
-	def get_phylogenetic_group_id(self,obj):
+	def get_phylogenetic_group(self,obj):
 		try:
 			if obj.informal_groups:
-				informal_group = InformalGroup.objects.get(taxonomy=obj.id)
-				return informal_group.classification_system_fk_id
+				# informal_groups = InformalGroup.objects.get(taxonomy=obj.id)
+				informal_groups = InformalGroup.objects.filter(taxonomy_id=obj.id).values_list('classification_system_fk__class_desc', flat=True)
+				return ','.join(informal_groups)
 		except InformalGroup.DoesNotExist:
-			return None
+			return ''
 
 class SpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 	class Meta:

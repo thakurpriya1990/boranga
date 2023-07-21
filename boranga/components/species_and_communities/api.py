@@ -51,6 +51,7 @@ from boranga.components.species_and_communities.models import (
     Species,
     TaxonVernacular,
     ClassificationSystem,
+    InformalGroup,
     ScientificName,
     Taxonomy,
     Family,
@@ -176,6 +177,8 @@ class GetScientificName(views.APIView):
         combine_species = request.GET.get('combine_species', '')
         # taxon_details is send from species profile form to get all the taxon details as well
         taxon_details = request.GET.get('taxon_details', '')
+        # filter the taxon according to species processing status(e.g if draft the list should be only current= true)
+        species_id = request.GET.get('species_id','')
         if search_term:
             data_transform = []
             if cs_referral != '':
@@ -185,17 +188,23 @@ class GetScientificName(views.APIView):
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif cs_species != '':
                 exculde_status = ['draft']
+                # TODO do we need to check the taxonomy is_current=True as well
                 data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
                 data = data.filter(taxonomy__scientific_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id)[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name, 'taxon_previous_name': species.taxonomy.taxon_previous_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif combine_species != '':
+                # TODO do we need to check the taxonomy is_current=True as well
                 data = Species.objects.filter(Q(processing_status='current') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             else:
                 if taxon_details != '':
-                    qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
+                    species_status = Species.objects.get(id=species_id).processing_status
+                    if species_status == Species.PROCESSING_STATUS_DRAFT:
+                        qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id, name_currency=True)[:10]
+                    else:
+                        qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
                     serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
                     data_transform = serializer.data
                 else:
@@ -265,10 +274,12 @@ class GetPhyloGroup(views.APIView):
         if search_term:
             if cs_referral != '':
                 #TODO may need to change the query for referral
-                data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
+                # data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
+                data = InformalGroup.objects.filter(classification_system_fk__class_desc__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id).distinct().values('classification_system_fk','classification_system_fk__class_desc')[:10]
             else:
-                data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
-            data_transform = [{'id': group['id'], 'text': group['class_desc']} for group in data]
+                # data = ClassificationSystem.objects.filter(class_desc__icontains=search_term).values('id', 'class_desc')[:10]
+                data = InformalGroup.objects.filter(classification_system_fk__class_desc__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id).distinct().values('classification_system_fk','classification_system_fk__class_desc')[:10]
+            data_transform = [{'id': group['classification_system_fk'], 'text': group['classification_system_fk__class_desc']} for group in data]
             return Response({"results": data_transform})
         return Response()
 
@@ -445,13 +456,6 @@ class TaxonomyViewSet(viewsets.ModelViewSet):
 
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
-        name_authority_list = []
-        name_authorities = NameAuthority.objects.all()
-        if name_authorities:
-            for name in name_authorities:
-                name_authority_list.append({'id': name.id,
-                    'name':name.name,
-                    });
         family_list = []
         # filter taxons that are having family_id and the fetch distinct family_id
         families_dict = Taxonomy.objects.filter(~Q(family_fk=None)).order_by().values_list('family_fk', flat=True).distinct()
@@ -539,7 +543,6 @@ class GetSpeciesProfileDict(views.APIView):
                     'name':option.breeding_type,
                     });
         res_json = {
-        "name_authority_list": name_authority_list,
         "family_list": family_list,
         "genus_list": genus_list,
         "phylo_group_list": phylo_group_list,
