@@ -282,7 +282,7 @@ export default {
             ],
             internal_status:[
                 {value: 'draft', name: 'Draft'},
-                {value: 'current', name: 'Current'},
+                {value: 'active', name: 'Active'},
                 {value: 'historical', name: 'Historical'},
             ],
             

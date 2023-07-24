@@ -53,7 +53,7 @@ def species_form_submit(species_instance,request):
                 ret2 = send_user_species_create_email_notification(request, species_instance)
 
                 if ret1 and ret2:
-                    species_instance.processing_status = 'current'
+                    species_instance.processing_status = 'active'
                     # species_instance.documents.all().update(can_delete=False)
                     species_instance.save()
                 else:
@@ -81,7 +81,7 @@ def community_form_submit(community_instance,request):
                 ret2 = send_user_community_create_email_notification(request, community_instance)
 
                 if ret1 and ret2:
-                    community_instance.processing_status = 'current'
+                    community_instance.processing_status = 'active'
                     # community_instance.documents.all().update(can_delete=False)
                     community_instance.save()
                 else:
@@ -94,7 +94,7 @@ def community_form_submit(community_instance,request):
 
 def combine_species_original_submit(species_instance,request):
         with transaction.atomic():
-            if species_instance.processing_status == 'current':
+            if species_instance.processing_status == 'active':
                 species_instance.processing_status = 'historical'
                 species_instance.save()
                  # change current active conservation status of the original species to inactive
@@ -117,7 +117,7 @@ def combine_species_original_submit(species_instance,request):
 
 def rename_species_original_submit(species_instance,request):
         with transaction.atomic():
-            if species_instance.processing_status == 'current':
+            if species_instance.processing_status == 'active':
                 species_instance.processing_status = 'historical'
                 species_instance.save()
                 #  send the rename species email notification
