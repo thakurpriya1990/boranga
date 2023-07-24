@@ -49,16 +49,16 @@ def species_form_submit(species_instance,request):
                 #applicant_field.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(cs_proposal.id),request)
 
                 
-                ret1 = send_species_create_email_notification(request, species_instance)
-                ret2 = send_user_species_create_email_notification(request, species_instance)
+                # ret1 = send_species_create_email_notification(request, species_instance)
+                # ret2 = send_user_species_create_email_notification(request, species_instance)
 
-                if ret1 and ret2:
-                    species_instance.processing_status = 'active'
-                    # species_instance.documents.all().update(can_delete=False)
-                    species_instance.save()
-                else:
-                    raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
-                return species_instance
+                # if ret1 and ret2:
+                species_instance.processing_status = 'active'
+                # species_instance.documents.all().update(can_delete=False)
+                species_instance.save()
+                # else:
+                #     raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
+                # return species_instance
 
             else:
                 raise ValidationError('You can\'t submit this species at this moment')

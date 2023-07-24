@@ -634,6 +634,10 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         filter_genus = request.GET.get('filter_genus')
         if filter_genus and not filter_genus.lower() == 'all':
             queryset = queryset.filter(taxonomy__genus__id=filter_genus)
+        
+        filter_name_status = request.GET.get('filter_name_status')
+        if filter_name_status and not filter_name_status.lower() == 'all':
+            queryset = queryset.filter(taxonomy__name_currency=filter_name_status)
 
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
