@@ -195,7 +195,7 @@ class GetScientificName(views.APIView):
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif combine_species != '':
                 # TODO do we need to check the taxonomy is_current=True as well
-                data = Species.objects.filter(Q(processing_status='current') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
+                data = Species.objects.filter(Q(processing_status='active') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             else:
@@ -634,6 +634,10 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         filter_genus = request.GET.get('filter_genus')
         if filter_genus and not filter_genus.lower() == 'all':
             queryset = queryset.filter(taxonomy__genus__id=filter_genus)
+        
+        filter_name_status = request.GET.get('filter_name_status')
+        if filter_name_status and not filter_name_status.lower() == 'all':
+            queryset = queryset.filter(taxonomy__name_currency=filter_name_status)
 
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
@@ -981,7 +985,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     def species_list(self, request, *args, **kwargs):
         # TODO filter Species that's approved(submitted) only 
         qs= Species.objects.all()
-        qs= qs.filter(Q(processing_status='current'))
+        qs= qs.filter(Q(processing_status='active'))
         serializer = SpeciesSerializer(qs, many=True)
         res_json = {
          "data":serializer.data

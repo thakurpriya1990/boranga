@@ -84,6 +84,18 @@
                                         </div>
                                     </div>
                                 </template>
+                                <template v-if="isDraft">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <strong>Action</strong><br/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="discardSpeciesProposal()">Discard</button><br/>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -259,6 +271,9 @@ export default {
                 return false;
             }
         },
+        isDraft: function(){
+            return this.species_community && this.species_community.processing_status === "Draft"? true:false;
+        },
         comms_url: function() {
           return (this.species_community.group_type === "community") ? 
                   helpers.add_endpoint_json(api_endpoints.community,this.$route.params.species_community_id+'/comms_log'): 
@@ -381,6 +396,33 @@ export default {
                 }
                 
             }
+        },
+        discardSpeciesProposal:function () {
+            let vm = this;
+            swal({
+                title: "Discard Application",
+                text: "Are you sure you want to discard this proposal?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: 'Discard Application',
+                confirmButtonColor:'#d9534f'
+            }).then(() => {
+                vm.$http.delete(api_endpoints.discard_species_proposal(vm.species_community.id))
+                .then((response) => {
+                    swal(
+                        'Discarded',
+                        'Your proposal has been discarded',
+                        'success'
+                    )
+                    vm.$router.push({
+                    name: 'internal-species-communities-dash'
+                    });
+                }, (error) => {
+                    console.log(error);
+                });
+            },(error) => {
+
+            });
         },
         save: async function(e) {
             let vm = this;

@@ -462,13 +462,13 @@ class Species(models.Model):
     """
 
     PROCESSING_STATUS_DRAFT = 'draft'
-    PROCESSING_STATUS_CURRENT = 'current'
+    PROCESSING_STATUS_ACTIVE = 'active'
     PROCESSING_STATUS_HISTORICAL = 'historical'
     PROCESSING_STATUS_TO_BE_SPLIT = 'to_be_split'
     PROCESSING_STATUS_TO_BE_COMBINED = 'to_be_combined'
     PROCESSING_STATUS_TO_BE_RENAMED = 'to_be_renamed'
     PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_DRAFT, 'Draft'),
-                                 (PROCESSING_STATUS_CURRENT, 'Current'),
+                                 (PROCESSING_STATUS_ACTIVE, 'Active'),
                                  (PROCESSING_STATUS_HISTORICAL, 'Historical'),
                                  (PROCESSING_STATUS_TO_BE_SPLIT, 'To Be Split'),
                                  (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
@@ -581,7 +581,7 @@ class Species(models.Model):
         :return: True if the application is in one of the approved status.
         """
         # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
-        user_viewable_state = ['current','historical']
+        user_viewable_state = ['active','historical']
         return self.processing_status in user_viewable_state
 
     @property
@@ -1041,13 +1041,13 @@ class Community(models.Model):
     - Table
     """
     PROCESSING_STATUS_DRAFT = 'draft'
-    PROCESSING_STATUS_CURRENT = 'current'
+    PROCESSING_STATUS_ACTIVE = 'active'
     PROCESSING_STATUS_HISTORICAL = 'historical'
     PROCESSING_STATUS_TO_BE_SPLIT = 'to_be_split'
     PROCESSING_STATUS_TO_BE_COMBINED = 'to_be_combined'
     PROCESSING_STATUS_TO_BE_RENAMED = 'to_be_renamed'
     PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_DRAFT, 'Draft'),
-                                 (PROCESSING_STATUS_CURRENT, 'Current'),
+                                 (PROCESSING_STATUS_ACTIVE, 'Active'),
                                  (PROCESSING_STATUS_HISTORICAL, 'Historical'),
                                  (PROCESSING_STATUS_TO_BE_SPLIT, 'To Be Split'),
                                  (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
@@ -1154,7 +1154,7 @@ class Community(models.Model):
         :return: True if the application is in one of the approved status.
         """
         # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
-        user_viewable_state = ['current','historical']
+        user_viewable_state = ['active','historical']
         return self.processing_status in user_viewable_state
 
     @property
