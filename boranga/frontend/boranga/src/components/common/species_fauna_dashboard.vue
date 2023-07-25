@@ -64,6 +64,16 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
+                        <label for="">Name Status:</label>
+                        <select class="form-select" v-model="filterFaunaNameStatus">
+                            <option value="all">All</option>
+                            <option value="True">Current</option>
+                            <option value="False">Non Current</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
                         <label for="">Conservation List:</label>
                         <select class="form-select" v-model="filterFaunaConservationList"
                         @change="filterConservationCategory($event)">
@@ -189,6 +199,11 @@ export default {
             required: false,
             default: 'filterFaunaGenus',
         },
+        filterFaunaNameStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaNameStatus',
+        },
         filterFaunaConservationList_cache: {
             type: String,
             required: false,
@@ -239,6 +254,9 @@ export default {
 
             filterFaunaGenus: sessionStorage.getItem(this.filterFaunaGenus_cache) ? 
                                 sessionStorage.getItem(this.filterFaunaGenus_cache) : 'all',
+            
+            filterFaunaNameStatus: sessionStorage.getItem(this.filterFaunaNameStatus_cache) ?
+                    sessionStorage.getItem(this.filterFaunaNameStatus_cache) : 'all',
 
             filterFaunaConservationList: sessionStorage.getItem(this.filterFaunaConservationList_cache) ? 
                                     sessionStorage.getItem(this.filterFaunaConservationList_cache) : 'all',
@@ -282,7 +300,7 @@ export default {
             ],
             internal_status:[
                 {value: 'draft', name: 'Draft'},
-                {value: 'current', name: 'Current'},
+                {value: 'active', name: 'Active'},
                 {value: 'historical', name: 'Historical'},
             ],
             
@@ -320,6 +338,11 @@ export default {
             let vm = this;
             vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFaunaGenus_cache, vm.filterFaunaGenus);  
+        },
+        filterFaunaNameStatus: function() {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterFaunaNameStatus_cache, vm.filterFaunaNameStatus);
         },
         filterFaunaConservationList: function() {
             let vm = this;
@@ -362,6 +385,7 @@ export default {
                 this.filterFaunaConservationCategory === 'all' && 
                 this.filterFaunaFamily === 'all' && 
                 this.filterFaunaGenus === 'all' && 
+                this.filterFaunaNameStatus === 'all' &&
                 this.filterFaunaApplicationStatus === 'all' &&
                 this.filterFaunaRegion === 'all' && 
                 this.filterFaunaDistrict === 'all'){
@@ -706,6 +730,7 @@ export default {
                         d.filter_phylogenetic_group = vm.filterFaunaPhylogeneticGroup;
                         d.filter_family = vm.filterFaunaFamily;
                         d.filter_genus = vm.filterFaunaGenus;
+                        d.filter_name_status = vm.filterFaunaNameStatus;
                         d.filter_conservation_list = vm.filterFaunaConservationList;
                         d.filter_conservation_category = vm.filterFaunaConservationCategory;
                         d.filter_application_status = vm.filterFaunaApplicationStatus;
@@ -1149,6 +1174,7 @@ export default {
                 filter_genus: vm.filterFaunaGenus,
                 filter_conservation_list: vm.filterFaunaConservationList,
                 filter_conservation_category: vm.filterFaunaConservationCategory,
+                filter_name_status: vm.filterFaunaNameStatus,
                 filter_application_status: vm.filterFaunaApplicationStatus,
                 filter_region: vm.filterFaunaRegion,
                 filter_district: vm.filterFaunaDistrict,

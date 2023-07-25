@@ -81,6 +81,16 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
+                        <label for="">Name Status:</label>
+                        <select class="form-select" v-model="filterFloraNameStatus">
+                            <option value="all">All</option>
+                            <option value="True">Current</option>
+                            <option value="False">Non Current</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
                         <label for="">Conservation List:</label>
                         <select class="form-select" v-model="filterFloraConservationList" 
                         @change="filterConservationCategory($event)">
@@ -212,6 +222,11 @@ export default {
             required: false,
             default: 'filterFloraGenus',
         },
+        filterFloraNameStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterFloraNameStatus',
+        },
         filterFloraConservationList_cache: {
             type: String,
             required: false,
@@ -262,6 +277,9 @@ export default {
 
             filterFloraGenus: sessionStorage.getItem(this.filterFloraGenus_cache) ? 
                                 sessionStorage.getItem(this.filterFloraGenus_cache) : 'all',
+            
+            filterFloraNameStatus: sessionStorage.getItem(this.filterFloraNameStatus_cache) ?
+                        sessionStorage.getItem(this.filterFloraNameStatus_cache) : 'all',
 
             filterFloraConservationList: sessionStorage.getItem(this.filterFloraConservationList_cache) ? 
                                     sessionStorage.getItem(this.filterFloraConservationList_cache) : 'all',
@@ -304,7 +322,7 @@ export default {
             ],
             internal_status:[
                 {value: 'draft', name: 'Draft'},
-                {value: 'current', name: 'Current'},
+                {value: 'active', name: 'Active'},
                 {value: 'historical', name: 'Historical'},
             ],
             
@@ -341,6 +359,11 @@ export default {
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraGenus_cache, vm.filterFloraGenus);  
+        },
+        filterFloraNameStatus: function() {
+            let vm = this;
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            sessionStorage.setItem(vm.filterFloraNameStatus_cache, vm.filterFloraNameStatus);
         },
         filterFloraConservationList: function() {
             let vm = this;
@@ -381,6 +404,7 @@ export default {
                 this.filterFloraFamily === 'all' && 
                 this.filterFloraPhylogeneticGroup === 'all' && 
                 this.filterFloraGenus === 'all' && 
+                this.filterFloraNameStatus === 'all' &&
                 this.filterFloraConservationList === 'all' && 
                 this.filterFloraConservationCategory === 'all' && 
                 this.filterFloraApplicationStatus === 'all' &&
@@ -729,6 +753,7 @@ export default {
                         d.filter_family = vm.filterFloraFamily;
                         d.filter_phylogenetic_group = vm.filterFloraPhylogeneticGroup;
                         d.filter_genus = vm.filterFloraGenus;
+                        d.filter_name_status = vm.filterFloraNameStatus;
                         d.filter_conservation_list = vm.filterFloraConservationList;
                         d.filter_conservation_category = vm.filterFloraConservationCategory;
                         d.filter_application_status = vm.filterFloraApplicationStatus;
@@ -1174,6 +1199,7 @@ export default {
                 filter_family: vm.filterFloraFamily,
                 filter_phylogenetic_group: vm.filterFloraPhylogeneticGroup,
                 filter_genus: vm.filterFloraGenus,
+                filter_name_status: vm.filterFloraNameStatus,
                 filter_conservation_list: vm.filterFloraConservationList,
                 filter_conservation_category: vm.filterFloraConservationCategory,
                 filter_application_status: vm.filterFloraApplicationStatus,
