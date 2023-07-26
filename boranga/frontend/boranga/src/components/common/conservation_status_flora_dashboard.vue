@@ -820,7 +820,8 @@ export default {
                 $(vm.$refs.cs_scientific_name_lookup).select2({
                     minimumInputLength: 2,
                     dropdownParent: $("#select_scientific_name"),
-                    "theme": "bootstrap-5",
+                    width: $( vm ).data( 'width' ) ? $( vm ).data( 'width' ) : $( vm ).hasClass( 'w-100' ) ? '100%' : 'style',
+                    theme: 'bootstrap-5',
                     allowClear: true,
                     placeholder:"Select Scientific Name",
                     ajax: {
