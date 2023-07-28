@@ -359,7 +359,6 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     community_number = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
-    community_status = serializers.SerializerMethodField()
     #conservation_status = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
@@ -381,7 +380,6 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'community_number',
                 'community_migrated_id',
                 'community_name',
-                'community_status',
                 #'conservation_status',
                 'conservation_list',
                 'conservation_category',
@@ -405,7 +403,6 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 'group_type',
                 'community_migrated_id',
                 'community_name',
-                'community_status',
                 #'conservation_status',
                 'conservation_list',
                 'conservation_category',
@@ -451,11 +448,6 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
         if obj.community:
             if obj.community.taxonomy:
                 return obj.community.taxonomy.community_name
-        return ''
-
-    def get_community_status(self,obj):
-        if obj.community:
-            return obj.community.taxonomy.community_status
         return ''
 
     def get_conservation_list(self,obj):
