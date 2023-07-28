@@ -38,17 +38,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Community Status:</label>
-                        <select class="form-select" v-model="filterCSRefCommunityStatus">
-                            <option value="all">All</option>
-                            <option v-for="option in communities_data_list" :value="option.id">
-                                {{option.community_status}}
-                            </option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
                         <label for="">Conservation List:</label>
                         <select class="form-select" v-model="filterCSRefCommunityConservationList"
                         @change="filterConservationCategory($event)">
@@ -144,11 +133,6 @@ export default {
             required: false,
             default: 'filterCSRefCommunityName',
         },
-        filterCSRefCommunityStatus_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSRefCommunityStatus',
-        },
         filterCSRefCommunityConservationList_cache: {
             type: String,
             required: false,
@@ -187,9 +171,6 @@ export default {
             filterCSRefCommunityName: sessionStorage.getItem(this.filterCSRefCommunityName_cache) ? 
                                     sessionStorage.getItem(this.filterCSRefCommunityName_cache) : 'all',
 
-            filterCSRefCommunityStatus: sessionStorage.getItem(this.filterCSRefCommunityStatus_cache) ? 
-                                    sessionStorage.getItem(this.filterCSRefCommunityStatus_cache) : 'all',
-
             filterCSRefCommunityConservationList: sessionStorage.getItem(this.filterCSRefCommunityConservationList_cache) ?sessionStorage.getItem(this.filterCSRefCommunityConservationList_cache) : 'all',
 
             filterCSRefCommunityConservationCategory: 
@@ -208,7 +189,6 @@ export default {
 
             //Filter list for Community select box
             filterListsCommunities: {},
-            communities_data_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
             filtered_conservation_category_list: [],
@@ -234,11 +214,6 @@ export default {
             let vm = this;
             vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCSRefCommunityName_cache, vm.filterCSRefCommunityName);
-        },
-        filterCSRefCommunityStatus: function() {
-            let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
-            sessionStorage.setItem(vm.filterCSRefCommunityStatus_cache, vm.filterCSRefCommunityStatus);
         },
         filterCSRefCommunityConservationList: function() {
             let vm = this;
@@ -279,7 +254,6 @@ export default {
         filterApplied: function(){
             if(this.filterCSRefCommunityMigratedId === 'all' && 
                 this.filterCSRefCommunityName === 'all' && 
-                this.filterCSRefCommunityStatus === 'all' && 
                 this.filterCSRefCommunityConservationList === 'all' && 
                 this.filterCSRefCommunityConservationCategory === 'all' && 
                 this.filterCSRefCommunityRegion === 'all' && 
@@ -291,7 +265,7 @@ export default {
             }
         },
         datatable_headers: function(){
-           return ['Number', 'Community','Community Id' ,'Community Name', 'Conservation List' , 'Conservation Category', 'Family', 'Genera', /*'Region', 'District',*/ 'Status', 'Action']
+           return ['Number', 'Community','Community Id' ,'Community Name', 'Conservation List' , 'Conservation Category', /*'Region', 'District',*/ 'Status', 'Action']
         },
         column_number: function(){
             return {
@@ -335,7 +309,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
-                name: "conservation_status__community__community_migrated_id",
+                name: "conservation_status__community__taxonomy__community_migrated_id",
             }
         },
         column_community_name: function(){
@@ -349,23 +323,9 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_status__community__community_name__name",
+                name: "conservation_status__community__taxonomy__community_name",
             }
         },
-        /*column_community_status: function(){
-            return {
-                data: "community_status",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_status__community__community_status",
-            }
-        },*/
         column_conservation_list: function(){
             return {
                 data: "conservation_list",
@@ -392,34 +352,6 @@ export default {
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
                 name: "conservation_status__conservation_category__code",
-            }
-        },
-        column_family: function(){
-            return {
-                data: "family",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__family__name",
-            }
-        },
-        column_genera: function(){
-            return {
-                data: "genus",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__genus__name",
             }
         },
         column_status: function(){
@@ -514,13 +446,10 @@ export default {
                 vm.column_community_number,
                 vm.column_community_id,
                 vm.column_community_name,
-                /*vm.column_community_status,*/
                 vm.column_conservation_list,
                 vm.column_conservation_category,
-                vm.column_family,
-                vm.column_genera,
-                /*vm.column_region,
-                vm.column_district,*/
+                // vm.column_region,
+                // vm.column_district,
                 vm.column_status,
                 vm.column_action,
                 vm.column_conservation_status,
@@ -571,7 +500,6 @@ export default {
                     "data": function ( d ) {
                         d.filter_community_migrated_id = vm.filterCSRefCommunityMigratedId;
                         d.filter_community_name = vm.filterCSRefCommunityName;
-                        d.filter_community_status = vm.filterCSRefCommunityStatus;
                         d.filter_conservation_list = vm.filterCSRefCommunityConservationList;
                         d.filter_conservation_category = vm.filterCSRefCommunityConservationCategory;
                         d.filter_group_type = vm.group_type_name;
@@ -679,7 +607,6 @@ export default {
 
             vm.$http.get(api_endpoints.filter_list_cs_referrals_community+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunities= response.body;
-                vm.communities_data_list= vm.filterListsCommunities.community_data_list;
                 vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 vm.filterConservationCategory();
@@ -758,7 +685,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                    "1":{
+                "1":{
                     "data":"community_number",
                     "name":"conservation_status__community__community_number",
                     "searchable":"true",
@@ -770,7 +697,7 @@ export default {
                 },
                 "2":{
                     "data":"community_migrated_id",
-                    "name":"conservation_status__community__community_migrated_id",
+                    "name":"conservation_status__community__taxonomy__community_migrated_id",
                     "searchable":"true",
                     "orderable":"true",
                     "search":{
@@ -780,7 +707,7 @@ export default {
                 },
                 "3":{
                     "data":"community_name",
-                    "name":"conservation_status__community__community_name__name",
+                    "name":"conservation_status__community__taxonomy__community_name",
                     "searchable":"true",
                     "orderable":"true",
                     "search":{
@@ -809,26 +736,6 @@ export default {
                     }
                 },
                 "6":{
-                    "data":"family",
-                    "name":"species__taxonomy__family__name",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "7":{
-                    "data":"genus",
-                    "name":"species__taxonomy__genus__name",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "8":{
                     "data":"processing_status",
                     "name":"conservation_status__processing_status",
                     "searchable":"true",
@@ -838,7 +745,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "9":{
+                "7":{
                     "data":"id",
                     "name":"",
                     "searchable":"false",
@@ -865,7 +772,6 @@ export default {
                 filter_community_migrated_id: vm.filterCSRefCommunityMigratedId,
                 filter_group_type: vm.group_type_name,
                 filter_community_name: vm.filterCSRefCommunityName,
-                filter_community_status: vm.filterCSRefCommunityStatus,
                 filter_conservation_list: vm.filterCSRefCommunityConservationList,
                 filter_conservation_category: vm.filterCSRefCommunityConservationCategory,
                 filter_application_status: vm.filterCSRefCommunityApplicationStatus,

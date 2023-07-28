@@ -500,25 +500,11 @@ class GetSpeciesProfileDict(views.APIView):
                 flora_recruitment_type_list.append({'id': option.id,
                     'name':option.recruitment_type,
                     });
-        seed_viability_germination_info_list = []
-        types = SeedViabilityGerminationInfo.objects.all()
-        if types:
-            for option in types:
-                seed_viability_germination_info_list.append({'id': option.id,
-                    'name':option.name,
-                    });
         root_morphology_list = []
         types = RootMorphology.objects.all()
         if types:
             for option in types:
                 root_morphology_list.append({'id': option.id,
-                    'name':option.name,
-                    });
-        pollinator_info_list = []
-        types = PollinatorInformation.objects.all()
-        if types:
-            for option in types:
-                pollinator_info_list.append({'id': option.id,
                     'name':option.name,
                     });
         post_fire_habitatat_interactions_list = []
@@ -535,13 +521,6 @@ class GetSpeciesProfileDict(views.APIView):
                 breeding_period_list.append({'id': option.id,
                     'name':option.period,
                     });
-        fauna_breeding_list = []
-        types = FaunaBreeding.objects.all()
-        if types:
-            for option in types:
-                fauna_breeding_list.append({'id': option.id,
-                    'name':option.breeding_type,
-                    });
         res_json = {
         "family_list": family_list,
         "genus_list": genus_list,
@@ -549,12 +528,9 @@ class GetSpeciesProfileDict(views.APIView):
         "flowering_period_list": flowering_period_list,
         "fruiting_period_list": fruiting_period_list,
         "flora_recruitment_type_list": flora_recruitment_type_list,
-        "seed_viability_germination_info_list": seed_viability_germination_info_list,
         "root_morphology_list": root_morphology_list,
-        "pollinator_info_list": pollinator_info_list,
         "post_fire_habitatat_interactions_list": post_fire_habitatat_interactions_list,
         "breeding_period_list": breeding_period_list,
-        "fauna_breeding_list": fauna_breeding_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
@@ -577,20 +553,6 @@ class CommunityTaxonomyViewSet(viewsets.ModelViewSet):
 
 class GetCommunityProfileDict(views.APIView):
     def get(self, request, format=None):
-        name_authority_list = []
-        name_authorities = NameAuthority.objects.all()
-        if name_authorities:
-            for name in name_authorities:
-                name_authority_list.append({'id': name.id,
-                    'name':name.name,
-                    });
-        pollinator_info_list = []
-        types = PollinatorInformation.objects.all()
-        if types:
-            for option in types:
-                pollinator_info_list.append({'id': option.id,
-                    'name':option.name,
-                    });
         post_fire_habitatat_interactions_list = []
         types = PostFireHabitatInteraction.objects.all()
         if types:
@@ -599,8 +561,6 @@ class GetCommunityProfileDict(views.APIView):
                     'name':option.name,
                     });
         res_json = {
-        "name_authority_list":name_authority_list,
-        "pollinator_info_list": pollinator_info_list,
         "post_fire_habitatat_interactions_list": post_fire_habitatat_interactions_list,
         }
         res_json = json.dumps(res_json)
@@ -795,11 +755,6 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         if filter_community_name and not filter_community_name.lower() == 'all':
             queryset = queryset.filter(taxonomy=filter_community_name)
 
-        # filter_community_status
-        filter_community_status = request.GET.get('filter_community_status')
-        if filter_community_status and not filter_community_status.lower() == 'all':
-            queryset = queryset.filter(taxonomy__community_status=filter_community_status)
-
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
             queryset = queryset.filter(conservation_status__conservation_list=filter_conservation_list).distinct()
@@ -873,7 +828,7 @@ class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get('export_format')
-        allowed_fields = ['conservation_status_number', 'community_number', 'community_migrated_id', 'community_name', 'community_status', 'region', 'district', 'conservation_list', 'conservation_category', 'processing_status']
+        allowed_fields = ['conservation_status_number', 'community_number', 'community_migrated_id', 'community_name', 'region', 'district', 'conservation_list', 'conservation_category', 'processing_status']
         serializer = ListCommunitiesSerializer(qs, context={'request': request}, many=True)
         serialized_data = serializer.data
 
@@ -895,7 +850,7 @@ class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
 
             flattened_data = [flatten_dict(item) for item in filtered_data]
             df = pd.DataFrame(flattened_data)
-            new_headings = ['Number', 'Community Id', 'Community Name', 'Community Status', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Processing Status']
+            new_headings = ['Number', 'Community Id', 'Community Name', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Processing Status']
             df.columns = new_headings
 
             if export_format is not None:
@@ -980,18 +935,19 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         return HttpResponse(res_json, content_type='application/json')
 
     # used for species field on community profile
-    @detail_route(methods=['GET',], detail=False)
-    @renderer_classes((JSONRenderer,))
-    def species_list(self, request, *args, **kwargs):
-        # TODO filter Species that's approved(submitted) only 
-        qs= Species.objects.all()
-        qs= qs.filter(Q(processing_status='active'))
-        serializer = SpeciesSerializer(qs, many=True)
-        res_json = {
-         "data":serializer.data
-        }
-        res_json = json.dumps(res_json)
-        return HttpResponse(res_json, content_type='application/json')
+    # not used at the moment as per requirements
+    # @detail_route(methods=['GET',], detail=False)
+    # @renderer_classes((JSONRenderer,))
+    # def species_list(self, request, *args, **kwargs):
+    #     # TODO filter Species that's approved(submitted) only 
+    #     qs= Species.objects.all()
+    #     qs= qs.filter(Q(processing_status='active'))
+    #     serializer = SpeciesSerializer(qs, many=True)
+    #     res_json = {
+    #      "data":serializer.data
+    #     }
+    #     res_json = json.dumps(res_json)
+    #     return HttpResponse(res_json, content_type='application/json')
 
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -1579,12 +1535,12 @@ class CommunityViewSet(viewsets.ModelViewSet):
                 request_data = request.data
                 if request_data['submitter']:
                     request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
-                if(request_data.get('species')):
-                    species = request_data.get('species')
-                    instance.species.clear()  # first clear all the species set relatedM:M to community instance
-                    for species_id in species:
-                        species_instance = Species.objects.get(pk=species_id)
-                        instance.species.add(species_instance)
+                # if(request_data.get('species')):
+                #     species = request_data.get('species')
+                #     instance.species.clear()  # first clear all the species set relatedM:M to community instance
+                #     for species_id in species:
+                #         species_instance = Species.objects.get(pk=species_id)
+                #         instance.species.add(species_instance)
 
                 if(request_data.get('distribution')):
                     distribution_instance, created = CommunityDistribution.objects.get_or_create(community=instance)

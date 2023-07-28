@@ -1012,12 +1012,10 @@ class CommunityTaxonomy(models.Model):
     """
     community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
     community_name = models.CharField(max_length=512,null=True, blank=True)
-    community_status = models.CharField(max_length=128, null=True, blank=True)
     community_description = models.CharField(max_length=2048, null=True, blank=True)
     name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the is_current name? true or false
     previous_name = models.CharField(max_length=512,null=True, blank=True)
-    name_authority = models.ForeignKey(NameAuthority,
-                                       on_delete=models.CASCADE,null=True,blank=True)
+    name_authority = models.CharField(max_length=500,null=True, blank=True)
     name_comments = models.CharField(max_length=500,null=True, blank=True)
 
     class Meta:
@@ -1053,10 +1051,12 @@ class Community(models.Model):
                                  (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
                                  (PROCESSING_STATUS_TO_BE_RENAMED, 'To Be Renamed'),
                                 )
-    RELATED_ITEM_CHOICES = [('species', 'Species'), ('conservation_status', 'Conservation Status')]
+    # RELATED_ITEM_CHOICES = [('species', 'Species'), ('conservation_status', 'Conservation Status')]
+    RELATED_ITEM_CHOICES = [('conservation_status', 'Conservation Status')]
 
     community_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,on_delete=models.CASCADE)
+    # TODO the species is noy required as per the new requirements
     species = models.ManyToManyField(Species, null=True, blank=True)
     taxonomy = models.ForeignKey(CommunityTaxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
     region = models.ForeignKey(Region, 
@@ -1072,6 +1072,7 @@ class Community(models.Model):
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True) # TODO confirm if proposed date is the same or different
+    # TODO not be used as the taxonomy will be editable for community
     comment = models.CharField(max_length=500,null=True, blank=True)
 
     class Meta:
@@ -1857,39 +1858,6 @@ class ConservationThreat(models.Model):
             return self.community.id
 
 
-# # TODO Model not used at the moment
-# class ConservationPlan(models.Model):
-#     """
-#     Each occurrence of each species can have one or more plan to protect it.
-
-#     Has a:
-#     - N/A
-#     Used by:
-#     - Species
-#     Is:
-#     - Table
-#     """
-#     region = models.ForeignKey(Region, 
-#                                default=None,
-#                                on_delete=models.CASCADE)
-#     district = models.ForeignKey(District, 
-#                                  default=None,
-#                                  on_delete=models.CASCADE)
-#     type = models.CharField(max_length=512,
-#                             default="None")
-#     comment = models.CharField(max_length=512,
-#                                default="None")
-#     source = models.CharField(max_length=1024,
-#                               default="None")
-
-#     species = models.ManyToManyField(Species, blank=False)
-
-#     class Meta:
-#         app_label = 'boranga'
-
-#     def __str__(self):
-#         return str(self.threat_category)  # TODO: is the most appropriate?
-
 # list used in Conservation Attributes
 class FloweringPeriod(models.Model):
     """
@@ -1944,7 +1912,7 @@ class FloraRecruitmentType(models.Model):
     def __str__(self):
         return str(self.recruitment_type)
 
-
+# TODO Not used 
 class SeedViabilityGerminationInfo(models.Model):
     """
     # list derived from WACensus
@@ -1982,7 +1950,7 @@ class RootMorphology(models.Model):
     def __str__(self):
         return str(self.name)
 
-
+# TODO Not used
 class PollinatorInformation(models.Model):
     """
     # list derived from WACensus
@@ -2036,7 +2004,7 @@ class BreedingPeriod(models.Model):
     def __str__(self):
         return str(self.period)
 
-
+# TODO Not USed
 class FaunaBreeding(models.Model):
     """
     # list derived from WACensus
@@ -2070,18 +2038,18 @@ class SpeciesConservationAttributes(models.Model):
     flowering_period = models.ForeignKey(FloweringPeriod, on_delete=models.SET_NULL, null=True, blank=True)
     fruiting_period = models.ForeignKey(FruitingPeriod, on_delete=models.SET_NULL, null=True, blank=True)
     flora_recruitment_type = models.ForeignKey(FloraRecruitmentType, on_delete=models.SET_NULL, null=True, blank=True)
-    seed_viability_germination_info = models.ForeignKey(SeedViabilityGerminationInfo, on_delete=models.SET_NULL, null=True, blank=True)
+    flora_recruitment_notes = models.CharField(max_length=1000,null=True, blank=True)
+    seed_viability_germination_info = models.CharField(max_length=1000,null=True, blank=True)
     root_morphology = models.ForeignKey(RootMorphology, on_delete=models.SET_NULL, null=True, blank=True)
-    pollinator_information = models.ForeignKey(PollinatorInformation, on_delete=models.SET_NULL, null=True, blank=True)
-    hydrology = models.CharField(max_length=200, null=True, blank=True)
-    response_to_dieback = models.CharField(max_length=500, null=True, blank=True)
+    pollinator_information = models.CharField(max_length=1000,null=True, blank=True)
+    response_to_dieback = models.CharField(max_length=1500, null=True, blank=True)
 
     # fauna related attributes
     breeding_period = models.ForeignKey(BreedingPeriod, on_delete=models.SET_NULL, null=True, blank=True)
-    fauna_breeding = models.ForeignKey(FaunaBreeding, on_delete=models.SET_NULL, null=True, blank=True)
-    fauna_reproductive_capacity = models.IntegerField(null=True, blank=True)
-    diet_and_food_source = models.CharField(max_length=200, null=True, blank=True)
-    home_range = models.CharField(max_length=200, null=True, blank=True)
+    fauna_breeding = models.CharField(max_length=2000,null=True, blank=True)
+    fauna_reproductive_capacity = models.CharField(max_length=200,null=True, blank=True)
+    diet_and_food_source = models.CharField(max_length=500, null=True, blank=True)
+    home_range = models.CharField(max_length=1000, null=True, blank=True)
 
     # flora and fauna common attributes
     habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
@@ -2091,10 +2059,12 @@ class SpeciesConservationAttributes(models.Model):
     minimum_fire_interval = models.CharField(max_length=200, null=True, blank=True)
     response_to_fire = models.CharField(max_length=200, null=True, blank=True)
     post_fire_habitat_interaction = models.ForeignKey(PostFireHabitatInteraction, on_delete=models.SET_NULL, null=True, blank=True)
+    # TODO Remove the response to dist field
     response_to_disturbance = models.CharField(max_length=500, null=True, blank=True)
-    habitat = models.CharField(max_length=200, null=True, blank=True)
-    research_requirements = models.CharField(max_length=500, null=True, blank=True)
-    other_relevant_diseases = models.CharField(max_length=500, null=True, blank=True)
+    habitat = models.CharField(max_length=1000, null=True, blank=True)
+    hydrology = models.CharField(max_length=200, null=True, blank=True)
+    research_requirements = models.CharField(max_length=1500, null=True, blank=True)
+    other_relevant_diseases = models.CharField(max_length=1500, null=True, blank=True)
 
 
     class Meta:
@@ -2115,8 +2085,8 @@ class CommunityConservationAttributes(models.Model):
     """
     community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="community_conservation_attributes")
 
-    habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
-    pollinator_information = models.ForeignKey(PollinatorInformation, on_delete=models.SET_NULL, null=True, blank=True)
+    # habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
+    pollinator_information = models.CharField(max_length=1000,null=True, blank=True)
     minimum_fire_interval = models.CharField(max_length=200, null=True, blank=True)
     response_to_fire = models.CharField(max_length=200, null=True, blank=True)
     post_fire_habitat_interaction = models.ForeignKey(PostFireHabitatInteraction, on_delete=models.SET_NULL, null=True, blank=True)

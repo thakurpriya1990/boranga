@@ -38,17 +38,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Community Status:</label>
-                        <select class="form-select" v-model="filterCommunityStatus">
-                            <option value="all">All</option>
-                            <option v-for="community in communities_data_list" :value="community.community_status">
-                                {{community.community_status}}
-                            </option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
                         <label for="">Conservation List:</label>
                         <select class="form-select" v-model="filterCommunityConservationList"
                         @change="filterConservationCategory($event)">
@@ -159,11 +148,6 @@ export default {
             required: false,
             default: 'filterCommunityName',
         },
-        filterCommunityStatus_cache: {
-            type: String,
-            required: false,
-            default: 'filterCommunityStatus',
-        },
         filterCommunityConservationList_cache: {
             type: String,
             required: false,
@@ -202,9 +186,6 @@ export default {
             filterCommunityName: sessionStorage.getItem(this.filterCommunityName_cache) ? 
                                     sessionStorage.getItem(this.filterCommunityName_cache) : 'all',
 
-            filterCommunityStatus: sessionStorage.getItem(this.filterCommunityStatus_cache) ? 
-                                    sessionStorage.getItem(this.filterCommunityStatus_cache) : 'all',
-
             filterCommunityConservationList: sessionStorage.getItem(this.filterCommunityConservationList_cache) ? 
                                     sessionStorage.getItem(this.filterCommunityConservationList_cache) : 'all',
 
@@ -222,7 +203,6 @@ export default {
 
             //Filter list for Community select box
             filterListsCommunities: {},
-            communities_data_list: [],
             conservation_list_dict: [],
             conservation_category_list: [],
             filtered_conservation_category_list: [],
@@ -266,11 +246,6 @@ export default {
             vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
             sessionStorage.setItem(vm.filterCommunityName_cache, vm.filterCommunityName);
         },
-        filterCommunityStatus: function() {
-            let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
-            sessionStorage.setItem(vm.filterCommunityStatus_cache, vm.filterCommunityStatus);
-        },
         filterCommunityConservationList: function() {
             let vm = this;
             vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
@@ -307,7 +282,6 @@ export default {
         filterApplied: function(){
             if(this.filterCommunityMigratedId === 'all' && 
                 this.filterCommunityName === 'all' && 
-                this.filterCommunityStatus === 'all' && 
                 this.filterCommunityConservationList === 'all' && 
                 this.filterCommunityConservationCategory === 'all' && 
                 this.filterCommunityApplicationStatus === 'all' && 
@@ -336,11 +310,11 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Id','Number', 'Community Id' ,'Community Name', 'Community Status', 'Conservation List' ,  
+                return ['Id','Number', 'Community Id' ,'Community Name', 'Conservation List' ,  
                             'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
             if (this.is_internal){
-                return ['Id','Number', 'Community Id' ,'Community Name', 'Community Status', 'Conservation List',  
+                return ['Id','Number', 'Community Id' ,'Community Name', 'Conservation List',  
                             'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
         },
@@ -392,19 +366,6 @@ export default {
                     return type=='export' ? value : result;
                 },
                 name: "taxonomy__community_name",
-            }
-        },
-        column_community_status: function(){
-            return {
-                data: "community_status",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                name: "taxonomy__community_status",
             }
         },
         column_conservation_list: function(){
@@ -537,7 +498,6 @@ export default {
                     vm.column_number,
                     vm.column_community_id,
                     vm.column_community_name,
-                    vm.column_community_status,
                     vm.column_conservation_list,
                     vm.column_conservation_category,
                     vm.column_region,
@@ -553,7 +513,6 @@ export default {
                     vm.column_number,
                     vm.column_community_id,
                     vm.column_community_name,
-                    vm.column_community_status,
                     vm.column_conservation_list,
                     vm.column_conservation_category,
                     vm.column_region,
@@ -590,7 +549,6 @@ export default {
                     "data": function ( d ) {
                         d.filter_community_migrated_id = vm.filterCommunityMigratedId;
                         d.filter_community_name = vm.filterCommunityName;
-                        d.filter_community_status = vm.filterCommunityStatus;
                         d.filter_conservation_list = vm.filterCommunityConservationList;
                         d.filter_conservation_category = vm.filterCommunityConservationCategory;
                         d.filter_group_type = vm.group_type_name;
@@ -695,7 +653,6 @@ export default {
             let vm = this;
             vm.$http.get(api_endpoints.community_filter_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunities= response.body;
-                vm.communities_data_list= vm.filterListsCommunities.community_data_list;
                 vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
                 vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
                 vm.filterConservationCategory();
@@ -861,16 +818,6 @@ export default {
                     }
                 },
                 "4":{
-                    "data":"community_status",
-                    "name":"taxonomy__community_status",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "5":{
                     "data":"conservation_list",
                     "name":"conservation_status__conservation_list__code",
                     "searchable":"true",
@@ -880,7 +827,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "6":{
+                "5":{
                     "data":"conservation_category",
                     "name":"conservation_status__conservation_category__code",
                     "searchable":"true",
@@ -890,7 +837,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "7":{
+                "6":{
                     "data":"region",
                     "name":"region__name",
                     "searchable":"false",
@@ -900,7 +847,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "8":{
+                "7":{
                     "data":"district",
                     "name":"district__name",
                     "searchable":"false",
@@ -910,7 +857,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "9":{
+                "8":{
                     "data":"processing_status",
                     "name":"processing_status",
                     "searchable":"true",
@@ -920,7 +867,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "10":{
+                "9":{
                     "data":"id",
                     "name":"",
                     "searchable":"false",
@@ -937,7 +884,6 @@ export default {
                 filter_community_migrated_id: vm.filterCommunityMigratedId,
                 filter_group_type: vm.group_type_name,
                 filter_community_name: vm.filterCommunityName,
-                filter_community_status: vm.filterCommunityStatus,
                 filter_conservation_list: vm.filterCommunityConservationList,
                 filter_conservation_category: vm.filterCommunityConservationCategory,
                 filter_application_status: vm.filterCommunityApplicationStatus,

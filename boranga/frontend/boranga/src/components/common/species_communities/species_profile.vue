@@ -239,6 +239,14 @@
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
+                <label for="" class="col-sm-3 control-label">Flora Recruitment Notes:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" 
+                    id="recruitment_notes" placeholder="" 
+                    v-model="species_community.conservation_attributes.flora_recruitment_notes"/>
+                </div>
+            </div>
+            <!-- <div class="row mb-3" v-show="!isFauna">
                 <label for="" class="col-sm-3 control-label">Seed Viability and Germination Info:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" 
@@ -247,6 +255,13 @@
                             {{ option.name }}                            
                         </option>
                     </select>
+                </div>
+            </div> -->
+            <div class="row mb-3" v-show="!isFauna">
+                <label for="" class="col-sm-3 control-label">Seed Viability and Germination Info:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder="" 
+                    v-model="species_community.conservation_attributes.seed_viability_germination_info"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
@@ -260,7 +275,7 @@
                     </select>
                 </div>
             </div>
-            <div class="row mb-3" v-show="!isFauna">
+            <!-- <div class="row mb-3" v-show="!isFauna">
                 <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" 
@@ -269,6 +284,13 @@
                             {{ option.name }}                            
                         </option>
                     </select>
+                </div>
+            </div> -->
+            <div class="row mb-3" v-show="!isFauna">
+                <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder="" 
+                    v-model="species_community.conservation_attributes.pollinator_information"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="isFauna">
@@ -282,7 +304,7 @@
                     </select>
                 </div>
             </div>
-            <div class="row mb-3" v-show="isFauna">
+            <!-- <div class="row mb-3" v-show="isFauna">
                 <label for="" class="col-sm-3 control-label">Fauna Breeding:</label>
                 <div class="col-sm-9">
                     <div v-for="option in fauna_breeding_list">
@@ -292,11 +314,18 @@
                         <label :for="'breeding_type_'+option.id">{{ option.name }}</label>
                     </div>
                 </div>
+            </div> -->
+            <div class="row mb-3" v-show="isFauna">
+                <label for="" class="col-sm-3 control-label">Fauna Breeding:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder="" 
+                    v-model="species_community.conservation_attributes.fauna_breeding"/>
+                </div>
             </div>
             <div class="row mb-3" v-show="isFauna">
                 <label for="" class="col-sm-3 control-label">Fauna Reproductive capacity:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="number" class="form-control" 
+                    <input :disabled="isReadOnly" type="text" class="form-control" 
                     id="fauna_reproductive_capacity" placeholder="" 
                     v-model="species_community.conservation_attributes.fauna_reproductive_capacity"/>
                 </div>
@@ -336,7 +365,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Response to Fire:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="response_to_fire" placeholder="" v-model="species_community.conservation_attributes.response_to_fire"/>
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" id="response_to_fire" placeholder="" v-model="species_community.conservation_attributes.response_to_fire"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -353,7 +382,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Response to Disturbance:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" 
                     id="response_to_disturbance" placeholder="" 
                     v-model="species_community.conservation_attributes.response_to_disturbance"/>
                 </div>
@@ -361,35 +390,35 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Habitat:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="habitat" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" id="habitat" 
                     placeholder="" v-model="species_community.conservation_attributes.habitat"/>
                 </div>
             </div>
-            <div class="row mb-3" v-show="!isFauna">
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Hydrology:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="hydrology" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" id="hydrology" 
                     placeholder="" v-model="species_community.conservation_attributes.hydrology"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="isFauna">
                 <label for="" class="col-sm-3 control-label">Diet and Food Source:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="diet_food_source" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" id="diet_food_source" 
                     placeholder="" v-model="species_community.conservation_attributes.diet_and_food_source"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="isFauna">
                 <label for="" class="col-sm-3 control-label">Home Range:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="home_range" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" id="home_range" 
                     placeholder="" v-model="species_community.conservation_attributes.home_range"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Research Requirements:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" 
                     id="research_requirements" 
                     placeholder="" v-model="species_community.conservation_attributes.research_requirements"/>
                 </div>
@@ -397,7 +426,7 @@
             <div class="row mb-3" v-show="!isFauna">
                 <label for="" class="col-sm-3 control-label">Response to Dieback:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" 
                     id="response_to_dieback" 
                     placeholder="" v-model="species_community.conservation_attributes.response_to_dieback"/>
                 </div>
@@ -495,12 +524,9 @@ export default {
                 flowering_period_list: [],
                 fruiting_period_list: [],
                 flora_recruitment_type_list: [],
-                seed_viability_germination_info_list: [],
                 root_morphology_list: [],
-                pollinator_info_list: [],
                 post_fire_habitatat_interactions_list: [],
                 breeding_period_list: [],
-                fauna_breeding_list: [],
                 // to display the species Taxonomy selected details
                 species_display: '',
                 common_name: null,
@@ -756,20 +782,8 @@ export default {
                     id: null,
                     name: null,
                 });
-            vm.seed_viability_germination_info_list = vm.species_profile_dict.seed_viability_germination_info_list;
-            vm.seed_viability_germination_info_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
             vm.root_morphology_list = vm.species_profile_dict.root_morphology_list;
             vm.root_morphology_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
-            vm.pollinator_info_list = vm.species_profile_dict.pollinator_info_list;
-            vm.pollinator_info_list.splice(0,0,
                 {
                     id: null,
                     name: null,
@@ -786,7 +800,6 @@ export default {
                     id: null,
                     name: null,
                 });
-            vm.fauna_breeding_list = vm.species_profile_dict.fauna_breeding_list;
             const response = await Vue.http.get('/api/region_district_filter_dict/');
             vm.filterRegionDistrict= response.body;
             vm.region_list = vm.filterRegionDistrict.region_list;
