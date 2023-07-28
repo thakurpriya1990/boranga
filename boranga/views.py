@@ -242,7 +242,7 @@ def getPrivateFile(request):
       file_name_path =  request.path 
       full_file_path= settings.BASE_DIR+file_name_path
       if os.path.isfile(full_file_path) is True:
-              extension = file_name_path[-3:] 
+              extension = file_name_path.split(".")[-1]
               the_file = open(full_file_path, 'rb')
               the_data = the_file.read()
               the_file.close()

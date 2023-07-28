@@ -20,6 +20,8 @@
         {% block header_top_menu %}
         {% endblock %}
         {% block extra_css %}
+            <link rel="stylesheet" href="{% static 'common/css/select2.css' %}?v={{build_tag}}">
+            <link rel="stylesheet" href="{% static 'common/css/select2-bootstrap-5-theme.css' %}?v={{build_tag}}">
             <link rel="stylesheet" href="{% static 'boranga_vue/static/css/app.css' %}?v={{build_tag}}">
         {% endblock %}
         {% block custom_js %}
