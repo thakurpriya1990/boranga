@@ -848,12 +848,9 @@ export default {
                 flowering_period_list: [],
                 fruiting_period_list: [],
                 flora_recruitment_type_list: [],
-                seed_viability_germination_info_list: [],
                 root_morphology_list: [],
-                pollinator_info_list: [],
                 post_fire_habitatat_interactions_list: [],
                 breeding_period_list: [],
-                fauna_breeding_list: [],
                 // to display the species Taxonomy selected details
                 species_display: '',
                 common_name: null,
@@ -1131,20 +1128,8 @@ export default {
                     id: null,
                     name: null,
                 });
-            vm.seed_viability_germination_info_list = vm.species_profile_dict.seed_viability_germination_info_list;
-            vm.seed_viability_germination_info_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
             vm.root_morphology_list = vm.species_profile_dict.root_morphology_list;
             vm.root_morphology_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
-            vm.pollinator_info_list = vm.species_profile_dict.pollinator_info_list;
-            vm.pollinator_info_list.splice(0,0,
                 {
                     id: null,
                     name: null,
@@ -1161,7 +1146,6 @@ export default {
                     id: null,
                     name: null,
                 });
-            vm.fauna_breeding_list = vm.species_profile_dict.fauna_breeding_list;
             const response = await Vue.http.get('/api/region_district_filter_dict/');
             vm.filterRegionDistrict= response.body;
             vm.region_list= vm.filterRegionDistrict.region_list;

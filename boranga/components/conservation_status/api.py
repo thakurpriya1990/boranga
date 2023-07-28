@@ -558,14 +558,6 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.filter(conservation_status__community__taxonomy__id=filter_community_name)
 
-        # filter_community_status
-        filter_community_status = request.GET.get('filter_community_status')
-        if filter_community_status and not filter_community_status.lower() == 'all':
-            if queryset.model is ConservationStatus:
-                queryset = queryset.filter(community__taxonomy__id=filter_community_status)
-            elif queryset.model is ConservationStatusReferral:
-                queryset = queryset.filter(conservation_status__community__taxonomy__id=filter_community_status)
-
         filter_conservation_list = request.GET.get('filter_conservation_list')
         if filter_conservation_list and not filter_conservation_list.lower() == 'all':
             if queryset.model is ConservationStatus:
@@ -681,7 +673,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get('export_format')
-        allowed_fields = ['conservation_status_number', 'community_number', 'community_migrated_id', 'community_name', 'community_status', 'region', 'district', 'conservation_list', 'conservation_category', 'processing_status', 'effective_from_date', 'effective_to_date']
+        allowed_fields = ['conservation_status_number', 'community_number', 'community_migrated_id', 'community_name', 'region', 'district', 'conservation_list', 'conservation_category', 'processing_status', 'effective_from_date', 'effective_to_date']
 
         serializer = ListCommunityConservationStatusSerializer(qs, context={'request': request}, many=True)
         serialized_data = serializer.data
@@ -704,9 +696,9 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
 
             flattened_data = [flatten_dict(item) for item in filtered_data]
             df = pd.DataFrame(flattened_data)
-            new_headings = ['Number', 'Community', 'Community Id', 'Community Name', 'Community Status', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Processing Status', 'Effective From Date', 'Effective To Date']
+            new_headings = ['Number', 'Community', 'Community Id', 'Community Name', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Processing Status', 'Effective From Date', 'Effective To Date']
             df.columns = new_headings
-            column_order = ['Number', 'Community', 'Community Id', 'Community Name', 'Community Status', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Processing Status']
+            column_order = ['Number', 'Community', 'Community Id', 'Community Name', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Processing Status']
             df = df[column_order]
 
             if export_format is not None:
@@ -768,7 +760,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         qs = ConservationStatusReferral.objects.filter(referral=request.user.id) if is_internal(self.request) else ConservationStatusReferral.objects.none()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get('export_format')
-        allowed_fields = ['family', 'genus', 'conservation_list', 'conservation_category', 'processing_status', 'community_number', 'community_migrated_id', 'community_name', 'conservation_status_number']
+        allowed_fields = ['conservation_list', 'conservation_category', 'processing_status', 'community_number', 'community_migrated_id', 'community_name', 'conservation_status_number']
 
         serializer = DTConservationStatusReferralSerializer(qs, context={'request': request}, many=True)
         serialized_data = serializer.data
@@ -791,9 +783,9 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
 
             flattened_data = [flatten_dict(item) for item in filtered_data]
             df = pd.DataFrame(flattened_data)
-            new_headings = ['Processing Status', 'Number', 'Conservation List', 'Conservation Category', 'Family', 'Genera', 'Community', 'Community Id', 'Community Name']
+            new_headings = ['Processing Status', 'Number', 'Conservation List', 'Conservation Category', 'Community', 'Community Id', 'Community Name']
             df.columns = new_headings
-            column_order = ['Number', 'Community', 'Community Id', 'Community Name', 'Conservation List', 'Conservation Category', 'Family', 'Genera', 'Processing Status']
+            column_order = ['Number', 'Community', 'Community Id', 'Community Name', 'Conservation List', 'Conservation Category', 'Processing Status']
             df = df[column_order]
 
             if export_format is not None:
@@ -1669,7 +1661,6 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                         'id': name.id,
                         'community_migrated_id': name.community_migrated_id,
                         'community_name': name.community_name,
-                        'community_status': name.community_status,
                         });
         conservation_list_dict = []
         cons_list_qs = qs.filter(conservation_status__community__isnull=False).values_list('conservation_status__conservation_list', flat=True).distinct()

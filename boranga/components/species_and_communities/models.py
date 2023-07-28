@@ -1012,12 +1012,10 @@ class CommunityTaxonomy(models.Model):
     """
     community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
     community_name = models.CharField(max_length=512,null=True, blank=True)
-    community_status = models.CharField(max_length=128, null=True, blank=True)
     community_description = models.CharField(max_length=2048, null=True, blank=True)
     name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the is_current name? true or false
     previous_name = models.CharField(max_length=512,null=True, blank=True)
-    name_authority = models.ForeignKey(NameAuthority,
-                                       on_delete=models.CASCADE,null=True,blank=True)
+    name_authority = models.CharField(max_length=500,null=True, blank=True)
     name_comments = models.CharField(max_length=500,null=True, blank=True)
 
     class Meta:
@@ -1053,7 +1051,8 @@ class Community(models.Model):
                                  (PROCESSING_STATUS_TO_BE_COMBINED, 'To Be Combined'),
                                  (PROCESSING_STATUS_TO_BE_RENAMED, 'To Be Renamed'),
                                 )
-    RELATED_ITEM_CHOICES = [('species', 'Species'), ('conservation_status', 'Conservation Status')]
+    # RELATED_ITEM_CHOICES = [('species', 'Species'), ('conservation_status', 'Conservation Status')]
+    RELATED_ITEM_CHOICES = [('conservation_status', 'Conservation Status')]
 
     community_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,on_delete=models.CASCADE)

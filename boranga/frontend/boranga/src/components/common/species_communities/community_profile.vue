@@ -48,13 +48,6 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Community Status:</label>
-                <div class="col-sm-9">
-                    <textarea :disabled="true" class="form-control" id="community_status" placeholder=""
-                    v-model="community_status"/>
-                </div>
-            </div>
-            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Previous Name:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="true" class="form-control" id="community_previous_name" placeholder=""
@@ -64,12 +57,14 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Authority:</label>
                 <div class="col-sm-9">
-                    <select :disabled="true" class="form-select" id="community_name_authority"
+                    <!-- <select :disabled="true" class="form-select" id="community_name_authority"
                         v-model="name_authority_id">
                         <option v-for="option in name_authority_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
-                    </select>
+                    </select> -->
+                    <input :disabled="true" type="text" class="form-control" id="name_authority" placeholder="" 
+                    v-model="name_authority"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -77,13 +72,6 @@
                 <div class="col-sm-9">
                     <textarea :disabled="true" class="form-control" id="community_comment" placeholder=""
                     v-model="name_comments"/>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Comment:</label>
-                <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
-                    v-model="species_community.comment"/>
                 </div>
             </div>
         </FormSection>
@@ -203,9 +191,9 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Community Original Area (+/- ha) Reference:</label>
+                <label for="" class="col-sm-3 control-label">Community Original Area (ha) Reference:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="community_original_area_reference" placeholder=""
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="community_original_area_reference" placeholder=""
                     v-model="species_community.distribution.community_original_area_reference"/>
                 </div>
             </div>
@@ -351,18 +339,15 @@ export default {
                 species_list: [],
                 taxon_names: [],
                 community_profile_dict: {},
-                name_authority_list: [],
-                pollinator_info_list: [],
                 post_fire_habitatat_interactions_list: [],
                 region_list: [],
                 district_list: [],
                 filtered_district_list: [],
                 community_name_display:'',
                 community_migrated_id: null,
-                community_status: null,
                 community_description: null,
                 previous_name:null,
-                name_authority_id: null,
+                name_authority: null,
                 name_comments: null,
             }
         },
@@ -483,10 +468,9 @@ export default {
                     vm.species_community.taxonomy_id = data
                     vm.community_name_display = e.params.data.community_name;
                     vm.community_migrated_id = e.params.data.community_migrated_id;
-                    vm.community_status = e.params.data.community_status;
                     vm.community_description = e.params.data.community_description;
                     vm.previous_name = e.params.data.previous_name;
-                    vm.name_authority_id = e.params.data.name_authority_id;
+                    vm.name_authority = e.params.data.name_authority;
                     vm.name_comments = e.params.data.name_comments;
                     // vm.filterFloraScientificName = data;
                     // sessionStorage.setItem("filterFloraScientificNameText", e.params.data.text);
@@ -496,10 +480,9 @@ export default {
                     vm.species_community.taxonomy_id = ''
                     vm.community_name_display = '';
                     vm.community_migrated_id = '';
-                    vm.community_status = '';
                     vm.community_description = '';
                     vm.previous_name = '';
-                    vm.name_authority_id = '';
+                    vm.name_authority = '';
                     vm.name_comments = '';
                 }).
                 on("select2:open",function (e) {
@@ -516,10 +499,9 @@ export default {
                     $('#'+ vm.community_name_lookup).append(newOption);
                     vm.community_name_display = vm.species_community.taxonomy_details.community_name;
                     vm.community_migrated_id = vm.species_community.taxonomy_details.community_migrated_id;
-                    vm.community_status = vm.species_community.taxonomy_details.community_status;
                     vm.community_description = vm.species_community.taxonomy_details.community_description;
                     vm.previous_name = vm.species_community.taxonomy_details.previous_name;
-                    vm.name_authority_id = vm.species_community.taxonomy_details.name_authority_id;
+                    vm.name_authority = vm.species_community.taxonomy_details.name_authority;
                     vm.name_comments = vm.species_community.taxonomy_details.name_comments;
                 }
             },
@@ -555,18 +537,6 @@ export default {
             //------fetch list of values
             const res_obj = await Vue.http.get('/api/community_profile_dict/');
             vm.community_profile_dict = res_obj.body;
-            vm.name_authority_list = vm.community_profile_dict.name_authority_list;
-            vm.name_authority_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
-            vm.pollinator_info_list = vm.community_profile_dict.pollinator_info_list;
-            vm.pollinator_info_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
-                });
             vm.post_fire_habitatat_interactions_list = vm.community_profile_dict.post_fire_habitatat_interactions_list;
             vm.post_fire_habitatat_interactions_list.splice(0,0,
                 {
