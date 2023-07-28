@@ -1,14 +1,14 @@
 <template lang="html">
     <div id="community">
         <FormSection :formCollapse="false" label="Taxonomy" Index="taxonomy">
-            <div class="row mb-3">
+            <!-- <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Species:</label>
                 <div class="col-sm-9">
                     <select style="width:100%;" class="form-select input-sm" :disabled="isReadOnly" multiple ref="species_select" v-model="species_community.species">
                         <option v-for="s in species_list" :value="s.id" :key="s.id">{{s.id}} - {{s.scientific_name}}</option>
                     </select>
                 </div>
-            </div>
+            </div> -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community Name:</label>
                 <div class="col-sm-9" :id="select_community_name">
@@ -211,23 +211,26 @@
             </div>
         </FormSection>
         <FormSection :formCollapse="false" label="Conservation Attributes" Index="conservation_attributes">
-            <div class="row mb-3">
+            <!-- <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Habitat/Growth Form:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control"
                     id="habitat_growth_form" placeholder="" 
                     v-model="species_community.conservation_attributes.habitat_growth_form"/>
                 </div>
-            </div>
+            </div> -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
+                    <!-- <select :disabled="isReadOnly" class="form-select"
                         v-model="species_community.conservation_attributes.pollinator_information_id">
                         <option v-for="option in pollinator_info_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
-                    </select>
+                    </select> -->
+                    <textarea :disabled="isReadOnly" type="text" class="form-control"
+                    id="pollinator_info" placeholder="" 
+                    v-model="species_community.conservation_attributes.pollinator_information"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -241,7 +244,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Response to Fire:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="response_to_fire" placeholder="" v-model="species_community.conservation_attributes.response_to_fire"/>
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" id="response_to_fire" placeholder="" v-model="species_community.conservation_attributes.response_to_fire"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -258,7 +261,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Hydrology:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="hydrology" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" id="hydrology" 
                     placeholder="" v-model="species_community.conservation_attributes.hydrology"/>
                 </div>
             </div>
@@ -274,7 +277,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Research Requirements:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" 
                     id="research_requirements" 
                     placeholder="" v-model="species_community.conservation_attributes.research_requirements"/>
                 </div>
@@ -282,7 +285,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Response to Dieback:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" 
                     id="response_to_dieback" 
                     placeholder="" v-model="species_community.conservation_attributes.response_to_dieback"/>
                 </div>
@@ -308,6 +311,13 @@
                 <div class="col-sm-9">
                      <input :disabled="isReadOnly" type="date" class="form-control" name="last_data_curration_date" 
                     ref="last_data_curration_date" @change="checkDate()" v-model="species_community.last_data_curration_date" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Comment:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
+                    v-model="species_community.comment"/>
                 </div>
             </div>
         </FormSection>
@@ -536,8 +546,8 @@ export default {
                 vm.species_community.distribution.area_of_occupancy=vm.species_community.distribution.cal_area_of_occupancy;
             }
             //-----fetch species_list
-            const res = await Vue.http.get('/api/species/species_list.json');
-            vm.species_list= res.body.data;
+            // const res = await Vue.http.get('/api/species/species_list.json');
+            // vm.species_list= res.body.data;
             //--------get api taxon_names
             // vm.$http.get(api_endpoints.community_taxonomy+'/taxon_names.json').then((response) => {
             //     vm.taxon_names = response.body;
@@ -580,20 +590,20 @@ export default {
             vm.initialiseCommunityNameLookup();
             vm.loadTaxonomydetails();
             // Initialise select2 for Species
-            $(vm.$refs.species_select).select2({
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder:"Select Species",
-                multiple: true,
-            }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.species = selected.val();
-            }).
-            on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.species = selected.val();
-            });
+            // $(vm.$refs.species_select).select2({
+            //     "theme": "bootstrap-5",
+            //     allowClear: true,
+            //     placeholder:"Select Species",
+            //     multiple: true,
+            // }).
+            // on("select2:select",function (e) {
+            //     var selected = $(e.currentTarget);
+            //     vm.species_community.species = selected.val();
+            // }).
+            // on("select2:unselect",function (e) {
+            //     var selected = $(e.currentTarget);
+            //     vm.species_community.species = selected.val();
+            // });
         }
     }
 </script>

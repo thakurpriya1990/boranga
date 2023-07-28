@@ -17,11 +17,11 @@ from boranga.components.species_and_communities.models import (
     FloweringPeriod,
     FruitingPeriod,
     FloraRecruitmentType,
-    SeedViabilityGerminationInfo,
+    # SeedViabilityGerminationInfo,
     RootMorphology,
-    PollinatorInformation,
+    # PollinatorInformation,
     PostFireHabitatInteraction,
-    FaunaBreeding,
+    # FaunaBreeding,
     BreedingPeriod,
     )
 
@@ -58,9 +58,9 @@ admin.site.register(Kingdom)
 admin.site.register(FloweringPeriod)
 admin.site.register(FruitingPeriod)
 admin.site.register(FloraRecruitmentType)
-admin.site.register(SeedViabilityGerminationInfo)
+# admin.site.register(SeedViabilityGerminationInfo)
 admin.site.register(RootMorphology)
-admin.site.register(PollinatorInformation)
+# admin.site.register(PollinatorInformation)
 admin.site.register(PostFireHabitatInteraction)
-admin.site.register(FaunaBreeding)
+# admin.site.register(FaunaBreeding)
 admin.site.register(BreedingPeriod)

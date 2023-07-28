@@ -980,18 +980,19 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         return HttpResponse(res_json, content_type='application/json')
 
     # used for species field on community profile
-    @detail_route(methods=['GET',], detail=False)
-    @renderer_classes((JSONRenderer,))
-    def species_list(self, request, *args, **kwargs):
-        # TODO filter Species that's approved(submitted) only 
-        qs= Species.objects.all()
-        qs= qs.filter(Q(processing_status='active'))
-        serializer = SpeciesSerializer(qs, many=True)
-        res_json = {
-         "data":serializer.data
-        }
-        res_json = json.dumps(res_json)
-        return HttpResponse(res_json, content_type='application/json')
+    # not used at the moment as per requirements
+    # @detail_route(methods=['GET',], detail=False)
+    # @renderer_classes((JSONRenderer,))
+    # def species_list(self, request, *args, **kwargs):
+    #     # TODO filter Species that's approved(submitted) only 
+    #     qs= Species.objects.all()
+    #     qs= qs.filter(Q(processing_status='active'))
+    #     serializer = SpeciesSerializer(qs, many=True)
+    #     res_json = {
+    #      "data":serializer.data
+    #     }
+    #     res_json = json.dumps(res_json)
+    #     return HttpResponse(res_json, content_type='application/json')
 
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -1579,12 +1580,12 @@ class CommunityViewSet(viewsets.ModelViewSet):
                 request_data = request.data
                 if request_data['submitter']:
                     request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
-                if(request_data.get('species')):
-                    species = request_data.get('species')
-                    instance.species.clear()  # first clear all the species set relatedM:M to community instance
-                    for species_id in species:
-                        species_instance = Species.objects.get(pk=species_id)
-                        instance.species.add(species_instance)
+                # if(request_data.get('species')):
+                #     species = request_data.get('species')
+                #     instance.species.clear()  # first clear all the species set relatedM:M to community instance
+                #     for species_id in species:
+                #         species_instance = Species.objects.get(pk=species_id)
+                #         instance.species.add(species_instance)
 
                 if(request_data.get('distribution')):
                     distribution_instance, created = CommunityDistribution.objects.get_or_create(community=instance)

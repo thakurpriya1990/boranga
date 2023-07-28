@@ -348,14 +348,15 @@ class SpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 			'flowering_period_id',
 			'fruiting_period_id',
 			'flora_recruitment_type_id',
-			'seed_viability_germination_info_id',
+			'flora_recruitment_notes',
+			'seed_viability_germination_info',
 			'root_morphology_id',
-			'pollinator_information_id',
+			'pollinator_information',
 			'hydrology',
 			'response_to_dieback',
 			# fauna related attributes
 			'breeding_period_id',
-			'fauna_breeding_id',
+			'fauna_breeding',
 			'fauna_reproductive_capacity',
 			'diet_and_food_source',
 			'home_range',
@@ -379,11 +380,8 @@ class SaveSpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 	flowering_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	fruiting_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	flora_recruitment_type_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-	seed_viability_germination_info_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	root_morphology_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-	pollinator_information_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	breeding_period_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-	fauna_breeding_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	post_fire_habitat_interaction_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	class Meta:
 		model = SpeciesConservationAttributes
@@ -394,14 +392,15 @@ class SaveSpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 			'flowering_period_id',
 			'fruiting_period_id',
 			'flora_recruitment_type_id',
-			'seed_viability_germination_info_id',
+			'flora_recruitment_notes',
+			'seed_viability_germination_info',
 			'root_morphology_id',
-			'pollinator_information_id',
+			'pollinator_information',
 			'hydrology',
 			'response_to_dieback',
 			# fauna related attributes
 			'breeding_period_id',
-			'fauna_breeding_id',
+			'fauna_breeding',
 			'fauna_reproductive_capacity',
 			'diet_and_food_source',
 			'home_range',
@@ -741,8 +740,8 @@ class CommunityConservationAttributesSerializer(serializers.ModelSerializer):
 		fields = (
 			'id',
 			'community_id',
-			'habitat_growth_form',
-			'pollinator_information_id',
+			# 'habitat_growth_form',
+			'pollinator_information',
 			'minimum_fire_interval',
 			'response_to_fire',
 			'post_fire_habitat_interaction_id',
@@ -756,15 +755,14 @@ class CommunityConservationAttributesSerializer(serializers.ModelSerializer):
 
 class SaveCommunityConservationAttributesSerializer(serializers.ModelSerializer):
 	community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-	pollinator_information_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	post_fire_habitat_interaction_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	class Meta:
 		model = CommunityConservationAttributes
 		fields = (
 			'id',
 			'community_id',
-			'habitat_growth_form',
-			'pollinator_information_id',
+			# 'habitat_growth_form',
+			'pollinator_information',
 			'minimum_fire_interval',
 			'response_to_fire',
 			'post_fire_habitat_interaction_id',
@@ -931,7 +929,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 		fields = (
 			'id',
 			'community_number',
-			'species',
+			# 'species',
 			'group_type',
 			'taxonomy_id',
 			'taxonomy_details',
@@ -1259,8 +1257,3 @@ class CommunityUserActionSerializer(serializers.ModelSerializer):
 		fullname = email_user.get_full_name()
 		return fullname 
 
-# class CommunityUserActionSerializer(serializers.ModelSerializer):
-#     who = serializers.SerializerMethodField()
-#     class Meta:
-#         model = CommunityUserAction
-#         fields = '__all__'
