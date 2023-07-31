@@ -1,13 +1,13 @@
 <template lang="html">
     <div id="AddComms">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" title="Communication log - Add entry" large>
+        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" title="Communication Log - Add entry" large>
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="commsForm">
                         <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left"  for="Name">To</label>
                                     </div>
@@ -17,7 +17,7 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left"  for="Name">From</label>
                                     </div>
@@ -27,7 +27,7 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left"  for="Name">Type</label>
                                     </div>
@@ -42,7 +42,7 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left"  for="Name">Subject/Description</label>
                                     </div>
@@ -52,7 +52,7 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left"  for="Name">Text</label>
                                     </div>
@@ -62,26 +62,26 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left"  for="Name">Attachments</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <template v-for="(f,i) in files">
                                             <div :class="'row top-buffer file-row-'+i">
-                                                <div class="col-sm-4">
-                                                    <span v-if="f.file == null" class="btn btn-info btn-file pull-left">
+                                                <div class="col-sm-3">
+                                                    <span v-if="f.file == null" class="btn btn-primary btn-file pull-left">
                                                         Attach File <input type="file" :name="'file-upload-'+i" :class="'file-upload-'+i" @change="uploadFile('file-upload-'+i,f)"/>
                                                     </span>
-                                                    <span v-else class="btn btn-info btn-file pull-left">
+                                                    <span v-else class="btn btn-primary btn-file pull-left">
                                                         Update File <input type="file" :name="'file-upload-'+i" :class="'file-upload-'+i" @change="uploadFile('file-upload-'+i,f)"/>
                                                     </span>
                                                 </div>
-                                                <div class="col-sm-4">
+                                                <div class="col-sm-6 truncate-text">
                                                     <span>{{f.name}}</span>
                                                 </div>
-                                                <div class="col-sm-4">
-                                                    <button @click="removeFile(i)" class="btn btn-danger">Remove</button>
+                                                <div class="col-sm-3">
+                                                    <a href="" @click.prevent="removeFile(i)" style="color: red;">Remove</a>
                                                 </div>
                                             </div>
                                         </template>
@@ -295,4 +295,11 @@ export default {
 input[type=text], select {
         padding: 0.375rem 2.25rem 0.375rem 0.75rem;
     }
+
+.truncate-text{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
 </style>

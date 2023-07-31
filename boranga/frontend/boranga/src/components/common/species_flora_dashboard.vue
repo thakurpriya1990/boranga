@@ -1453,11 +1453,4 @@ export default {
     font-family: 'Courier New', Courier monospace;
     margin: 5px;
 }
-.select2-container .select2-selection--single .select2-selection__rendered .select2-selection__clear {
-    width: unset; 
-    height: unset;
-    text-indent: unset;
-    font-size: 25px;
-    transform: translateY(-55%);
-}
 </style>
