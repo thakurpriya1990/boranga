@@ -232,14 +232,18 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 	# 		return None
 
 	def get_community_name(self,obj):
-		if obj.taxonomy:
-			return obj.taxonomy.community_name
-		return ''
+		try:
+			taxonomy = CommunityTaxonomy.objects.get(community=obj)
+			return taxonomy.community_name
+		except CommunityTaxonomy.DoesNotExist:
+			return ''
 	
 	def get_community_migrated_id(self,obj):
-		if obj.taxonomy:
-			return obj.taxonomy.community_migrated_id
-		return ''
+		try:
+			taxonomy = CommunityTaxonomy.objects.get(community=obj)
+			return taxonomy.community_migrated_id
+		except CommunityTaxonomy.DoesNotExist:
+			return ''
 
 	def get_conservation_list(self,obj):
 		try:
@@ -773,6 +777,7 @@ class CommunityTaxonomySerializer(serializers.ModelSerializer):
 		fields = (
 			'id',
 			'text',
+			'community_id',
 			'community_migrated_id',
 			'community_name',
 			'community_description',
@@ -783,6 +788,23 @@ class CommunityTaxonomySerializer(serializers.ModelSerializer):
 
 	def get_text(self,obj):
 		return obj.community_name
+
+
+class SaveCommunityTaxonomySerializer(serializers.ModelSerializer):
+	community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	class Meta:
+		model = CommunityTaxonomy
+		fields = (
+			'id',
+			'community_id',
+			'community_migrated_id',
+			'community_name',
+			'community_description',
+			'previous_name',
+			'name_authority',
+			'name_comments',
+			)
+
 
 class BaseCommunitySerializer(serializers.ModelSerializer):
 	species = serializers.SerializerMethodField()
@@ -833,11 +855,11 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 	# TODO not used on the form yet as gives error for new species as taxonomy = null 
 	def get_taxonomy_details(self,obj):
 		try:
-			if obj.taxonomy:
-				qs = obj.taxonomy
-				return CommunityTaxonomySerializer(qs).data
-		except CommunityTaxonomy.DoesNotExist:
-			return CommunityTaxonomySerializer().data
+			taxonomy_instance, created = CommunityTaxonomy.objects.get_or_create(community=obj)
+			return CommunityTaxonomySerializer(taxonomy_instance).data
+		except:
+			qs = None
+		return CommunityTaxonomySerializer(qs).data
 
 	def get_conservation_status(self,obj):
 		try:
@@ -922,7 +944,6 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 			'community_number',
 			# 'species',
 			'group_type',
-			'taxonomy_id',
 			'taxonomy_details',
 			'region_id',
 			'district_id',
@@ -1010,14 +1031,12 @@ class CreateSpeciesSerializer(BaseSpeciesSerializer):
 class SaveCommunitySerializer(BaseCommunitySerializer):
 	region_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	district_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
-	taxonomy_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
 	
 	class Meta:
 		model = Community
 		fields = ('id',
 			    'group_type',
-				'taxonomy_id',
-			    'region_id',
+				'region_id',
 			    'district_id',
 			    'last_data_curration_date',
 				'submitter',
