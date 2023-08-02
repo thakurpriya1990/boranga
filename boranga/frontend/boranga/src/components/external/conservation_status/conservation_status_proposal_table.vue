@@ -104,9 +104,9 @@ import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
 import Vue from 'vue'
-var select2 = require('select2');
-require("select2/dist/css/select2.min.css");
-require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
+// var select2 = require('select2');
+// require("select2/dist/css/select2.min.css");
+// require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
 import {
     api_endpoints,
     helpers

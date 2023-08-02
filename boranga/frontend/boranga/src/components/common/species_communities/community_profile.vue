@@ -315,8 +315,8 @@ import {
   helpers
 }
 from '@/utils/hooks'
-require("select2/dist/css/select2.min.css");
-require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
+// require("select2/dist/css/select2.min.css");
+// require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
 
 export default {
         name: 'Community',
