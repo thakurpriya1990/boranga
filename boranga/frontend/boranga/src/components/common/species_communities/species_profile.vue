@@ -152,6 +152,21 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Area of Occupancy (km2):</label>
                 <div class="col-sm-6">
+                    <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupany" placeholder="" 
+                    v-model="species_community.distribution.area_of_occupancy"/>
+                </div>
+                <div class="col-sm-3">    
+                    <input :disabled="isReadOnly" type="radio" value="true" 
+                            class="aoo_auto form-check-input" name="aoo_auto" v-model="species_community.distribution.aoo_auto">
+                    <label>auto</label>
+                    <input :disabled="isReadOnly" type="radio" value="false" 
+                            class="aoo_auto form-check-input" name="aoo_auto" v-model="species_community.distribution.aoo_auto">
+                    <label>manual</label>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Area of Occupancy Actual<br>(km2):</label>
+                <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupancy_actual" placeholder="" 
                     v-model="species_community.distribution.area_of_occupancy_actual"/>
                 </div>
@@ -163,21 +178,6 @@
                     <input :disabled="isReadOnly" type="radio" value="false" 
                             class="aoo_actual_auto form-check-input" name="aoo_actual_auto" 
                             v-model="species_community.distribution.aoo_actual_auto">
-                    <label>manual</label>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(2km x 2km):</label>
-                <div class="col-sm-6">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupany" placeholder="" 
-                    v-model="species_community.distribution.area_of_occupancy"/>
-                </div>
-                <div class="col-sm-3">    
-                    <input :disabled="isReadOnly" type="radio" value="true" 
-                            class="aoo_auto form-check-input" name="aoo_auto" v-model="species_community.distribution.aoo_auto">
-                    <label>auto</label>
-                    <input :disabled="isReadOnly" type="radio" value="false" 
-                            class="aoo_auto form-check-input" name="aoo_auto" v-model="species_community.distribution.aoo_auto">
                     <label>manual</label>
                 </div>
             </div>
