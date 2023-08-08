@@ -217,6 +217,20 @@ export default {
                     cell.innerHTML = i + 1;
                 });
             }).draw();
+
+            // Bind clicks to functions
+            vm.$refs.cs_queue_datatable.vmDataTable.on('click', '.dtMoveUp', function(e) {
+                e.preventDefault();
+                var tr = $(e.target).parents('tr');
+                var id = $(this).attr('data-id');
+                vm.moveUp(id,tr);
+            });
+            vm.$refs.cs_queue_datatable.vmDataTable.on('click', '.dtMoveDown', function(e) {
+                e.preventDefault();
+                var tr = $(e.target).parents('tr');
+                var id = $(this).attr('data-id');
+                vm.moveDown(id,tr);
+            });
         },
         removeAgendaItem:function (conservation_status_id) {
             let vm = this;
@@ -260,19 +274,6 @@ export default {
             $('.dtMoveUp').off('click');
             $('.dtMoveDown').off('click');
 
-            // Bind clicks to functions
-            vm.$refs.cs_queue_datatable.vmDataTable.on('click', '.dtMoveUp', function(e) {
-                e.preventDefault();
-                var tr = $(e.target).parents('tr');
-                var id = $(this).attr('data-id');
-                vm.moveUp(id,tr);
-            });
-            vm.$refs.cs_queue_datatable.vmDataTable.on('click', '.dtMoveDown', function(e) {
-                e.preventDefault();
-                var tr = $(e.target).parents('tr');
-                var id = $(this).attr('data-id');
-                vm.moveDown(id,tr);
-            });
         },
         async sendDirection(req,direction){
             let vm = this;
