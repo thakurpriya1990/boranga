@@ -1910,44 +1910,44 @@ class ConservationThreat(models.Model):
 
 
 # list used in Conservation Attributes
-class FloweringPeriod(models.Model):
-    """
-    # list derived from WACensus
+# class FloweringPeriod(models.Model):
+#     """
+#     # list derived from WACensus
 
-    Used by:
-    - SpeciesConservationAttributes
+#     Used by:
+#     - SpeciesConservationAttributes
 
-    """
-    period = models.CharField(max_length=200, blank=False, unique=True)
+#     """
+#     period = models.CharField(max_length=200, blank=False, unique=True)
 
-    class Meta:
-        app_label = 'boranga'
-        verbose_name = "Flowering Period"
-        verbose_name_plural = "Flowering Periods"
-        ordering = ['period']
+#     class Meta:
+#         app_label = 'boranga'
+#         verbose_name = "Flowering Period"
+#         verbose_name_plural = "Flowering Periods"
+#         ordering = ['period']
 
-    def __str__(self):
-        return str(self.period)
+#     def __str__(self):
+#         return str(self.period)
 
 
-class FruitingPeriod(models.Model):
-    """
-    # list derived from WACensus
+# class FruitingPeriod(models.Model):
+#     """
+#     # list derived from WACensus
 
-    Used by:
-    - SpeciesConservationAttributes
+#     Used by:
+#     - SpeciesConservationAttributes
 
-    """
-    period = models.CharField(max_length=200, blank=False, unique=True)
+#     """
+#     period = models.CharField(max_length=200, blank=False, unique=True)
 
-    class Meta:
-        app_label = 'boranga'
-        verbose_name = "Fruiting Period"
-        verbose_name_plural = "Fruiting Periods"
-        ordering = ['period']
+#     class Meta:
+#         app_label = 'boranga'
+#         verbose_name = "Fruiting Period"
+#         verbose_name_plural = "Fruiting Periods"
+#         ordering = ['period']
 
-    def __str__(self):
-        return str(self.period)
+#     def __str__(self):
+#         return str(self.period)
 
 
 class FloraRecruitmentType(models.Model):
@@ -2046,24 +2046,24 @@ class PostFireHabitatInteraction(models.Model):
         return str(self.name)
 
 
-class BreedingPeriod(models.Model):
-    """
-    # list derived from WACensus
+# class BreedingPeriod(models.Model):
+#     """
+#     # list derived from WACensus
 
-    Used by:
-    - SpeciesConservationAttributes
+#     Used by:
+#     - SpeciesConservationAttributes
 
-    """
-    period = models.CharField(max_length=200, blank=False, unique=True)
+#     """
+#     period = models.CharField(max_length=200, blank=False, unique=True)
 
-    class Meta:
-        app_label = 'boranga'
-        verbose_name = "Breeding Period"
-        verbose_name_plural = "Breeding Periods"
-        ordering = ['period']
+#     class Meta:
+#         app_label = 'boranga'
+#         verbose_name = "Breeding Period"
+#         verbose_name_plural = "Breeding Periods"
+#         ordering = ['period']
 
-    def __str__(self):
-        return str(self.period)
+#     def __str__(self):
+#         return str(self.period)
 
 # TODO Not USed
 class FaunaBreeding(models.Model):
@@ -2093,26 +2093,25 @@ class SpeciesConservationAttributes(models.Model):
     Is:
     - Table
     """
-    PERIOD_CHOICES = (('january', 'January'),
-                    ('february', 'February'),
-                    ('march', 'March'),
-                    ('april', 'April'),
-                    ('may', 'May'),
-                    ('june', 'June'),
-                    ('july', 'July'),
-                    ('august', 'August'),
-                    ('september', 'September'),
-                    ('october', 'October'),
-                    ('november', 'November'),
-                    ('december', 'December'),
+    PERIOD_CHOICES = ((1, 'January'),
+                    (2, 'February'),
+                    (3, 'March'),
+                    (4, 'April'),
+                    (5, 'May'),
+                    (6, 'June'),
+                    (7, 'July'),
+                    (8, 'August'),
+                    (9, 'September'),
+                    (10, 'October'),
+                    (11, 'November'),
+                    (12, 'December'),
                     )
 
     species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_conservation_attributes")
     
     # flora related attributes
-    flowering_period = models.ForeignKey(FloweringPeriod, on_delete=models.SET_NULL, null=True, blank=True)
-    flowering_prd = MultiSelectField(max_length=250, blank=True, choices=PERIOD_CHOICES, null=True)
-    fruiting_period = models.ForeignKey(FruitingPeriod, on_delete=models.SET_NULL, null=True, blank=True)
+    flowering_period = MultiSelectField(max_length=250, blank=True, choices=PERIOD_CHOICES, null=True)
+    fruiting_period = MultiSelectField(max_length=250, blank=True, choices=PERIOD_CHOICES, null=True)
     flora_recruitment_type = models.ForeignKey(FloraRecruitmentType, on_delete=models.SET_NULL, null=True, blank=True)
     flora_recruitment_notes = models.CharField(max_length=1000,null=True, blank=True)
     seed_viability_germination_info = models.CharField(max_length=1000,null=True, blank=True)
@@ -2121,7 +2120,7 @@ class SpeciesConservationAttributes(models.Model):
     response_to_dieback = models.CharField(max_length=1500, null=True, blank=True)
 
     # fauna related attributes
-    breeding_period = models.ForeignKey(BreedingPeriod, on_delete=models.SET_NULL, null=True, blank=True)
+    breeding_period = MultiSelectField(max_length=250, blank=True, choices=PERIOD_CHOICES, null=True)
     fauna_breeding = models.CharField(max_length=2000,null=True, blank=True)
     fauna_reproductive_capacity = models.CharField(max_length=200,null=True, blank=True)
     diet_and_food_source = models.CharField(max_length=500, null=True, blank=True)
