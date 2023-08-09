@@ -64,14 +64,14 @@ from boranga.components.species_and_communities.models import (
     District,
     SpeciesDistribution,
     CommunityDistribution,
-    FloweringPeriod,
-    FruitingPeriod,
+    # FloweringPeriod,
+    # FruitingPeriod,
     FloraRecruitmentType,
     SeedViabilityGerminationInfo,
     RootMorphology,
     PollinatorInformation,
     PostFireHabitatInteraction,
-    BreedingPeriod,
+    # BreedingPeriod,
     FaunaBreeding,
     SpeciesConservationAttributes,
     CommunityConservationAttributes,
@@ -475,19 +475,19 @@ class GetSpeciesProfileDict(views.APIView):
                     'name':genus.name,
                     });
         flowering_period_list = []
-        periods = FloweringPeriod.objects.all()
-        if periods:
-            for option in periods:
-                flowering_period_list.append({'id': option.id,
-                    'name':option.period,
-                    });
+        # periods = FloweringPeriod.objects.all()
+        # if periods:
+        #     for option in periods:
+        #         flowering_period_list.append({'id': option.id,
+        #             'name':option.period,
+        #             });
         fruiting_period_list = []
-        periods = FruitingPeriod.objects.all()
-        if periods:
-            for option in periods:
-                fruiting_period_list.append({'id': option.id,
-                    'name':option.period,
-                    });
+        # periods = FruitingPeriod.objects.all()
+        # if periods:
+        #     for option in periods:
+        #         fruiting_period_list.append({'id': option.id,
+        #             'name':option.period,
+        #             });
         flora_recruitment_type_list = []
         types = FloraRecruitmentType.objects.all()
         if types:
@@ -510,12 +510,12 @@ class GetSpeciesProfileDict(views.APIView):
                     'name':option.name,
                     });
         breeding_period_list = []
-        periods = BreedingPeriod.objects.all()
-        if periods:
-            for option in periods:
-                breeding_period_list.append({'id': option.id,
-                    'name':option.period,
-                    });
+        # periods = BreedingPeriod.objects.all()
+        # if periods:
+        #     for option in periods:
+        #         breeding_period_list.append({'id': option.id,
+        #             'name':option.period,
+        #             });
         res_json = {
         "family_list": family_list,
         "genus_list": genus_list,
