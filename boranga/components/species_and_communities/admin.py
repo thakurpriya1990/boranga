@@ -14,15 +14,15 @@ from boranga.components.species_and_communities.models import (
     PhylogeneticGroup,
     Genus,
     Kingdom,
-    FloweringPeriod,
-    FruitingPeriod,
+    # FloweringPeriod,
+    # FruitingPeriod,
     FloraRecruitmentType,
     # SeedViabilityGerminationInfo,
     RootMorphology,
     # PollinatorInformation,
     PostFireHabitatInteraction,
     # FaunaBreeding,
-    BreedingPeriod,
+    # BreedingPeriod,
     CurrentImpact,
     PotentialImpact,
     PotentialThreatOnset,
@@ -59,15 +59,15 @@ admin.site.register(ThreatCategory)
 # admin.site.register(PhylogeneticGroup)
 # admin.site.register(Genus)
 admin.site.register(Kingdom)
-admin.site.register(FloweringPeriod)
-admin.site.register(FruitingPeriod)
+# admin.site.register(FloweringPeriod)
+# admin.site.register(FruitingPeriod)
 admin.site.register(FloraRecruitmentType)
 # admin.site.register(SeedViabilityGerminationInfo)
 admin.site.register(RootMorphology)
 # admin.site.register(PollinatorInformation)
 admin.site.register(PostFireHabitatInteraction)
 # admin.site.register(FaunaBreeding)
-admin.site.register(BreedingPeriod)
+# admin.site.register(BreedingPeriod)
 admin.site.register(CurrentImpact)
 admin.site.register(PotentialImpact)
 admin.site.register(PotentialThreatOnset)
