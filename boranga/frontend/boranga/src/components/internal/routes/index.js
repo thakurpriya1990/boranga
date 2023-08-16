@@ -26,6 +26,7 @@ import ConservationStatusReferral from '../conservation_status/referral.vue'
 import MeetingsDash from '../meetings/dashboard.vue'
 import Meeting from '../meetings/meeting.vue'
 import ConservationPlansDash from '../conservation_plans/dashboard.vue'
+import OccurrenceDash from '../occurrence/dashboard.vue'
 export default
 {
     path: '/internal',
@@ -72,6 +73,16 @@ export default
             path: 'conservation-plans',
             component: ConservationPlansDash,
             name:"internal-conservation_plan-dash"
+        },
+        {
+            path: 'meetings',
+            component: MeetingsDash,
+            name:"internal-meetings-dash"
+        },
+        {
+            path: 'occurrence',
+            component: OccurrenceDash,
+            name:"internal-occurrence-dash"
         },
         {
             path: 'approval/:approval_id',

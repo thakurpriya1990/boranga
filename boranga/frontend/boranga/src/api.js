@@ -93,6 +93,7 @@ module.exports = {
     community_conservation_status_referrals_paginated_internal: "/api/community_conservation_status_paginated/community_cs_referrals_internal/?format=datatables",
     community_cs_referrals_internal_export: "/api/community_conservation_status_paginated/community_cs_referrals_internal_export",
     conservation_status_paginated_external: "/api/conservation_status_paginated/conservation_status_external?format=datatables",
+    occurrence_report_paginated_external: "/api/occurrence_report_paginated/occurrence_report_external?format=datatables",
     species_conservation_plans_paginated_internal: "/api/species_conservation_plans_paginated/species_cp_internal/?format=datatables",
     community_conservation_plans_paginated_internal: "/api/community_conservation_plans_paginated/community_cp_internal/?format=datatables",
     species_agenda_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/agenda_cs_internal/?format=datatables",

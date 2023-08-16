@@ -2,6 +2,7 @@ import ExternalDashboard from '../dashboard.vue'
 import ExternalConservationStatusDash from '../conservation_status/dashboard.vue'
 import ConservationStatusProposal from '../conservation_status/conservation_status_proposal.vue'
 import ConservationStatusProposalSubmit from '../conservation_status/conservation_status_proposal_submit.vue'
+import ExternalOccurrenceReportDash from '../occurrence/dashboard.vue'
 import Proposal from '../proposal.vue'
 //import CommercialOperatorLicence from '../commercial_operator_licence.vue'
 import ProposalApply from '../proposal_apply.vue'
@@ -32,6 +33,11 @@ export default
             path: 'conservation-status',
             component: ExternalConservationStatusDash,
             name:"external-conservation_status-dash"
+        },
+        {
+            path: 'occurrence-report',
+            component: ExternalOccurrenceReportDash,
+            name:"external-occurrence-report-dash"
         },
         {
             path: 'organisations/manage/:org_id',
