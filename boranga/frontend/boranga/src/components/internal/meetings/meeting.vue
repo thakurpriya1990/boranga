@@ -118,7 +118,7 @@
                                             <div class="col-md-12 text-end">
                                                 <button v-if="savingMeeting" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
+                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save_exit()">Save Changes</button>
                                             </div>
                                         </div>
                                     </div>
