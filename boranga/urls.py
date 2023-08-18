@@ -22,9 +22,9 @@ from boranga.components.approvals import api as approval_api
 from boranga.components.compliances import api as compliances_api
 from boranga.components.species_and_communities import api as species_communities_api
 from boranga.components.conservation_status import api as conservation_status_api
-from boranga.components.occurrence import api as occurrence_api
 from boranga.components.conservation_plan import api as conservation_plans_api
 from boranga.components.meetings import api as meeting_api
+from boranga.components.occurrence import api as occurrence_api
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 from django import urls
 from django.contrib.auth import views as auth_views
@@ -51,7 +51,6 @@ router.register(r'community_conservation_status_paginated',conservation_status_a
 router.register(r'species_conservation_plans_paginated',conservation_plans_api.SpeciesConservationPlansPaginatedViewSet)
 #router.register(r'community_conservation_plans_paginated',conservation_plans_api.CommunityConservationPlansPaginatedViewSet)
 router.register(r'conservation_status_paginated',conservation_status_api.ConservationStatusPaginatedViewSet)
-router.register(r'occurrence_report_paginated',occurrence_api.OccurrenceReportPaginatedViewSet)
 router.register(r'conservation_status',conservation_status_api.ConservationStatusViewSet)
 router.register(r'conservation_status_documents',conservation_status_api.ConservationStatusDocumentViewSet)
 router.register(r'cs_referrals',conservation_status_api.ConservationStatusReferralViewSet)
@@ -63,7 +62,9 @@ router.register(r'meeting_paginated',meeting_api.MeetingPaginatedViewSet)
 router.register(r'minutes',meeting_api.MinutesViewSet)
 router.register(r'committee',meeting_api.CommitteeViewSet)
 router.register(r'meeting_agenda_items',meeting_api.AgendaItemViewSet)
-
+router.register(r'conservation_status',conservation_status_api.ConservationStatusViewSet)
+router.register(r'occurrence_report',occurrence_api.OccurrenceReportViewSet)
+router.register(r'occurrence_report_paginated',occurrence_api.OccurrenceReportPaginatedViewSet)
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)
 router.register(r'approval_paginated',approval_api.ApprovalPaginatedViewSet)

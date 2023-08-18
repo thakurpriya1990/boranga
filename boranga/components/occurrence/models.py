@@ -172,6 +172,10 @@ class OccurrenceReport(models.Model):
             self.save()
     
     @property
+    def reference(self):
+        return '{}-{}'.format(self.occurrence_report_number,self.occurrence_report_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
+    
+    @property
     def applicant(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
@@ -262,6 +266,85 @@ class OccurrenceReport(models.Model):
         if self.group_type.name==GroupType.GROUP_TYPE_COMMUNITY:
             return True
         return False
+    
+    @property
+    def allowed_assessors(self):
+        # if self.processing_status == 'with_approver':
+        #     group = self.__approver_group()
+        # elif self.processing_status =='with_qa_officer':
+        #     group = QAOfficerGroup.objects.get(default=True)
+        # else:
+        #     group = self.__assessor_group()
+        # return group.members.all() if group else []
+
+        group = None
+        # TODO: Take application_type into account
+        if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+        ]:
+            group = self.get_approver_group()
+        elif self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            # ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+        ]:
+            group = self.get_assessor_group()
+        # for tO SHOW edit action on dashoard of CS
+        # elif self.processing_status in [
+        #     ConservationStatus.PROCESSING_STATUS_APPROVED,
+        # ]:
+        #     group = self.get_editor_group()
+        users = (
+            list(
+                map(
+                    lambda id: retrieve_email_user(id),
+                    group.get_system_group_member_ids(),
+                )
+            )
+            if group
+            else []
+        )
+        return users
+
+    def get_assessor_group(self):
+        # TODO: Take application_type into account
+        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
+
+    def get_approver_group(self):
+        # TODO: Take application_type into account
+        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+
+    # Group for editing the Approved CS(only specific fields)
+    # def get_editor_group(self):
+    #     return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
+
+    @property
+    def assessor_recipients(self):
+        logger.info("assessor_recipients")
+        recipients = []
+        group_ids = self.get_assessor_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
+
+    @property
+    def approver_recipients(self):
+        logger.info("approver_recipients")
+        recipients = []
+        group_ids = self.get_approver_group().get_system_group_member_ids()
+        for id in group_ids:
+            logger.info(id)
+            recipients.append(EmailUser.objects.get(id=id).email)
+        return recipients
+
+    #Check if the user is member of assessor group for the OCR Proposal
+    def is_assessor(self,user):
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+    #Check if the user is member of assessor group for the OCR Proposal
+    def is_approver(self,user):
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
 
 
 class LandForm(models.Model):

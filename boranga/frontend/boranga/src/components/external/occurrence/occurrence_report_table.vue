@@ -43,12 +43,6 @@
             </div>
             </div>
         </CollapsibleFilters>
-
-        <!-- <div v-if="addCSVisibility" class="col-md-12">
-            <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Status</button>
-            </div>
-        </div> -->
         <div v-if="addOCRVisibility" class="col-md-12 dropdown">
             <div class="text-end">
                 <button class="btn btn-primary dropdown-toggle mb-2" type="button" id="ocr_type" data-bs-toggle="dropdown" aria-expanded="false">
@@ -314,11 +308,11 @@ export default {
                 'render': function(data, type, full){
                     let links = "";
                     if (full.can_user_edit) {
-                            links +=  `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
+                            links +=  `<a href='/external/occurrence-report/${full.id}'>Continue</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                         }
                         else if (full.can_user_view) {
-                            links +=  `<a href='/external/conservation_status/${full.id}'>View</a>`;
+                            links +=  `<a href='/external/occurrence-report/${full.id}'>View</a>`;
                         }
 
                     return links;
@@ -475,14 +469,14 @@ export default {
             });
         },
         createOccurrenceReport: async function (group_type) {
-            let newCSId = null
+            let newOCRId = null
             try {
                     const createUrl = api_endpoints.occurrence_report+"/";
                     let payload = new Object();
                     payload.group_type_id= group_type
                     let savedOCR = await Vue.http.post(createUrl, payload);
                     if (savedOCR) {
-                        newOCRId = savedOCR.body.id;
+                        newOCRId = savedOCR.body;
                     }
                 }
             catch (err) {
@@ -492,8 +486,8 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'draft_cs_proposal',
-                params: {conservation_status_id: newCSId},
+                name: 'draft_ocr_proposal',
+                params: {occurrence_report_id: newOCRId},
                 });
         },
         discardOCR:function (occurrence_report_id) {
@@ -506,7 +500,7 @@ export default {
                 confirmButtonText: 'Discard Report',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_ocurrence_report(occurrence_report_id))
+                vm.$http.delete(api_endpoints.discard_ocr_proposal(occurrence_report_id))
                 .then((response) => {
                     swal(
                         'Discarded',
@@ -524,9 +518,9 @@ export default {
         addEventListeners: function(){
             let vm = this;
             // External Discard listener
-            vm.$refs.occurrence_report_datatable.vmDataTable.on('click', 'a[data-discard-ocr]', function(e) {
+            vm.$refs.occurrence_report_datatable.vmDataTable.on('click', 'a[data-discard-ocr-proposal]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-ocr');
+                var id = $(this).attr('data-discard-ocr-proposal');
                 vm.discardOCR(id);
             });
         },

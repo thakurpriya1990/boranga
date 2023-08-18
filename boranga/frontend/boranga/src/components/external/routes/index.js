@@ -3,6 +3,7 @@ import ExternalConservationStatusDash from '../conservation_status/dashboard.vue
 import ConservationStatusProposal from '../conservation_status/conservation_status_proposal.vue'
 import ConservationStatusProposalSubmit from '../conservation_status/conservation_status_proposal_submit.vue'
 import ExternalOccurrenceReportDash from '../occurrence/dashboard.vue'
+import OccurrenceReportProposal from '../occurrence/occurrence_report_proposal.vue'
 import Proposal from '../proposal.vue'
 //import CommercialOperatorLicence from '../commercial_operator_licence.vue'
 import ProposalApply from '../proposal_apply.vue'
@@ -37,7 +38,13 @@ export default
         {
             path: 'occurrence-report',
             component: ExternalOccurrenceReportDash,
-            name:"external-occurrence-report-dash"
+            name:"external-occurrence_report-dash"
+        },
+        {
+            path: 'occurrence-report/:occurrence_report_id',
+            component: OccurrenceReportProposal,
+            name:"draft_ocr_proposal"
+
         },
         {
             path: 'organisations/manage/:org_id',

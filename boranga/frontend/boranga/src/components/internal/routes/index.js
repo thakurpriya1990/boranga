@@ -75,11 +75,6 @@ export default
             name:"internal-conservation_plan-dash"
         },
         {
-            path: 'meetings',
-            component: MeetingsDash,
-            name:"internal-meetings-dash"
-        },
-        {
             path: 'occurrence',
             component: OccurrenceDash,
             name:"internal-occurrence-dash"

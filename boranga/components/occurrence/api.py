@@ -43,6 +43,7 @@ from boranga.components.occurrence.models import(
 )
 from boranga.components.occurrence.serializers import(
     ListOccurrenceReportSerializer,
+    OccurrenceReportSerializer,
 )
 
 from boranga.components.main.utils import (
@@ -135,3 +136,50 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
+
+
+class OccurrenceReportViewSet(viewsets.ModelViewSet):
+    queryset = OccurrenceReport.objects.none()
+    serializer_class = OccurrenceReportSerializer
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= OccurrenceReport.objects.all()
+            return qs
+        elif is_customer(self.request):
+            # user_orgs = [org.id for org in user.boranga_organisations.all()]
+            queryset =  OccurrenceReport.objects.filter( Q(submitter = user.id) )
+            return queryset
+        logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
+        return OccurrenceReport.objects.none()
+
+    def get_serializer_class(self):
+        try:
+            return OccurrenceReportSerializer
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def create(self, request, *args, **kwargs):
+        group_type_id = GroupType.objects.get(id=request.data.get('group_type_id'))
+        # internal_application = False
+        # if request.data.get('internal_application'):
+        #         internal_application = request.data.get('internal_application')
+        obj = OccurrenceReport.objects.create(
+                #submitter=request.user.id,
+                group_type=group_type_id,
+                # internal_application=internal_application
+                )
+        return Response(obj.id)
+

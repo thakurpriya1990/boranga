@@ -579,7 +579,7 @@ class ConservationStatus(models.Model):
 
     @property
     def approver_recipients(self):
-        logger.info("assessor_recipients")
+        logger.info("approver_recipients")
         recipients = []
         group_ids = self.get_approver_group().get_system_group_member_ids()
         for id in group_ids:
