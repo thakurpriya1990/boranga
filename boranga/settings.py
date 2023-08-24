@@ -17,6 +17,12 @@ DISABLE_EMAIL = env('DISABLE_EMAIL', False)
 SHOW_TESTS_URL = env('SHOW_TESTS_URL', False)
 SHOW_DEBUG_TOOLBAR = env('SHOW_DEBUG_TOOLBAR', False)
 BUILD_TAG = env('BUILD_TAG', hashlib.md5(os.urandom(32)).hexdigest())  # URL of the Dev app.js served by webpack & express
+TIME_ZONE = "Australia/Perth"
+
+SILENCE_SYSTEM_CHECKS = env("SILENCE_SYSTEM_CHECKS", False)
+if SILENCE_SYSTEM_CHECKS:
+    SILENCED_SYSTEM_CHECKS = ["fields.W903", "fields.W904", "debug_toolbar.W004"]
+    
 TEMPLATE_TITLE = 'Boranga System'
 LEDGER_TEMPLATE = 'bootstrap5'
 EMAIL_DELIVERY = env('EMAIL_DELIVERY', 'off')
