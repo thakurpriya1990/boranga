@@ -6,6 +6,7 @@ const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 const port = process.env.PORT ? parseInt(process.env.PORT) : 9002;
 
 module.exports = defineConfig({
+    runtimeCompiler: true,
     outputDir: path.resolve(__dirname, '../../static/boranga_vue'),
     publicPath: '/static/boranga_vue/',
     filenameHashing: false,
