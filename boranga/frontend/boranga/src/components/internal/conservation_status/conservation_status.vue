@@ -279,7 +279,6 @@ import ProposedDecline from './proposal_proposed_decline'
 import ProposedApproval from './proposed_issuance.vue'
 
 import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'
 import {
     api_endpoints,

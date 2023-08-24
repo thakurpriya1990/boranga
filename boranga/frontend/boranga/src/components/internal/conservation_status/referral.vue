@@ -153,9 +153,7 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
-
 import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'
 import {
     api_endpoints,
