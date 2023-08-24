@@ -4,9 +4,8 @@
 venv/
 venv2/
 node_modules/
-#cronjobs
 .ropeproject/
-mooring/cache/*
+boranga/cache/*
 .ropeproject/
 
 # Byte-compiled / optimized / DLL files
