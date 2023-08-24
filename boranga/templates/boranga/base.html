@@ -21,6 +21,8 @@
         {% endblock %}
 
         {% block extra_css %}
+            <link rel="icon" type="image/png" href="/static/boranga/favicon.ico">
+
             <link rel="stylesheet" href="{% static 'boranga/css/base.css' %}?v={{build_tag}}">
             <link rel="stylesheet" href="{% static 'boranga_vue/css/app.css' %}?v={{build_tag}}">
             <link rel="stylesheet" href="{% static 'boranga_vue/css/chunk-vendors.css' %}?v={{build_tag}}">
@@ -33,12 +35,7 @@
                     }
             </script>
             <script type="text/javascript" src="{% static 'boranga_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
-
-            {% if app_build_url %}
-                <script type="text/javascript" src="{{ app_build_url }}"></script>
-            {% else %}
-                <script type="text/javascript" src="{% static 'boranga_vue/js/app.js' %}?v={{build_tag}}"></script>
-            {% endif %}
+            <script type="text/javascript" src="{% static 'boranga_vue/js/app.js' %}?v={{build_tag}}"></script>
      
         {% endblock %}
 
