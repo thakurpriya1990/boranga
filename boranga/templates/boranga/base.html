@@ -1,4 +1,4 @@
-{% extends "webtemplate_dbca/base_b5.html" %}
+{% extends "webtemplate_dbca/base_b5_auth_session.html" %}
 {% load static %}
 
 {% load users %}
@@ -19,11 +19,13 @@
     <body>
         {% block header_top_menu %}
         {% endblock %}
+
         {% block extra_css %}
-        <link rel="stylesheet" href="{% static 'boranga/css/base.css' %}?v={{build_tag}}">
-        <link rel="stylesheet" href="{% static 'boranga_vue/css/app.css' %}?v={{build_tag}}">
-        <link rel="stylesheet" href="{% static 'boranga_vue/css/chunk-vendors.css' %}?v={{build_tag}}">
-    {% endblock %}
+            <link rel="stylesheet" href="{% static 'boranga/css/base.css' %}?v={{build_tag}}">
+            <link rel="stylesheet" href="{% static 'boranga_vue/css/app.css' %}?v={{build_tag}}">
+            <link rel="stylesheet" href="{% static 'boranga_vue/css/chunk-vendors.css' %}?v={{build_tag}}">
+        {% endblock %}
+
         {% block custom_js %}
             <script language="javascript">
                     var env = {
@@ -40,13 +42,13 @@
      
         {% endblock %}
 
-{% block menu_items2_right %}
- {% if request.user.is_authenticated %}
+        {% block menu_items2_right %}
+            {% if request.user.is_authenticated %}
 
- {% else %}
-    <a href="/ssologin" class="btn btn-primary btn-sm">Login</a>
- {% endif %}
-{% endblock %}
+            {% else %}
+            <a href="/ssologin" class="btn btn-primary btn-sm">Login</a>
+            {% endif %}
+        {% endblock %}
 
         {% block menu_spacer %}
             <br>
