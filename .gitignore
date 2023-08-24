@@ -103,7 +103,7 @@ npm locks
 *-lock.json
 
 # npm build files
-#boranga/static/boranga_vue/static/*
+boranga/boranga/static/boranga_vue/
 
 git_history_recent
 
