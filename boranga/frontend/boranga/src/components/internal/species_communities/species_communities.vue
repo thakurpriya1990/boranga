@@ -728,8 +728,4 @@ export default {
     margin-bottom: 10px;
     width: 100%;
 }
-
-.p-3 {
-  padding: $spacer !important;
-}
 </style>

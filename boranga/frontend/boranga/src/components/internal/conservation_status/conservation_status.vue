@@ -154,7 +154,7 @@
                                         </div>
                                     </div>
                                     <div class="row" v-if="conservation_status_obj.list_approval_level == 'minister'">
-                                        <div class="col-sm-12"">
+                                        <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="declineProposal()">Decline</button><br/>
                                         </div>
                                     </div>
@@ -1078,7 +1078,4 @@ export default {
     width: 100%;
 }
 
-.p-3 {
-  padding: $spacer !important;
-}
 </style>
