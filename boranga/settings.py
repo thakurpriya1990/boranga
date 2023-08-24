@@ -158,7 +158,6 @@ CACHES = {
 }
 STATIC_ROOT=os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'boranga', 'static')))
-STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'boranga', 'static', 'boranga_vue', 'static')))
 DEV_STATIC = env('DEV_STATIC',False)
 DEV_STATIC_URL = env('DEV_STATIC_URL')
 if DEV_STATIC and not DEV_STATIC_URL:
