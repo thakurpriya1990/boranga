@@ -87,7 +87,7 @@ import {
     helpers
 }from '@/utils/hooks'
 export default {
-    name: 'ExternalConservationStatusDatatable',
+    name: 'ExternalOccurrenceReportDatatable',
     props: {
         level:{
             type: String,

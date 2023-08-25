@@ -40,10 +40,20 @@ from django.db.models.query import QuerySet
 
 from boranga.components.occurrence.models import( 
     OccurrenceReport,
+    RockType,
+    SoilType,
+    SoilColour,
+    SoilCondition,
+    Drainage,
+    HabitatComposition,
+    HabitatCondition,
+    LandForm,
 )
 from boranga.components.occurrence.serializers import(
     ListOccurrenceReportSerializer,
     OccurrenceReportSerializer,
+    SaveHabitatCompositionSerializer,
+    SaveHabitatConditionSerializer,
 )
 
 from boranga.components.main.utils import (
@@ -172,14 +182,147 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
     def create(self, request, *args, **kwargs):
-        group_type_id = GroupType.objects.get(id=request.data.get('group_type_id'))
-        # internal_application = False
-        # if request.data.get('internal_application'):
-        #         internal_application = request.data.get('internal_application')
-        obj = OccurrenceReport.objects.create(
-                #submitter=request.user.id,
-                group_type=group_type_id,
-                # internal_application=internal_application
-                )
-        return Response(obj.id)
+        try:
+            with transaction.atomic():
+                group_type_id = GroupType.objects.get(id=request.data.get('group_type_id'))
+                # internal_application = False
+                # if request.data.get('internal_application'):
+                #         internal_application = request.data.get('internal_application')
+                new_instance = OccurrenceReport.objects.create(
+                        #submitter=request.user.id,
+                        group_type=group_type_id,
+                        # internal_application=internal_application
+                        )
+                data={
+                    'occurrence_report_id': new_instance.id
+                }
+                
+                # create HabitatComposition for new instance
+                serializer=SaveHabitatCompositionSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
 
+                # create HabitatCondition for new instance
+                serializer=SaveHabitatConditionSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                
+                headers = self.get_success_headers(serializer.data)
+                return Response(
+                    new_instance.id,
+                    status=status.HTTP_201_CREATED,
+                    headers=headers
+                )
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    #used for Occurrence Report external form 
+    @list_route(methods=['GET',], detail=False)
+    def list_of_values(self, request, *args, **kwargs):
+        """ used for Occurrence Report external form  """
+        qs =  self.get_queryset()
+        land_form_list = []
+        types = LandForm.objects.all()
+        if types:
+            for val in types:
+                land_form_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        rock_type_list = []
+        types = RockType.objects.all()
+        if types:
+            for val in types:
+                rock_type_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        soil_type_list = []
+        types = SoilType.objects.all()
+        if types:
+            for val in types:
+                soil_type_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        soil_colour_list = []
+        colours = SoilColour.objects.all()
+        if types:
+            for val in colours:
+                soil_colour_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        soil_condition_list = []
+        conditions = SoilCondition.objects.all()
+        if types:
+            for val in conditions:
+                soil_condition_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        drainage_list = []
+        drainages = Drainage.objects.all()
+        if types:
+            for val in drainages:
+                drainage_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        res_json = {
+        "land_form_list":land_form_list,
+        "rock_type_list":rock_type_list,
+        "soil_type_list": soil_type_list,
+        "soil_colour_list": soil_colour_list,
+        "soil_condition_list": soil_condition_list,
+        "drainage_list":drainage_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+    
+    @list_route(methods=['POST',], detail=True)
+    def update_habitat_composition_details(self, request, *args, **kwargs):
+        try:
+            ocr_instance = self.get_object()
+            habitat_instance, created =HabitatComposition.objects.get_or_create(occurrence_report=ocr_instance)
+            # the request.data is only the habitat composition data thats been sent from front end
+            serializer = SaveHabitatCompositionSerializer(habitat_instance,data=request.data, context={'request':request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+                print(traceback.print_exc())
+                raise
+        except ValidationError as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=['POST',], detail=True)
+    def update_habitat_condition_details(self, request, *args, **kwargs):
+        try:
+            ocr_instance = self.get_object()
+            habitat_instance, created =HabitatCondition.objects.get_or_create(occurrence_report=ocr_instance)
+            # the request.data is only the habitat condition data thats been sent from front end
+            serializer = SaveHabitatConditionSerializer(habitat_instance,data=request.data, context={'request':request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+                print(traceback.print_exc())
+                raise
+        except ValidationError as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(str(e))

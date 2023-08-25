@@ -11,6 +11,9 @@ from boranga.components.species_and_communities.models import(
     )
 from boranga.components.occurrence.models import(
     OccurrenceReport,
+    HabitatComposition,
+    HabitatCondition,
+    LandForm,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -76,12 +79,53 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         return ''
 
 
+class HabitatCompositionSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = HabitatComposition
+        fields = (
+			'id',
+			'occurrence_report_id',
+            'land_form',
+			'rock_type_id',
+			'loose_rock_percent',
+			'soil_type_id',
+			'soil_colour_id',
+            'soil_condition_id',
+            'drainage_id',
+            'water_quality',
+            'habitat_notes',
+			)
+    
+    def __init__(self, *args, **kwargs):
+        super(HabitatCompositionSerializer, self).__init__(*args, **kwargs)
+        self.fields['land_form'] = serializers.MultipleChoiceField(choices=[land_form_instance.id for land_form_instance in LandForm.objects.all()], allow_blank=False)
+
+
+class HabitatConditionSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = HabitatCondition
+		fields = (
+			'id',
+			'occurrence_report_id',
+            'pristine',
+            'excellent',
+            'very_good',
+            'good',
+            'degraded',
+            'completely_degraded',
+			)
+
+
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     # group_type_id = serializers.SerializerMethodField(read_only=True)
     allowed_assessors = EmailUserSerializer(many=True)
     # list_approval_level = serializers.SerializerMethodField(read_only=True)
+    habitat_composition = serializers.SerializerMethodField()
+    habitat_condition = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -111,6 +155,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'deficiency_data',
                 'assessor_data',
                 # 'list_approval_level',
+                'habitat_composition',
+                'habitat_condition',
                 )
 
     def get_readonly(self,obj):
@@ -134,6 +180,20 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     #     else:
     #         return None
 
+    def get_habitat_composition(self,obj):
+        try:
+            qs = HabitatComposition.objects.get(occurrence_report=obj)
+            return HabitatCompositionSerializer(qs).data
+        except HabitatComposition.DoesNotExist:
+            return HabitatCompositionSerializer().data
+    
+    def get_habitat_condition(self,obj):
+        try:
+            qs = HabitatCondition.objects.get(occurrence_report=obj)
+            return HabitatConditionSerializer(qs).data
+        except HabitatCondition.DoesNotExist:
+            return HabitatConditionSerializer().data
+
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
@@ -151,3 +211,46 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             return EmailUserSerializer(email_user).data
         else:
             return None
+
+class SaveHabitatCompositionSerializer(serializers.ModelSerializer):
+    # write_only removed from below as the serializer will not return that field in serializer.data
+    occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+    land_form = serializers.MultipleChoiceField(choices=[land_form_instance.id for land_form_instance in LandForm.objects.all()], allow_null=True, allow_blank=True, required=False)
+    rock_type_id = serializers.IntegerField(required=False, allow_null=True)
+    soil_type_id = serializers.IntegerField(required=False, allow_null=True)
+    soil_colour_id = serializers.IntegerField(required=False, allow_null=True)
+    soil_condition_id = serializers.IntegerField(required=False, allow_null=True)
+    drainage_id = serializers.IntegerField(required=False, allow_null=True)
+    class Meta:
+        model = HabitatComposition
+        fields = (
+            'id',
+			'occurrence_report_id',
+			'land_form',
+			'rock_type_id',
+			'loose_rock_percent',
+			'soil_type_id',
+			'soil_colour_id',
+            'soil_condition_id',
+            'drainage_id',
+            'water_quality',
+            'habitat_notes',
+			)
+
+
+class SaveHabitatConditionSerializer(serializers.ModelSerializer):
+	# occurrence_report_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    # write_only removed from below as the serializer will not return that field in serializer.data
+    occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+    class Meta:
+        model = HabitatCondition
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'pristine',
+            'excellent',
+            'very_good',
+            'good',
+            'degraded',
+            'completely_degraded',
+			)

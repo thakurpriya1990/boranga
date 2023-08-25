@@ -13,23 +13,23 @@
                     :aria-controls="locationBody" 
                     aria-selected="true"
                     @click="tabClicked()">
-                  Status
-                </a>
-              </li>
-              <!-- <li class="nav-item">
-                <a 
-                    class="nav-link" 
-                    id="pills-documents-tab" 
-                    data-bs-toggle="pill" 
-                    :href="'#' + documentBody" 
-                    role="tab" 
-                    :aria-selected="documentBody" 
-                    aria-selected="false"
-                    @click="tabClicked()">
-                  Documents
+                  Location
                 </a>
               </li>
               <li class="nav-item">
+                <a 
+                    class="nav-link" 
+                    id="pills-habitat-tab" 
+                    data-bs-toggle="pill" 
+                    :href="'#' + habitatBody" 
+                    role="tab" 
+                    :aria-selected="habitatBody" 
+                    aria-selected="false"
+                    @click="tabClicked()">
+                  Habitat
+                </a>
+              </li>
+              <!-- <li class="nav-item">
                 <a 
                   class="nav-link" 
                   id="pills-related-items-tab" 
@@ -55,16 +55,16 @@
                     :referral="referral">
                 </OCRLocation>
               </div>
-              <!-- <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
-                <CSDocuments 
+              <div class="tab-pane fade" :id="habitatBody" role="tabpanel" aria-labelledby="pills-documents-tab">
+                <OCRHabitat
                     :key="reloadcount"
-                    ref="cs_documents" 
-                    id="csDocuments" 
+                    ref="ocr_habitat" 
+                    id="ocrhabitat" 
                     :is_internal="is_internal"
                     :occurrence_report_obj="occurrence_report_obj">
-                </CSDocuments>
+                </OCRHabitat>
               </div>
-              <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
+              <!-- <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems
                     :key="reloadcount" 
                     ref="cs_related_items" 
@@ -79,10 +79,11 @@
 </template>
 
 <script>
-    import OCRLocation from '@/components/common/occurrence_report/ocr_location.vue'
-    import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
-    import CSDocuments from '@/components/common/conservation_status/cs_documents.vue'
-    import RelatedItems from '@/components/common/table_related_items.vue'
+    import OCRLocation from '@/components/common/occurrence/ocr_location.vue'
+    // import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
+    import OCRHabitat from '@/components/common/occurrence/ocr_habitat.vue'
+    // import OCRHabitat from '@/components/common/conservation_status/cs_documents.vue'
+    // import RelatedItems from '@/components/common/table_related_items.vue'
     
     export default {
         props:{
@@ -113,15 +114,17 @@
                 values:null,
                 reloadcount:0,
                 locationBody: 'locationBody' + vm._uid,
+                habitatBody: 'habitatBody' + vm._uid,
                 documentBody: 'documentBody' + vm._uid,
                 relatedItemBody: 'relatedItemBody' + vm._uid,
             }
         },
         components: {
             OCRLocation,
-            CommunityStatus,
-            CSDocuments,
-            RelatedItems,
+            OCRHabitat,
+            // CommunityStatus,
+            // CSDocuments,
+            // RelatedItems,
         },
         computed:{
             isCommunity: function(){

@@ -102,7 +102,7 @@ from '@/utils/hooks'
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
 
 export default {
-        name: 'SpeciesStatus',
+        name: 'OCRLocation',
         props:{
             occurrence_report_obj:{
                 type: Object,
@@ -236,33 +236,6 @@ export default {
                         }
                     }
             },
-            filterConservationCategoryCriteria: function(event){
-                this.$nextTick(() => {
-                    if(event){
-                        this.occurrence_report_obj.conservation_category_id=null;
-                        this.occurrence_report_obj.conservation_criteria=[];
-                    }
-                    this.filtered_conservation_category_list=[];
-                    this.filtered_conservation_category_list=[{
-                          id:null,
-                          code:"",
-                          conservation_list_id:null,
-                        }];
-                    this.filtered_conservation_criteria_list=[];
-                    for(let choice of this.conservation_category_list){
-                            if(choice.conservation_list_id === this.occurrence_report_obj.conservation_list_id)
-                            {
-                              this.filtered_conservation_category_list.push(choice);
-                            }
-                        }
-                    for(let choice of this.conservation_criteria_list){
-                            if(choice.conservation_list_id === this.occurrence_report_obj.conservation_list_id)
-                            {
-                              this.filtered_conservation_criteria_list.push(choice);
-                            }
-                        }
-                });
-            },
             generateReferralCommentBoxes: function(){
                 var box_visibility = this.occurrence_report_obj.assessor_mode.assessor_box_view
                 var assessor_mode = this.occurrence_report_obj.assessor_mode.assessor_level
@@ -288,21 +261,6 @@ export default {
             eventListeners:function (){
                 let vm = this;
                 // Initialise select2 for proposed Conservation Criteria
-                $(vm.$refs.conservation_criteria_select).select2({
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Criteria",
-                    multiple: true,
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_criteria = selected.val();
-                    vm.occurrence_report_obj.conservation_criteria = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.conservation_criteria = selected.val();
-                });
             },
             toggleComment:function(updatedShowComment) {
                 //this.isShowComment = ! this.isShowComment;
