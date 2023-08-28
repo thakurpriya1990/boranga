@@ -154,7 +154,7 @@
                                         </div>
                                     </div>
                                     <div class="row" v-if="conservation_status_obj.list_approval_level == 'minister'">
-                                        <div class="col-sm-12"">
+                                        <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="declineProposal()">Decline</button><br/>
                                         </div>
                                     </div>
@@ -279,7 +279,6 @@ import ProposedDecline from './proposal_proposed_decline'
 import ProposedApproval from './proposed_issuance.vue'
 
 import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'
 import {
     api_endpoints,
@@ -1079,7 +1078,4 @@ export default {
     width: 100%;
 }
 
-.p-3 {
-  padding: $spacer !important;
-}
 </style>

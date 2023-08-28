@@ -168,7 +168,6 @@ import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 
 //import MoreReferrals from '@common-utils/more_referrals.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'
@@ -728,9 +727,5 @@ export default {
     margin-top: 15px;
     margin-bottom: 10px;
     width: 100%;
-}
-
-.p-3 {
-  padding: $spacer !important;
 }
 </style>

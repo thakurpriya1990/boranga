@@ -17,6 +17,12 @@ DISABLE_EMAIL = env('DISABLE_EMAIL', False)
 SHOW_TESTS_URL = env('SHOW_TESTS_URL', False)
 SHOW_DEBUG_TOOLBAR = env('SHOW_DEBUG_TOOLBAR', False)
 BUILD_TAG = env('BUILD_TAG', hashlib.md5(os.urandom(32)).hexdigest())  # URL of the Dev app.js served by webpack & express
+TIME_ZONE = "Australia/Perth"
+
+SILENCE_SYSTEM_CHECKS = env("SILENCE_SYSTEM_CHECKS", False)
+if SILENCE_SYSTEM_CHECKS:
+    SILENCED_SYSTEM_CHECKS = ["fields.W903", "fields.W904", "debug_toolbar.W004"]
+    
 TEMPLATE_TITLE = 'Boranga System'
 LEDGER_TEMPLATE = 'bootstrap5'
 EMAIL_DELIVERY = env('EMAIL_DELIVERY', 'off')
@@ -158,7 +164,6 @@ CACHES = {
 }
 STATIC_ROOT=os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'boranga', 'static')))
-STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'boranga', 'static', 'boranga_vue', 'static')))
 DEV_STATIC = env('DEV_STATIC',False)
 DEV_STATIC_URL = env('DEV_STATIC_URL')
 if DEV_STATIC and not DEV_STATIC_URL:

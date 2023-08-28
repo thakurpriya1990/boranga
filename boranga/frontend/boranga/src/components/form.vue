@@ -1,4 +1,4 @@
-<style lang="css" scoped>
+<!-- <style lang="css" scoped>
     .section{
         text-transform: capitalize;
     }
@@ -130,4 +130,4 @@
             }
         }
     }
-</script>
+</script> -->

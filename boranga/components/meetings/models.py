@@ -134,7 +134,7 @@ class Meeting(models.Model):
     attendees = models.CharField(max_length=1208, blank=True, null=True)
     # if commitee meeting 
     committee = models.ForeignKey(Committee, on_delete=models.SET_NULL, null=True, blank=True, related_name="committee")
-    selected_committee_members = models.ManyToManyField(CommitteeMembers, null=True, blank=True)
+    selected_committee_members = models.ManyToManyField(CommitteeMembers, blank=True)
     # Agenda items are all conservationstatus added to the meeting
     # the below agenda field is not used to agenda items
     # agenda = models.ManyToManyField(ConservationStatus, null=True, blank=True)

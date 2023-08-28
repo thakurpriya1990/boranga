@@ -142,7 +142,6 @@ import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 
 
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import MeetingSection from './meeting_section.vue'
 import Minutes from './minutes.vue'
 import CSQueue from './cs_queue.vue';
