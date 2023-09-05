@@ -97,14 +97,14 @@
                                         <!--the below as internal proposal submission ELSE just saving proposal changes -->
                                         <div v-if="meeting_obj.can_user_edit" class="container">
                                             <div class="col-md-12 text-end">
-                                                <button v-if="savingMeeting" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
+                                                <button v-if="savingMeeting" class="btn btn-primary me-2 pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                <button v-else class="btn btn-primary me-2 pull-right" style="margin-top:5px;" 
                                                 @click.prevent="save()" :disabled="saveExitMeeting || submitMeeting">Save and Continue</button>
                                                 
-                                                <button v-if="saveExitMeeting" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
+                                                <button v-if="saveExitMeeting" class="btn btn-primary me-2 pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                <button v-else class="btn btn-primary me-2 pull-right" style="margin-top:5px;" 
                                                 @click.prevent="save_exit()" :disabled="savingMeeting || submitMeeting">Save and Exit</button>
 
                                                 <button v-if="submitMeeting" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
@@ -142,7 +142,6 @@ import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 
 
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import MeetingSection from './meeting_section.vue'
 import Minutes from './minutes.vue'
 import CSQueue from './cs_queue.vue';
@@ -293,21 +292,23 @@ export default {
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
             vm.$http.post(vm.meeting_form_url,payload).then(res=>{
-              swal(
-                'Saved',
-                'Your changes has been saved',
-                'success'
-              )
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Your changes has been saved',
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
               vm.savingMeeting=false;
-          },err=>{
-            var errorText=helpers.apiVueResourceError(err); 
-                  swal(
-                          'Save Error',
-                          errorText,
-                          'error'
-                      )
-            vm.savingMeeting=false;
-          });
+            },err=>{
+                var errorText=helpers.apiVueResourceError(err); 
+                swal.fire({
+                    title: 'Save Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
+                vm.savingMeeting=false;
+            });
         },
         save_exit: async function(e){
             let vm = this;
@@ -330,15 +331,16 @@ export default {
             const result = await vm.$http.post(vm.meeting_form_url,payload).then(res=>{
                 //return true;
             },err=>{
-                        var errorText=helpers.apiVueResourceError(err); 
-                        swal(
-                                'Submit Error',
-                                //helpers.apiVueResourceError(err),
-                                errorText,
-                                'error'
-                            )
-                        vm.submitMeeting=false;
-                        vm.saveError=true;
+                var errorText=helpers.apiVueResourceError(err); 
+                swal.fire({
+                    title: 'Submit Error',
+                    //helpers.apiVueResourceError(err),
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
+                vm.submitMeeting=false;
+                vm.saveError=true;
                 //return false;
             });
             return result;
@@ -375,45 +377,48 @@ export default {
 
             var missing_data= vm.can_submit();
             if(missing_data!=true){
-                swal({
+                swal.fire({
                     title: "Please fix following errors before submitting",
                     text: missing_data,
-                    type:'error'
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
                 })
                 return false;
             }
             vm.submitMeeting=true;
-            swal({
+            swal.fire({
                 title: "Submit New Meeting",
                 text: "Are you sure you want to submit this meeting?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: "submit"
-            }).then(async () => {
-            
-                let result = await vm.save_before_submit()
-                if(!vm.saveError){
-                    let payload = new Object();
-                    Object.assign(payload, vm.meeting_obj);
-                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.meeting,vm.meeting_obj.id+'/submit'),payload).then(res=>{
-                        vm.meeting_obj = res.body;
-                        // vm.$router.push({
-                        //     name: 'submit_cs_proposal',
-                        //     params: { meeting_obj: vm.meeting_obj}
-                        // });
-                    // TODO router should push to submit_cs_proposal for internal side 
-                        vm.$router.push({
-                            name: 'internal-meetings-dash'
+                confirmButtonText: "submit",
+                confirmButtonColor:'#226fbb'
+            }).then(async (swalresult) => {
+                if(swalresult.isConfirmed){
+                    let result = await vm.save_before_submit()
+                    if(!vm.saveError){
+                        let payload = new Object();
+                        Object.assign(payload, vm.meeting_obj);
+                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.meeting,vm.meeting_obj.id+'/submit'),payload).then(res=>{
+                            vm.meeting_obj = res.body;
+                            // vm.$router.push({
+                            //     name: 'submit_cs_proposal',
+                            //     params: { meeting_obj: vm.meeting_obj}
+                            // });
+                        // TODO router should push to submit_cs_proposal for internal side 
+                            vm.$router.push({
+                                name: 'internal-meetings-dash'
+                            });
+                        },err=>{
+                            swal.fire({
+                                title: 'Submit Error',
+                                text: helpers.apiVueResourceError(err),
+                                icon: 'error',
+                                confirmButtonColor:'#226fbb'
+                            });
                         });
-                    },err=>{
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
-                    });
+                    }
                 }
-                
             },(error) => {
                 vm.submitMeeting=false;
             });

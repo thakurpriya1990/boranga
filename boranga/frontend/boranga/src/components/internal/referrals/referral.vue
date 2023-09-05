@@ -292,7 +292,6 @@ import MoreReferrals from '@common-utils/more_referrals.vue'
 import CompleteReferral from './complete_referral.vue'
 import Requirements from '@/components/internal/proposals/proposal_requirements.vue'
 import Assessment from '@/components/common/tclass/assessment.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import {
     api_endpoints,
     helpers

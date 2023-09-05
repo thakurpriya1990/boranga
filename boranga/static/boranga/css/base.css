@@ -72,3 +72,49 @@
 .popover {
     max-width: 100%;
 }
+/* .swal2-confirm{
+    border: 0 !important;
+    border-radius: 0.25em !important;
+    background: initial !important;
+    background-color: rgb(48, 133, 214) !important;
+    color: #fff !important;
+    font-size: 1em !important;
+    box-shadow: None !important;
+    
+} */
+.btn-primary{
+    color: #fff !important;
+    background-color: #226fbb !important;
+    border-color:  #226fbb !important;
+}
+.dt-buttons{
+    margin-left: 8px;
+}
+/* the css of datatable overflow override to show the + and - collapsed css */
+/* .dtr-control:before{
+    height: 1em;
+    width: 1em;
+    margin-right: .5em !important;
+    display: inline-block !important;
+    color: #fff !important;
+    border: .15em solid #fff;
+    border-radius: 1em !important;
+    box-shadow: 0 0 0.2em #444;
+    box-sizing: content-box !important;
+    text-align: center !important;
+    text-indent: 0!important;
+    font-family: Courier New,Courier,monospace;
+    line-height: 1em !important;
+    content: "+" !important;
+    background-color: #0d6efd;
+}
+table.dataTable.dtr-inline.collapsed>tbody>tr.parent>td.dtr-control:before{
+    content: "-" !important;
+} */
+/* -------------------------------------------------- */
+/* To avoid the change in the arrow display b'coz of the global font-family: var(--bs-font-sans-serif); */
+.dtr-control:before{
+    font-family: None;
+}
+
+

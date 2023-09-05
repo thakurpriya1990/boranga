@@ -482,7 +482,7 @@ class Species(models.Model):
     species_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
-    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
+    taxonomy = models.OneToOneField(Taxonomy, on_delete=models.SET_NULL, null=True, blank=True)
     image_doc = models.ForeignKey('SpeciesDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='species_image')
     region = models.ForeignKey(Region, 
                                default=None,
@@ -497,7 +497,7 @@ class Species(models.Model):
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
     # parents will the original species  from the split/combine functionality
-    parent_species = models.ManyToManyField('self', null = True, blank=True, related_name='parent')
+    parent_species = models.ManyToManyField('self', blank=True, related_name='parent')
     comment = models.CharField(max_length=500,null=True, blank=True)
     
     class Meta:
@@ -976,7 +976,7 @@ class SpeciesDistribution(models.Model):
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
-    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_distribution")
+    species = models.OneToOneField(Species, on_delete=models.CASCADE, null=True, related_name="species_distribution")
 
     class Meta:
         app_label = 'boranga'
@@ -1060,7 +1060,7 @@ class Community(models.Model):
     community_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,on_delete=models.CASCADE)
     # TODO the species is noy required as per the new requirements
-    species = models.ManyToManyField(Species, null=True, blank=True)
+    species = models.ManyToManyField(Species, blank=True)
     # taxonomy = models.ForeignKey(CommunityTaxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
@@ -1411,7 +1411,7 @@ class CommunityTaxonomy(models.Model):
     Is:
     - Table
     """
-    community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="taxonomy")
+    community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="taxonomy")
     community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
     community_name = models.CharField(max_length=512,null=True, blank=True)
     community_description = models.CharField(max_length=2048, null=True, blank=True)
@@ -1512,7 +1512,7 @@ class CommunityDistribution(models.Model):
     community_original_area = models.IntegerField(null=True, blank=True)
     community_original_area_accuracy = models.IntegerField(null=True, blank=True)
     community_original_area_reference = models.CharField(max_length=512, null=True, blank=True)
-    community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="community_distribution")
+    community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="community_distribution")
 
     class Meta:
         app_label = 'boranga'
@@ -2107,7 +2107,7 @@ class SpeciesConservationAttributes(models.Model):
                     (12, 'December'),
                     )
 
-    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_conservation_attributes")
+    species = models.OneToOneField(Species, on_delete=models.CASCADE, null=True, related_name="species_conservation_attributes")
     
     # flora related attributes
     flowering_period = MultiSelectField(max_length=250, blank=True, choices=PERIOD_CHOICES, null=True)
@@ -2158,7 +2158,7 @@ class CommunityConservationAttributes(models.Model):
     Is:
     - Table
     """
-    community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="community_conservation_attributes")
+    community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="community_conservation_attributes")
 
     # habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
     pollinator_information = models.CharField(max_length=1000,null=True, blank=True)
