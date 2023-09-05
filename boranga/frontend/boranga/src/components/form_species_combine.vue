@@ -11,8 +11,7 @@
                     :href="'#' + profileBody" 
                     role="tab" 
                     :aria-controls="profileBody" 
-                    aria-selected="true"
-                    @click="tabClicked()">
+                    aria-selected="true">
                   Profile
                 </a>
               </li>
@@ -46,7 +45,6 @@
             <div class="tab-content" id="pills-tabContent">
               <div class="tab-pane fade show active" :id="profileBody" role="tabpanel" aria-labelledby="pills-profile-tab">
                 <SpeciesProfile
-                    :key="reloadcount"
                     ref="species_information" 
                     id="speciesInformation" 
                     :is_internal="is_internal"

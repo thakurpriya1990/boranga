@@ -78,7 +78,7 @@ export default {
                         {
                             extend: 'excel',
                             text: '<i class="fa-solid fa-download"></i> Excel',
-                            className: 'btn btn-primary ml-2',
+                            className: 'btn btn-primary me-2 rounded',
                             exportOptions: {
                                 orthogonal: 'export'
                             }
@@ -86,7 +86,7 @@ export default {
                         {
                             extend: 'csv',
                             text: '<i class="fa-solid fa-download"></i> CSV',
-                            className: 'btn btn-primary',
+                            className: 'btn btn-primary rounded',
                             exportOptions: {
                                 orthogonal: 'export'
                             }
@@ -108,15 +108,15 @@ export default {
 
                         },
                         {
-                            data: "threat_category_name",
+                            data: "threat_category",
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
                                 if(full.visible){
-                                    return full.threat_category_name;
+                                    return full.threat_category;
                                 }
                                 else{
-                                    return '<s>'+ full.threat_category_name + '</s>'
+                                    return '<s>'+ full.threat_category + '</s>'
                                 }
                             },
 
@@ -221,6 +221,10 @@ export default {
                     processing:true,
                     initComplete: function() {
                         helpers.enablePopovers();
+                        // another option to fix the responsive table overflow css on tab switch
+                        setTimeout(function (){
+                            vm.adjust_table_width();
+                        },100);
                     },
                 }
             }
@@ -268,6 +272,9 @@ export default {
                         vm.species_community.threats.splice(index,1);
                     }
                 });
+            },
+            adjust_table_width: function(){
+                this.$refs.threats_datatable.vmDataTable.columns.adjust().responsive.recalc();
             },
         },
         mounted: function(){

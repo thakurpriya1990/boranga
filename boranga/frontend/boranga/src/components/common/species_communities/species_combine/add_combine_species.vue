@@ -102,10 +102,11 @@ export default {
                         }
                     }
                     if(hasSpecies==true){
-                        swal({
+                        swal.fire({
                             title: "Please fix following errors",
                             text: "Species To combine already exists",
-                            type:'error'
+                            icon:'error',
+                            confirmButtonColor:'#226fbb'
                         })
                     }
                     else{

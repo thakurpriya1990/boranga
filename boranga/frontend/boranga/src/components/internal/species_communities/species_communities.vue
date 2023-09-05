@@ -123,14 +123,14 @@
                                     <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
                                         <div v-if="species_community.can_user_edit" class="container">
                                             <div class="col-md-12 text-end">
-                                                <button v-if="savingSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
+                                                <button v-if="savingSpeciesCommunity" class="btn btn-primary me-2 pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                <button v-else class="btn btn-primary me-2 ull-right" style="margin-top:5px;" 
                                                 @click.prevent="save()" :disabled="saveExitSpeciesCommunity || submitSpeciesCommunity">Save and Continue</button>
                                                 
-                                                <button v-if="saveExitSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
+                                                <button v-if="saveExitSpeciesCommunity" class="btn btn-primary me-2 pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                <button v-else class="btn btn-primary me-2 pull-right" style="margin-top:5px;" 
                                                 @click.prevent="save_exit()" :disabled="savingSpeciesCommunity || submitSpeciesCommunity">Save and Exit</button>
 
                                                 <button v-if="submitSpeciesCommunity" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
@@ -168,7 +168,6 @@ import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 
 //import MoreReferrals from '@common-utils/more_referrals.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'
@@ -319,10 +318,11 @@ export default {
             data.append('image2', vm.uploadedID);
             if (vm.uploadedID == null){
                 vm.uploadingID = false;
-                swal({
+                swal.fire({
                         title: 'Upload Image',
                         html: 'Please select an Image to upload.',
-                        type: 'error'
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
                 });
             } else {
                 if(this.species_community.group_type=='community'){
@@ -346,10 +346,11 @@ export default {
                     for (var key in error.body) {
                         error_msg += key + ': ' + error.body[key] + '<br/>';
                     }
-                    swal({
+                    swal.fire({
                         title: 'Upload ID',
                         html: 'There was an error uploading your ID.<br/>' + error_msg,
-                        type: 'error'
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
                     });
                 });
             }
@@ -364,10 +365,11 @@ export default {
                 }
            
             if (vm.uploadedID == null){
-                swal({
+                swal.fire({
                         title: 'Delete Image',
                         html: 'No Image uploaded.',
-                        type: 'error'
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
                 });
             } else {
                 if(vm.species_community.image_doc)
@@ -387,10 +389,11 @@ export default {
                     for (var key in error.body) {
                         error_msg += key + ': ' + error.body[key] + '<br/>';
                     }
-                    swal({
+                    swal.fire({
                         title: 'Delete Image',
                         html: 'There was an error deleting your image.<br/>' + error_msg,
-                        type: 'error'
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
                     });
                 });
                 }
@@ -399,27 +402,30 @@ export default {
         },
         discardSpeciesProposal:function () {
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Discard Application",
                 text: "Are you sure you want to discard this proposal?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
-            }).then(() => {
-                vm.$http.delete(api_endpoints.discard_species_proposal(vm.species_community.id))
-                .then((response) => {
-                    swal(
-                        'Discarded',
-                        'Your proposal has been discarded',
-                        'success'
-                    )
-                    vm.$router.push({
-                    name: 'internal-species-communities-dash'
+            }).then((swalresult) => {
+                if(swalresult.isConfirmed){
+                    vm.$http.delete(api_endpoints.discard_species_proposal(vm.species_community.id))
+                    .then((response) => {
+                        swal.fire({
+                            title: 'Discarded',
+                            text: 'Your proposal has been discarded',
+                            icon: 'success',
+                            confirmButtonColor:'#226fbb',
+                        });
+                        vm.$router.push({
+                        name: 'internal-species-communities-dash'
+                        });
+                    }, (error) => {
+                        console.log(error);
                     });
-                }, (error) => {
-                    console.log(error);
-                });
+                }
             },(error) => {
 
             });
@@ -430,19 +436,24 @@ export default {
             let payload = new Object();
             Object.assign(payload, vm.species_community);
             vm.$http.post(vm.species_community_form_url,payload).then(res=>{
-              swal(
-                'Saved',
-                'Your changes has been saved',
-                'success'
-              )
+                swal.fire({
+                    // 'Saved',
+                    // 'Your changes has been saved',
+                    // 'success'
+                    title: "Saved",
+                    text: "Your changes has been saved",
+                    icon: "success",
+                    confirmButtonColor:'#226fbb'
+                });
               vm.savingSpeciesCommunity=false;
           },err=>{
             var errorText=helpers.apiVueResourceError(err); 
-                  swal(
-                          'Save Error',
-                          errorText,
-                          'error'
-                      )
+                swal.fire({
+                    title: 'Save Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
             vm.savingSpeciesCommunity=false;
           });
         },
@@ -467,12 +478,13 @@ export default {
                 //return true;
             },err=>{
                         var errorText=helpers.apiVueResourceError(err); 
-                        swal(
-                                'Submit Error',
-                                //helpers.apiVueResourceError(err),
-                                errorText,
-                                'error'
-                            )
+                        swal.fire({
+                            title: 'Submit Error',
+                            //helpers.apiVueResourceError(err),
+                            text: errorText,
+                            icon: 'error',
+                            confirmButtonColor:'#226fbb'
+                        })
                         vm.submitSpeciesCommunity=false;
                         vm.saveError=true;
                 //return false;
@@ -504,50 +516,53 @@ export default {
 
             var missing_data= vm.can_submit();
             if(missing_data!=true){
-                swal({
+                swal.fire({
                     title: "Please fix following errors before submitting",
                     text: missing_data,
-                    type:'error'
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
                 })
                 //vm.paySubmitting=false;
                 return false;
             }
             
             vm.submitSpeciesCommunity=true;
-            swal({
+            swal.fire({
                 title: "Submit",
                 text: "Are you sure you want to submit this application?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: "submit"
-            }).then(async () => {
-            
-                let result = await vm.save_before_submit()
-                if(!vm.saveError){
-                    let payload = new Object();
-                    Object.assign(payload, vm.species_community);
-                    let submit_url = this.species_community.group_type === "community"? 
-                                    helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/submit'): 
-                                    helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/submit')
-                    vm.$http.post(submit_url,payload).then(res=>{
-                        vm.species_community = res.body;
-                        // vm.$router.push({
-                        //     name: 'submit_cs_proposal',
-                        //     params: { conservation_status_obj: vm.conservation_status_obj}
-                        // });
-                    // TODO router should push to submit_cs_proposal for internal side 
-                        vm.$router.push({
-                            name: 'internal-species-communities-dash'
+                confirmButtonText: "submit",
+                confirmButtonColor:'#226fbb'
+            }).then(async (swalresult) => {
+                if(swalresult.isConfirmed){
+                    let result = await vm.save_before_submit()
+                    if(!vm.saveError){
+                        let payload = new Object();
+                        Object.assign(payload, vm.species_community);
+                        let submit_url = this.species_community.group_type === "community"? 
+                                        helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/submit'): 
+                                        helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/submit')
+                        vm.$http.post(submit_url,payload).then(res=>{
+                            vm.species_community = res.body;
+                            // vm.$router.push({
+                            //     name: 'submit_cs_proposal',
+                            //     params: { conservation_status_obj: vm.conservation_status_obj}
+                            // });
+                        // TODO router should push to submit_cs_proposal for internal side 
+                            vm.$router.push({
+                                name: 'internal-species-communities-dash'
+                            });
+                        },err=>{
+                            swal.fire({
+                                title: 'Submit Error',
+                                text: helpers.apiVueResourceError(err),
+                                icon: 'error',
+                                confirmButtonColor:'#226fbb'
+                            });
                         });
-                    },err=>{
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
-                    });
+                    }
                 }
-                
             },(error) => {
                 vm.submitSpeciesCommunity=false;
             });
@@ -728,9 +743,5 @@ export default {
     margin-top: 15px;
     margin-bottom: 10px;
     width: 100%;
-}
-
-.p-3 {
-  padding: $spacer !important;
 }
 </style>
