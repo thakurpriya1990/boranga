@@ -86,6 +86,7 @@ INSTALLED_APPS += [
     'boranga.components.compliances',
     'boranga.components.meetings',
     'boranga.components.conservation_plan',
+    'boranga.components.occurrence',
 
     'taggit',
     'rest_framework',

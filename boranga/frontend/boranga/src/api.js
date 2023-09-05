@@ -93,6 +93,7 @@ module.exports = {
     community_conservation_status_referrals_paginated_internal: "/api/community_conservation_status_paginated/community_cs_referrals_internal/?format=datatables",
     community_cs_referrals_internal_export: "/api/community_conservation_status_paginated/community_cs_referrals_internal_export",
     conservation_status_paginated_external: "/api/conservation_status_paginated/conservation_status_external?format=datatables",
+    occurrence_report_paginated_external: "/api/occurrence_report_paginated/occurrence_report_external?format=datatables",
     species_conservation_plans_paginated_internal: "/api/species_conservation_plans_paginated/species_cp_internal/?format=datatables",
     community_conservation_plans_paginated_internal: "/api/community_conservation_plans_paginated/community_cp_internal/?format=datatables",
     species_agenda_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/agenda_cs_internal/?format=datatables",
@@ -134,6 +135,8 @@ module.exports = {
     minutes:"/api/minutes.json",
     committee:"/api/committee",
 
+    occurrence_report:"/api/occurrence_report",
+
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",
     //list_proposals:"/api/list_proposal/?format=datatables",
@@ -150,6 +153,9 @@ module.exports = {
     },
     discard_meeting:function (id) {
       return `/api/meeting/${id}.json`;
+    },
+    discard_ocr_proposal:function (id) {
+      return `/api/occurrence_report/${id}.json`;
     },
     discard_vessel:function (id) {
       return `/api/vessels/${id}.json`;

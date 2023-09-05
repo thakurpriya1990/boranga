@@ -578,9 +578,6 @@ export default {
                 vm.column_genera,
                 /*vm.column_region,
                 vm.column_district,*/
-                vm.column_can_be_processed,
-                vm.column_can_user_process,
-                vm.column_conservation_status,
                 vm.column_status,
                 vm.column_action,
             ]
