@@ -152,11 +152,12 @@ export default {
                 vm.$http.post('/api/cs_amendment_request.json', formData,{
                         emulateJSON:true,
                     }).then((response)=>{
-                        swal(
-                             'Sent',
-                             'An email has been sent to applicant with the request to amend this Application',
-                             'success'
-                        );
+                        swal.fire({
+                            title: 'Sent',
+                             text: 'An email has been sent to applicant with the request to amend this Application',
+                             icon: 'success',
+                             confirmButtonColor:'#226fbb'
+                        });
                         vm.amendingProposal = true;
                         vm.close();
                         //vm.$emit('refreshFromResponse',response);
@@ -167,7 +168,7 @@ export default {
                         },(error)=>{
                             console.log(error);
                         });
-                        vm.$router.push({ path: '/internal' }); //Navigate to dashboard after creating Amendment request
+                        vm.$router.push({ path: '/internal/conservation-status' }); //Navigate to dashboard after creating Amendment request
 
                     },(error)=>{
                         console.log(error);

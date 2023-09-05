@@ -72,7 +72,7 @@ export default {
                         {
                             extend: 'excel',
                             text: '<i class="fa-solid fa-download"></i> Excel',
-                            className: 'btn btn-primary ml-2',
+                            className: 'btn btn-primary me-2 rounded',
                             exportOptions: {
                                 orthogonal: 'export' 
                             }
@@ -80,7 +80,7 @@ export default {
                         {
                             extend: 'csv',
                             text: '<i class="fa-solid fa-download"></i> CSV',
-                            className: 'btn btn-primary',
+                            className: 'btn btn-primary rounded',
                             exportOptions: {
                                 orthogonal: 'export' 
                             }
@@ -186,6 +186,11 @@ export default {
                     processing:true,
                     initComplete: function() {
                         helpers.enablePopovers();
+                        // to fix the responsive table overflow css on tab switch
+                        // vm.$refs.documents_datatable.vmDataTable.draw('page');
+                        setTimeout(function (){
+                            vm.adjust_table_width();
+                        },100);
                     }, 
                 }
             }
@@ -239,49 +244,56 @@ export default {
             },
             discardDocument:function (id) {
                 let vm = this;
-                swal({
+                swal.fire({
                     title: "Remove Document",
                     text: "Are you sure you want to remove this Document?",
-                    type: "warning",
+                    icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: 'Remove Document',
                     confirmButtonColor:'#d9534f'
-                }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/discard'))
-                    .then((response) => {
-                        swal(
-                            'Discarded',
-                            'Your document has been removed',
-                            'success'
-                        )
-                        vm.$refs.documents_datatable.vmDataTable.ajax.reload();
-                    }, (error) => {
-                        console.log(error);
-                    });
+                }).then((result) => {
+                    if(result.isConfirmed){
+                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/discard'))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'Your document has been removed',
+                                icon: 'success',
+                                confirmButtonColor:'#226fbb',
+                            });
+                            vm.$refs.documents_datatable.vmDataTable.ajax.reload();
+                        }, (error) => {
+                            console.log(error);
+                        });
+                    }
                 },(error) => {
 
                 });
             },
             reinstateDocument:function (id) {
                 let vm = this;
-                swal({
+                swal.fire({
                     title: "Reinstate Document",
                     text: "Are you sure you want to Reinstate this Document?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
                     confirmButtonText: 'Reinstate Document',
-                }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/reinstate'))
-                    .then((response) => {
-                        swal(
-                            'Reinstated',
-                            'Your document has been reinstated',
-                            'success'
-                        )
-                        vm.$refs.documents_datatable.vmDataTable.ajax.reload();
-                    }, (error) => {
-                        console.log(error);
-                    });
+                    confirmButtonColor:'#226fbb',
+                }).then((result) => {
+                    if(result.isConfirmed){
+                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/reinstate'))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your document has been reinstated',
+                                icon: 'success',
+                                confirmButtonColor:'#226fbb',
+                            });
+                            vm.$refs.documents_datatable.vmDataTable.ajax.reload();
+                        }, (error) => {
+                            console.log(error);
+                        });
+                    }
                 },(error) => {
 
                 });
@@ -311,7 +323,10 @@ export default {
             },
             refreshFromResponse: function(){
                 this.$refs.documents_datatable.vmDataTable.ajax.reload();
-        },
+            },
+            adjust_table_width: function(){
+                this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();
+            },
         },
         mounted: function(){
             let vm = this;

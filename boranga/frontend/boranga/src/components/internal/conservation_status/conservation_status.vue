@@ -229,14 +229,14 @@
                                         <!--the below as internal proposal submission ELSE just saving proposal changes -->
                                         <div v-if="conservation_status_obj.internal_user_edit" class="container">
                                             <div class="col-md-12 text-end">
-                                                <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
+                                                <button v-if="savingConservationStatus" class="btn btn-primary me-2 pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                <button v-else class="btn btn-primary me-2 pull-right" style="margin-top:5px;" 
                                                 @click.prevent="save()" :disabled="saveExitConservationStatus || submitConservationStatus">Save and Continue</button>
                                                 
-                                                <button v-if="saveExitConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
+                                                <button v-if="saveExitConservationStatus" class="btn btn-primary me-2 pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
+                                                <button v-else class="btn btn-primary me-2 pull-right" style="margin-top:5px;" 
                                                 @click.prevent="save_exit()" :disabled="savingConservationStatus || submitConservationStatus">Save and Exit</button>
 
                                                 <button v-if="submitConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
@@ -500,19 +500,21 @@ export default {
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
             vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
-              swal(
-                'Saved',
-                'Your changes has been saved',
-                'success'
-              )
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Your changes has been saved',
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb',
+                });
               vm.savingConservationStatus=false;
           },err=>{
             var errorText=helpers.apiVueResourceError(err); 
-                  swal(
-                          'Save Error',
-                          errorText,
-                          'error'
-                      )
+                swal.fire({
+                    title: 'Save Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
             vm.savingConservationStatus=false;
           });
         },
@@ -537,15 +539,16 @@ export default {
                 //return true;
             },err=>{
                         var errorText=helpers.apiVueResourceError(err); 
-                        swal(
-                                'Submit Error',
-                                //helpers.apiVueResourceError(err),
-                                errorText,
-                                'error'
-                            )
+                        swal.fire({
+                            title: 'Submit Error',
+                            //helpers.apiVueResourceError(err),
+                            text: errorText,
+                            icon: 'error',
+                            confirmButtonColor:'#226fbb'
+                        });
                         vm.submitConservationStatus=false;
                         vm.saveError=true;
-                //return false;
+                        //return false;
             });
             return result;
         },
@@ -602,46 +605,49 @@ export default {
 
             var missing_data= vm.can_submit();
             if(missing_data!=true){
-                swal({
+                swal.fire({
                     title: "Please fix following errors before submitting",
                     text: missing_data,
-                    type:'error'
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
                 })
                 //vm.paySubmitting=false;
                 return false;
             }
             vm.submitConservationStatus=true;
-            swal({
+            swal.fire({
                 title: "Submit New Conservation Status Application",
                 text: "Are you sure you want to submit this application?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: "submit"
-            }).then(async () => {
-            
-                let result = await vm.save_before_submit()
-                if(!vm.saveError){
-                    let payload = new Object();
-                    Object.assign(payload, vm.conservation_status_obj);
-                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_obj.id+'/submit'),payload).then(res=>{
-                        vm.conservation_status_obj = res.body;
-                        // vm.$router.push({
-                        //     name: 'submit_cs_proposal',
-                        //     params: { conservation_status_obj: vm.conservation_status_obj}
-                        // });
-                    // TODO router should push to submit_cs_proposal for internal side 
-                        vm.$router.push({
-                            name: 'internal-conservation_status-dash'
+                confirmButtonText: "submit",
+                confirmButtonColor:'#226fbb'
+            }).then(async (swalresult) => {
+                if(swalresult.isConfirmed){
+                    let result = await vm.save_before_submit()
+                    if(!vm.saveError){
+                        let payload = new Object();
+                        Object.assign(payload, vm.conservation_status_obj);
+                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_obj.id+'/submit'),payload).then(res=>{
+                            vm.conservation_status_obj = res.body;
+                            // vm.$router.push({
+                            //     name: 'submit_cs_proposal',
+                            //     params: { conservation_status_obj: vm.conservation_status_obj}
+                            // });
+                        // TODO router should push to submit_cs_proposal for internal side 
+                            vm.$router.push({
+                                name: 'internal-conservation_status-dash'
+                            });
+                        },err=>{
+                            swal.fire({
+                                title: 'Submit Error',
+                                text: helpers.apiVueResourceError(err),
+                                icon: 'error',
+                                confirmButtonColor:'#226fbb'
+                            });
                         });
-                    },err=>{
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
-                    });
+                    }
                 }
-                
             },(error) => {
                 vm.submitConservationStatus=false;
             });
@@ -692,11 +698,12 @@ export default {
                     
                     vm.updateAssignedOfficerSelect();
                     //vm.fetchProposalParks(vm.proposal.id);
-                    swal(
-                        'Application Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                    swal.fire({
+                        title: 'Application Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
+                    });
                 });
             }
             else{
@@ -714,11 +721,12 @@ export default {
                     
                     vm.updateAssignedOfficerSelect();
                     //vm.fetchProposalParks(vm.proposal.id);
-                    swal(
-                        'Application Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                    swal.fire({
+                        title: 'Application Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
+                    });
                 });
             }
         },
@@ -747,11 +755,12 @@ export default {
                 vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
                 // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
                 vm.updateAssignedOfficerSelect();
-                swal(
-                    'Application Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Application Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon :'error',
+                    confirmButtonColor:'#226fbb'
+                });
             });
         },
         initialiseAssignedOfficerSelect:function(reinit=false){
@@ -853,21 +862,23 @@ export default {
                 vm.sendingReferral = false;
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
-                swal(
-                    'Referral Sent',
-                    'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
-                    'success'
-                )
+                swal.fire({
+                    title: 'Referral Sent',
+                    text: 'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
                 $(vm.$refs.department_users).val(null).trigger("change");
                 vm.selected_referral = '';
                 vm.referral_text = '';
             }, (error) => {
                 console.log(error);
-                swal(
-                    'Referral Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
                 vm.sendingReferral = false;
             });
 
@@ -882,23 +893,25 @@ export default {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
                 //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                swal(
-                    'Referral Reminder',
-                    'A reminder has been sent to '+vm.department_users.find(d => d.id == r.referral).name,
-                    'success'
-                )
+                swal.fire({
+                    title: 'Referral Reminder',
+                    text: 'A reminder has been sent to '+vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
             },
             error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Reminder Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
             });
         },
         recallReferral:function(r){
             let vm = this;
-            swal({
+            swal.fire({
                     title: "Loading...",
                     //text: "Loading...",
                     allowOutsideClick: false,
@@ -914,18 +927,20 @@ export default {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
                 //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                swal(
-                    'Referral Recall',
-                    'The referall has been recalled from '+vm.department_users.find(d => d.id == r.referral).name,
-                    'success'
-                )
+                swal.fire({
+                    title: 'Referral Recall',
+                    text: 'The referral has been recalled from '+vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
             },
             error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Recall Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
             });
         },
         resendReferral:function(r){
@@ -935,18 +950,20 @@ export default {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
                 //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                swal(
-                    'Referral Resent',
-                    'The referral has been resent to '+vm.department_users.find(d => d.id == r.referral).name,
-                    'success'
-                )
+                swal.fire({
+                    title: 'Referral Resent',
+                    text: 'The referral has been resent to '+vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
             },
             error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Resent Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
             });
         },
         switchStatus: function(status){
@@ -970,11 +987,12 @@ export default {
                     vm.$router.push({ path: '/internal/conservation-status/' });
                 }, (error) => {
                     vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
-                    swal(
-                        'Application Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                    swal.fire({
+                        title: 'Application Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
+                    });
                 });
             }
             else{
@@ -994,11 +1012,12 @@ export default {
                     vm.changingStatus=false;
                 }, (error) => {
                     vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
-                    swal(
-                        'Application Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                    swal.fire({
+                        title: 'Application Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
+                    });
                     vm.changingStatus=false;
                 });
             }

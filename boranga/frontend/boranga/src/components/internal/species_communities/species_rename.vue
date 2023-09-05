@@ -123,11 +123,12 @@ export default {
                 return true;
             },err=>{
                         var errorText=helpers.apiVueResourceError(err); 
-                        swal(
-                                'Submit Error',
-                                errorText,
-                                'error'
-                            )
+                        swal.fire({
+                            title: 'Submit Error',
+                            text: errorText,
+                            icon: 'error',
+                            confirmButtonColor:'#226fbb'
+                        });
                         vm.submitSpeciesRename=false;
                         vm.saveError=true;
                         return false;
@@ -139,55 +140,61 @@ export default {
 
             // var missing_data= vm.can_submit();
             // if(missing_data!=true){
-            //     swal({
-            //         title: "Please fix following errors before submitting",
-            //         text: missing_data,
-            //         type:'error'
+                // swal.fire({
+                //     title: "Please fix following errors before submitting",
+                //     text: missing_data,
+                //     icon:'error',
+                //     confirmButtonColor:'#226fbb'
             //     })
             //     //vm.paySubmitting=false;
             //     return false;
             // }
             if(vm.new_rename_species.taxonomy_id && vm.new_rename_species.taxonomy_id == vm.species_community_original.taxonomy_id){
-                swal({
+                swal.fire({
                             title: "Please fix following errors",
                             text: "Species To Rename already exists",
-                            type:'error'
+                            icon:'error',
+                            confirmButtonColor:'#226fbb'
                     })
             }
             else{
                 vm.submitSpeciesRename=true;
-                swal({
+                swal.fire({
                     title: "Submit",
                     text: "Are you sure you want to submit this Species Rename?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: "submit"
-                }).then(async () => {
-                    //---save and submit the new rename species
-                    let new_species = vm.new_rename_species;
-                    //-- save new species before submit
-                    let result = await vm.save_before_submit(new_species);
-                    if(!vm.saveError){
-                        // add the parent species to the new species object
-                        new_species.parent_species=[vm.species_community_original];
-                        let payload = new Object();
-                        Object.assign(payload, new_species);
-                        // TODO May be need to create another submit method for rename as the mail and action could be different
-                        let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/rename_new_species_submit')
-                        vm.$http.post(submit_url,payload).then(res=>{
-                            vm.new_species = res.body;
-                            vm.$router.push({
-                                name: 'internal-species-communities-dash'
+                    confirmButtonText: "submit",
+                    confirmButtonColor:'#226fbb'
+                }).then(async (swalresult) => {
+                    if(swalresult.isConfirmed){
+                        //---save and submit the new rename species
+                        let new_species = vm.new_rename_species;
+                        //-- save new species before submit
+                        let result = await vm.save_before_submit(new_species);
+                        if(!vm.saveError){
+                            // add the parent species to the new species object
+                            new_species.parent_species=[vm.species_community_original];
+                            let payload = new Object();
+                            Object.assign(payload, new_species);
+                            // TODO May be need to create another submit method for rename as the mail and action could be different
+                            let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/rename_new_species_submit')
+                            vm.$http.post(submit_url,payload).then(res=>{
+                                vm.new_species = res.body;
+                                vm.$router.push({
+                                    name: 'internal-species-communities-dash'
+                                });
+                                //vm.submit_original_species();
+                            },err=>{
+                                swal.fire({
+                                    title: 'Submit Error',
+                                    text: helpers.apiVueResourceError(err),
+                                    icon: 'error',
+                                    confirmButtonColor:'#226fbb'
+                                });
+                                vm.saveError=true;
                             });
-                            //vm.submit_original_species();
-                        },err=>{
-                            swal(
-                                'Submit Error',
-                                helpers.apiVueResourceError(err),
-                                'error'
-                            )
-                            vm.saveError=true;
-                        });
+                        }
                     }
 
                 },(error) => {
@@ -208,11 +215,12 @@ export default {
         //             name: 'internal-species-communities-dash'
         //         });
         //     },err=>{
-        //         swal(
-        //             'Submit Error',
-        //             helpers.apiVueResourceError(err),
-        //             'error'
-        //         )
+        //         swal.fire({
+        //             title: 'Submit Error',
+        //             text: helpers.apiVueResourceError(err),
+        //             icon: 'error',
+                        // confirmButtonColor:'#226fbb'
+        //         ]);
         //     });
         // },
         eventListeners:function () {

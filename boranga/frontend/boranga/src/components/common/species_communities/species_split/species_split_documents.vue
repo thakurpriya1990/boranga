@@ -76,7 +76,7 @@ export default {
                         {
                             extend: 'excel',
                             text: '<i class="fa-solid fa-download"></i> Excel',
-                            className: 'btn btn-primary ml-2',
+                            className: 'btn btn-primary me-2 rounded',
                             exportOptions: {
                                 orthogonal: 'export' 
                             }
@@ -84,7 +84,7 @@ export default {
                         {
                             extend: 'csv',
                             text: '<i class="fa-solid fa-download"></i> CSV',
-                            className: 'btn btn-primary',
+                            className: 'btn btn-primary rounded',
                             exportOptions: {
                                 orthogonal: 'export' 
                             }
@@ -192,6 +192,10 @@ export default {
                     processing:true,
                     initComplete: function() {
                         helpers.enablePopovers();
+                        // another option to fix the responsive table overflow css on tab switch
+                        setTimeout(function (){
+                            vm.adjust_table_width();
+                        },100);
                     }, 
                 }
             }
@@ -239,6 +243,9 @@ export default {
                         vm.species_community.documents.splice(index,1);
                     }
                 });
+            },
+            adjust_table_width: function(){
+                this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();
             },
         },
         mounted: function(){

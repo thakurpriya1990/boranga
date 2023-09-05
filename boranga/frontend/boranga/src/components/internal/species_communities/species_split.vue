@@ -56,7 +56,9 @@
                                     </li>
                                 </ul>
                                 <div class="tab-content" id="split-pills-tabContent">
-                                    <div class="tab-pane fade show active" :id="originalBody" role="tabpanel" aria-labelledby="pills-original-tab">
+                                    <!-- the fade show active was creating the problem of rendering two thing on tab -->
+                                    <!-- <div class="tab-pane fade show active" :id="originalBody" role="tabpanel" aria-labelledby="pills-original-tab"></div> -->
+                                    <div class="tab-pane" :id="originalBody" role="tabpanel" aria-labelledby="pills-original-tab">
                                         <SpeciesCommunitiesComponent v-if="species_community_original!=null"
                                             ref="species_communities_original" 
                                             :species_community.sync="species_community_original" 
@@ -65,7 +67,7 @@
                                             :is_readonly="true"> <!-- this prop is only send from split species form to make the original species readonly -->
                                         </SpeciesCommunitiesComponent>
                                     </div>
-                                    <div v-for="(species, index) in new_species_list" :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index" role="tabpanel"  :aria-labelledby="'pills-species' + index + '-tab'" >
+                                    <div v-for="(species, index) in new_species_list" :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index" role="tabpanel"  :aria-labelledby="'pills-species-' + index + '-tab'" >
                                         <SpeciesSplitForm
                                             :ref="'species_communities_species' + index" 
                                             :species_community.sync="species"
@@ -196,12 +198,12 @@ export default {
                 return true;
             },err=>{
                         var errorText=helpers.apiVueResourceError(err); 
-                        swal(
-                                'Submit Error',
-                                //helpers.apiVueResourceError(err),
-                                errorText,
-                                'error'
-                            )
+                        swal.fire({
+                            title: 'Submit Error',
+                            text: errorText,
+                            icon: 'error',
+                            confirmButtonColor:'#226fbb'
+                        });
                         vm.submitSpeciesSplit=false;
                         vm.saveError=true;
                         return false;
@@ -228,48 +230,53 @@ export default {
 
             var missing_data= vm.can_submit();
             if(missing_data!=true){
-                swal({
+                swal.fire({
                     title: "Please fix following errors before submitting",
                     text: missing_data,
-                    type:'error'
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
                 })
                 //vm.paySubmitting=false;
                 return false;
             }
             
             vm.submitSpeciesSplit=true;
-            swal({
+            swal.fire({
                 title: "Submit",
                 text: "Are you sure you want to submit this Species Spit?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: "submit"
-            }).then(async () => {
-                for (let index=0 ; index<vm.new_species_list.length; index++){
-                    let new_species = vm.new_species_list[index]
-                    //-- save new species before submit
-                    let result = await vm.save_before_submit(new_species);
-                    if(!vm.saveError){
-                        // add the parent species to the new species object
-                        new_species.parent_species=[vm.species_community_original];
-                        let payload = new Object();
-                        Object.assign(payload, new_species);
-                        let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/split_new_species_submit')
-                        vm.$http.post(submit_url,payload).then(res=>{
-                            vm.new_species = res.body;
-                            //-- to change status of original species only after all new split species are submitted
-                            if(index==vm.new_species_list.length-1)
-                            {
-                                vm.submit_original_species();
-                            }
-                        },err=>{
-                            swal(
-                                'Submit Error',
-                                helpers.apiVueResourceError(err),
-                                'error'
-                            )
-                            vm.saveError=true;
-                        });
+                confirmButtonText: "submit",
+                confirmButtonColor:'#226fbb'
+            }).then(async (swalresult) => {
+                if(swalresult.isConfirmed){
+                    for (let index=0 ; index<vm.new_species_list.length; index++){
+                        let new_species = vm.new_species_list[index]
+                        //-- save new species before submit
+                        let result = await vm.save_before_submit(new_species);
+                        if(result){
+                            // add the parent species to the new species object
+                            new_species.parent_species=[vm.species_community_original];
+                            let payload = new Object();
+                            Object.assign(payload, new_species);
+                            let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/split_new_species_submit')
+                            vm.$http.post(submit_url,payload).then(res=>{
+                                vm.new_species = res.body;
+                                //-- to change status of original species only after all new split species are submitted
+                                if(index==vm.new_species_list.length-1)
+                                {
+                                    vm.submit_original_species();
+                                }
+                            },err=>{
+                                swal.fire({
+                                    title: 'Submit Error',
+                                    text: helpers.apiVueResourceError(err),
+                                    icon: 'error',
+                                    confirmButtonColor:'#226fbb'
+                                });
+                                vm.saveError=true;
+                            });
+                        }
                     }
                 }
             },(error) => {
@@ -289,11 +296,12 @@ export default {
                     name: 'internal-species-communities-dash'
                 });
             },err=>{
-                swal(
-                    'Submit Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Submit Error',
+                    text: helpers.apiVueResourceError(err),
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
             });
         },
         discardSpecies:function (species_id) {
@@ -375,6 +383,15 @@ export default {
         var lastTabEl = document.querySelector('#split-pills-tab li:nth-last-child(2) a')
         var lastTab = new bootstrap.Tab(lastTabEl)
         lastTab.show();
+        // const pillLinks = document.querySelectorAll('#split-pills-tab li a');
+        // console.log("1 "+pillLinks)
+        // const lastPillLink = pillLinks[pillLinks.length - 2];
+        // console.log("2 "+lastPillLink)
+        // const tabId = lastPillLink.getAttribute('href');
+        // console.log("3 "+tabId)
+        // // Show the last tab using Bootstrap's 'show' class
+        // document.querySelector(tabId).classList.add('show', 'active');
+        
    },
 }
 </script>

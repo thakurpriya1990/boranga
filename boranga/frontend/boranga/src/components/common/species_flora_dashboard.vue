@@ -673,14 +673,14 @@ export default {
             let buttons = [
                 {
                     text: '<i class="fa-solid fa-download"></i> Excel',
-                    className: 'btn btn-primary ml-2',
+                    className: 'btn btn-primary me-2 rounded',
                     action: function (e, dt, node, config) {
                         vm.exportData("excel");
                     }
                 },
                 {
                     text: '<i class="fa-solid fa-download"></i> CSV',
-                    className: 'btn btn-primary',
+                    className: 'btn btn-primary rounded',
                     action: function (e, dt, node, config) {
                         vm.exportData("csv");
                     }
@@ -1291,25 +1291,28 @@ export default {
         },
         discardSpeciesProposal:function (species_id) {
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Discard Application",
                 text: "Are you sure you want to discard this proposal?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
-            }).then(() => {
-                vm.$http.delete(api_endpoints.discard_species_proposal(species_id))
-                .then((response) => {
-                    swal(
-                        'Discarded',
-                        'Your proposal has been discarded',
-                        'success'
-                    )
-                    vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
-                }, (error) => {
-                    console.log(error);
-                });
+            }).then((result) => {
+                if(result.isConfirmed){
+                    vm.$http.delete(api_endpoints.discard_species_proposal(species_id))
+                    .then((response) => {
+                        swal.fire({
+                            title: 'Discarded',
+                            text: 'Your proposal has been discarded',
+                            icon: 'success',
+                            confirmButtonColor:'#226fbb',
+                        });
+                        vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
 
             });

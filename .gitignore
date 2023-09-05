@@ -106,3 +106,5 @@ git_history_recent
 *.csv
 *.xls*
 *.DAV
+
+private-media/

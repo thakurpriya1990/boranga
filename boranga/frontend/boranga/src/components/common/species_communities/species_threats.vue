@@ -78,7 +78,7 @@ export default {
                         {
                             extend: 'excel',
                             text: '<i class="fa-solid fa-download"></i> Excel',
-                            className: 'btn btn-primary ml-2',
+                            className: 'btn btn-primary me-2 rounded',
                             exportOptions: {
                                 orthogonal: 'export' 
                             }
@@ -86,7 +86,7 @@ export default {
                         {
                             extend: 'csv',
                             text: '<i class="fa-solid fa-download"></i> CSV',
-                            className: 'btn btn-primary',
+                            className: 'btn btn-primary rounded',
                             exportOptions: {
                                 orthogonal: 'export' 
                             }
@@ -220,6 +220,11 @@ export default {
                     processing:true,
                     initComplete: function() {
                         helpers.enablePopovers();
+                        // another option to fix the responsive table overflow css on tab switch
+                        // vm.$refs.threats_datatable.vmDataTable.draw('page');
+                        setTimeout(function (){
+                            vm.adjust_table_width();
+                        },100);
                     }, 
                 }
             }
@@ -288,49 +293,56 @@ export default {
             },
             discardThreat:function (id) {
                 let vm = this;
-                swal({
+                swal.fire({
                     title: "Remove Threat",
                     text: "Are you sure you want to remove this Threat?",
-                    type: "warning",
+                    icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: 'Remove Threat',
                     confirmButtonColor:'#d9534f'
-                }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/discard'))
-                    .then((response) => {
-                        swal(
-                            'Discarded',
-                            'Your threat has been removed',
-                            'success'
-                        )
-                        vm.$refs.threats_datatable.vmDataTable.ajax.reload();
-                    }, (error) => {
-                        console.log(error);
-                    });
+                }).then((result) => {
+                    if(result.isConfirmed){
+                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/discard'))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'Your threat has been removed',
+                                icon:'success',
+                                confirmButtonColor:'#226fbb'
+                            });
+                            vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                        }, (error) => {
+                            console.log(error);
+                        });
+                    }
                 },(error) => {
 
                 });
             },
             reinstateThreat:function (id) {
                 let vm = this;
-                swal({
+                swal.fire({
                     title: "Reinstate Threat",
                     text: "Are you sure you want to Reinstate this Threat?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
                     confirmButtonText: 'Reinstate Threat',
-                }).then(() => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/reinstate'))
-                    .then((response) => {
-                        swal(
-                            'Reinstated',
-                            'Your threat has been reinstated',
-                            'success'
-                        )
-                        vm.$refs.threats_datatable.vmDataTable.ajax.reload();
-                    }, (error) => {
-                        console.log(error);
-                    });
+                    confirmButtonColor:'#226fbb',
+                }).then((result) => {
+                    if(result.isConfirmed){
+                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/reinstate'))
+                        .then((response) => {
+                            swal.fire({
+                                title:'Reinstated',
+                                text:'Your threat has been reinstated',
+                                icon:'success',
+                                confirmButtonColor:'#226fbb',
+                            });
+                            vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                        }, (error) => {
+                            console.log(error);
+                        });
+                    }
                 },(error) => {
 
                 });
@@ -365,6 +377,9 @@ export default {
             },
             refreshFromResponse: function(){
                 this.$refs.threats_datatable.vmDataTable.ajax.reload();
+            },
+            adjust_table_width: function(){
+                this.$refs.threats_datatable.vmDataTable.columns.adjust().responsive.recalc();
             },
         },
         mounted: function(){

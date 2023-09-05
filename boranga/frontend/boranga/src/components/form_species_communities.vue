@@ -11,8 +11,7 @@
                     :href="'#' + profileBody" 
                     role="tab" 
                     :aria-controls="profileBody" 
-                    aria-selected="true"
-                    @click="tabClicked()">
+                    aria-selected="true">
                   Profile
                 </a>
               </li>
@@ -60,7 +59,6 @@
               <div class="tab-pane fade show active" :id="profileBody" role="tabpanel" aria-labelledby="pills-profile-tab">
                 <Community
                     v-if="isCommunity"  
-                    :key="reloadcount"
                     ref="community_information" 
                     id="communityInformation" 
                     :is_internal="is_internal"
@@ -68,7 +66,6 @@
                 </Community>
                 <Species
                     v-else
-                    :key="reloadcount"
                     ref="species_information" 
                     id="speciesInformation" 
                     :is_internal="is_internal"
