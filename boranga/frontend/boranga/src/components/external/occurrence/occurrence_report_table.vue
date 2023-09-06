@@ -492,25 +492,28 @@ export default {
         },
         discardOCR:function (occurrence_report_id) {
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Discard Application",
                 text: "Are you sure you want to discard this report?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Report',
                 confirmButtonColor:'#d9534f'
-            }).then(() => {
-                vm.$http.delete(api_endpoints.discard_ocr_proposal(occurrence_report_id))
-                .then((response) => {
-                    swal(
-                        'Discarded',
-                        'Your report has been discarded',
-                        'success'
-                    )
-                    vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload();
-                }, (error) => {
-                    console.log(error);
-                });
+            }).then((swalresult) => {
+                if(swalresult.isConfirmed){
+                    vm.$http.delete(api_endpoints.discard_ocr_proposal(occurrence_report_id))
+                    .then((response) => {
+                        swal.fire({
+                            title: 'Discarded',
+                            text: 'Your report has been discarded',
+                            icon: 'success',
+                            confirmButtonColor:'#226fbb',
+                        });
+                        vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload();
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
 
             });

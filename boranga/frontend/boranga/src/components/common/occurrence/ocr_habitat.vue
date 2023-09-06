@@ -103,42 +103,42 @@
                 <label for="" class="col-sm-3 control-label">Pristine %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="pristine" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.pristine" @change.prevent="calckeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.pristine" @change.prevent="calcKeiryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Excellent %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="excellent" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.excellent" @change.prevent="calckeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.excellent" @change.prevent="calcKeiryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Very Good %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="very_good" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.very_good" @change.prevent="calckeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.very_good" @change.prevent="calcKeiryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Good %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="good" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.good" @change.prevent="calckeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.good" @change.prevent="calcKeiryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Degraded %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="degraded" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.degraded" @change.prevent="calckeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.degraded" @change.prevent="calcKeiryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Completely Degraded %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="completely_degraded" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.completely_degraded" @change.prevent="calckeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.completely_degraded" @change.prevent="calcKeiryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -258,24 +258,27 @@ export default {
                 }).then((response) => {
                     vm.updatingHabitatCompositionDetails = false;
                     vm.occurrence_report_obj.habitat_composition = response.body;
-                    swal(
-                        'Saved',
-                        'Habitat Composition details have been saved',
-                        'success'
-                    )
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Habitat Composition details have been saved',
+                        icon: 'success',
+                        confirmButtonColor:'#226fbb',
+
+                    });
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
-                    swal(
-                        'Error', 
-                        'Habitat Composition details have cannot be saved because of the following error: '+text,
-                        'error'
-                    )
+                    swal.fire({
+                        title: 'Error', 
+                        text: 'Habitat Composition details have cannot be saved because of the following error: '+text,
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb',
+                    });
                     vm.updatingHabitatCompositionDetails = false;
                 });
             },
             updateHabitatConditionDetails: function() {
                 let vm = this;
-                var valKeiryTotal=vm.calckeiryTotal();
+                var valKeiryTotal=vm.calcKeiryTotal();
                 if(valKeiryTotal){
                     vm.updatingHabitatConditionDetails = true;
                     vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_habitat_condition_details')),JSON.stringify(vm.occurrence_report_obj.habitat_condition),{
@@ -283,23 +286,25 @@ export default {
                     }).then((response) => {
                         vm.updatingHabitatConditionDetails = false;
                         vm.occurrence_report_obj.habitat_condition = response.body;
-                        swal(
-                            'Saved',
-                            'Habitat Condition details have been saved',
-                            'success'
-                        )
+                        swal.fire({
+                            title: 'Saved',
+                            text: 'Habitat Condition details have been saved',
+                            icon: 'success',
+                            confirmButtonColor:'#226fbb',
+                        });
                     }, (error) => {
                         var text= helpers.apiVueResourceError(error);
-                        swal(
-                            'Error', 
-                            'Habitat Condition details have cannot be saved because of the following error: '+text,
-                            'error'
-                        )
+                        swal.fire({
+                            title: 'Error', 
+                            text: 'Habitat Condition details have cannot be saved because of the following error: '+text,
+                            icon: 'error',
+                            confirmButtonColor:'#226fbb',
+                        });
                         vm.updatingHabitatConditionDetails = false;
                     });
                 }
             },
-            calckeiryTotal: function(){
+            calcKeiryTotal: function(){
                 let vm=this;
                 let total=0;
                 let a = parseInt(vm.occurrence_report_obj.habitat_condition.pristine);
@@ -311,11 +316,12 @@ export default {
                 total = a+b+c+d+e+f;
                 vm.habitat_cond_sum = total;
                 if(total>100){
-                    swal(
-                        'warning', 
-                        'The total Kiery Scale should not exceed 100% ',
-                        'warning'
-                    )
+                    swal.fire({
+                        title: 'warning', 
+                        text: 'The total Kiery Scale should not exceed 100% ',
+                        icon: 'warning',
+                        confirmButtonColor:'#226fbb',
+                    });
                     return false;
                 }
                 else{
