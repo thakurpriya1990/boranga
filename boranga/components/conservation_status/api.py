@@ -1136,7 +1136,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                 if request.data.get('internal_application'):
                         internal_application = request.data.get('internal_application')
                 obj = ConservationStatus.objects.create(
-                        #submitter=request.user.id,
+                        submitter=request.user.id,
                         application_type=group_type_id,
                         internal_application=internal_application
                         )
