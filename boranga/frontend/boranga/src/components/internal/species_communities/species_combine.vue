@@ -43,7 +43,7 @@
                                     </li>
                                 </ul>
                                 <div class="tab-content" id="combine-pills-tabContent">
-                                    <div class="tab-pane fade show active" :id="newSpeciesBody" role="tabpanel" aria-labelledby="pills-new-species-tab">
+                                    <div class="tab-pane" :id="newSpeciesBody" role="tabpanel" aria-labelledby="pills-new-species-tab">
                                         <SpeciesCombineForm v-if="new_combine_species!=null"
                                             ref="species_communities_new" 
                                             :species_community.sync="new_combine_species" 
@@ -172,12 +172,12 @@ export default {
                 return true;
             },err=>{
                         var errorText=helpers.apiVueResourceError(err); 
-                        swal(
-                                'Submit Error',
-                                //helpers.apiVueResourceError(err),
-                                errorText,
-                                'error'
-                            )
+                        swal.fire({
+                            title: 'Submit Error',
+                            text: errorText,
+                            icon: 'error',
+                            confirmButtonColor:'#226fbb'
+                        });   
                         vm.submitSpeciesCombine=false;
                         vm.saveError=true;
                         return false;
@@ -202,49 +202,53 @@ export default {
 
             var missing_data= vm.can_submit();
             if(missing_data!=true){
-                swal({
+                swal.fire({
                     title: "Please fix following errors before submitting",
                     text: missing_data,
-                    type:'error'
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
                 })
                 //vm.paySubmitting=false;
                 return false;
             }
             
             vm.submitSpeciesCombine=true;
-            swal({
+            swal.fire({
                 title: "Submit",
                 text: "Are you sure you want to submit this Species Combine?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: "submit"
-            }).then(async () => {
-                //---save and submit the new combine species
-                let new_species = vm.new_combine_species;
-                //-- save new species before submit
-                let result = await vm.save_before_submit(new_species);
-                if(!vm.saveError){
-                    // add the parent species array to the new species object
-                    new_species.parent_species=vm.original_species_combine_list;
-                    let payload = new Object();
-                    Object.assign(payload, new_species);
-                    let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/combine_new_species_submit')
-                    vm.$http.post(submit_url,payload).then(res=>{
-                        vm.new_species = res.body;
-                        //vm.submit_original_species();
-                        vm.$router.push({
-                            name: 'internal-species-communities-dash'
+                confirmButtonText: "submit",
+                confirmButtonColor:'#226fbb'
+            }).then(async (swalresult) => {
+                if(swalresult.isConfirmed){
+                    //---save and submit the new combine species
+                    let new_species = vm.new_combine_species;
+                    //-- save new species before submit
+                    let result = await vm.save_before_submit(new_species);
+                    if(!vm.saveError){
+                        // add the parent species array to the new species object
+                        new_species.parent_species=vm.original_species_combine_list;
+                        let payload = new Object();
+                        Object.assign(payload, new_species);
+                        let submit_url = helpers.add_endpoint_json(api_endpoints.species,new_species.id+'/combine_new_species_submit')
+                        vm.$http.post(submit_url,payload).then(res=>{
+                            vm.new_species = res.body;
+                            //vm.submit_original_species();
+                            vm.$router.push({
+                                name: 'internal-species-communities-dash'
+                            });
+                        },err=>{
+                            swal.fire({
+                                title: 'Submit Error',
+                                text: helpers.apiVueResourceError(err),
+                                icon: 'error',
+                                confirmButtonColor:'#226fbb'
+                            });
+                            vm.saveError=true;
                         });
-                    },err=>{
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
-                        vm.saveError=true;
-                    });
+                    }
                 }
-
             },(error) => {
                 vm.submitSpeciesCombine=false;
             });
@@ -267,11 +271,12 @@ export default {
         //                 });
         //             }
         //         },err=>{
-        //             swal(
-        //                 'Submit Error',
-        //                 helpers.apiVueResourceError(err),
-        //                 'error'
-        //             )
+        //             swal.fire({
+        //                     title: 'Submit Error',
+        //                     text: helpers.apiVueResourceError(err),
+        //                     icon: 'error',
+        //                     confirmButtonColor:'#226fbb'
+        //                 });
         //         });
         //     }
         // },

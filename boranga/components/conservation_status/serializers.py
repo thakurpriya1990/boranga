@@ -282,8 +282,8 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_phylogenetic_group(self,obj):
         if obj.species:
-            if obj.species.taxonomy.phylogenetic_group:
-                return obj.species.taxonomy.phylogenetic_group.name
+            if obj.species.taxonomy.informal_groups:
+                return obj.species.taxonomy.informal_groups.all().values_list('classification_system_fk_id__class_desc', flat=True)
         return ''
 
     def get_conservation_list(self,obj):

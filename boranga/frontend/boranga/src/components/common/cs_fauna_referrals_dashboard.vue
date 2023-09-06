@@ -578,9 +578,6 @@ export default {
                 vm.column_genera,
                 /*vm.column_region,
                 vm.column_district,*/
-                vm.column_can_be_processed,
-                vm.column_can_user_process,
-                vm.column_conservation_status,
                 vm.column_status,
                 vm.column_action,
             ]
@@ -588,14 +585,14 @@ export default {
             let buttons = [
                 {
                     text: '<i class="fa-solid fa-download"></i> Excel',
-                    className: 'btn btn-primary ml-2',
+                    className: 'btn btn-primary me-2 rounded',
                     action: function (e, dt, node, config) {
                         vm.exportData("excel");
                     }
                 },
                 {
                     text: '<i class="fa-solid fa-download"></i> CSV',
-                    className: 'btn btn-primary',
+                    className: 'btn btn-primary rounded',
                     action: function (e, dt, node, config) {
                         vm.exportData("csv");
                     }

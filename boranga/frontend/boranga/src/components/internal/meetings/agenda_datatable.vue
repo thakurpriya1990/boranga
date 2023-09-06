@@ -197,18 +197,6 @@ export default {
             this.$parent.updateModal=false;
             this.isModalOpen = false;
         },
-        discardSpecies:function (species_id) {
-            let vm = this;
-            try{
-                vm.$http.delete(api_endpoints.discard_species_proposal(species_id));
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-        },
         eventListeners:function () {
               
         },

@@ -66,13 +66,13 @@
                                   <div class="navbar-inner-right">
                                     <div v-if="conservation_status_obj && !conservation_status_obj.readonly" class="container">
                                       <p class="pull-right" style="margin-top:5px">
-                                        <button v-if="saveExitCSProposal" type="button" class="btn btn-primary" disabled>Save and Exit&nbsp;
+                                        <button v-if="saveExitCSProposal" type="button" class="btn btn-primary me-2" disabled>Save and Exit&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit" :disabled="savingCSProposal || paySubmitting"/>
+                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary me-2" value="Save and Exit" :disabled="savingCSProposal || paySubmitting"/>
 
-                                        <button v-if="savingCSProposal" type="button" class="btn btn-primary" disabled>Save and Continue&nbsp;
+                                        <button v-if="savingCSProposal" type="button" class="btn btn-primary me-2" disabled>Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <input v-else type="button" @click.prevent="save" class="btn btn-primary" value="Save and Continue" :disabled="saveExitCSProposal || paySubmitting"/>
+                                        <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2" value="Save and Continue" :disabled="saveExitCSProposal || paySubmitting"/>
 
                                         <button v-if="paySubmitting" type="button" class="btn btn-primary" disabled>{{ submit_text() }}&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -205,19 +205,21 @@ export default {
       let payload = new Object();
       Object.assign(payload, vm.conservation_status_obj);
       vm.$http.post(vm.cs_proposal_form_url,payload).then(res=>{
-          swal(
-            'Saved',
-            'Your application has been saved',
-            'success'
-          );
+          swal.fire({
+            title: 'Saved',
+            text: 'Your application has been saved',
+            icon: 'success',
+            confirmButtonColor:'#226fbb'
+          });;
           vm.savingCSProposal=false;
       },err=>{
         var errorText=helpers.apiVueResourceError(err); 
-                  swal(
-                          'Save Error',
-                          errorText,
-                          'error'
-                      )
+                  swal.fire({
+                      title: 'Save Error',
+                      text: errorText,
+                      icon: 'error',
+                      confirmButtonColor:'#226fbb'
+                  });
         vm.savingCSProposal=false;
       });
     },
@@ -250,12 +252,13 @@ export default {
           //return true;
       },err=>{
                   var errorText=helpers.apiVueResourceError(err); 
-                  swal(
-                          'Submit Error',
+                  swal.fire({
+                          title: 'Submit Error',
                           //helpers.apiVueResourceError(err),
-                          errorText,
-                          'error'
-                      )
+                          text: errorText,
+                          icon: 'error',
+                          confirmButtonColor:'#226fbb'
+                  });
                   vm.paySubmitting=false;
                   vm.saveError=true;
         //return false;
@@ -452,10 +455,11 @@ export default {
 
         var missing_data= vm.can_submit();
         if(missing_data!=true){
-          swal({
-            title: "Please fix following errors before submitting",
-            text: missing_data,
-            type:'error'
+          swal.fire({
+              title: "Please fix following errors before submitting",
+              text: missing_data,
+              icon:'error',
+              confirmButtonColor:'#226fbb'
           })
           //vm.paySubmitting=false;
           return false;
@@ -465,34 +469,37 @@ export default {
         vm.submitting = true;
         vm.paySubmitting=true;
 
-        swal({
+        swal.fire({
             title: vm.submit_text() + " Application",
             text: "Are you sure you want to " + vm.submit_text().toLowerCase()+ " this application?",
-            type: "question",
+            icon: "question",
             showCancelButton: true,
-            confirmButtonText: vm.submit_text()
-        }).then(async () => {
-          
-             /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
-            // var saved=true;
-            //vm.save_wo_confirm()
-            let result = await vm.save_before_submit()
-            if(!vm.saveError){
-              let payload = new Object();
-              Object.assign(payload, vm.conservation_status_obj);
-              vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_obj.id+'/submit'),payload).then(res=>{
-                  vm.conservation_status_obj = res.body;
-                  vm.$router.push({
-                      name: 'submit_cs_proposal',
-                      params: { conservation_status_obj: vm.conservation_status_obj}
-                  });
-              },err=>{
-                  swal(
-                      'Submit Error',
-                      helpers.apiVueResourceError(err),
-                      'error'
-                  )
-              });
+            confirmButtonText: vm.submit_text(),
+            confirmButtonColor:'#226fbb'
+        }).then(async (result) => {
+            if(result.isConfirmed){
+              /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
+              // var saved=true;
+              //vm.save_wo_confirm()
+              let result = await vm.save_before_submit()
+              if(!vm.saveError){
+                let payload = new Object();
+                Object.assign(payload, vm.conservation_status_obj);
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_obj.id+'/submit'),payload).then(res=>{
+                    vm.conservation_status_obj = res.body;
+                    vm.$router.push({
+                        name: 'submit_cs_proposal',
+                        params: { conservation_status_obj: vm.conservation_status_obj}
+                    });
+                },err=>{
+                    swal.fire({
+                        title: 'Submit Error',
+                        text: helpers.apiVueResourceError(err),
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
+                    });
+                });
+              }
             }
             
         },(error) => {

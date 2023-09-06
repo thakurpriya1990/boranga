@@ -13,9 +13,7 @@
 
 </template>
 <script>
-    
-    //import {$, DataTableBs} from '../../hooks'
-    import ResponsiveDatatablesHelper from "../responsive_datatable_helper.js"
+
 module.exports = {
    name : 'DataTable',
    props:{
@@ -49,22 +47,7 @@ module.exports = {
                tablet: 992,
                phone : 768
            };
-           var responsiveOptions = {
-               autoWidth        : false,
-               preDrawCallback: function () {
-                 // Initialize the responsive datatables helper once.
-                 if (!responsiveHelper) {
-                     responsiveHelper = new ResponsiveDatatablesHelper(vm.table, breakpointDefinition);
-                 }
-             },
-             rowCallback    : function (nRow) {
-                 responsiveHelper.createExpandIcon(nRow);
-             },
-             drawCallback   : function (oSettings) {
-                 responsiveHelper.respond();
-             },
-           }
-           var options = Object.assign(vm.dtOptions,responsiveOptions)
+           var options = Object.assign(vm.dtOptions)
            vm.vmDataTable = $(vm.table).DataTable(options);
            $(vm.table).resize(function (e) {
                vm.vmDataTable.draw(true);

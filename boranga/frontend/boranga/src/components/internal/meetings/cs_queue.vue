@@ -68,14 +68,14 @@ export default {
                 buttons: [
                     {
                         text: '<i class="fa-solid fa-download"></i> Excel',
-                        className: 'btn btn-primary ml-2',
+                        className: 'btn btn-primary me-2 rounded',
                         action: function (e, dt, node, config) {
                             vm.exportData("excel");
                         }
                     },
                     {
                         text: '<i class="fa-solid fa-download"></i> CSV',
-                        className: 'btn btn-primary',
+                        className: 'btn btn-primary rounded',
                         action: function (e, dt, node, config) {
                             vm.exportData("csv");
                         }
@@ -217,33 +217,50 @@ export default {
                     cell.innerHTML = i + 1;
                 });
             }).draw();
+
+            // Bind clicks to functions
+            vm.$refs.cs_queue_datatable.vmDataTable.on('click', '.dtMoveUp', function(e) {
+                e.preventDefault();
+                var tr = $(e.target).parents('tr');
+                var id = $(this).attr('data-id');
+                vm.moveUp(id,tr);
+            });
+            vm.$refs.cs_queue_datatable.vmDataTable.on('click', '.dtMoveDown', function(e) {
+                e.preventDefault();
+                var tr = $(e.target).parents('tr');
+                var id = $(this).attr('data-id');
+                vm.moveDown(id,tr);
+            });
         },
         removeAgendaItem:function (conservation_status_id) {
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Remove Agenda Item",
                 text: "Are you sure you want to remove this agenda item?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Agenda Item',
                 confirmButtonColor:'#d9534f'
-            }).then(() => {
-                let payload = new Object();
-                payload.conservation_status_id = conservation_status_id;
-                Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/remove_agenda_item.json`,payload)
-                .then((res) => {
-                    swal(
-                        'Removed',
-                        'Your agenda item is removed',
-                        'success'
-                    )
-                    vm.meeting_obj.agenda_items_arr=res.body;
-                    //vm.constructCSQueueTable();
-                    // vm.addTableListeners, is passed to table relaod function as to call that function to set the sort arrow correctly
-                    vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(vm.addTableListeners, false);
-                }, (error) => {
-                    console.log(error);
-                });
+            }).then((result) => {
+                if(result.isConfirmed){
+                    let payload = new Object();
+                    payload.conservation_status_id = conservation_status_id;
+                    Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/remove_agenda_item.json`,payload)
+                    .then((res) => {
+                        swal.fire({
+                            title: 'Removed',
+                            text: 'Your agenda item is removed',
+                            icon: 'success',
+                            confirmButtonColor:'#226fbb'
+                        });
+                        vm.meeting_obj.agenda_items_arr=res.body;
+                        //vm.constructCSQueueTable();
+                        // vm.addTableListeners, is passed to table relaod function as to call that function to set the sort arrow correctly
+                        vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(vm.addTableListeners, false);
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
 
             });
@@ -260,19 +277,6 @@ export default {
             $('.dtMoveUp').off('click');
             $('.dtMoveDown').off('click');
 
-            // Bind clicks to functions
-            vm.$refs.cs_queue_datatable.vmDataTable.on('click', '.dtMoveUp', function(e) {
-                e.preventDefault();
-                var tr = $(e.target).parents('tr');
-                var id = $(this).attr('data-id');
-                vm.moveUp(id,tr);
-            });
-            vm.$refs.cs_queue_datatable.vmDataTable.on('click', '.dtMoveDown', function(e) {
-                e.preventDefault();
-                var tr = $(e.target).parents('tr');
-                var id = $(this).attr('data-id');
-                vm.moveDown(id,tr);
-            });
         },
         async sendDirection(req,direction){
             let vm = this;

@@ -12,7 +12,6 @@ from boranga.components.species_and_communities.models import(
 	InformalGroup,
 	ClassificationSystem,
 	CommunityTaxonomy,
-	NameAuthority,
 	SpeciesConservationAttributes,
 	CommunityConservationAttributes,
 	SpeciesDocument,

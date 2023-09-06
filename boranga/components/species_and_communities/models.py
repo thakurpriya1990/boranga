@@ -188,96 +188,6 @@ class Kingdom(models.Model):
         return self.kingdom_name
 
 
-class Contact(models.Model):
-    """
-    Hold the contact details for a person.
-    """
-    first_name = models.CharField(max_length=32)
-    last_name = models.CharField(max_length=32)
-    role = models.CharField(max_length=32)
-    phone = models.CharField(max_length=32)
-    email = models.EmailField()
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return '{}, {}'.format(self.last_name, self.first_name)
-
-
-# TODO Model not used anymore
-class NameAuthority(models.Model):
-    """
-
-    """
-    name = models.CharField(max_length=128,
-                            default="None")
-
-    class Meta:
-        app_label = 'boranga'
-        verbose_name = "Name Authority"
-        verbose_name_plural = "Name Authorities"
-        ordering = ['name']
-
-    def __str__(self):
-        return str(self.name)
-
-# TODO Not used any more
-class ScientificName(models.Model):
-    """
-    # list derived from WACensus
-
-    Used by:
-    - Taxonomy
-
-    """
-    name = models.CharField(max_length=300, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.name)
-
-
-# TODO Model not used anymore
-class Family(models.Model):
-    """
-    # list derived from WACensus
-
-    Used by:
-    - Taxonomy
-
-    """
-    name = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
-        verbose_name = "Family"
-        verbose_name_plural = "Families"
-
-    def __str__(self):
-        return str(self.name)
-
-
-# TODO Model not used anymore
-class PhylogeneticGroup(models.Model):
-    """
-    # list derived from WACensus
-
-    Used by:
-    - Taxonomy
-
-    """
-    name = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.name)
-
-
 class Genus(models.Model):
     """
     # list derived from WACensus
@@ -338,14 +248,10 @@ class Taxonomy(models.Model):
     taxonomy_rank_fk = models.ForeignKey(TaxonomyRank, on_delete=models.SET_NULL, null=True, blank=True, related_name="taxons")
     family_nid = models.IntegerField(null=True, blank=True)
     family_fk = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name="taxon_family")
-    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True) # TODO this field is not used
     genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
     # phylogenetic_group is only used for Fauna 
-    phylogenetic_group = models.ForeignKey(PhylogeneticGroup, on_delete=models.SET_NULL, null=True, blank=True) # TODO this field is not used anymore
     name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the current name? yes or no
     previous_name = models.CharField(max_length=512,null=True, blank=True) # TODO this field is not used anymore
-    # name_authority = models.ForeignKey(NameAuthority,
-    #                                    on_delete=models.CASCADE,null=True,blank=True)
     name_authority = models.CharField(max_length=500,null=True, blank=True)
     name_comments = models.CharField(max_length=500,null=True, blank=True)
     path = models.CharField(max_length=512,null=True, blank=True) # hierarchy for given taxon
@@ -482,7 +388,7 @@ class Species(models.Model):
     species_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,
                                    on_delete=models.CASCADE)
-    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
+    taxonomy = models.OneToOneField(Taxonomy, on_delete=models.SET_NULL, null=True, blank=True)
     image_doc = models.ForeignKey('SpeciesDocument', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='species_image')
     region = models.ForeignKey(Region, 
                                default=None,
@@ -497,7 +403,7 @@ class Species(models.Model):
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True) #EmailUserRO 
     # parents will the original species  from the split/combine functionality
-    parent_species = models.ManyToManyField('self', null = True, blank=True, related_name='parent')
+    parent_species = models.ManyToManyField('self', blank=True, related_name='parent')
     comment = models.CharField(max_length=500,null=True, blank=True)
     
     class Meta:
@@ -976,7 +882,7 @@ class SpeciesDistribution(models.Model):
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
-    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_distribution")
+    species = models.OneToOneField(Species, on_delete=models.CASCADE, null=True, related_name="species_distribution")
 
     class Meta:
         app_label = 'boranga'
@@ -1001,32 +907,6 @@ class CommunityName(models.Model):
 
     def __str__(self):
         return str(self.name)
-
-
-# class CommunityTaxonomy(models.Model):
-#     """
-#     Description from wacensus, to get the main name then fill in everything else
-
-#     Has a:
-#     Used by:
-#     - Community
-#     Is:
-#     - Table
-#     """
-#     community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
-#     community_name = models.CharField(max_length=512,null=True, blank=True)
-#     community_description = models.CharField(max_length=2048, null=True, blank=True)
-#     name_currency = models.CharField(max_length=16, null=True, blank=True) # is it the is_current name? true or false
-#     previous_name = models.CharField(max_length=512,null=True, blank=True)
-#     name_authority = models.CharField(max_length=500,null=True, blank=True)
-#     name_comments = models.CharField(max_length=500,null=True, blank=True)
-
-#     class Meta:
-#         app_label = 'boranga'
-#         ordering = ['community_name']
-
-#     def __str__(self):
-#         return str(self.community_name)  # TODO: is the most appropriate?
 
 
 class Community(models.Model):
@@ -1060,7 +940,7 @@ class Community(models.Model):
     community_number = models.CharField(max_length=9, blank=True, default='')
     group_type = models.ForeignKey(GroupType,on_delete=models.CASCADE)
     # TODO the species is noy required as per the new requirements
-    species = models.ManyToManyField(Species, null=True, blank=True)
+    species = models.ManyToManyField(Species, blank=True)
     # taxonomy = models.ForeignKey(CommunityTaxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
     region = models.ForeignKey(Region, 
                                default=None,
@@ -1411,7 +1291,7 @@ class CommunityTaxonomy(models.Model):
     Is:
     - Table
     """
-    community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="taxonomy")
+    community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="taxonomy")
     community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
     community_name = models.CharField(max_length=512,null=True, blank=True)
     community_description = models.CharField(max_length=2048, null=True, blank=True)
@@ -1512,78 +1392,13 @@ class CommunityDistribution(models.Model):
     community_original_area = models.IntegerField(null=True, blank=True)
     community_original_area_accuracy = models.IntegerField(null=True, blank=True)
     community_original_area_reference = models.CharField(max_length=512, null=True, blank=True)
-    community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="community_distribution")
+    community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="community_distribution")
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
         return str(self.id)  # TODO: is the most appropriate?
-
-
-class CommitteeMeeting(models.Model):
-    """
-    A change in conservation status for a species is executed during Committee Meetings. 
-    It is necessary to capture these changes and the meetings that caused the change. 
-
-    Has a:
-    - Contact
-    """
-    attendees = models.ManyToManyField(Contact,
-                                       blank=False)
-    date = models.DateField()
-    location = models.CharField(max_length=128)
-    species = models.ManyToManyField(Species,
-                                     blank=False)
-                                
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.date)
-
-
-# TODO Model not used at the moment
-class SpeciesAttributes(models.Model):
-    """
-    Do no know what this is but is required for SpeciesDocuments
-    """
-    name_reference = models.CharField(max_length=128,
-                                      default="None")
-    genetic = models.CharField(max_length=128,
-                               default="None")
-    biology = models.CharField(max_length=128,
-                               default="None")
-    ecology = models.CharField(max_length=128,
-                               default="None")
-    fire = models.CharField(max_length=128,
-                            default="None")
-    disease = models.CharField(max_length=128,
-                               default="None")
-
-    species = models.ForeignKey(Species, blank=False, 
-                                on_delete=models.CASCADE)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.name_reference)  # TODO: is the most appropriate?
-
-
-# TODO Model not used at the moment
-class Source(models.Model):
-    """
-
-    """
-    name = models.CharField(max_length=128,
-                            default="None")
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.name)
 
 
 class DocumentCategory(models.Model):
@@ -2110,7 +1925,7 @@ class SpeciesConservationAttributes(models.Model):
                     (2, 'month/s')
                     )
 
-    species = models.ForeignKey(Species, on_delete=models.CASCADE, unique=True, null=True, related_name="species_conservation_attributes")
+    species = models.OneToOneField(Species, on_delete=models.CASCADE, null=True, related_name="species_conservation_attributes")
     
     # flora related attributes
     flowering_period = MultiSelectField(max_length=250, blank=True, choices=PERIOD_CHOICES, null=True)
@@ -2163,7 +1978,7 @@ class CommunityConservationAttributes(models.Model):
     Is:
     - Table
     """
-    community = models.ForeignKey(Community, on_delete=models.CASCADE, unique=True, null=True, related_name="community_conservation_attributes")
+    community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="community_conservation_attributes")
 
     # habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
     pollinator_information = models.CharField(max_length=1000,null=True, blank=True)

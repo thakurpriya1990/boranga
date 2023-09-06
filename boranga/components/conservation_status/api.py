@@ -44,9 +44,7 @@ from boranga.components.species_and_communities.models import(
     Taxonomy,
     CommunityTaxonomy,
     TaxonVernacular,
-    PhylogeneticGroup,
     Genus,
-    Family,
     ClassificationSystem,
 )
 
@@ -1131,17 +1129,28 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
     def create(self, request, *args, **kwargs):
-        group_type_id = GroupType.objects.get(id=request.data.get('application_type_id'))
-        internal_application = False
-        if request.data.get('internal_application'):
-                internal_application = request.data.get('internal_application')
-        obj = ConservationStatus.objects.create(
-                #submitter=request.user.id,
-                application_type=group_type_id,
-                internal_application=internal_application
-                )
-        serialized_obj = CreateConservationStatusSerializer(obj)
-        return Response(serialized_obj.data)
+        try:
+            with transaction.atomic():
+                group_type_id = GroupType.objects.get(id=request.data.get('application_type_id'))
+                internal_application = False
+                if request.data.get('internal_application'):
+                        internal_application = request.data.get('internal_application')
+                obj = ConservationStatus.objects.create(
+                        submitter=request.user.id,
+                        application_type=group_type_id,
+                        internal_application=internal_application
+                        )
+                serialized_obj = CreateConservationStatusSerializer(obj)
+                return Response(serialized_obj.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
     @detail_route(methods=['GET',], detail=True)
     def action_log(self, request, *args, **kwargs):

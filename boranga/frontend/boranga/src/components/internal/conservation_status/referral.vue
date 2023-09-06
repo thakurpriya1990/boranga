@@ -153,9 +153,7 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
-
 import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'
 import {
     api_endpoints,
@@ -306,15 +304,16 @@ export default {
             let payload = new Object();
             Object.assign(payload, vm.referral);
             vm.$http.post(vm.species_community_cs_referral_form_url,payload).then(res=>{
-              swal(
-                'Saved',
-                'Your changes has been saved',
-                'success'
-              )
-              vm.savingConservationStatus=false;
-          },err=>{
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Your changes has been saved',
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
+                vm.savingConservationStatus=false;
+            },err=>{
             vm.savingConservationStatus=false;
-          });
+            });
         },
         /*save_exit: async function(){
             let vm = this;
@@ -332,12 +331,13 @@ export default {
             let vm = this
             vm.submitConservationStatus=true;
             try {
-                await swal({
+                await swal.fire({
                     title:"Edit Conservation Status",
                     text: "Are you sure you want to submit the changes",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: "submit"
+                    confirmButtonText: "submit",
+                    confirmButtonColor:'#226fbb'
                 })
             } catch (cancel) {
                 vm.submitConservationStatus = false;
@@ -355,10 +355,11 @@ export default {
                 } catch(err) {
                     console.log(err)
                     console.log(typeof(err.body))
-                    await swal({
+                    await swal.fire({
                         title: 'Submit Error',
                         html: helpers.formatError(err),
-                        type: "error",
+                        icon: "error",
+                        confirmButtonColor:'#226fbb'
                     })
                     vm.submitConservationStatus=false;
                     //this.submitting = false;
@@ -411,11 +412,12 @@ export default {
                     
                     vm.updateAssignedOfficerSelect();
                     //vm.fetchProposalParks(vm.proposal.id);
-                    swal(
-                        'Application Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                    swal.fire({
+                        title: 'Application Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
+                    });
                 });
             }
             else{
@@ -433,11 +435,12 @@ export default {
                     
                     vm.updateAssignedOfficerSelect();
                     //vm.fetchProposalParks(vm.proposal.id);
-                    swal(
-                        'Application Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                    swal.fire({
+                        title: 'Application Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
+                    });
                 });
             }
         },
@@ -552,21 +555,23 @@ export default {
                 vm.referral= response.body;
                 //vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 //vm.conservation_status_obj = response.body;
-                swal(
-                    'Referral Sent',
-                    'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
-                    'success'
-                )
+                swal.fire({
+                    title: 'Referral Sent',
+                    text: 'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
                 $(vm.$refs.department_users).val(null).trigger("change");
                 vm.selected_referral = '';
                 vm.referral_text = '';
             }, (error) => {
                 console.log(error);
-                swal(
-                    'Referral Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
                 vm.sendingReferral = false;
             });
 
@@ -582,23 +587,25 @@ export default {
                 //vm.conservation_status_obj = response.body;
                 //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 vm.fetchReferral(vm.referral.id);
-                swal(
-                    'Referral Reminder',
-                    'A reminder has been sent to '+vm.department_users.find(d => d.id == r.referral).name,
-                    'success'
-                )
+                swal.fire({
+                    title: 'Referral Reminder',
+                    text: 'A reminder has been sent to '+vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
             },
             error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Reminder Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
             });
         },
         recallReferral:function(r){
             let vm = this;
-            swal({
+            swal.fire({
                     title: "Loading...",
                     //text: "Loading...",
                     allowOutsideClick: false,
@@ -615,18 +622,20 @@ export default {
                 //vm.conservation_status_obj = response.body;
                 //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 vm.fetchReferral(vm.referral.id);
-                swal(
-                    'Referral Recall',
-                    'The referral has been recalled from '+vm.department_users.find(d => d.id == r.referral).name,
-                    'success'
-                )
+                swal.fire({
+                    title: 'Referral Recall',
+                    text: 'The referral has been recalled from '+vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
             },
             error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Recall Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
             });
         },
         resendReferral:function(r){
@@ -637,18 +646,20 @@ export default {
                 //vm.conservation_status_obj = response.body;
                 //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 vm.fetchReferral(vm.referral.id);
-                swal(
-                    'Referral Resent',
-                    'The referral has been resent to '+vm.department_users.find(d => d.id == r.referral).name,
-                    'success'
-                )
+                swal.fire({
+                    title: 'Referral Resent',
+                    text: 'The referral has been resent to '+vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb'
+                });
             },
             error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Resent Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb'
+                });
             });
         },
         fetchReferral: function(){
@@ -668,45 +679,50 @@ export default {
             let vm = this;
             // let data = {'referral_comment': vm.referral_comment};
             
-            swal({
+            swal.fire({
                 title: "Complete Referral",
                 text: "Are you sure you want to complete this referral?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Submit'
-            }).then(() => { 
-                let payload = new Object();
-                Object.assign(payload, vm.referral);
-                vm.$http.post(vm.species_community_cs_referral_form_url,payload).then(res=>{
-                    
-                //     vm.$http.post(helpers.add_endpoint_json(api_endpoints.cs_referrals,vm.$route.params.referral_id+'/complete'),JSON.stringify(data),{
-                // emulateJSON:true
-                // }).then(res => {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,vm.$route.params.referral_id+'/complete')).then(res => {
+                confirmButtonText: 'Submit',
+                confirmButtonColor:'#226fbb'
+            }).then((result) => { 
+                if(result.isConfirmed){
+                    let payload = new Object();
+                    Object.assign(payload, vm.referral);
+                    vm.$http.post(vm.species_community_cs_referral_form_url,payload).then(res=>{
+                        
+                    //     vm.$http.post(helpers.add_endpoint_json(api_endpoints.cs_referrals,vm.$route.params.referral_id+'/complete'),JSON.stringify(data),{
+                    // emulateJSON:true
+                    // }).then(res => {
+                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,vm.$route.params.referral_id+'/complete')).then(res => {
+                            vm.referral = res.body;
+                            //vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
+                        },
+                        error => {
+                            swal.fire({
+                                title: 'Referral Error',
+                                text: helpers.apiVueResourceError(error),
+                                icon: 'error',
+                                confirmButtonColor:'#226fbb'
+                            });
+                        });
+                        
+                        },err=>{
+                    });
+                /* vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,vm.$route.params.referral_id+'/complete')).then(res => {
                         vm.referral = res.body;
-                        //vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
+                        vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
                     },
                     error => {
-                        swal(
-                            'Referral Error',
-                            helpers.apiVueResourceError(error),
-                            'error'
-                        )
-                    });
-                    
-                    },err=>{
-                 });
-               /* vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,vm.$route.params.referral_id+'/complete')).then(res => {
-                    vm.referral = res.body;
-                    vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
-                },
-                error => {
-                    swal(
-                        'Referral Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
-                }); */
+                        swal.fire({
+                            title: 'Referral Error',
+                            text: helpers.apiVueResourceError(error),
+                            icon: 'error',
+                            confirmButtonColor:'#226fbb'
+                        });
+                    }); */
+                }
             },(error) => {
             });
         }
@@ -761,9 +777,5 @@ export default {
     margin-top: 15px;
     margin-bottom: 10px;
     width: 100%;
-}
-
-.p-3 {
-  padding: $spacer !important;
 }
 </style>

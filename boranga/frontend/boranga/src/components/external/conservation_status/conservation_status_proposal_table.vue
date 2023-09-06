@@ -617,25 +617,28 @@ export default {
         },
         discardCSProposal:function (conservation_status_id) {
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Discard Application",
                 text: "Are you sure you want to discard this proposal?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor:'#d9534f'
-            }).then(() => {
-                vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
-                .then((response) => {
-                    swal(
-                        'Discarded',
-                        'Your proposal has been discarded',
-                        'success'
-                    )
-                    vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload();
-                }, (error) => {
-                    console.log(error);
-                });
+            }).then((result) => {
+                if(result.isConfirmed){
+                    vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
+                    .then((response) => {
+                        swal.fire({
+                            title: 'Discarded',
+                            text: 'Your proposal has been discarded',
+                            icon: 'success',
+                            confirmButtonColor:'#226fbb',
+                        });
+                        vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload();
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
 
             });

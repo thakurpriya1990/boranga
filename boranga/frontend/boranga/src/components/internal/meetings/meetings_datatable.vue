@@ -270,7 +270,7 @@ export default {
                 { 
                     extend: 'excel', 
                     text: '<i class="fa-solid fa-download"></i> Excel', 
-                    className: 'btn btn-primary ml-2', 
+                    className: 'btn btn-primary me-2 rounded', 
                     exportOptions: { 
                         orthogonal: 'export'
                     } 
@@ -278,7 +278,7 @@ export default {
                 { 
                     extend: 'csv', 
                     text: '<i class="fa-solid fa-download"></i> CSV', 
-                    className: 'btn btn-primary', 
+                    className: 'btn btn-primary rounded', 
                     exportOptions: { 
                         orthogonal: 'export',
                     } 
@@ -368,25 +368,28 @@ export default {
         },
         discardMeeting:function (meeting_id) {
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Discard Meeting",
                 text: "Are you sure you want to discard this meeting?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Meeting',
                 confirmButtonColor:'#d9534f'
-            }).then(() => {
-                vm.$http.delete(api_endpoints.discard_meeting(meeting_id))
-                .then((response) => {
-                    swal(
-                        'Discarded',
-                        'Your meeting has been discarded',
-                        'success'
-                    )
-                    vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
-                }, (error) => {
-                    console.log(error);
-                });
+            }).then((result) => {
+                if(result.isConfirmed){
+                    vm.$http.delete(api_endpoints.discard_meeting(meeting_id))
+                    .then((response) => {
+                        swal.fire({
+                            title: 'Discarded',
+                            text: 'Your meeting has been discarded',
+                            icon: 'success',
+                            confirmButtonColor:'#226fbb'
+                        });
+                        vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
 
             });
