@@ -8,8 +8,8 @@ from random import randrange
 import django
 
 # Create your tests here.
-from boranga.components.species_and_communities.models import DISTRICT_SWAN_COASTAL, REGION_CHOICES, REGION_SOUTH_WEST, CommitteeMeeting, Contact, District, DocumentCategory, NameAuthority, Region, Species, GroupType,  \
-    SpeciesAttributes, Taxonomy, Community, SpeciesDocument, ConservationThreat, \
+from boranga.components.species_and_communities.models import DISTRICT_SWAN_COASTAL, REGION_CHOICES, REGION_SOUTH_WEST, District, DocumentCategory, Region, Species, GroupType,  \
+    Taxonomy, Community, SpeciesDocument, ConservationThreat, \
     SpeciesDistribution,CommunityDistribution, SpeciesConservationAttributes, ThreatCategory
 
 from boranga.components.conservation_status.models import(
@@ -36,41 +36,6 @@ def create_test_data():
     print('--------------ADDING TEST DATA----------------------')
     print('----------------------------------------------------')
     create_change_codes()
-
-def create_committee_meetings():
-    print('--------------Starting {}'.format('create_committee_meetings'))
-    try:
-        attendeeOne = Contact.objects.get_or_create(first_name="Fat",
-                                                    last_name="Cat",
-                                                    role="President",
-                                                    phone="+61 555 5555",
-                                                    email="fatcat@gmail.com")[0]
-        attendeeTwo = Contact.objects.get_or_create(first_name="Humphrey",
-                                                    last_name="Bear",
-                                                    role="Jester",
-                                                    phone="+61 666 5555",
-                                                    email="fatbear@gmail.com")[0]
-
-        committee_meeting = CommitteeMeeting.objects.get_or_create(date=django.utils.timezone.now(),
-                                                                   location="Kensington")[0]
-        committee_meeting.attendees.add(attendeeOne)
-        committee_meeting.attendees.add(attendeeTwo)
-
-        count = randrange(15)
-        for counter, species in enumerate(Species.objects.all()):
-            committee_meeting.species.add(species)
-            if counter == count:
-                break
-
-        if save_to_database:
-            attendeeOne.save()
-            attendeeTwo.save()
-            committee_meeting.save()
-        print('--------------     Completed {}'.format('create_committee_meetings'))
-
-    except Exception as e:
-        print("FAILED create_committee_meetings failed: ", e)
-
 
 def create_change_codes():
     print('--------------Starting {}'.format('create_change_codes'))
@@ -114,18 +79,6 @@ def create_group_types():
     except Exception as e:
         print("FAILED create_group_types failed: ", e)
 
-def create_name_authority():
-    print('--------------Starting {}'.format('create_name_authority'))
-    try:
-        name_authority = NameAuthority.objects.get_or_create(name="WA Museum")
-
-        if save_to_database:
-            name_authority[0].save()
-        print('--------------     Completed {}'.format('create_name_authority'))
-        create_species_fauna()
-    except Exception as e:
-        print("FAILED create_name_authority failed: ", e)
-
 def create_species_attributes():
     print('--------------Starting {}'.format('create_species_attributes'))
     try:
@@ -150,19 +103,6 @@ def create_species_attributes():
         print('--------------     Completed {}'.format(create_species_attributes))
     except Exception as e:
         logger.debug("FAILED create_species_attributes failed: ", e)
-
-def create_region_name_authority():
-    print('--------------Starting {}'.format(create_region_name_authority))
-    try:
-        name_authority = NameAuthority.objects.get_or_create(name="WA Museum")[0]
-
-        if save_to_database:
-            name_authority.save()
-        print('--------------Completed {}'.format(create_group_types))
-        create_species_fauna()
-    except Exception as e:
-        print("create_region_name_authority failed: ", e)
-        print("-----")
 
 def create_community():
     """
@@ -262,13 +202,11 @@ def create_species_fauna():
                     family = fauna_row[6]
                     genus = fauna_row[6]
                     phylogenetic_group = fauna_row[6]
-                    name_authority = NameAuthority.objects.get_or_create(name="WA Museum")[0]
                     taxonomy = Taxonomy.objects.create(taxon=taxon,
                                                        taxon_id=taxon_id,
                                                        family=family,
                                                        genus=genus,
-                                                       phylogenetic_group=phylogenetic_group,
-                                                       name_authority=name_authority,)
+                                                       phylogenetic_group=phylogenetic_group,)
                     region = Region.objects.get(name=REGION_SOUTH_WEST)
                     district = District.objects.get(name=DISTRICT_SWAN_COASTAL)
                     group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[1][0])
@@ -389,13 +327,11 @@ def create_species_flora():
                         family = flora_row[6]
                         genus = flora_row[6]
                         phylogenetic_group = flora_row[6]
-                        name_authority = NameAuthority.objects.get_or_create(name="Herbarium")[0]
                         taxonomy = Taxonomy.objects.create(taxon=taxon,
                                                         taxon_id=taxon_id,
                                                         family=family,
                                                         genus=genus,
-                                                        phylogenetic_group=phylogenetic_group,
-                                                        name_authority=name_authority,)
+                                                        phylogenetic_group=phylogenetic_group,)
 
                         group_type = GroupType.objects.get(name=GroupType.GROUP_TYPES[0][0])
                         region = Region.objects.get(name=REGION_SOUTH_WEST)

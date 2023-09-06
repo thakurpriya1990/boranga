@@ -49,13 +49,13 @@
                                   <div class="navbar-inner-right">
                                     <div v-if="occurrence_report_obj && !occurrence_report_obj.readonly" class="container">
                                       <p class="pull-right" style="margin-top:5px">
-                                        <button v-if="saveExitOCRProposal" type="button" class="btn btn-primary" disabled>Save and Exit&nbsp;
+                                        <button v-if="saveExitOCRProposal" type="button" class="btn btn-primary me-2" disabled>Save and Exit&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit" :disabled="savingOCRProposal || paySubmitting"/>
+                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary me-2" value="Save and Exit" :disabled="savingOCRProposal || paySubmitting"/>
 
-                                        <button v-if="savingOCRProposal" type="button" class="btn btn-primary" disabled>Save and Continue&nbsp;
+                                        <button v-if="savingOCRProposal" type="button" class="btn btn-primary me-2" disabled>Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <input v-else type="button" @click.prevent="save" class="btn btn-primary" value="Save and Continue" :disabled="saveExitOCRProposal || paySubmitting"/>
+                                        <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2" value="Save and Continue" :disabled="saveExitOCRProposal || paySubmitting"/>
 
                                         <button v-if="paySubmitting" type="button" class="btn btn-primary" disabled>{{ submit_text() }}&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -152,19 +152,21 @@ export default {
       let payload = new Object();
       Object.assign(payload, vm.occurrence_report_obj);
       vm.$http.post(vm.cs_proposal_form_url,payload).then(res=>{
-          swal(
-            'Saved',
-            'Your application has been saved',
-            'success'
-          );
+          swal.fire({
+            title: 'Saved',
+            text: 'Your application has been saved',
+            icon: 'success',
+            confirmButtonColor:'#226fbb',
+          });
           vm.savingOCRProposal=false;
       },err=>{
         var errorText=helpers.apiVueResourceError(err); 
-                  swal(
-                          'Save Error',
-                          errorText,
-                          'error'
-                      )
+        swal.fire({
+          title: 'Save Error',
+          text: errorText,
+          icon: 'error',
+          confirmButtonColor:'#226fbb',
+        });
         vm.savingOCRProposal=false;
       });
     },
@@ -196,15 +198,16 @@ export default {
       const result = await vm.$http.post(vm.cs_proposal_form_url,payload).then(res=>{
           //return true;
       },err=>{
-                  var errorText=helpers.apiVueResourceError(err); 
-                  swal(
-                          'Submit Error',
-                          //helpers.apiVueResourceError(err),
-                          errorText,
-                          'error'
-                      )
-                  vm.paySubmitting=false;
-                  vm.saveError=true;
+        var errorText=helpers.apiVueResourceError(err); 
+        swal.fire({
+          title: 'Submit Error',
+          //helpers.apiVueResourceError(err),
+          text: errorText,
+          icon: 'error',
+          confirmButtonColor:'#226fbb',
+        });
+        vm.paySubmitting=false;
+        vm.saveError=true;
         //return false;
       });
       return result;
@@ -378,10 +381,11 @@ export default {
 
         var missing_data= vm.can_submit();
         if(missing_data!=true){
-          swal({
+          swal.fire({
             title: "Please fix following errors before submitting",
             text: missing_data,
-            type:'error'
+            icon:'error',
+            confirmButtonColor:'#226fbb',
           })
           return false;
         }
@@ -390,14 +394,15 @@ export default {
         vm.submitting = true;
         vm.paySubmitting=true;
 
-        swal({
+        swal.fire({
             title: vm.submit_text() + " Application",
             text: "Are you sure you want to " + vm.submit_text().toLowerCase()+ " this application?",
-            type: "question",
+            icon: "question",
             showCancelButton: true,
-            confirmButtonText: vm.submit_text()
-        }).then(async () => {
-          
+            confirmButtonText: vm.submit_text(),
+            confirmButtonColor:'#226fbb',
+        }).then(async (swalresult) => {
+          if(swalresult.isConfirmed){  
              /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
             // var saved=true;
             //vm.save_wo_confirm()
@@ -412,13 +417,15 @@ export default {
                       params: { occurrence_report_obj: vm.occurrence_report_obj}
                   });
               },err=>{
-                  swal(
-                      'Submit Error',
-                      helpers.apiVueResourceError(err),
-                      'error'
-                  )
+                  swal.fire({
+                      title: 'Submit Error',
+                      text: helpers.apiVueResourceError(err),
+                      icon: 'error',
+                      confirmButtonColor:'#226fbb',
+                  });
               });
             }
+          }
         },(error) => {
           vm.paySubmitting=false;
         });
