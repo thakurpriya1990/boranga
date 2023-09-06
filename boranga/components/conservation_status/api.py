@@ -44,9 +44,7 @@ from boranga.components.species_and_communities.models import(
     Taxonomy,
     CommunityTaxonomy,
     TaxonVernacular,
-    PhylogeneticGroup,
     Genus,
-    Family,
     ClassificationSystem,
 )
 
