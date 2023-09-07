@@ -166,7 +166,7 @@ import {
 }
 from '@/utils/hooks'
 export default {
-        name: 'Species',
+        name: 'OCRHabitat',
         props:{
             occurrence_report_obj:{
                 type: Object,
