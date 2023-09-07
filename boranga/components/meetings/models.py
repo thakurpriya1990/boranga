@@ -114,6 +114,7 @@ class Meeting(models.Model):
     COMMITTEE_MEETING = 'committee_meeting'
     PROCESSING_STATUS_DRAFT='draft'
     PROCESSING_STATUS_SCHEDULED='scheduled'
+    PROCESSING_STATUS_COMPLETED='completed'
 
 
     MEETING_TYPE_CHOICES = (
@@ -123,6 +124,7 @@ class Meeting(models.Model):
     )
     PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_DRAFT, 'Draft'),
                                  (PROCESSING_STATUS_SCHEDULED, 'Scheduled'),
+                                 (PROCESSING_STATUS_COMPLETED, 'Completed'),
                                 )
     meeting_number = models.CharField(max_length=9, blank=True, default='')
     meeting_type = models.CharField('Meeting Type', max_length=30, choices=MEETING_TYPE_CHOICES,
