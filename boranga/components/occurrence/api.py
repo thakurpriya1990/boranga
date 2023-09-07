@@ -189,7 +189,7 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                 # if request.data.get('internal_application'):
                 #         internal_application = request.data.get('internal_application')
                 new_instance = OccurrenceReport.objects.create(
-                        #submitter=request.user.id,
+                        submitter=request.user.id,
                         group_type=group_type_id,
                         # internal_application=internal_application
                         )

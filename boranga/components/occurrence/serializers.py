@@ -99,7 +99,7 @@ class HabitatCompositionSerializer(serializers.ModelSerializer):
     
     def __init__(self, *args, **kwargs):
         super(HabitatCompositionSerializer, self).__init__(*args, **kwargs)
-        self.fields['land_form'] = serializers.MultipleChoiceField(choices=[land_form_instance.id for land_form_instance in LandForm.objects.all()], allow_blank=False)
+        self.fields['land_form'] = serializers.MultipleChoiceField(choices=[(land_form_instance.id, land_form_instance.name) for land_form_instance in LandForm.objects.all()], allow_blank=False)
 
 
 class HabitatConditionSerializer(serializers.ModelSerializer):
@@ -215,7 +215,7 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
 class SaveHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
-    land_form = serializers.MultipleChoiceField(choices=[land_form_instance.id for land_form_instance in LandForm.objects.all()], allow_null=True, allow_blank=True, required=False)
+    land_form = serializers.MultipleChoiceField(choices=[(land_form_instance.id, land_form_instance.name) for land_form_instance in LandForm.objects.all()], allow_null=True, allow_blank=True, required=False)
     rock_type_id = serializers.IntegerField(required=False, allow_null=True)
     soil_type_id = serializers.IntegerField(required=False, allow_null=True)
     soil_colour_id = serializers.IntegerField(required=False, allow_null=True)
