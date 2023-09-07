@@ -477,7 +477,7 @@ class HabitatComposition(models.Model):
     """
     occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="habitat_composition")
     
-    land_form = MultiSelectField(max_length=250, blank=True, choices=[(land_form_instance.id, land_form_instance.name) for land_form_instance in LandForm.objects.all()], null=True)
+    land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     rock_type = models.ForeignKey(RockType, on_delete=models.SET_NULL, null=True, blank=True)
     loose_rock_percent = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)])
     soil_type = models.ForeignKey(SoilType, on_delete=models.SET_NULL, null=True, blank=True)
