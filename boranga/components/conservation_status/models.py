@@ -947,8 +947,9 @@ class ConservationStatus(models.Model):
                     raise ValidationError('You cannot issue the approval if it is not with an assessor')
                 # not approve if the cs not set ina ny meeting for list with minister
                 if self.conservation_list.approval_level == 'minister':
-                    # TODO may I need to check the the meeting status as schedules as well
-                    cs_meeting_count = self.agendaitem_set.filter(meeting__processing_status="scheduled").count()
+                    # TODO may I need to check the the meeting status as schedules/completed before approval
+                    added_to_meeting_status=['scheduled', 'completed']
+                    cs_meeting_count = self.agendaitem_set.filter(meeting__processing_status__in=added_to_meeting_status).count()
                     if cs_meeting_count==0:
                         raise ValidationError('You cannot issue the approval as meeting not scheduled for the minister approval')
                 # Add the approval document first to to get the reference id in below model

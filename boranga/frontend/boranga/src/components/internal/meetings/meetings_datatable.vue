@@ -239,9 +239,9 @@ export default {
                             links +=  `<a href='#${full.id}' data-discard-meeting='${full.id}'>Discard</a><br/>`;
                         }
                     else{
-                            //if(full.user_process){   
-                                links +=  `<a href='/internal/meetings/${full.id}?action=edit'>Edit</a><br/>`;    
-                            //}
+                            if(full.is_meeting_editable){   
+                                links +=  `<a href='/internal/meetings/${full.id}?action=edit'>Edit</a><br/>`;
+                            }
                             links +=  `<a href='/internal/meetings/${full.id}?action=view'>View</a><br/>`;
                         }
                     return links;

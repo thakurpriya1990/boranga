@@ -3,7 +3,7 @@
         <FormSection :formCollapse="false" label="Queue" :Index="csQueueBody">
             <div class="col-sm-12">
                     <div class="text-end">
-                        <button type="button" class="btn btn-primary mb-2 " @click.prevent="addConservationStatus">
+                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="addConservationStatus">
                             <i class="fa-solid fa-circle-plus"></i>
                                 Add Conservation Status
                         </button>
@@ -53,6 +53,7 @@ export default {
             ],
             cs_queue_options:{
                 autoWidth: false,
+                lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
                 },
@@ -139,8 +140,13 @@ export default {
                         data: "conservation_status_id",
                         mRender:function (data,type,full) {
                             let links = '';
-                            links += `<a href='#${full.conservation_status_id}' data-remove-agenda-item='${full.conservation_status_id}'>Remove</a><br/>`
-                            links +=  `<a href='/internal/conservation_status/${full.conservation_status_id}?action=view'>View</a><br/>`;
+                            if(!vm.isReadOnly){
+                                links += `<a href='#${full.conservation_status_id}' data-remove-agenda-item='${full.conservation_status_id}'>Remove</a><br/>`
+                                links +=  `<a href='/internal/conservation_status/${full.conservation_status_id}?action=view'>View</a><br/>`;
+                            }
+                            else{
+                                links +=  `<a href='/internal/conservation_status/${full.conservation_status_id}?action=view'>View</a><br/>`;
+                            }
                             return links;
 
                         },
@@ -176,6 +182,15 @@ export default {
         
     },
     computed:{
+        isReadOnly: function(){
+            let action = this.$route.query.action;
+            if(action === "edit" && this.meeting_obj && this.meeting_obj.user_edit_mode){
+                return false;
+            }
+            else{
+                return this.meeting_obj.readonly;
+            }
+        },
     },
     methods:{
         updateAgendaItems(){
@@ -398,12 +413,20 @@ export default {
                 }
             }
         },
+        hideOrderColumn: function() {
+            // this method is used to hide the order colmn when processing_status is completed
+            let vm=this;
+            if(vm.isReadOnly==true){
+                vm.$refs.cs_queue_datatable.vmDataTable.column([0]).visible(false);
+            }
+        },
     },
     mounted: function() {
         let vm = this;
         this.$nextTick(() => {
             //vm.constructCSQueueTable();
             vm.addEventListeners();
+            vm.hideOrderColumn();
         });
     },
 }

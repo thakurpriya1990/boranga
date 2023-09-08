@@ -5,7 +5,8 @@
                 <label for="" class="col-sm-3 control-label">Land Form:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" 
-                        style="width:100%;" class="form-select input-sm" multiple 
+                        style="width:100%;" class="form-select input-sm"
+                        ref="land_form_select" 
                         v-model="occurrence_report_obj.habitat_composition.land_form" >
                         <option v-for="option in land_form_list" :value="option.id" :key="option.id">
                             {{option.name}}
@@ -250,6 +251,24 @@ export default {
                     vm.occurrence_report_obj.conservation_attributes.flowering_period = selected.val();
                 });
             },
+            initialiseLandFormSelect: function(){
+                let vm = this;
+                // Initialise select2 for proposed Conservation Criteria
+                $(vm.$refs.land_form_select).select2({
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    multiple: true,
+                    placeholder:"Select Land Form",
+                }).
+                on("select2:select",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_report_obj.habitat_composition.land_form = selected.val();
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_report_obj.habitat_composition.land_form = selected.val();
+                });
+            },
             updateHabitatCompositionDetails: function() {
                 let vm = this;
                 vm.updatingHabitatCompositionDetails = true;
@@ -375,6 +394,7 @@ export default {
         mounted: function(){
             let vm = this;
             vm.eventListeners();
+            vm.initialiseLandFormSelect();
         },
     }
 </script>

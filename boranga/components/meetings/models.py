@@ -126,6 +126,10 @@ class Meeting(models.Model):
                                  (PROCESSING_STATUS_SCHEDULED, 'Scheduled'),
                                  (PROCESSING_STATUS_COMPLETED, 'Completed'),
                                 )
+
+    # List of statuses from above that allow a customer to view an application (read-only)
+    CUSTOMER_VIEWABLE_STATE = ['completed']
+
     meeting_number = models.CharField(max_length=9, blank=True, default='')
     meeting_type = models.CharField('Meeting Type', max_length=30, choices=MEETING_TYPE_CHOICES,
                                      default=MEETING_TYPE_CHOICES[0][0])
@@ -174,6 +178,33 @@ class Meeting(models.Model):
         # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
         user_editable_state = ['draft',]
         return self.processing_status in user_editable_state
+    
+    @property
+    def can_user_view(self):
+        """
+        :return: True if the application is in one of the approved status.
+        """
+        user_viewable_state = ['completed']
+        return self.processing_status in user_viewable_state
+
+    @property
+    def is_meeting_editable(self):
+        """
+        :return: True if the application is in one of the editable status other than draft status.
+        """
+        user_editable_state = ['scheduled',]
+        return self.processing_status in user_editable_state
+    
+    def has_user_edit_mode(self,user):
+        officer_view_state = ['draft','completed']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            # TODO do we need meeting_processing_group in SystemGroup
+            # return (
+            #     user.id in self.get_species_processor_group().get_system_group_member_ids()
+            # )
+            return True
     
     def submit(self,request,viewset):
         with transaction.atomic():
