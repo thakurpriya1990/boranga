@@ -84,7 +84,7 @@
                                         </div>
                                     </div>
                                 </template>
-                                <template v-if="isDraft">
+                                <template v-if="canDiscard">
                                     <div class="row">
                                         <div class="col-sm-12">
                                             <strong>Action</strong><br/>
@@ -270,7 +270,7 @@ export default {
                 return false;
             }
         },
-        isDraft: function(){
+        canDiscard: function(){
             return this.species_community && this.species_community.processing_status === "Draft"? true:false;
         },
         comms_url: function() {
