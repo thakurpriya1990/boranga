@@ -1017,6 +1017,9 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                     # add the updated Current conservation criteria list [1,2] to the cs instance,
                     saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
+                    # add the updated recommended conservation criteria list [1,2] to the cs instance,
+                    saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
+
                     instance.log_user_action(ConservationStatusUserAction.ACTION_SAVE_APPLICATION.format(instance.conservation_status_number), request)
 
             return redirect(reverse('internal'))
@@ -1054,6 +1057,9 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
 
                         # add the updated Current conservation criteria list [1,2] to the cs instance,
                         saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+
+                        # add the updated recommended conservation criteria list [1,2] to the cs instance,
+                        saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
 
                         instance.log_user_action(ConservationStatusUserAction.ACTION_EDIT_APPLICATION.format(instance.conservation_status_number), request)
 
