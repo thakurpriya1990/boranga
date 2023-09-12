@@ -1921,6 +1921,9 @@ class SpeciesConservationAttributes(models.Model):
                     (11, 'November'),
                     (12, 'December'),
                     )
+    INTERVAL_CHOICES = ((1, 'year/s'),
+                    (2, 'month/s')
+                    )
 
     species = models.OneToOneField(Species, on_delete=models.CASCADE, null=True, related_name="species_conservation_attributes")
     
@@ -1946,7 +1949,9 @@ class SpeciesConservationAttributes(models.Model):
     time_to_maturity = models.IntegerField(null=True, blank=True)
     generation_length = models.IntegerField(null=True, blank=True)
     average_lifespan = models.IntegerField(null=True, blank=True)
-    minimum_fire_interval = models.CharField(max_length=200, null=True, blank=True)
+    minimum_fire_interval_from = models.IntegerField(null=True, blank=True)
+    minimum_fire_interval_to = models.IntegerField(null=True, blank=True)
+    minimum_fire_interval_choice = models.CharField(max_length=10, choices=INTERVAL_CHOICES, null=True, blank=True)
     response_to_fire = models.CharField(max_length=200, null=True, blank=True)
     post_fire_habitat_interaction = models.ForeignKey(PostFireHabitatInteraction, on_delete=models.SET_NULL, null=True, blank=True)
     # TODO Remove the response to dist field
@@ -1977,7 +1982,9 @@ class CommunityConservationAttributes(models.Model):
 
     # habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
     pollinator_information = models.CharField(max_length=1000,null=True, blank=True)
-    minimum_fire_interval = models.CharField(max_length=200, null=True, blank=True)
+    minimum_fire_interval_from = models.IntegerField(null=True, blank=True)
+    minimum_fire_interval_to = models.IntegerField(null=True, blank=True)
+    minimum_fire_interval_choice = models.CharField(max_length=10, choices=SpeciesConservationAttributes.INTERVAL_CHOICES, null=True, blank=True)
     response_to_fire = models.CharField(max_length=200, null=True, blank=True)
     post_fire_habitat_interaction = models.ForeignKey(PostFireHabitatInteraction, on_delete=models.SET_NULL, null=True, blank=True)
     hydrology = models.CharField(max_length=200, null=True, blank=True)

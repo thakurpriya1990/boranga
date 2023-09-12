@@ -547,22 +547,106 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Minimum Fire Interval:</label>
                 <div class="col-sm-8">
-                    <input :disabled="true" type="text" class="form-control" 
-                    id="minimum_fire_interval" placeholder="" 
-                    v-model="species_original.conservation_attributes.minimum_fire_interval"/>
+                    <input class="form-check-input" type="checkbox" id="minimum_fire_interval_range_original"
+                        v-model="minimum_fire_interval_range_original" disabled="true" />
+                    <label for="" class="control-label">Range</label>
                 </div>
                 <div class="col-sm-1">
-                    <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
                     <input class="form-check-input" type="checkbox" :id="'fire_interval_chk'+species_community.id" @change="checkConservationInput('fire_interval_chk'+species_community.id,'minimum_fire_interval')" />
                 </div>
             </div>
+            <div class="row mb-3" v-if="!minimum_fire_interval_range_original">
+                <label for="" class="col-sm-3 control-label"></label>
+                <div class="col-sm-3 interval-margin">
+                    <input disabled="true" type="number" class="form-control" 
+                    id="minimum_fire_interval_from" placeholder=""
+                    v-model="species_original.conservation_attributes.minimum_fire_interval_from"/>
+                </div>
+                <div class="col-sm-2 interval-range-true-choice">
+                    <select disabled="true" class="form-select"
+                        v-model="species_original.conservation_attributes.minimum_fire_interval_choice">
+                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <label for="" class="control-label">{{ minFireIntervalMonthsComputedOriginal(species_original.conservation_attributes.minimum_fire_interval_from, species_original.conservation_attributes.minimum_fire_interval_choice)}}</label>
+                </div>
+            </div>
+            <div class="row mb-3" v-else>
+                    <label for="" class="col-sm-3 control-label"></label>
+                    <label for="" class="col-sm-2 control-label">From:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="minimum_fire_interval_from" placeholder=""
+                        v-model="species_original.conservation_attributes.minimum_fire_interval_from"/>
+                    </div>
+                    <label for="" class="col-sm-2 control-label">To:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="minimum_fire_interval_to" placeholder=""
+                        v-model="species_original.conservation_attributes.minimum_fire_interval_to"/>
+                    </div>
+                    <div class="col-sm-2 interval-range-true-choice">
+                        <select :disabled="isReadOnly" class="form-select"
+                            v-model="species_original.conservation_attributes.minimum_fire_interval_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}                            
+                            </option>
+                        </select>
+                    </div>
+            </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Minimum Fire Interval:</label>
-                <div class="col-sm-8">
-                    <input :disabled="isReadOnly" type="text" class="form-control" 
-                    id="minimum_fire_interval" placeholder="" 
-                    v-model="species_community.conservation_attributes.minimum_fire_interval"/>
+                <div class="col-sm-3">
+                    <input class="form-check-input" type="checkbox" id="minimum_fire_interval_range_new"
+                        v-model="minimum_fire_interval_range_new" :disabled="isReadOnly" @change="handleMinimumFireIntervalRange()" />
+                    <label for="" class="control-label">Range</label>
                 </div>
+                <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.minimum_fire_interval_error }}</label>
+            </div>
+            <div class="row mb-3" v-if="!minimum_fire_interval_range_new">
+                <label for="" class="col-sm-3 control-label"></label>
+                <div class="col-sm-3 interval-margin">
+                    <input :disabled="isReadOnly" type="number" class="form-control" 
+                    id="minimum_fire_interval_from" placeholder="" @change="validateMinimumFireIntervalRange()"
+                    v-model="species_community.conservation_attributes.minimum_fire_interval_from"/>
+                </div>
+                <div class="col-sm-2 interval-range-true-choice">
+                    <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
+                        v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
+                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <label for="" class="control-label">{{ minFireIntervalMonthsComputedNew}}</label>
+                </div>
+            </div>
+            <div class="row mb-3" v-else>
+                    <label for="" class="col-sm-3 control-label"></label>
+                    <label for="" class="col-sm-2 control-label">From:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="minimum_fire_interval_from" placeholder="" @change="validateMinimumFireIntervalRange()"
+                        v-model="species_community.conservation_attributes.minimum_fire_interval_from"/>
+                    </div>
+                    <label for="" class="col-sm-2 control-label">To:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="minimum_fire_interval_to" placeholder="" @change="validateMinimumFireIntervalRange()"
+                        v-model="species_community.conservation_attributes.minimum_fire_interval_to"/>
+                    </div>
+                    <div class="col-sm-2 interval-range-true-choice">
+                        <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}                            
+                            </option>
+                        </select>
+                    </div>
             </div>
 
             <div class="row mb-3">
@@ -892,6 +976,14 @@ export default {
                     {id: 11, name: 'November'},
                     {id: 12, name: 'December'},
                 ],
+                minimum_fire_interval_range_original: false,
+                minimum_fire_interval_range_new: false,
+                interval_choice: [{id: 1, name: 'year/s'},
+                {id: 2, name: 'month/s'}
+                ],
+                errors:{
+                    minimum_fire_interval_error:null
+                }
             }
         },
         components: {
@@ -907,6 +999,21 @@ export default {
                     return this.species_community.readonly;
                 }
             },
+            minFireIntervalMonthsComputedNew: function(){
+
+                const totalMonths = parseInt(this.species_community.conservation_attributes.minimum_fire_interval_from);
+                const intervalChoice = this.species_community.conservation_attributes.minimum_fire_interval_choice;
+                const isIntervalRange = this.minimum_fire_interval_range_new;
+
+                if(totalMonths > 12 && intervalChoice == 2 && isIntervalRange == false){
+                    const years = Math.floor(totalMonths / 12);
+                    const months = totalMonths % 12;
+                    return years + " year/s " + months + " month/s";
+                }
+                else{
+                    return ""
+                }
+            }
         },
         watch:{
             "species_community.distribution.noo_auto": function(newVal) {
@@ -1068,15 +1175,36 @@ export default {
             checkConservationInput: function(chkbox,obj_field,select2_ref=""){
                 // if checkbox is checked copy value from original  species to new species
                 if($("#"+chkbox).is(':checked')== true){
-                    this.species_community.conservation_attributes[obj_field] = this.species_original.conservation_attributes[obj_field];
-                    if(select2_ref != ""){
-                        $(this.$refs[select2_ref]).val(this.species_community.conservation_attributes[obj_field]).trigger("change");
+                    if(obj_field == "minimum_fire_interval"){
+                        this.species_community.conservation_attributes['minimum_fire_interval_from'] = this.species_original.conservation_attributes['minimum_fire_interval_from'];
+                        this.species_community.conservation_attributes['minimum_fire_interval_to'] = this.species_original.conservation_attributes['minimum_fire_interval_to'];
+                        this.species_community.conservation_attributes['minimum_fire_interval_choice'] = this.species_original.conservation_attributes['minimum_fire_interval_choice'];
+                        if(this.species_community.conservation_attributes['minimum_fire_interval_to'] != null){
+                            this.minimum_fire_interval_range_new = true;
+                        }
+                        else{
+                            this.minimum_fire_interval_range_new = false;
+                        }
+                    }
+                    else{
+                        this.species_community.conservation_attributes[obj_field] = this.species_original.conservation_attributes[obj_field];
+                        if(select2_ref != ""){
+                            $(this.$refs[select2_ref]).val(this.species_community.conservation_attributes[obj_field]).trigger("change");
+                        }
                     }
                 }else{
-                    this.species_community.conservation_attributes[obj_field]=null;
-                    if(select2_ref != ""){
-                        $(this.$refs[select2_ref]).val("").trigger("change");
-                        this.species_community.conservation_attributes[obj_field]=[];
+                    if(obj_field == "minimum_fire_interval"){
+                        this.species_community.conservation_attributes['minimum_fire_interval_from'] = null;
+                        this.species_community.conservation_attributes['minimum_fire_interval_to'] = null;
+                        this.species_community.conservation_attributes['minimum_fire_interval_choice'] = null;
+                        this.minimum_fire_interval_range_new = false;
+                    }
+                    else{
+                        this.species_community.conservation_attributes[obj_field]=null;
+                        if(select2_ref != ""){
+                            $(this.$refs[select2_ref]).val("").trigger("change");
+                            this.species_community.conservation_attributes[obj_field]=[];
+                        }
                     }
                 }
             },
@@ -1166,6 +1294,38 @@ export default {
                     multiple: true,
                 });
             },
+            minFireIntervalMonthsComputedOriginal: function(months, intervalChoice){
+
+                const totalMonths = parseInt(months);
+
+                if(totalMonths > 12 && intervalChoice == 2){
+                    const years = Math.floor(totalMonths / 12);
+                    const months = totalMonths % 12;
+                    return years + " year/s " + months + " month/s";
+                }
+                else{
+                    return ""
+                }
+            },
+            handleMinimumFireIntervalRange: function (e){
+                if(this.minimum_fire_interval_range_new == false){
+                    this.species_community.conservation_attributes.minimum_fire_interval_to = null;
+                }
+            },
+            validateMinimumFireIntervalRange: function(){
+                const rangeFrom = parseInt(this.species_community.conservation_attributes.minimum_fire_interval_from);
+                const rangeTo = parseInt(this.species_community.conservation_attributes.minimum_fire_interval_to);
+                const intervalChoice = this.species_community.conservation_attributes.minimum_fire_interval_choice;
+                if ((rangeFrom != null || rangeTo!= null) && intervalChoice == null){
+                    this.errors.minimum_fire_interval_error = "Please select years/months";
+                }
+                else if(rangeFrom >= rangeTo){
+                    this.errors.minimum_fire_interval_error = "Please enter a valid range";
+                }
+                else{
+                    this.errors.minimum_fire_interval_error = "";
+                }
+            }
         },
         created: async function() {
             let vm=this;
@@ -1181,6 +1341,18 @@ export default {
             }
             if(vm.species_community.distribution.aoo_auto == true){
                 vm.species_community.distribution.area_of_occupancy=vm.species_community.distribution.cal_area_of_occupancy;
+            }
+            if(vm.species_original.conservation_attributes.minimum_fire_interval_to != null && 
+                vm.species_original.conservation_attributes.minimum_fire_interval_to != "" && 
+                    vm.species_original.conservation_attributes.minimum_fire_interval_to != undefined)
+            {
+                vm.minimum_fire_interval_range_original = true;
+            }
+            if(vm.species_community.conservation_attributes.minimum_fire_interval_to != null && 
+                vm.species_community.conservation_attributes.minimum_fire_interval_to != "" && 
+                    vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined)
+            {
+                vm.minimum_fire_interval_range_new = true;
             }
             //--------get api taxon_names depending on flora/fauna
             // let taxon_api_url=null;
@@ -1293,6 +1465,16 @@ export default {
     }
     input[type=number]{
         width: 50%;
+    }
+    .interval-margin{
+       margin-right: -100px;
+    }
+    .interval-range-true-input{
+        width: 20%;
+        margin-left: -80px;
+    }
+    .interval-range-true-choice{
+        width: 20%;
     }
 </style>
 
