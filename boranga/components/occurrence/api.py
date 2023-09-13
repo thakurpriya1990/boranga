@@ -48,12 +48,17 @@ from boranga.components.occurrence.models import(
     HabitatComposition,
     HabitatCondition,
     LandForm,
+    FireHistory,
+    Intensity,
+    AssociatedSpecies,
 )
 from boranga.components.occurrence.serializers import(
     ListOccurrenceReportSerializer,
     OccurrenceReportSerializer,
     SaveHabitatCompositionSerializer,
     SaveHabitatConditionSerializer,
+    SaveFireHistorySerializer,
+    SaveAssociatedSpeciesSerializer,
 )
 
 from boranga.components.main.utils import (
@@ -206,6 +211,16 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                 serializer=SaveHabitatConditionSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+
+                # create FireHistory for new instance
+                serializer=SaveFireHistorySerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                 # create FireHistory for new instance
+                serializer=SaveAssociatedSpeciesSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
                 
                 headers = self.get_success_headers(serializer.data)
                 return Response(
@@ -254,7 +269,7 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                     });
         soil_colour_list = []
         colours = SoilColour.objects.all()
-        if types:
+        if colours:
             for val in colours:
                 soil_colour_list.append({
                     'id': val.id,
@@ -262,7 +277,7 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                     });
         soil_condition_list = []
         conditions = SoilCondition.objects.all()
-        if types:
+        if conditions:
             for val in conditions:
                 soil_condition_list.append({
                     'id': val.id,
@@ -270,9 +285,17 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                     });
         drainage_list = []
         drainages = Drainage.objects.all()
-        if types:
+        if drainages:
             for val in drainages:
                 drainage_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        intensity_list = []
+        intensities = Intensity.objects.all()
+        if intensities:
+            for val in intensities:
+                intensity_list.append({
                     'id': val.id,
                     'name':val.name,
                     });
@@ -283,6 +306,7 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         "soil_colour_list": soil_colour_list,
         "soil_condition_list": soil_condition_list,
         "drainage_list":drainage_list,
+        "intensity_list":intensity_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
@@ -314,6 +338,46 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             habitat_instance, created =HabitatCondition.objects.get_or_create(occurrence_report=ocr_instance)
             # the request.data is only the habitat condition data thats been sent from front end
             serializer = SaveHabitatConditionSerializer(habitat_instance,data=request.data, context={'request':request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+                print(traceback.print_exc())
+                raise
+        except ValidationError as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=['POST',], detail=True)
+    def update_fire_history_details(self, request, *args, **kwargs):
+        try:
+            ocr_instance = self.get_object()
+            fire_instance, created =FireHistory.objects.get_or_create(occurrence_report=ocr_instance)
+            # the request.data is only the habitat composition data thats been sent from front end
+            serializer = SaveFireHistorySerializer(fire_instance,data=request.data, context={'request':request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+                print(traceback.print_exc())
+                raise
+        except ValidationError as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=['POST',], detail=True)
+    def update_associated_species_details(self, request, *args, **kwargs):
+        try:
+            ocr_instance = self.get_object()
+            assoc_species_instance, created =AssociatedSpecies.objects.get_or_create(occurrence_report=ocr_instance)
+            # the request.data is only the habitat composition data thats been sent from front end
+            serializer = SaveAssociatedSpeciesSerializer(assoc_species_instance,data=request.data, context={'request':request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)

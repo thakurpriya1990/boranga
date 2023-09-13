@@ -29,7 +29,6 @@
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" 
                         style="width:100%;" class="form-select"  
-                        ref="meeting_status_select" 
                         v-model="meeting_obj.meeting_type" 
                         @change="toggleAttendees(meeting_obj.meeting_type)">
                         <option v-for="option in meeting_type_list" :value="option.id" :key="option.id">
@@ -76,12 +75,11 @@
                     </select>
                 </div>
             </div>
-            <div class="row mb-3">
+            <div class="row mb-3" v-show="!isStatusDraft">
                 <label for="" class="col-sm-4 control-label">Meeting status:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" 
                         style="width:100%;" class="form-select"  
-                        ref="meeting_status_select" 
                         v-model="meeting_obj.processing_status" >
                         <option v-for="option in status_list" :value="option.id" :key="option.id">
                             {{option.display_name}}
@@ -145,7 +143,7 @@ export default {
                 committee_mem_arr:[],
                 results: [],
                 panelBody: "committee_members"+vm._uid,
-                members_headers:['id','First Name', 'Last Name', 'Email', 'Action'],
+                members_headers: ['id','First Name', 'Last Name', 'Email', 'Action'],
                 members_options:{
                     autowidth: true,
                     language:{
@@ -226,14 +224,12 @@ export default {
                             data: "id",
                             mRender:function (data,type,full){
                                 let links = '';
-                                if(vm.meeting_obj.sel_committee_members_arr.includes(full.id)){
-                                    return `<a href='#${full.id}' data-remove-member='${full.id}'>Remove</a><br/>`;
-                                }
-                                else{
-                                    return `<a href='#${full.id}' data-add-member='${full.id}'>Add</a><br/>`;
-                                }
-                                //links +=  `<a href='#${full.id}' data-remove-member='${full.id}'>Remove</a><br/>`;
-                                //return links;
+                                    if(vm.meeting_obj.sel_committee_members_arr.includes(full.id)){
+                                        return `<a href='#${full.id}' data-remove-member='${full.id}'>Remove</a><br/>`;
+                                    }
+                                    else{
+                                        return `<a href='#${full.id}' data-add-member='${full.id}'>Add</a><br/>`;
+                                    }
                             }
                         },
                     ],
@@ -250,23 +246,16 @@ export default {
             alert
         },
         computed: {
-            isStatusApproved: function(){
-                return this.meeting_obj.processing_status=="scheduled" ? true : false;
+            isStatusDraft: function(){
+                return this.meeting_obj.processing_status=="draft" ? true : false;
             },
             isReadOnly: function(){
                 let action = this.$route.query.action;
-                // if(action === "edit" && this.meeting && this.meeting.user_edit_mode){
-                    //     return false;
-                    // }
-                    // else{
-                        //     return this.meeting.readonly;
-                        // }
-                //  TODO add the appropriate logic as above
-                if(action === "view" && this.meeting_obj){
-                    return true;
+                if(action === "edit" && this.meeting_obj && this.meeting_obj.user_edit_mode){
+                    return false;
                 }
                 else{
-                    return false;
+                    return this.meeting_obj.readonly;
                 }
             },
         },
@@ -364,6 +353,13 @@ export default {
                     this.isMeetingDateValid = true;
                 }
             },
+            hideActionColumn: function() {
+                // this method is used to hide the action colmn whem processing_status is completed
+                let vm=this;
+                if(vm.isReadOnly==true){
+                    vm.$refs.members_datatable.vmDataTable.column([4]).visible(false);
+                }
+            },
         },
         created: async function() {
             let vm=this;
@@ -402,6 +398,7 @@ export default {
             let vm = this;
             this.$nextTick(()=>{
                 vm.eventListeners();
+                vm.hideActionColumn();
             });
         }
     }
@@ -426,6 +423,10 @@ export default {
     }
     input[type=text], select {
         width: 100%;
+    }
+    .disable {
+        pointer-events: none;
+        cursor: default;
     }
 </style>
 

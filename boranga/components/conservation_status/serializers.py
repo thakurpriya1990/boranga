@@ -550,6 +550,9 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
                 'conservation_list_id',
                 'conservation_category_id',
                 'conservation_criteria',
+                'recommended_conservation_list_id',
+                'recommended_conservation_category_id',
+                'recommended_conservation_criteria',
                 'comment',
                 'proposed_date',
                 'lodgement_date',
@@ -571,6 +574,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
                 'deficiency_data',
                 'assessor_data',
                 'list_approval_level',
+                'can_view_recommended',
                 )
 
     def get_readonly(self,obj):
@@ -700,6 +704,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     conservationstatusissuanceapprovaldetails = ConservationStatusIssuanceApprovalDetailsSerializer()
     conservation_status_approval_document = serializers.SerializerMethodField()
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
+    can_edit_recommended = serializers.SerializerMethodField(read_only=True)
     # accessing_user_roles = (
     #     serializers.SerializerMethodField()
     # )
@@ -720,6 +725,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 'conservation_list_id',
                 'conservation_category_id',
                 'conservation_criteria',
+                'recommended_conservation_list_id',
+                'recommended_conservation_category_id',
+                'recommended_conservation_criteria',
                 'comment',
                 'proposed_date',
                 'processing_status',
@@ -746,6 +754,8 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 'conservation_status_approval_document',
                 #'accessing_user_roles',
                 'list_approval_level',
+                'can_view_recommended',
+                'can_edit_recommended',
                 )
 
     # def get_accessing_user_roles(self, conservation_status):
@@ -838,12 +848,19 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 # TODO Do we need to condsider the wa, commonwealth, international approved status
                 # prev_approved_cs=ConservationStatus.objects.get(species=obj.species, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED, conservation_list__applies_to_wa=True)
                 prev_approved_cs=ConservationStatus.objects.get(species=obj.species, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED)
-                return prev_approved_cs.conservation_list.label
+                # to check if the recommended list is present for the approved CS else get the normal conservation list
+                if prev_approved_cs.recommended_conservation_list:
+                    return prev_approved_cs.recommended_conservation_list.label
+                else:
+                    return prev_approved_cs.conservation_list.label
             elif obj.community:
                 # TODO Do we need to condsider the wa, commonwealth, international approved status
                 # prev_approved_cs=ConservationStatus.objects.get(community=obj.community, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED, conservation_list__applies_to_wa=True)
                 prev_approved_cs=ConservationStatus.objects.get(community=obj.community, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED)
-                return prev_approved_cs.conservation_list.code
+                if prev_approved_cs.recommended_conservation_list:
+                    return prev_approved_cs.recommended_conservation_list.label
+                else:
+                    return prev_approved_cs.conservation_list.label
         except ConservationStatus.DoesNotExist:
             return ''
     
@@ -853,12 +870,21 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 # TODO Do we need to condsider the wa, commonwealth, international approved status
                 # prev_approved_cs=ConservationStatus.objects.get(species=obj.species, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED, conservation_list__applies_to_wa=True)
                 prev_approved_cs=ConservationStatus.objects.get(species=obj.species, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED)
-                return prev_approved_cs.conservation_category.code
+                if prev_approved_cs.recommended_conservation_list:
+                    return prev_approved_cs.recommended_conservation_category.code
+                else:
+                    return prev_approved_cs.conservation_category.code
+                # return prev_approved_cs.conservation_category.code
+                
             elif obj.community:
                 # TODO Do we need to condsider the wa, commonwealth, international approved status
                 # prev_approved_cs=ConservationStatus.objects.get(community=obj.community, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED, conservation_list__applies_to_wa=True)
                 prev_approved_cs=ConservationStatus.objects.get(community=obj.community, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED)
-                return prev_approved_cs.conservation_category.code
+                if prev_approved_cs.recommended_conservation_list:
+                    return prev_approved_cs.recommended_conservation_category.code
+                else:
+                    return prev_approved_cs.conservation_category.code
+                # return prev_approved_cs.conservation_category.code
         except ConservationStatus.DoesNotExist:
             return ''
     
@@ -868,16 +894,36 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 # TODO Do we need to condsider the wa, commonwealth, international approved status
                 # prev_approved_cs=ConservationStatus.objects.get(species=obj.species, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED, conservation_list__applies_to_wa=True)
                 prev_approved_cs=ConservationStatus.objects.get(species=obj.species, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED)
-                criteria_list = prev_approved_cs.conservation_criteria.all().values_list('code', flat=True)
-                return ','.join(criteria_list)
+                # criteria_list = prev_approved_cs.conservation_criteria.all().values_list('code', flat=True)
+                # return ','.join(criteria_list)
+                if prev_approved_cs.recommended_conservation_criteria.all():
+                    recom_criteria_list = prev_approved_cs.recommended_conservation_criteria.all().values_list('code', flat=True)
+                    return ','.join(recom_criteria_list)
+                else:
+                    criteria_list = prev_approved_cs.conservation_criteria.all().values_list('code', flat=True)
+                    return ','.join(criteria_list)
             elif obj.community:
                 # TODO Do we need to condsider the wa, commonwealth, international approved status
                 # prev_approved_cs=ConservationStatus.objects.get(community=obj.community, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED, conservation_list__applies_to_wa=True)
                 prev_approved_cs=ConservationStatus.objects.get(community=obj.community, processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED)
-                criteria_list = prev_approved_cs.conservation_criteria.all().values_list('code', flat=True)
-                return ','.join(criteria_list)
+                # criteria_list = prev_approved_cs.conservation_criteria.all().values_list('code', flat=True)
+                # return ','.join(criteria_list)
+                if prev_approved_cs.recommended_conservation_criteria.all():
+                    recom_criteria_list = prev_approved_cs.recommended_conservation_criteria.all().values_list('code', flat=True)
+                    return ','.join(recom_criteria_list)
+                else:
+                    criteria_list = prev_approved_cs.conservation_criteria.all().values_list('code', flat=True)
+                    return ','.join(criteria_list)
         except ConservationStatus.DoesNotExist:
             return ''
+    
+    def get_can_edit_recommended(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context["request"]
+        user = (
+            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+        )
+        return obj.can_edit_recommended(user)
 
 
 # Not used at the moment
@@ -926,6 +972,7 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
                 'proposed_issuance_approval',
                 'proposed_decline_status',
                 'conservationstatusdeclineddetails',
+                'can_view_recommended',
                 )
 
     # def get_accessing_user_roles(self, conservation_status):
@@ -984,6 +1031,8 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
     species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     conservation_list_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     conservation_category_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    recommended_conservation_list_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    recommended_conservation_category_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     #conservation_criteria = ConservationCriteriaSerializer(read_only = True)
 
     class Meta:
@@ -994,6 +1043,8 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
                 'species_id',
                 'conservation_list_id',
                 'conservation_category_id',
+                'recommended_conservation_list_id',
+                'recommended_conservation_category_id',
                 'comment',
                 'lodgement_date',
                 'applicant_type',
@@ -1122,6 +1173,8 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
     community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     conservation_list_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     conservation_category_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    recommended_conservation_list_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    recommended_conservation_category_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     #conservation_criteria = ConservationCriteriaSerializer(read_only = True)
 
     class Meta:
@@ -1132,6 +1185,8 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
                 'community_id',
                 'conservation_list_id',
                 'conservation_category_id',
+                'recommended_conservation_list_id',
+                'recommended_conservation_category_id',
                 'comment',
                 'lodgement_date',
                 'applicant_type',

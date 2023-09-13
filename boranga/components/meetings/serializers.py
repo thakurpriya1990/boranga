@@ -33,6 +33,7 @@ class ListMeetingSerializer(serializers.ModelSerializer):
                 'title',
                 'processing_status',
                 'can_user_edit',
+                'is_meeting_editable'
             )
         datatables_always_serialize = (
                 'id',
@@ -43,12 +44,24 @@ class ListMeetingSerializer(serializers.ModelSerializer):
                 'title',
                 'processing_status',
                 'can_user_edit',
+                'is_meeting_editable',
             )
 
     def get_location(self,obj):
         if obj.location:
             return obj.location.room_name
         return ''
+    
+    # def get_user_process(self,obj):
+    #     # Check if currently logged in user has access to process the Species
+    #     request = self.context['request']
+    #     template_group = self.context.get('template_group')
+    #     user = request.user
+    #     if obj.can_user_action:
+	# 		#TODO user should be SystemGroup meetingprocessinggroup?
+    #         if user in obj.allowed_species_processors:
+    #             return True
+    #     return False
         
 class CreateMeetingSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -121,6 +134,8 @@ class MeetingSerializer(serializers.ModelSerializer):
     end_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     selected_committee_members = serializers.SerializerMethodField(read_only=True)
     agenda_items_arr = serializers.SerializerMethodField(read_only=True)
+    user_edit_mode = serializers.SerializerMethodField()
+    readonly = serializers.SerializerMethodField()
 
     class Meta:
         model = Meeting
@@ -141,6 +156,8 @@ class MeetingSerializer(serializers.ModelSerializer):
                 'lodgement_date',
                 'submitter',
                 'agenda_items_arr',
+                'user_edit_mode',
+                'readonly',
             )
     
     def get_processing_status_display(self,obj):
@@ -158,6 +175,17 @@ class MeetingSerializer(serializers.ModelSerializer):
     
     def get_agenda_items_arr(self,obj):
         return [cs.conservation_status_id for cs in obj.agenda_items.all()]
+    
+    def get_readonly(self,obj):
+        return obj.can_user_view
+    
+    def get_user_edit_mode(self,obj):
+		# TODO check if the proposal has been accepted or declined
+        request = self.context["request"]
+        user = (
+			request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+		)
+        return obj.has_user_edit_mode(user)
 
 
 class SaveMeetingSerializer(serializers.ModelSerializer):

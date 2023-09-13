@@ -328,6 +328,12 @@ class ConservationStatus(models.Model):
     conservation_category = models.ForeignKey(ConservationCategory, 
                                               on_delete=models.SET_NULL, blank=True, null=True, related_name="curr_conservation_category")
     conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True, related_name="curr_conservation_criteria")
+    # recommended listing details in a meeting
+    recommended_conservation_list = models.ForeignKey(ConservationList,
+                                             on_delete=models.CASCADE, blank=True, null=True)
+    recommended_conservation_category = models.ForeignKey(ConservationCategory,
+                                              on_delete=models.SET_NULL, blank=True, null=True)
+    recommended_conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True)
     comment = models.CharField(max_length=512, blank=True, null=True)
     review_date = models.DateField(null=True,blank=True)
     recurrence_pattern = models.SmallIntegerField(choices=RECURRENCE_PATTERNS,default=1)
@@ -680,6 +686,32 @@ class ConservationStatus(models.Model):
                     user.id in self.get_assessor_group().get_system_group_member_ids()
                 )
     
+    @property
+    def can_view_recommended(self):
+        recommended_view_status= ['ready_for_agenda','approved','closed']
+        if self.processing_status in recommended_view_status:
+            return True
+        else:
+            return False
+    
+    def can_edit_recommended(self,user):
+        recommended_edit_status= ['ready_for_agenda']
+        if self.processing_status in recommended_edit_status:
+            if self.assigned_officer:
+                if self.assigned_officer == user.id:
+                    return (
+                        user.id
+                        in self.get_assessor_group().get_system_group_member_ids()
+                    )
+                else:
+                    return False
+            else:
+                return (
+                    user.id in self.get_assessor_group().get_system_group_member_ids()
+                )
+        else:
+            return False
+
     def assign_officer(self,request,officer):
         with transaction.atomic():
             try:
@@ -947,8 +979,9 @@ class ConservationStatus(models.Model):
                     raise ValidationError('You cannot issue the approval if it is not with an assessor')
                 # not approve if the cs not set ina ny meeting for list with minister
                 if self.conservation_list.approval_level == 'minister':
-                    # TODO may I need to check the the meeting status as schedules as well
-                    cs_meeting_count = self.agendaitem_set.filter(meeting__processing_status="scheduled").count()
+                    # TODO may I need to check the the meeting status as schedules/completed before approval
+                    added_to_meeting_status=['scheduled', 'completed']
+                    cs_meeting_count = self.agendaitem_set.filter(meeting__processing_status__in=added_to_meeting_status).count()
                     if cs_meeting_count==0:
                         raise ValidationError('You cannot issue the approval as meeting not scheduled for the minister approval')
                 # Add the approval document first to to get the reference id in below model

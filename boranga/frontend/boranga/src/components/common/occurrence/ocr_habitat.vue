@@ -5,7 +5,8 @@
                 <label for="" class="col-sm-3 control-label">Land Form:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" 
-                        style="width:100%;" class="form-select input-sm" multiple 
+                        style="width:100%;" class="form-select input-sm"
+                        ref="land_form_select" 
                         v-model="occurrence_report_obj.habitat_composition.land_form" >
                         <option v-for="option in land_form_list" :value="option.id" :key="option.id">
                             {{option.name}}
@@ -154,12 +155,71 @@
                 </div>
             </div>
         </FormSection>
+        <FormSection :formCollapse="false" label="Fire History" :Index="fireHistoryBody">
+            <label for="" class="col-lg-3 control-label fs-5 fw-bold">Last Fire History</label>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Last Fire Estimate:</label>
+                <div class="col-sm-9">
+                    <input :disabled="isReadOnly" type="month" class="form-control" name="last_fire_date" 
+                    ref="last_fire_date" @change="checkDate()" v-model="occurrence_report_obj.fire_history.last_fire_estimate" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Intensity:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.fire_history.intensity_id">
+                        <option v-for="option in intensity_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Comments :</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="fire_history_comment" placeholder="" v-model="occurrence_report_obj.fire_history.comment"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <button v-if="!updatingFireHistoryDetails" class="btn btn-primary btn-sm float-end" @click.prevent="updateFireHistoryDetails()">Update</button>
+                    <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                </div>
+            </div>
+        </FormSection>
+        <FormSection :formCollapse="false" label="Associated Species" :Index="associatedSpeciesBody">
+            <div class="row mb-3">
+                <div class="col-sm-3">
+                    <label for="related_species" class="control-label">Related Species</label>
+                </div>
+                <div class="col-sm-9">
+                    <RichText
+                        id="related_species"
+                        :proposalData="occurrence_report_obj.associated_species.related_species"
+                        ref="related_species"
+                        label="Rich text in here" 
+                        :readonly="isReadOnly" 
+                        :can_view_richtext_src=true
+                        :key="occurrence_report_obj.id"
+                        @textChanged="relatedSpeciesTextChanged"
+                    />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <button v-if="!updatingFireHistoryDetails" class="btn btn-primary btn-sm float-end" @click.prevent="updateAssociatedSpeciesDetails()">Update</button>
+                    <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                </div>
+            </div>
+        </FormSection>
     </div>
 </template>
 
 <script>
 import Vue from 'vue' ;
 import FormSection from '@/components/forms/section_toggle.vue';
+import RichText from '@/components/forms/richtext.vue'
 import {
   api_endpoints,
   helpers
@@ -190,6 +250,8 @@ export default {
                 select_flowering_period: "select_flowering_period"+ vm._uid,
                 habitatCompositionBody: 'habitatCompositionBody' + vm._uid,
                 habitatConditionBody: 'habitatConditionBody' + vm._uid,
+                fireHistoryBody: 'fireHistoryBody' + vm._uid,
+                associatedSpeciesBody: 'associatedSpeciesBody'+ vm._uid,
                 //---to show fields related to Fauna
                 isFauna: vm.occurrence_report_obj.group_type==="fauna"?true:false,
                 //----list of values dictionary
@@ -201,13 +263,17 @@ export default {
                 soil_condition_list: [],
                 land_form_list: [],
                 drainage_list: [],
+                intensity_list: [],
                 habitat_cond_sum: 0,
                 updatingHabitatCompositionDetails: false,
                 updatingHabitatConditionDetails: false,
+                updatingFireHistoryDetails: false,
+                updatingAssociatedSpeciesDetails: false,
             }
         },
         components: {
             FormSection,
+            RichText,
         },
         computed: {
             isReadOnly: function(){
@@ -250,6 +316,39 @@ export default {
                     vm.occurrence_report_obj.conservation_attributes.flowering_period = selected.val();
                 });
             },
+            relatedSpeciesTextChanged: function(new_text) {
+                this.occurrence_report_obj.fire_history.comment = new_text
+            },
+            checkDate: function(){
+                let vm=this;
+                if(vm.$refs.last_fire_date.value){
+                    vm.occurrence_report_obj.fire_history.last_fire_estimate = vm.$refs.last_fire_date.value;
+                }
+                else{
+                    vm.occurrence_report_obj.fire_history.last_fire_estimate = null;
+                }
+            },
+            relatedSpeciesTextChanged: function(new_text) {
+                this.occurrence_report_obj.associated_species.related_species = new_text
+            },
+            initialiseLandFormSelect: function(){
+                let vm = this;
+                // Initialise select2 for proposed Conservation Criteria
+                $(vm.$refs.land_form_select).select2({
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    multiple: true,
+                    placeholder:"Select Land Form",
+                }).
+                on("select2:select",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_report_obj.habitat_composition.land_form = selected.val();
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_report_obj.habitat_composition.land_form = selected.val();
+                });
+            },
             updateHabitatCompositionDetails: function() {
                 let vm = this;
                 vm.updatingHabitatCompositionDetails = true;
@@ -269,7 +368,7 @@ export default {
                     var text= helpers.apiVueResourceError(error);
                     swal.fire({
                         title: 'Error', 
-                        text: 'Habitat Composition details have cannot be saved because of the following error: '+text,
+                        text: 'Habitat Composition details cannot be saved because of the following error: '+text,
                         icon: 'error',
                         confirmButtonColor:'#226fbb',
                     });
@@ -296,13 +395,65 @@ export default {
                         var text= helpers.apiVueResourceError(error);
                         swal.fire({
                             title: 'Error', 
-                            text: 'Habitat Condition details have cannot be saved because of the following error: '+text,
+                            text: 'Habitat Condition details cannot be saved because of the following error: '+text,
                             icon: 'error',
                             confirmButtonColor:'#226fbb',
                         });
                         vm.updatingHabitatConditionDetails = false;
                     });
                 }
+            },
+            updateFireHistoryDetails: function() {
+                let vm = this;
+                vm.updatingFireHistoryDetails = true;
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_fire_history_details')),JSON.stringify(vm.occurrence_report_obj.fire_history),{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.updatingFireHistoryDetails = false;
+                    vm.occurrence_report_obj.fire_history = response.body;
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Fire History details have been saved',
+                        icon: 'success',
+                        confirmButtonColor:'#226fbb',
+
+                    });
+                }, (error) => {
+                    var text= helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error', 
+                        text: 'Fire History details cannot be saved because of the following error: '+text,
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb',
+                    });
+                    vm.updatingFireHistoryDetails = false;
+                });
+            },
+            updateAssociatedSpeciesDetails: function() {
+                let vm = this;
+                vm.updatingAssociatedSpeciesDetails = true;
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_associated_species_details')),JSON.stringify(vm.occurrence_report_obj.associated_species),{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.updatingAssociatedSpeciesDetails = false;
+                    vm.occurrence_report_obj.associated_species = response.body;
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Associated Species details have been saved',
+                        icon: 'success',
+                        confirmButtonColor:'#226fbb',
+
+                    });
+                }, (error) => {
+                    var text= helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error', 
+                        text: 'Associated Species cannot be saved because of the following error: '+text,
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb',
+                    });
+                    vm.updatingAssociatedSpeciesDetails = false;
+                });
             },
             calcKeiryTotal: function(){
                 let vm=this;
@@ -371,10 +522,17 @@ export default {
                     id: null,
                     name: null,
                 });
+            vm.intensity_list = vm.listOfValuesDict.intensity_list;
+            vm.intensity_list.splice(0,0,
+                {
+                    id: null,
+                    name: null,
+                });
         },
         mounted: function(){
             let vm = this;
             vm.eventListeners();
+            vm.initialiseLandFormSelect();
         },
     }
 </script>

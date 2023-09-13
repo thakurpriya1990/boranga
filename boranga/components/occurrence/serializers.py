@@ -14,6 +14,8 @@ from boranga.components.occurrence.models import(
     HabitatComposition,
     HabitatCondition,
     LandForm,
+    FireHistory,
+    AssociatedSpecies,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -117,6 +119,29 @@ class HabitatConditionSerializer(serializers.ModelSerializer):
             'completely_degraded',
 			)
 
+class FireHistorySerializer(serializers.ModelSerializer):
+    last_fire_estimate = serializers.DateField(format="%Y-%m")
+    
+    class Meta:
+        model = FireHistory
+        fields = (
+			'id',
+			'occurrence_report_id',
+            'last_fire_estimate',
+            'intensity_id',
+            'comment',
+            )
+
+class AssociatedSpeciesSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = AssociatedSpecies
+        fields = (
+			'id',
+			'occurrence_report_id',
+            'related_species',
+            )
+
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
@@ -126,6 +151,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     # list_approval_level = serializers.SerializerMethodField(read_only=True)
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
+    fire_history = serializers.SerializerMethodField()
+    associated_species = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -157,6 +184,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 # 'list_approval_level',
                 'habitat_composition',
                 'habitat_condition',
+                'fire_history',
+                'associated_species',
                 )
 
     def get_readonly(self,obj):
@@ -193,6 +222,20 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             return HabitatConditionSerializer(qs).data
         except HabitatCondition.DoesNotExist:
             return HabitatConditionSerializer().data
+    
+    def get_fire_history(self,obj):
+        try:
+            qs = FireHistory.objects.get(occurrence_report=obj)
+            return FireHistorySerializer(qs).data
+        except FireHistory.DoesNotExist:
+            return FireHistorySerializer().data
+    
+    def get_associated_species(self,obj):
+        try:
+            qs = AssociatedSpecies.objects.get(occurrence_report=obj)
+            return AssociatedSpeciesSerializer(qs).data
+        except AssociatedSpecies.DoesNotExist:
+            return AssociatedSpeciesSerializer().data
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
@@ -258,3 +301,32 @@ class SaveHabitatConditionSerializer(serializers.ModelSerializer):
             'degraded',
             'completely_degraded',
 			)
+
+class SaveFireHistorySerializer(serializers.ModelSerializer):
+	# occurrence_report_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    # write_only removed from below as the serializer will not return that field in serializer.data
+    last_fire_estimate = serializers.DateField(format="%Y-%m",input_formats=['%Y-%m'], required=False,  allow_null=True)
+    occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+    intensity_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = FireHistory
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'last_fire_estimate',
+            'intensity_id',
+            'comment',
+            )
+
+class SaveAssociatedSpeciesSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+	
+    class Meta:
+        model = AssociatedSpecies
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'related_species',
+            )
+

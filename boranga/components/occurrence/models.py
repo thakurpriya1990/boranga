@@ -550,8 +550,68 @@ class FireHistory(models.Model):
     """
     occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="fire_history")
     last_fire_estimate = models.DateField(null=True, blank=True)
-    intensity = models.ForeignKey(RockType, on_delete=models.SET_NULL, null=True, blank=True)
+    intensity = models.ForeignKey(Intensity, on_delete=models.SET_NULL, null=True, blank=True)
     comment = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)
+
+
+class AssociatedSpecies(models.Model):
+    """
+    Associated Species data for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="associated_species")
+    related_species = models.TextField(blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)
+
+
+class ObservationMethod(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - FireHistory
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Observation Method"
+        verbose_name_plural = "Observation Methods"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class ObservationDetails(models.Model):
+    """
+    Observation Details data for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="obbservation_details")
+    observation_method = models.ForeignKey(ObservationMethod, on_delete=models.SET_NULL, null=True, blank=True)
+    area_surveyed = models.IntegerField(null=True, blank=True, default=0)
+    survey_duration = models.IntegerField(null=True, blank=True, default=0)
 
     class Meta:
         app_label = 'boranga'
