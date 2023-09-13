@@ -52,6 +52,12 @@ export default {
     },
     computed: {
     },
+    watch: {
+        detailsText: function(){
+            // Parent component can subscribe this event in order to update text
+            this.$emit('textChanged', this.detailsText)
+        }
+    },
     created: function() {
         if (this.proposalData) {
             this.detailsText = this.proposalData;
