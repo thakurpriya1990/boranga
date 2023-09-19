@@ -51,6 +51,19 @@ from boranga.components.occurrence.models import(
     FireHistory,
     Intensity,
     AssociatedSpecies,
+    ObservationMethod,
+    ObservationDetail,
+    PlantCountMethod,
+    PlantCountAccuracy,
+    PlantCondition,
+    CountedSubject,
+    PlantCount,
+    AnimalObservation,
+    PrimaryDetectionMethod,
+    SecondarySign,
+    ReproductiveMaturity,
+    DeathReason,
+    AnimalHealth,
 )
 from boranga.components.occurrence.serializers import(
     ListOccurrenceReportSerializer,
@@ -59,6 +72,9 @@ from boranga.components.occurrence.serializers import(
     SaveHabitatConditionSerializer,
     SaveFireHistorySerializer,
     SaveAssociatedSpeciesSerializer,
+    SaveObservationDetailSerializer,
+    SavePlantCountSerializer,
+    SaveAnimalObservationSerializer,
 )
 
 from boranga.components.main.utils import (
@@ -217,8 +233,23 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
-                 # create FireHistory for new instance
+                # create FireHistory for new instance
                 serializer=SaveAssociatedSpeciesSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create ObservationDetail for new instance
+                serializer=SaveObservationDetailSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create PlantCount for new instance
+                serializer=SavePlantCountSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create AnimalObservation for new instance
+                serializer=SaveAnimalObservationSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
                 
@@ -311,11 +342,111 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
     
+    #used for Occurrence Report Observation external form 
+    @list_route(methods=['GET',], detail=False)
+    def observation_list_of_values(self, request, *args, **kwargs):
+        """ used for Occurrence Report external form  """
+        qs =  self.get_queryset()
+        observation_method_list = []
+        values = ObservationMethod.objects.all()
+        if values:
+            for val in values:
+                observation_method_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        plant_count_method_list = []
+        values = PlantCountMethod.objects.all()
+        if values:
+            for val in values:
+                plant_count_method_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        plant_count_accuracy_list = []
+        values = PlantCountAccuracy.objects.all()
+        if values:
+            for val in values:
+                plant_count_accuracy_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        plant_condition_list = []
+        values = PlantCondition.objects.all()
+        if values:
+            for val in values:
+                plant_condition_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        counted_subject_list = []
+        values = CountedSubject.objects.all()
+        if values:
+            for val in values:
+                counted_subject_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        primary_detection_method_list = []
+        values = PrimaryDetectionMethod.objects.all()
+        if values:
+            for val in values:
+                primary_detection_method_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        secondary_sign_list = []
+        values = SecondarySign.objects.all()
+        if values:
+            for val in values:
+                secondary_sign_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        reprod_maturity_list = []
+        values = ReproductiveMaturity.objects.all()
+        if values:
+            for val in values:
+                reprod_maturity_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        death_reason_list = []
+        values = DeathReason.objects.all()
+        if values:
+            for val in values:
+                death_reason_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        animal_health_list = []
+        values = AnimalHealth.objects.all()
+        if values:
+            for val in values:
+                animal_health_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        res_json = {
+        "observation_method_list":observation_method_list,
+        "plant_count_method_list":plant_count_method_list,
+        "plant_count_accuracy_list":plant_count_accuracy_list,
+        "plant_condition_list":plant_condition_list,
+        "counted_subject_list":counted_subject_list,
+        "primary_detection_method_list":primary_detection_method_list,
+        "secondary_sign_list":secondary_sign_list,
+        "reprod_maturity_list":reprod_maturity_list,
+        "death_reason_list":death_reason_list,
+        "animal_health_list":animal_health_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+    
     @list_route(methods=['POST',], detail=True)
     def update_habitat_composition_details(self, request, *args, **kwargs):
         try:
             ocr_instance = self.get_object()
-            habitat_instance, created =HabitatComposition.objects.get_or_create(occurrence_report=ocr_instance)
+            habitat_instance, created = HabitatComposition.objects.get_or_create(occurrence_report=ocr_instance)
             # the request.data is only the habitat composition data thats been sent from front end
             serializer = SaveHabitatCompositionSerializer(habitat_instance,data=request.data, context={'request':request})
             serializer.is_valid(raise_exception=True)
@@ -335,7 +466,7 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
     def update_habitat_condition_details(self, request, *args, **kwargs):
         try:
             ocr_instance = self.get_object()
-            habitat_instance, created =HabitatCondition.objects.get_or_create(occurrence_report=ocr_instance)
+            habitat_instance, created = HabitatCondition.objects.get_or_create(occurrence_report=ocr_instance)
             # the request.data is only the habitat condition data thats been sent from front end
             serializer = SaveHabitatConditionSerializer(habitat_instance,data=request.data, context={'request':request})
             serializer.is_valid(raise_exception=True)
@@ -355,7 +486,7 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
     def update_fire_history_details(self, request, *args, **kwargs):
         try:
             ocr_instance = self.get_object()
-            fire_instance, created =FireHistory.objects.get_or_create(occurrence_report=ocr_instance)
+            fire_instance, created = FireHistory.objects.get_or_create(occurrence_report=ocr_instance)
             # the request.data is only the habitat composition data thats been sent from front end
             serializer = SaveFireHistorySerializer(fire_instance,data=request.data, context={'request':request})
             serializer.is_valid(raise_exception=True)
@@ -375,7 +506,7 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
     def update_associated_species_details(self, request, *args, **kwargs):
         try:
             ocr_instance = self.get_object()
-            assoc_species_instance, created =AssociatedSpecies.objects.get_or_create(occurrence_report=ocr_instance)
+            assoc_species_instance, created = AssociatedSpecies.objects.get_or_create(occurrence_report=ocr_instance)
             # the request.data is only the habitat composition data thats been sent from front end
             serializer = SaveAssociatedSpeciesSerializer(assoc_species_instance,data=request.data, context={'request':request})
             serializer.is_valid(raise_exception=True)
@@ -390,3 +521,65 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         except Exception as e:
                 print(traceback.print_exc())
                 raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=['POST',], detail=True)
+    def update_observation_details(self, request, *args, **kwargs):
+        try:
+            ocr_instance = self.get_object()
+            obs_det_instance, created = ObservationDetail.objects.get_or_create(occurrence_report=ocr_instance)
+            # the request.data is only the observation detail data thats been sent from front end
+            serializer = SaveObservationDetailSerializer(obs_det_instance,data=request.data, context={'request':request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+                print(traceback.print_exc())
+                raise
+        except ValidationError as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=['POST',], detail=True)
+    def update_plant_count_details(self, request, *args, **kwargs):
+        try:
+            ocr_instance = self.get_object()
+            plant_count_instance, created = PlantCount.objects.get_or_create(occurrence_report=ocr_instance)
+            # the request.data is only the plant count data thats been sent from front end
+            serializer = SavePlantCountSerializer(plant_count_instance,data=request.data, context={'request':request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+                print(traceback.print_exc())
+                raise
+        except ValidationError as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=['POST',], detail=True)
+    def update_animal_observation_details(self, request, *args, **kwargs):
+        try:
+            ocr_instance = self.get_object()
+            animal_obs_instance, created = AnimalObservation.objects.get_or_create(occurrence_report=ocr_instance)
+            # the request.data is only the animal obs data thats been sent from front end
+            serializer = SaveAnimalObservationSerializer(animal_obs_instance,data=request.data, context={'request':request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+                print(traceback.print_exc())
+                raise
+        except ValidationError as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(str(e))
+
+

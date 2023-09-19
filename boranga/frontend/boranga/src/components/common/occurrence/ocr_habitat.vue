@@ -245,9 +245,6 @@ export default {
         data:function () {
             let vm = this;
             return{
-                scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
-                select_scientific_name: "select_scientific_name"+ vm._uid,
-                select_flowering_period: "select_flowering_period"+ vm._uid,
                 habitatCompositionBody: 'habitatCompositionBody' + vm._uid,
                 habitatConditionBody: 'habitatConditionBody' + vm._uid,
                 fireHistoryBody: 'fireHistoryBody' + vm._uid,
@@ -315,9 +312,6 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.occurrence_report_obj.conservation_attributes.flowering_period = selected.val();
                 });
-            },
-            relatedSpeciesTextChanged: function(new_text) {
-                this.occurrence_report_obj.fire_history.comment = new_text
             },
             checkDate: function(){
                 let vm=this;

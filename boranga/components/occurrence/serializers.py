@@ -16,6 +16,12 @@ from boranga.components.occurrence.models import(
     LandForm,
     FireHistory,
     AssociatedSpecies,
+    ObservationDetail,
+    PlantCount,
+    PrimaryDetectionMethod,
+    AnimalObservation,
+    SecondarySign,
+    ReproductiveMaturity,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -142,6 +148,92 @@ class AssociatedSpeciesSerializer(serializers.ModelSerializer):
             'related_species',
             )
 
+class ObservationDetailSerializer(serializers.ModelSerializer):
+	
+    class Meta:
+        model = ObservationDetail
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'observation_method_id',
+            'area_surveyed',
+            'survey_duration',
+            )
+
+
+class PlantCountSerializer(serializers.ModelSerializer):
+	
+    class Meta:
+        model = PlantCount
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'plant_count_method_id',
+            'plant_count_accuracy_id',
+            'counted_subject_id',
+            'plant_condition_id',
+            'estimated_population_area',
+            'quadrats_present',
+            'quadrats_data_attached',
+            'quadrats_surveyed',
+            'individual_quadrat_area',
+            'total_quadrat_area',
+            'flowering_plants_per',
+            'clonal_reproduction_present',
+            'vegetative_state_present',
+            'flower_bud_present',
+            'flower_present',
+            'immature_fruit_present',
+            'ripe_fruit_present',
+            'dehisced_fruit_present',
+            'pollinator_observation',
+            'comment',
+            'simple_alive',
+            'simple_dead',
+            'detailed_alive_mature',
+            'detailed_dead_mature',
+            'detailed_alive_juvenile',
+            'detailed_dead_juvenile',
+            'detailed_alive_seedling',
+            'detailed_dead_seedling',
+            'detailed_alive_unknown',
+            'detailed_dead_unknown',
+            )
+
+
+class AnimalObservationSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = AnimalObservation
+        fields = (
+            'id',
+            'occurrence_report_id',
+            'primary_detection_method',
+            'secondary_sign',
+            'reproductive_maturity',
+            'animal_health_id',
+            'death_reason_id',
+            'total_count',
+            'distinctive_feature',
+            'action_taken',
+            'action_required',
+            'observation_detail_comment',
+            'alive_adult',
+            'dead_adult',
+            'alive_juvenile',
+            'dead_juvenile',
+            'alive_pouch_young',
+            'dead_pouch_young',
+            'alive_unsure',
+            'dead_unsure',
+            )
+
+    def __init__(self, *args, **kwargs):
+        super(AnimalObservationSerializer, self).__init__(*args, **kwargs)
+        self.fields['primary_detection_method'] = serializers.MultipleChoiceField(choices=[(primary_det_instance.id, primary_det_instance.name) for primary_det_instance in PrimaryDetectionMethod.objects.all()], allow_blank=False)
+        self.fields['secondary_sign'] = serializers.MultipleChoiceField(choices=[(sec_sign_instance.id, sec_sign_instance.name) for sec_sign_instance in SecondarySign.objects.all()], allow_blank=False)
+        self.fields['reproductive_maturity'] = serializers.MultipleChoiceField(choices=[(rep_maturity_instance.id, rep_maturity_instance.name) for rep_maturity_instance in ReproductiveMaturity.objects.all()], allow_blank=False)
+
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
@@ -153,6 +245,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     habitat_condition = serializers.SerializerMethodField()
     fire_history = serializers.SerializerMethodField()
     associated_species = serializers.SerializerMethodField()
+    observation_detail = serializers.SerializerMethodField()
+    plant_count = serializers.SerializerMethodField()
+    animal_observation = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -186,6 +281,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'habitat_condition',
                 'fire_history',
                 'associated_species',
+                'observation_detail',
+                'plant_count',
+                'animal_observation',
                 )
 
     def get_readonly(self,obj):
@@ -236,6 +334,27 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             return AssociatedSpeciesSerializer(qs).data
         except AssociatedSpecies.DoesNotExist:
             return AssociatedSpeciesSerializer().data
+    
+    def get_observation_detail(self,obj):
+        try:
+            qs = ObservationDetail.objects.get(occurrence_report=obj)
+            return ObservationDetailSerializer(qs).data
+        except ObservationDetail.DoesNotExist:
+            return ObservationDetailSerializer().data
+    
+    def get_plant_count(self,obj):
+        try:
+            qs = PlantCount.objects.get(occurrence_report=obj)
+            return PlantCountSerializer(qs).data
+        except PlantCount.DoesNotExist:
+            return PlantCountSerializer().data
+    
+    def get_animal_observation(self,obj):
+        try:
+            qs = AnimalObservation.objects.get(occurrence_report=obj)
+            return AnimalObservationSerializer(qs).data
+        except AnimalObservation.DoesNotExist:
+            return AnimalObservationSerializer().data
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
@@ -330,3 +449,101 @@ class SaveAssociatedSpeciesSerializer(serializers.ModelSerializer):
             'related_species',
             )
 
+
+class SaveObservationDetailSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+    observation_method_id = serializers.IntegerField(required=False, allow_null=True)
+	
+    class Meta:
+        model = ObservationDetail
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'observation_method_id',
+            'area_surveyed',
+            'survey_duration',
+            )
+
+class SavePlantCountSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+    plant_count_method_id = serializers.IntegerField(required=False, allow_null=True)
+    plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
+    counted_subject_id = serializers.IntegerField(required=False, allow_null=True)
+    plant_condition_id = serializers.IntegerField(required=False, allow_null=True)
+	
+    class Meta:
+        model = PlantCount
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'plant_count_method_id',
+            'plant_count_accuracy_id',
+            'counted_subject_id',
+            'plant_condition_id',
+            'estimated_population_area',
+            'quadrats_present',
+            'quadrats_data_attached',
+            'quadrats_surveyed',
+            'individual_quadrat_area',
+            'total_quadrat_area',
+            'flowering_plants_per',
+            'clonal_reproduction_present',
+            'vegetative_state_present',
+            'flower_bud_present',
+            'flower_present',
+            'immature_fruit_present',
+            'ripe_fruit_present',
+            'dehisced_fruit_present',
+            'pollinator_observation',
+            'comment',
+            'simple_alive',
+            'simple_dead',
+            'detailed_alive_mature',
+            'detailed_dead_mature',
+            'detailed_alive_juvenile',
+            'detailed_dead_juvenile',
+            'detailed_alive_seedling',
+            'detailed_dead_seedling',
+            'detailed_alive_unknown',
+            'detailed_dead_unknown',
+            )
+
+
+class SaveAnimalObservationSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+    primary_detection_method = serializers.MultipleChoiceField(choices=[], allow_null=True, allow_blank=True, required=False)
+    secondary_sign = serializers.MultipleChoiceField(choices=[], allow_null=True, allow_blank=True, required=False)
+    reproductive_maturity = serializers.MultipleChoiceField(choices=[], allow_null=True, allow_blank=True, required=False)
+    animal_health_id = serializers.IntegerField(required=False, allow_null=True)
+    death_reason_id = serializers.IntegerField(required=False, allow_null=True)
+	
+    class Meta:
+        model = AnimalObservation
+        fields = (
+            'id',
+            'occurrence_report_id',
+            'primary_detection_method',
+            'secondary_sign',
+            'reproductive_maturity',
+            'animal_health_id',
+            'death_reason_id',
+            'total_count',
+            'distinctive_feature',
+            'action_taken',
+            'action_required',
+            'observation_detail_comment',
+            'alive_adult',
+            'dead_adult',
+            'alive_juvenile',
+            'dead_juvenile',
+            'alive_pouch_young',
+            'dead_pouch_young',
+            'alive_unsure',
+            'dead_unsure',
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(SaveAnimalObservationSerializer, self).__init__(*args, **kwargs)
+        self.fields['primary_detection_method'].choices = [(primary_det_instance.id, primary_det_instance.name) for primary_det_instance in PrimaryDetectionMethod.objects.all()]
+        self.fields['secondary_sign'].choices = [(sec_sign_instance.id, sec_sign_instance.name) for sec_sign_instance in SecondarySign.objects.all()]
+        self.fields['reproductive_maturity'].choices = [(rep_maturity_instance.id, rep_maturity_instance.name) for rep_maturity_instance in ReproductiveMaturity.objects.all()]
