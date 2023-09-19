@@ -882,3 +882,105 @@ class AnimalObservation(models.Model):
 
     def __str__(self):
         return str(self.occurrence_report)
+
+
+class IdentificationCertainty(models.Model):
+    """
+    # Admin List
+    May be a mandatory field that assessor needs to complete
+
+    Used by:
+    - Identification
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Identification Certainty"
+        verbose_name_plural = "Identification Certainties"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class SampleType(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Identification
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False)
+    group_type = models.ForeignKey(GroupType,on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+class SampleDestination(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Identification
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+class PermitType(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Identification
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False)
+    group_type = models.ForeignKey(GroupType,on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class Identification(models.Model):
+    """
+    Identification data for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="identification")
+    id_confirmed_by = models.CharField(max_length=1000, null=True, blank=True)
+    identification_certainty = models.ForeignKey(IdentificationCertainty, on_delete=models.SET_NULL, null=True, blank=True)
+    sample_type = models.ForeignKey(SampleType, on_delete=models.SET_NULL, null=True, blank=True)
+    sample_destination = models.ForeignKey(SampleDestination, on_delete=models.SET_NULL, null=True, blank=True)
+    permit_type = models.ForeignKey(PermitType, on_delete=models.SET_NULL, null=True, blank=True)
+    permit_id = models.CharField(max_length=500, null=True, blank=True)
+    collector_number = models.CharField(max_length=500, null=True, blank=True)
+    barcode_number = models.CharField(max_length=500, null=True, blank=True)
+    identification_comment = models.TextField(null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)

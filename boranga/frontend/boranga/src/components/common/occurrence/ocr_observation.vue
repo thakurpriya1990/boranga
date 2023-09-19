@@ -56,6 +56,86 @@
                 ref="animalObservationDetail">
             </AnimalObservation>
         </FormSection>
+
+        <FormSection :formCollapse="false" label="Identification" :Index="identificationBody">
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">ID Confirmed by:</label>
+                <div class="col-sm-9">
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="id_confirmed_by" placeholder="" v-model="occurrence_report_obj.identification.id_confirmed_by"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Identification Certainty:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.identification.identification_certainty_id">
+                        <option v-for="option in identification_certainty_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Sample Type:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.identification.sample_type_id">
+                        <option v-for="option in sample_type_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Sample Destination:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.identification.sample_destination_id">
+                        <option v-for="option in sample_dest_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Permit Type:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.identification.permit_type_id">
+                        <option v-for="option in permit_type_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Permit ID:</label>
+                <div class="col-sm-9">
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="permit_id" placeholder="" v-model="occurrence_report_obj.identification.permit_id"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Sample Label/ Collector Number:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="collector_number" placeholder="" v-model="occurrence_report_obj.identification.collector_number"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Barcode/Catalog Number:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="barcode_number" placeholder="" v-model="occurrence_report_obj.identification.barcode_number"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Identification Comments:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="identification_comment" placeholder="" v-model="occurrence_report_obj.identification.identification_comment"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <!-- <button v-if="!updatingHabitatCompositionDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
+                    <button v-if="!updatingIdentificationDetails" class="btn btn-primary btn-sm float-end" @click.prevent="updateIdentificationDetails()">Update</button>
+                    <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                </div>
+            </div>
+        </FormSection>
    </div>
 </template>
 
@@ -92,13 +172,19 @@ export default {
                 observationDetailBody: 'observationDetailBody' + vm._uid,
                 plantCountBody: 'plantCountBody' + vm._uid,
                 animalObsBody: 'animalObsBody' + vm._uid,
+                identificationBody: 'identificationBody' + vm._uid,
                 //---to show fields related to Fauna
                 isFauna: vm.occurrence_report_obj.group_type==="fauna"?true:false,
                 //----list of values dictionary
                 listOfValuesDict: {},
                 //scientific_name_list: [],
                 observation_method_list: [],
+                identification_certainty_list: [],
+                sample_type_list: [],
+                sample_dest_list: [],
+                permit_type_list: [],
                 updatingObservationDetails: false,
+                updatingIdentificationDetails: false,
             }
         },
         components: {
@@ -146,6 +232,32 @@ export default {
                         confirmButtonColor:'#226fbb',
                     });
                     vm.updatingObservationDetails = false;
+                });
+            },
+            updateIdentificationDetails: function() {
+                let vm = this;
+                vm.updatingIdentificationDetails = true;
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_identification_details')),JSON.stringify(vm.occurrence_report_obj.identification),{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.updatingIdentificationDetails = false;
+                    vm.occurrence_report_obj.identification = response.body;
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Identification details have been saved',
+                        icon: 'success',
+                        confirmButtonColor:'#226fbb',
+
+                    });
+                }, (error) => {
+                    var text= helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error', 
+                        text: 'Identification details cannot be saved because of the following error: '+text,
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb',
+                    });
+                    vm.updatingIdentificationDetails = false;
                 });
             },
         },
@@ -220,6 +332,30 @@ export default {
                         name: null,
                     });
             }
+            vm.identification_certainty_list = vm.listOfValuesDict.identification_certainty_list;
+            vm.identification_certainty_list.splice(0,0,
+                {
+                    id: null,
+                    name:null,
+                });
+            vm.sample_type_list = vm.listOfValuesDict.sample_type_list;
+            vm.sample_type_list.splice(0,0,
+                {
+                    id: null,
+                    name:null,
+                });
+            vm.sample_dest_list = vm.listOfValuesDict.sample_dest_list;
+            vm.sample_dest_list.splice(0,0,
+                {
+                    id: null,
+                    name:null,
+                });
+            vm.permit_type_list = vm.listOfValuesDict.permit_type_list;
+            vm.permit_type_list.splice(0,0,
+                {
+                    id: null,
+                    name:null,
+                });
         },
         mounted: function(){
             let vm = this;

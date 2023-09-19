@@ -22,6 +22,7 @@ from boranga.components.occurrence.models import(
     AnimalObservation,
     SecondarySign,
     ReproductiveMaturity,
+    Identification,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -233,6 +234,25 @@ class AnimalObservationSerializer(serializers.ModelSerializer):
         self.fields['primary_detection_method'] = serializers.MultipleChoiceField(choices=[(primary_det_instance.id, primary_det_instance.name) for primary_det_instance in PrimaryDetectionMethod.objects.all()], allow_blank=False)
         self.fields['secondary_sign'] = serializers.MultipleChoiceField(choices=[(sec_sign_instance.id, sec_sign_instance.name) for sec_sign_instance in SecondarySign.objects.all()], allow_blank=False)
         self.fields['reproductive_maturity'] = serializers.MultipleChoiceField(choices=[(rep_maturity_instance.id, rep_maturity_instance.name) for rep_maturity_instance in ReproductiveMaturity.objects.all()], allow_blank=False)
+    
+
+class IdentificationSerializer(serializers.ModelSerializer):
+	
+    class Meta:
+        model = Identification
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'id_confirmed_by',
+            'identification_certainty_id',
+            'sample_type_id',
+            'sample_destination_id',
+            'permit_type_id',
+            'permit_id',
+            'collector_number',
+            'barcode_number',
+            'identification_comment',
+            )
 
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -248,6 +268,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     observation_detail = serializers.SerializerMethodField()
     plant_count = serializers.SerializerMethodField()
     animal_observation = serializers.SerializerMethodField()
+    identification = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -284,6 +305,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'observation_detail',
                 'plant_count',
                 'animal_observation',
+                'identification'
                 )
 
     def get_readonly(self,obj):
@@ -355,6 +377,13 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             return AnimalObservationSerializer(qs).data
         except AnimalObservation.DoesNotExist:
             return AnimalObservationSerializer().data
+    
+    def get_identification(self,obj):
+        try:
+            qs = Identification.objects.get(occurrence_report=obj)
+            return IdentificationSerializer(qs).data
+        except Identification.DoesNotExist:
+            return IdentificationSerializer().data
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
@@ -547,3 +576,26 @@ class SaveAnimalObservationSerializer(serializers.ModelSerializer):
         self.fields['primary_detection_method'].choices = [(primary_det_instance.id, primary_det_instance.name) for primary_det_instance in PrimaryDetectionMethod.objects.all()]
         self.fields['secondary_sign'].choices = [(sec_sign_instance.id, sec_sign_instance.name) for sec_sign_instance in SecondarySign.objects.all()]
         self.fields['reproductive_maturity'].choices = [(rep_maturity_instance.id, rep_maturity_instance.name) for rep_maturity_instance in ReproductiveMaturity.objects.all()]
+
+class SaveIdentificationSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+    identification_certainty_id = serializers.IntegerField(required=False, allow_null=True)
+    sample_type_id = serializers.IntegerField(required=False, allow_null=True)
+    sample_destination_id = serializers.IntegerField(required=False, allow_null=True)
+    permit_type_id = serializers.IntegerField(required=False, allow_null=True)
+	
+    class Meta:
+        model = Identification
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'id_confirmed_by',
+            'identification_certainty_id',
+            'sample_type_id',
+            'sample_destination_id',
+            'permit_type_id',
+            'permit_id',
+            'collector_number',
+            'barcode_number',
+            'identification_comment',
+            )

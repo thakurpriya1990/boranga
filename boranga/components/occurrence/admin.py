@@ -19,6 +19,10 @@ from boranga.components.occurrence.models import (
     ReproductiveMaturity,
     DeathReason,
     AnimalHealth,
+    IdentificationCertainty,
+    SampleType,
+    SampleDestination,
+    PermitType,
     )
 
 
@@ -40,3 +44,7 @@ admin.site.register(SecondarySign)
 admin.site.register(ReproductiveMaturity)
 admin.site.register(DeathReason)
 admin.site.register(AnimalHealth)
+admin.site.register(IdentificationCertainty)
+admin.site.register(SampleType)
+admin.site.register(SampleDestination)
+admin.site.register(PermitType)

@@ -64,6 +64,11 @@ from boranga.components.occurrence.models import(
     ReproductiveMaturity,
     DeathReason,
     AnimalHealth,
+    Identification,
+    PermitType,
+    IdentificationCertainty,
+    SampleDestination,
+    SampleType,
 )
 from boranga.components.occurrence.serializers import(
     ListOccurrenceReportSerializer,
@@ -75,6 +80,7 @@ from boranga.components.occurrence.serializers import(
     SaveObservationDetailSerializer,
     SavePlantCountSerializer,
     SaveAnimalObservationSerializer,
+    SaveIdentificationSerializer,
 )
 
 from boranga.components.main.utils import (
@@ -252,6 +258,11 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                 serializer=SaveAnimalObservationSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+
+                 # create Identification for new instance
+                serializer=SaveIdentificationSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
                 
                 headers = self.get_success_headers(serializer.data)
                 return Response(
@@ -427,6 +438,38 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                     'id': val.id,
                     'name':val.name,
                     });
+        identification_certainty_list = []
+        values = IdentificationCertainty.objects.all()
+        if values:
+            for val in values:
+                identification_certainty_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        sample_type_list = []
+        values = SampleType.objects.all()
+        if values:
+            for val in values:
+                sample_type_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        sample_dest_list = []
+        values = SampleDestination.objects.all()
+        if values:
+            for val in values:
+                sample_dest_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        permit_type_list = []
+        values = PermitType.objects.all()
+        if values:
+            for val in values:
+                permit_type_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
         res_json = {
         "observation_method_list":observation_method_list,
         "plant_count_method_list":plant_count_method_list,
@@ -438,6 +481,10 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         "reprod_maturity_list":reprod_maturity_list,
         "death_reason_list":death_reason_list,
         "animal_health_list":animal_health_list,
+        "identification_certainty_list":identification_certainty_list,
+        "sample_type_list":sample_type_list,
+        "sample_dest_list":sample_dest_list,
+        "permit_type_list":permit_type_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
@@ -581,5 +628,26 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         except Exception as e:
                 print(traceback.print_exc())
                 raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=['POST',], detail=True)
+    def update_identification_details(self, request, *args, **kwargs):
+        try:
+            ocr_instance = self.get_object()
+            identification_instance, created = Identification.objects.get_or_create(occurrence_report=ocr_instance)
+            # the request.data is only the identification data thats been sent from front end
+            serializer = SaveIdentificationSerializer(identification_instance,data=request.data, context={'request':request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+                print(traceback.print_exc())
+                raise
+        except ValidationError as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(str(e))
+
 
 
