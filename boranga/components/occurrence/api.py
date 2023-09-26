@@ -69,6 +69,11 @@ from boranga.components.occurrence.models import(
     IdentificationCertainty,
     SampleDestination,
     SampleType,
+    Datum,
+    CoordinationSource,
+    LocationAccuracy,
+    Location,
+    ObserverDetail,
 )
 from boranga.components.occurrence.serializers import(
     ListOccurrenceReportSerializer,
@@ -81,6 +86,8 @@ from boranga.components.occurrence.serializers import(
     SavePlantCountSerializer,
     SaveAnimalObservationSerializer,
     SaveIdentificationSerializer,
+    SaveLocationSerializer,
+    ObserverDetailSerializer,
 )
 
 from boranga.components.main.utils import (
@@ -223,6 +230,11 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                 data={
                     'occurrence_report_id': new_instance.id
                 }
+
+                # create Locatiob for new instance
+                serializer=SaveLocationSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
                 
                 # create HabitatComposition for new instance
                 serializer=SaveHabitatCompositionSerializer(data=data)
@@ -279,6 +291,43 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+    
+    #used for Location Tab of Occurrence Report external form 
+    @list_route(methods=['GET',], detail=False)
+    def location_list_of_values(self, request, *args, **kwargs):
+        """ used for Occurrence Report external form  """
+        qs =  self.get_queryset()
+        datum_list = []
+        values = Datum.objects.all()
+        if values:
+            for val in values:
+                datum_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        coordination_source_list = []
+        values = CoordinationSource.objects.all()
+        if values:
+            for val in values:
+                coordination_source_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        location_accuracy_list = []
+        values = LocationAccuracy.objects.all()
+        if values:
+            for val in values:
+                location_accuracy_list.append({
+                    'id': val.id,
+                    'name':val.name,
+                    });
+        res_json = {
+        "datum_list":datum_list,
+        "coordination_source_list":coordination_source_list,
+        "location_accuracy_list": location_accuracy_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
     
     #used for Occurrence Report external form 
     @list_route(methods=['GET',], detail=False)
@@ -490,6 +539,27 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         return HttpResponse(res_json, content_type='application/json')
     
     @list_route(methods=['POST',], detail=True)
+    def update_location_details(self, request, *args, **kwargs):
+        try:
+            ocr_instance = self.get_object()
+
+            location_instance, created = Location.objects.get_or_create(occurrence_report=ocr_instance)
+            # the request.data is only the habitat composition data thats been sent from front end
+            serializer = SaveLocationSerializer(location_instance,data=request.data, context={'request':request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+                print(traceback.print_exc())
+                raise
+        except ValidationError as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+                print(traceback.print_exc())
+                raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=['POST',], detail=True)
     def update_habitat_composition_details(self, request, *args, **kwargs):
         try:
             ocr_instance = self.get_object()
@@ -648,6 +718,63 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         except Exception as e:
                 print(traceback.print_exc())
                 raise serializers.ValidationError(str(e))
+    
+    # used for observer detail datatable on location tab
+    @detail_route(methods=['GET',], detail=True)
+    def observer_details(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.observer_detail.all()
+            serializer = ObserverDetailSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+class ObserverDetailViewSet(viewsets.ModelViewSet):
+    queryset = ObserverDetail.objects.all().order_by('id')
+    serializer_class = ObserverDetailSerializer
+
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = ObserverDetailSerializer(instance, data=json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            # instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
+            return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = ObserverDetailSerializer(data= json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception = True)
+            instance = serializer.save()
+            # instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
 
 
 

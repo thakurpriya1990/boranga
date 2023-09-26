@@ -258,7 +258,7 @@
                 </div>
                 <div class="col-sm-1">
                     <input :disabled="isReadOnly" id="dehFruitPresentNo" type="radio" v-model="occurrence_report_obj.plant_count.dehisced_fruit_present" value="false">&nbsp;
-                    <label for="dehFruitPresentNp">No</label>
+                    <label for="dehFruitPresentNo">No</label>
                 </div>
             </div>
             <div class="row mb-3">

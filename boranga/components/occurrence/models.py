@@ -347,6 +347,112 @@ class OccurrenceReport(models.Model):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
 
 
+class Datum(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Location
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+class CoordinationSource(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Location
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Coordination Source"
+        verbose_name_plural = "Coordination Sources"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+class LocationAccuracy(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Location
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Location Accuracy"
+        verbose_name_plural = "Location Accuracy"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class Location(models.Model):
+    """
+    Location data  for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="location")
+    observation_date = models.DateTimeField(null=True, blank=True)
+    location_description = models.TextField(null=True, blank=True)
+    boundary_description = models.TextField(null=True, blank=True)
+    new_occurrence = models.BooleanField(null=True, blank=True)
+    boundary = models.IntegerField(null=True, blank=True, default=0)
+    mapped_boundary = models.BooleanField(null=True, blank=True)
+    buffer_radius = models.IntegerField(null=True, blank=True, default=0)
+    datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
+    coordination_source = models.ForeignKey(CoordinationSource, on_delete=models.SET_NULL, null=True, blank=True)
+    location_accuracy = models.ForeignKey(LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)  # TODO: is the most appropriate?
+
+class ObserverDetail(models.Model):
+    """
+    Observer data  for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="observer_detail")
+    observer_name = models.CharField(max_length=250, blank=True, null=True, unique=True)
+    role = models.CharField(max_length=250, blank=True, null=True)
+    contact = models.CharField(max_length=250, blank=True, null=True)
+    organisation = models.CharField(max_length=250, blank=True, null=True)
+    main_observer = models.BooleanField(null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)  # TODO: is the most appropriate?
+
+
 class LandForm(models.Model):
     """
     # Admin List

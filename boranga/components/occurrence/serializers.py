@@ -23,6 +23,8 @@ from boranga.components.occurrence.models import(
     SecondarySign,
     ReproductiveMaturity,
     Identification,
+    Location,
+    ObserverDetail,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -254,6 +256,26 @@ class IdentificationSerializer(serializers.ModelSerializer):
             'identification_comment',
             )
 
+class LocationSerializer(serializers.ModelSerializer):
+    observation_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+	
+    class Meta:
+        model = Location
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'observation_date',
+            'location_description',
+            'boundary_description',
+            'new_occurrence',
+            'boundary',
+            'mapped_boundary',
+            'buffer_radius',
+            'datum_id',
+            'coordination_source_id',
+            'location_accuracy_id',
+            )
+
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
@@ -261,6 +283,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     # group_type_id = serializers.SerializerMethodField(read_only=True)
     allowed_assessors = EmailUserSerializer(many=True)
     # list_approval_level = serializers.SerializerMethodField(read_only=True)
+    location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
     fire_history = serializers.SerializerMethodField()
@@ -298,6 +321,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'deficiency_data',
                 'assessor_data',
                 # 'list_approval_level',
+                'location',
                 'habitat_composition',
                 'habitat_condition',
                 'fire_history',
@@ -328,6 +352,13 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     #         return obj.conservation_list.approval_level
     #     else:
     #         return None
+
+    def get_location(self,obj):
+        try:
+            qs = Location.objects.get(occurrence_report=obj)
+            return LocationSerializer(qs).data
+        except Location.DoesNotExist:
+            return LocationSerializer().data
 
     def get_habitat_composition(self,obj):
         try:
@@ -599,3 +630,41 @@ class SaveIdentificationSerializer(serializers.ModelSerializer):
             'barcode_number',
             'identification_comment',
             )
+
+class SaveLocationSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=True, allow_null=False)
+    datum_id = serializers.IntegerField(required=False, allow_null=True)
+    coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
+    location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
+    observation_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False,allow_null=True)
+	
+    class Meta:
+        model = Location
+        fields = (
+            'id',
+			'occurrence_report_id',
+            'observation_date',
+            'location_description',
+            'boundary_description',
+            'new_occurrence',
+            'boundary',
+            'mapped_boundary',
+            'buffer_radius',
+            'datum_id',
+            'coordination_source_id',
+            'location_accuracy_id',
+            )
+
+class ObserverDetailSerializer(serializers.ModelSerializer):
+	
+    class Meta:
+        model = ObserverDetail
+        fields = (
+			'id',
+            'occurrence_report',
+			'observer_name',
+			'role',
+			'contact',
+			'organisation',
+			'main_observer',
+		)

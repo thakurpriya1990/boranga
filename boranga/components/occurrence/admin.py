@@ -23,6 +23,9 @@ from boranga.components.occurrence.models import (
     SampleType,
     SampleDestination,
     PermitType,
+    Datum,
+    CoordinationSource,
+    LocationAccuracy,
     )
 
 
@@ -48,3 +51,6 @@ admin.site.register(IdentificationCertainty)
 admin.site.register(SampleType)
 admin.site.register(SampleDestination)
 admin.site.register(PermitType)
+admin.site.register(Datum)
+admin.site.register(CoordinationSource)
+admin.site.register(LocationAccuracy)
