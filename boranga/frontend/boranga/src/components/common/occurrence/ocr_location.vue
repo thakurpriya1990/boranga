@@ -1,12 +1,6 @@
 <template lang="html">
     <div id="ocrLocation">
         <FormSection :formCollapse="false" label="Location" Index="occurrence_report" :isShowComment="isShowComment" :has_comment_value="has_comment_value" v-on:toggleComment="toggleComment($event)" :displayCommentSection="!is_external">
-             <!-- <template v-if="!isShowComment">
-                <a v-if="has_comment_value" href="" @click.prevent="toggleComment"><i style="color:red" class="far fa-comment">&nbsp;</i></a>
-                <a v-else href="" @click.prevent="toggleComment"><i class="far fa-comment">&nbsp;</i></a>
-            </template>
-            <a href="" v-else @click.prevent="toggleComment"><i class="fa fa-ban">&nbsp;</i></a> -->
-            
             <div v-if="!is_external">
                 <div v-show="isShowComment">
                     <!-- Assessor Deficiencies and comment box -->
@@ -57,9 +51,9 @@
             <!--  -->
 
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Scientific Name:</label>
-                <div class="col-sm-8" :id="select_scientific_name">
-                    <select :disabled="occurrence_report_obj.readonly"
+                <label for="" class="col-sm-3 control-label">Scientific Name:</label>
+                <div class="col-sm-9" :id="select_scientific_name">
+                    <select :disabled="isReadOnly"
                         :id="scientific_name_lookup"  
                         :name="scientific_name_lookup"  
                         :ref="scientific_name_lookup" 
@@ -67,32 +61,126 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label"></label>
-                <div class="col-sm-8">
-                    <textarea disabled class="form-control" rows="3" id="species_display" v-model="species_display"/>
+                <label for="" class="col-sm-3 control-label"></label>
+                <div class="col-sm-9">
+                    <textarea disabled class="form-control" rows="2" id="species_display" v-model="species_display"/>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Previous Name:</label>
-                <div class="col-sm-8">
+                <label for="" class="col-sm-3 control-label">Previous Name:</label>
+                <div class="col-sm-9">
                     <input readonly type="text" class="form-control" id="previous_name" placeholder="" 
                     v-model="taxon_previous_name"/>
                 </div>
             </div>
-            <!-- <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Comment:</label>
-                <div class="col-sm-8">
-                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
-                    v-model="occurrence_report_obj.comment"/>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Observation Date:</label>
+                <div class="col-sm-9">
+                    <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date" v-model="occurrence_report_obj.location.observation_date"/>
                 </div>
-            </div> -->
+            </div>
+            <!-- ------------Observer Detail section -->
+            
+            <ObserverDatatable ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj" :is_external="is_external" :isReadOnly="isReadOnly"></ObserverDatatable>
+
+            <!-- -------------------------------- -->
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Location Description:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="2" id="loc_description" placeholder=""
+                    v-model="occurrence_report_obj.location.location_description"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Boundary Description:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="2" id="boundary_descr" placeholder=""
+                    v-model="occurrence_report_obj.location.boundary_description"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-3 control-label">New Occurrence</label>
+                <div class="col-sm-1">
+                    <input :disabled="isReadOnly" id="newOccurrenceYes" type="radio" v-model="occurrence_report_obj.location.new_occurrence" value="true">&nbsp;
+                    <label for="newOccurrenceYes">Yes</label>
+                </div>
+                <div class="col-sm-1">
+                    <input :disabled="isReadOnly" id="newOccurrenceNo" type="radio" v-model="occurrence_report_obj.location.new_occurrence" value="false">&nbsp;
+                    <label for="newOccurrenceNo">No</label>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Boundary(m) :</label>
+                <div class="col-sm-6">
+                    <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="boundary" placeholder="" min="0"
+                    v-model="occurrence_report_obj.location.boundary"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-3 control-label">Mapped Boundary</label>
+                <div class="col-sm-1">
+                    <input :disabled="isReadOnly" id="mapBoundaryYes" type="radio" v-model="occurrence_report_obj.location.mapped_boundary" value="true">&nbsp;
+                    <label for="mapBoundaryYes">Yes</label>
+                </div>
+                <div class="col-sm-1">
+                    <input :disabled="isReadOnly" id="mapBoundaryNo" type="radio" v-model="occurrence_report_obj.location.mapped_boundary" value="false">&nbsp;
+                    <label for="mapBoundaryNo">No</label>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Buffer Radius(m) :</label>
+                <div class="col-sm-6">
+                    <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="buffer_radius" placeholder="" min="0"
+                    v-model="occurrence_report_obj.location.buffer_radius"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Datum:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.location.datum_id">
+                        <option v-for="option in datum_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Coordination Source:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.location.coordination_source_id">
+                        <option v-for="option in coordination_source_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Location Accuracy/Certainty:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.location.location_accuracy_id">
+                        <option v-for="option in location_accuracy_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <!-- <button v-if="!updatingLocationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
+                    <button v-if="!updatingLocationDetails" class="btn btn-primary btn-sm float-end" @click.prevent="updateLocationDetails()">Update</button>
+                    <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                </div>
+            </div>
         </FormSection>
     </div>
 </template>
 
 <script>
 import Vue from 'vue' ;
+// import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
+import ObserverDatatable from './observer_datatable.vue'
 import {
   api_endpoints,
   helpers
@@ -140,11 +228,17 @@ export default {
 
                 deficiency_readonly : !this.is_external && !this.occurrence_report_obj.can_user_edit && this.occurrence_report_obj.assessor_mode.assessor_level == 'assessor' && this.occurrence_report_obj.assessor_mode.has_assessor_mode && !this.occurrence_report_obj.assessor_mode.status_without_assessor? false : true,
                 assessor_comment_readonly: !this.is_external && !this.occurrence_report_obj.can_user_edit && this.occurrence_report_obj.assessor_mode.assessor_level == 'assessor' && this.occurrence_report_obj.assessor_mode.has_assessor_mode && !this.occurrence_report_obj.assessor_mode.status_without_assessor? false : true,
-                
+
+                updatingLocationDetails: false,
+                listOfValuesDict: {},
+                datum_list: [],
+                coordination_source_list: [],
+                location_accuracy_list:[],
             }
         },
         components: {
             FormSection,
+            ObserverDatatable,
         },
         computed: {
             deficiencyVisibility: function(){
@@ -260,11 +354,36 @@ export default {
             },
             eventListeners:function (){
                 let vm = this;
-                // Initialise select2 for proposed Conservation Criteria
             },
             toggleComment:function(updatedShowComment) {
                 //this.isShowComment = ! this.isShowComment;
                 this.isShowComment = updatedShowComment;
+            },
+            updateLocationDetails: function() {
+                let vm = this;
+                vm.updatingLocationDetails = true;
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_location_details')),JSON.stringify(vm.occurrence_report_obj.location),{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.updatingLocationDetails = false;
+                    vm.occurrence_report_obj.location = response.body;
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Location details have been saved',
+                        icon: 'success',
+                        confirmButtonColor:'#226fbb',
+
+                    });
+                }, (error) => {
+                    var text= helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error', 
+                        text: 'Location details cannot be saved because of the following error: '+text,
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb',
+                    });
+                    vm.updatingLocationDetails = false;
+                });
             },
         },
         created: async function() {
@@ -283,6 +402,27 @@ export default {
             },(error) => {
                 console.log(error);
             })
+            //------fetch list of values
+            const res = await Vue.http.get('/api/occurrence_report/location_list_of_values.json');
+            vm.listOfValuesDict = res.body;
+            vm.datum_list = vm.listOfValuesDict.datum_list;
+            vm.datum_list.splice(0,0,
+            {
+                id: null,
+                name:null,
+            });
+            vm.coordination_source_list = vm.listOfValuesDict.coordination_source_list;
+            vm.coordination_source_list.splice(0,0,
+            {
+                id: null,
+                name:null,
+            });
+            vm.location_accuracy_list = vm.listOfValuesDict.location_accuracy_list;
+            vm.location_accuracy_list.splice(0,0,
+            {
+                id: null,
+                name:null,
+            });
         },
         mounted: function(){
             let vm = this;
@@ -317,6 +457,9 @@ export default {
     }
     input[type=number] {
         width: 50%;
+    }
+    input.ocr_number{
+        width: 20%;
     }
 </style>
 

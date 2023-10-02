@@ -29,6 +29,19 @@
                   Habitat
                 </a>
               </li>
+              <li class="nav-item">
+                <a 
+                    class="nav-link" 
+                    id="pills-observation-tab" 
+                    data-bs-toggle="pill" 
+                    :href="'#' + observationBody" 
+                    role="tab" 
+                    :aria-selected="observationBody" 
+                    aria-selected="false"
+                    @click="tabClicked()">
+                  Observation
+                </a>
+              </li>
               <!-- <li class="nav-item">
                 <a 
                   class="nav-link" 
@@ -55,7 +68,7 @@
                     :referral="referral">
                 </OCRLocation>
               </div>
-              <div class="tab-pane fade" :id="habitatBody" role="tabpanel" aria-labelledby="pills-documents-tab">
+              <div class="tab-pane fade" :id="habitatBody" role="tabpanel" aria-labelledby="pills-habitat-tab">
                 <OCRHabitat
                     :key="reloadcount"
                     ref="ocr_habitat" 
@@ -63,6 +76,15 @@
                     :is_internal="is_internal"
                     :occurrence_report_obj="occurrence_report_obj">
                 </OCRHabitat>
+              </div>
+              <div class="tab-pane fade" :id="observationBody" role="tabpanel" aria-labelledby="pills-observation-tab">
+                <OCRObservation
+                    :key="reloadcount"
+                    ref="ocr_observation" 
+                    id="ocrObservation" 
+                    :is_internal="is_internal"
+                    :occurrence_report_obj="occurrence_report_obj">
+                </OCRObservation>
               </div>
               <!-- <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems
@@ -82,6 +104,7 @@
     import OCRLocation from '@/components/common/occurrence/ocr_location.vue'
     // import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
     import OCRHabitat from '@/components/common/occurrence/ocr_habitat.vue'
+    import OCRObservation from '@/components/common/occurrence/ocr_observation.vue'
     // import OCRHabitat from '@/components/common/conservation_status/cs_documents.vue'
     // import RelatedItems from '@/components/common/table_related_items.vue'
     
@@ -115,6 +138,7 @@
                 reloadcount:0,
                 locationBody: 'locationBody' + vm._uid,
                 habitatBody: 'habitatBody' + vm._uid,
+                observationBody: 'observationBody' + vm._uid,
                 documentBody: 'documentBody' + vm._uid,
                 relatedItemBody: 'relatedItemBody' + vm._uid,
             }
@@ -122,6 +146,7 @@
         components: {
             OCRLocation,
             OCRHabitat,
+            OCRObservation,
             // CommunityStatus,
             // CSDocuments,
             // RelatedItems,
