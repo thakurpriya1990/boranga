@@ -338,27 +338,156 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Time to Maturity:</label>
-                <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="number" class="form-control" 
-                    id="time_to_maturity" placeholder="" 
-                    v-model="species_community.conservation_attributes.time_to_maturity"/>
+                <div class="col-sm-3">
+                    <input class="form-check-input" type="checkbox" name="time_to_maturity_range" id="time_to_maturity_range"
+                        v-model="time_to_maturity_range" :disabled="isReadOnly" @change="handleTimeToMaturityRange()" />
+                    <label for="" class="control-label">Range</label>
                 </div>
+                <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.time_to_maturity_error }}</label>
+            </div>
+            <div class="row mb-3" v-if="!time_to_maturity_range">
+                <label for="" class="col-sm-3 control-label"></label>
+                <div class="col-sm-3 interval-margin">
+                    <input :disabled="isReadOnly" type="number" class="form-control" 
+                    id="time_to_maturity_from" placeholder="" @change="validateRange('time_to_maturity_from','time_to_maturity_to','time_to_maturity_choice','time_to_maturity_error')"
+                    v-model="species_community.conservation_attributes.time_to_maturity_from"/>
+                </div>
+                <div class="col-sm-2 interval-range-true-choice">
+                    <select :disabled="isReadOnly" class="form-select" @change="validateRange('time_to_maturity_from','time_to_maturity_to','time_to_maturity_choice','time_to_maturity_error')"
+                        v-model="species_community.conservation_attributes.time_to_maturity_choice">
+                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <label for="" class="control-label">{{ intervalMonthsComputed('time_to_maturity_from','time_to_maturity_choice') }}</label>
+                </div>
+            </div>
+            <div class="row mb-3" v-else>
+                    <label for="" class="col-sm-3 control-label"></label>
+                    <label for="" class="col-sm-2 control-label">From:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="time_to_maturity_from" placeholder="" @change="validateRange('time_to_maturity_from','time_to_maturity_to','time_to_maturity_choice','time_to_maturity_error')"
+                        v-model="species_community.conservation_attributes.time_to_maturity_from"/>
+                    </div>
+                    <label for="" class="col-sm-2 control-label">To:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="time_to_maturity_to" placeholder="" @change="validateRange('time_to_maturity_from','time_to_maturity_to','time_to_maturity_choice','time_to_maturity_error')"
+                        v-model="species_community.conservation_attributes.time_to_maturity_to"/>
+                    </div>
+                    <div class="col-sm-2 interval-range-true-choice">
+                        <select :disabled="isReadOnly" class="form-select" @change="validateRange('time_to_maturity_from','time_to_maturity_to','time_to_maturity_choice','time_to_maturity_error')"
+                            v-model="species_community.conservation_attributes.time_to_maturity_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}                            
+                            </option>
+                        </select>
+                    </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Generation Length:</label>
-                <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="number" class="form-control" 
-                    id="generation_length" placeholder="" 
-                    v-model="species_community.conservation_attributes.generation_length"/>
+                <div class="col-sm-3">
+                    <input class="form-check-input" type="checkbox" name="generation_length_range" id="generation_length_range"
+                        v-model="generation_length_range" :disabled="isReadOnly" @change="handleGenerationLengthRange()" />
+                    <label for="" class="control-label">Range</label>
                 </div>
+                <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.generation_length_error }}</label>
+            </div>
+            <div class="row mb-3" v-if="!generation_length_range">
+                <label for="" class="col-sm-3 control-label"></label>
+                <div class="col-sm-3 interval-margin">
+                    <input :disabled="isReadOnly" type="number" class="form-control" 
+                    id="generation_length_from" placeholder="" @change="validateRange('generation_length_from','generation_length_to','generation_length_choice','generation_length_error')"
+                    v-model="species_community.conservation_attributes.generation_length_from"/>
+                </div>
+                <div class="col-sm-2 interval-range-true-choice">
+                    <select :disabled="isReadOnly" class="form-select" @change="validateRange('generation_length_from','generation_length_to','generation_length_choice','generation_length_error')"
+                        v-model="species_community.conservation_attributes.generation_length_choice">
+                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <label for="" class="control-label">{{ intervalMonthsComputed('generation_length_from','generation_length_choice') }}</label>
+                </div>
+            </div>
+            <div class="row mb-3" v-else>
+                    <label for="" class="col-sm-3 control-label"></label>
+                    <label for="" class="col-sm-2 control-label">From:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="generation_length_from" placeholder="" @change="validateRange('generation_length_from','generation_length_to','generation_length_choice','generation_length_error')"
+                        v-model="species_community.conservation_attributes.generation_length_from"/>
+                    </div>
+                    <label for="" class="col-sm-2 control-label">To:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="generation_length_to" placeholder="" @change="validateRange('generation_length_from','generation_length_to','generation_length_choice','generation_length_error')"
+                        v-model="species_community.conservation_attributes.generation_length_to"/>
+                    </div>
+                    <div class="col-sm-2 interval-range-true-choice">
+                        <select :disabled="isReadOnly" class="form-select" @change="validateRange('generation_length_from','generation_length_to','generation_length_choice','generation_length_error')"
+                            v-model="species_community.conservation_attributes.generation_length_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}                            
+                            </option>
+                        </select>
+                    </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Average Lifespan:</label>
-                <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="number" class="form-control" 
-                    id="average_lifespan" placeholder="" 
-                    v-model="species_community.conservation_attributes.average_lifespan"/>
+                <div class="col-sm-3">
+                    <input class="form-check-input" type="checkbox" name="average_lifespan_range" id="average_lifespan_range"
+                        v-model="average_lifespan_range" :disabled="isReadOnly" @change="handleAverageLifespanRange()" />
+                    <label for="" class="control-label">Range</label>
                 </div>
+                <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.average_lifespan_error }}</label>
+            </div>
+            <div class="row mb-3" v-if="!average_lifespan_range">
+                <label for="" class="col-sm-3 control-label"></label>
+                <div class="col-sm-3 interval-margin">
+                    <input :disabled="isReadOnly" type="number" class="form-control" 
+                    id="average_lifespan_from" placeholder="" @change="validateRange('average_lifespan_from','average_lifespan_to','average_lifespan_choice','average_lifespan_error')"
+                    v-model="species_community.conservation_attributes.average_lifespan_from"/>
+                </div>
+                <div class="col-sm-2 interval-range-true-choice">
+                    <select :disabled="isReadOnly" class="form-select" @change="validateRange('average_lifespan_from','average_lifespan_to','average_lifespan_choice','average_lifespan_error')"
+                        v-model="species_community.conservation_attributes.average_lifespan_choice">
+                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}                            
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <label for="" class="control-label">{{ intervalMonthsComputed('average_lifespan_from','average_lifespan_choice') }}</label>
+                </div>
+            </div>
+            <div class="row mb-3" v-else>
+                    <label for="" class="col-sm-3 control-label"></label>
+                    <label for="" class="col-sm-2 control-label">From:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="average_lifespan_from" placeholder="" @change="validateRange('average_lifespan_from','average_lifespan_to','average_lifespan_choice','average_lifespan_error')"
+                        v-model="species_community.conservation_attributes.average_lifespan_from"/>
+                    </div>
+                    <label for="" class="col-sm-2 control-label">To:</label>
+                    <div class="col-sm-2 interval-range-true-input">
+                        <input :disabled="isReadOnly" type="number" class="form-control" 
+                        id="average_lifespan_to" placeholder="" @change="validateRange('average_lifespan_from','average_lifespan_to','average_lifespan_choice','average_lifespan_error')"
+                        v-model="species_community.conservation_attributes.average_lifespan_to"/>
+                    </div>
+                    <div class="col-sm-2 interval-range-true-choice">
+                        <select :disabled="isReadOnly" class="form-select" @change="validateRange('average_lifespan_from','average_lifespan_to','average_lifespan_choice','average_lifespan_error')"
+                            v-model="species_community.conservation_attributes.average_lifespan_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}                            
+                            </option>
+                        </select>
+                    </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Minimum Fire Interval:</label>
@@ -373,11 +502,11 @@
                 <label for="" class="col-sm-3 control-label"></label>
                 <div class="col-sm-3 interval-margin">
                     <input :disabled="isReadOnly" type="number" class="form-control" 
-                    id="minimum_fire_interval_from" placeholder="" @change="validateMinimumFireIntervalRange()"
+                    id="minimum_fire_interval_from" placeholder="" @change="validateRange('minimum_fire_interval_from','minimum_fire_interval_to','minimum_fire_interval_choice','minimum_fire_interval_error')"
                     v-model="species_community.conservation_attributes.minimum_fire_interval_from"/>
                 </div>
                 <div class="col-sm-2 interval-range-true-choice">
-                    <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
+                    <select :disabled="isReadOnly" class="form-select" @change="validateRange('minimum_fire_interval_from','minimum_fire_interval_to','minimum_fire_interval_choice','minimum_fire_interval_error')"
                         v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
                         <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
@@ -385,7 +514,7 @@
                     </select>
                 </div>
                 <div class="col-sm-4">
-                    <label for="" class="control-label">{{ minFireIntervalMonthsComputed}}</label>
+                    <label for="" class="control-label">{{ intervalMonthsComputed('minimum_fire_interval_from','minimum_fire_interval_choice')}}</label>
                 </div>
             </div>
             <div class="row mb-3" v-else>
@@ -393,17 +522,17 @@
                     <label for="" class="col-sm-2 control-label">From:</label>
                     <div class="col-sm-2 interval-range-true-input">
                         <input :disabled="isReadOnly" type="number" class="form-control" 
-                        id="minimum_fire_interval_from" placeholder="" @change="validateMinimumFireIntervalRange()"
+                        id="minimum_fire_interval_from" placeholder="" @change="validateRange('minimum_fire_interval_from','minimum_fire_interval_to','minimum_fire_interval_choice','minimum_fire_interval_error')"
                         v-model="species_community.conservation_attributes.minimum_fire_interval_from"/>
                     </div>
                     <label for="" class="col-sm-2 control-label">To:</label>
                     <div class="col-sm-2 interval-range-true-input">
                         <input :disabled="isReadOnly" type="number" class="form-control" 
-                        id="minimum_fire_interval_to" placeholder="" @change="validateMinimumFireIntervalRange()"
+                        id="minimum_fire_interval_to" placeholder="" @change="validateRange('minimum_fire_interval_from','minimum_fire_interval_to','minimum_fire_interval_choice','minimum_fire_interval_error')"
                         v-model="species_community.conservation_attributes.minimum_fire_interval_to"/>
                     </div>
                     <div class="col-sm-2 interval-range-true-choice">
-                        <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
+                        <select :disabled="isReadOnly" class="form-select" @change="validateRange('minimum_fire_interval_from','minimum_fire_interval_to','minimum_fire_interval_choice','minimum_fire_interval_error')"
                             v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
                             <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
                                 {{ option.name }}                            
@@ -601,11 +730,17 @@ export default {
                 {id: 12, name: 'December'},
                 ],
                 minimum_fire_interval_range: false,
+                average_lifespan_range: false,
+                generation_length_range: false,
+                time_to_maturity_range: false,
                 interval_choice: [{id: 1, name: 'year/s'},
                 {id: 2, name: 'month/s'}
                 ],
                 errors:{
-                    minimum_fire_interval_error:null
+                    minimum_fire_interval_error:null,
+                    average_lifespan_error:null,
+                    generation_length_error:null,
+                    time_to_maturity_error:null
                 }
             }
         },
@@ -629,20 +764,6 @@ export default {
                     }
                 }
             },
-            minFireIntervalMonthsComputed: function(){
-
-                const totalMonths = parseInt(this.species_community.conservation_attributes.minimum_fire_interval_from);
-                const intervalChoice = this.species_community.conservation_attributes.minimum_fire_interval_choice;
-
-                if(totalMonths > 12 && intervalChoice == 2){
-                    const years = Math.floor(totalMonths / 12);
-                    const months = totalMonths % 12;
-                    return years + " year/s " + months + " month/s";
-                }
-                else{
-                    return ""
-                }
-            }
         },
         watch:{
             "species_community.distribution.noo_auto": function(newVal) {
@@ -847,18 +968,47 @@ export default {
                     this.species_community.conservation_attributes.minimum_fire_interval_to = null;
                 }
             },
-            validateMinimumFireIntervalRange: function(){
-                const rangeFrom = parseInt(this.species_community.conservation_attributes.minimum_fire_interval_from);
-                const rangeTo = parseInt(this.species_community.conservation_attributes.minimum_fire_interval_to);
-                const intervalChoice = this.species_community.conservation_attributes.minimum_fire_interval_choice;
+            handleAverageLifespanRange: function (){
+                if(this.average_lifespan_range == false){
+                    this.species_community.conservation_attributes.average_lifespan_to = null;
+                }
+            },
+            handleGenerationLengthRange: function (){
+                if(this.generation_length_range == false){
+                    this.species_community.conservation_attributes.generation_length_to = null;
+                }
+            },
+            handleTimeToMaturityRange: function (){
+                if(this.time_to_maturity_range == false){
+                    this.species_community.conservation_attributes.time_to_maturity_to = null;
+                }
+            },
+            validateRange: function(field_from, field_to, field_choice, field_error){
+                const rangeFrom = parseInt(this.species_community.conservation_attributes[field_from]);
+                const rangeTo = parseInt(this.species_community.conservation_attributes[field_to]);
+                const intervalChoice = this.species_community.conservation_attributes[field_choice];
                 if ((rangeFrom != null || rangeTo!= null) && intervalChoice == null){
-                    this.errors.minimum_fire_interval_error = "Please select years/months";
+                    this.errors[field_error] = "Please select years/months";
                 }
                 else if(rangeFrom >= rangeTo){
-                    this.errors.minimum_fire_interval_error = "Please enter a valid range";
+                    this.errors[field_error] = "Please enter a valid range";
                 }
                 else{
-                    this.errors.minimum_fire_interval_error = "";
+                    this.errors[field_error] = "";
+                }
+            },
+            intervalMonthsComputed: function(field_from,field_choice){
+
+                const totalMonths = parseInt(this.species_community.conservation_attributes[field_from]);
+                const intervalChoice = this.species_community.conservation_attributes[field_choice];
+
+                if(totalMonths > 12 && intervalChoice == 2){
+                    const years = Math.floor(totalMonths / 12);
+                    const months = totalMonths % 12;
+                    return years + " year/s " + months + " month/s";
+                }
+                else{
+                    return ""
                 }
             }
         },
@@ -882,6 +1032,24 @@ export default {
                     vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined)
             {
                 vm.minimum_fire_interval_range = true;
+            }
+            if(vm.species_community.conservation_attributes.average_lifespan_to != null && 
+                vm.species_community.conservation_attributes.average_lifespan_to != "" && 
+                    vm.species_community.conservation_attributes.average_lifespan_to != undefined)
+            {
+                vm.average_lifespan_range = true;
+            }
+            if(vm.species_community.conservation_attributes.generation_length_to != null && 
+                vm.species_community.conservation_attributes.generation_length_to != "" && 
+                    vm.species_community.conservation_attributes.generation_length_to != undefined)
+            {
+                vm.generation_length_range = true;
+            }
+            if(vm.species_community.conservation_attributes.time_to_maturity_to != null && 
+                vm.species_community.conservation_attributes.time_to_maturity_to != "" && 
+                    vm.species_community.conservation_attributes.time_to_maturity_to != undefined)
+            {
+                vm.time_to_maturity_range = true;
             }
             //--------get api taxon_names depending on flora/fauna
             // let taxon_api_url=null;
