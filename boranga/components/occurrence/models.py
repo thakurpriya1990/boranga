@@ -347,6 +347,112 @@ class OccurrenceReport(models.Model):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
 
 
+class Datum(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Location
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+class CoordinationSource(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Location
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Coordination Source"
+        verbose_name_plural = "Coordination Sources"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+class LocationAccuracy(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Location
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Location Accuracy"
+        verbose_name_plural = "Location Accuracy"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class Location(models.Model):
+    """
+    Location data  for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="location")
+    observation_date = models.DateTimeField(null=True, blank=True)
+    location_description = models.TextField(null=True, blank=True)
+    boundary_description = models.TextField(null=True, blank=True)
+    new_occurrence = models.BooleanField(null=True, blank=True)
+    boundary = models.IntegerField(null=True, blank=True, default=0)
+    mapped_boundary = models.BooleanField(null=True, blank=True)
+    buffer_radius = models.IntegerField(null=True, blank=True, default=0)
+    datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
+    coordination_source = models.ForeignKey(CoordinationSource, on_delete=models.SET_NULL, null=True, blank=True)
+    location_accuracy = models.ForeignKey(LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)  # TODO: is the most appropriate?
+
+class ObserverDetail(models.Model):
+    """
+    Observer data  for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="observer_detail")
+    observer_name = models.CharField(max_length=250, blank=True, null=True, unique=True)
+    role = models.CharField(max_length=250, blank=True, null=True)
+    contact = models.CharField(max_length=250, blank=True, null=True)
+    organisation = models.CharField(max_length=250, blank=True, null=True)
+    main_observer = models.BooleanField(null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)  # TODO: is the most appropriate?
+
+
 class LandForm(models.Model):
     """
     # Admin List
@@ -584,7 +690,7 @@ class ObservationMethod(models.Model):
     # Admin List
 
     Used by:
-    - FireHistory
+    - ObservationDetail
 
     """
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
@@ -599,7 +705,7 @@ class ObservationMethod(models.Model):
         return str(self.name)
 
 
-class ObservationDetails(models.Model):
+class ObservationDetail(models.Model):
     """
     Observation Details data for occurrence report
 
@@ -608,10 +714,376 @@ class ObservationDetails(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="obbservation_details")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="observation_detail")
     observation_method = models.ForeignKey(ObservationMethod, on_delete=models.SET_NULL, null=True, blank=True)
     area_surveyed = models.IntegerField(null=True, blank=True, default=0)
     survey_duration = models.IntegerField(null=True, blank=True, default=0)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)
+
+
+class PlantCountMethod(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - PlantCount
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Plant Count Method"
+        verbose_name_plural = "Plant Count Methods"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class PlantCountAccuracy(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - PlantCount
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Plant Count Accuracy"
+        verbose_name_plural = "Plant Count Accuracies"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class CountedSubject(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - PlantCount
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Counted Subject"
+        verbose_name_plural = "Counted Subjects"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class PlantCondition(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - PlantCount
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Plant Condition"
+        verbose_name_plural = "Plant Conditions"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class PlantCount(models.Model):
+    """
+    Plant Count data for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="plant_count")
+    plant_count_method = models.ForeignKey(PlantCountMethod, on_delete=models.SET_NULL, null=True, blank=True)
+    plant_count_accuracy = models.ForeignKey(PlantCountAccuracy, on_delete=models.SET_NULL, null=True, blank=True)
+    counted_subject = models.ForeignKey(CountedSubject, on_delete=models.SET_NULL, null=True, blank=True)
+    plant_condition = models.ForeignKey(PlantCondition, on_delete=models.SET_NULL, null=True, blank=True)
+    estimated_population_area = models.IntegerField(null=True, blank=True, default=0)
+
+    detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_seedling = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_seedling = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_unknown = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    simple_alive = models.IntegerField(null=True, blank=True, default=0)
+    simple_dead = models.IntegerField(null=True, blank=True, default=0)
+    
+    quadrats_present = models.BooleanField(null=True, blank=True)
+    quadrats_data_attached = models.BooleanField(null=True, blank=True)
+    quadrats_surveyed = models.IntegerField(null=True, blank=True, default=0)
+    individual_quadrat_area = models.IntegerField(null=True, blank=True, default=0)
+    total_quadrat_area = models.IntegerField(null=True, blank=True, default=0)
+    flowering_plants_per = models.IntegerField(null=True, blank=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
+
+    clonal_reproduction_present = models.BooleanField(null=True, blank=True)
+    vegetative_state_present = models.BooleanField(null=True, blank=True)
+    flower_bud_present = models.BooleanField(null=True, blank=True)
+    flower_present = models.BooleanField(null=True, blank=True)
+    immature_fruit_present = models.BooleanField(null=True, blank=True)
+    ripe_fruit_present = models.BooleanField(null=True, blank=True)
+    dehisced_fruit_present = models.BooleanField(null=True, blank=True)
+    pollinator_observation = models.CharField(max_length=1000, null=True, blank=True)
+    comment = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)
+
+
+class PrimaryDetectionMethod(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - AnimalObservation
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class ReproductiveMaturity(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - AnimalObservation
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Reproductive Maturity"
+        verbose_name_plural = "Reproductive Maturities"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class AnimalHealth(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - AnimalObservation
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Animal Health"
+        verbose_name_plural = "Animal Health"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class DeathReason(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - AnimalObservation
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class SecondarySign(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - AnimalObservation
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class AnimalObservation(models.Model):
+    """
+    Animal Observation data for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="animal_observation")
+    primary_detection_method = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    reproductive_maturity = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    animal_health = models.ForeignKey(AnimalHealth, on_delete=models.SET_NULL, null=True, blank=True)
+    death_reason = models.ForeignKey(DeathReason, on_delete=models.SET_NULL, null=True, blank=True)
+    secondary_sign = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    
+    total_count = models.IntegerField(null=True, blank=True, default=0)
+    distinctive_feature = models.CharField(max_length=1000, null=True, blank=True)
+    action_taken = models.CharField(max_length=1000, null=True, blank=True)
+    action_required = models.CharField(max_length=1000, null=True, blank=True)
+    observation_detail_comment = models.CharField(max_length=1000, null=True, blank=True)
+
+    alive_adult = models.IntegerField(null=True, blank=True, default=0)
+    dead_adult = models.IntegerField(null=True, blank=True, default=0)
+    alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    alive_pouch_young = models.IntegerField(null=True, blank=True, default=0)
+    dead_pouch_young = models.IntegerField(null=True, blank=True, default=0)
+    alive_unsure = models.IntegerField(null=True, blank=True, default=0)
+    dead_unsure = models.IntegerField(null=True, blank=True, default=0)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.occurrence_report)
+
+
+class IdentificationCertainty(models.Model):
+    """
+    # Admin List
+    May be a mandatory field that assessor needs to complete
+
+    Used by:
+    - Identification
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Identification Certainty"
+        verbose_name_plural = "Identification Certainties"
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class SampleType(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Identification
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False)
+    group_type = models.ForeignKey(GroupType,on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+class SampleDestination(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Identification
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+class PermitType(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - Identification
+
+    """
+    name = models.CharField(max_length=250, blank=False, null=False)
+    group_type = models.ForeignKey(GroupType,on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ['name']
+
+    def __str__(self):
+        return str(self.name)
+
+
+class Identification(models.Model):
+    """
+    Identification data for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="identification")
+    id_confirmed_by = models.CharField(max_length=1000, null=True, blank=True)
+    identification_certainty = models.ForeignKey(IdentificationCertainty, on_delete=models.SET_NULL, null=True, blank=True)
+    sample_type = models.ForeignKey(SampleType, on_delete=models.SET_NULL, null=True, blank=True)
+    sample_destination = models.ForeignKey(SampleDestination, on_delete=models.SET_NULL, null=True, blank=True)
+    permit_type = models.ForeignKey(PermitType, on_delete=models.SET_NULL, null=True, blank=True)
+    permit_id = models.CharField(max_length=500, null=True, blank=True)
+    collector_number = models.CharField(max_length=500, null=True, blank=True)
+    barcode_number = models.CharField(max_length=500, null=True, blank=True)
+    identification_comment = models.TextField(null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'

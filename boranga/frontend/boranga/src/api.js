@@ -136,6 +136,7 @@ module.exports = {
     committee:"/api/committee",
 
     occurrence_report:"/api/occurrence_report",
+    observer_detail:"/api/observer_detail.json",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",
@@ -156,6 +157,9 @@ module.exports = {
     },
     discard_ocr_proposal:function (id) {
       return `/api/occurrence_report/${id}.json`;
+    },
+    discard_observer_detail:function (id) {
+      return `/api/observer_detail/${id}.json`;
     },
     discard_vessel:function (id) {
       return `/api/vessels/${id}.json`;
