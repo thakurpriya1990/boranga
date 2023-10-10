@@ -49,15 +49,17 @@
                 </div>
             </div>
             <!--  -->
-
+            <div class="row mb-3">
+                <ComponentMap class="me-3" ref="ocr_map" :occurrence_report_obj="occurrence_report_obj" :is_external="is_external"></ComponentMap>
+            </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
                 <div class="col-sm-9" :id="select_scientific_name">
                     <select :disabled="isReadOnly"
-                        :id="scientific_name_lookup"  
-                        :name="scientific_name_lookup"  
-                        :ref="scientific_name_lookup" 
-                        class="form-control" />
+                    :id="scientific_name_lookup"  
+                    :name="scientific_name_lookup"  
+                    :ref="scientific_name_lookup" 
+                    class="form-control" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -82,7 +84,7 @@
             <!-- ------------Observer Detail section -->
             
             <ObserverDatatable ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj" :is_external="is_external" :isReadOnly="isReadOnly"></ObserverDatatable>
-
+            
             <!-- -------------------------------- -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Location Description:</label>
@@ -145,6 +147,23 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Point Coordinate :</label>
+                <div class="col-sm-2">
+                    <input :disabled="isReadOnly" type="decimal" class="form-control ocr_number" id="point_coord1" placeholder=""/>
+                </div>
+                <div class="col-sm-2">
+                    <input :disabled="isReadOnly" type="decimal" class="form-control ocr_number" id="point_coord2" placeholder=""/>
+                </div>
+                <div class="col-sm-3">
+                    <button :disabled="isReadOnly" type="button" class="btn btn-primary btn-sm pull-left me-2">
+                        Map
+                    </button>
+                    <button :disabled="isReadOnly" type="button" class="btn btn-primary btn-sm pull-left me-2">
+                        View
+                    </button>
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Coordination Source:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.location.coordination_source_id">
@@ -164,7 +183,7 @@
                     </select>
                 </div>
             </div>
-
+            
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingLocationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
@@ -181,9 +200,10 @@ import Vue from 'vue' ;
 // import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import ObserverDatatable from './observer_datatable.vue'
+import ComponentMap from '../component_map.vue'
 import {
-  api_endpoints,
-  helpers
+    api_endpoints,
+    helpers
 }
 from '@/utils/hooks'
 // require("select2/dist/css/select2.min.css");
@@ -239,6 +259,7 @@ export default {
         components: {
             FormSection,
             ObserverDatatable,
+            ComponentMap,
         },
         computed: {
             deficiencyVisibility: function(){

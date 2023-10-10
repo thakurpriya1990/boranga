@@ -523,7 +523,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__family__name",
+                name: "species__taxonomy__family_fk__scientific_name",
             }
         },
         column_genera: function(){

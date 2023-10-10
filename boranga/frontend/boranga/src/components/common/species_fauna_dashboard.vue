@@ -503,7 +503,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "taxonomy__phylogenetic_group__name",
+                name: "taxonomy__informal_groups__classification_system_fk__class_desc",
             }
         },
         column_family: function(){

@@ -36,6 +36,7 @@ from boranga.components.main.serializers import(
 from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
 from django.db.models import Q
+from django.contrib.gis.geos import GEOSGeometry
 
 logger = logging.getLogger('boranga')
 
@@ -258,6 +259,7 @@ class IdentificationSerializer(serializers.ModelSerializer):
 
 class LocationSerializer(serializers.ModelSerializer):
     observation_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    geojson_point = serializers.SerializerMethodField()
 	
     class Meta:
         model = Location
@@ -274,7 +276,15 @@ class LocationSerializer(serializers.ModelSerializer):
             'datum_id',
             'coordination_source_id',
             'location_accuracy_id',
+            'geojson_point',
             )
+    
+    def get_geojson_point(self,obj):
+        if(obj.geojson_point):
+            coordinates = GEOSGeometry(obj.geojson_point).coords
+            return coordinates
+        else:
+            return None
 
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -653,6 +663,7 @@ class SaveLocationSerializer(serializers.ModelSerializer):
             'datum_id',
             'coordination_source_id',
             'location_accuracy_id',
+            'geojson_point',
             )
 
 class ObserverDetailSerializer(serializers.ModelSerializer):

@@ -2,6 +2,7 @@ import logging
 import datetime
 from django.utils import timezone
 from django.db import models
+from django.contrib.gis.db import models as gis_models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields.jsonb import JSONField
@@ -423,6 +424,8 @@ class Location(models.Model):
     datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
     coordination_source = models.ForeignKey(CoordinationSource, on_delete=models.SET_NULL, null=True, blank=True)
     location_accuracy = models.ForeignKey(LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True)
+    geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
+    geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
 
     class Meta:
         app_label = 'boranga'

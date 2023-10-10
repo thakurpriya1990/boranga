@@ -273,4 +273,5 @@ if len(GIT_COMMIT_HASH) == 0:
 NOMOS_URL = env('NOMOS_URL')
 NOMOS_USERNAME = env('NOMOS_USERNAME')
 NOMOS_PASSWORD = env('NOMOS_PASSWORD')
+KMI_SERVER_URL = env("KMI_SERVER_URL", "https://kmi.dbca.wa.gov.au")
 
