@@ -180,9 +180,29 @@ class GetScientificName(views.APIView):
         species_id = request.GET.get('species_id','')
         if search_term:
             data_transform = []
+            dumped_species = cache.get('get_species_data')
+            species_data_cache = None
+            if dumped_species is None:
+                species_data_cache = Species.objects.all()
+                cache.set('get_species_data', species_data_cache, 86400)
+                # print("NOT from CACHE")
+            else:
+                species_data_cache = dumped_species
+                # print("from CACHE")
+
+            dumped_taxonomy = cache.get('get_taxonomy_data')
+            taxonomy_data_cache = None
+            if dumped_taxonomy is None:
+                taxonomy_data_cache = Taxonomy.objects.all()
+                cache.set('get_taxonomy_data', taxonomy_data_cache, 86400)
+                # print("taxon NOT from CACHE")
+            else:
+                taxonomy_data_cache = dumped_taxonomy
+                # print("taxon from CACHE")
+
             if cs_referral != '':
                 #TODO may need to change the query for referral
-                data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+                data = taxonomy_data_cache.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
                 data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif cs_species != '':
@@ -192,7 +212,7 @@ class GetScientificName(views.APIView):
                 # for new cs species with draft and historical should not populate
                 if cs_species_status=="Draft":
                     exculde_status = ['draft','historical']
-                    data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
+                    data = species_data_cache.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
                 else:
                     exculde_status = ['draft']
                     data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))

@@ -9,6 +9,7 @@ from boranga.components.main.models import (
     Document
     )
 import json
+from django.core.cache import cache
 import subprocess
 from django.db import models,transaction
 from django.conf import settings
@@ -262,6 +263,11 @@ class Taxonomy(models.Model):
 
     def __str__(self):
         return str(self.scientific_name)  # TODO: is the most appropriate?
+    
+    def save(self, *args, **kwargs):
+        cache.delete('get_taxonomy_data')
+        self.full_clean()
+        super(Taxonomy, self).save(*args,**kwargs)
 
     @property
     def taxon_previous_name(self):
@@ -413,6 +419,8 @@ class Species(models.Model):
         return '{}'.format(self.species_number)
 
     def save(self, *args, **kwargs):
+        cache.delete('get_species_data')
+        self.full_clean()
         # Prefix "S" char to species_number.
         super(Species, self).save(*args,**kwargs)
         if self.species_number == '':
@@ -1946,10 +1954,16 @@ class SpeciesConservationAttributes(models.Model):
 
     # flora and fauna common attributes
     habitat_growth_form = models.CharField(max_length=200,null=True, blank=True)
-    time_to_maturity = models.IntegerField(null=True, blank=True)
-    generation_length = models.IntegerField(null=True, blank=True)
-    average_lifespan = models.IntegerField(null=True, blank=True)
-    minimum_fire_interval_from = models.IntegerField(null=True, blank=True)
+    time_to_maturity_from = models.IntegerField(null=True, blank=True)
+    time_to_maturity_to = models.IntegerField(null=True, blank=True)
+    time_to_maturity_choice = models.CharField(max_length=10, choices=INTERVAL_CHOICES, null=True, blank=True)
+    generation_length_from = models.IntegerField(null=True, blank=True)
+    generation_length_to = models.IntegerField(null=True, blank=True)
+    generation_length_choice = models.CharField(max_length=10, choices=INTERVAL_CHOICES, null=True, blank=True)
+    average_lifespan_from = models.IntegerField(null=True, blank=True)
+    average_lifespan_to = models.IntegerField(null=True, blank=True)
+    average_lifespan_choice = models.CharField(max_length=10, choices=INTERVAL_CHOICES, null=True, blank=True)
+    minimum_fire_interval_from = models.IntegerField(null=True, blank=True) 
     minimum_fire_interval_to = models.IntegerField(null=True, blank=True)
     minimum_fire_interval_choice = models.CharField(max_length=10, choices=INTERVAL_CHOICES, null=True, blank=True)
     response_to_fire = models.CharField(max_length=200, null=True, blank=True)
