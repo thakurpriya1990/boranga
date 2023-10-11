@@ -187,7 +187,6 @@ export default {
 
                 vm.source = new VectorSource({
                     //features: new GeoJSON().readFeatures(vm.shapefile_json),
-                    features: vm.point_data,
                 })
 
                 let vectorData = new VectorLayer({
@@ -212,14 +211,16 @@ export default {
                 vm.map.addLayer(vectorData);
 
                 const draw = new Draw({
-                    type: 'Point',
+                    type: 'Polygon',
                     source: vm.source
                 });
                 vm.map.addInteraction(draw)
 
                 draw.on('drawend', (event) => {
-                    const coordinates = event.feature.getGeometry().getCoordinates();
-                    vm.occurrence_report_obj.location.geojson_point = `POINT(${coordinates[0]} ${coordinates[1]})`;
+                    const geometry = event.feature.getGeometry();
+                    //vm.occurrence_report_obj.location.geojson_point = `POINT(${coordinates[0]} ${coordinates[1]})`;
+                    let polygonCoordinates = geometry.getCoordinates()[0].map(coord => coord.join(' '));
+                    vm.occurrence_report_obj.location.geojson_polygon = polygonCoordinates.join(',')
                 });
 
 
@@ -304,6 +305,16 @@ export default {
                 vm.point_data = new Point(vm.occurrence_report_obj.location.geojson_point);
                 var feature = new Feature({
                     geometry: vm.point_data,
+                    // You can also add properties to the feature here
+                });
+                vm.source.addFeature(feature);
+            }
+            if(vm.occurrence_report_obj.location.geojson_polygon!=null){
+                //vm.source.addFeature(vm.occurrence_report_obj.location.geojson_point)
+                vm.source.clear();
+                let polygon_data = new Polygon(vm.occurrence_report_obj.location.geojson_polygon);
+                var feature = new Feature({
+                    geometry: polygon_data,
                     // You can also add properties to the feature here
                 });
                 vm.source.addFeature(feature);

@@ -260,6 +260,7 @@ class IdentificationSerializer(serializers.ModelSerializer):
 class LocationSerializer(serializers.ModelSerializer):
     observation_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     geojson_point = serializers.SerializerMethodField()
+    geojson_polygon = serializers.SerializerMethodField()
 	
     class Meta:
         model = Location
@@ -277,11 +278,19 @@ class LocationSerializer(serializers.ModelSerializer):
             'coordination_source_id',
             'location_accuracy_id',
             'geojson_point',
+            'geojson_polygon',
             )
     
     def get_geojson_point(self,obj):
         if(obj.geojson_point):
             coordinates = GEOSGeometry(obj.geojson_point).coords
+            return coordinates
+        else:
+            return None
+        
+    def get_geojson_polygon(self,obj):
+        if(obj.geojson_polygon):
+            coordinates = GEOSGeometry(obj.geojson_polygon).coords
             return coordinates
         else:
             return None
@@ -663,7 +672,7 @@ class SaveLocationSerializer(serializers.ModelSerializer):
             'datum_id',
             'coordination_source_id',
             'location_accuracy_id',
-            'geojson_point',
+            'geojson_polygon',
             )
 
 class ObserverDetailSerializer(serializers.ModelSerializer):

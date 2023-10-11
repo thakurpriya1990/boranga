@@ -37,6 +37,7 @@ from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 from io import BytesIO
 from django.db.models.query import QuerySet
+from django.contrib.gis.geos import GEOSGeometry
 
 from boranga.components.occurrence.models import( 
     OccurrenceReport,
@@ -544,6 +545,13 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             ocr_instance = self.get_object()
 
             location_instance, created = Location.objects.get_or_create(occurrence_report=ocr_instance)
+            print(request.data.get('geojson_polygon'))
+            polygon = request.data.get('geojson_polygon')
+            if polygon:
+                coords_list = [list(map(float, coord.split(' '))) for coord in polygon.split(',')]
+                coords_list.append(coords_list[0])
+                request.data['geojson_polygon'] = GEOSGeometry(f'POLYGON(({", ".join(map(lambda x: " ".join(map(str, x)), coords_list))}))')
+                # request.data['geojson_polygon']=GEOSGeometry(polygon)
             # the request.data is only the habitat composition data thats been sent from front end
             serializer = SaveLocationSerializer(location_instance,data=request.data, context={'request':request})
             serializer.is_valid(raise_exception=True)
