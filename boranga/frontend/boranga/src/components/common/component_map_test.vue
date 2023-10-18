@@ -27,6 +27,7 @@
                </div>
            </div>
        </div>
+       <button class="col-sm-1" type="submit">Save Point</button>
        <div class="overlay-container">
            <span class="overlay-text" id="feature-id"></span>
        </div>
@@ -54,6 +55,7 @@ import Feature from 'ol/Feature';
 import { Draw, Modify, Snap, Select } from 'ol/interaction';
 import { MousePosition, defaults as DefaultControls } from 'ol/control';
 import { createStringXY } from 'ol/coordinate';
+import Point from 'ol/geom/Point';
 import {
  api_endpoints,
  helpers
@@ -86,6 +88,8 @@ export default {
                tileLayerSat: null,
                mode: 'normal',
                source : null,
+               modelQuerySource: null,
+               point_data:null,
                shapefile_json: {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":1},"geometry":{"coordinates":[[[116.06664827879348,-31.93675031506431],[116.06664827879348,-31.994867724519167],[116.17443408838562,-31.994867724519167],[116.17443408838562,-31.93675031506431],[116.06664827879348,-31.93675031506431]]],"type":"Polygon"}},{"type":"Feature","properties":{"id":2},"geometry":{"type":"Polygon","coordinates":[[[116.04653664085203,-31.89991187254868],[116.04545524108961,-31.89995697026007],[116.0443842526443,-31.90009182921046],[116.04333398668759,-31.90031515102484],[116.04231455505979,-31.90062478562606],[116.0413357729947,-31.901017751916903],[116.04040706468766,-31.9014902664569],[116.03953737261281,-31.902037779858986],[116.03873507145939,-31.90265502055705],[116.03800788751451,-31.903336045524537],[116.03736282426674,-31.9040742974576],[116.03680609494673,-31.904862667874127],[116.03634306265535,-31.90569356552278],[116.03597818865663,-31.906558989445326],[116.03571498933616,-31.90745060599025],[116.03555600224243,-31.908359829037533],[116.03550276154138,-31.90927790266327],[116.03555578312505,-31.910195985448997],[116.03571455952195,-31.91110523562421],[116.03597756466311,-31.911996896222504],[116.03634226846226,-31.912862379430912],[116.03680516107445,-31.913693349319594],[116.03736178660341,-31.914481802154175],[116.03800678593703,-31.915220143516045],[116.03873394830072,-31.915901261486383],[116.0395362710353,-31.916518595187295],[116.04040602702435,-31.917066198018183],[116.04133483912238,-31.917538794976238],[116.04231376086666,-31.91793183350711],[116.04333336269406,-31.9182415273942],[116.04438382283006,-31.91846489326196],[116.0454550219722,-31.918599779340276],[116.04653664085203,-31.918644886211645],[116.04761825973183,-31.918599779340276],[116.04868945887398,-31.91846489326196],[116.04973991901,-31.9182415273942],[116.05075952083739,-31.91793183350711],[116.05173844258168,-31.917538794976238],[116.0526672546797,-31.917066198018183],[116.05353701066875,-31.916518595187295],[116.05433933340333,-31.915901261486383],[116.05506649576701,-31.915220143516045],[116.05571149510062,-31.914481802154175],[116.05626812062958,-31.913693349319594],[116.05673101324177,-31.912862379430912],[116.05709571704094,-31.911996896222504],[116.05735872218212,-31.91110523562421],[116.05751749857902,-31.910195985448997],[116.05757052016266,-31.90927790266327],[116.0575172794616,-31.908359829037533],[116.05735829236791,-31.90745060599025],[116.05709509304744,-31.906558989445326],[116.0567302190487,-31.90569356552278],[116.05626718675732,-31.904862667874127],[116.05571045743731,-31.9040742974576],[116.05506539418953,-31.903336045524537],[116.05433821024468,-31.90265502055705],[116.05353590909125,-31.902037779858986],[116.05266621701638,-31.9014902664569],[116.05173750870935,-31.901017751916903],[116.05075872664425,-31.90062478562606],[116.04973929501647,-31.90031515102484],[116.04868902905974,-31.90009182921046],[116.04761804061444,-31.89995697026007],[116.04653664085203,-31.89991187254868]]]}}]},
            }
        },
@@ -161,6 +165,9 @@ export default {
                    ]),
                })
 
+               // update map extent when new features added
+               //vm.map.on('rendercomplete', vm.displayAllFeatures());
+
                let fillStyle = new Fill({
                    color: [84,118,255,1]
                })
@@ -179,7 +186,7 @@ export default {
                })
 
                vm.source = new VectorSource({
-                   features: new GeoJSON().readFeatures(vm.shapefile_json),
+                   //features: new GeoJSON().readFeatures(vm.shapefile_json),
                })
 
                let vectorData = new VectorLayer({
@@ -203,12 +210,18 @@ export default {
 
                vm.map.addLayer(vectorData);
 
-               vm.map.addInteraction(
-                   new Draw({
-                       type: 'Polygon',
-                       source: vm.source
-                   })
-               )
+               const draw = new Draw({
+                   type: 'Polygon',
+                   source: vm.source
+               });
+               vm.map.addInteraction(draw)
+
+               draw.on('drawend', (event) => {
+                   const geometry = event.feature.getGeometry();
+                   //vm.occurrence_report_obj.location.geojson_point = `POINT(${coordinates[0]} ${coordinates[1]})`;
+                   let polygonCoordinates = geometry.getCoordinates()[0].map(coord => coord.join(' '));
+                   vm.occurrence_report_obj.location.geojson_polygon = polygonCoordinates.join(',')
+               });
 
 
                //vector Feature popup
@@ -282,9 +295,30 @@ export default {
            vm.source.on('change', function () {
            const features = vm.source.getFeatures();
            const json = format.writeFeatures(features);
+           console.log(json);
            download.href =
                'data:application/json;charset=utf-8,' + encodeURIComponent(json);
            });
+           if(vm.occurrence_report_obj.location.geojson_point!=null){
+               //vm.source.addFeature(vm.occurrence_report_obj.location.geojson_point)
+               vm.source.clear();
+               vm.point_data = new Point(vm.occurrence_report_obj.location.geojson_point);
+               var feature = new Feature({
+                   geometry: vm.point_data,
+                   // You can also add properties to the feature here
+               });
+               vm.source.addFeature(feature);
+           }
+           if(vm.occurrence_report_obj.location.geojson_polygon!=null){
+               //vm.source.addFeature(vm.occurrence_report_obj.location.geojson_point)
+               vm.source.clear();
+               let polygon_data = new Polygon(vm.occurrence_report_obj.location.geojson_polygon);
+               var feature = new Feature({
+                   geometry: polygon_data,
+                   // You can also add properties to the feature here
+               });
+               vm.source.addFeature(feature);
+           }
        },
    }
 </script>

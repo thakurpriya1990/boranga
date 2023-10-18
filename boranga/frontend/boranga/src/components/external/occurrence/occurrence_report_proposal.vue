@@ -34,7 +34,8 @@
                 id="OccurrenceReportStart" 
                 :canEditStatus="canEditStatus"
                 :is_external="true"
-                ref="occurrence_report">
+                ref="occurrence_report"
+                @refreshFromResponse="refreshFromResponse">
             </ProposalOccurrenceReport>
 
             <div>
@@ -429,6 +430,9 @@ export default {
         },(error) => {
           vm.paySubmitting=false;
         });
+    },
+    refreshFromResponse: function (data) {
+        //this.proposal = Object.assign({}, data);
     },
 },
 

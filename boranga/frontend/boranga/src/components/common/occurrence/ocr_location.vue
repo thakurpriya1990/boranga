@@ -50,7 +50,24 @@
             </div>
             <!--  -->
             <div class="row mb-3">
-                <ComponentMap class="me-3" ref="ocr_map" :occurrence_report_obj="occurrence_report_obj" :is_external="is_external"></ComponentMap>
+                <MapComponent 
+                    class="me-3" 
+                    ref="component_map" 
+                    :key="componentMapKey"
+                    :context="occurrence_report_obj"
+                    :proposal-ids="[-1]"
+                    :is_external="is_external" 
+                    :drawable=true
+                    :editable="true"
+                    level="external"
+                    :map-info-text="
+                                is_internal
+                                    ? ''
+                                    : 'Use the <b>draw</b> tool to draw the area of the report on the map.</br>Display layers to check attributes of polygons with the <b>info</b> tool.</br>You can <b>save</b> the report and continue at a later time.'
+                            "
+                    @validate-feature="validateFeature.bind(this)()"
+                    @refreshFromResponse="refreshFromResponse"
+                    :selectable=true></MapComponent>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
@@ -197,10 +214,11 @@
 
 <script>
 import Vue from 'vue' ;
+import { v4 as uuid } from 'uuid';
 // import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import ObserverDatatable from './observer_datatable.vue'
-import ComponentMap from '../component_map.vue'
+import MapComponent from '../component_map.vue'
 import {
     api_endpoints,
     helpers
@@ -228,10 +246,16 @@ export default {
               type: Boolean,
               default: true
             },
+            is_internal:{
+              type: Boolean,
+              default: false
+            },
         },
+        emits: ['refreshFromResponse'],
         data:function () {
             let vm = this;
             return{
+                uuid: null,
                 scientific_name_lookup: 'scientific_name_lookup' + vm.occurrence_report_obj.id,
                 select_scientific_name: "select_scientific_name"+ vm.occurrence_report_obj.id,
                 isShowComment: false,
@@ -259,7 +283,7 @@ export default {
         components: {
             FormSection,
             ObserverDatatable,
-            ComponentMap,
+            MapComponent,
         },
         computed: {
             deficiencyVisibility: function(){
@@ -288,6 +312,9 @@ export default {
                 else{
                     return this.occurrence_report_obj.readonly;
                 }
+            },
+            componentMapKey: function () {
+                return `component-map-${this.uuid}`;
             },
         },
         watch:{
@@ -406,9 +433,13 @@ export default {
                     vm.updatingLocationDetails = false;
                 });
             },
+            refreshFromResponse: function (data) {
+                //this.proposal = Object.assign({}, data);
+            },
         },
         created: async function() {
             let vm=this;
+            this.uuid = uuid();
             //------fetch list of values according to action
             let action = this.$route.query.action;
             let dict_url= action == "view"? api_endpoints.cs_profile_dict+ '?group_type=' + vm.occurrence_report_obj.group_type+ '&action=' + action : 

@@ -24,9 +24,11 @@
         <div class="justify-content-end align-items-center mb-2">
             <div v-if="mapInfoText.length > 0" class="row">
                 <div class="col-md-6">
-                    <!-- <BootstrapAlert class="mb-0">
+                    <BootstrapAlert class="mb-0">
+                        <!-- eslint-disable vue/no-v-html -->
                         <p><span v-html="mapInfoText"></span></p>
-                    </BootstrapAlert> -->
+                        <!--eslint-enable-->
+                    </BootstrapAlert>
                 </div>
             </div>
         </div>
