@@ -3,8 +3,8 @@
         TODO tasks (and ideas):
         - populate tenure, locality, and categorisation from geoserver response (see: map_functions::validateFeature for response values and owsQuery prop for query paramerters)
         - [DONE] prevent polygon delete after save (or save + status change)
-        - polygon redo button
-        - polygon edit button (move and add/remove vertices)
+        - [DONE] polygon redo button
+        - [DONE] polygon edit button (move and add/remove vertices)
         - pass in map tab filterable proposals as prop (see: prop featureCollection)
         - standardise feature tooltip fields (lodgement_date formatting, application_type, processing_status, etc.) across models
         - hide feature tooltip on save as it might overlap the save response modal
@@ -21,22 +21,109 @@
         - automatic zoom to all on map load
      -->
     <div>
+        <!-- <CollapsibleFilters
+            v-if="filterable"
+            ref="collapsible_filters"
+            :component_title="'Filters' + filterInformation"
+            class="mb-2"
+            @created="collapsible_component_mounted"
+        >
+            <div class="row">
+                <div class="col-md-3">
+                    <label for=""
+                        >Type {{ filterApplicationsMapApplicationType }}</label
+                    >
+                    <select
+                        v-model="filterApplicationsMapApplicationType"
+                        class="form-control"
+                    >
+                        <option value="all" selected>All</option>
+                        <option
+                            v-for="application_type in application_types"
+                            :key="application_type.id"
+                            :value="application_type.id"
+                        >
+                            {{ application_type.name_display }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="">Status</label>
+                    <select
+                        v-model="filterApplicationsMapProcessingStatus"
+                        class="form-control"
+                    >
+                        <option value="all" selected>All</option>
+                        <option
+                            v-for="processing_status in processing_statuses"
+                            :key="processing_status.id"
+                            :value="processing_status.id"
+                        >
+                            {{ processing_status.text }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="">Lodged From</label>
+                    <div ref="proposalDateFromPicker" class="input-group date">
+                        <input
+                            v-model="filterApplicationsMapLodgedFrom"
+                            type="date"
+                            class="form-control"
+                        />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="">Lodged To</label>
+                    <div ref="proposalDateToPicker" class="input-group date">
+                        <input
+                            v-model="filterApplicationsMapLodgedTo"
+                            type="date"
+                            class="form-control"
+                        />
+                    </div>
+                </div>
+            </div>
+        </CollapsibleFilters> -->
+
         <div class="justify-content-end align-items-center mb-2">
             <div v-if="mapInfoText.length > 0" class="row">
                 <div class="col-md-6">
                     <!-- <BootstrapAlert class="mb-0">
+                        // eslint-disable vue/no-v-html 
                         <p><span v-html="mapInfoText"></span></p>
+                        //eslint-enable
                     </BootstrapAlert> -->
+                    <alert type="info"><strong><p><span v-html="mapInfoText"></span></p></strong></alert>
                 </div>
+                <!-- <div class="col-md-6">
+                    <div class="row" style="margin: auto">
+                        <BootstrapAlert
+                            v-if="hasErrorMessage"
+                            class="mb-1 ml-1"
+                            type="danger"
+                            icon="exclamation-triangle-fill"
+                        >
+                            <span> {{ errorMessage }} </span>
+                        </BootstrapAlert>
+                    </div>
+                    <div class="row" style="margin: auto">
+                        <BootstrapAlert
+                            v-if="hasModifiedFeatures"
+                            class="mb-0 ml-1"
+                            type="warning"
+                            icon="exclamation-triangle-fill"
+                        >
+                            <span>
+                                Adding or modifying a feature will cause any
+                                existing geospatial data to be re-evaluated on
+                                save and possibly be changed.
+                            </span>
+                        </BootstrapAlert>
+                    </div>
+                </div> -->
             </div>
         </div>
-
-        <VueAlert
-            :show="hasErrorMessage"
-            type="danger"
-            style="color: red"
-            ><strong> {{ errorMessage }} </strong>
-        </VueAlert>
 
         <div
             :id="map_container_id"
@@ -57,20 +144,78 @@
                     />
                 </div>
                 <div class="optional-layers-wrapper">
+                    <!-- <div style="position: relative">
+                        <transition>
+                            <div
+                                class="optional-layers-button-wrapper"
+                                :title="`There are ${optionalLayers.length} optional layers available}`"
+                            >
+                                <div
+                                    class="optional-layers-button btn"
+                                    :class="
+                                        optionalLayers.length ? '' : 'disabled'
+                                    "
+                                    @mouseover="hover = true"
+                                >
+                                    <img src="../../assets/layers.svg" />
+                                </div>
+                            </div>
+                        </transition>
+                        <transition>
+                            <div
+                                v-show="hover"
+                                div
+                                class="layer_options layer_menu"
+                                @mouseleave="hover = false"
+                            >
+                                <div
+                                    v-for="layer in optionalLayers"
+                                    :key="layer.ol_uid"
+                                >
+                                    <div
+                                        class="row"
+                                        :title="layer.values_.abstract"
+                                    >
+                                        <input
+                                            :id="layer.ol_uid"
+                                            type="checkbox"
+                                            :checked="layer.values_.visible"
+                                            class="layer_option col-md-1"
+                                            @change="
+                                                changeLayerVisibility(layer)
+                                            "
+                                        />
+                                        <label
+                                            :for="layer.ol_uid"
+                                            class="layer_option col-md-6"
+                                            >{{ layer.get('title') }}</label
+                                        >
+                                        <RangeSlider
+                                            class="col-md-5"
+                                            @value-changed="
+                                                valueChanged($event, layer)
+                                            "
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </transition>
+                    </div> -->
                     <!-- Toggle measure tool between active and not active -->
                     <div class="optional-layers-button-wrapper">
                         <div
                             :title="
                                 mode == 'measure'
                                     ? 'Deactivate measure tool'
-                                    : 'Activate measure tool'
+                                    : 'Measure distances on the map'
                             "
+                            class="btn"
                             :class="[
                                 mode == 'measure'
                                     ? 'optional-layers-button-active'
                                     : 'optional-layers-button',
                             ]"
-                            @click="set_mode.bind(this)('measure')"
+                            @click="set_mode('measure')"
                         >
                             <img
                                 class="svg-icon"
@@ -83,8 +228,9 @@
                             :title="
                                 mode == 'draw'
                                     ? 'Deactivate draw tool'
-                                    : 'Activate draw tool'
+                                    : 'Draw a new feature or edit a selected one'
                             "
+                            class="btn"
                             :class="[
                                 mode == 'draw'
                                     ? 'optional-layers-button-active'
@@ -99,12 +245,38 @@
                         </div>
                     </div>
                     <div
+                        v-if="editable"
+                        class="optional-layers-button-wrapper"
+                        title="Transform a drawn feature"
+                    >
+                        <div
+                            :title="
+                                mode == 'transform'
+                                    ? 'Deactivate transform tool'
+                                    : 'Transform an existing feature'
+                            "
+                            class="btn"
+                            :class="[
+                                mode == 'transform'
+                                    ? 'optional-layers-button-active'
+                                    : 'optional-layers-button',
+                                drawable && polygonCount ? '' : 'disabled',
+                            ]"
+                            @click="set_mode('transform')"
+                        >
+                            <img
+                                class="svg-icon"
+                                src="../../assets/transform-polygon.svg"
+                            />
+                        </div>
+                    </div>
+                    <div
                         v-if="polygonCount"
                         class="optional-layers-button-wrapper"
                     >
                         <div
                             title="Zoom map to layer(s)"
-                            class="optional-layers-button"
+                            class="optional-layers-button btn"
                             @click="displayAllFeatures"
                         >
                             <img
@@ -114,10 +286,9 @@
                         </div>
                     </div>
                     <div class="optional-layers-button-wrapper">
-
                         <div
                             title="Download layers as GeoJSON"
-                            class="optional-layers-button"
+                            class="optional-layers-button btn"
                             @click="geoJsonButtonClicked"
                         >
                             <img
@@ -126,36 +297,22 @@
                             />
                         </div>
                     </div>
-                    
-                    <!-- <div
-                        v-if="optionalLayersActive"
-                        class="optional-layers-button-wrapper"
-                    >
-                        <div
-                            :title="
-                                mode == 'info'
-                                    ? 'Deactivate info tool'
-                                    : 'Activate info tool'
-                            "
-                            :class="[
-                                mode == 'info'
-                                    ? 'optional-layers-button-active'
-                                    : 'optional-layers-button',
-                            ]"
-                            @click="set_mode.bind(this)('info')"
-                        >
-                            <img
-                                class="svg-icon"
-                                src="../../assets/info-query.svg"
-                            />
-                        </div>
-                    </div> -->
                     <div
-                        v-if="selectedFeatureIds.length > 0"
+                        v-if="editable"
                         class="optional-layers-button-wrapper"
+                        :title="
+                            polygonCount
+                                ? 'Select a feature to delete'
+                                : 'No features to delete'
+                        "
                     >
                         <div
-                            class="optional-layers-button"
+                            class="optional-layers-button btn"
+                            :class="
+                                selectedFeatureIds.length == 0
+                                    ? 'disabled'
+                                    : 'btn-danger'
+                            "
                             title="Delete selected features"
                             @click="removeModelFeatures()"
                         >
@@ -164,6 +321,7 @@
                                 src="../../assets/trash-bin.svg"
                             />
                             <span
+                                v-if="selectedFeatureIds.length"
                                 id="selectedFeatureCount"
                                 class="badge badge-warning"
                                 >{{ selectedFeatureIds.length }}</span
@@ -171,13 +329,22 @@
                         </div>
                     </div>
                     <div
-                        v-if="showUndoButton"
+                        v-if="canUndoAction || canUndoDrawnVertex"
                         class="optional-layers-button-wrapper"
+                        title="Undo last action"
                     >
                         <div
-                            class="optional-layers-button"
-                            title="Undo last point"
-                            @click="undoLeaseLicensePoint()"
+                            class="optional-layers-button btn"
+                            :class="
+                                hasUndo || canUndoDrawnVertex ? '' : 'disabled'
+                            "
+                            :title="
+                                'Undo ' +
+                                (canUndoDrawnVertex
+                                    ? 'last point'
+                                    : undoRedoStackTopInteractionName('undo'))
+                            "
+                            @click="undo()"
                         >
                             <img
                                 class="svg-icon"
@@ -186,17 +353,50 @@
                         </div>
                     </div>
                     <div
-                        v-if="showRedoButton"
+                        v-if="canRedoAction || canRedoDrawnVertex"
                         class="optional-layers-button-wrapper"
+                        title="Redo last action"
                     >
                         <div
-                            class="optional-layers-button"
-                            title="Redo last point"
-                            @click="redoLeaseLicensePoint()"
+                            class="optional-layers-button btn"
+                            :class="
+                                hasRedo || canRedoDrawnVertex ? '' : 'disabled'
+                            "
+                            :title="
+                                'Redo ' +
+                                (canRedoDrawnVertex
+                                    ? 'last point'
+                                    : undoRedoStackTopInteractionName('redo'))
+                            "
+                            @click="redo()"
                         >
                             <img
                                 class="svg-icon"
                                 src="../../assets/map-redo.svg"
+                            />
+                        </div>
+                    </div>
+                    <div
+                        v-if="optionalLayersActive"
+                        class="optional-layers-button-wrapper"
+                    >
+                        <div
+                            :title="
+                                mode == 'info'
+                                    ? 'Deactivate info tool'
+                                    : 'Click a data set feature for more information'
+                            "
+                            class="btn"
+                            :class="[
+                                mode == 'info'
+                                    ? 'optional-layers-button-active'
+                                    : 'optional-layers-button',
+                            ]"
+                            @click="set_mode('info')"
+                        >
+                            <img
+                                class="svg-icon"
+                                src="../../assets/info-query.svg"
                             />
                         </div>
                     </div>
@@ -205,23 +405,26 @@
                 <!-- <div id="featureToast" class="toast" style="z-index: 9999">
                     <template v-if="selectedModel">
                         <div class="toast-header">
-                            <img src="" class="rounded me-2" alt="" />
-                            // FIXME: Can this be standardised into the same field name? 
-                            <strong class="me-auto"
+                            <img src="" class="rounded me-2" alt="" />-->
+                            <!-- FIXME: Can this be standardised into the same field name? -->
+                            <!-- <strong class="me-auto"
                                 >{{
                                     selectedModel.label ||
                                     selectedModel.application_type_name_display ||
-                                    selectedModel.application_type.name_display
+                                    (selectedModel.application_type
+                                        ? selectedModel.application_type
+                                              .name_display
+                                        : undefined)
                                 }}: {{ selectedModel.lodgement_number }}</strong
                             >
-                        </div>
-                        <div class="toast-body">
+                        </div> -->
+                        <!-- <div class="toast-body">
                             <table class="table table-sm">
                                 <tbody>
                                     <tr>
-                                        <th scope="row">Processing Status</th>
-                                        // FIXME: Can this be standardised into the same field name? 
-                                        <td>
+                                        <th scope="row">Processing Status</th> -->
+                                        <!-- FIXME: Can this be standardised into the same field name? -->
+                                        <!-- <td>
                                             {{
                                                 selectedModel.status ||
                                                 selectedModel.status_display ||
@@ -229,9 +432,9 @@
                                                 selectedModel.processing_status
                                             }}
                                         </td>
-                                    </tr>
-                                     TODO: `created_at` is not formatted to DD/MM/YYYY 
-                                    <tr
+                                    </tr> -->
+                                    <!-- TODO: `created_at` is not formatted to DD/MM/YYYY -->
+                                    <!-- <tr
                                         v-if="
                                             selectedModel.copied_from ||
                                             selectedModel.lodgement_date_display ||
@@ -248,9 +451,9 @@
                                         </th>
                                         <th v-else scope="row">
                                             Lodgement Date
-                                        </th>
-                                         FIXME: Can this be standardised into the same field name? 
-                                        <td v-if="selectedModel.copied_from">
+                                        </th> -->
+                                        <!-- FIXME: Can this be standardised into the same field name? -->
+                                        <!-- <td v-if="selectedModel.copied_from">
                                             {{
                                                 selectedModel.copied_from
                                                     .lodgement_date_display
@@ -277,18 +480,24 @@
                                                 selectedModel.area_sqm > 10000
                                             "
                                         >
-                                            <th scope="row">Area (hm&#178;)</th>
+                                            <th scope="row">Area (ha)</th>
                                             <td>
                                                 {{
-                                                    selectedModel.area_sqm /
-                                                    10000
+                                                    (
+                                                        selectedModel.area_sqm /
+                                                        10000
+                                                    ).toFixed(1)
                                                 }}
                                             </td>
                                         </template>
                                         <template v-else>
                                             <th scope="row">Area (m&#178;)</th>
                                             <td>
-                                                {{ selectedModel.area_sqm }}
+                                                {{
+                                                    Math.round(
+                                                        selectedModel.area_sqm
+                                                    )
+                                                }}
                                             </td>
                                         </template>
                                     </tr>
@@ -306,6 +515,19 @@
                             <strong class="me-auto">{{
                                 overlayFeatureInfo.leg_name
                             }}</strong>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-light text-nowrap"
+                                aria-label="Close Overlay"
+                                @click="overlay(undefined)"
+                            >
+                                <span style="font-size: smaller"
+                                    ><i
+                                        class="fa-fw fa-regular fa-window-close"
+                                    ></i>
+                                    Close</span
+                                >
+                            </button>
                         </div>
                         <div id="popup-content toast-body">
                             <table
@@ -345,6 +567,17 @@
                                             {{ overlayFeatureInfo.category }}
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <th scope="row">Area (ha)</th>
+                                        <td>
+                                            {{
+                                                (
+                                                    overlayFeatureInfo.leg_poly_area +
+                                                    Number.EPSILON
+                                                ).toFixed(1)
+                                            }}
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -364,7 +597,22 @@
             <div id="coords"></div>
             <!-- <BootstrapSpinner v-if="!proposals" class="text-primary" /> -->
         </div>
-        <!-- <div class="row shapefile-row">
+        <div v-if="debug" class="row">
+            <div class="col-sm-6">Undo Stack:</div>
+            <div class="col-sm-6">Redo Stack:</div>
+            <div class="col-sm-6">
+                <div v-for="(item, idx) in undoStack" :key="idx">
+                    <div>{{ item.name }}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div v-for="(item, idx) in redoStack" :key="idx">
+                    <div>{{ item.name }}</div>
+                </div>
+            </div>
+        </div>
+        <!-- If no context provided, e.g. no proposal or cp, don't allow for shapefile upload -->
+        <!-- <div v-if="context" class="row shapefile-row">
             <div class="col-sm-6 border p-2">
                 <div class="row mb-2">
                     <div class="col">
@@ -445,23 +693,27 @@
 
 <script>
 import { v4 as uuid } from 'uuid';
-import { api_endpoints, helpers, utils } from '@/utils/hooks';
+import { api_endpoints, helpers } from '@/utils/hooks';
 //import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
-import VueAlert from '@vue-utils/alert.vue';
 
 import { toRaw } from 'vue';
 import 'ol/ol.css';
+import alert from '@vue-utils/alert.vue'
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
 import TileWMS from 'ol/source/TileWMS';
-import { Draw, Select } from 'ol/interaction';
+import { Draw, Select, Snap } from 'ol/interaction';
+import ModifyFeature from 'ol-ext/interaction/ModifyFeature';
+import UndoRedo from 'ol-ext/interaction/UndoRedo';
+import Transform from 'ol-ext/interaction/Transform';
 import Feature from 'ol/Feature';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import { FullScreen as FullScreenControl } from 'ol/control';
-import { LineString, Point, Polygon } from 'ol/geom';
+import { LineString, Point, MultiPoint, Polygon } from 'ol/geom';
+import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
@@ -471,24 +723,46 @@ import {
     addOptionalLayers,
     //set_mode,
     baselayer_name,
+    validateFeature,
+    layerAtEventPixel,
 } from '@/components/common/map_functions.js';
 
 export default {
-    name: 'MapComponent',
+    name: 'MapComponentWithFiltersV2',
     components: {
         //CollapsibleFilters,
         FileField,
+        alert,
         //RangeSlider,
-        VueAlert,
     },
     props: {
-        // level: {
+        level: {
+            type: String,
+            required: true,
+            validator: function (val) {
+                let options = ['internal', 'referral', 'external'];
+                return options.indexOf(val) != -1 ? true : false;
+            },
+        },
+        // filterApplicationsMapApplicationTypeCacheName: {
         //     type: String,
-        //     required: true,
-        //     validator: function (val) {
-        //         let options = ['internal', 'referral', 'external'];
-        //         return options.indexOf(val) != -1 ? true : false;
-        //     },
+        //     required: false,
+        //     default: 'filterApplicationType',
+        // },
+        // filterApplicationsMapProcessingStatusCacheName: {
+        //     type: String,
+        //     required: false,
+        //     default: 'filterApplicationStatus',
+        // },
+        // filterApplicationsMapLodgedFromCacheName: {
+        //     type: String,
+        //     required: false,
+        //     default: 'filterApplicationLodgedFrom',
+        // },
+        // filterApplicationsMapLodgedToCacheName: {
+        //     type: String,
+        //     required: false,
+        //     default: 'filterApplicationLodgedTo',
         // },
         /**
          * The context of the map. This is used to determine which layers to show on the map.
@@ -612,9 +886,9 @@ export default {
             default: false,
         },
         /**
-         * Whether to enable selecting existing features (e.g. for deletion)
+         * Whether to enable editing of existing features (e.g. select for deletion or transformation)
          */
-        selectable: {
+        editable: {
             type: Boolean,
             required: false,
             default: false,
@@ -637,12 +911,74 @@ export default {
             required: false,
             default: false,
         },
+        /**
+         * Tolerance for considering the pointer close enough to a segment or vertex for editing
+         * See: https://openlayers.org/en/latest/apidoc/module-ol_interaction_Modify-Modify.html
+         */
+        pixelTolerance: {
+            type: Number,
+            required: false,
+            default: 5,
+        },
+        /**
+         * Consider features within some distance of a provided pixel
+         * See: https://openlayers.org/en/latest/examples/hit-tolerance.html
+         */
+        hitTolerance: {
+            type: Number,
+            required: false,
+            default: 4,
+        },
+        /**
+         * The maximum length of the undo/redo stacks
+         */
+        undoStackMaxLength: {
+            type: Number,
+            required: false,
+            default: 0, // 0 means no limit
+        },
     },
+    // emits: ['filter-appied', 'validate-feature', 'refreshFromResponse'],
     emits: ['validate-feature', 'refreshFromResponse'],
     data() {
         let vm = this;
         return {
-            
+            // selected values for filtering
+            // filterApplicationsMapApplicationType: sessionStorage.getItem(
+            //     vm.filterApplicationsMapApplicationTypeCacheName
+            // )
+            //     ? sessionStorage.getItem(
+            //           vm.filterApplicationsMapApplicationTypeCacheName
+            //       )
+            //     : 'all',
+            // filterApplicationsMapProcessingStatus: sessionStorage.getItem(
+            //     vm.filterApplicationsMapProcessingStatusCacheName
+            // )
+            //     ? sessionStorage.getItem(
+            //           vm.filterApplicationsMapProcessingStatusCacheName
+            //       )
+            //     : 'all',
+            // filterApplicationsMapLodgedFrom: sessionStorage.getItem(
+            //     vm.filterApplicationsMapLodgedFromCacheName
+            // )
+            //     ? sessionStorage.getItem(
+            //           vm.filterApplicationsMapLodgedFromCacheName
+            //       )
+            //     : '',
+            // filterApplicationsMapLodgedTo: sessionStorage.getItem(
+            //     vm.filterApplicationsMapLodgedToCacheName
+            // )
+            //     ? sessionStorage.getItem(
+            //           vm.filterApplicationsMapLodgedToCacheName
+            //       )
+            //     : '',
+
+            // filtering options
+            // application_types: null,
+            // processing_statuses: null,
+            // select2AppliedToApplicationType: false,
+            // select2AppliedToApplicationStatus: false,
+
             elem_id: uuid(),
             map_container_id: uuid(),
             map: null,
@@ -668,7 +1004,7 @@ export default {
             loadingMap: false,
             fetchingProposals: false,
             proposals: [],
-            filteredProposals: [],
+            // filteredProposals: [],
             modelQuerySource: null,
             modelQueryLayer: null,
             selectedFeatureIds: [],
@@ -687,21 +1023,25 @@ export default {
                 color: 'rgba(255, 255, 255, 0.5)',
                 width: 1,
             }),
-            //set_mode: set_mode,
+            // set_mode: set_mode,
             isValidating: false,
             errorMessage: null,
             overlayFeatureInfo: {},
             deletedFeatures: [], // keep track of deleted features
+            undoredo: null,
+            modifiedFeaturesStack: [], // A stack of only those undoable actions that modified a feature
+            drawing: false, // Whether the map is in draw (pencil icon) mode
+            transforming: false, // Whether the map is in transform (resize, scale, rotate) mode
         };
     },
     computed: {
         // shapefileDocumentUrl: function () {
         //     let endpoint = '';
         //     let obj_id = 0;
-        //     if (this.context.model_name == 'proposal') {
+        //     if (this.context?.model_name == 'proposal') {
         //         endpoint = api_endpoints.proposal;
         //         obj_id = this.context.id;
-        //     } else if (this.context.model_name == 'competitiveprocess') {
+        //     } else if (this.context?.model_name == 'competitiveprocess') {
         //         endpoint = api_endpoints.competitive_process;
         //         obj_id = this.context.id;
         //     } else {
@@ -715,7 +1055,44 @@ export default {
         //     console.log({ url });
         //     return url;
         // },
-        showUndoButton: function () {
+        // filterApplied: function () {
+        //     let filter_applied = true;
+        //     if (
+        //         this.filterApplicationsMapProcessingStatus === 'all' &&
+        //         this.filterApplicationsMapApplicationType === 'all' &&
+        //         this.filterApplicationsMapLodgedFrom.toLowerCase() === '' &&
+        //         this.filterApplicationsMapLodgedTo.toLowerCase() === ''
+        //     ) {
+        //         filter_applied = false;
+        //     }
+        //     return filter_applied;
+        // },
+        // filterApplicationsMapLodgedFromMoment: function () {
+        //     return this.filterApplicationsMapLodgedFrom
+        //         ? moment(this.filterApplicationsMapLodgedFrom)
+        //         : null;
+        // },
+        // filterApplicationsMapLodgedToMoment: function () {
+        //     return this.filterApplicationsMapLodgedTo
+        //         ? moment(this.filterApplicationsMapLodgedTo)
+        //         : null;
+        // },
+        // filterInformation: function () {
+        //     if (this.proposals.length === this.filteredProposals.length) {
+        //         return ' (Showing all Applications)';
+        //     } else {
+        //         return ` (Showing ${this.filteredProposals.length} of ${this.proposals.length} Applications)`;
+        //     }
+        // },
+        canUndoAction: function () {
+            // The ol-ext undo/redo module states it is still experimental, might want to disable undo/redo at all
+            return true;
+        },
+        canRedoAction: function () {
+            // The ol-ext undo/redo module states it is still experimental, might want to disable undo/redo at all
+            return true;
+        },
+        canUndoDrawnVertex: function () {
             return (
                 this.mode == 'draw' &&
                 this.drawForModel &&
@@ -723,7 +1100,7 @@ export default {
                 this.sketchCoordinates.length > 1
             );
         },
-        showRedoButton: function () {
+        canRedoDrawnVertex: function () {
             return false;
             /* Todo: The redo button is partially implemented so it is disabled for now.
             return (
@@ -734,15 +1111,15 @@ export default {
                     this.sketchCoordinates.length
             )*/
         },
-        // optionalLayersActive: function () {
-        //     if (this.optionalLayers.length == 0) {
-        //         return false;
-        //     }
-        //     let visible_layers = this.optionalLayers.filter(
-        //         (layer) => layer.values_.visible === true
-        //     );
-        //     return visible_layers.length > 0;
-        // },
+        optionalLayersActive: function () {
+            if (this.optionalLayers.length == 0) {
+                return false;
+            }
+            let visible_layers = this.optionalLayers.filter(
+                (layer) => layer.values_.visible === true
+            );
+            return visible_layers.length > 0;
+        },
         polygonCount: function () {
             let vm = this;
             if (!this.modelQuerySource) {
@@ -754,17 +1131,114 @@ export default {
             let vm = this;
             return vm.errorMessage !== null;
         },
-    },
-    watch: {
-        selectedFeatureIds: function () {
-            if (this.selectedFeatureIds.length == 0) {
-                this.errorMessageProperty(null);
+        hasModifiedFeatures: function () {
+            let vm = this;
+            return vm.modifiedFeaturesStack.length > 0;
+        },
+        debug: function () {
+            if (this.$route.query.debug) {
+                return this.$route.query.debug === 'true';
+            }
+            return false;
+        },
+        /**
+         * Returns the stack of undoable actions
+         */
+        undoStack: function () {
+            let vm = this;
+            if (!vm.undoredo) {
+                return [];
+            } else {
+                return vm.undoredo.getStack('undo');
+            }
+        },
+        /**
+         * Returns the stack of undoable actions
+         */
+        redoStack: function () {
+            let vm = this;
+            if (!vm.undoredo) {
+                return [];
+            } else {
+                return vm.undoredo.getStack('redo');
+            }
+        },
+        hasUndo: function () {
+            let vm = this;
+            if (!vm.undoredo) {
+                return false;
+            } else {
+                vm.modifiedFeaturesStack; // Mentioned here to force update of the computed property
+                let stack = vm.undoredo.getStack('undo');
+                return stack.length > 0;
+            }
+        },
+        hasRedo: function () {
+            let vm = this;
+            if (!vm.undoredo) {
+                return false;
+            } else {
+                vm.modifiedFeaturesStack; // Mentioned here to force update of the computed property
+                let stack = vm.undoredo.getStack('redo');
+                return stack.length > 0;
             }
         },
     },
+    watch: {
+        // filterApplicationsMapApplicationType: function () {
+        //     console.log(
+        //         'filterApplicationsMapApplicationType',
+        //         this.filterApplicationsMapApplicationType
+        //     );
+        //     this.applyFiltersFrontEnd();
+        //     sessionStorage.setItem(
+        //         this.filterApplicationsMapApplicationTypeCacheName,
+        //         this.filterApplicationsMapApplicationType
+        //     );
+        //     this.$emit('filter-appied');
+        // },
+        // filterApplicationsMapProcessingStatus: function () {
+        //     this.applyFiltersFrontEnd();
+        //     sessionStorage.setItem(
+        //         this.filterApplicationsMapProcessingStatusCacheName,
+        //         this.filterApplicationsMapProcessingStatus
+        //     );
+        //     this.$emit('filter-appied');
+        // },
+        // filterApplicationsMapLodgedFrom: function () {
+        //     this.applyFiltersFrontEnd();
+        //     sessionStorage.setItem(
+        //         'filterApplicationsMapLodgedFromForMap',
+        //         this.filterApplicationsMapLodgedFrom
+        //     );
+        //     this.$emit('filter-appied');
+        // },
+        // filterApplicationsMapLodgedTo: function () {
+        //     this.applyFiltersFrontEnd();
+        //     sessionStorage.setItem(
+        //         'filterApplicationsMapLodgedToForMap',
+        //         this.filterApplicationsMapLodgedTo
+        //     );
+        //     this.$emit('filter-appied');
+        // },
+        // filterApplied: function () {
+        //     if (this.$refs.collapsible_filters) {
+        //         // Collapsible component exists
+        //         this.$refs.collapsible_filters.show_warning_icon(
+        //             this.filterApplied
+        //         );
+        //     }
+        // },
+        // selectedFeatureIds: function () {
+        //     if (this.selectedFeatureIds.length == 0) {
+        //         this.errorMessageProperty(null);
+        //     }
+        // },
+    },
     created: function () {
         console.log('created()');
-        //this.fetchProposals();
+        //this.fetchFilterLists();
+        // this.fetchProposals();
     },
     mounted: function () {
         console.log('mounted()');
@@ -777,7 +1251,7 @@ export default {
             vm.initialiseMap();
             vm.set_mode('layer');
             vm.setBaseLayer('osm');
-            //addOptionalLayers(this);
+            // addOptionalLayers(this);
             // vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
@@ -785,9 +1259,123 @@ export default {
                 console.log('Done initializing map (no refresh)');
                 vm.loadingMap = false;
             }
+            // Priya calling this event from mounted as its only been triggered from loadFeatures() which is coomented at the moment
+            vm.map.dispatchEvent({
+                type: 'features-loaded',
+                details: {
+                    loaded: true,
+                },
+            });
         });
     },
     methods: {
+        // updateFilters: function () {
+        //     this.$nextTick(function () {
+        //         console.log('updateFilters');
+        //         this.filterApplicationsMapApplicationType =
+        //             sessionStorage.getItem(
+        //                 this.filterApplicationsMapApplicationTypeCacheName
+        //             )
+        //                 ? sessionStorage.getItem(
+        //                       this.filterApplicationsMapApplicationTypeCacheName
+        //                   )
+        //                 : 'all';
+        //         console.log(
+        //             'this.filterApplicationsMapApplicationType',
+        //             this.filterApplicationsMapApplicationType
+        //         );
+        //         console.log(
+        //             'sessionStorage.getItem(this.filterApplicationsMapProcessingStatusCacheName)',
+        //             sessionStorage.getItem(
+        //                 this.filterApplicationsMapProcessingStatusCacheName
+        //             )
+        //         );
+        //         this.filterApplicationsMapProcessingStatus =
+        //             sessionStorage.getItem(
+        //                 this.filterApplicationsMapProcessingStatusCacheName
+        //             )
+        //                 ? sessionStorage.getItem(
+        //                       this
+        //                           .filterApplicationsMapProcessingStatusCacheName
+        //                   )
+        //                 : 'all';
+        //         this.filterApplicationsMapLodgedFrom = sessionStorage.getItem(
+        //             this.filterApplicationsMapLodgedFromCacheName
+        //         )
+        //             ? sessionStorage.getItem(
+        //                   this.filterApplicationsMapLodgedFromCacheName
+        //               )
+        //             : '';
+        //         this.filterApplicationsMapLodgedTo = sessionStorage.getItem(
+        //             this.filterApplicationsMapLodgedToCacheName
+        //         )
+        //             ? sessionStorage.getItem(
+        //                   this.filterApplicationsMapLodgedToCacheName
+        //               )
+        //             : '';
+        //     });
+        // },
+        /**
+         * Returns the euclidean distance between two pixel coordinates
+         * @param {Array} p1 a pixel coordinate pair in the form [x1, y1]
+         * @param {Array} p2 a pixel coordinate pair in the form [x2, y2]
+         */
+        pixelDistance(p1, p2) {
+            return Math.sqrt(
+                Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2)
+            );
+        },
+        // applyFiltersFrontEnd: function () {
+        //     this.filteredProposals = [...this.proposals];
+        //     console.log('applyFiltersFrontEnd', this.filteredProposals);
+        //     console.log('this.filteredProposals', this.filteredProposals);
+        //     console.log(
+        //         'this.filterApplicationsMapApplicationType',
+        //         this.filterApplicationsMapApplicationType
+        //     );
+        //     console.log(
+        //         'this.filterApplicationsMapApplicationType typeof',
+        //         typeof this.filterApplicationsMapApplicationType
+        //     );
+        //     if ('all' != this.filterApplicationsMapApplicationType) {
+        //         this.filteredProposals = [
+        //             ...this.filteredProposals.filter(
+        //                 (proposal) =>
+        //                     proposal.application_type_id ==
+        //                     this.filterApplicationsMapApplicationType
+        //             ),
+        //         ];
+        //         console.log('this.filteredProposals', this.filteredProposals);
+        //     }
+        //     if ('all' != this.filterApplicationsMapProcessingStatus) {
+        //         this.filteredProposals = [
+        //             ...this.filteredProposals.filter(
+        //                 (proposal) =>
+        //                     proposal.processing_status ==
+        //                     this.filterApplicationsMapProcessingStatus
+        //             ),
+        //         ];
+        //     }
+        //     if ('' != this.filterApplicationsMapLodgedFrom) {
+        //         this.filteredProposals = [
+        //             ...this.filteredProposals.filter(
+        //                 (proposal) =>
+        //                     new Date(proposal.lodgement_date) >=
+        //                     new Date(this.filterApplicationsMapLodgedFrom)
+        //             ),
+        //         ];
+        //     }
+        //     if ('' != this.filterApplicationsMapLodgedTo) {
+        //         this.filteredProposals = [
+        //             ...this.filteredProposals.filter(
+        //                 (proposal) =>
+        //                     new Date(proposal.lodgement_date) >=
+        //                     new Date(this.filterApplicationsMapLodgedTo)
+        //             ),
+        //         ];
+        //     }
+        //     this.loadFeatures(this.filteredProposals);
+        // },
         valueChanged: function (value, tileLayer) {
             tileLayer.setOpacity(value / 100);
         },
@@ -806,7 +1394,7 @@ export default {
             );
             vm.download_content(
                 json,
-                'leases_and_licensing_layers.geojson',
+                'boranga_layers.geojson',
                 'text/plain'
             );
         },
@@ -964,6 +1552,26 @@ export default {
 
             return styles;
         },
+        setStyleForUnAndSelectedFeatures: function (style) {
+            let vm = this;
+            if (style === undefined) {
+                if (this.mode == 'draw') {
+                    style = vm.modifySelectStyle;
+                } else {
+                    style = vm.basicSelectStyle;
+                }
+            }
+            let features = vm.modelQuerySource.getFeatures();
+            features.forEach((feature) => {
+                if (
+                    vm.selectedFeatureIds.includes(feature.getProperties().id)
+                ) {
+                    feature.setStyle(style);
+                } else {
+                    feature.setStyle(undefined);
+                }
+            });
+        },
         initialiseMap: function () {
             let vm = this;
 
@@ -1026,17 +1634,81 @@ export default {
             let fullScreenControl = new FullScreenControl();
             vm.map.addControl(fullScreenControl);
 
-            //vm.initialiseMeasurementLayer();
+            // vm.initialiseMeasurementLayer();
             vm.initialiseQueryLayer();
             vm.initialiseDrawLayer();
 
             // update map extent when new features added
             vm.map.on('rendercomplete', vm.displayAllFeatures());
+            vm.map.on('features-loaded', function (evt) {
+                if (evt.details.loaded == true) {
+                    // Add undo/redo AFTER proposal geometries have been added to the map
+                    vm.undoredo = new UndoRedo({
+                        layers: [vm.modelQueryLayer],
+                    });
+                    vm.undoredo.clear();
+
+                    // Somehow passing the parameter has no effect, so we set it here
+                    vm.undoredo.setMaxLength(vm.undoStackMaxLength);
+                    // Define a custom undo/redo for selected features
+                    vm.undoredo.define(
+                        'select feature',
+                        function (s) {
+                            // Undo fn: set to the previous id list and styles
+                            console.log('undo selected', s.before, s.after);
+                            vm.selectedFeatureIds = s.before;
+                            vm.setStyleForUnAndSelectedFeatures();
+                        },
+                        function (s) {
+                            // Redo fn: reset the ids list and styles
+                            console.log('redo selected', s.before, s.after);
+                            vm.selectedFeatureIds = s.after;
+                            vm.setStyleForUnAndSelectedFeatures();
+                        }
+                    );
+
+                    for (let eventName of ['stack:add', 'stack:remove']) {
+                        vm.undoredo.addEventListener(eventName, function () {
+                            let undo_stack = vm.undoredo.getStack('undo');
+
+                            let stack = undo_stack.filter((item) => {
+                                // Filter out the actions that modify an existing or add a feature
+                                return (
+                                    (['addfeature'].includes(item.type) &&
+                                        item.feature.getProperties()
+                                            .polygon_source === 'New') ||
+                                    ['translate', 'rotate', 'scale'].includes(
+                                        item.name
+                                    )
+                                );
+                            });
+
+                            vm.modifiedFeaturesStack = Object.assign(stack, {});
+                        });
+                    }
+
+                    vm.map.addInteraction(vm.undoredo);
+                }
+            });
 
             vm.initialisePointerMoveEvent();
-            vm.initialiseSelectFeatureEvent();
+            vm.snap = new Snap({ source: vm.modelQuerySource });
+
+            let extent_interactions = [vm.snap];
+            if (vm.editable) {
+                // Only add these interactions if polygons are editable
+                vm.select = vm.initialiseSelectFeatureEvent();
+                vm.modify = vm.initialiseModifyFeatureEvent();
+                vm.transform = vm.initialiseTransform();
+                extent_interactions.push(vm.select, vm.modify, vm.transform);
+            }
+
+            vm.map.getInteractions().extend(extent_interactions);
+
+            vm.modifySetActive(false);
+
             vm.initialiseSingleClickEvent();
-            //vm.initialiseDoubleClickEvent();
+            // vm.initialiseDoubleClickEvent();
         },
         // initialiseMeasurementLayer: function () {
         //     let vm = this;
@@ -1105,7 +1777,6 @@ export default {
                 source: vm.modelQuerySource,
                 type: 'Polygon',
                 geometryFunction: function (coordinates, geometry) {
-                    
                     if (geometry) {
                         if (coordinates[0].length) {
                             // Add a closing coordinate to match the first
@@ -1120,8 +1791,8 @@ export default {
                         geometry = new Polygon(
                             coordinates,
                             this.geometryLayout_
-                            );
-                        }
+                        );
+                    }
                     vm.sketchCoordinates = coordinates[0].slice();
                     if (
                         coordinates[0].length >
@@ -1140,7 +1811,7 @@ export default {
                         return true;
                     } else if (evt.originalEvent.buttons === 2) {
                         // If the right mouse button is pressed, undo the last point
-                        if (vm.showUndoButton) {
+                        if (vm.canUndoDrawnVertex) {
                             vm.undoLeaseLicensePoint();
                         } else {
                             vm.set_mode('layer');
@@ -1151,10 +1822,10 @@ export default {
                 },
                 finishCondition: function () {
                     if (vm.lastPoint) {
-                        //vm.$emit('validate-feature');
-                        vm.finishDrawing();
+                        // vm.$emit('validate-feature');
+                        //vm.finishDrawing();
                     }
-                    return false;
+                    return true;
                 },
             });
             vm.drawForModel.set('escKey', '');
@@ -1165,10 +1836,9 @@ export default {
                 vm.errorMessage = null;
                 vm.lastPoint = null;
             });
-            vm.drawForModel.on('click'),
-                function (evt) {
-                    console.log(evt);
-                };
+            vm.drawForModel.on('click', function (evt) {
+                console.log('Draw: click event', evt);
+            });
             vm.drawForModel.on('drawend', function (evt) {
                 console.log(evt);
                 console.log(evt.feature.values_.geometry.flatCoordinates);
@@ -1186,7 +1856,6 @@ export default {
                     name: model.id || -1,
                     // FIXME: Can this be standardised into the same field name?
                     label:
-                        //TODO sure whta to set 
                         model.occurrence_report_number ||
                         // model.label ||
                         // model.application_type_name_display ||
@@ -1202,12 +1871,12 @@ export default {
                 vm.lastPoint = evt.feature;
                 vm.sketchCoordinates = [[]];
                 vm.sketchCoordinatesHistory = [[]];
-                vm.getJSONFeatures();
             });
             vm.map.addInteraction(vm.drawForModel);
         },
         initialisePointerMoveEvent: function () {
             let vm = this;
+
             const hoverStyle = new Style({
                 fill: vm.hoverFill,
                 stroke: vm.hoverStroke,
@@ -1234,23 +1903,34 @@ export default {
 
             let selected = null;
             vm.map.on('pointermove', function (evt) {
-                if (vm.measuring || vm.drawing) {
-                    // Don't highlight features when measuring or drawing
-                    return;
+                function isSelectedFeature(selected) {
+                    if (!selected) {
+                        return false;
+                    }
+                    return vm.selectedFeatureIds.includes(
+                        selected.getProperties().id
+                    );
                 }
                 if (selected !== null) {
-                    if (
-                        vm.selectedFeatureIds.includes(
-                            selected.getProperties().id
-                        )
-                    ) {
+                    if (isSelectedFeature(selected)) {
                         // Don't alter style of click-selected features
                         console.log('ignoring hover on selected feature');
+                        if (vm.drawing) {
+                            // Enable modify polygon the hovered polygon is selected and drawing mode is active
+                            vm.modifySetActive(true);
+                            vm.transformSetActive(false);
+                        } else {
+                            // Disable modify polygon when drawing mode is not active
+                            vm.modifySetActive(false);
+                        }
                     } else {
-                        selected.setStyle(undefined);
-                        selected.setStyle(
-                            vm.createStyle(selected.values_.color)
-                        );
+                        if (!(vm.measuring || vm.drawing)) {
+                            // Don't highlight features when measuring or drawing
+                            selected.setStyle(undefined);
+                            selected.setStyle(
+                                vm.createStyle(selected.values_.color)
+                            );
+                        }
                     }
                     selected = null;
                 }
@@ -1266,10 +1946,16 @@ export default {
                                 selected.getProperties().polygon_source;
                             model.copied_from =
                                 selected.getProperties().copied_from;
-                            model.area_sqm = selected.getProperties().area_sqm;
+                            model.area_sqm = Math.round(
+                                getArea(selected.getGeometry(), {
+                                    projection: 'EPSG:4326',
+                                })
+                            );
                         }
                         vm.selectedModel = model;
-                        selected.setStyle(hoverSelect);
+                        if (!isSelectedFeature(selected)) {
+                            selected.setStyle(hoverSelect);
+                        }
 
                         return true;
                     },
@@ -1281,24 +1967,15 @@ export default {
                 );
 
                 // Change to info cursor if hovering over an optional layer
-                // let hit = vm.map.forEachLayerAtPixel(
-                //     evt.pixel,
-                //     function (layer) {
-                //         layer.get('name'); //dbca_legislated_lands_and_waters
-                //         let optional_layer_names = vm.optionalLayers.map(
-                //             (layer) => {
-                //                 return layer.get('name');
-                //             }
-                //         );
-
-                //         if (vm.informing) {
-                //             return optional_layer_names.includes(
-                //                 layer.get('name')
-                //             );
-                //         }
-                //         return false;
-                //     }
+                // let layer_at_pixel = layerAtEventPixel(vm, evt);
+                // // Compare layer names at pixel with optional layer names and set `hit` property accordingly
+                // let optional_layer_names = vm.optionalLayers.map((layer) => {
+                //     return layer.get('name');
+                // });
+                // let hit = layer_at_pixel.some(
+                //     (lyr) => optional_layer_names.indexOf(lyr.get('name')) >= 0
                 // );
+
                 // vm.map.getTargetElement().style.cursor = hit
                 //     ? 'help'
                 //     : 'default';
@@ -1325,8 +2002,8 @@ export default {
                     function (feature) {
                         return feature;
                     }
-                    );
-                    if (feature) {
+                );
+                if (feature) {
                     vm.map.getInteractions().forEach((interaction) => {
                         if (interaction instanceof Select) {
                             let selected = [];
@@ -1398,60 +2075,194 @@ export default {
         },
         initialiseSelectFeatureEvent: function () {
             let vm = this;
-            if (!vm.selectable) {
-                return;
+            if (!vm.editable) {
+                return null;
             }
-
-            const clickSelectStyle = new Style({
-                fill: new Fill({
-                    color: '#000000',
-                }),
-                stroke: vm.clickSelectStroke,
-            });
-
-            function clickSelect(feature) {
-                // Keep feature fill color but change stroke color
-                const color = feature.get('color') || vm.defaultColor;
-                clickSelectStyle.getFill().setColor(color);
-                return clickSelectStyle;
-            }
+            // A basic style for selected polygons
+            vm.basicSelectStyle = function (feature) {
+                var color = feature.get('color') || vm.defaultColor;
+                return [
+                    new Style({
+                        stroke: vm.clickSelectStroke,
+                        fill: new Fill({
+                            color: color,
+                        }),
+                    }),
+                ];
+            };
+            // Basic style plus extra circles for vertices to help with modifying
+            // See: https://github.com/openlayers/openlayers/issues/3165#issuecomment-71432465
+            vm.modifySelectStyle = function (feature) {
+                var image = new CircleStyle({
+                    radius: 5,
+                    fill: null,
+                    stroke: new Stroke({ color: 'orange', width: 2 }),
+                });
+                var color = feature.get('color') || vm.defaultColor;
+                return [
+                    new Style({
+                        image: image,
+                        geometry: function (feature) {
+                            var coordinates = feature
+                                .getGeometry()
+                                .getCoordinates()[0];
+                            return new MultiPoint(coordinates);
+                        },
+                    }),
+                    new Style({
+                        stroke: vm.clickSelectStroke,
+                        fill: new Fill({
+                            color: color,
+                        }),
+                    }),
+                ];
+            };
 
             // select interaction working on "singleclick"
             const selectSingleClick = new Select({
-                style: clickSelect,
+                style: vm.basicSelectStyle,
                 layers: [vm.modelQueryLayer],
+                wrapX: false,
             });
-            vm.map.addInteraction(selectSingleClick);
+
             selectSingleClick.on('select', (evt) => {
+                if (vm.transforming) {
+                    return;
+                }
                 $.each(evt.selected, function (idx, feature) {
                     console.log(
                         `Selected feature ${feature.getProperties().id}`,
                         toRaw(feature)
                     );
-                    feature.setStyle(clickSelect);
-                    // priya added this if condition
-                    if (
-                        vm.selectedFeatureIds.includes(
-                            feature.getProperties().id
-                        )
-                    ){
-                        return;
-                    }
-                    else{
-                        vm.selectedFeatureIds.push(feature.getProperties().id);
-                    }
+                    // Current feature id list for undo stack
+                    let before = [...vm.selectedFeatureIds];
+                    feature.setStyle(vm.basicSelectStyle);
+                    vm.selectedFeatureIds.push(feature.getProperties().id);
+                    // Add to undo stack
+                    vm.undoredo.push('select feature', {
+                        before: before,
+                        after: vm.selectedFeatureIds,
+                    });
                 });
 
                 $.each(evt.deselected, function (idx, feature) {
                     console.log(
                         `Unselected feature ${feature.getProperties().id}`
                     );
+                    // Current feature id list for undo stack
+                    let before = [...vm.selectedFeatureIds];
                     feature.setStyle(undefined);
                     vm.selectedFeatureIds = vm.selectedFeatureIds.filter(
                         (id) => id != feature.getProperties().id
                     );
+                    // Add to undo stack
+                    vm.undoredo.push('select feature', {
+                        before: before,
+                        after: vm.selectedFeatureIds,
+                    });
                 });
             });
+            // When the map mode changes between draw and anything else, update the style of the selected features
+            selectSingleClick.addEventListener('map:modeChanged', (evt) => {
+                console.log('map mode changed', evt);
+                if (evt.details.new_mode === 'draw') {
+                    vm.setStyleForUnAndSelectedFeatures(vm.modifySelectStyle);
+                } else {
+                    vm.setStyleForUnAndSelectedFeatures();
+                }
+            });
+
+            return selectSingleClick;
+        },
+        initialiseModifyFeatureEvent: function () {
+            let vm = this;
+            const modify = new ModifyFeature({
+                source: vm.modelQuerySource, // Same source as the draw interaction
+                // features: vm.select.getFeatures(), // Either need to provide source or features, but features doesn't seem to work
+                pixelTolerance: vm.pixelTolerance,
+                deleteCondition: function (evt) {
+                    if (
+                        evt.type !== 'pointerdown' ||
+                        evt.originalEvent.button !== 2 // Remove vertex on right click
+                    ) {
+                        return false;
+                    }
+                    evt.stopPropagation();
+
+                    let f = vm.map.getFeaturesAtPixel(evt.pixel, {
+                        hitTolerance: vm.hitTolerance,
+                    });
+                    if (!f) {
+                        return false;
+                    }
+
+                    let features = vm.selectedFeatures();
+
+                    features.forEach((feature) => {
+                        let coords = feature.getGeometry().getCoordinates();
+                        console.log('delete coord length', coords.length);
+
+                        for (let j = 0; j < coords.length; j++) {
+                            let coord = coords[j];
+                            if (coord.length <= 4) {
+                                // Needs three vertices to form a polygon, four because the first and last are the same
+                                return false;
+                            }
+                            for (let k = 0; k < coord.length; k++) {
+                                let pxl1 = evt.pixel; // clicked pixel coordinates
+                                let pxl2 = vm.map.getPixelFromCoordinate(
+                                    coord[k]
+                                ); // calculated pixel coordinates
+
+                                // Distance between pixel1 and pixel2
+                                let distance = vm.pixelDistance(pxl1, pxl2);
+                                if (distance <= vm.pixelTolerance) {
+                                    let selectedCoord = coord[k];
+                                    coord.splice(k, 1);
+                                    if (selectedCoord == null) {
+                                        return;
+                                    }
+                                    feature
+                                        .getGeometry()
+                                        .setCoordinates([coord]);
+                                    //commented validateFeature by Priya
+                                    //validateFeature(feature, vm);
+                                }
+                            }
+                        }
+                    });
+                },
+            });
+
+            modify.addEventListener('modifyend', function (evt) {
+                console.log('Modify end', evt.features);
+                let feature = evt.features[0];
+                //commented validateFeature by Priya
+                //validateFeature(feature, vm);
+            });
+
+            return modify;
+        },
+        initialiseTransform: function () {
+            let vm = this;
+
+            const transform = new Transform({
+                source: vm.modelQuerySource,
+                hitTolerance: vm.hitTolerance,
+            });
+
+            const transformEndCallback = function (evt) {
+                evt.features.forEach((feature) => {
+                    //commented validateFeature by Priya
+                    // validateFeature(feature, vm);
+                });
+            };
+
+            for (const eventName of ['translateend', 'rotateend', 'scaleend']) {
+                transform.addEventListener(eventName, transformEndCallback);
+            }
+
+            return transform;
         },
         undoLeaseLicensePoint: function () {
             let vm = this;
@@ -1489,7 +2300,10 @@ export default {
                             feature.getProperties().id
                         )
                     ) {
-                        if (feature.getProperties().locked === false) {
+                        if (
+                            feature.getProperties().locked === false ||
+                            vm.debug // Allow deletion of locked features if debug mode is enabled
+                        ) {
                             return feature;
                         } else {
                             console.warn(
@@ -1525,6 +2339,11 @@ export default {
                         .includes(id)
             );
         },
+        // collapsible_component_mounted: function () {
+        //     this.$refs.collapsible_filters.show_warning_icon(
+        //         this.filterApplied
+        //     );
+        // },
         // fetchProposals: async function () {
         //     let vm = this;
         //     vm.fetchingProposals = true;
@@ -1574,7 +2393,29 @@ export default {
         //             vm.fetchingProposals = false;
         //         });
         // },
-        
+        // fetchFilterLists: function () {
+        //     let vm = this;
+
+        //     // Application Types
+        //     fetch(api_endpoints.application_types + 'key-value-list/').then(
+        //         async (response) => {
+        //             const resData = await response.json();
+        //             vm.application_types = resData;
+        //         },
+        //         () => {}
+        //     );
+
+        //     // Application Statuses
+        //     fetch(
+        //         api_endpoints.application_statuses_dict + '?for_filter=true'
+        //     ).then(
+        //         async (response) => {
+        //             const resData = await response.json();
+        //             vm.processing_statuses = resData;
+        //         },
+        //         () => {}
+        //     );
+        // },
         addFeatureCollectionToMap: function (featureCollection) {
             let vm = this;
             if (featureCollection == null) {
@@ -1650,6 +2491,12 @@ export default {
                 }
             });
             vm.addFeatureCollectionToMap();
+            vm.map.dispatchEvent({
+                type: 'features-loaded',
+                details: {
+                    loaded: true,
+                },
+            });
         },
         /**
          * Creates a styled feature object from a feature dictionary
@@ -1708,6 +2555,7 @@ export default {
         getJSONFeatures: function () {
             const format = new GeoJSON();
             const features = this.modelQuerySource.getFeatures();
+
             features.forEach(function (feature) {
                 console.log(feature.getProperties());
                 // feature.unset("model")
@@ -1715,80 +2563,38 @@ export default {
 
             return format.writeFeatures(features);
         },
-        
         /**
-         * Returns a Well-known-text (WKT) representation of a feature
-         * @param {Feature} feature A feature to validate
+         * Returns a dictionary of query parameters for a given layer
+         * @param {String} layerStr The dictionary key containing the layer information
          */
-        featureToWKT: function (feature) {
+        queryParamsDict: function (layerStr) {
             let vm = this;
 
-            if (feature === undefined) {
-                // If no feature is provided, create a feature from the current sketch
-                let coordinates = vm.sketchCoordinates.slice();
-                coordinates.push(coordinates[0]);
-                feature = new Feature({
-                    id: -1,
-                    geometry: new Polygon([coordinates]),
-                    label: 'validation',
-                    color: vm.defaultColor,
-                    polygon_source: 'validation',
-                });
+            if (!(layerStr in vm.owsQuery)) {
+                console.error(`Layer ${layerStr} not found in OWS query`);
+                return {};
+            }
+            if (!vm.owsQuery[layerStr].typeName) {
+                console.error(`Layer ${layerStr} needs a typeName`);
+                return {};
             }
 
-            // Prepare a WFS feature intersection request
-            let flatCoordinates = feature.values_.geometry.flatCoordinates;
-
-            // Transform list of flat coordinates into a list of coordinate pairs,
-            // e.g. ['x1 y1', 'x2 y2', 'x3 y3']
-            let flatCoordinateStringPairs = flatCoordinates
-                .map((coord, index) =>
-                    index % 2 == 0
-                        ? [
-                              flatCoordinates[index],
-                              flatCoordinates[index + 1],
-                          ].join(' ')
-                        : ''
-                )
-                .filter((item) => item != '');
-
-            // Create a Well-Known-Text polygon string from the coordinate pairs
-            return `POLYGON ((${flatCoordinateStringPairs.join(', ')}))`;
+            return {
+                service: vm.owsQuery.service || 'WFS',
+                version: vm.owsQuery.version || '1.0.0',
+                request: vm.owsQuery[layerStr].request || 'GetFeature',
+                typeName: vm.owsQuery[layerStr].typeName,
+                maxFeatures: vm.owsQuery[layerStr].maxFeatures || '5000',
+                srsName: vm.owsQuery[layerStr].srsName || 'EPSG:4326',
+                outputFormat:
+                    vm.owsQuery[layerStr].outputFormat || 'application/json',
+                propertyName:
+                    vm.owsQuery[layerStr].propertyName || 'wkb_geometry',
+            };
         },
-        /**
-         * Validates an openlayers feature against a geoserver `url`.
-         * @param {Feature} feature A feature to validate
-         * @returns {Promise} A promise that resolves to a list of intersected features
-         */
-        validateFeatureQuery: async function (query) {
-            let vm = this;
-
-            let features = [];
-            // Query the WFS
-            vm.queryingGeoserver = true;
-            // var urls = [`${url}${params}`];
-            let urls = [query];
-
-            let requests = urls.map((url) =>
-                utils.fetchUrl(url).then((response) => response)
-            );
-            await Promise.all(requests)
-                .then((data) => {
-                    features = new GeoJSON().readFeatures(data[0]);
-                })
-                .catch((error) => {
-                    console.log(error.message);
-                    vm.errorMessage = error.message;
-                });
-
-            return features;
-        },
-        /**
-         * Finish drawing of the current feature sketch.
-         */
         finishDrawing: function () {
             let vm = this;
-            //vm.queryingGeoserver = false;
+            vm.queryingGeoserver = false;
             vm.errorMessage = null;
             vm.drawForModel.finishDrawing();
         },
@@ -1835,57 +2641,162 @@ export default {
                 vm.deletedFeatures.push(feature);
             }
         },
-    //     validate_map_docs: function () {
-    //         let vm = this;
-    //         vm.isValidating = true;
-    //         vm.errorString = '';
-    //         const options = {
-    //             method: 'POST',
-    //             'content-type': 'application/json',
-    //         };
-    //         fetch(
-    //             helpers.add_endpoint_json(
-    //                 api_endpoints.proposals,
-    //                 vm.context.id + '/validate_map_files'
-    //             ),
-    //             options
-    //         )
-    //             .then(async (response) => {
-    //                 if (!response.ok) {
-    //                     const text = await response.json();
-    //                     throw new Error(text);
-    //                 } else {
-    //                     return response.json();
-    //                 }
-    //             })
-    //             .then((data) => {
-    //                 vm.$emit('refreshFromResponse', data);
-    //                 // Once the shapefile is converted to a proposal geometry the files are deleted
-    //                 // so calling this will remove the file list from the front end
-    //                 vm.$refs.shapefile_document.get_documents();
-    //                 vm.$nextTick(() => {
-    //                     vm.loadFeatures([data]);
-    //                     vm.displayAllFeatures();
-    //                     swal.fire(
-    //                         'Success',
-    //                         'Shapefile processed successfully',
-    //                         'success'
-    //                     );
-    //                 });
-    //             })
-    //             .catch((error) => {
-    //                 console.log(error);
-    //                 vm.errorString = helpers.apiVueResourceError(error);
-    //                 swal.fire({
-    //                     title: 'Validation',
-    //                     text: error,
-    //                     icon: 'error',
-    //                 });
-    //             })
-    //             .finally(() => {
-    //                 vm.isValidating = false;
-    //             });
-    //     },
+        // validate_map_docs: function () {
+        //     let vm = this;
+        //     vm.isValidating = true;
+        //     vm.errorString = '';
+        //     const options = {
+        //         method: 'POST',
+        //         'content-type': 'application/json',
+        //     };
+        //     fetch(
+        //         helpers.add_endpoint_json(
+        //             api_endpoints.proposals,
+        //             vm.context.id + '/validate_map_files'
+        //         ),
+        //         options
+        //     )
+        //         .then(async (response) => {
+        //             if (!response.ok) {
+        //                 const text = await response.json();
+        //                 throw new Error(text);
+        //             } else {
+        //                 return response.json();
+        //             }
+        //         })
+        //         .then((data) => {
+        //             vm.$emit('refreshFromResponse', data);
+        //             // Once the shapefile is converted to a proposal geometry the files are deleted
+        //             // so calling this will remove the file list from the front end
+        //             vm.$refs.shapefile_document.get_documents();
+        //             vm.$nextTick(() => {
+        //                 vm.loadFeatures([data]);
+        //                 vm.displayAllFeatures();
+        //                 swal.fire(
+        //                     'Success',
+        //                     'Shapefile processed successfully',
+        //                     'success'
+        //                 );
+        //             });
+        //         })
+        //         .catch((error) => {
+        //             console.log(error);
+        //             vm.errorString = helpers.apiVueResourceError(error);
+        //             swal.fire({
+        //                 title: 'Validation',
+        //                 text: error,
+        //                 icon: 'error',
+        //             });
+        //         })
+        //         .finally(() => {
+        //             vm.isValidating = false;
+        //         });
+        // },
+        /**
+         * Returns the selected features
+         */
+        selectedFeatures: function () {
+            let vm = this;
+            let features = vm.modelQuerySource.getFeatures();
+            return features.filter((feature) => {
+                return vm.selectedFeatureIds.includes(
+                    feature.getProperties().id
+                );
+            });
+        },
+        /**
+         * Sets interactions for modify to active or inactive
+         * @param {boolean} active
+         */
+        modifySetActive(active) {
+            let vm = this;
+            if (vm.editable) {
+                vm.modify.setActive(active);
+            }
+            vm.snap.setActive(active);
+        },
+        /**
+         * Sets interactions for modify to active or inactive
+         */
+        transformSetActive(active) {
+            let vm = this;
+            if (!vm.editable) {
+                return;
+            }
+            vm.select.setActive(!active);
+            vm.transform.setActive(active);
+        },
+        /**
+         * Undoes the last map interaction
+         */
+        undo: function () {
+            let vm = this;
+            if (vm.canUndoDrawnVertex) {
+                vm.undoLeaseLicensePoint();
+            } else if (vm.canUndoAction) {
+                vm.undoredo.undo();
+                // Find the last feature in the redo stack and validate it (the last feature doesn't necessarily need to be the last item in the stack, as the last item could e.g. be a 'blockend' object)
+                let item = vm.undoredo._redoStack
+                    .getArray()
+                    .toReversed()
+                    .find((item) => {
+                        if (item.feature) {
+                            return item;
+                        }
+                    });
+                if (item && item.feature) {
+                    //commented validateFeature by Priya
+                    // validateFeature(item.feature, vm);
+                }
+            } else {
+                // Nothing
+            }
+        },
+        /**
+         * Redoes the last map interaction
+         */
+        redo: function () {
+            let vm = this;
+            if (vm.canRedoDrawnVertex) {
+                vm.redoLeaseLicensePoint();
+            } else if (vm.canRedoAction) {
+                vm.undoredo.redo();
+                // Find the last feature in the undo stack and validate it
+                let item = vm.undoredo._undoStack
+                    .getArray()
+                    .toReversed() // .reverse() mutates in-place, .toReversed() doesn't
+                    .find((item) => {
+                        if (item.feature) {
+                            return item;
+                        }
+                    });
+                if (item && item.feature) {
+                    //commented validateFeature by Priya
+                    // validateFeature(item.feature, vm);
+                }
+            } else {
+                // Nothing
+            }
+        },
+        /**
+         * Returns a description for the top action in the undo or redo stack
+         * @param {String} stack_name The name of the stack to get the top action from
+         */
+        undoRedoStackTopInteractionName: function (stack_name = 'undo') {
+            let vm = this;
+            if (!vm.undoredo) {
+                return;
+            }
+            let stack = vm.undoredo.getStack(stack_name);
+
+            if (stack && stack.length > 0) {
+                return (
+                    (stack.slice(-1)[0] || []).name ||
+                    (stack.slice(-1)[0] || []).type
+                );
+            }
+            return 'last action';
+        },
 
         set_mode: function (mode) {
             let vm=this;
@@ -1898,10 +2809,12 @@ export default {
 
             this.drawing = false;
             this.measuring = false;
-            //this.informing = false;
+            this.informing = false;
+            this.transforming = false;
             this.errorMessageProperty(null);
             this.overlay(undefined);
             this.map.getTargetElement().style.cursor = 'default';
+            this.transformSetActive(false);
 
             if (this.mode === 'layer') {
                 //this.clearMeasurementLayer();
@@ -1910,8 +2823,13 @@ export default {
                 //this.clearMeasurementLayer();
                 this.sketchCoordinates = [[]];
                 this.sketchCoordinatesHistory = [[]];
-                vm.toggle_draw_measure_license(false, true);
+                vm.toggle_draw_measure_license.bind(this)(false, true);
                 this.drawing = true;
+            } else if (this.mode === 'transform') {
+                //this.clearMeasurementLayer();
+                this.transformSetActive(true);
+                vm.toggle_draw_measure_license.bind(this)(false, false);
+                this.transforming = true;
             } else if (this.mode === 'measure') {
                 vm.toggle_draw_measure_license.bind(this)(true, false);
                 this.measuring = true;
@@ -1920,7 +2838,19 @@ export default {
                 this.informing = true;
             } else {
                 console.error(`Cannot set mode ${mode}`);
+                return false;
             }
+            if (this.select) {
+                // Call back to the map so selected features can adept their style to the new mode
+                this.select.dispatchEvent({
+                    type: 'map:modeChanged',
+                    details: {
+                        new_mode: this.mode,
+                    },
+                });
+            }
+
+            return true;
         },
         toggle_draw_measure_license: function (drawForMeasure, drawForModel) {
             if (this.drawForMeasure) {
@@ -1973,5 +2903,9 @@ export default {
     /* Works to make the Upload shapefile section fit neatly with the map
     haven't investigated why it's needed. */
     margin-left: 0px;
+}
+
+.force-parent-lh {
+    line-height: inherit !important;
 }
 </style>
