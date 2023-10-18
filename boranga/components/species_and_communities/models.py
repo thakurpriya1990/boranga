@@ -407,7 +407,7 @@ class Species(models.Model):
                                          default=PROCESSING_STATUS_CHOICES[0][0], null=True, blank=True)
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
-    submitter = models.IntegerField(null=True) #EmailUserRO 
+    submitter = models.IntegerField(null=True, blank=True) #EmailUserRO 
     # parents will the original species  from the split/combine functionality
     parent_species = models.ManyToManyField('self', blank=True, related_name='parent')
     comment = models.CharField(max_length=500,null=True, blank=True)
