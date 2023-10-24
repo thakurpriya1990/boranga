@@ -89,6 +89,11 @@ from boranga.components.occurrence.serializers import(
     SaveIdentificationSerializer,
     SaveLocationSerializer,
     ObserverDetailSerializer,
+    ListOCRReportMinimalSerializer,
+)
+
+from boranga.components.occurrence.utils import (
+     save_geometry,
 )
 
 from boranga.components.main.utils import (
@@ -545,15 +550,21 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             ocr_instance = self.get_object()
 
             location_instance, created = Location.objects.get_or_create(occurrence_report=ocr_instance)
-            print(request.data.get('geojson_polygon'))
-            polygon = request.data.get('geojson_polygon')
-            if polygon:
-                coords_list = [list(map(float, coord.split(' '))) for coord in polygon.split(',')]
-                coords_list.append(coords_list[0])
-                request.data['geojson_polygon'] = GEOSGeometry(f'POLYGON(({", ".join(map(lambda x: " ".join(map(str, x)), coords_list))}))')
-                # request.data['geojson_polygon']=GEOSGeometry(polygon)
+            print(request.data.get('ocr_geometry'))
+            geometry_data = request.data.get('ocr_geometry')
+            if geometry_data:
+                  save_geometry(request, ocr_instance, geometry_data)
+                 
+            # print(request.data.get('geojson_polygon'))
+            # polygon = request.data.get('geojson_polygon')
+            # if polygon:
+            #     coords_list = [list(map(float, coord.split(' '))) for coord in polygon.split(',')]
+            #     coords_list.append(coords_list[0])
+            #     request.data['geojson_polygon'] = GEOSGeometry(f'POLYGON(({", ".join(map(lambda x: " ".join(map(str, x)), coords_list))}))')
+
             # the request.data is only the habitat composition data thats been sent from front end
-            serializer = SaveLocationSerializer(location_instance,data=request.data, context={'request':request})
+            location_data = request.data.get('location')
+            serializer = SaveLocationSerializer(location_instance,data=location_data, context={'request':request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
@@ -744,6 +755,48 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=["GET"], detail=False)
+    def list_for_map(self, request, *args, **kwargs):
+        """Returns the proposals for the map"""
+        proposal_ids = [
+            int(id)
+            for id in request.query_params.get("proposal_ids", "").split(",")
+            if id.lstrip("-").isnumeric()
+        ]
+        # application_type = request.query_params.get("application_type", None)
+        # processing_status = request.query_params.get("processing_status", None)
+
+        # cache_key = settings.CACHE_KEY_MAP_PROPOSALS
+        # qs = cache.get(cache_key)
+        # priya added qs=None as we don't have cache data yet
+        qs = None
+        if qs is None:
+            qs = (
+                self.get_queryset()
+                .exclude(ocr_geometry__isnull=True)
+                .prefetch_related("ocr_geometry")
+            )
+            # cache.set(cache_key, qs, settings.CACHE_TIMEOUT_2_HOURS)
+
+        if len(proposal_ids) > 0:
+            qs = qs.filter(id__in=proposal_ids)
+
+        # if (
+        #     application_type
+        #     and application_type.isnumeric()
+        #     and int(application_type) > 0
+        # ):
+        #     qs = qs.filter(application_type_id=application_type)
+
+        # if processing_status:
+        #     qs = qs.filter(processing_status=processing_status)
+
+        # qs = self.filter_queryset(qs)
+        serializer = ListOCRReportMinimalSerializer(
+            qs, context={"request": request}, many=True
+        )
+        return Response(serializer.data)
 
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):

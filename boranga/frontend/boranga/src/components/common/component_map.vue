@@ -1238,7 +1238,7 @@ export default {
     created: function () {
         console.log('created()');
         //this.fetchFilterLists();
-        // this.fetchProposals();
+        this.fetchProposals();
     },
     mounted: function () {
         console.log('mounted()');
@@ -1260,12 +1260,12 @@ export default {
                 vm.loadingMap = false;
             }
             // Priya calling this event from mounted as its only been triggered from loadFeatures() which is coomented at the moment
-            vm.map.dispatchEvent({
-                type: 'features-loaded',
-                details: {
-                    loaded: true,
-                },
-            });
+            // vm.map.dispatchEvent({
+            //     type: 'features-loaded',
+            //     details: {
+            //         loaded: true,
+            //     },
+            // });
         });
     },
     methods: {
@@ -2344,55 +2344,55 @@ export default {
         //         this.filterApplied
         //     );
         // },
-        // fetchProposals: async function () {
-        //     let vm = this;
-        //     vm.fetchingProposals = true;
-        //     let url = api_endpoints.proposal + 'list_for_map/';
-        //     // Characters to concatenate pseudo url elements
-        //     let chars = ['&', '&', '?'];
+        fetchProposals: async function () {
+            let vm = this;
+            vm.fetchingProposals = true;
+            let url = api_endpoints.occurrence_report + '/list_for_map/';
+            // Characters to concatenate pseudo url elements
+            let chars = ['&', '&', '?'];
 
-        //     if (vm.proposalIds.length > 0) {
-        //         url +=
-        //             `${chars.pop()}proposal_ids=` + vm.proposalIds.toString();
-        //     }
-        //     if (vm.filterApplicationsMapApplicationType != 'all') {
-        //         url +=
-        //             `${chars.pop()}application_type=` +
-        //             vm.filterApplicationsMapApplicationType;
-        //     }
-        //     if (vm.filterApplicationsMapProcessingStatus != 'all') {
-        //         url +=
-        //             `${chars.pop()}processing_status=` +
-        //             vm.filterApplicationsMapProcessingStatus;
-        //     }
-        //     fetch(url)
-        //         .then(async (response) => {
-        //             const data = await response.json();
-        //             if (!response.ok) {
-        //                 const error =
-        //                     (data && data.message) || response.statusText;
-        //                 console.log(error);
-        //                 return Promise.reject(error);
-        //             }
-        //             vm.proposals = data;
-        //             vm.filteredProposals = [...vm.proposals];
-        //             let initialisers = [
-        //                 vm.assignProposalFeatureColors(vm.proposals),
-        //                 vm.loadFeatures(vm.proposals),
-        //                 vm.applyFiltersFrontEnd(),
-        //             ];
-        //             Promise.all(initialisers).then(() => {
-        //                 console.log(
-        //                     'Done loading features and applying filters'
-        //                 );
-        //                 vm.fetchingProposals = false;
-        //             });
-        //         })
-        //         .catch((error) => {
-        //             console.error('There was an error!', error);
-        //             vm.fetchingProposals = false;
-        //         });
-        // },
+            if (vm.proposalIds.length > 0) {
+                url +=
+                    `${chars.pop()}proposal_ids=` + vm.proposalIds.toString();
+            }
+            // if (vm.filterApplicationsMapApplicationType != 'all') {
+            //     url +=
+            //         `${chars.pop()}application_type=` +
+            //         vm.filterApplicationsMapApplicationType;
+            // }
+            // if (vm.filterApplicationsMapProcessingStatus != 'all') {
+            //     url +=
+            //         `${chars.pop()}processing_status=` +
+            //         vm.filterApplicationsMapProcessingStatus;
+            // }
+            fetch(url)
+                .then(async (response) => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        const error =
+                            (data && data.message) || response.statusText;
+                        console.log(error);
+                        return Promise.reject(error);
+                    }
+                    vm.proposals = data;
+                    // vm.filteredProposals = [...vm.proposals];
+                    let initialisers = [
+                        vm.assignProposalFeatureColors(vm.proposals),
+                        vm.loadFeatures(vm.proposals),
+                        // vm.applyFiltersFrontEnd(),
+                    ];
+                    Promise.all(initialisers).then(() => {
+                        console.log(
+                            'Done loading features and applying filters'
+                        );
+                        vm.fetchingProposals = false;
+                    });
+                })
+                .catch((error) => {
+                    console.error('There was an error!', error);
+                    vm.fetchingProposals = false;
+                });
+        },
         // fetchFilterLists: function () {
         //     let vm = this;
 
@@ -2433,21 +2433,21 @@ export default {
                 vm.newFeatureId++;
             }
         },
-        // assignProposalFeatureColors: function (proposals) {
-        //     let vm = this;
-        //     proposals.forEach(function (proposal) {
-        //         proposal.color = vm.getRandomRGBAColor();
-        //         console.log(proposal.lodgement_date);
-        //         console.log(typeof proposal.lodgement_date);
-        //     });
-        // },
+        assignProposalFeatureColors: function (proposals) {
+            let vm = this;
+            proposals.forEach(function (proposal) {
+                proposal.color = vm.getRandomRGBAColor();
+                console.log(proposal.lodgement_date);
+                console.log(typeof proposal.lodgement_date);
+            });
+        },
         loadFeatures: function (proposals) {
             let vm = this;
             console.log(proposals);
             // Remove all features from the layer
             vm.modelQuerySource.clear();
             proposals.forEach(function (proposal) {
-                proposal.proposalgeometry.features.forEach(
+                proposal.ocr_geometry.features.forEach(
                     function (featureData) {
                         let feature = vm.featureFromDict(featureData, proposal);
 
@@ -2463,32 +2463,6 @@ export default {
                         vm.newFeatureId++;
                     }
                 );
-                if (proposal.competitive_process) {
-                    proposal.competitive_process.competitive_process_geometries.features.forEach(
-                        function (featureData) {
-                            let feature = vm.featureFromDict(
-                                featureData,
-                                proposal.competitive_process
-                            );
-                            if (
-                                vm.modelQuerySource.getFeatureById(
-                                    feature.getId()
-                                )
-                            ) {
-                                console.warn(
-                                    `Feature ${feature.getId()} already exists in the source. Removing...`
-                                );
-                                vm.modelQuerySource.removeFeature(
-                                    vm.modelQuerySource.getFeatureById(
-                                        feature.getId()
-                                    )
-                                );
-                            }
-                            vm.modelQuerySource.addFeature(feature);
-                            vm.newFeatureId++;
-                        }
-                    );
-                }
             });
             vm.addFeatureCollectionToMap();
             vm.map.dispatchEvent({
@@ -2516,13 +2490,15 @@ export default {
                 id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
                 geometry: new Polygon(featureData.geometry.coordinates),
                 name: model.id,
-                label: model.label || model.application_type_name_display,
+                // label: model.label || model.application_type_name_display,
+                label: '',
                 color: color,
                 source: featureData.properties.source,
                 polygon_source: featureData.properties.polygon_source,
                 locked: featureData.properties.locked,
-                copied_from: featureData.properties.proposal_copied_from,
-                area_sqm: featureData.properties.area_sqm,
+                copied_from: featureData.properties.report_copied_from,
+                // area_sqm: featureData.properties.area_sqm,
+                area_sqm: '',
             });
             // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
             feature.setId(featureData.id);

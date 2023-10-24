@@ -25,6 +25,7 @@ from boranga.components.occurrence.models import(
     Identification,
     Location,
     ObserverDetail,
+    OccurrenceReportGeometry,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -37,6 +38,7 @@ from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
 from django.db.models import Q
 from django.contrib.gis.geos import GEOSGeometry
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 logger = logging.getLogger('boranga')
 
@@ -259,8 +261,8 @@ class IdentificationSerializer(serializers.ModelSerializer):
 
 class LocationSerializer(serializers.ModelSerializer):
     observation_date= serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
-    geojson_point = serializers.SerializerMethodField()
-    geojson_polygon = serializers.SerializerMethodField()
+    # geojson_point = serializers.SerializerMethodField()
+    # geojson_polygon = serializers.SerializerMethodField()
 	
     class Meta:
         model = Location
@@ -277,23 +279,90 @@ class LocationSerializer(serializers.ModelSerializer):
             'datum_id',
             'coordination_source_id',
             'location_accuracy_id',
-            'geojson_point',
-            'geojson_polygon',
+            # 'geojson_point',
+            # 'geojson_polygon',
             )
     
-    def get_geojson_point(self,obj):
-        if(obj.geojson_point):
-            coordinates = GEOSGeometry(obj.geojson_point).coords
-            return coordinates
-        else:
-            return None
+    # def get_geojson_point(self,obj):
+    #     if(obj.geojson_point):
+    #         coordinates = GEOSGeometry(obj.geojson_point).coords
+    #         return coordinates
+    #     else:
+    #         return None
         
-    def get_geojson_polygon(self,obj):
-        if(obj.geojson_polygon):
-            coordinates = GEOSGeometry(obj.geojson_polygon).coords
-            return coordinates
-        else:
-            return None
+    # def get_geojson_polygon(self,obj):
+    #     if(obj.geojson_polygon):
+    #         coordinates = GEOSGeometry(obj.geojson_polygon).coords
+    #         return coordinates
+    #     else:
+    #         return None
+
+class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
+    occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
+    polygon_source = serializers.SerializerMethodField()
+    report_copied_from = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportGeometry
+        geo_field = "polygon"
+        fields = (
+            "id",
+            "occurrence_report_id",
+            "polygon",
+            # "area_sqm",
+            # "area_sqhm",
+            "intersects",
+            "polygon_source",
+            "locked",
+            "report_copied_from",
+        )
+        read_only_fields = ("id",)
+
+    def get_polygon_source(self, obj):
+        # return get_polygon_source(obj)
+        return ''
+
+    def get_report_copied_from(self, obj):
+        if obj.copied_from:
+            return ListOCRReportMinimalSerializer(
+                obj.copied_from.occurrence_report, context=self.context
+            ).data
+
+        return None
+
+
+class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
+    ocr_geometry = OccurrenceReportGeometrySerializer(many=True, read_only=True)
+    processing_status_display = serializers.CharField(
+        read_only=True, source="get_processing_status_display"
+    )
+    lodgement_date_display = serializers.DateTimeField(
+        read_only=True, format="%d/%m/%Y", source="lodgement_date"
+    )
+    details_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReport
+        fields = (
+            "id",
+            "processing_status",
+            "processing_status_display",
+            "ocr_geometry",
+            "lodgement_date",
+            "lodgement_date_display",
+            "details_url",
+        )
+
+    def get_details_url(self, obj):
+        # request = self.context["request"]
+        # if request.user.is_authenticated:
+        #     if is_internal(request):
+        #         return reverse("internal-proposal-detail", kwargs={"pk": obj.id})
+        #     else:
+        #         return reverse(
+        #             "external-proposal-detail", kwargs={"proposal_pk": obj.id}
+        #         )
+        return ''
 
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -311,6 +380,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     plant_count = serializers.SerializerMethodField()
     animal_observation = serializers.SerializerMethodField()
     identification = serializers.SerializerMethodField()
+    ocr_geometry = OccurrenceReportGeometrySerializer(many=True, read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -348,7 +418,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'observation_detail',
                 'plant_count',
                 'animal_observation',
-                'identification'
+                'identification',
+                'ocr_geometry',
                 )
 
     def get_readonly(self,obj):
@@ -672,7 +743,7 @@ class SaveLocationSerializer(serializers.ModelSerializer):
             'datum_id',
             'coordination_source_id',
             'location_accuracy_id',
-            'geojson_polygon',
+            # 'geojson_polygon',
             )
 
 class ObserverDetailSerializer(serializers.ModelSerializer):
@@ -688,3 +759,21 @@ class ObserverDetailSerializer(serializers.ModelSerializer):
 			'organisation',
 			'main_observer',
 		)
+
+
+class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
+    occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
+
+    class Meta:
+        model = OccurrenceReportGeometry
+        geo_field = "polygon"
+        fields = (
+            "id",
+            "occurrence_report_id",
+            "polygon",
+            "intersects",
+            "drawn_by",
+            "locked",
+        )
+        read_only_fields = ("id",)
+

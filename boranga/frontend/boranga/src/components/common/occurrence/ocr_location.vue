@@ -55,7 +55,7 @@
                     ref="component_map" 
                     :key="componentMapKey"
                     :context="occurrence_report_obj"
-                    :proposal-ids="[-1]"
+                    :proposalIds="[occurrence_report_obj.id]"
                     :is_external="is_external" 
                     :drawable=true
                     :editable="true"
@@ -410,7 +410,23 @@ export default {
             updateLocationDetails: function() {
                 let vm = this;
                 vm.updatingLocationDetails = true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_location_details')),JSON.stringify(vm.occurrence_report_obj.location),{
+                
+                let payload = { location: vm.occurrence_report_obj.location };
+                
+                // When in Entering Conditions status ApplicationForm might not be there
+                if (
+                    vm.$refs.component_map
+                ) {
+                    payload.ocr_geometry =
+                        vm.$refs.component_map.getJSONFeatures();
+                }
+
+                // const res = await fetch(vm.proposal_form_url, {
+                //     body: JSON.stringify(payload),
+                //     method: 'POST',
+                // });
+
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_location_details')),JSON.stringify(payload),{
                     emulateJSON:true
                 }).then((response) => {
                     vm.updatingLocationDetails = false;
