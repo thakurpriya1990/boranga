@@ -2,6 +2,9 @@ import logging
 import datetime
 from django.utils import timezone
 from django.db import models
+from django.db.models.functions import Cast
+from django.contrib.gis.db import models as gis_models
+from django.contrib.gis.db.models.functions import Area
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields.jsonb import JSONField
@@ -423,12 +426,57 @@ class Location(models.Model):
     datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
     coordination_source = models.ForeignKey(CoordinationSource, on_delete=models.SET_NULL, null=True, blank=True)
     location_accuracy = models.ForeignKey(LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True)
+    geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
+    geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
+
+
+class OccurrenceReportGeometryManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(area=Area(Cast("polygon", gis_models.PolygonField(geography=True))))
+        )
+
+
+class OccurrenceReportGeometry(models.Model):
+    objects = OccurrenceReportGeometryManager()
+
+    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="ocr_geometry")
+    polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
+    intersects = models.BooleanField(default=False)
+    copied_from = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, blank=True, null=True
+    )
+    drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
+    locked = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+    
+    def __str__(self):
+        return str(self.occurrence_report)  # TODO: is the most appropriate?
+    
+    @property
+    def area_sqm(self):
+        if not hasattr(self, "area") or not self.area:
+            logger.warn(f"OccurrenceReportGeometry: {self.id} has no area")
+            return None
+        return self.area.sq_m
+
+    @property
+    def area_sqhm(self):
+        if not hasattr(self, "area") or not self.area:
+            logger.warn(f"OccurrenceReportGeometry: {self.id} has no area")
+            return None
+        return self.area.sq_m / 10000
+
 
 class ObserverDetail(models.Model):
     """

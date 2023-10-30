@@ -49,30 +49,72 @@
                 </div>
             </div>
             <!--  -->
-
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Scientific Name:</label>
-                <div class="col-sm-9" :id="select_scientific_name">
-                    <select :disabled="isReadOnly"
+                <MapComponent 
+                    class="me-3" 
+                    ref="component_map" 
+                    :key="componentMapKey"
+                    :context="occurrence_report_obj"
+                    :proposalIds="[occurrence_report_obj.id]"
+                    :is_external="is_external" 
+                    :drawable=true
+                    :editable="true"
+                    level="external"
+                    :map-info-text="
+                                is_internal
+                                    ? ''
+                                    : 'Use the <b>draw</b> tool to draw the area of the report on the map.</br>Display layers to check attributes of polygons with the <b>info</b> tool.</br>You can <b>save</b> the report and continue at a later time.'
+                            "
+                    @validate-feature="validateFeature.bind(this)()"
+                    @refreshFromResponse="refreshFromResponse"
+                    :selectable=true></MapComponent>
+            </div>
+
+            <div v-show="!isCommunity">
+                <div class="row mb-3">
+                    <label for="" class="col-sm-3 control-label">Scientific Name:</label>
+                    <div class="col-sm-9" :id="select_scientific_name">
+                        <select :disabled="isReadOnly"
                         :id="scientific_name_lookup"  
                         :name="scientific_name_lookup"  
                         :ref="scientific_name_lookup" 
                         class="form-control" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-9">
+                        <textarea disabled class="form-control" rows="2" id="species_display" v-model="species_display"/>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="" class="col-sm-3 control-label">Previous Name:</label>
+                    <div class="col-sm-9">
+                        <input readonly type="text" class="form-control" id="previous_name" placeholder="" 
+                        v-model="taxon_previous_name"/>
+                    </div>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"></label>
-                <div class="col-sm-9">
-                    <textarea disabled class="form-control" rows="2" id="species_display" v-model="species_display"/>
+
+            <div v-show="isCommunity">
+                <div class="row mb-3">
+                    <label for="" class="col-sm-3 control-label">Community Name:</label>
+                    <div class="col-sm-9" :id="select_community_name">
+                        <select :disabled="isReadOnly"
+                            :id="community_name_lookup"  
+                            :name="community_name_lookup"  
+                            :ref="community_name_lookup" 
+                            class="form-control" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-9">
+                        <textarea disabled class="form-control" rows="2" id="community_display" v-model="community_display"/>
+                    </div>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Previous Name:</label>
-                <div class="col-sm-9">
-                    <input readonly type="text" class="form-control" id="previous_name" placeholder="" 
-                    v-model="taxon_previous_name"/>
-                </div>
-            </div>
+
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Observation Date:</label>
                 <div class="col-sm-9">
@@ -82,7 +124,7 @@
             <!-- ------------Observer Detail section -->
             
             <ObserverDatatable ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj" :is_external="is_external" :isReadOnly="isReadOnly"></ObserverDatatable>
-
+            
             <!-- -------------------------------- -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Location Description:</label>
@@ -145,6 +187,23 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Point Coordinate :</label>
+                <div class="col-sm-2">
+                    <input :disabled="isReadOnly" type="decimal" class="form-control ocr_number" id="point_coord1" placeholder=""/>
+                </div>
+                <div class="col-sm-2">
+                    <input :disabled="isReadOnly" type="decimal" class="form-control ocr_number" id="point_coord2" placeholder=""/>
+                </div>
+                <!-- <div class="col-sm-3">
+                    <button :disabled="isReadOnly" type="button" class="btn btn-primary btn-sm pull-left me-2">
+                        Map
+                    </button>
+                    <button :disabled="isReadOnly" type="button" class="btn btn-primary btn-sm pull-left me-2">
+                        View
+                    </button>
+                </div> -->
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Coordination Source:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.location.coordination_source_id">
@@ -164,7 +223,7 @@
                     </select>
                 </div>
             </div>
-
+            
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingLocationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
@@ -178,12 +237,14 @@
 
 <script>
 import Vue from 'vue' ;
+import { v4 as uuid } from 'uuid';
 // import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import ObserverDatatable from './observer_datatable.vue'
+import MapComponent from '../component_map.vue'
 import {
-  api_endpoints,
-  helpers
+    api_endpoints,
+    helpers
 }
 from '@/utils/hooks'
 // require("select2/dist/css/select2.min.css");
@@ -208,21 +269,31 @@ export default {
               type: Boolean,
               default: true
             },
+            is_internal:{
+              type: Boolean,
+              default: false
+            },
         },
+        emits: ['refreshFromResponse'],
         data:function () {
             let vm = this;
             return{
+                uuid: null,
                 scientific_name_lookup: 'scientific_name_lookup' + vm.occurrence_report_obj.id,
                 select_scientific_name: "select_scientific_name"+ vm.occurrence_report_obj.id,
+                community_name_lookup: 'community_name_lookup' + vm._uid,
+                select_community_name: "select_community_name"+ vm._uid,
                 isShowComment: false,
                 //---to show fields related to Fauna
                 isFauna: vm.occurrence_report_obj.group_type==="fauna"?true:false,
+                isCommunity: vm.occurrence_report_obj.group_type==="community"?true:false,
                 //----list of values dictionary
                 cs_profile_dict: {},
                 species_list: [],
                 referral_comments_boxes: [],
                 // to display the species selected 
                 species_display: '',
+                community_display: '',
                 taxon_previous_name:'',
                 //---Comment box attributes
 
@@ -239,6 +310,7 @@ export default {
         components: {
             FormSection,
             ObserverDatatable,
+            MapComponent,
         },
         computed: {
             deficiencyVisibility: function(){
@@ -267,6 +339,9 @@ export default {
                 else{
                     return this.occurrence_report_obj.readonly;
                 }
+            },
+            componentMapKey: function () {
+                return `component-map-${this.uuid}`;
             },
         },
         watch:{
@@ -330,6 +405,58 @@ export default {
                         }
                     }
             },
+            initialiseCommunityNameLookup: function(){
+                let vm = this;
+                $(vm.$refs[vm.community_name_lookup]).select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $("#"+vm.select_community_name),
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder:"Select Community Name",
+                    ajax: {
+                        url: api_endpoints.community_name_lookup,
+                        dataType: 'json',
+                        data: function(params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                cs_community: true,
+                            }
+                            return query;
+                        },
+                        // results: function (data, page) { // parse the results into the format expected by Select2.
+                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
+                        //     return {results: data};
+                        // },
+                    },
+                }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.occurrence_report_obj.community_id = data
+                    vm.community_display = e.params.data.text;
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_report_obj.community_id = ''
+                    vm.community_display = '';
+                }).
+                on("select2:open",function (e) {
+                    const searchField = $('[aria-controls="select2-'+vm.community_name_lookup+'-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+            },
+            getCommunityDisplay: function(){
+                for(let choice of this.community_list){
+                        if(choice.id === this.occurrence_report_obj.community_id)
+                        {
+                            var newOption = new Option(choice.name, choice.id, false, true);
+                            $('#'+ this.community_name_lookup).append(newOption);
+                            this.community_display = choice.name;
+                        }
+                    }
+            },
             generateReferralCommentBoxes: function(){
                 var box_visibility = this.occurrence_report_obj.assessor_mode.assessor_box_view
                 var assessor_mode = this.occurrence_report_obj.assessor_mode.assessor_level
@@ -362,7 +489,28 @@ export default {
             updateLocationDetails: function() {
                 let vm = this;
                 vm.updatingLocationDetails = true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_location_details')),JSON.stringify(vm.occurrence_report_obj.location),{
+                
+                let payload = { location: vm.occurrence_report_obj.location };
+                // species_id added in updateLocationDetails as its not part of Location model but needs to be updated on button click
+                payload.species_id = vm.occurrence_report_obj.species_id;
+                // community_id added in updateLocationDetails as its not part of Location model but needs to be updated on button click
+                payload.community_id = vm.occurrence_report_obj.community_id;
+                
+                // When in Entering Conditions status ApplicationForm might not be there
+                // adding ocr_geometry from the map_component to payload
+                if (
+                    vm.$refs.component_map
+                ) {
+                    payload.ocr_geometry =
+                        vm.$refs.component_map.getJSONFeatures();
+                }
+
+                // const res = await fetch(vm.proposal_form_url, {
+                //     body: JSON.stringify(payload),
+                //     method: 'POST',
+                // });
+
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_location_details')),JSON.stringify(payload),{
                     emulateJSON:true
                 }).then((response) => {
                     vm.updatingLocationDetails = false;
@@ -372,8 +520,9 @@ export default {
                         text: 'Location details have been saved',
                         icon: 'success',
                         confirmButtonColor:'#226fbb',
-
+                        
                     });
+                    vm.$refs.component_map.forceToRefreshMap();;
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
                     swal.fire({
@@ -385,9 +534,13 @@ export default {
                     vm.updatingLocationDetails = false;
                 });
             },
+            refreshFromResponse: function (data) {
+                //this.proposal = Object.assign({}, data);
+            },
         },
         created: async function() {
             let vm=this;
+            this.uuid = uuid();
             //------fetch list of values according to action
             let action = this.$route.query.action;
             let dict_url= action == "view"? api_endpoints.cs_profile_dict+ '?group_type=' + vm.occurrence_report_obj.group_type+ '&action=' + action : 
@@ -396,12 +549,13 @@ export default {
                 vm.cs_profile_dict = response.body;
                 vm.species_list = vm.cs_profile_dict.species_list;
                 this.getSpeciesDisplay();
-                if(!vm.is_external){
-                    this.generateReferralCommentBoxes();
-                }
+                
+                vm.community_list = vm.cs_profile_dict.community_list;
+                this.getCommunityDisplay();
             },(error) => {
                 console.log(error);
             })
+            
             //------fetch list of values
             const res = await Vue.http.get('/api/occurrence_report/location_list_of_values.json');
             vm.listOfValuesDict = res.body;
@@ -423,12 +577,16 @@ export default {
                 id: null,
                 name:null,
             });
+            if(!vm.is_external){
+                this.generateReferralCommentBoxes();
+            }
         },
         mounted: function(){
             let vm = this;
             this.$nextTick(()=>{
                 vm.eventListeners();
                 vm.initialiseScientificNameLookup();
+                vm.initialiseCommunityNameLookup();
             });
         },
     }

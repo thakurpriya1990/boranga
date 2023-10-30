@@ -37,6 +37,7 @@ from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 from io import BytesIO
 from django.db.models.query import QuerySet
+from django.contrib.gis.geos import GEOSGeometry
 
 from boranga.components.occurrence.models import( 
     OccurrenceReport,
@@ -88,6 +89,12 @@ from boranga.components.occurrence.serializers import(
     SaveIdentificationSerializer,
     SaveLocationSerializer,
     ObserverDetailSerializer,
+    ListOCRReportMinimalSerializer,
+    SaveOccurrenceReportSerializer,
+)
+
+from boranga.components.occurrence.utils import (
+     save_geometry,
 )
 
 from boranga.components.main.utils import (
@@ -544,8 +551,32 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             ocr_instance = self.get_object()
 
             location_instance, created = Location.objects.get_or_create(occurrence_report=ocr_instance)
+            # species_id saved seperately as its not field of Location but OCR
+            species = request.data.get('species_id')
+            if species:
+                ocr_instance.species_id = species
+                ocr_instance.save()
+            # community_id saved seperately as its not field of Location but OCR
+            community = request.data.get('community_id')
+            if community:
+                ocr_instance.community_id = community
+                ocr_instance.save()
+
+            # ocr geometry data to save seperately
+            geometry_data = request.data.get('ocr_geometry')
+            if geometry_data:
+                  save_geometry(request, ocr_instance, geometry_data)
+                 
+            # print(request.data.get('geojson_polygon'))
+            # polygon = request.data.get('geojson_polygon')
+            # if polygon:
+            #     coords_list = [list(map(float, coord.split(' '))) for coord in polygon.split(',')]
+            #     coords_list.append(coords_list[0])
+            #     request.data['geojson_polygon'] = GEOSGeometry(f'POLYGON(({", ".join(map(lambda x: " ".join(map(str, x)), coords_list))}))')
+
             # the request.data is only the habitat composition data thats been sent from front end
-            serializer = SaveLocationSerializer(location_instance,data=request.data, context={'request':request})
+            location_data = request.data.get('location')
+            serializer = SaveLocationSerializer(location_instance,data=location_data, context={'request':request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
@@ -736,6 +767,141 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+    
+    @list_route(methods=["GET"], detail=False)
+    def list_for_map(self, request, *args, **kwargs):
+        """Returns the proposals for the map"""
+        proposal_ids = [
+            int(id)
+            for id in request.query_params.get("proposal_ids", "").split(",")
+            if id.lstrip("-").isnumeric()
+        ]
+        # application_type = request.query_params.get("application_type", None)
+        # processing_status = request.query_params.get("processing_status", None)
+
+        # cache_key = settings.CACHE_KEY_MAP_PROPOSALS
+        # qs = cache.get(cache_key)
+        # priya added qs=None as we don't have cache data yet
+        qs = None
+        if qs is None:
+            qs = (
+                self.get_queryset()
+                .exclude(ocr_geometry__isnull=True)
+                .prefetch_related("ocr_geometry")
+            )
+            # cache.set(cache_key, qs, settings.CACHE_TIMEOUT_2_HOURS)
+
+        if len(proposal_ids) > 0:
+            qs = qs.filter(id__in=proposal_ids)
+
+        # if (
+        #     application_type
+        #     and application_type.isnumeric()
+        #     and int(application_type) > 0
+        # ):
+        #     qs = qs.filter(application_type_id=application_type)
+
+        # if processing_status:
+        #     qs = qs.filter(processing_status=processing_status)
+
+        # qs = self.filter_queryset(qs)
+        serializer = ListOCRReportMinimalSerializer(
+            qs, context={"request": request}, many=True
+        )
+        return Response(serializer.data)
+    
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def draft(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                request_data = request.data
+                #request.data['submitter'] = u'{}'.format(request.user.id)
+                if request_data['submitter']:
+                    request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
+                if(request_data.get('habitat_composition')):
+                    habitat_instance, created = HabitatComposition.objects.get_or_create(occurrence_report=instance)
+                    serializer = SaveHabitatCompositionSerializer(habitat_instance, data = request_data.get('habitat_composition'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('habitat_condition')):
+                    hab_cond_instance, created = HabitatCondition.objects.get_or_create(occurrence_report=instance)
+                    serializer = SaveHabitatConditionSerializer(hab_cond_instance, data = request_data.get('habitat_condition'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('fire_history')):
+                    fire_instance, created = FireHistory.objects.get_or_create(occurrence_report=instance)
+                    serializer = SaveFireHistorySerializer(fire_instance, data = request_data.get('fire_history'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('associated_species')):
+                    assoc_species_instance, created = AssociatedSpecies.objects.get_or_create(occurrence_report=instance)
+                    serializer = SaveAssociatedSpeciesSerializer(assoc_species_instance, data = request_data.get('associated_species'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('observation_detail')):
+                    obs_det_instance, created = ObservationDetail.objects.get_or_create(occurrence_report=instance)
+                    serializer = SaveObservationDetailSerializer(obs_det_instance, data = request_data.get('observation_detail'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('plant_count')):
+                    plant_count_instance, created = PlantCount.objects.get_or_create(occurrence_report=instance)
+                    serializer = SavePlantCountSerializer(plant_count_instance, data = request_data.get('plant_count'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('animal_observation')):
+                    animal_obs_instance, created = AnimalObservation.objects.get_or_create(occurrence_report=instance)
+                    serializer = SaveAnimalObservationSerializer(animal_obs_instance, data = request_data.get('animal_observation'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('identification')):
+                    identification_instance, created = Identification.objects.get_or_create(occurrence_report=instance)
+                    serializer = SaveIdentificationSerializer(identification_instance, data = request_data.get('identification'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                
+                if(request_data.get('location')):
+                    location_instance, created = Location.objects.get_or_create(occurrence_report=instance)
+                    serializer = SaveLocationSerializer(location_instance, data = request_data.get('location'))
+                    serializer.is_valid(raise_exception=True)
+                    if serializer.is_valid():
+                        serializer.save()
+
+                serializer=SaveOccurrenceReportSerializer(instance, data = request_data, partial=True)
+
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    saved_instance = serializer.save()
+
+            return redirect(reverse('external'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+        raise serializers.ValidationError(str(e))
 
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):

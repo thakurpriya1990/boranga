@@ -540,7 +540,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "taxonomy__phylogenetic_group__name",
+                name: "taxonomy__informal_groups__classification_system_fk__class_desc",
             }
         },
         column_genera: function(){
@@ -772,6 +772,19 @@ export default {
                 processing: true,
                 initComplete: function() {
                     helpers.enablePopovers();
+                    var $searchInput = $('div.dataTables_filter input');
+
+                    $searchInput.unbind('keyup search input');
+
+                    $searchInput.bind('keypress', (vm.delay(function(e) {
+
+                        if (e.which == 13) {
+
+                            vm.$refs.flora_datatable.vmDataTable.search(this.value).draw();
+
+                        }
+
+                    }, 0)));
                 },
             }
         }
@@ -1349,6 +1362,23 @@ export default {
                 console.log(error);
                 
             })*/
+        },
+        delay(callback, ms) {
+            var timer = 0;
+
+            return function () {
+
+                var context = this, args = arguments;
+
+                clearTimeout(timer);
+
+                timer = setTimeout(function () {
+
+                    callback.apply(context, args);
+
+                }, ms || 0);
+
+            };
         },
     },
 

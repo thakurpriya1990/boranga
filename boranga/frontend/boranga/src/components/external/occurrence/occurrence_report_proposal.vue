@@ -1,6 +1,6 @@
 <template lang="html">
     <div class="container" >
-        <form :action="cs_proposal_form_url" method="post" name="new_ocr_proposal" enctype="multipart/form-data">
+        <form :action="ocr_proposal_form_url" method="post" name="new_ocr_proposal" enctype="multipart/form-data">
             <div v-if="!ocr_proposal_readonly">
               <div v-if="hasAmendmentRequest" class="row">
                 <div class="col-lg-12 pull-right">
@@ -34,7 +34,8 @@
                 id="OccurrenceReportStart" 
                 :canEditStatus="canEditStatus"
                 :is_external="true"
-                ref="occurrence_report">
+                ref="occurrence_report"
+                @refreshFromResponse="refreshFromResponse">
             </ProposalOccurrenceReport>
 
             <div>
@@ -120,8 +121,8 @@ export default {
     csrf_token: function() {
       return helpers.getCookie('csrftoken')
     },
-    cs_proposal_form_url: function() {
-      return (this.occurrence_report_obj) ? `/api/conservation_status/${this.occurrence_report_obj.id}/draft.json` : '';
+    ocr_proposal_form_url: function() {
+      return (this.occurrence_report_obj) ? `/api/occurrence_report/${this.occurrence_report_obj.id}/draft.json` : '';
     },
     canEditStatus: function(){
       return this.occurrence_report_obj ? this.occurrence_report_obj.can_user_edit: 'false';
@@ -151,10 +152,10 @@ export default {
 
       let payload = new Object();
       Object.assign(payload, vm.occurrence_report_obj);
-      vm.$http.post(vm.cs_proposal_form_url,payload).then(res=>{
+      vm.$http.post(vm.ocr_proposal_form_url,payload).then(res=>{
           swal.fire({
             title: 'Saved',
-            text: 'Your application has been saved',
+            text: 'Your report has been saved',
             icon: 'success',
             confirmButtonColor:'#226fbb',
           });
@@ -186,7 +187,7 @@ export default {
       let vm = this;
       let formData = vm.set_formData()
 
-      vm.$http.post(vm.cs_proposal_form_url,formData);
+      vm.$http.post(vm.ocr_proposal_form_url,formData);
     },
     save_before_submit: async function(e) {
       //console.log('save before submit');
@@ -195,7 +196,7 @@ export default {
 
       let payload = new Object();
       Object.assign(payload, vm.occurrence_report_obj);
-      const result = await vm.$http.post(vm.cs_proposal_form_url,payload).then(res=>{
+      const result = await vm.$http.post(vm.ocr_proposal_form_url,payload).then(res=>{
           //return true;
       },err=>{
         var errorText=helpers.apiVueResourceError(err); 
@@ -410,7 +411,7 @@ export default {
             if(!vm.saveError){
               let payload = new Object();
               Object.assign(payload, vm.occurrence_report_obj);
-              vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.occurrence_report_obj.id+'/submit'),payload).then(res=>{
+              vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,vm.occurrence_report_obj.id+'/submit'),payload).then(res=>{
                   vm.occurrence_report_obj = res.body;
                   vm.$router.push({
                       name: 'submit_cs_proposal',
@@ -429,6 +430,9 @@ export default {
         },(error) => {
           vm.paySubmitting=false;
         });
+    },
+    refreshFromResponse: function (data) {
+        //this.proposal = Object.assign({}, data);
     },
 },
 

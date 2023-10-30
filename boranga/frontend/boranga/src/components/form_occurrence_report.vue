@@ -63,9 +63,11 @@
                     ref="ocr_location" 
                     id="ocrLocation" 
                     :is_external="is_external"
+                    :is_internal="is_internal"
                     :canEditStatus="canEditStatus"
                     :occurrence_report_obj="occurrence_report_obj"
-                    :referral="referral">
+                    :referral="referral"
+                    @refreshFromResponse="refreshFromResponse">
                 </OCRLocation>
               </div>
               <div class="tab-pane fade" :id="habitatBody" role="tabpanel" aria-labelledby="pills-habitat-tab">
@@ -131,6 +133,7 @@
               default: true
             },
         },
+        emits: ['refreshFromResponse'],
         data:function () {
             let vm = this;
             return{
@@ -170,7 +173,9 @@
             eventListener: function(){
               let vm=this;
             },
-
+            refreshFromResponse: function (data) {
+              //this.$emit('refreshFromResponse', data);
+            },
         },
         mounted: function() {
             let vm = this;
