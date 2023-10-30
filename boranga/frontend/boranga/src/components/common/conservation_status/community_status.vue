@@ -371,7 +371,7 @@ export default {
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.conservation_status_obj.species_id = ''
+                    vm.conservation_status_obj.community_id = ''
                     vm.community_display = '';
                 }).
                 on("select2:open",function (e) {

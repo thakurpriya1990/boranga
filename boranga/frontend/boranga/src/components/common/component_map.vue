@@ -96,19 +96,19 @@
                     </BootstrapAlert> -->
                     <alert type="info"><strong><p><span v-html="mapInfoText"></span></p></strong></alert>
                 </div>
-                <!-- <div class="col-md-6">
+                <div class="col-md-6">
                     <div class="row" style="margin: auto">
-                        <BootstrapAlert
+                        <alert
                             v-if="hasErrorMessage"
                             class="mb-1 ml-1"
                             type="danger"
                             icon="exclamation-triangle-fill"
                         >
                             <span> {{ errorMessage }} </span>
-                        </BootstrapAlert>
+                    </alert>
                     </div>
                     <div class="row" style="margin: auto">
-                        <BootstrapAlert
+                        <alert
                             v-if="hasModifiedFeatures"
                             class="mb-0 ml-1"
                             type="warning"
@@ -119,9 +119,9 @@
                                 existing geospatial data to be re-evaluated on
                                 save and possibly be changed.
                             </span>
-                        </BootstrapAlert>
+                        </alert>
                     </div>
-                </div> -->
+                </div>
             </div>
         </div>
 
@@ -402,29 +402,24 @@
                     </div>
                 </div>
 
-                <!-- <div id="featureToast" class="toast" style="z-index: 9999">
+                <div id="featureToast" class="toast" style="z-index: 9999">
                     <template v-if="selectedModel">
                         <div class="toast-header">
-                            <img src="" class="rounded me-2" alt="" />-->
+                            <img src="" class="rounded me-2" alt="" />
                             <!-- FIXME: Can this be standardised into the same field name? -->
-                            <!-- <strong class="me-auto"
-                                >{{
-                                    selectedModel.label ||
-                                    selectedModel.application_type_name_display ||
-                                    (selectedModel.application_type
-                                        ? selectedModel.application_type
-                                              .name_display
-                                        : undefined)
-                                }}: {{ selectedModel.lodgement_number }}</strong
-                            >
-                        </div> -->
-                        <!-- <div class="toast-body">
+                            <strong class="me-auto">
+                                {{
+                                    selectedModel.label
+                                }}: {{ selectedModel.occurrence_report_number }}
+                            </strong>
+                        </div>
+                        <div class="toast-body">
                             <table class="table table-sm">
                                 <tbody>
                                     <tr>
-                                        <th scope="row">Processing Status</th> -->
+                                        <th scope="row">Processing Status</th>
                                         <!-- FIXME: Can this be standardised into the same field name? -->
-                                        <!-- <td>
+                                        <td>
                                             {{
                                                 selectedModel.status ||
                                                 selectedModel.status_display ||
@@ -432,9 +427,9 @@
                                                 selectedModel.processing_status
                                             }}
                                         </td>
-                                    </tr> -->
+                                    </tr>
                                     <!-- TODO: `created_at` is not formatted to DD/MM/YYYY -->
-                                    <!-- <tr
+                                    <tr
                                         v-if="
                                             selectedModel.copied_from ||
                                             selectedModel.lodgement_date_display ||
@@ -447,13 +442,13 @@
                                             v-if="selectedModel.copied_from"
                                             scope="row"
                                         >
-                                            Lodgement (original application)
+                                            Occurrence (original report)
                                         </th>
                                         <th v-else scope="row">
                                             Lodgement Date
-                                        </th> -->
+                                        </th>
                                         <!-- FIXME: Can this be standardised into the same field name? -->
-                                        <!-- <td v-if="selectedModel.copied_from">
+                                        <td v-if="selectedModel.copied_from">
                                             {{
                                                 selectedModel.copied_from
                                                     .lodgement_date_display
@@ -505,7 +500,7 @@
                             </table>
                         </div>
                     </template>
-                </div> -->
+                </div>
 
                 <!-- Overlay popup bubble when clicking a DBCA layer feature -->
                 <!-- <div id="popup" class="ol-popup overlay-feature-popup">
@@ -1229,11 +1224,11 @@ export default {
         //         );
         //     }
         // },
-        // selectedFeatureIds: function () {
-        //     if (this.selectedFeatureIds.length == 0) {
-        //         this.errorMessageProperty(null);
-        //     }
-        // },
+        selectedFeatureIds: function () {
+            if (this.selectedFeatureIds.length == 0) {
+                this.errorMessageProperty(null);
+            }
+        },
     },
     created: function () {
         console.log('created()');
@@ -1246,13 +1241,13 @@ export default {
         vm.loadingMap = true;
 
         this.$nextTick(() => {
-            // var toastEl = document.getElementById('featureToast');
+            var toastEl = document.getElementById('featureToast');
             $('#map-spinner').children().css('position', 'static'); // Position spinner in center of map
             vm.initialiseMap();
             vm.set_mode('layer');
             vm.setBaseLayer('osm');
             // addOptionalLayers(this);
-            // vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
+            vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
             } else {
@@ -1857,7 +1852,7 @@ export default {
                     // FIXME: Can this be standardised into the same field name?
                     label:
                         model.occurrence_report_number ||
-                        // model.label ||
+                        model.label ||
                         // model.application_type_name_display ||
                         // (model.application_type
                         //     ? model.application_type.name_display
@@ -1980,11 +1975,11 @@ export default {
                 //     ? 'help'
                 //     : 'default';
 
-                // if (selected) {
-                //     vm.featureToast.show();
-                // } else {
-                //     vm.featureToast.hide();
-                // }
+                if (selected) {
+                    vm.featureToast.show();
+                } else {
+                    vm.featureToast.hide();
+                }
             });
         },
         initialiseSingleClickEvent: function () {
@@ -2491,14 +2486,13 @@ export default {
                 geometry: new Polygon(featureData.geometry.coordinates),
                 name: model.id,
                 // label: model.label || model.application_type_name_display,
-                label: '',
+                label: model.label,
                 color: color,
                 source: featureData.properties.source,
                 polygon_source: featureData.properties.polygon_source,
                 locked: featureData.properties.locked,
                 copied_from: featureData.properties.report_copied_from,
-                // area_sqm: featureData.properties.area_sqm,
-                area_sqm: '',
+                area_sqm: featureData.properties.area_sqm,
             });
             // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
             feature.setId(featureData.id);

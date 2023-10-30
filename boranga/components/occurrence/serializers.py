@@ -309,8 +309,8 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             "id",
             "occurrence_report_id",
             "polygon",
-            # "area_sqm",
-            # "area_sqhm",
+            "area_sqm",
+            "area_sqhm",
             "intersects",
             "polygon_source",
             "locked",
@@ -319,6 +319,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
         read_only_fields = ("id",)
 
     def get_polygon_source(self, obj):
+        # TODO not sure if we need to show this
         # return get_polygon_source(obj)
         return ''
 
@@ -333,6 +334,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
 
 class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
     ocr_geometry = OccurrenceReportGeometrySerializer(many=True, read_only=True)
+    label = serializers.SerializerMethodField(read_only=True)
     processing_status_display = serializers.CharField(
         read_only=True, source="get_processing_status_display"
     )
@@ -345,6 +347,8 @@ class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
         model = OccurrenceReport
         fields = (
             "id",
+            "label",
+            "occurrence_report_number",
             "processing_status",
             "processing_status_display",
             "ocr_geometry",
@@ -352,6 +356,9 @@ class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
             "lodgement_date_display",
             "details_url",
         )
+    
+    def get_label(self, obj):
+        return 'Occurrence Report'
 
     def get_details_url(self, obj):
         # request = self.context["request"]
@@ -381,6 +388,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     animal_observation = serializers.SerializerMethodField()
     identification = serializers.SerializerMethodField()
     ocr_geometry = OccurrenceReportGeometrySerializer(many=True, read_only=True)
+    # label used for featuretoast on map_component
+    label = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -393,6 +402,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'occurrence_report_number',
                 'reported_date',
                 'lodgement_date',
+                'reported_date',
                 'applicant_type',
                 'applicant',
                 'submitter',
@@ -420,6 +430,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'animal_observation',
                 'identification',
                 'ocr_geometry',
+                'label',
                 )
 
     def get_readonly(self,obj):
@@ -505,6 +516,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             return IdentificationSerializer(qs).data
         except Identification.DoesNotExist:
             return IdentificationSerializer().data
+    
+    def get_label(self,obj):
+        return 'Occurrence Report'
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
@@ -776,4 +790,30 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "locked",
         )
         read_only_fields = ("id",)
+
+
+class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
+    species_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    #conservation_criteria = ConservationCriteriaSerializer(read_only = True)
+
+    class Meta:
+        model = OccurrenceReport
+        fields = (
+                'id',
+                'group_type',
+                'species_id',
+                'community_id',
+                'lodgement_date',
+                'reported_date',
+                'applicant_type',
+                'submitter',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'deficiency_data',
+                'assessor_data',
+                )
+        read_only_fields=('id',)
 

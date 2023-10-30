@@ -462,6 +462,20 @@ class OccurrenceReportGeometry(models.Model):
     
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
+    
+    @property
+    def area_sqm(self):
+        if not hasattr(self, "area") or not self.area:
+            logger.warn(f"OccurrenceReportGeometry: {self.id} has no area")
+            return None
+        return self.area.sq_m
+
+    @property
+    def area_sqhm(self):
+        if not hasattr(self, "area") or not self.area:
+            logger.warn(f"OccurrenceReportGeometry: {self.id} has no area")
+            return None
+        return self.area.sq_m / 10000
 
 
 class ObserverDetail(models.Model):
