@@ -406,10 +406,12 @@ class ConservationStatus(models.Model):
     def applicant_details(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
-            return "{} {}\n{}".format(
+            print(email_user)
+            return "{} {}".format(
                 email_user.first_name,
-                email_user.last_name,
-                email_user.addresses.all().first())
+                email_user.last_name)
+                # Priya commented the below as gives error on UAT and Dev only on external side
+                # email_user.addresses.all().first())
 
     @property
     def applicant_address(self):
