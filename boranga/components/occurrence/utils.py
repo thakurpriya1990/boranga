@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 def save_geometry(request, instance, geometry_data):
     logger.info(f"\n\n\nSaving Occurrence Report geometry")
-
     if not geometry_data:
         logger.warn(f"No Occurrence Report geometry to save")
         return
@@ -97,4 +96,45 @@ def save_geometry(request, instance, geometry_data):
         logger.info(
             f"Deleted OccurrenceReport geometries: {deleted_geometries} for {instance}"
         )
+
+def ocr_proposal_submit(ocr_proposal,request):
+        with transaction.atomic():
+            if ocr_proposal.can_user_edit:
+                ocr_proposal.submitter = request.user.id
+                ocr_proposal.lodgement_date = timezone.now()
+                # if (ocr_proposal.amendment_requests):
+                #     qs = ocr_proposal.amendment_requests.filter(status = "requested")
+                #     if (qs):
+                #         for q in qs:
+                #             q.status = 'amended'
+                #             q.save()
+
+                # Create a log entry for the proposal
+                # ocr_proposal.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),request)
+                # Create a log entry for the organisation
+                #proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
+                applicant_field=getattr(ocr_proposal, ocr_proposal.applicant_field)
+                # TODO handle the error "'EmailUserRO' object has no attribute 'log_user_action'" for below
+                #applicant_field.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(cs_proposal.id),request)
+
+                
+                # ret1 = send_submit_email_notification(request, ocr_proposal)
+                # ret2 = send_external_submit_email_notification(request, ocr_proposal)
+
+                ret1 = True
+                ret2 = True
+
+                #cs_proposal.save_form_tabs(request)
+                if ret1 and ret2:
+                    ocr_proposal.processing_status = 'with_assessor'
+                    ocr_proposal.customer_status = 'with_assessor'
+                    #cs_proposal.documents.all().update(can_delete=False)
+                    ocr_proposal.save()
+                else:
+                    raise ValidationError('An error occurred while submitting occurrence report proposal (Submit email notifications failed)')
+                
+                return ocr_proposal
+
+            else:
+                raise ValidationError('You can\'t edit this report at this moment')
 

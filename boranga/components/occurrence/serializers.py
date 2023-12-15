@@ -390,6 +390,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     ocr_geometry = OccurrenceReportGeometrySerializer(many=True, read_only=True)
     # label used for featuretoast on map_component
     label = serializers.SerializerMethodField(read_only=True)
+    model_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -431,6 +432,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'identification',
                 'ocr_geometry',
                 'label',
+                'model_name',
                 )
 
     def get_readonly(self,obj):
@@ -519,6 +521,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     
     def get_label(self,obj):
         return 'Occurrence Report'
+    
+    def get_model_name(self,obj):
+        return 'occurrencereport'
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):

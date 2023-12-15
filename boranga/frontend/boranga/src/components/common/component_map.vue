@@ -1028,26 +1028,30 @@ export default {
         };
     },
     computed: {
-        // shapefileDocumentUrl: function () {
-        //     let endpoint = '';
-        //     let obj_id = 0;
-        //     if (this.context?.model_name == 'proposal') {
-        //         endpoint = api_endpoints.proposal;
-        //         obj_id = this.context.id;
-        //     } else if (this.context?.model_name == 'competitiveprocess') {
-        //         endpoint = api_endpoints.competitive_process;
-        //         obj_id = this.context.id;
-        //     } else {
-        //         console.warn('shapefileDocumentUrl: invalid context');
-        //         return ''; // Should not reach here.
-        //     }
-        //     let url = helpers.add_endpoint_join(
-        //         endpoint,
-        //         '/' + obj_id + '/process_shapefile_document/'
-        //     );
-        //     console.log({ url });
-        //     return url;
-        // },
+        shapefileDocumentUrl: function () {
+            let endpoint = '';
+            let obj_id = 0;
+            // if (this.context?.model_name == 'proposal') {
+            //     endpoint = api_endpoints.proposal;
+            //     obj_id = this.context.id;
+            // } else if (this.context?.model_name == 'competitiveprocess') {
+            //     endpoint = api_endpoints.competitive_process;
+            //     obj_id = this.context.id;
+            // } 
+            if (this.context?.model_name == 'occurrencereport') {
+                endpoint = api_endpoints.occurrence_report;
+                obj_id = this.context.id;
+            } else {
+                console.warn('shapefileDocumentUrl: invalid context');
+                return ''; // Should not reach here.
+            }
+            let url = helpers.add_endpoint_join(
+                endpoint,
+                '/' + obj_id + '/process_shapefile_document/'
+            );
+            console.log({ url });
+            return url;
+        },
         // filterApplied: function () {
         //     let filter_applied = true;
         //     if (
