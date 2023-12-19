@@ -237,6 +237,9 @@ class OccurrenceReport(models.Model):
         #     return 'submitter'
         return 'submitter'
     
+    def log_user_action(self, action, request):
+        return OccurrenceReportUserAction.log_action(self, action, request.user.id)
+    
     @property
     def can_user_edit(self):
         """
@@ -291,12 +294,12 @@ class OccurrenceReport(models.Model):
         group = None
         # TODO: Take application_type into account
         if self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
         ]:
             group = self.get_approver_group()
         elif self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
-            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
             # ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
         ]:
             group = self.get_assessor_group()

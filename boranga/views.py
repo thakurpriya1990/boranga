@@ -18,6 +18,7 @@ from boranga.forms import *
 from boranga.components.conservation_status.models import ConservationStatus,ConservationStatusReferral
 from boranga.components.species_and_communities.models import Species, Community
 from boranga.components.meetings.models import Meeting
+from boranga.components.occurrence.models import OccurrenceReport
 from boranga.components.proposals.models import Referral, Proposal, HelpPage
 from boranga.components.compliances.models import Compliance
 from boranga.components.proposals.mixins import ReferralOwnerMixin
@@ -115,6 +116,23 @@ class InternalMeetingDashboardView(DetailView):
 class ReferralView(ReferralOwnerMixin, DetailView):
     model = Referral
     template_name = 'boranga/dash/index.html'
+
+class ExternalOccurrenceReportView(DetailView):
+    model = OccurrenceReport
+    template_name = 'boranga/dash/index.html'
+
+class InternalOccurrenceReportView(DetailView):
+    model = OccurrenceReport
+    template_name = 'boranga/dash/index.html'
+
+    def get(self, *args, **kwargs):
+        if self.request.user.is_authenticated():
+            if is_internal(self.request):
+                #return redirect('internal-proposal-detail')
+                return super(InternalOccurrenceReportView, self).get(*args, **kwargs)
+            return redirect('external-occurrence-report-detail')
+        kwargs['form'] = LoginForm
+        return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
 
 class ExternalProposalView(DetailView):
     model = Proposal

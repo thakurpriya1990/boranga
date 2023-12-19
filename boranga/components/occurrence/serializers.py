@@ -26,6 +26,8 @@ from boranga.components.occurrence.models import(
     Location,
     ObserverDetail,
     OccurrenceReportGeometry,
+    OccurrenceReportLogEntry,
+    OccurrenceReportUserAction,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -822,3 +824,25 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
                 )
         read_only_fields=('id',)
 
+class OccurrenceReportUserActionSerializer(serializers.ModelSerializer):
+    who = serializers.SerializerMethodField()
+    class Meta:
+        model = OccurrenceReportUserAction
+        fields = '__all__'
+
+    def get_who(self, occurrence_report_user_action):
+        email_user = retrieve_email_user(occurrence_report_user_action.who)
+        fullname = email_user.get_full_name()
+        return fullname
+
+
+class OccurrenceReportLogEntrySerializer(CommunicationLogEntrySerializer):
+    documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceReportLogEntry
+        fields = "__all__"
+        read_only_fields = ("customer",)
+
+    def get_documents(self, obj):
+        return [[d.name, d._file.url] for d in obj.documents.all()]

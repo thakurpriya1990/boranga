@@ -12,7 +12,9 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser  # , Docume
 from boranga.components.occurrence.models import (
     OccurrenceReportGeometry,
     OccurrenceReport,
+    OccurrenceReportUserAction,
 )
+from boranga.components.occurrence.email import send_external_submit_email_notification,send_submit_email_notification
 from boranga.components.occurrence.serializers import (
     OccurrenceReportGeometrySaveSerializer,
 )
@@ -110,19 +112,16 @@ def ocr_proposal_submit(ocr_proposal,request):
                 #             q.save()
 
                 # Create a log entry for the proposal
-                # ocr_proposal.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),request)
+                ocr_proposal.log_user_action(OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),request)
                 # Create a log entry for the organisation
-                #proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
+                #proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(ocr_proposal.id),request)
                 applicant_field=getattr(ocr_proposal, ocr_proposal.applicant_field)
                 # TODO handle the error "'EmailUserRO' object has no attribute 'log_user_action'" for below
-                #applicant_field.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(cs_proposal.id),request)
+                #applicant_field.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),request)
 
                 
-                # ret1 = send_submit_email_notification(request, ocr_proposal)
-                # ret2 = send_external_submit_email_notification(request, ocr_proposal)
-
-                ret1 = True
-                ret2 = True
+                ret1 = send_submit_email_notification(request, ocr_proposal)
+                ret2 = send_external_submit_email_notification(request, ocr_proposal)
 
                 #cs_proposal.save_form_tabs(request)
                 if ret1 and ret2:
