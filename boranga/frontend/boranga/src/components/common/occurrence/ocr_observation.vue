@@ -35,9 +35,9 @@
             </div>
         </FormSection>
         
-        <FormSection :formCollapse="false" label="Plant Count" :Index="plantCountBody" v-if="!isFauna">
+        <FormSection :formCollapse="false" label="Plant Count" :Index="plantCountBody" v-if="isFlora">
             <PlantCount
-                v-if="!isFauna"
+                v-if="isFlora"
                 :occurrence_report_obj="occurrence_report_obj" 
                 id="plantCountDetail" 
                 :is_external="is_external"
@@ -175,6 +175,7 @@ export default {
                 identificationBody: 'identificationBody' + vm._uid,
                 //---to show fields related to Fauna
                 isFauna: vm.occurrence_report_obj.group_type==="fauna"?true:false,
+                isFlora: vm.occurrence_report_obj.group_type==="flora"?true:false,
                 //----list of values dictionary
                 listOfValuesDict: {},
                 //scientific_name_list: [],
@@ -272,7 +273,7 @@ export default {
                     id: null,
                     name:null,
                 });
-            if(!this.isFauna){
+            if(this.isFlora){
                 // using child refs to assign the list values to avoid calling the above api again in plantCount component
                 vm.$refs.plantCountDetail.plant_count_method_list = vm.listOfValuesDict.plant_count_method_list;
                 vm.$refs.plantCountDetail.plant_count_method_list.splice(0,0,
