@@ -22,6 +22,7 @@ from boranga.components.occurrence.models import OccurrenceReport
 from boranga.components.proposals.models import Referral, Proposal, HelpPage
 from boranga.components.compliances.models import Compliance
 from boranga.components.proposals.mixins import ReferralOwnerMixin
+from boranga.forms import FirstTimeForm, LoginForm
 
 #from ledger.checkout.utils import create_basket_session, create_checkout_session, place_order_submission, get_cookie_basket
 from django.core.management import call_command
@@ -70,7 +71,7 @@ class InternalSpeciesView(DetailView):
                 #return redirect('internal-proposal-detail')
                 return super(InternalSpeciesView, self).get(*args, **kwargs)
         kwargs['form'] = LoginForm
-        return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
+        return super(BorangaRoutingView, self).get(*args, **kwargs)
 
 class InternalCommunityView(DetailView):
     model = Community
@@ -82,7 +83,7 @@ class InternalCommunityView(DetailView):
                 #return redirect('internal-proposal-detail')
                 return super(InternalCommunityView, self).get(*args, **kwargs)
         kwargs['form'] = LoginForm
-        return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
+        return super(BorangaRoutingView, self).get(*args, **kwargs)
 
 class ExternalConservationStatusView(DetailView):
     model = ConservationStatus
@@ -99,7 +100,7 @@ class InternalConservationStatusView(DetailView):
                 return super(InternalConservationStatusView, self).get(*args, **kwargs)
             return redirect('external-conservation-status-detail')
         kwargs['form'] = LoginForm
-        return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
+        return super(BorangaRoutingView, self).get(*args, **kwargs)
 
 class InternalConservationStatusDashboardView(DetailView):
     model = ConservationStatus
@@ -132,7 +133,7 @@ class InternalOccurrenceReportView(DetailView):
                 return super(InternalOccurrenceReportView, self).get(*args, **kwargs)
             return redirect('external-occurrence-report-detail')
         kwargs['form'] = LoginForm
-        return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
+        return super(BorangaRoutingView, self).get(*args, **kwargs)
 
 class ExternalProposalView(DetailView):
     model = Proposal
@@ -182,7 +183,7 @@ class InternalProposalView(DetailView):
                 return super(InternalProposalView, self).get(*args, **kwargs)
             return redirect('external-proposal-detail')
         kwargs['form'] = LoginForm
-        return super(BorangaRoutingDetailView, self).get(*args, **kwargs)
+        return super(BorangaRoutingView, self).get(*args, **kwargs)
 
 
 @login_required(login_url='home')
