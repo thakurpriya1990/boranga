@@ -2011,7 +2011,8 @@ export default {
                                 deselected.push(feature);
                             } else {
                                 // not selected, so select
-                                selected.push(feature);
+                                // Priya commented the below to avoid the duplication count of 2 on delete button
+                                // selected.push(feature);
                             }
                             interaction.dispatchEvent({
                                 type: 'select',
