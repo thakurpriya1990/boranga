@@ -42,6 +42,11 @@ module.exports = defineConfig({
                 //index: true,
                 writeToDisk: true,
             },
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers':
+                'Origin, X-Requested-With, Content-Type, Accept',
+            },
             client: {
                 webSocketURL: 'ws://0.0.0.0:' + port + '/ws',
             },
