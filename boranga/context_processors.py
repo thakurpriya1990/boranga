@@ -13,6 +13,7 @@ def config(request):
         'template_title': settings.TEMPLATE_TITLE,
         'build_tag': settings.BUILD_TAG,
         "KMI_SERVER_URL": KMI_SERVER_URL,
+        'app_build_url': settings.DEV_APP_BUILD_URL,
     }
     #print( config )
     return config
