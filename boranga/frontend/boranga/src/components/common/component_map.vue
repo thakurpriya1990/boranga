@@ -2449,7 +2449,6 @@ export default {
                 proposal.ocr_geometry.features.forEach(
                     function (featureData) {
                         let feature = vm.featureFromDict(featureData, proposal);
-
                         if (
                             vm.modelQuerySource.getFeatureById(feature.getId())
                         ) {
@@ -2463,7 +2462,7 @@ export default {
                     }
                 );
             });
-            vm.addFeatureCollectionToMap();
+            // vm.addFeatureCollectionToMap();
             vm.map.dispatchEvent({
                 type: 'features-loaded',
                 details: {
@@ -2500,11 +2499,16 @@ export default {
             });
             // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
             feature.setId(featureData.id);
+            
+            // to remove the ocr_geometry as it shows up when the geometry is downloaded
+            let propertyModel = model;
+            delete propertyModel.ocr_geometry;
 
             feature.setProperties({
-                model: model,
+                model: propertyModel,
             });
             feature.setStyle(style);
+            console.log(feature)
 
             return feature;
         },

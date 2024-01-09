@@ -10,6 +10,8 @@ from rest_framework import serializers
 
 from ledger_api_client.ledger_models import EmailUserRO
 from boranga.components.main.serializers import EmailUserROSerializerForReferral
+from ledger_api_client.managed_models import SystemGroup
+from boranga.settings import GROUP_NAME_CHOICES
 
 
 def retrieve_department_users():
@@ -78,5 +80,37 @@ def handle_validation_error(e):
 #        from_date += timedelta(1)
 #
 #    return from_date
+
+def get_polygon_source(geometry_obj):
+    from boranga.components.occurrence.models import OccurrenceReportGeometry
+
+    source = ""
+
+    if not geometry_obj.drawn_by:
+        source = "Unknown"
+    # TODO not sure if checking for submitter is right for 'Applicant' as Assessor could be the submitter as well?
+    elif isinstance(geometry_obj, OccurrenceReportGeometry) and geometry_obj.drawn_by in [
+        geometry_obj.occurrence_report.submitter,
+    ]:
+        # Polygon drawn by submitter
+        source = "Applicant"
+    else:
+        # System group names, e.g. boranga_assessor
+        system_groups = SystemGroup.objects.filter(
+            name__in=[x for x in zip(*GROUP_NAME_CHOICES)][0]
+        )
+        # System groups member ids
+        system_group_member = list(
+            {
+                itm
+                for group in system_groups
+                for itm in group.get_system_group_member_ids()
+            }
+        )
+        if geometry_obj.drawn_by in system_group_member:
+            # Polygon drawn by assessor
+            source = "Assessor"
+
+    return source
 
 

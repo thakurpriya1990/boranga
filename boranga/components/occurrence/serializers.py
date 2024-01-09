@@ -36,6 +36,9 @@ from boranga.components.main.serializers import(
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
     )
+from boranga.components.main.utils import (
+    get_polygon_source,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
 from django.db.models import Q
@@ -321,9 +324,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
         read_only_fields = ("id",)
 
     def get_polygon_source(self, obj):
-        # TODO not sure if we need to show this
-        # return get_polygon_source(obj)
-        return ''
+        return get_polygon_source(obj)
 
     def get_report_copied_from(self, obj):
         if obj.copied_from:
@@ -390,7 +391,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     animal_observation = serializers.SerializerMethodField()
     identification = serializers.SerializerMethodField()
     ocr_geometry = OccurrenceReportGeometrySerializer(many=True, read_only=True)
-    # label used for featuretoast on map_component
+    # label used for new polygon featuretoast on map_component
     label = serializers.SerializerMethodField(read_only=True)
     model_name = serializers.SerializerMethodField(read_only=True)
 
