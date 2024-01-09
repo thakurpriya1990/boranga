@@ -1949,6 +1949,7 @@ export default {
                                 })
                             );
                         }
+                        vm.selectedModel = null;
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
                             selected.setStyle(hoverSelect);
