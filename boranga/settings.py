@@ -97,6 +97,7 @@ INSTALLED_APPS += [
     'multiselectfield',
     'import_export',
     'ledger_api_client',
+    'appmonitor_client',
 ]
 
 ADD_REVERSION_ADMIN=True
@@ -211,6 +212,7 @@ if not VALID_SYSTEMS:
 
 CRON_CLASSES = [
     'boranga.cron.OracleIntegrationCronJob',
+    'appmonitor_client.cron.CronJobAppMonitorClient',
 ]
 
 
