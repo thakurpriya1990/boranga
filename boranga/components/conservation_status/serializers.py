@@ -911,7 +911,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                     return recom_criteria
                 else:
                     criteria = prev_approved_cs.recommended_conservation_criteria
-                    return recom_criteria
+                    return criteria
         except ConservationStatus.DoesNotExist:
             return ''
     
