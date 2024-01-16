@@ -575,8 +575,6 @@ export default {
             
         },
     },
-
-
     mounted: function(){
         this.fetchFilterLists();
         let vm = this;

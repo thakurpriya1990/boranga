@@ -161,10 +161,11 @@ urlpatterns = [
     url(r'^internal/species_communities/(?P<species_proposal_pk>\d+)/$', views.InternalSpeciesView.as_view(), name='internal-species-detail'),
     url(r'^internal/species_communities/(?P<community_proposal_pk>\d+)/$', views.InternalCommunityView.as_view(), name='internal-community-detail'),
     url(r'^internal/meetings/', views.InternalMeetingDashboardView.as_view(), name='internal-meeting-dashboard'),
+    url(r'^external/occurrence-report/(?P<ocr_proposal_pk>\d+)/$', views.ExternalOccurrenceReportView.as_view(), name='external-occurrence-report-detail'),
+    url(r'^internal/occurrence_report/(?P<ocr_proposal_pk>\d+)/$', views.InternalOccurrenceReportView.as_view(), name='internal-occurrence-report-detail'),
     #url(r'^external/proposal/(?P<proposal_pk>\d+)/$', views.ExternalProposalView.as_view(), name='external-proposal-detail'),
     #url(r'^internal/proposal/(?P<proposal_pk>\d+)/$', views.InternalProposalView.as_view(), name='internal-proposal-detail'),
-    #url(r'^external/compliance/(?P<compliance_pk>\d+)/$', views.ExternalComplianceView.as_view(), name='external-compliance-detail'),
-    #url(r'^internal/compliance/(?P<compliance_pk>\d+)/$', views.InternalComplianceView.as_view(), name='internal-compliance-detail'),
+    
 
     ##url(r'^organisations/(?P<pk>\d+)/confirm-delegate-access/(?P<uid>[0-9A-Za-z]+)-(?P<token>.+)/$', views.ConfirmDelegateAccess.as_view(), name='organisation_confirm_delegate_access'),
     ## reversion history-compare

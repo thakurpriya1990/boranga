@@ -1028,26 +1028,30 @@ export default {
         };
     },
     computed: {
-        // shapefileDocumentUrl: function () {
-        //     let endpoint = '';
-        //     let obj_id = 0;
-        //     if (this.context?.model_name == 'proposal') {
-        //         endpoint = api_endpoints.proposal;
-        //         obj_id = this.context.id;
-        //     } else if (this.context?.model_name == 'competitiveprocess') {
-        //         endpoint = api_endpoints.competitive_process;
-        //         obj_id = this.context.id;
-        //     } else {
-        //         console.warn('shapefileDocumentUrl: invalid context');
-        //         return ''; // Should not reach here.
-        //     }
-        //     let url = helpers.add_endpoint_join(
-        //         endpoint,
-        //         '/' + obj_id + '/process_shapefile_document/'
-        //     );
-        //     console.log({ url });
-        //     return url;
-        // },
+        shapefileDocumentUrl: function () {
+            let endpoint = '';
+            let obj_id = 0;
+            // if (this.context?.model_name == 'proposal') {
+            //     endpoint = api_endpoints.proposal;
+            //     obj_id = this.context.id;
+            // } else if (this.context?.model_name == 'competitiveprocess') {
+            //     endpoint = api_endpoints.competitive_process;
+            //     obj_id = this.context.id;
+            // } 
+            if (this.context?.model_name == 'occurrencereport') {
+                endpoint = api_endpoints.occurrence_report;
+                obj_id = this.context.id;
+            } else {
+                console.warn('shapefileDocumentUrl: invalid context');
+                return ''; // Should not reach here.
+            }
+            let url = helpers.add_endpoint_join(
+                endpoint,
+                '/' + obj_id + '/process_shapefile_document/'
+            );
+            console.log({ url });
+            return url;
+        },
         // filterApplied: function () {
         //     let filter_applied = true;
         //     if (
@@ -1945,6 +1949,7 @@ export default {
                                 })
                             );
                         }
+                        vm.selectedModel = null;
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
                             selected.setStyle(hoverSelect);
@@ -2007,7 +2012,8 @@ export default {
                                 deselected.push(feature);
                             } else {
                                 // not selected, so select
-                                selected.push(feature);
+                                // Priya commented the below to avoid the duplication count of 2 on delete button
+                                // selected.push(feature);
                             }
                             interaction.dispatchEvent({
                                 type: 'select',
@@ -2444,7 +2450,6 @@ export default {
                 proposal.ocr_geometry.features.forEach(
                     function (featureData) {
                         let feature = vm.featureFromDict(featureData, proposal);
-
                         if (
                             vm.modelQuerySource.getFeatureById(feature.getId())
                         ) {
@@ -2458,7 +2463,7 @@ export default {
                     }
                 );
             });
-            vm.addFeatureCollectionToMap();
+            // vm.addFeatureCollectionToMap();
             vm.map.dispatchEvent({
                 type: 'features-loaded',
                 details: {
@@ -2495,11 +2500,16 @@ export default {
             });
             // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
             feature.setId(featureData.id);
+            
+            // to remove the ocr_geometry as it shows up when the geometry is downloaded
+            let propertyModel = model;
+            delete propertyModel.ocr_geometry;
 
             feature.setProperties({
-                model: model,
+                model: propertyModel,
             });
             feature.setStyle(style);
+            console.log(feature)
 
             return feature;
         },

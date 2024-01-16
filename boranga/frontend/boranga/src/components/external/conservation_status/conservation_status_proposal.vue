@@ -439,15 +439,6 @@ export default {
       if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == ''){
           blank_fields.push(' Conservation Category is missing')
       }
-      if (vm.conservation_status_obj.conservation_criteria.length == 0){
-          blank_fields.push(' Conservation criteria is missing')
-      }
-      if (vm.conservation_status_obj.comment == null || vm.conservation_status_obj.comment == ''){
-          blank_fields.push(' Conservation comment is missing')
-      }
-      /*if(vm.$refs.proposal_filming.$refs.filming_other_details.$refs.deed_poll_doc.documents.length==0){
-          blank_fields.push(' Deed poll document is missing')
-      }*/
       return blank_fields
     },
     submit: function(){

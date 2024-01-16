@@ -327,13 +327,15 @@ class ConservationStatus(models.Model):
                                              on_delete=models.CASCADE, blank=True, null=True, related_name="curr_conservation_list")
     conservation_category = models.ForeignKey(ConservationCategory, 
                                               on_delete=models.SET_NULL, blank=True, null=True, related_name="curr_conservation_category")
-    conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True, related_name="curr_conservation_criteria")
+    # conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True, related_name="curr_conservation_criteria")
+    conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
     # recommended listing details in a meeting
     recommended_conservation_list = models.ForeignKey(ConservationList,
                                              on_delete=models.CASCADE, blank=True, null=True)
     recommended_conservation_category = models.ForeignKey(ConservationCategory,
                                               on_delete=models.SET_NULL, blank=True, null=True)
-    recommended_conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True)
+    # recommended_conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True)
+    recommended_conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
     comment = models.CharField(max_length=512, blank=True, null=True)
     review_date = models.DateField(null=True,blank=True)
     recurrence_pattern = models.SmallIntegerField(choices=RECURRENCE_PATTERNS,default=1)
