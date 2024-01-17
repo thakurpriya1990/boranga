@@ -93,6 +93,52 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         return ''
 
 
+class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
+    scientific_name = serializers.SerializerMethodField()
+    submitter = serializers.SerializerMethodField()
+    processing_status_display = serializers.CharField(source="get_processing_status_display")
+    reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    class Meta:
+        model = OccurrenceReport
+        fields = (
+            'id',
+            'occurrence_report_number',
+            'species',
+            # 'group_type',
+            'scientific_name',
+            'reported_date',
+            'submitter',
+            'processing_status',
+            'processing_status_display',
+            'can_user_edit',
+            'can_user_view',
+        )
+        datatables_always_serialize = (
+            'id',
+            'occurrence_report_number',
+            'species',
+            'scientific_name',
+            'reported_date',
+            'submitter',
+            'processing_status',
+            'processing_status_display',
+            'can_user_edit',
+            'can_user_view',
+        )   
+
+    def get_scientific_name(self,obj):
+        if obj.species:
+            if obj.species.taxonomy:
+                return obj.species.taxonomy.scientific_name
+        return ''
+    
+    def get_submitter(self,obj):
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return email_user.get_full_name()
+        else:
+            return None
+
 class HabitatCompositionSerializer(serializers.ModelSerializer):
     
     class Meta:

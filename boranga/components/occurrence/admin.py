@@ -26,6 +26,7 @@ from boranga.components.occurrence.models import (
     Datum,
     CoordinationSource,
     LocationAccuracy,
+    OccurrenceReport
     )
 
 
@@ -54,3 +55,4 @@ admin.site.register(PermitType)
 admin.site.register(Datum)
 admin.site.register(CoordinationSource)
 admin.site.register(LocationAccuracy)
+admin.site.register(OccurrenceReport)

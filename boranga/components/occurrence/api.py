@@ -91,6 +91,7 @@ from boranga.components.occurrence.serializers import(
     ObserverDetailSerializer,
     ListOCRReportMinimalSerializer,
     SaveOccurrenceReportSerializer,
+    ListInternalOccurrenceReportSerializer
 )
 
 from boranga.components.occurrence.utils import (
@@ -188,6 +189,16 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         serializer = ListOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
 
+    @list_route(methods=['GET',], detail=False)
+    def occurrence_report_internal(self, request, *args, **kwargs):
+            qs = self.get_queryset()
+            qs = qs.filter(Q(internal_application=False))
+            qs = self.filter_queryset(qs)
+
+            self.paginator.page_size = qs.count()
+            result_page = self.paginator.paginate_queryset(qs, request)
+            serializer = ListInternalOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
+            return self.paginator.get_paginated_response(serializer.data)
 
 class OccurrenceReportViewSet(viewsets.ModelViewSet):
     queryset = OccurrenceReport.objects.none()
