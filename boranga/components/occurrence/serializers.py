@@ -26,6 +26,8 @@ from boranga.components.occurrence.models import(
     Location,
     ObserverDetail,
     OccurrenceReportGeometry,
+    OccurrenceReportLogEntry,
+    OccurrenceReportUserAction,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -34,6 +36,9 @@ from boranga.components.main.serializers import(
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
     )
+from boranga.components.main.utils import (
+    get_polygon_source,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
 from django.db.models import Q
@@ -365,9 +370,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
         read_only_fields = ("id",)
 
     def get_polygon_source(self, obj):
-        # TODO not sure if we need to show this
-        # return get_polygon_source(obj)
-        return ''
+        return get_polygon_source(obj)
 
     def get_report_copied_from(self, obj):
         if obj.copied_from:
@@ -434,8 +437,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     animal_observation = serializers.SerializerMethodField()
     identification = serializers.SerializerMethodField()
     ocr_geometry = OccurrenceReportGeometrySerializer(many=True, read_only=True)
-    # label used for featuretoast on map_component
+    # label used for new polygon featuretoast on map_component
     label = serializers.SerializerMethodField(read_only=True)
+    model_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -477,6 +481,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'identification',
                 'ocr_geometry',
                 'label',
+                'model_name',
                 )
 
     def get_readonly(self,obj):
@@ -565,6 +570,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     
     def get_label(self,obj):
         return 'Occurrence Report'
+    
+    def get_model_name(self,obj):
+        return 'occurrencereport'
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
@@ -863,3 +871,25 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
                 )
         read_only_fields=('id',)
 
+class OccurrenceReportUserActionSerializer(serializers.ModelSerializer):
+    who = serializers.SerializerMethodField()
+    class Meta:
+        model = OccurrenceReportUserAction
+        fields = '__all__'
+
+    def get_who(self, occurrence_report_user_action):
+        email_user = retrieve_email_user(occurrence_report_user_action.who)
+        fullname = email_user.get_full_name()
+        return fullname
+
+
+class OccurrenceReportLogEntrySerializer(CommunicationLogEntrySerializer):
+    documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceReportLogEntry
+        fields = "__all__"
+        read_only_fields = ("customer",)
+
+    def get_documents(self, obj):
+        return [[d.name, d._file.url] for d in obj.documents.all()]

@@ -182,10 +182,12 @@ export default {
                 });
             },
             refreshFromResponse: function(){
-                this.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+                let vm = this;
+                vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
             },
             adjust_table_width: function(){
-                this.$refs.observer_detail_datatable.vmDataTable.columns.adjust().responsive.recalc();
+                let vm = this;
+                vm.$refs.observer_detail_datatable.vmDataTable.columns.adjust().responsive.recalc();
             },
             newObserverDetail: function(){
                 let vm=this;

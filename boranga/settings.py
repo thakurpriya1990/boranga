@@ -34,6 +34,15 @@ GROUP_NAME_EDITOR = 'ConservationStatusEditorGroup'
 GROUP_NAME_REFERRAL = 'ProposalReferralGroup'
 GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR = 'SpeciesCommunitiesProcessorGroup'
 
+#  Added fromm LL for polygon_source value
+GROUP_NAME_CHOICES = (
+    (GROUP_NAME_ASSESSOR, "Proposal Assessor Group"),
+    (GROUP_NAME_APPROVER, "Proposal Approver Group"),
+    # (GROUP_NAME_EDITOR, "Conservation Status Editor Group'"),
+    # (GROUP_NAME_REFERRAL, "Proposal Referral Group"),
+    # (GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR, "Species Communities Processor Group"),
+)
+
 
 if env('CONSOLE_EMAIL_BACKEND', False):
 #    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -97,6 +106,7 @@ INSTALLED_APPS += [
     'multiselectfield',
     'import_export',
     'ledger_api_client',
+    'appmonitor_client',
 ]
 
 ADD_REVERSION_ADMIN=True
@@ -211,6 +221,7 @@ if not VALID_SYSTEMS:
 
 CRON_CLASSES = [
     'boranga.cron.OracleIntegrationCronJob',
+    'appmonitor_client.cron.CronJobAppMonitorClient',
 ]
 
 

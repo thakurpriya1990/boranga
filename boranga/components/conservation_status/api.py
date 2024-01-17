@@ -179,22 +179,11 @@ class GetCSProfileDict(views.APIView):
                         'code':option.code,
                         'conservation_list_id':option.conservation_list_id,
                         });
-        conservation_criteria_list = []
-        if group_type:
-            criterias = ConservationCriteria.objects.filter()
-            if criterias:
-                for option in criterias:
-                    conservation_criteria_list.append({
-                        'id': option.id,
-                        'code':option.code,
-                        'conservation_list_id':option.conservation_list_id,
-                        });
         res_json = {
         "species_list":species_list,
         "community_list":community_list,
         "conservation_list_values":conservation_list_values,
         "conservation_category_list":conservation_category_list,
-        "conservation_criteria_list":conservation_criteria_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
@@ -1015,10 +1004,10 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                     saved_instance = serializer.save()
 
                     # add the updated Current conservation criteria list [1,2] to the cs instance,
-                    saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+                    # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
                     # add the updated recommended conservation criteria list [1,2] to the cs instance,
-                    saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
+                    # saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
 
                     instance.log_user_action(ConservationStatusUserAction.ACTION_SAVE_APPLICATION.format(instance.conservation_status_number), request)
 
@@ -1056,10 +1045,10 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                         saved_instance = serializer.save()
 
                         # add the updated Current conservation criteria list [1,2] to the cs instance,
-                        saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+                        # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
                         # add the updated recommended conservation criteria list [1,2] to the cs instance,
-                        saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
+                        # saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
 
                         instance.log_user_action(ConservationStatusUserAction.ACTION_EDIT_APPLICATION.format(instance.conservation_status_number), request)
 
@@ -1094,7 +1083,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                     saved_instance = serializer.save()
 
                     # add the updated Current conservation criteria list [1,2] to the cs instance,
-                    saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+                    # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
             return redirect(reverse('external'))
         except serializers.ValidationError:

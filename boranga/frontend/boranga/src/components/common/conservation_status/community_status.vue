@@ -99,27 +99,29 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">{{ conservation_criteria_label }}:</label>
                 <div class="col-sm-8">
-                    <select :disabled="isReadOnly" 
+                    <!-- <select :disabled="isReadOnly" 
                         style="width:100%;" class="form-select input-sm" multiple 
                         ref="conservation_criteria_select" 
                         v-model="conservation_status_obj.conservation_criteria" >
                         <option v-for="c in filtered_conservation_criteria_list" :value="c.id" :key="c.id">
                             {{c.code}}
                         </option>
-                    </select>
+                    </select> -->
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="conservation_criteria" placeholder="" 
+                        v-model="conservation_status_obj.conservation_criteria"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="canViewCurrentList">
                 <label for="" class="col-sm-4 control-label">Current Conservation List:</label>
                 <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder="" 
+                    <input readonly type="text" class="form-control" id="curr_cons_list" placeholder="" 
                     v-model="conservation_status_obj.curr_conservation_list"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="canViewCurrentList">
                 <label for="" class="col-sm-4 control-label">Current Conservation Category:</label>
                 <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder="" 
+                    <input readonly type="text" class="form-control" id="curr_cons_category" placeholder="" 
                     v-model="conservation_status_obj.curr_conservation_category"/>
                 </div>
             </div>
@@ -158,14 +160,16 @@
             <div class="row mb-3" v-show="conservation_status_obj.can_view_recommended">
                 <label for="" class="col-sm-4 control-label">Recommended Conservation Criteria:</label>
                 <div class="col-sm-8">
-                    <select :disabled="!conservation_status_obj.can_edit_recommended"
+                    <!-- <select :disabled="!conservation_status_obj.can_edit_recommended"
                         style="width:100%;" class="form-select input-sm" multiple 
                         ref="recom_conservation_criteria_select" 
                         v-model="conservation_status_obj.recommended_conservation_criteria" >
                         <option v-for="c in filtered_recom_conservation_criteria_list" :value="c.id" :key="c.id">
                             {{c.code}}
                         </option>
-                    </select>
+                    </select> -->
+                    <input :disabled="!conservation_status_obj.can_edit_recommended" type="text" class="form-control" id="rec_conservation_criteria" placeholder="" 
+                        v-model="conservation_status_obj.recommended_conservation_criteria"/>
                 </div>
             </div>
             
@@ -243,11 +247,11 @@ export default {
                 community_list: [],
                 conservation_list_values: [],
                 conservation_category_list: [],
-                conservation_criteria_list: [],
+                // conservation_criteria_list: [],
                 filtered_conservation_category_list: [],
-                filtered_conservation_criteria_list: [],
+                // filtered_conservation_criteria_list: [],
                 filtered_recom_conservation_category_list: [],
-                filtered_recom_conservation_criteria_list: [],
+                // filtered_recom_conservation_criteria_list: [],
                 referral_comments_boxes: [],
                 // to display the species selected 
                 community_display: '',
@@ -371,7 +375,7 @@ export default {
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.conservation_status_obj.community_id = ''
+                    vm.conservation_status_obj.community_id = null
                     vm.community_display = '';
                 }).
                 on("select2:open",function (e) {
@@ -394,7 +398,7 @@ export default {
                 this.$nextTick(() => {
                     if(event){
                         this.conservation_status_obj.conservation_category_id=null;
-                        this.conservation_status_obj.conservation_criteria=[];
+                        // this.conservation_status_obj.conservation_criteria=[];
                     }
                     this.filtered_conservation_category_list=[];
                     this.filtered_conservation_category_list=[{
@@ -402,26 +406,26 @@ export default {
                           code:"",
                           conservation_list_id:null,
                         }];
-                    this.filtered_conservation_criteria_list=[];
+                    // this.filtered_conservation_criteria_list=[];
                     for(let choice of this.conservation_category_list){
                             if(choice.conservation_list_id === this.conservation_status_obj.conservation_list_id)
                             {
                               this.filtered_conservation_category_list.push(choice);
                             }
                         }
-                    for(let choice of this.conservation_criteria_list){
-                            if(choice.conservation_list_id === this.conservation_status_obj.conservation_list_id)
-                            {
-                              this.filtered_conservation_criteria_list.push(choice);
-                            }
-                        }
+                    // for(let choice of this.conservation_criteria_list){
+                    //         if(choice.conservation_list_id === this.conservation_status_obj.conservation_list_id)
+                    //         {
+                    //           this.filtered_conservation_criteria_list.push(choice);
+                    //         }
+                    //     }
                 });
             },
             filterRecomConservationCategoryCriteria: function(event){
                 this.$nextTick(() => {
                     if(event){
                         this.conservation_status_obj.recommended_conservation_category_id=null;
-                        this.conservation_status_obj.recommended_conservation_criteria=[];
+                        // this.conservation_status_obj.recommended_conservation_criteria=[];
                     }
                     this.filtered_recom_conservation_category_list=[];
                     this.filtered_recom_conservation_category_list=[{
@@ -429,19 +433,19 @@ export default {
                           code:"",
                           conservation_list_id:null,
                         }];
-                    this.filtered_recom_conservation_criteria_list=[];
+                    // this.filtered_recom_conservation_criteria_list=[];
                     for(let choice of this.conservation_category_list){
                             if(choice.conservation_list_id === this.conservation_status_obj.recommended_conservation_list_id)
                             {
                               this.filtered_recom_conservation_category_list.push(choice);
                             }
                         }
-                    for(let choice of this.conservation_criteria_list){
-                            if(choice.conservation_list_id === this.conservation_status_obj.recommended_conservation_list_id)
-                            {
-                              this.filtered_recom_conservation_criteria_list.push(choice);
-                            }
-                        }
+                    // for(let choice of this.conservation_criteria_list){
+                    //         if(choice.conservation_list_id === this.conservation_status_obj.recommended_conservation_list_id)
+                    //         {
+                    //           this.filtered_recom_conservation_criteria_list.push(choice);
+                    //         }
+                    //     }
                 });
             },
             generateReferralCommentBoxes: function(){
@@ -469,37 +473,37 @@ export default {
             eventListeners:function (){
                 let vm = this;
                 // Initialise select2 for proposed Conservation Criteria
-                $(vm.$refs.conservation_criteria_select).select2({
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Criteria",
-                    multiple: true,
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_criteria = selected.val();
-                    vm.conservation_status_obj.conservation_criteria = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.conservation_status_obj.conservation_criteria = selected.val();
-                });
+                // $(vm.$refs.conservation_criteria_select).select2({
+                //     "theme": "bootstrap-5",
+                //     allowClear: true,
+                //     placeholder:"Select Criteria",
+                //     multiple: true,
+                // }).
+                // on("select2:select",function (e) {
+                //     var selected = $(e.currentTarget);
+                //     vm.selected_criteria = selected.val();
+                //     vm.conservation_status_obj.conservation_criteria = selected.val();
+                // }).
+                // on("select2:unselect",function (e) {
+                //     var selected = $(e.currentTarget);
+                //     vm.conservation_status_obj.conservation_criteria = selected.val();
+                // });
 
                 // Initialise select2 for recommended Conservation Criteria
-                $(vm.$refs.recom_conservation_criteria_select).select2({
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Criteria",
-                    multiple: true,
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.conservation_status_obj.recommended_conservation_criteria = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.conservation_status_obj.recommended_conservation_criteria = selected.val();
-                });
+                // $(vm.$refs.recom_conservation_criteria_select).select2({
+                //     "theme": "bootstrap-5",
+                //     allowClear: true,
+                //     placeholder:"Select Criteria",
+                //     multiple: true,
+                // }).
+                // on("select2:select",function (e) {
+                //     var selected = $(e.currentTarget);
+                //     vm.conservation_status_obj.recommended_conservation_criteria = selected.val();
+                // }).
+                // on("select2:unselect",function (e) {
+                //     var selected = $(e.currentTarget);
+                //     vm.conservation_status_obj.recommended_conservation_criteria = selected.val();
+                // });
             },
             toggleComment:function(updatedShowComment) {
                 //this.isShowComment = ! this.isShowComment;
@@ -522,7 +526,7 @@ export default {
                     code: null,
                 });
                 vm.conservation_category_list = vm.cs_profile_dict.conservation_category_list;
-                vm.conservation_criteria_list = vm.cs_profile_dict.conservation_criteria_list;
+                // vm.conservation_criteria_list = vm.cs_profile_dict.conservation_criteria_list;
                 this.getCommunityDisplay();
                 this.filterConservationCategoryCriteria();
                 this.filterRecomConservationCategoryCriteria();
