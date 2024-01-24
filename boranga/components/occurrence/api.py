@@ -75,6 +75,7 @@ from boranga.components.occurrence.models import(
     LocationAccuracy,
     Location,
     ObserverDetail,
+    OccurrenceReportDocument,
 )
 from boranga.components.occurrence.serializers import(
     ListOccurrenceReportSerializer,
@@ -93,6 +94,8 @@ from boranga.components.occurrence.serializers import(
     SaveOccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
     OccurrenceReportLogEntrySerializer,
+    OccurrenceReportDocumentSerializer,
+    SaveOccurrenceReportDocumentSerializer,
 )
 
 from boranga.components.occurrence.utils import (
@@ -1002,6 +1005,29 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(methods=['GET',], detail=True)
+    def documents(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.documents.all()
+            if is_internal(self.request):
+                qs = qs
+            elif is_customer(self.request):
+                qs = qs.filter(Q(uploaded_by=request.user.id))
+            # qs = qs.exclude(input_name='occurrence_report_approval_doc') # TODO do we need/not to show approval doc in cs documents tab
+            qs = qs.order_by('-uploaded_date')
+            serializer = OccurrenceReportDocumentSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
     queryset = ObserverDetail.objects.all().order_by('id')
@@ -1041,5 +1067,79 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
+class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
+    queryset = OccurrenceReportDocument.objects.all().order_by('id')
+    serializer_class = OccurrenceReportDocumentSerializer
+
+    @detail_route(methods=['GET',], detail=True)
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = False
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['GET',], detail=True)
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SaveOccurrenceReportDocumentSerializer(instance, data=json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            instance.add_documents(request)
+            instance.uploaded_by = request.user.id
+            instance.save()
+            return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
 
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = SaveOccurrenceReportDocumentSerializer(data= json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception = True)
+            instance = serializer.save()
+            instance.add_documents(request)
+            instance.uploaded_by = request.user.id
+            instance.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))

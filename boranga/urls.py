@@ -66,6 +66,8 @@ router.register(r'conservation_status',conservation_status_api.ConservationStatu
 router.register(r'occurrence_report',occurrence_api.OccurrenceReportViewSet)
 router.register(r'occurrence_report_paginated',occurrence_api.OccurrenceReportPaginatedViewSet)
 router.register(r'observer_detail',occurrence_api.ObserverDetailViewSet)
+router.register(r'occurrence_report_documents',occurrence_api.OccurrenceReportDocumentViewSet)
+
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)
 router.register(r'approval_paginated',approval_api.ApprovalPaginatedViewSet)
