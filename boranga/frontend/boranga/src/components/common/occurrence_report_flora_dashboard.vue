@@ -440,7 +440,7 @@ export default {
             // if(vm.is_external){
             //     columns = [
             //         vm.column_number,
-            //         vm.column_occurence,
+            //         vm.column_occurrence,
             //         vm.column_scientific_name,
             //         vm.column_submission_date_time, 
             //         vm.column_submitter,
@@ -452,7 +452,7 @@ export default {
             if(vm.is_internal){
                 columns = [
                     vm.column_number,
-                    vm.column_occurence,
+                    vm.column_occurrence,
                     vm.column_scientific_name,
                     vm.column_submission_date_time, 
                     vm.column_submitter,
