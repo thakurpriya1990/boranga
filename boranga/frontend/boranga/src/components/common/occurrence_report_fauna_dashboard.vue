@@ -25,11 +25,10 @@
                 <div class="col-md-4">
                     <div class="form-group" id="select_status">
                         <label for="or_status_lookup">Status:</label>
-                            <select 
-                                id="or_status_lookup"  
-                                name="or_status_lookup"  
-                                ref="or_status_lookup" 
-                                class="form-control" />
+                        <select class="form-select" v-model="filterORFaunaStatus">
+                                <option value="all">All</option>
+                                <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            </select>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -166,7 +165,7 @@ export default {
                                 sessionStorage.getItem(this.filterORFaunaScientificName_cache) : 'all',
             
             filterORFaunaStatus: sessionStorage.getItem(this.filterORFaunaStatus_cache) ? 
-                        sessionStorage.getItem(this.filterORFaunaStatuse_cache) : 'all',
+                        sessionStorage.getItem(this.filterORFaunaStatus_cache) : 'all',
 
             filterORFaunaSubmittedFrom: sessionStorage.getItem(this.filterORFaunaSubmittedFrom_cache) ? 
                                 sessionStorage.getItem(this.filterORFaunaSubmittedFrom_cache) : 'all',
@@ -588,44 +587,44 @@ export default {
                     searchField[0].focus();
                 });
         },
-        initialiseStatusLookup: function(){
-                let vm = this;
-                $(vm.$refs.or_status_lookup).select2({
-                    minimumInputLength: 2,
-                    dropdownParent: $("#select_status"),
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Status",
-                    ajax: {
-                        url: api_endpoints.or_status_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
-                    },
-                }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.filterORFaunaStatus = data;
-                    sessionStorage.setItem("filterORFaunaStatusText", e.params.data.text);
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterORFaunaStatus = 'all';
-                    sessionStorage.setItem("filterORFaunaStatusText",'');
-                }).
-                on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-or_status_lookup-results"]')
-                    // move focus to select2 field
-                    searchField[0].focus();
-                });
-        },
+        // initialiseStatusLookup: function(){
+        //         let vm = this;
+        //         $(vm.$refs.or_status_lookup).select2({
+        //             minimumInputLength: 2,
+        //             dropdownParent: $("#select_status"),
+        //             "theme": "bootstrap-5",
+        //             allowClear: true,
+        //             placeholder:"Select Status",
+        //             ajax: {
+        //                 url: api_endpoints.or_status_lookup,
+        //                 dataType: 'json',
+        //                 data: function(params) {
+        //                     var query = {
+        //                         term: params.term,
+        //                         type: 'public',
+        //                         group_type_id: vm.group_type_id,
+        //                     }
+        //                     return query;
+        //                 },
+        //             },
+        //         }).
+        //         on("select2:select", function (e) {
+        //             var selected = $(e.currentTarget);
+        //             let data = e.params.data.id;
+        //             vm.filterORFaunaStatus = data;
+        //             sessionStorage.setItem("filterORFaunaStatusText", e.params.data.text);
+        //         }).
+        //         on("select2:unselect",function (e) {
+        //             var selected = $(e.currentTarget);
+        //             vm.filterORFaunaStatus = 'all';
+        //             sessionStorage.setItem("filterORFaunaStatusText",'');
+        //         }).
+        //         on("select2:open",function (e) {
+        //             const searchField = $('[aria-controls="select2-or_status_lookup-results"]')
+        //             // move focus to select2 field
+        //             searchField[0].focus();
+        //         });
+        // },
         initialiseSubmittedFromLookup: function(){
                 let vm = this;
                 $(vm.$refs.or_submitted_from_lookup).select2({
@@ -1042,12 +1041,12 @@ export default {
                 var newOption = new Option(sessionStorage.getItem("filterORFaunaScientificNameText"), vm.filterORFaunaScientificName, false, true);
                 $('#or_scientific_name_lookup').append(newOption);
             }
-            if(sessionStorage.getItem("filterORFaunaSubmissionDateTime")!='all' && sessionStorage.getItem("filterORFaunaSubmissionDateTime")!=null)
-            {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterORFaunaSubmissionDateTimeText"), vm.filterORFaunaSubmissionDateTime, false, true);
-                $('#or_status_lookup').append(newOption);
-            }
+            // if(sessionStorage.getItem("filterORFaunaSubmissionDateTime")!='all' && sessionStorage.getItem("filterORFaunaSubmissionDateTime")!=null)
+            // {
+            //     // contructor new Option(text, value, defaultSelected, selected)
+            //     var newOption = new Option(sessionStorage.getItem("filterORFaunaSubmissionDateTimeText"), vm.filterORFaunaSubmissionDateTime, false, true);
+            //     $('#or_status_lookup').append(newOption);
+            // }
             if(sessionStorage.getItem("filterORFaunaSubmittedFrom")!='all' && sessionStorage.getItem("filterORFaunaSubmittedFrom")!=null)
             {
                 // contructor new Option(text, value, defaultSelected, selected)
