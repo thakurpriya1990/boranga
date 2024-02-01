@@ -723,13 +723,6 @@ export default {
             },(error) => {
                 console.log(error);
             })
-            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
-                vm.filterRegionDistrict= response.body;
-                vm.region_list= vm.filterRegionDistrict.region_list;
-                vm.district_list= vm.filterRegionDistrict.district_list;
-            },(error) => {
-                console.log(error);
-            })
         },
         createFaunaOccurrenceReport: async function () {
             let newFaunaCSId = null
@@ -920,7 +913,7 @@ export default {
                 filter_scientific_name: vm.filterORFaunaScientificName,
                 filter_status: vm.filterORFaunaStatus,
                 filter_submitted_from: vm.filterORFaunaSubmittedFrom,
-                filter_submitted_from: vm.filterORFaunaSubmittedTo,
+                filter_submitted_to: vm.filterORFaunaSubmittedTo,
                 is_internal: vm.is_internal,
                 export_format: format
             };

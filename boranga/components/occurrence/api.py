@@ -112,28 +112,31 @@ logger = logging.getLogger(__name__)
 class OccurrenceReportFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
-
-        flora = GroupType.GROUP_TYPE_FLORA
-        fauna = GroupType.GROUP_TYPE_FAUNA
-        community = GroupType.GROUP_TYPE_COMMUNITY
         
         filter_group_type = request.GET.get('filter_group_type')
         if filter_group_type and not filter_group_type.lower() == 'all':
             queryset = queryset.filter(group_type__name=filter_group_type)
-        
-        # filter_scientific_name is the species_id
+
+        # To do - change group_type__name based on the relevant model
+        # filter_occurrence = request.GET.get('filter_occurrence')
+        # if filter_occurrence and not filter_occurrence.lower() == 'all':
+        #     queryset = queryset.filter(group_type__name=filter_occurrence)
+
         filter_scientific_name = request.GET.get('filter_scientific_name')
         if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-            queryset = queryset.filter(species=filter_scientific_name)
+            queryset = queryset.filter(species__taxonomy__scientific_name=filter_scientific_name)
 
-        # filter_community_name is the community_id
-        filter_community_name = request.GET.get('filter_community_name')
-        if filter_community_name and not filter_community_name.lower() == 'all':
-            queryset = queryset.filter(community=filter_community_name)
+        filter_status = request.GET.get('filter_status')
+        if filter_status and not filter_status.lower() == 'all':
+            queryset = queryset.filter(processing_status=filter_status)
 
-        filter_application_status = request.GET.get('filter_application_status')
-        if filter_application_status and not filter_application_status.lower() == 'all':
-            queryset = queryset.filter(customer_status=filter_application_status)
+        filter_submitted_from = request.GET.get('filter_submitted_from')
+        if filter_submitted_from and not filter_submitted_from.lower() == 'all':
+            queryset = queryset.filter(submitter=filter_submitted_from)
+        
+        filter_submitted_to = request.GET.get('filter_submitted_to')
+        if filter_submitted_to and not filter_submitted_to.lower() == 'all':
+            queryset = queryset.filter(assigned_officer=filter_submitted_to)
 
         getter = request.query_params.get
         fields = self.get_fields(getter)
@@ -193,14 +196,14 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['GET',], detail=False)
     def occurrence_report_internal(self, request, *args, **kwargs):
-            qs = self.get_queryset()
-            qs = qs.filter(Q(internal_application=False))
-            qs = self.filter_queryset(qs)
+        qs = self.get_queryset()
+        qs = qs.filter(Q(internal_application=False))
+        qs = self.filter_queryset(qs)
 
-            self.paginator.page_size = qs.count()
-            result_page = self.paginator.paginate_queryset(qs, request)
-            serializer = ListInternalOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
-            return self.paginator.get_paginated_response(serializer.data)
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListInternalOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
 
 class OccurrenceReportViewSet(viewsets.ModelViewSet):
     queryset = OccurrenceReport.objects.none()

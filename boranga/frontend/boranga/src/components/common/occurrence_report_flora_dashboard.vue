@@ -485,6 +485,7 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
+                        d.filter_group_type = vm.group_type_name;
                         d.filter_occurrence = vm.filterORFloraOccurrence;
                         d.filter_species_scientific_name = vm.filterORFloraScientificName;
                         d.filter_status = vm.filterORFloraStatus;
@@ -722,13 +723,6 @@ export default {
             },(error) => {
                 console.log(error);
             })
-            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
-                vm.filterRegionDistrict= response.body;
-                vm.region_list= vm.filterRegionDistrict.region_list;
-                vm.district_list= vm.filterRegionDistrict.district_list;
-            },(error) => {
-                console.log(error);
-            })
         },
         createFloraOccurrenceReport: async function () {
             let newFloraCSId = null
@@ -919,7 +913,7 @@ export default {
                 filter_scientific_name: vm.filterORFloraScientificName,
                 filter_status: vm.filterORFloraStatus,
                 filter_submitted_from: vm.filterORFloraSubmittedFrom,
-                filter_submitted_from: vm.filterORFloraSubmittedTo,
+                filter_submitted_to: vm.filterORFloraSubmittedTo,
                 is_internal: vm.is_internal,
                 export_format: format
             };
