@@ -28,6 +28,7 @@ from boranga.components.occurrence.models import(
     OccurrenceReportGeometry,
     OccurrenceReportLogEntry,
     OccurrenceReportUserAction,
+    OccurrenceReportDocument,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -893,3 +894,50 @@ class OccurrenceReportLogEntrySerializer(CommunicationLogEntrySerializer):
 
     def get_documents(self, obj):
         return [[d.name, d._file.url] for d in obj.documents.all()]
+
+
+class OccurrenceReportDocumentSerializer(serializers.ModelSerializer):
+	document_category_name = serializers.SerializerMethodField()
+	document_sub_category_name = serializers.SerializerMethodField()
+	class Meta:
+		model = OccurrenceReportDocument
+		fields = (
+			'id',
+			'document_number',
+			'occurrence_report',
+			'name',
+			'_file',
+			'description',
+			'input_name',
+			'uploaded_date',
+			'document_category',
+			'document_category_name',
+			'document_sub_category',
+			'document_sub_category_name',
+			'visible',
+		)
+		read_only_fields = ('id','document_number')
+
+	def get_document_category_name(self,obj):
+		if obj.document_category:
+			return obj.document_category.document_category_name
+
+	def get_document_sub_category_name(self,obj):
+		if obj.document_sub_category:
+			return obj.document_sub_category.document_sub_category_name
+
+
+class SaveOccurrenceReportDocumentSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = OccurrenceReportDocument
+		fields = (
+			'id',
+			'occurrence_report',
+			'name',
+			'description',
+			'input_name',
+			'uploaded_date',
+			'document_category',
+			'document_sub_category',
+            )
+

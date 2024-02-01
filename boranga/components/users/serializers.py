@@ -123,7 +123,7 @@ class UserSerializer(serializers.ModelSerializer):
     is_department_user = serializers.SerializerMethodField()
     #is_payment_admin = serializers.SerializerMethodField()
     system_settings= serializers.SerializerMethodField()
-    is_payment_admin = serializers.SerializerMethodField()
+    # is_payment_admin = serializers.SerializerMethodField()
     is_boranga_admin = serializers.SerializerMethodField()    
 
     class Meta:
