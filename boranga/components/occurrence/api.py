@@ -9,7 +9,7 @@ from rest_framework.decorators import action as detail_route, renderer_classes
 from rest_framework.decorators import action as list_route
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from datetime import datetime
+from datetime import datetime, time
 from ledger_api_client.settings_base import TIME_ZONE
 from boranga import settings
 from boranga import exceptions
@@ -130,13 +130,22 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         if filter_status and not filter_status.lower() == 'all':
             queryset = queryset.filter(processing_status=filter_status)
 
-        filter_submitted_from = request.GET.get('filter_submitted_from')
-        if filter_submitted_from and not filter_submitted_from.lower() == 'all':
-            queryset = queryset.filter(submitter=filter_submitted_from)
+        def get_date(filter_date):
+            date = request.GET.get(filter_date)
+            if date:
+                date = datetime.strptime(date,'%Y-%m-%d')
+            return date
+
+        filter_submitted_from_date = get_date('filter_submitted_from_date')
+        filter_submitted_to_date = get_date('filter_submitted_to_date')
+        if filter_submitted_to_date: 
+            filter_submitted_to_date = datetime.combine(filter_submitted_to_date , time.max)
+
+        if filter_submitted_from_date and not filter_submitted_to_date:
+            queryset = queryset.filter(reported_date__gte=filter_submitted_from_date)
         
-        filter_submitted_to = request.GET.get('filter_submitted_to')
-        if filter_submitted_to and not filter_submitted_to.lower() == 'all':
-            queryset = queryset.filter(assigned_officer=filter_submitted_to)
+        if filter_submitted_from_date and filter_submitted_to_date:
+            queryset = queryset.filter(reported_date__range=[filter_submitted_from_date, filter_submitted_to_date])
 
         getter = request.query_params.get
         fields = self.get_fields(getter)
