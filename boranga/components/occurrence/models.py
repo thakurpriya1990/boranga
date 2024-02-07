@@ -38,6 +38,11 @@ from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
     Community,
+    ThreatCategory,
+    ThreatAgent,
+    PotentialImpact,
+    PotentialThreatOnset,
+    CurrentImpact,
 )
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.ordered_model import OrderedModel
@@ -422,6 +427,18 @@ class OccurrenceReportUserAction(UserAction):
     RECALL_REFERRAL = "Referral {} for occurrence report proposal {} has been recalled"
     COMMENT_REFERRAL = "Referral {} for occurrence report proposal {} has been commented by {}"
     CONCLUDE_REFERRAL = "Referral {} for occurrence report proposal {} has been concluded by {}"
+
+     # Document
+    ACTION_ADD_DOCUMENT= "Document {} added for occurrence report {}"
+    ACTION_UPDATE_DOCUMENT= "Document {} updated for occurrence report {}"
+    ACTION_DISCARD_DOCUMENT= "Document {} discarded for occurrence report {}"
+    ACTION_REINSTATE_DOCUMENT= "Document {} reinstated for occurrence report {}"
+
+    # Threat
+    ACTION_ADD_THREAT= "Threat {} added for occurrence report {}"
+    ACTION_UPDATE_THREAT= "Threat {} updated for occurrence report {}"
+    ACTION_DISCARD_THREAT= "Threat {} discarded for occurrence report {}"
+    ACTION_REINSTATE_THREAT= "Threat {} reinstated for occurrence report {}"
 
 
     class Meta:
@@ -1280,3 +1297,46 @@ class OccurrenceReportDocument(Document):
             except:
                 raise
         return
+
+class OCRConservationThreat(models.Model):
+    """
+    Threat for a occurrence_report in a particular location.
+
+    NB: Maybe make many to many
+
+    Has a:
+    - occurrence_report
+    Used for:
+    - OccurrenceReport
+    Is:
+    - Table
+    """
+    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, null=True, blank=True , related_name="ocr_threats")
+    threat_number = models.CharField(max_length=9, blank=True, default='')
+    threat_category = models.ForeignKey(ThreatCategory, on_delete=models.CASCADE, default=None, null=True, blank=True)
+    threat_agent = models.ForeignKey(ThreatAgent, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    current_impact = models.ForeignKey(CurrentImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    potential_impact = models.ForeignKey(PotentialImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    potential_threat_onset = models.ForeignKey(PotentialThreatOnset, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    comment = models.CharField(max_length=512,
+                               default="None")
+    date_observed = models.DateField(blank =True, null=True)
+    visible = models.BooleanField(default=True) # to prevent deletion, hidden and still be available in history
+
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.id)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        super(OCRConservationThreat, self).save(*args,**kwargs)
+        if self.threat_number == '':
+            new_threat_id = 'T{}'.format(str(self.pk))
+            self.threat_number = new_threat_id
+            self.save()
+
+    @property
+    def source(self):
+        return self.occurrence_report.id

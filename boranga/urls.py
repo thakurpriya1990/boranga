@@ -67,6 +67,7 @@ router.register(r'occurrence_report',occurrence_api.OccurrenceReportViewSet)
 router.register(r'occurrence_report_paginated',occurrence_api.OccurrenceReportPaginatedViewSet)
 router.register(r'observer_detail',occurrence_api.ObserverDetailViewSet)
 router.register(r'occurrence_report_documents',occurrence_api.OccurrenceReportDocumentViewSet)
+router.register(r'ocr_threat',occurrence_api.OCRConservationThreatViewSet)
 
 router.register(r'proposal_submit',proposal_api.ProposalSubmitViewSet)
 router.register(r'proposal_paginated',proposal_api.ProposalPaginatedViewSet)

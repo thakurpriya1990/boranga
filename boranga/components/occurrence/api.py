@@ -76,6 +76,8 @@ from boranga.components.occurrence.models import(
     Location,
     ObserverDetail,
     OccurrenceReportDocument,
+    OCRConservationThreat,
+    OccurrenceReportUserAction,
 )
 from boranga.components.occurrence.serializers import(
     ListOccurrenceReportSerializer,
@@ -97,6 +99,8 @@ from boranga.components.occurrence.serializers import(
     OccurrenceReportLogEntrySerializer,
     OccurrenceReportDocumentSerializer,
     SaveOccurrenceReportDocumentSerializer,
+    OCRConservationThreatSerializer,
+    SaveOCRConservationThreatSerializer,
 )
 
 from boranga.components.occurrence.utils import (
@@ -1038,6 +1042,24 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['GET',], detail=True)
+    def threats(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.ocr_threats.all()
+            qs = qs.order_by('-date_observed')
+            serializer = OCRConservationThreatSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
@@ -1120,14 +1142,15 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         try:
-            instance = self.get_object()
-            serializer = SaveOccurrenceReportDocumentSerializer(instance, data=json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            instance.add_documents(request)
-            instance.uploaded_by = request.user.id
-            instance.save()
-            return Response(serializer.data)
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveOccurrenceReportDocumentSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                instance.add_documents(request)
+                instance.uploaded_by = request.user.id
+                instance.save()
+                return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1135,13 +1158,98 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            serializer = SaveOccurrenceReportDocumentSerializer(data= json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception = True)
-            instance = serializer.save()
-            instance.add_documents(request)
-            instance.uploaded_by = request.user.id
+            with transaction.atomic():
+                serializer = SaveOccurrenceReportDocumentSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                instance.add_documents(request)
+                instance.uploaded_by = request.user.id
+                instance.save()
+                return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+class OCRConservationThreatViewSet(viewsets.ModelViewSet):
+    queryset = OCRConservationThreat.objects.all().order_by('id')
+    serializer_class = OCRConservationThreatSerializer
+
+    @detail_route(methods=['GET',], detail=True)
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = False
             instance.save()
+            if instance.occurrence_report:
+                instance.occurrence_report.log_user_action(OccurrenceReportUserAction.ACTION_DISCARD_THREAT.format(instance.threat_number,instance.occurrence_report.occurrence_report_number),request)
+            serializer = self.get_serializer(instance)
             return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
+            instance.save()
+            if instance.occurrence_report:
+                instance.occurrence_report.log_user_action(OccurrenceReportUserAction.ACTION_REINSTATE_THREAT.format(instance.threat_number,instance.occurrence_report.occurrence_report_number),request)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def update(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveOCRConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                if instance.occurrence_report:
+                    instance.occurrence_report.log_user_action(OccurrenceReportUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.occurrence_report.occurrence_report_number),request)
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                serializer = SaveOCRConservationThreatSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                if instance.occurrence_report:
+                    instance.occurrence_report.log_user_action(OccurrenceReportUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.occurrence_report.occurrence_report_number),request)
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise

@@ -99,13 +99,15 @@
                 </div>
             </div>
             <div slot="footer">
-                <template v-if="threat_id"> 
-                    <button type="button" v-if="updatingThreat" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinnner fa-spin"></i> Updating</button>
-                    <button type="button" v-else class="btn btn-default" @click="ok">Update</button>
-                </template>
-                <template v-else>
-                    <button type="button" v-if="addingThreat" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
-                    <button type="button" v-else class="btn btn-default" @click="ok">Add</button>
+                <template v-if="threat_action!='view'">
+                    <template v-if="threat_id"> 
+                        <button type="button" v-if="updatingThreat" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinnner fa-spin"></i> Updating</button>
+                        <button type="button" v-else class="btn btn-default" @click="ok">Update</button>
+                    </template>
+                    <template v-else>
+                        <button type="button" v-if="addingThreat" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
+                        <button type="button" v-else class="btn btn-default" @click="ok">Add</button>
+                    </template>
                 </template>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
             </div>
@@ -197,6 +199,7 @@ export default {
         sendData:function(){
             let vm = this;
             vm.errors = false;
+            vm.threatObj.date_observed = vm.threatObj.date_observed == ""? null: vm.threatObj.date_observed
             let threatObj = JSON.parse(JSON.stringify(vm.threatObj));
             let formData = new FormData()
 
