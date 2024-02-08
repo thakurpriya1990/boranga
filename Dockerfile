@@ -25,6 +25,7 @@ RUN apt-get install --no-install-recommends -y postgresql-client mtr systemd
 RUN apt-get install --no-install-recommends -y sqlite3 vim postgresql-client ssh htop
 RUN apt-get install --no-install-recommends -y rsyslog
 RUN apt-get install --no-install-recommends -y bzip2
+RUN apt-get install --no-install-recommends -y graphviz libgraphviz-dev pkg-config
 
 # Install nodejs
 RUN update-ca-certificates
