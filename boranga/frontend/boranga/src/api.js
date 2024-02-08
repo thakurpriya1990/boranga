@@ -142,6 +142,7 @@ module.exports = {
     occurrence_report:"/api/occurrence_report",
     observer_detail:"/api/observer_detail.json",
     occurrence_report_documents:"/api/occurrence_report_documents.json",
+    ocr_threat:"/api/ocr_threat.json",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",

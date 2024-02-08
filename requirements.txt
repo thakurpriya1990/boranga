@@ -67,3 +67,4 @@ python-decouple==3.8
 numpy==1.26.3
 setuptools==69.0.3
 wheel==0.42.0
+pygraphviz==1.12
