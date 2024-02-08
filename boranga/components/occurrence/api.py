@@ -1047,6 +1047,7 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
     def threats(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            # TODO Do we need to sort the threats for external user (similar like documents)
             qs = instance.ocr_threats.all()
             qs = qs.order_by('-date_observed')
             serializer = OCRConservationThreatSerializer(qs,many=True, context={'request':request})

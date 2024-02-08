@@ -120,6 +120,7 @@
                     ref="ocr_documents" 
                     id="ocrDocuments" 
                     :is_internal="is_internal"
+                    :is_external="is_external"
                     :occurrence_report_obj="occurrence_report_obj">
                 </OCRDocuments>
               </div>
