@@ -32,23 +32,15 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="form-group" id="select_submitted_from">
-                        <label for="or_submitted_from_lookup">Submitted From:</label>
-                            <select 
-                                id="or_submitted_from_lookup"  
-                                name="or_submitted_from_lookup"  
-                                ref="or_submitted_from_lookup" 
-                                class="form-control" />
+                    <div class="form-group">
+                        <label for="">Submitted From Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterORFloraSubmittedFromDate">
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="form-group" id="select_submitted_to">
-                        <label for="or_submitted_to_lookup">Submitted To:</label>
-                            <select 
-                                id="or_submitted_to_lookup"  
-                                name="or_submitted_to_lookup"  
-                                ref="or_submitted_to_lookup" 
-                                class="form-control" />
+                    <div class="form-group">
+                        <label for="">Submitted To Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterORFloraSubmittedToDate">
                     </div>
                 </div>
             </div>
@@ -136,15 +128,15 @@ export default {
             required: false,
             default: 'filterORFloraStatus',
         },
-        filterORFloraSubmittedFrom_cache: {
+        filterORFloraSubmittedFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterORFloraSubmittedFrom',
+            default: 'filterORFloraSubmittedFromDate',
         },
-        filterORFloraSubmittedTo_cache: {
+        filterORFloraSubmittedToDate_cache: {
             type: String,
             required: false,
-            default: 'filterORFloraSubmittedTo',
+            default: 'filterORFloraSubmittedToDate',
         },
 
     },
@@ -167,11 +159,11 @@ export default {
             filterORFloraStatus: sessionStorage.getItem(this.filterORFloraStatus_cache) ? 
                         sessionStorage.getItem(this.filterORFloraStatus_cache) : 'all',
 
-            filterORFloraSubmittedFrom: sessionStorage.getItem(this.filterORFloraSubmittedFrom_cache) ? 
-                                sessionStorage.getItem(this.filterORFloraSubmittedFrom_cache) : 'all',
+            filterORFloraSubmittedFromDate: sessionStorage.getItem(this.filterORFloraSubmittedFromDate_cache) ? 
+                                sessionStorage.getItem(this.filterORFloraSubmittedFromDate_cache) : '',
 
-            filterORFloraSubmittedTo: sessionStorage.getItem(this.filterORFloraSubmittedTo_cache) ? 
-                                sessionStorage.getItem(this.filterORFloraSubmittedTo_cache) : 'all',
+            filterORFloraSubmittedToDate: sessionStorage.getItem(this.filterORFloraSubmittedToDate_cache) ? 
+                                sessionStorage.getItem(this.filterORFloraSubmittedToDate_cache) : '',
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -236,15 +228,15 @@ export default {
             vm.$refs.flora_or_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call. 
             sessionStorage.setItem(vm.filterORFloraStatus_cache, vm.filterORFloraStatus);
         },
-        filterORFloraSubmittedFrom: function() {
+        filterORFloraSubmittedFromDate: function() {
             let vm = this;
             vm.$refs.flora_or_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterORFloraSubmittedFrom_cache, vm.filterORFloraSubmittedFrom);  
+            sessionStorage.setItem(vm.filterORFloraSubmittedFromDate_cache, vm.filterORFloraSubmittedFromDate);  
         },
-        filterORFloraSubmittedTo: function() {
+        filterORFloraSubmittedToDate: function() {
             let vm = this;
             vm.$refs.flora_or_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterORFloraSubmittedTo_cache, vm.filterORFloraSubmittedTo);  
+            sessionStorage.setItem(vm.filterORFloraSubmittedToDate_cache, vm.filterORFloraSubmittedToDate);  
         },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
@@ -258,8 +250,8 @@ export default {
             if(this.filterORFloraOccurrence === 'all' && 
                 this.filterORFloraScientificName === 'all' && 
                 this.filterORFloraStatus === 'all' &&  
-                this.filterORFloraSubmittedFrom === 'all' && 
-                this.filterORFloraSubmittedTo === 'all'){
+                this.filterORFloraSubmittedFromDate === '' && 
+                this.filterORFloraSubmittedToDate === ''){
                 return false
             } else {
                 return true
@@ -485,11 +477,12 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
+                        d.filter_group_type = vm.group_type_name;
                         d.filter_occurrence = vm.filterORFloraOccurrence;
                         d.filter_species_scientific_name = vm.filterORFloraScientificName;
                         d.filter_status = vm.filterORFloraStatus;
-                        d.filter_submitted_from = vm.filterORFloraSubmittedFrom;
-                        d.filter_submitted_to = vm.filterORFloraSubmittedTo;
+                        d.filter_submitted_from_date = vm.filterORFloraSubmittedFromDate;
+                        d.filter_submitted_to_date = vm.filterORFloraSubmittedToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -586,122 +579,6 @@ export default {
                     searchField[0].focus();
                 });
         },
-        // initialiseStatusLookup: function(){
-        //         let vm = this;
-        //         $(vm.$refs.or_status_lookup).select2({
-        //             minimumInputLength: 2,
-        //             dropdownParent: $("#select_status"),
-        //             "theme": "bootstrap-5",
-        //             allowClear: true,
-        //             placeholder:"Select Status",
-        //             ajax: {
-        //                 url: api_endpoints.or_status_lookup,
-        //                 dataType: 'json',
-        //                 data: function(params) {
-        //                     var query = {
-        //                         term: params.term,
-        //                         type: 'public',
-        //                         group_type_id: vm.group_type_id,
-        //                     }
-        //                     return query;
-        //                 },
-        //             },
-        //         }).
-        //         on("select2:select", function (e) {
-        //             var selected = $(e.currentTarget);
-        //             let data = e.params.data.id;
-        //             vm.filterORFloraStatus = data;
-        //             sessionStorage.setItem("filterORFloraStatusText", e.params.data.text);
-        //         }).
-        //         on("select2:unselect",function (e) {
-        //             var selected = $(e.currentTarget);
-        //             vm.filterORFloraStatus = 'all';
-        //             sessionStorage.setItem("filterORFloraStatusText",'');
-        //         }).
-        //         on("select2:open",function (e) {
-        //             const searchField = $('[aria-controls="select2-or_status_lookup-results"]')
-        //             // move focus to select2 field
-        //             searchField[0].focus();
-        //         });
-        // },
-        initialiseSubmittedFromLookup: function(){
-                let vm = this;
-                $(vm.$refs.or_submitted_from_lookup).select2({
-                    minimumInputLength: 2,
-                    dropdownParent: $("#select_submitted_from"),
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Submitted From",
-                    ajax: {
-                        url: api_endpoints.or_submitted_from_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
-                    },
-                }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.filterORFloraSubmittedFrom = data;
-                    sessionStorage.setItem("filterORFloraSubmittedFromText", e.params.data.text);
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterORFloraSubmittedFrom = 'all';
-                    sessionStorage.setItem("filterORFloraSubmittedFromText",'');
-                }).
-                on("select2:open",function (e) {
-                    //const searchField = $(".select2-search__field")
-                    const searchField = $('[aria-controls="select2-or_submitted_from_lookup-results"]')
-                    // move focus to select2 field
-                    searchField[0].focus();
-                });
-        },
-        initialiseSubmittedToLookup: function(){
-                let vm = this;
-                $(vm.$refs.or_submitted_to_lookup).select2({
-                    minimumInputLength: 2,
-                    dropdownParent: $("#select_submitted_to"),
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Submitted To",
-                    ajax: {
-                        url: api_endpoints.genera_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
-                    },
-                }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.filterORFloraSubmittedTo = data;
-                    sessionStorage.setItem("filterORFloraSubmittedToText", e.params.data.text);
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterORFloraSubmittedTo = 'all';
-                    sessionStorage.setItem("filterORFloraSubmittedToText",'');
-                }).
-                on("select2:open",function (e) {
-                    //const searchField = $(".select2-search__field")
-                    const searchField = $('[aria-controls="select2-or_submitted_to_lookup-results"]')
-                    // move focus to select2 field
-                    searchField[0].focus();
-                });
-        },
         fetchFilterLists: function(){
             let vm = this;
             //large FilterList of Species Values object
@@ -719,13 +596,6 @@ export default {
                     });
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
-            },(error) => {
-                console.log(error);
-            })
-            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
-                vm.filterRegionDistrict= response.body;
-                vm.region_list= vm.filterRegionDistrict.region_list;
-                vm.district_list= vm.filterRegionDistrict.district_list;
             },(error) => {
                 console.log(error);
             })
@@ -918,8 +788,8 @@ export default {
                 filter_occurrence: vm.filterORFloraOccurrence,
                 filter_scientific_name: vm.filterORFloraScientificName,
                 filter_status: vm.filterORFloraStatus,
-                filter_submitted_from: vm.filterORFloraSubmittedFrom,
-                filter_submitted_from: vm.filterORFloraSubmittedTo,
+                filter_submitted_from_date: vm.filterORFloraSubmittedFromDate,
+                filter_submitted_to_date: vm.filterORFloraSubmittedToDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };
@@ -1020,9 +890,6 @@ export default {
         this.$nextTick(() => {
             vm.initialiseOccurrenceLookup();
             vm.initialiseScientificNameLookup();
-            // vm.initialiseStatusLookup();
-            vm.initialiseSubmittedFromLookup();
-            vm.initialiseSubmittedToLookup();
             //vm.initialiseSearch();
             vm.addEventListeners();
             
@@ -1039,24 +906,6 @@ export default {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterORFloraScientificNameText"), vm.filterORFloraScientificName, false, true);
                 $('#or_scientific_name_lookup').append(newOption);
-            }
-            // if(sessionStorage.getItem("filterORFloraStatus")!='all' && sessionStorage.getItem("filterORFloraStatus")!=null)
-            // {
-            //     // contructor new Option(text, value, defaultSelected, selected)
-            //     var newOption = new Option(sessionStorage.getItem("filterORFloraStatus"), vm.filterORFloraStatus, false, true);
-            //     $('#or_status_lookup').append(newOption);
-            // }
-            if(sessionStorage.getItem("filterORFloraSubmittedFrom")!='all' && sessionStorage.getItem("filterORFloraSubmittedFrom")!=null)
-            {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterORFloraSubmittedFromText"), vm.filterORFloraSubmittedFrom, false, true);
-                $('#or_submitted_from_lookup').append(newOption);
-            }
-            if(sessionStorage.getItem("filterORFloraSubmittedTo")!='all' && sessionStorage.getItem("filterORFloraSubmittedTo")!=null)
-            {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterORFloraSubmittedToText"), vm.filterORFloraSubmittedTo, false, true);
-                $('#or_submitted_to_lookup').append(newOption);
             }
         });
     }
