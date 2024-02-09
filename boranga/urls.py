@@ -113,6 +113,7 @@ api_patterns = [
     url(r'^api/species_lookup$', species_communities_api.GetSpecies.as_view(), name='get-species'),
     url(r'^api/communities_lookup$', species_communities_api.GetCommunities.as_view(), name='get-communities'),
     url(r'^api/scientific_name_lookup$', species_communities_api.GetScientificName.as_view(), name='get-scientific-name'),
+    url(r'^api/scientific_name_lookup_by_groupname$', species_communities_api.GetScientificNameByGroup.as_view(), name='get-scientific-name-by-groupname'),
     url(r'^api/common_name_lookup$', species_communities_api.GetCommonName.as_view(), name='get-common-name'),
     url(r'^api/family_lookup$', species_communities_api.GetFamily.as_view(), name='get-family'),
     url(r'^api/genera_lookup$', species_communities_api.GetGenera.as_view(), name='get-genera'),
