@@ -606,7 +606,7 @@ class ObserverDetail(models.Model):
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
 
-
+# Is used in HabitatComposition for multiple selection
 class LandForm(models.Model):
     """
     # Admin List
@@ -1011,13 +1011,13 @@ class PlantCount(models.Model):
     def __str__(self):
         return str(self.occurrence_report)
 
-
+# used for Animal Observation(MultipleSelect)
 class PrimaryDetectionMethod(models.Model):
     """
     # Admin List
 
     Used by:
-    - AnimalObservation
+    - AnimalObservation (MultipleSelect)
 
     """
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
@@ -1029,13 +1029,13 @@ class PrimaryDetectionMethod(models.Model):
     def __str__(self):
         return str(self.name)
 
-
+# used for Animal Observation(MultipleSelect)
 class ReproductiveMaturity(models.Model):
     """
     # Admin List
 
     Used by:
-    - AnimalObservation
+    - AnimalObservation (MultipleSelect)
 
     """
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
@@ -1087,13 +1087,13 @@ class DeathReason(models.Model):
     def __str__(self):
         return str(self.name)
 
-
+# sed for Animal Observation(MultipleSelect)
 class SecondarySign(models.Model):
     """
     # Admin List
 
     Used by:
-    - AnimalObservation
+    - AnimalObservation (MultipleSelect)
 
     """
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)

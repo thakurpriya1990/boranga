@@ -899,24 +899,6 @@ class SpeciesDistribution(models.Model):
         return str(self.id)  # TODO: is the most appropriate?
 
 
-# TODO Model not used anymore
-class CommunityName(models.Model):
-    """
-    # list derived from TEC
-
-    Used by:
-    - Taxonomy
-
-    """
-    name = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.name)
-
-
 class Community(models.Model):
     """
     A collection of 2 or more Species within a specific location.
@@ -1732,47 +1714,6 @@ class ConservationThreat(models.Model):
             return self.community.id
 
 
-# list used in Conservation Attributes
-# class FloweringPeriod(models.Model):
-#     """
-#     # list derived from WACensus
-
-#     Used by:
-#     - SpeciesConservationAttributes
-
-#     """
-#     period = models.CharField(max_length=200, blank=False, unique=True)
-
-#     class Meta:
-#         app_label = 'boranga'
-#         verbose_name = "Flowering Period"
-#         verbose_name_plural = "Flowering Periods"
-#         ordering = ['period']
-
-#     def __str__(self):
-#         return str(self.period)
-
-
-# class FruitingPeriod(models.Model):
-#     """
-#     # list derived from WACensus
-
-#     Used by:
-#     - SpeciesConservationAttributes
-
-#     """
-#     period = models.CharField(max_length=200, blank=False, unique=True)
-
-#     class Meta:
-#         app_label = 'boranga'
-#         verbose_name = "Fruiting Period"
-#         verbose_name_plural = "Fruiting Periods"
-#         ordering = ['period']
-
-#     def __str__(self):
-#         return str(self.period)
-
-
 class FloraRecruitmentType(models.Model):
     """
     # list derived from WACensus
@@ -1792,24 +1733,6 @@ class FloraRecruitmentType(models.Model):
     def __str__(self):
         return str(self.recruitment_type)
 
-# TODO Not used 
-class SeedViabilityGerminationInfo(models.Model):
-    """
-    # list derived from WACensus
-
-    Used by:
-    - SpeciesConservationAttributes
-
-    """
-    name = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
-        ordering = ['name']
-
-    def __str__(self):
-        return str(self.name)
-
 
 class RootMorphology(models.Model):
     """
@@ -1825,24 +1748,6 @@ class RootMorphology(models.Model):
         app_label = 'boranga'
         verbose_name = "Root Morphology"
         verbose_name_plural = "Root Morphologies"
-        ordering = ['name']
-
-    def __str__(self):
-        return str(self.name)
-
-# TODO Not used
-class PollinatorInformation(models.Model):
-    """
-    # list derived from WACensus
-
-    Used by:
-    - SpeciesConservationAttributes
-
-    """
-    name = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
         ordering = ['name']
 
     def __str__(self):
@@ -1867,44 +1772,6 @@ class PostFireHabitatInteraction(models.Model):
 
     def __str__(self):
         return str(self.name)
-
-
-# class BreedingPeriod(models.Model):
-#     """
-#     # list derived from WACensus
-
-#     Used by:
-#     - SpeciesConservationAttributes
-
-#     """
-#     period = models.CharField(max_length=200, blank=False, unique=True)
-
-#     class Meta:
-#         app_label = 'boranga'
-#         verbose_name = "Breeding Period"
-#         verbose_name_plural = "Breeding Periods"
-#         ordering = ['period']
-
-#     def __str__(self):
-#         return str(self.period)
-
-# TODO Not USed
-class FaunaBreeding(models.Model):
-    """
-    # list derived from WACensus
-
-    Used by:
-    - SpeciesConservationAttributes
-
-    """
-    breeding_type = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
-        ordering = ['breeding_type']
-
-    def __str__(self):
-        return str(self.breeding_type)
 
 
 class SpeciesConservationAttributes(models.Model):
