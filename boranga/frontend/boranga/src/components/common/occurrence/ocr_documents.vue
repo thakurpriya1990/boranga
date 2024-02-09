@@ -4,7 +4,7 @@
             <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
-                    <div class="text-end">
+                    <div class="text-end" v-show="can_user_edit_doc">
                         <button type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
                             <i class="fa-solid fa-circle-plus"></i>
                                 Add Document
@@ -38,6 +38,14 @@ export default {
             occurrence_report_obj:{
                 type: Object,
                 required:true
+            },
+            is_external:{
+              type: Boolean,
+              default: false
+            },
+            is_internal:{
+              type: Boolean,
+              default: false
             },
         },
         data:function () {
@@ -172,12 +180,24 @@ export default {
                             data: "id",
                             mRender:function (data,type,full){
                                 let links = '';
-                                if(full.visible){
-                                    links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                // to restrict submitter to edit doc when the report is in workflow
+                                if(vm.can_user_edit_doc){
+                                    if(full.visible){
+                                        links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                    }
+                                    else{
+                                        links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                    }
                                 }
                                 else{
-                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                    if(full.visible){
+                                        links +=  `<a href='#${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#'>Remove</a><br>`;
+                                    }
+                                    else{
+                                        links += `<a href='#'>Reinstate</a><br>`;
+                                    }
                                 }
                                 return links;
                             }
@@ -201,6 +221,10 @@ export default {
             DocumentDetail,
         },
         computed: {
+            // to restrict submitter to add doc when the report is in workflow
+            can_user_edit_doc: function(){
+                return this.is_external && this.occurrence_report_obj.customer_status=="Draft";
+            }
         },
         watch:{
             

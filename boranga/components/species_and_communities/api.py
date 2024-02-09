@@ -1920,13 +1920,14 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         try:
-            instance = self.get_object()
-            serializer = SaveSpeciesDocumentSerializer(instance, data=json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            instance.add_documents(request)
-            instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
-            return Response(serializer.data)
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveSpeciesDocumentSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                instance.add_documents(request)
+                instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
+                return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1934,12 +1935,13 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            serializer = SaveSpeciesDocumentSerializer(data= json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception = True)
-            instance = serializer.save()
-            instance.add_documents(request)
-            instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
-            return Response(serializer.data)
+            with transaction.atomic():
+                serializer = SaveSpeciesDocumentSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                instance.add_documents(request)
+                instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
+                return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -2015,13 +2017,14 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         try:
-            instance = self.get_object()
-            serializer = SaveCommunityDocumentSerializer(instance, data=json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            instance.add_documents(request)
-            instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
-            return Response(serializer.data)
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveCommunityDocumentSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                instance.add_documents(request)
+                instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
+                return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2029,12 +2032,13 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            serializer = SaveCommunityDocumentSerializer(data= json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception = True)
-            instance = serializer.save()
-            instance.add_documents(request)
-            instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
-            return Response(serializer.data)
+            with transaction.atomic():
+                serializer = SaveCommunityDocumentSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                instance.add_documents(request)
+                instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
+                return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -2137,7 +2141,6 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             elif instance.community:
                 instance.community.log_user_action(CommunityUserAction.ACTION_REINSTATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
-            serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -2151,16 +2154,17 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         try:
-            instance = self.get_object()
-            serializer = SaveConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            if instance.species:
-                instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
-            elif instance.community:
-                instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                if instance.species:
+                    instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
+                elif instance.community:
+                    instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2168,15 +2172,16 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            serializer = SaveConservationThreatSerializer(data= json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception = True)
-            instance = serializer.save()
-            if instance.species:
-                instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.species.species_number),request)
-            elif instance.community:
-                instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            with transaction.atomic():
+                serializer = SaveConservationThreatSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                if instance.species:
+                    instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.species.species_number),request)
+                elif instance.community:
+                    instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
