@@ -132,7 +132,7 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
 
             filter_scientific_name = request.GET.get('filter_scientific_name')
             if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-                queryset = queryset.filter(species__taxonomy__scientific_name=filter_scientific_name)
+                queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
 
             filter_status = request.GET.get('filter_status')
             if filter_status and not filter_status.lower() == 'all':

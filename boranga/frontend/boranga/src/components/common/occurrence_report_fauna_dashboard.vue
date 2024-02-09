@@ -13,12 +13,12 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="form-group" id="select_scientific_name">
-                        <label for="or_scientific_name_lookup">Scientific Name:</label>
+                    <div class="form-group" id="select_scientific_name_by_groupname">
+                        <label for="or_scientific_name_lookup_by_groupname">Scientific Name:</label>
                             <select 
-                                id="or_scientific_name_lookup"  
-                                name="or_scientific_name_lookup"  
-                                ref="or_scientific_name_lookup" 
+                                id="or_scientific_name_lookup_by_groupname"  
+                                name="or_scientific_name_lookup_by_groupname"  
+                                ref="or_scientific_name_lookup_by_groupname" 
                                 class="form-control" />
                     </div>
                 </div>
@@ -480,7 +480,7 @@ export default {
                     "data": function ( d ) {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_occurrence = vm.filterORFaunaOccurrence;
-                        d.filter_species_scientific_name = vm.filterORFaunaScientificName;
+                        d.filter_scientific_name = vm.filterORFaunaScientificName;
                         d.filter_submission_date_time = vm.filterORFaunaSubmissionDateTime;
                         d.filter_submitted_from_date = vm.filterORFaunaSubmittedFromDate;
                         d.filter_submitted_to_date = vm.filterORFaunaSubmittedToDate;
@@ -545,14 +545,14 @@ export default {
         },
         initialiseScientificNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.or_scientific_name_lookup).select2({
+                $(vm.$refs.or_scientific_name_lookup_by_groupname).select2({
                     minimumInputLength: 2,
-                    dropdownParent: $("#select_scientific_name"),
+                    dropdownParent: $("#select_scientific_name_by_groupname"),
                     theme: 'bootstrap-5',
                     allowClear: true,
                     placeholder:"Select Scientific Name",
                     ajax: {
-                        url: api_endpoints.scientific_name_lookup,
+                        url: api_endpoints.scientific_name_lookup_by_groupname,
                         dataType: 'json',
                         data: function(params) {
                             var query = {
@@ -576,7 +576,7 @@ export default {
                     sessionStorage.setItem("filterORFaunaScientificNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-or_scientific_name_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-or_scientific_name_lookup_by_groupname-results"]')
                     searchField[0].focus();
                 });
         },
@@ -906,7 +906,7 @@ export default {
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterORFaunaScientificNameText"), vm.filterORFaunaScientificName, false, true);
-                $('#or_scientific_name_lookup').append(newOption);
+                $('#or_scientific_name_lookup_by_groupname').append(newOption);
             }
         });
     }
