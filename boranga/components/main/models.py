@@ -84,15 +84,15 @@ class RevisionedMixin(models.Model):
         abstract = True
 
 
-#@python_2_unicode_compatible
-class RequiredDocument(models.Model):
-    question = models.TextField(blank=False)
+# #@python_2_unicode_compatible
+# class RequiredDocument(models.Model):
+#     question = models.TextField(blank=False)
 
-    class Meta:
-        app_label = 'boranga'
+#     class Meta:
+#         app_label = 'boranga'
 
-    def __str__(self):
-        return self.question
+#     def __str__(self):
+#         return self.question
 
 #@python_2_unicode_compatible
 class ApplicationType(models.Model):

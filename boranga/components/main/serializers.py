@@ -2,7 +2,10 @@ from rest_framework import serializers
 from django.db.models import Sum, Max
 from boranga.components.main.models import (
         CommunicationsLogEntry, 
-        RequiredDocument, Question, GlobalSettings, ApplicationType,
+        # RequiredDocument, 
+        Question, 
+        GlobalSettings, 
+        ApplicationType,
         )
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, EmailUserRO
 from datetime import datetime, date
@@ -52,10 +55,10 @@ class GlobalSettingsSerializer(serializers.ModelSerializer):
 
 
 
-class RequiredDocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RequiredDocument
-        fields = ('id', 'park','activity', 'question')
+# class RequiredDocumentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = RequiredDocument
+#         fields = ('id', 'park','activity', 'question')
 
 
 class QuestionSerializer(serializers.ModelSerializer):

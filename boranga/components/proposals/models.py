@@ -27,7 +27,8 @@ from boranga.components.main.models import (
         #Organisation as ledger_organisation, OrganisationAddress,
         CommunicationsLogEntry, UserAction, Document, 
         ApplicationType, 
-        RequiredDocument, RevisionedMixin
+        # RequiredDocument, 
+        RevisionedMixin
         )
 from boranga.components.main.utils import get_department_user
 from boranga.components.proposals.email import (
@@ -255,7 +256,7 @@ class ProposalRequiredDocument(Document):
     _file = models.FileField(upload_to=update_proposal_required_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
-    required_doc = models.ForeignKey('RequiredDocument',related_name='proposals', on_delete=models.CASCADE)
+    # required_doc = models.ForeignKey('RequiredDocument',related_name='proposals', on_delete=models.CASCADE)
     can_hide= models.BooleanField(default=False) # after initial submit, document cannot be deleted but can be hidden
     hidden=models.BooleanField(default=False) # after initial submit prevent document from being deleted
 

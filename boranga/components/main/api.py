@@ -13,11 +13,14 @@ from rest_framework.pagination import PageNumberPagination
 from django.urls import reverse
 from boranga.components.main.models import (
         ApplicationType, 
-        RequiredDocument, Question, GlobalSettings
+        # RequiredDocument, 
+        Question, 
+        GlobalSettings
         )
 from boranga.components.main.serializers import (
         ApplicationTypeSerializer, 
-        RequiredDocumentSerializer, QuestionSerializer, GlobalSettingsSerializer, OracleSerializer, BookingSettlementReportSerializer, 
+        # RequiredDocumentSerializer, 
+        QuestionSerializer, GlobalSettingsSerializer, OracleSerializer, BookingSettlementReportSerializer, 
         )
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -37,9 +40,9 @@ class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GlobalSettingsSerializer
 
 
-class RequiredDocumentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = RequiredDocument.objects.all()
-    serializer_class = RequiredDocumentSerializer
+# class RequiredDocumentViewSet(viewsets.ReadOnlyModelViewSet):
+#     queryset = RequiredDocument.objects.all()
+#     serializer_class = RequiredDocumentSerializer
 
     # def get_queryset(self):
     #     categories=ActivityCategory.objects.filter(activity_type='marine')
