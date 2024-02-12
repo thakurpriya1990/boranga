@@ -108,6 +108,7 @@ module.exports = {
     species_lookup:"/api/species_lookup",
     communities_lookup:"/api/communities_lookup",
     scientific_name_lookup:"/api/scientific_name_lookup",
+    scientific_name_lookup_by_groupname:"/api/scientific_name_lookup_by_groupname",
     //taxon_name_lookup:"/api/taxon_name_lookup",
     common_name_lookup:"/api/common_name_lookup",
     family_lookup:"/api/family_lookup",

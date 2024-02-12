@@ -234,6 +234,16 @@ class GetScientificName(views.APIView):
             return Response({"results": data_transform})
         return Response()
 
+class GetScientificNameByGroup(views.APIView): 
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        if search_term:
+            group_type_id = request.GET.get('group_type_id', '')
+            queryset = Taxonomy.objects.values_list('scientific_name', flat=True)
+            queryset = queryset.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).distinct().values('id', 'scientific_name')[:10]
+            queryset = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in queryset]
+        return Response({"results": queryset})
+
 class GetCommonName(views.APIView):
     def get(self, request, format=None):
         group_type_id = request.GET.get('group_type_id', '')
