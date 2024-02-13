@@ -1,16 +1,16 @@
 from django.conf import settings
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 #from boranga.components.main.models import Organisation, OrganisationAddress
-from boranga.components.organisations.models import (
-                                Organisation,
-                                OrganisationContact,
-                                OrganisationRequest,
-                                OrganisationRequestUserAction,
-                                OrganisationAction,
-                                OrganisationRequestLogEntry,
-                                OrganisationLogEntry,
-                                #ledger_organisation,
-                            )
+# from boranga.components.organisations.models import (
+#                                 Organisation,
+#                                 OrganisationContact,
+#                                 OrganisationRequest,
+#                                 OrganisationRequestUserAction,
+#                                 OrganisationAction,
+#                                 OrganisationRequestLogEntry,
+#                                 OrganisationLogEntry,
+#                                 #ledger_organisation,
+#                             )
 from boranga.components.organisations.utils import (
                                 can_manage_org,
                                 can_admin_org,
@@ -95,86 +95,86 @@ class DelegateSerializer(serializers.ModelSerializer):
             'email',
         )
 
-class OrganisationSerializer(serializers.ModelSerializer):
-    #address = OrganisationAddressSerializer(read_only=True)
-    pins = serializers.SerializerMethodField(read_only=True)
-    #delegates = DelegateSerializer(many=True, read_only=True)
-    delegates = serializers.SerializerMethodField(read_only=True)
-    #organisation = LedgerOrganisationSerializer()
-    trading_name = serializers.SerializerMethodField(read_only=True)
-    apply_application_discount = serializers.SerializerMethodField(read_only=True)
-    application_discount = serializers.SerializerMethodField(read_only=True)
-    apply_licence_discount = serializers.SerializerMethodField(read_only=True)
-    licence_discount = serializers.SerializerMethodField(read_only=True)
-    charge_once_per_year = serializers.DateField(format="%d/%m",input_formats=['%d/%m'],required=False,allow_null=True)
-    last_event_application_fee_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+# class OrganisationSerializer(serializers.ModelSerializer):
+#     #address = OrganisationAddressSerializer(read_only=True)
+#     pins = serializers.SerializerMethodField(read_only=True)
+#     #delegates = DelegateSerializer(many=True, read_only=True)
+#     delegates = serializers.SerializerMethodField(read_only=True)
+#     #organisation = LedgerOrganisationSerializer()
+#     trading_name = serializers.SerializerMethodField(read_only=True)
+#     apply_application_discount = serializers.SerializerMethodField(read_only=True)
+#     application_discount = serializers.SerializerMethodField(read_only=True)
+#     apply_licence_discount = serializers.SerializerMethodField(read_only=True)
+#     licence_discount = serializers.SerializerMethodField(read_only=True)
+#     charge_once_per_year = serializers.DateField(format="%d/%m",input_formats=['%d/%m'],required=False,allow_null=True)
+#     last_event_application_fee_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
 
-    class Meta:
-        model = Organisation
-        fields = (
-            'id',
-            'name',
-            'trading_name',
-            'abn',
-            #'address',
-            'email',
-            #'organisation',
-            'phone_number',
-            'pins',
-            'delegates',
+#     class Meta:
+#         model = Organisation
+#         fields = (
+#             'id',
+#             'name',
+#             'trading_name',
+#             'abn',
+#             #'address',
+#             'email',
+#             #'organisation',
+#             'phone_number',
+#             'pins',
+#             'delegates',
 
-            'apply_application_discount',
-            'application_discount',
-            'apply_licence_discount',
-            'licence_discount',
-            'charge_once_per_year',
-            'max_num_months_ahead',
-            'last_event_application_fee_date',
-        )
+#             'apply_application_discount',
+#             'application_discount',
+#             'apply_licence_discount',
+#             'licence_discount',
+#             'charge_once_per_year',
+#             'max_num_months_ahead',
+#             'last_event_application_fee_date',
+#         )
 
-    def get_apply_application_discount(self, obj):
-        return obj.apply_application_discount
+#     def get_apply_application_discount(self, obj):
+#         return obj.apply_application_discount
 
-    def get_application_discount(self, obj):
-        return obj.application_discount
+#     def get_application_discount(self, obj):
+#         return obj.application_discount
 
-    def get_apply_licence_discount(self, obj):
-        return obj.apply_licence_discount
+#     def get_apply_licence_discount(self, obj):
+#         return obj.apply_licence_discount
 
-    def get_licence_discount(self, obj):
-        return obj.licence_discount
+#     def get_licence_discount(self, obj):
+#         return obj.licence_discount
 
-    def get_charge_once_per_year(self, obj):
-        return obj.charge_once_per_year
+#     def get_charge_once_per_year(self, obj):
+#         return obj.charge_once_per_year
 
-    def get_delegates(self, obj):
-        """
-        Default DelegateSerializer does not include whether the user is an organisation admin, so adding it here
-        """
-        delegates = []
-        for user in obj.delegates.all():
-            admin_qs = obj.contacts.filter(organisation__organisation_id=obj.organisation_id, email=user.email, is_admin=True, user_role='organisation_admin') #.values_list('is_admin',flat=True)
-            if admin_qs.count() > 0:
-                delegates.append(dict(id=user.id, name=user.get_full_name(), email=user.email, is_admin=True))
-            else:
-                delegates.append(dict(id=user.id, name=user.get_full_name(), email=user.email, is_admin=False))
+#     def get_delegates(self, obj):
+#         """
+#         Default DelegateSerializer does not include whether the user is an organisation admin, so adding it here
+#         """
+#         delegates = []
+#         for user in obj.delegates.all():
+#             admin_qs = obj.contacts.filter(organisation__organisation_id=obj.organisation_id, email=user.email, is_admin=True, user_role='organisation_admin') #.values_list('is_admin',flat=True)
+#             if admin_qs.count() > 0:
+#                 delegates.append(dict(id=user.id, name=user.get_full_name(), email=user.email, is_admin=True))
+#             else:
+#                 delegates.append(dict(id=user.id, name=user.get_full_name(), email=user.email, is_admin=False))
 
-        return delegates
+#         return delegates
 
-    def get_trading_name(self, obj):
-        return obj.organisation.trading_name
+#     def get_trading_name(self, obj):
+#         return obj.organisation.trading_name
 
-    def get_pins(self, obj):
-        try:
-            user = self.context['request'].user
-            # Check if the request user is among the first five delegates in the organisation
-            if can_manage_org(obj, user):
-                return {'one': obj.admin_pin_one, 'two': obj.admin_pin_two, 'three': obj.user_pin_one,
-                        'four': obj.user_pin_two}
-            else:
-                return None
-        except KeyError:
-            return None
+#     def get_pins(self, obj):
+#         try:
+#             user = self.context['request'].user
+#             # Check if the request user is among the first five delegates in the organisation
+#             if can_manage_org(obj, user):
+#                 return {'one': obj.admin_pin_one, 'two': obj.admin_pin_two, 'three': obj.user_pin_one,
+#                         'four': obj.user_pin_two}
+#             else:
+#                 return None
+#         except KeyError:
+#             return None
 
 
 class OrganisationCheckExistSerializer(serializers.Serializer):
@@ -202,29 +202,29 @@ class OrganisationCheckExistSerializer(serializers.Serializer):
         return data
 
 
-class MyOrganisationsSerializer(serializers.ModelSerializer):
-    is_admin = serializers.SerializerMethodField(read_only=True)
-    is_consultant = serializers.SerializerMethodField(read_only=True)
+# class MyOrganisationsSerializer(serializers.ModelSerializer):
+#     is_admin = serializers.SerializerMethodField(read_only=True)
+#     is_consultant = serializers.SerializerMethodField(read_only=True)
 
-    class Meta:
-        model = Organisation
-        fields = (
-            'id',
-            'name',
-            'abn',
-            'is_admin',
-            'is_consultant'
-        )
+#     class Meta:
+#         model = Organisation
+#         fields = (
+#             'id',
+#             'name',
+#             'abn',
+#             'is_admin',
+#             'is_consultant'
+#         )
 
-    def get_is_consultant(self, obj):
-        user = self.context['request'].user
-        # Check if the request user is among the first five delegates in the organisation
-        return is_consultant(obj, user)
+#     def get_is_consultant(self, obj):
+#         user = self.context['request'].user
+#         # Check if the request user is among the first five delegates in the organisation
+#         return is_consultant(obj, user)
 
-    def get_is_admin(self, obj):
-        user = self.context['request'].user
-        # Check if the request user is among the first five delegates in the organisation
-        return can_admin_org(obj, user)
+#     def get_is_admin(self, obj):
+#         user = self.context['request'].user
+#         # Check if the request user is among the first five delegates in the organisation
+#         return can_admin_org(obj, user)
 
 
 #class DetailsSerializer(serializers.ModelSerializer):
@@ -252,33 +252,33 @@ class MyOrganisationsSerializer(serializers.ModelSerializer):
 #                    raise serializers.ValidationError('An organisation with the same abn already exists')
 #        return data
 
-class SaveDiscountSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Organisation
-        fields = (
-            'id',
-            'apply_application_discount',
-            'application_discount',
-            'apply_licence_discount',
-            'licence_discount',
-            'charge_once_per_year',
-            'max_num_months_ahead',
-        )
+# class SaveDiscountSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Organisation
+#         fields = (
+#             'id',
+#             'apply_application_discount',
+#             'application_discount',
+#             'apply_licence_discount',
+#             'licence_discount',
+#             'charge_once_per_year',
+#             'max_num_months_ahead',
+#         )
 
 
-class OrganisationContactSerializer(serializers.ModelSerializer):
-    user_status= serializers.SerializerMethodField()
-    user_role= serializers.SerializerMethodField()
+# class OrganisationContactSerializer(serializers.ModelSerializer):
+#     user_status= serializers.SerializerMethodField()
+#     user_role= serializers.SerializerMethodField()
 
-    class Meta:
-        model = OrganisationContact
-        fields = '__all__'
+#     class Meta:
+#         model = OrganisationContact
+#         fields = '__all__'
 
-    def get_user_status(self,obj):
-        return obj.get_user_status_display()
+#     def get_user_status(self,obj):
+#         return obj.get_user_status_display()
 
-    def get_user_role(self,obj):
-        return obj.get_user_role_display()
+#     def get_user_role(self,obj):
+#         return obj.get_user_role_display()
 
 
 
@@ -296,95 +296,95 @@ class OrgRequestRequesterSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return obj.get_full_name()
 
-class OrganisationRequestSerializer(serializers.ModelSerializer):
-    identification = serializers.FileField()
-    requester = OrgRequestRequesterSerializer(read_only=True)
-    status = serializers.SerializerMethodField()
-    # role = serializers.SerializerMethodField()
+# class OrganisationRequestSerializer(serializers.ModelSerializer):
+#     identification = serializers.FileField()
+#     requester = OrgRequestRequesterSerializer(read_only=True)
+#     status = serializers.SerializerMethodField()
+#     # role = serializers.SerializerMethodField()
 
-    class Meta:
-        model = OrganisationRequest
-        fields = '__all__'
-        read_only_fields = ('requester','lodgement_date','assigned_officer')
+#     class Meta:
+#         model = OrganisationRequest
+#         fields = '__all__'
+#         read_only_fields = ('requester','lodgement_date','assigned_officer')
 
-    def get_status(self,obj):
-        return obj.get_status_display()
-    # def get_role(self,obj):
-    #     return obj.get_role_display()
-
-
-class OrganisationRequestDTSerializer(OrganisationRequestSerializer):
-    assigned_officer = serializers.CharField(source='assigned_officer.get_full_name')
-    requester = serializers.SerializerMethodField()
-
-    def get_requester(self,obj):
-        return obj.requester.get_full_name()
-
-class UserOrganisationSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='organisation.name')
-    abn = serializers.CharField(source='organisation.abn')
-    class Meta:
-        model = Organisation
-        fields = (
-            'id',
-            'name',
-            'abn'
-        )
-
-class OrganisationRequestActionSerializer(serializers.ModelSerializer):
-    who = serializers.CharField(source='who.get_full_name')
-    class Meta:
-        model = OrganisationRequestUserAction
-        fields = '__all__'
-
-class OrganisationActionSerializer(serializers.ModelSerializer):
-    who = serializers.CharField(source='who.get_full_name')
-    class Meta:
-        model = OrganisationAction
-        fields = '__all__'
-
-class OrganisationRequestCommsSerializer(serializers.ModelSerializer):
-    documents = serializers.SerializerMethodField()
-    class Meta:
-        model = OrganisationRequestLogEntry
-        fields = '__all__'
-
-    def get_documents(self,obj):
-        return [[d.name,d._file.url] for d in obj.documents.all()]
-
-class OrganisationCommsSerializer(serializers.ModelSerializer):
-    documents = serializers.SerializerMethodField()
-    class Meta:
-        model = OrganisationLogEntry
-        fields = '__all__'
-
-    def get_documents(self,obj):
-        return [[d.name,d._file.url] for d in obj.documents.all()]
-
-class OrganisationRequestLogEntrySerializer(CommunicationLogEntrySerializer):
-    documents = serializers.SerializerMethodField()
-    class Meta:
-        model = OrganisationRequestLogEntry
-        fields = '__all__'
-        read_only_fields = (
-            'customer',
-        )
-
-    def get_documents(self,obj):
-        return [[d.name,d._file.url] for d in obj.documents.all()]
+#     def get_status(self,obj):
+#         return obj.get_status_display()
+#     # def get_role(self,obj):
+#     #     return obj.get_role_display()
 
 
-class OrganisationLogEntrySerializer(CommunicationLogEntrySerializer):
-    documents = serializers.SerializerMethodField()
-    class Meta:
-        model = OrganisationLogEntry
-        fields = '__all__'
-        read_only_fields = (
-            'customer',
-        )
+# class OrganisationRequestDTSerializer(OrganisationRequestSerializer):
+#     assigned_officer = serializers.CharField(source='assigned_officer.get_full_name')
+#     requester = serializers.SerializerMethodField()
 
-    def get_documents(self,obj):
-        return [[d.name,d._file.url] for d in obj.documents.all()]
+#     def get_requester(self,obj):
+#         return obj.requester.get_full_name()
+
+# class UserOrganisationSerializer(serializers.ModelSerializer):
+#     name = serializers.CharField(source='organisation.name')
+#     abn = serializers.CharField(source='organisation.abn')
+#     class Meta:
+#         model = Organisation
+#         fields = (
+#             'id',
+#             'name',
+#             'abn'
+#         )
+
+# class OrganisationRequestActionSerializer(serializers.ModelSerializer):
+#     who = serializers.CharField(source='who.get_full_name')
+#     class Meta:
+#         model = OrganisationRequestUserAction
+#         fields = '__all__'
+
+# class OrganisationActionSerializer(serializers.ModelSerializer):
+#     who = serializers.CharField(source='who.get_full_name')
+#     class Meta:
+#         model = OrganisationAction
+#         fields = '__all__'
+
+# class OrganisationRequestCommsSerializer(serializers.ModelSerializer):
+#     documents = serializers.SerializerMethodField()
+#     class Meta:
+#         model = OrganisationRequestLogEntry
+#         fields = '__all__'
+
+#     def get_documents(self,obj):
+#         return [[d.name,d._file.url] for d in obj.documents.all()]
+
+# class OrganisationCommsSerializer(serializers.ModelSerializer):
+#     documents = serializers.SerializerMethodField()
+#     class Meta:
+#         model = OrganisationLogEntry
+#         fields = '__all__'
+
+#     def get_documents(self,obj):
+#         return [[d.name,d._file.url] for d in obj.documents.all()]
+
+# class OrganisationRequestLogEntrySerializer(CommunicationLogEntrySerializer):
+#     documents = serializers.SerializerMethodField()
+#     class Meta:
+#         model = OrganisationRequestLogEntry
+#         fields = '__all__'
+#         read_only_fields = (
+#             'customer',
+#         )
+
+#     def get_documents(self,obj):
+#         return [[d.name,d._file.url] for d in obj.documents.all()]
+
+
+# class OrganisationLogEntrySerializer(CommunicationLogEntrySerializer):
+#     documents = serializers.SerializerMethodField()
+#     class Meta:
+#         model = OrganisationLogEntry
+#         fields = '__all__'
+#         read_only_fields = (
+#             'customer',
+#         )
+
+#     def get_documents(self,obj):
+#         return [[d.name,d._file.url] for d in obj.documents.all()]
 
 class OrganisationUnlinkUserSerializer(serializers.Serializer):
     user = serializers.IntegerField()

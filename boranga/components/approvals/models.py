@@ -18,7 +18,7 @@ from taggit.models import TaggedItemBase
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from boranga.components.main.models import RevisionedMixin
 from boranga import exceptions
-from boranga.components.organisations.models import Organisation
+# from boranga.components.organisations.models import Organisation
 # from boranga.components.proposals.models import Proposal, ProposalUserAction, RequirementDocument
 from boranga.components.main.models import ( 
     CommunicationsLogEntry, 

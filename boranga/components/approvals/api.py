@@ -46,7 +46,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 #     ApprovalLogEntrySerializer,
 #     ApprovalPaymentSerializer
 # )
-from boranga.components.organisations.models import Organisation, OrganisationContact
+# from boranga.components.organisations.models import Organisation, OrganisationContact
 from boranga.helpers import is_customer, is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from boranga.components.proposals.api import ProposalFilterBackend, ProposalRenderer

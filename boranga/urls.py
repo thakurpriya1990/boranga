@@ -32,7 +32,7 @@ from django import conf
 
 # API patterns
 router = routers.DefaultRouter()
-router.register(r'organisations',org_api.OrganisationViewSet)
+# router.register(r'organisations',org_api.OrganisationViewSet)
 # router.register(r'proposal',proposal_api.ProposalViewSet)
 
 router.register(r'species',species_communities_api.SpeciesViewSet)
@@ -78,9 +78,9 @@ router.register(r'ocr_threat',occurrence_api.OCRConservationThreatViewSet)
 # router.register(r'compliances',compliances_api.ComplianceViewSet)
 # router.register(r'proposal_requirements',proposal_api.ProposalRequirementViewSet)
 # router.register(r'proposal_standard_requirements',proposal_api.ProposalStandardRequirementViewSet)
-router.register(r'organisation_requests',org_api.OrganisationRequestsViewSet)
-router.register(r'organisation_contacts',org_api.OrganisationContactViewSet)
-router.register(r'my_organisations',org_api.MyOrganisationsViewSet)
+# router.register(r'organisation_requests',org_api.OrganisationRequestsViewSet)
+# router.register(r'organisation_contacts',org_api.OrganisationContactViewSet)
+# router.register(r'my_organisations',org_api.MyOrganisationsViewSet)
 # router.register(r'users',users_api.UserViewSet)
 # router.register(r'amendment_request',proposal_api.AmendmentRequestViewSet)
 # router.register(r'compliance_amendment_request',compliances_api.ComplianceAmendmentRequestViewSet)
@@ -99,7 +99,7 @@ api_patterns = [
     # url(r'^api/filtered_payments$', approval_api.ApprovalPaymentFilterViewSet.as_view(), name='filtered_payments'),
     url(r'^api/proposal_type$', proposal_api.GetProposalType.as_view(), name='get-proposal-type'),
     url(r'^api/empty_list$', proposal_api.GetEmptyList.as_view(), name='get-empty-list'),
-    url(r'^api/organisation_access_group_members',org_api.OrganisationAccessGroupMembers.as_view(),name='organisation-access-group-members'),
+    # url(r'^api/organisation_access_group_members',org_api.OrganisationAccessGroupMembers.as_view(),name='organisation-access-group-members'),
     url(r'^api/',include(router.urls)),
     # url(r'^api/amendment_request_reason_choices',proposal_api.AmendmentRequestReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
     # url(r'^api/compliance_amendment_reason_choices',compliances_api.ComplianceAmendmentReasonChoicesView.as_view(),name='amendment_request_reason_choices'),

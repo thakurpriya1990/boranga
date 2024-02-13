@@ -22,7 +22,7 @@ from taggit.models import TaggedItemBase
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Invoice
 from ledger_api_client.country_models import Country
 from boranga import exceptions
-from boranga.components.organisations.models import Organisation, OrganisationContact, UserDelegation
+# from boranga.components.organisations.models import Organisation, OrganisationContact, UserDelegation
 from boranga.components.main.models import (
         #Organisation as ledger_organisation, OrganisationAddress,
         CommunicationsLogEntry, UserAction, Document, 

@@ -1,4 +1,4 @@
-from boranga.components.organisations.models import Organisation
+# from boranga.components.organisations.models import Organisation
 #from reversion_compare.views import HistoryCompareDetailView
 
 
