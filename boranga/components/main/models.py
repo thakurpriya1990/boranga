@@ -95,77 +95,77 @@ class RevisionedMixin(models.Model):
 #         return self.question
 
 #@python_2_unicode_compatible
-class ApplicationType(models.Model):
-    """
-    for park in Park.objects.all().order_by('id'):
-        ParkPrice.objects.create(park=park, adult=10.0, child=7.50, senior=5.00)
-    """
-    #TCLASS = 'T Class'
-    TCLASS = 'Commercial operations'
-    ECLASS = 'E Class'
-    FILMING = 'Filming'
-    EVENT = 'Event'
-    name = models.CharField(max_length=64, unique=True)
-    order = models.PositiveSmallIntegerField(default=0)
-    visible = models.BooleanField(default=True)
+# class ApplicationType(models.Model):
+#     """
+#     for park in Park.objects.all().order_by('id'):
+#         ParkPrice.objects.create(park=park, adult=10.0, child=7.50, senior=5.00)
+#     """
+#     #TCLASS = 'T Class'
+#     TCLASS = 'Commercial operations'
+#     ECLASS = 'E Class'
+#     FILMING = 'Filming'
+#     EVENT = 'Event'
+#     name = models.CharField(max_length=64, unique=True)
+#     order = models.PositiveSmallIntegerField(default=0)
+#     visible = models.BooleanField(default=True)
 
-    application_fee = models.DecimalField('Application Fee', max_digits=6, decimal_places=2, null=True)
-    oracle_code_application = models.CharField(max_length=50)
-    oracle_code_licence = models.CharField(max_length=50)
-    is_gst_exempt = models.BooleanField(default=True)
+#     application_fee = models.DecimalField('Application Fee', max_digits=6, decimal_places=2, null=True)
+#     oracle_code_application = models.CharField(max_length=50)
+#     oracle_code_licence = models.CharField(max_length=50)
+#     is_gst_exempt = models.BooleanField(default=True)
 
-    class Meta:
-        ordering = ['order', 'name']
-        app_label = 'boranga'
+#     class Meta:
+#         ordering = ['order', 'name']
+#         app_label = 'boranga'
 
-    def __str__(self):
-        return self.name
-
-
-#@python_2_unicode_compatible
-class OracleCode(models.Model):
-    CODE_TYPE_CHOICES = (
-        (ApplicationType.TCLASS, ApplicationType.TCLASS),
-        (ApplicationType.FILMING, ApplicationType.FILMING),
-        (ApplicationType.EVENT, ApplicationType.EVENT),
-    )
-    code_type = models.CharField('Application Type', max_length=64, choices=CODE_TYPE_CHOICES,
-                                        default=CODE_TYPE_CHOICES[0][0])
-    code = models.CharField(max_length=50, blank=True)
-    archive_date = models.DateField(null=True, blank=True)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return '{} - {}'.format(self.code_type, self.code)
+#     def __str__(self):
+#         return self.name
 
 
 #@python_2_unicode_compatible
-class Question(models.Model):
-    CORRECT_ANSWER_CHOICES = (
-        ('answer_one', 'Answer one'), ('answer_two', 'Answer two'), ('answer_three', 'Answer three'),
-        ('answer_four', 'Answer four'))
-    question_text = models.TextField(blank=False)
-    answer_one = models.CharField(max_length=200, blank=True)
-    answer_two = models.CharField(max_length=200, blank=True)
-    answer_three = models.CharField(max_length=200, blank=True)
-    answer_four = models.CharField(max_length=200, blank=True)
-    #answer_five = models.CharField(max_length=200, blank=True)
-    correct_answer = models.CharField('Correct Answer', max_length=40, choices=CORRECT_ANSWER_CHOICES,
-                                       default=CORRECT_ANSWER_CHOICES[0][0])
-    application_type = models.ForeignKey(ApplicationType, null=True, blank=True, on_delete=models.SET_NULL)
+# class OracleCode(models.Model):
+#     CODE_TYPE_CHOICES = (
+#         (ApplicationType.TCLASS, ApplicationType.TCLASS),
+#         (ApplicationType.FILMING, ApplicationType.FILMING),
+#         (ApplicationType.EVENT, ApplicationType.EVENT),
+#     )
+#     code_type = models.CharField('Application Type', max_length=64, choices=CODE_TYPE_CHOICES,
+#                                         default=CODE_TYPE_CHOICES[0][0])
+#     code = models.CharField(max_length=50, blank=True)
+#     archive_date = models.DateField(null=True, blank=True)
 
-    class Meta:
-        #ordering = ['name']
-        app_label = 'boranga'
+#     class Meta:
+#         app_label = 'boranga'
 
-    def __str__(self):
-        return self.question_text
+#     def __str__(self):
+#         return '{} - {}'.format(self.code_type, self.code)
 
-    @property
-    def correct_answer_value(self):
-        return getattr(self, self.correct_answer)
+
+#@python_2_unicode_compatible
+# class Question(models.Model):
+#     CORRECT_ANSWER_CHOICES = (
+#         ('answer_one', 'Answer one'), ('answer_two', 'Answer two'), ('answer_three', 'Answer three'),
+#         ('answer_four', 'Answer four'))
+#     question_text = models.TextField(blank=False)
+#     answer_one = models.CharField(max_length=200, blank=True)
+#     answer_two = models.CharField(max_length=200, blank=True)
+#     answer_three = models.CharField(max_length=200, blank=True)
+#     answer_four = models.CharField(max_length=200, blank=True)
+#     #answer_five = models.CharField(max_length=200, blank=True)
+#     correct_answer = models.CharField('Correct Answer', max_length=40, choices=CORRECT_ANSWER_CHOICES,
+#                                        default=CORRECT_ANSWER_CHOICES[0][0])
+#     application_type = models.ForeignKey(ApplicationType, null=True, blank=True, on_delete=models.SET_NULL)
+
+#     class Meta:
+#         #ordering = ['name']
+#         app_label = 'boranga'
+
+#     def __str__(self):
+#         return self.question_text
+
+#     @property
+#     def correct_answer_value(self):
+#         return getattr(self, self.correct_answer)
 
 
 #@python_2_unicode_compatible

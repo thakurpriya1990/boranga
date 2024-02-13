@@ -5,15 +5,20 @@ from ledger_api_client.ledger_models import (
         #EmailUserAction, EmailUserLogEntry
         )
 from boranga.components.organisations.models import Organisation
-from boranga.components.main.models import UserSystemSettings, Document, ApplicationType, CommunicationsLogEntry
-from boranga.components.proposals.models import Proposal
+from boranga.components.main.models import ( 
+    UserSystemSettings, 
+    Document, 
+    # ApplicationType, 
+    CommunicationsLogEntry
+)
+# from boranga.components.proposals.models import Proposal
 from boranga.components.organisations.utils import can_admin_org, is_consultant
 from boranga.helpers import is_boranga_admin, in_dbca_domain
 from rest_framework import serializers
 #from ledger.payments.helpers import is_payment_admin
 from django.utils import timezone
 from datetime import date, timedelta
-from boranga.components.approvals.models import Approval
+# from boranga.components.approvals.models import Approval
 
 
 class DocumentSerializer(serializers.ModelSerializer):

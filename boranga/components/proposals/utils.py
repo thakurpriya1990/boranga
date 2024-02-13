@@ -5,21 +5,21 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 #from preserialize.serialize import serialize
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser #, Document
-from boranga.components.proposals.models import (
-        ProposalDocument, 
-        ProposalOtherDetails, 
-        ProposalUserAction, 
-        ProposalAssessment, 
-        ProposalAssessmentAnswer, 
-        ChecklistQuestion,
-        ProposalStandardRequirement
-        )
-from boranga.components.approvals.models import Approval
+# from boranga.components.proposals.models import (
+#         ProposalDocument, 
+#         ProposalOtherDetails, 
+#         ProposalUserAction, 
+#         ProposalAssessment, 
+#         ProposalAssessmentAnswer, 
+#         ChecklistQuestion,
+#         ProposalStandardRequirement
+#         )
+# from boranga.components.approvals.models import Approval
 from boranga.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification
-from boranga.components.proposals.serializers import (
-        SaveProposalSerializer, 
-        ProposalOtherDetailsSerializer, 
-        )
+# from boranga.components.proposals.serializers import (
+#         SaveProposalSerializer, 
+#         ProposalOtherDetailsSerializer, 
+#         )
 import traceback
 import os
 from copy import deepcopy
@@ -315,7 +315,7 @@ def save_proponent_data(instance,request,viewset,parks=None,trails=None):
         save_proponent_data_tclass(instance,request,viewset,parks=None,trails=None)
 
 
-from boranga.components.main.models import ApplicationType
+# from boranga.components.main.models import ApplicationType
 
 def save_assessor_data(instance,request,viewset):
     with transaction.atomic():

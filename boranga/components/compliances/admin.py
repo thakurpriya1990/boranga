@@ -11,6 +11,6 @@ from boranga.components.compliances import models
 #    list_display = ['status']
 
 # @admin.register(models.ComplianceAmendmentReason)
-class ComplianceAmendmentReasonAdmin(admin.ModelAdmin):
-    list_display = ['reason']
+# class ComplianceAmendmentReasonAdmin(admin.ModelAdmin):
+#     list_display = ['reason']
 
