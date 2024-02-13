@@ -6,7 +6,7 @@ from boranga.components.main.models import (
     SystemMaintenance,
     ApplicationType,
     OracleCode,
-    RequiredDocument,
+    # RequiredDocument,
     Question,
     GlobalSettings,
 )
@@ -142,8 +142,8 @@ class OracleCodeInline(admin.TabularInline):
     can_delete = False
 
 # @admin.register(RequiredDocument)
-class RequiredDocumentAdmin(admin.ModelAdmin):
-    pass
+# class RequiredDocumentAdmin(admin.ModelAdmin):
+#     pass
 
 # @admin.register(GlobalSettings)
 class GlobalSettingsAdmin(admin.ModelAdmin):

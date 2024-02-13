@@ -35,7 +35,7 @@ from boranga.components.main.utils import check_db_connection
 
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
-from boranga.components.main.models import Document, ApplicationType, RequiredDocument
+from boranga.components.main.models import Document, ApplicationType
 from boranga.components.proposals.models import (
     ProposalType,
     Proposal,
