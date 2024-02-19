@@ -60,6 +60,8 @@ from boranga.components.conservation_status.models import(
     ConservationStatusAmendmentRequestDocument,
     ConservationStatusDocument,
     ProposalAmendmentReason,
+    IUCNVersion,
+    ConservationChangeCode,
 )
 from boranga.components.conservation_status.serializers import(
     SendReferralSerializer,
@@ -179,11 +181,31 @@ class GetCSProfileDict(views.APIView):
                         'code':option.code,
                         'conservation_list_id':option.conservation_list_id,
                         });
+        iucn_version_list = []
+        if group_type:
+            versions = IUCNVersion.objects.filter()
+            if versions:
+                for option in versions:
+                    iucn_version_list.append({
+                        'id': option.id,
+                        'code':option.code,
+                        });
+        change_code_list = []
+        if group_type:
+            codes = ConservationChangeCode.objects.filter()
+            if group_type:
+                for option in group_type:
+                    change_code_list.append({
+                        'id': option.id,
+                        'code':option.code,
+                        });
         res_json = {
         "species_list":species_list,
         "community_list":community_list,
         "conservation_list_values":conservation_list_values,
         "conservation_category_list":conservation_category_list,
+        "iucn_version_list":iucn_version_list,
+        "change_code_list":change_code_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
