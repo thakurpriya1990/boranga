@@ -39,8 +39,13 @@ logger = logging.getLogger('payment_checkout')
 
 
 class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = GlobalSettings.objects.all().order_by('id')
+    queryset = GlobalSettings.objects.none()
     serializer_class = GlobalSettingsSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            qs = GlobalSettings.objects.all().order_by('id')
+            return qs
 
 
 # class RequiredDocumentViewSet(viewsets.ReadOnlyModelViewSet):

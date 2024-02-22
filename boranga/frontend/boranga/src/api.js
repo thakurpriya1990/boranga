@@ -31,8 +31,7 @@ module.exports = {
     cs_referrals:"/api/cs_referrals.json",
     /*species_conservation_status:"/api/species_conservation_status",
     community_conservation_status:"/api/community_conservation_status",*/
-    document_categories: "/api/document_categories.json",
-    document_sub_categories: "/api/document_sub_categories.json",
+    document_categories_dict:"/api/document_categories_dict",
     species_documents:"/api/species_documents.json",
     community_documents:"/api/community_documents.json",
     threat:"/api/threat.json",

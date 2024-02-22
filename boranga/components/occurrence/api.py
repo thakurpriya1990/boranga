@@ -194,29 +194,30 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class OccurrenceReportRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(OccurrenceReportRenderer, self).render(data, accepted_media_type, renderer_context)
+# class OccurrenceReportRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(OccurrenceReportRenderer, self).render(data, accepted_media_type, renderer_context)
 
 
 class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (OccurrenceReportFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (OccurrenceReportRenderer,)
+    # renderer_classes = (OccurrenceReportRenderer,)
     queryset = OccurrenceReport.objects.none()
     serializer_class = ListOccurrenceReportSerializer
     page_size = 10
 
     def get_queryset(self):
         request_user = self.request.user
-        qs = OccurrenceReport.objects.all()
+        qs = OccurrenceReport.objects.none()
 
         if is_internal(self.request):
             qs = OccurrenceReport.objects.all()
         elif is_customer(self.request):
-            #user_orgs = [org.id for org in request_user.mooringlicensing_organisations.all()]
+            #user_orgs =
+            #  [org.id for org in request_user.mooringlicensing_organisations.all()]
             #qs = all.filter(Q(org_applicant_id__in=user_orgs) | Q(submitter=request_user) | Q(site_licensee_email=request_user.email))
             qs = qs.filter(Q(submitter=request_user.id))
             return qs
@@ -1085,8 +1086,13 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
     def threats(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            # TODO Do we need to sort the threats for external user (similar like documents)
             qs = instance.ocr_threats.all()
+            if is_internal(self.request):
+                qs = qs
+            elif is_customer(self.request):
+                # TODO Do we need to sort the threats for external user (similar like documents)
+                # qs = qs.filter(Q(uploaded_by=request.user.id))
+                qs = qs
             qs = qs.order_by('-date_observed')
             serializer = OCRConservationThreatSerializer(qs,many=True, context={'request':request})
             return Response(serializer.data)
@@ -1102,8 +1108,21 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
 
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
-    queryset = ObserverDetail.objects.all().order_by('id')
+    # queryset = ObserverDetail.objects.all().order_by('id')
+    queryset = ObserverDetail.objects.none()
     serializer_class = ObserverDetailSerializer
+
+    def get_queryset(self):
+        request_user = self.request.user
+        qs = ObserverDetail.objects.none()
+
+        if is_internal(self.request):
+            qs = ObserverDetail.objects.all().order_by('id')
+        elif is_customer(self.request):
+            # not sure what qs it should be for api security check
+            qs = ObserverDetail.objects.all().order_by('id')
+            return qs
+        return qs
 
     def update(self, request, *args, **kwargs):
         try:
@@ -1140,8 +1159,19 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
 
 
 class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
-    queryset = OccurrenceReportDocument.objects.all().order_by('id')
+    queryset = OccurrenceReportDocument.objects.none()
     serializer_class = OccurrenceReportDocumentSerializer
+
+    def get_queryset(self):
+        request_user = self.request.user
+        qs = OccurrenceReportDocument.objects.none()
+
+        if is_internal(self.request):
+            qs = OccurrenceReportDocument.objects.all().order_by('id')
+        elif is_customer(self.request):
+            qs = qs.filter(Q(uploaded_by=request_user.id))
+            return qs
+        return qs
 
     @detail_route(methods=['GET',], detail=True)
     def discard(self, request, *args, **kwargs):
@@ -1220,8 +1250,20 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
 
 
 class OCRConservationThreatViewSet(viewsets.ModelViewSet):
-    queryset = OCRConservationThreat.objects.all().order_by('id')
+    queryset = OCRConservationThreat.objects.none()
     serializer_class = OCRConservationThreatSerializer
+
+    def get_queryset(self):
+        request_user = self.request.user
+        qs = OCRConservationThreat.objects.none()
+
+        if is_internal(self.request):
+            qs = OCRConservationThreat.objects.all().order_by('id')
+        elif is_customer(self.request):
+            # TODO filter qs as per added_by
+            qs = OCRConservationThreat.objects.all().order_by('id')
+            return qs
+        return qs
 
     @detail_route(methods=['GET',], detail=True)
     def discard(self, request, *args, **kwargs):
