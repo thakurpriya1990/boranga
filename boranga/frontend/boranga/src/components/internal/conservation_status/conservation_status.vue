@@ -1,8 +1,7 @@
 <template lang="html">
     <div v-if="conservation_status_obj" class="container" id="internalConservationStatus">
       <div class="row" style="padding-bottom: 50px;">
-        <h3>{{ display_number }} - {{display_name }}</h3>
-        
+        <h3>{{ display_group_type }} {{ display_number }} - {{display_name }}</h3>
         <div v-if="!comparing" class="col-md-3">
            <!-- TODO -->
 
@@ -363,6 +362,11 @@ export default {
             else{
                 return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
             }
+        },
+        display_group_type: function() {
+            let group_type_string=this.conservation_status_obj.group_type
+            // to Capitalize only first character
+            return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
         },
         display_number: function() {
             return this.conservation_status_obj.conservation_status_number;

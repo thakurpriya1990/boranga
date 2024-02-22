@@ -25,7 +25,7 @@
             </div> -->
 
             <div v-if="occurrence_report_obj" id="scrollspy-heading" class="col-lg-12" >
-                <h4>Occurrence Report - <!-- {{proposal.application_type}} --> {{ occurrence_report_obj.group_type }}: {{ occurrence_report_obj.occurrence_report_number }}</h4>
+                <h4>Occurrence Report - <!-- {{proposal.application_type}} --> {{ display_group_type }}: {{ occurrence_report_obj.occurrence_report_number }}</h4>
             </div>
 
             <ProposalOccurrenceReport 
@@ -126,6 +126,11 @@ export default {
     },
     canEditStatus: function(){
       return this.occurrence_report_obj ? this.occurrence_report_obj.can_user_edit: 'false';
+    },
+    display_group_type: function() {
+        let group_type_string=this.occurrence_report_obj.group_type
+        // to Capitalize only first character
+        return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
     },
   },
   methods: {
