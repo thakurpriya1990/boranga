@@ -98,17 +98,17 @@ class MeetingFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class MeetingRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(MeetingRenderer, self).render(data, accepted_media_type, renderer_context)
+# class MeetingRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(MeetingRenderer, self).render(data, accepted_media_type, renderer_context)
     
 
 class MeetingPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (MeetingFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (MeetingRenderer,)
+    # renderer_classes = (MeetingRenderer,)
     queryset = Meeting.objects.none()
     serializer_class = ListMeetingSerializer
     page_size = 10
@@ -123,8 +123,15 @@ class MeetingPaginatedViewSet(viewsets.ModelViewSet):
         return qs
     
 class MeetingViewSet(viewsets.ModelViewSet):
-    queryset = Meeting.objects.all()
+    queryset = Meeting.objects.none()
     serializer_class = MeetingSerializer
+
+    def get_queryset(self):
+        # user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= Meeting.objects.all()
+            return qs
+        return Meeting.objects.none()
 
     def create(self, request, *args, **kwargs):
         try:
@@ -498,8 +505,15 @@ class GetMeetingDict(views.APIView):
 
 
 class MinutesViewSet(viewsets.ModelViewSet):
-    queryset = Minutes.objects.all().order_by('id')
+    queryset = Minutes.objects.none()
     serializer_class = MinutesSerializer
+
+    def get_queryset(self):
+        # user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= Minutes.objects.all().order_by('id')
+            return qs
+        return Minutes.objects.none()
 
     @detail_route(methods=['GET',], detail=True)
     def discard(self, request, *args, **kwargs):
@@ -576,8 +590,15 @@ class MinutesViewSet(viewsets.ModelViewSet):
 
 
 class CommitteeViewSet(viewsets.ModelViewSet):
-    queryset = Committee.objects.all()
+    queryset = Committee.objects.none()
     serializer_class = None
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= Committee.objects.all()
+            return qs
+        return Committee.objects.none()
     
     @detail_route(methods=['GET',], detail=True)
     def committee_members(self, request, *args, **kwargs):
@@ -605,8 +626,11 @@ class AgendaItemViewSet(viewsets.ModelViewSet):
     serializer_class = AgendaItemSerializer
 
     def get_queryset(self):
-        qs = AgendaItem.objects.all()
-        return qs
+        # user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= AgendaItem.objects.all()
+            return qs
+        return AgendaItem.objects.none()
 
     @detail_route(methods=['GET',], detail=True)
     def move_up(self, request, *args, **kwargs):

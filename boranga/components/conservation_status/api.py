@@ -60,6 +60,8 @@ from boranga.components.conservation_status.models import(
     ConservationStatusAmendmentRequestDocument,
     ConservationStatusDocument,
     ProposalAmendmentReason,
+    IUCNVersion,
+    ConservationChangeCode,
 )
 from boranga.components.conservation_status.serializers import(
     SendReferralSerializer,
@@ -179,11 +181,31 @@ class GetCSProfileDict(views.APIView):
                         'code':option.code,
                         'conservation_list_id':option.conservation_list_id,
                         });
+        iucn_version_list = []
+        if group_type:
+            versions = IUCNVersion.objects.filter()
+            if versions:
+                for option in versions:
+                    iucn_version_list.append({
+                        'id': option.id,
+                        'code':option.code,
+                        });
+        change_code_list = []
+        if group_type:
+            codes = ConservationChangeCode.objects.filter()
+            if group_type:
+                for option in codes:
+                    change_code_list.append({
+                        'id': option.id,
+                        'code':option.code,
+                        });
         res_json = {
         "species_list":species_list,
         "community_list":community_list,
         "conservation_list_values":conservation_list_values,
         "conservation_category_list":conservation_category_list,
+        "iucn_version_list":iucn_version_list,
+        "change_code_list":change_code_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
@@ -317,16 +339,16 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class SpeciesConservationStatusRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(SpeciesConservationStatusRenderer, self).render(data, accepted_media_type, renderer_context)
+# class SpeciesConservationStatusRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(SpeciesConservationStatusRenderer, self).render(data, accepted_media_type, renderer_context)
 
 class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (SpeciesConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (SpeciesConservationStatusRenderer,)
+    # renderer_classes = (SpeciesConservationStatusRenderer,)
     queryset = ConservationStatus.objects.none()
     serializer_class = ListSpeciesConservationStatusSerializer
     page_size = 10
@@ -610,16 +632,16 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class CommunityConservationStatusRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(CommunityConservationStatusRenderer, self).render(data, accepted_media_type, renderer_context)
+# class CommunityConservationStatusRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(CommunityConservationStatusRenderer, self).render(data, accepted_media_type, renderer_context)
 
 class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (CommunityConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (CommunityConservationStatusRenderer,)
+    # renderer_classes = (CommunityConservationStatusRenderer,)
     queryset = ConservationStatus.objects.none()
     serializer_class = ListCommunityConservationStatusSerializer
     page_size = 10
@@ -861,30 +883,30 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class ConservationStatusRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(ConservationStatusRenderer, self).render(data, accepted_media_type, renderer_context)
+# class ConservationStatusRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(ConservationStatusRenderer, self).render(data, accepted_media_type, renderer_context)
 
 class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (ConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (ConservationStatusRenderer,)
+    # renderer_classes = (ConservationStatusRenderer,)
     queryset = ConservationStatus.objects.none()
     serializer_class = ListConservationStatusSerializer
     page_size = 10
 
     def get_queryset(self):
         request_user = self.request.user
-        qs = ConservationStatus.objects.all()
+        qs = ConservationStatus.objects.none()
 
         if is_internal(self.request):
             qs = ConservationStatus.objects.all()
         elif is_customer(self.request):
             #user_orgs = [org.id for org in request_user.mooringlicensing_organisations.all()]
             #qs = all.filter(Q(org_applicant_id__in=user_orgs) | Q(submitter=request_user) | Q(site_licensee_email=request_user.email))
-            qs = qs.filter(Q(submitter=request_user.id))
+            qs = ConservationStatus.objects.filter(Q(submitter=request_user.id))
             return qs
 
         return qs
@@ -915,8 +937,8 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             return qs
         elif is_customer(self.request):
             # user_orgs = [org.id for org in user.boranga_organisations.all()]
-            queryset =  ConservationStatus.objects.filter( Q(submitter = user.id) )
-            return queryset
+            qs =  ConservationStatus.objects.filter( Q(submitter = user.id) )
+            return qs
         logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
         return ConservationStatus.objects.none()
 
@@ -1852,8 +1874,15 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
 
 
 class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
-    queryset = ConservationStatusAmendmentRequest.objects.all()
+    queryset = ConservationStatusAmendmentRequest.objects.none()
     serializer_class = ConservationStatusAmendmentRequestSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= ConservationStatusAmendmentRequest.objects.all().order_by('id')
+            return qs
+        return ConservationStatusAmendmentRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
         try:
@@ -1892,8 +1921,15 @@ class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
     
 
 class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
-    queryset = ConservationStatusDocument.objects.all().order_by('id')
+    queryset = ConservationStatusDocument.objects.none()
     serializer_class = ConservationStatusDocumentSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= ConservationStatusDocument.objects.all().order_by('id')
+            return qs
+        return ConservationStatusDocument.objects.none()
 
     @detail_route(methods=['GET',], detail=True)
     def discard(self, request, *args, **kwargs):

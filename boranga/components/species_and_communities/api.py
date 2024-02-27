@@ -429,14 +429,44 @@ class GetRegionDistrictFilterDict(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
 
+class GetDocumentCategoriesDict(views.APIView):
+    
+    def get(self, request, format=None):
+        document_category_list = []
+        categories = DocumentCategory.objects.all()
+        if categories:
+            for option in categories:
+                document_category_list.append({'id': option.id,
+                    'name':option.document_category_name,
+                    });
+        document_sub_category_list = []
+        sub_categories = DocumentSubCategory.objects.all()
+        if sub_categories:
+            for option in sub_categories:
+                document_sub_category_list.append({'id': option.id,
+                    'name':option.document_sub_category_name,
+                    'category_id': option.document_category_id,
+                    });
+        res_json = {
+        "document_category_list":document_category_list,
+        "document_sub_category_list":document_sub_category_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
 
+# Not used now on SpeciesProfile 
 class TaxonomyViewSet(viewsets.ModelViewSet):
-    queryset = Taxonomy.objects.all()
+    queryset = Taxonomy.objects.none()
     serializer_class = TaxonomySerializer
 
     def get_queryset(self):
-        qs = Taxonomy.objects.all()
-        return qs
+        # qs = Taxonomy.objects.all()
+        # return qs
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= Taxonomy.objects.all()
+            return qs
+        return Taxonomy.objects.none()
 
     @list_route(methods=['GET',], detail=False)
     def taxon_names(self, request, *args, **kwargs):
@@ -551,13 +581,19 @@ class GetSpeciesProfileDict(views.APIView):
         return HttpResponse(res_json, content_type='application/json')
 
 
+# Not used now on CommunityProfile
 class CommunityTaxonomyViewSet(viewsets.ModelViewSet):
-    queryset = CommunityTaxonomy.objects.all()
+    queryset = CommunityTaxonomy.objects.none()
     serializer_class = CommunityTaxonomySerializer
 
     def get_queryset(self):
-        qs = CommunityTaxonomy.objects.all()
-        return qs
+        # qs = CommunityTaxonomy.objects.all()
+        # return qs
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= CommunityTaxonomy.objects.all()
+            return qs
+        return CommunityTaxonomy.objects.none()
 
     # not used for community profile now
     @list_route(methods=['GET',], detail=False)
@@ -648,16 +684,16 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class SpeciesRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(SpeciesRenderer, self).render(data, accepted_media_type, renderer_context)
+# class SpeciesRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(SpeciesRenderer, self).render(data, accepted_media_type, renderer_context)
 
 class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (SpeciesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (SpeciesRenderer,)
+    # renderer_classes = (SpeciesRenderer,)
     queryset = Species.objects.none()
     serializer_class = ListSpeciesSerializer
     page_size = 10
@@ -804,16 +840,16 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class CommunitiesRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(CommunitiesRenderer, self).render(data, accepted_media_type, renderer_context)
+# class CommunitiesRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(CommunitiesRenderer, self).render(data, accepted_media_type, renderer_context)
 
 class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (CommunitiesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (CommunitiesRenderer,)
+    # renderer_classes = (CommunitiesRenderer,)
     queryset = Community.objects.none()
     serializer_class = ListCommunitiesSerializer
     page_size = 10
@@ -1823,39 +1859,46 @@ class CommunityViewSet(viewsets.ModelViewSet):
     
 
 
-class DocumentCategoryViewSet(viewsets.ModelViewSet):
-    queryset = DocumentCategory.objects.all()
+# class DocumentCategoryViewSet(viewsets.ModelViewSet):
+#     queryset = DocumentCategory.objects.all()
 
-    def get_queryset(self):
-        return DocumentCategory.objects.none()
+#     def get_queryset(self):
+#         return DocumentCategory.objects.none()
 
-    @list_route(methods=['GET', ], detail = False)    
-    def document_category_choices(self, request, *args, **kwargs):
-        res_obj = [] 
-        for choice in DocumentCategory.objects.all():
-            res_obj.append({'id': choice.id, 'name': choice.document_category_name})
-        res_json = json.dumps(res_obj)
-        return HttpResponse(res_json, content_type='application/json')
+#     @list_route(methods=['GET', ], detail = False)    
+#     def document_category_choices(self, request, *args, **kwargs):
+#         res_obj = [] 
+#         for choice in DocumentCategory.objects.all():
+#             res_obj.append({'id': choice.id, 'name': choice.document_category_name})
+#         res_json = json.dumps(res_obj)
+#         return HttpResponse(res_json, content_type='application/json')
 
 
-class DocumentSubCategoryViewSet(viewsets.ModelViewSet):
-    queryset = DocumentSubCategory.objects.all()
+# class DocumentSubCategoryViewSet(viewsets.ModelViewSet):
+#     queryset = DocumentSubCategory.objects.all()
 
-    def get_queryset(self):
-        return DocumentSubCategory.objects.none()
+#     def get_queryset(self):
+#         return DocumentSubCategory.objects.none()
 
-    @list_route(methods=['GET', ], detail = False)    
-    def document_sub_category_choices(self, request, *args, **kwargs):
-        res_obj = [] 
-        for choice in DocumentSubCategory.objects.all():
-            res_obj.append({'id': choice.id, 'name': choice.document_sub_category_name, 'category_id': choice.document_category_id,})
-        res_json = json.dumps(res_obj)
-        return HttpResponse(res_json, content_type='application/json')
+#     @list_route(methods=['GET', ], detail = False)    
+#     def document_sub_category_choices(self, request, *args, **kwargs):
+#         res_obj = [] 
+#         for choice in DocumentSubCategory.objects.all():
+#             res_obj.append({'id': choice.id, 'name': choice.document_sub_category_name, 'category_id': choice.document_category_id,})
+#         res_json = json.dumps(res_obj)
+#         return HttpResponse(res_json, content_type='application/json')
 
 
 class SpeciesDocumentViewSet(viewsets.ModelViewSet):
-    queryset = SpeciesDocument.objects.all().order_by('id')
+    queryset = SpeciesDocument.objects.none()
     serializer_class = SpeciesDocumentSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= SpeciesDocument.objects.all().order_by('id')
+            return qs
+        return SpeciesDocument.objects.none()
 
     @detail_route(methods=['GET',], detail=True)
     def discard(self, request, *args, **kwargs):
@@ -1951,8 +1994,15 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
 
 
 class CommunityDocumentViewSet(viewsets.ModelViewSet):
-    queryset = CommunityDocument.objects.all().order_by('id')
+    queryset = CommunityDocument.objects.none()
     serializer_class = CommunityDocumentSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= CommunityDocument.objects.all().order_by('id')
+            return qs
+        return CommunityDocument.objects.none()
 
     @detail_route(methods=['GET',], detail=True)
     def discard(self, request, *args, **kwargs):
@@ -2048,8 +2098,15 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
 
 
 class ConservationThreatViewSet(viewsets.ModelViewSet):
-    queryset = ConservationThreat.objects.all().order_by('id')
+    queryset = ConservationThreat.objects.none()
     serializer_class = ConservationThreatSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= ConservationThreat.objects.all().order_by('id')
+            return qs
+        return ConservationThreat.objects.none()
 
     #used for Threat Form dropdown lists 
     @list_route(methods=['GET',], detail=False)

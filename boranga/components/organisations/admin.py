@@ -4,7 +4,7 @@ from boranga.components.organisations import models
 from django.contrib.admin import actions
 # Register your models here.
 
-@admin.register(models.Organisation)
+# @admin.register(models.Organisation)
 class OrganisationAdmin(admin.ModelAdmin):
     list_display = ['organisation','admin_pin_one', 'admin_pin_two', 'user_pin_one', 'user_pin_two']
     search_fields = ('organisation__name','admin_pin_one', 'admin_pin_two', 'user_pin_one', 'user_pin_two' )

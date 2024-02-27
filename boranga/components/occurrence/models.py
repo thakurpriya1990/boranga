@@ -521,7 +521,8 @@ class Location(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="location")
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="location")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="location")
     observation_date = models.DateTimeField(null=True, blank=True)
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
@@ -735,8 +736,8 @@ class HabitatComposition(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="habitat_composition")
-    
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="habitat_composition")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="habitat_composition")
     land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     rock_type = models.ForeignKey(RockType, on_delete=models.SET_NULL, null=True, blank=True)
     loose_rock_percent = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)])
@@ -763,8 +764,8 @@ class HabitatCondition(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="habitat_condition")
-    
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="habitat_condition")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="habitat_condition")
     pristine = models.IntegerField(null=True, blank=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     excellent = models.IntegerField(null=True, blank=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     very_good = models.IntegerField(null=True, blank=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
@@ -808,7 +809,8 @@ class FireHistory(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="fire_history")
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="fire_history")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="fire_history")
     last_fire_estimate = models.DateField(null=True, blank=True)
     intensity = models.ForeignKey(Intensity, on_delete=models.SET_NULL, null=True, blank=True)
     comment = models.CharField(max_length=1000, null=True, blank=True)
@@ -829,7 +831,8 @@ class AssociatedSpecies(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="associated_species")
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="associated_species")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="associated_species")
     related_species = models.TextField(blank=True)
 
     class Meta:

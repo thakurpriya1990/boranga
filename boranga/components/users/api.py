@@ -27,9 +27,9 @@ from django.core.cache import cache
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address, EmailIdentity #EmailUserAction
 from ledger_api_client.country_models import Country
 from datetime import datetime,timedelta, date
-from boranga.components.organisations.models import  (
-                                    Organisation,
-                                )
+# from boranga.components.organisations.models import  (
+#                                     Organisation,
+#                                 )
 
 from boranga.components.users.serializers import   (
                                                 UserSerializer,
@@ -42,9 +42,9 @@ from boranga.components.users.serializers import   (
                                                 #EmailUserLogEntrySerializer,
                                                 UserSystemSettingsSerializer,
                                             )
-from boranga.components.organisations.serializers import (
-    OrganisationRequestDTSerializer,
-)
+# from boranga.components.organisations.serializers import (
+#     OrganisationRequestDTSerializer,
+# )
 from boranga.components.main.utils import retrieve_department_users
 from boranga.components.main.models import UserSystemSettings
 

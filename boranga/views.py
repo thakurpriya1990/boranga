@@ -19,8 +19,12 @@ from boranga.components.conservation_status.models import ConservationStatus,Con
 from boranga.components.species_and_communities.models import Species, Community
 from boranga.components.meetings.models import Meeting
 from boranga.components.occurrence.models import OccurrenceReport
-from boranga.components.proposals.models import Referral, Proposal, HelpPage
-from boranga.components.compliances.models import Compliance
+from boranga.components.proposals.models import ( 
+    # Referral, 
+    # Proposal, 
+    HelpPage
+)
+# from boranga.components.compliances.models import Compliance
 from boranga.components.proposals.mixins import ReferralOwnerMixin
 from boranga.forms import FirstTimeForm, LoginForm
 
@@ -114,9 +118,9 @@ class InternalMeetingDashboardView(DetailView):
     model = Meeting
     template_name = 'boranga/dash/index.html'
 
-class ReferralView(ReferralOwnerMixin, DetailView):
-    model = Referral
-    template_name = 'boranga/dash/index.html'
+# class ReferralView(ReferralOwnerMixin, DetailView):
+#     model = Referral
+#     template_name = 'boranga/dash/index.html'
 
 class ExternalOccurrenceReportView(DetailView):
     model = OccurrenceReport
@@ -135,17 +139,17 @@ class InternalOccurrenceReportView(DetailView):
         kwargs['form'] = LoginForm
         return super(BorangaRoutingView, self).get(*args, **kwargs)
 
-class ExternalProposalView(DetailView):
-    model = Proposal
-    template_name = 'boranga/dash/index.html'
+# class ExternalProposalView(DetailView):
+#     model = Proposal
+#     template_name = 'boranga/dash/index.html'
 
-class ExternalComplianceView(DetailView):
-    model = Compliance
-    template_name = 'boranga/dash/index.html'
+# class ExternalComplianceView(DetailView):
+#     model = Compliance
+#     template_name = 'boranga/dash/index.html'
 
-class InternalComplianceView(DetailView):
-    model = Compliance
-    template_name = 'boranga/dash/index.html'
+# class InternalComplianceView(DetailView):
+#     model = Compliance
+#     template_name = 'boranga/dash/index.html'
 
 class BorangaRoutingView(TemplateView):
     template_name = 'boranga/index.html'
@@ -171,19 +175,19 @@ class BorangaContactView(TemplateView):
 class BorangaFurtherInformationView(TemplateView):
     template_name = 'boranga/further_info.html'
 
-class InternalProposalView(DetailView):
-    #template_name = 'boranga/index.html'
-    model = Proposal
-    template_name = 'boranga/dash/index.html'
+# class InternalProposalView(DetailView):
+#     #template_name = 'boranga/index.html'
+#     model = Proposal
+#     template_name = 'boranga/dash/index.html'
 
-    def get(self, *args, **kwargs):
-        if self.request.user.is_authenticated:
-            if is_internal(self.request):
-                #return redirect('internal-proposal-detail')
-                return super(InternalProposalView, self).get(*args, **kwargs)
-            return redirect('external-proposal-detail')
-        kwargs['form'] = LoginForm
-        return super(BorangaRoutingView, self).get(*args, **kwargs)
+#     def get(self, *args, **kwargs):
+#         if self.request.user.is_authenticated:
+#             if is_internal(self.request):
+#                 #return redirect('internal-proposal-detail')
+#                 return super(InternalProposalView, self).get(*args, **kwargs)
+#             return redirect('external-proposal-detail')
+#         kwargs['form'] = LoginForm
+#         return super(BorangaRoutingView, self).get(*args, **kwargs)
 
 
 @login_required(login_url='home')

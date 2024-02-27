@@ -256,6 +256,8 @@ export default {
                 species_list: [],
                 conservation_list_values: [],
                 conservation_category_list: [],
+                iucn_version_list: [],
+                change_code_list: [],
                 // conservation_criteria_list: [],
                 filtered_conservation_category_list: [],
                 // filtered_conservation_criteria_list: [],
@@ -546,6 +548,8 @@ export default {
                 });
                 vm.conservation_category_list = vm.cs_profile_dict.conservation_category_list;
                 // vm.conservation_criteria_list = vm.cs_profile_dict.conservation_criteria_list;
+                vm.iucn_version_list = vm.cs_profile_dict.iucn_version_list;
+                vm.change_code_list = vm.cs_profile_dict.change_code_list;
                 this.getSpeciesDisplay();
                 this.filterConservationCategoryCriteria();
                 this.filterRecomConservationCategoryCriteria();

@@ -40,7 +40,7 @@
             </div> -->
 
             <div v-if="conservation_status_obj" id="scrollspy-heading" class="col-lg-12" >
-                <h4>Conservation list - <!-- {{proposal.application_type}} --> application: {{conservation_status_obj.conservation_status_number}}</h4>
+                <h4>Conservation List - {{ display_group_type }}<!-- {{proposal.application_type}} --> Application: {{conservation_status_obj.conservation_status_number}}</h4>
             </div>
 
             <ProposalConservationStatus 
@@ -168,19 +168,13 @@ export default {
     application_type_event: function(){
       return api_endpoints.event;
     },
+    display_group_type: function() {
+        let group_type_string=this.conservation_status_obj.group_type
+        // to Capitalize only first character
+        return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
+    },
   },
   methods: {
-    proposal_refs:function(){
-      let vm=this;
-      if(vm.proposal.application_type == vm.application_type_tclass) {
-          return vm.$refs.proposal_tclass;
-      } else if(vm.proposal.application_type == vm.application_type_filming) {
-          return vm.$refs.proposal_filming;
-      } else if(vm.proposal.application_type == vm.application_type_event) {
-          return vm.$refs.proposal_event;
-      }
-    },
-
     submit_text: function() {
       let vm = this;
       return 'Submit';
