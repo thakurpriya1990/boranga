@@ -906,7 +906,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         elif is_customer(self.request):
             #user_orgs = [org.id for org in request_user.mooringlicensing_organisations.all()]
             #qs = all.filter(Q(org_applicant_id__in=user_orgs) | Q(submitter=request_user) | Q(site_licensee_email=request_user.email))
-            qs = qs.filter(Q(submitter=request_user.id))
+            qs = ConservationStatus.objects.filter(Q(submitter=request_user.id))
             return qs
 
         return qs
@@ -937,8 +937,8 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             return qs
         elif is_customer(self.request):
             # user_orgs = [org.id for org in user.boranga_organisations.all()]
-            queryset =  ConservationStatus.objects.filter( Q(submitter = user.id) )
-            return queryset
+            qs =  ConservationStatus.objects.filter( Q(submitter = user.id) )
+            return qs
         logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
         return ConservationStatus.objects.none()
 

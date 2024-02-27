@@ -219,7 +219,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
             #user_orgs =
             #  [org.id for org in request_user.mooringlicensing_organisations.all()]
             #qs = all.filter(Q(org_applicant_id__in=user_orgs) | Q(submitter=request_user) | Q(site_licensee_email=request_user.email))
-            qs = qs.filter(Q(submitter=request_user.id))
+            qs = OccurrenceReport.objects.filter(Q(submitter=request_user.id))
             return qs
 
         return qs
@@ -260,8 +260,8 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             return qs
         elif is_customer(self.request):
             # user_orgs = [org.id for org in user.boranga_organisations.all()]
-            queryset =  OccurrenceReport.objects.filter( Q(submitter = user.id) )
-            return queryset
+            qs =  OccurrenceReport.objects.filter( Q(submitter = user.id) )
+            return qs
         logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
         return OccurrenceReport.objects.none()
 
@@ -1063,11 +1063,11 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
     def documents(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            qs = instance.documents.all()
+            # qs = instance.documents.all()
             if is_internal(self.request):
-                qs = qs
+                qs = instance.documents.all()
             elif is_customer(self.request):
-                qs = qs.filter(Q(uploaded_by=request.user.id))
+                qs = instance.documents.filter(Q(uploaded_by=request.user.id))
             # qs = qs.exclude(input_name='occurrence_report_approval_doc') # TODO do we need/not to show approval doc in cs documents tab
             qs = qs.order_by('-uploaded_date')
             serializer = OccurrenceReportDocumentSerializer(qs,many=True, context={'request':request})
@@ -1086,13 +1086,13 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
     def threats(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            qs = instance.ocr_threats.all()
+            # qs = instance.ocr_threats.all()
             if is_internal(self.request):
-                qs = qs
+                qs = instance.ocr_threats.all()
             elif is_customer(self.request):
                 # TODO Do we need to sort the threats for external user (similar like documents)
                 # qs = qs.filter(Q(uploaded_by=request.user.id))
-                qs = qs
+                qs = instance.ocr_threats.all()
             qs = qs.order_by('-date_observed')
             serializer = OCRConservationThreatSerializer(qs,many=True, context={'request':request})
             return Response(serializer.data)
@@ -1169,7 +1169,7 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
         if is_internal(self.request):
             qs = OccurrenceReportDocument.objects.all().order_by('id')
         elif is_customer(self.request):
-            qs = qs.filter(Q(uploaded_by=request_user.id))
+            qs = OccurrenceReportDocument.objects.filter(Q(uploaded_by=request_user.id))
             return qs
         return qs
 

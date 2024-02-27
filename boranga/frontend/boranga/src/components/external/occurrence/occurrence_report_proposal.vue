@@ -557,11 +557,9 @@ export default {
             //vm.save_wo_confirm()
             let result = await vm.save_before_submit()
             if(!vm.saveError){
-              alert(1)
               let payload = new Object();
               Object.assign(payload, vm.occurrence_report_obj);
               vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,vm.occurrence_report_obj.id+'/submit'),payload).then(res=>{
-                alert(2)
                   vm.occurrence_report_obj = res.body;
                   vm.$router.push({
                       name: 'submit_ocr_proposal',
