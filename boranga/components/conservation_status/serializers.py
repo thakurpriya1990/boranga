@@ -1265,10 +1265,11 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     # species related fields
     species_number = serializers.SerializerMethodField()
     scientific_name = serializers.SerializerMethodField()
+    common_name = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
-    family = serializers.SerializerMethodField()
-    genus = serializers.SerializerMethodField()
+    # family = serializers.SerializerMethodField()
+    # genus = serializers.SerializerMethodField()
     # community related fields
     community_number = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
@@ -1295,10 +1296,11 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             'group_type',
             'species_number',
             'scientific_name',
+            'common_name',
             'conservation_list',
             'conservation_category',
-            'family',
-            'genus',
+            # 'family',
+            # 'genus',
             'community_number',
             'community_migrated_id',
             'community_name',
@@ -1345,6 +1347,13 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             if obj.conservation_status.species.taxonomy:
                 return obj.conservation_status.species.taxonomy.scientific_name
         return ''
+    
+    def get_common_name(self,obj):
+        if obj.conservation_status.species:
+            if obj.conservation_status.species.taxonomy.vernaculars:
+                names_list=obj.conservation_status.species.taxonomy.vernaculars.all().values_list('vernacular_name', flat=True)
+                return ','.join(names_list)
+        return ''
 
     def get_community_number(self,obj):
         if obj.conservation_status.community:
@@ -1375,17 +1384,17 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             return obj.conservation_status.conservation_category.code
         return ''
     
-    def get_family(self,obj):
-        if obj.conservation_status.species:
-            if obj.conservation_status.species.taxonomy.family_fk:
-                return obj.conservation_status.species.taxonomy.family_fk.scientific_name
-        return ''
+    # def get_family(self,obj):
+    #     if obj.conservation_status.species:
+    #         if obj.conservation_status.species.taxonomy.family_fk:
+    #             return obj.conservation_status.species.taxonomy.family_fk.scientific_name
+    #     return ''
 
-    def get_genus(self,obj):
-        if obj.conservation_status.species:
-            if obj.conservation_status.species.taxonomy.genus:
-                return obj.conservation_status.species.taxonomy.genus.name
-        return ''
+    # def get_genus(self,obj):
+    #     if obj.conservation_status.species:
+    #         if obj.conservation_status.species.taxonomy.genus:
+    #             return obj.conservation_status.species.taxonomy.genus.name
+    #     return ''
 
 
 class ConservationStatusReferralProposalSerializer(InternalConservationStatusSerializer):
