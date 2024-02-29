@@ -437,6 +437,17 @@ export default {
         },
         save: async function(e) {
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                //vm.paySubmitting=false;
+                return false;
+            }
             vm.savingSpeciesCommunity=true;
             let payload = new Object();
             Object.assign(payload, vm.species_community);
@@ -464,6 +475,17 @@ export default {
         },
         save_exit: async function(e){
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                //vm.paySubmitting=false;
+                return false;
+            }
             vm.saveExitSpeciesCommunity=true;
             this.save(e);
             vm.saveExitSpeciesCommunity=false;
@@ -496,7 +518,7 @@ export default {
             });
             return result;
         },
-        can_submit: function(){
+        can_submit: function(check_action){
             let vm=this;
             let blank_fields=[]
             if (vm.species_community.group_type == 'flora' || vm.species_community.group_type == 'fauna'){
@@ -509,6 +531,9 @@ export default {
                     blank_fields.push(' Community Name is missing')
                 }
             }
+            if(check_action == 'submit'){
+                //TODO add validation for fields required before submit
+            }
             if(blank_fields.length==0){
                 return true;
             }
@@ -519,7 +544,7 @@ export default {
         submit: async function(){
             let vm = this;
 
-            var missing_data= vm.can_submit();
+            var missing_data= vm.can_submit("submit");
             if(missing_data!=true){
                 swal.fire({
                     title: "Please fix following errors before submitting",
