@@ -288,6 +288,16 @@ export default {
        
         save: async function(e) {
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                return false;
+            }
             vm.savingMeeting=true;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
@@ -312,6 +322,16 @@ export default {
         },
         save_exit: async function(e){
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                return false;
+            }
             vm.saveExitMeeting=true;
             this.save(e);
             vm.saveExitMeeting=false;
@@ -345,11 +365,11 @@ export default {
             });
             return result;
         },
-        can_submit: function(){
+        can_submit: function(check_action){
             let vm=this;
             let blank_fields=[]
             
-            blank_fields=vm.can_submit_meeting();
+            blank_fields=vm.can_submit_meeting(check_action);
             
             if(blank_fields.length==0){
                 return true;
@@ -358,7 +378,7 @@ export default {
                 return blank_fields;
             }
         },
-        can_submit_meeting: function(){
+        can_submit_meeting: function(check_action){
             let vm=this;
             let blank_fields=[]
             if (vm.meeting_obj.title == null || vm.meeting_obj.title == ''){
@@ -369,13 +389,16 @@ export default {
                     blank_fields.push(' Please select meeting type')
                 }
             }
+            if(check_action == "submit"){
+                //TODO add validation for fields required before submit
+            }
             
             return blank_fields
         },
         submit: async function(){
             let vm = this;
 
-            var missing_data= vm.can_submit();
+            var missing_data= vm.can_submit("submit");
             if(missing_data!=true){
                 swal.fire({
                     title: "Please fix following errors before submitting",

@@ -183,6 +183,16 @@ export default {
     // Priya updated this save function from LL for map
     save: async function() {
       let vm = this;
+      var missing_data= vm.can_submit("");
+      if(missing_data!=true){
+        swal.fire({
+          title: "Please fix following errors before saving",
+          text: missing_data,
+          icon:'error',
+          confirmButtonColor:'#226fbb',
+        })
+        return false;
+      }
       vm.savingOCRProposal=true;
       // add map geometry to the occurrence_report_obj
       if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
@@ -251,6 +261,16 @@ export default {
     save_exit: function() {
       let vm = this;
       // this.submitting = true;
+      var missing_data= vm.can_submit("");
+      if(missing_data!=true){
+        swal.fire({
+          title: "Please fix following errors before saving",
+          text: missing_data,
+          icon:'error',
+          confirmButtonColor:'#226fbb',
+        })
+        return false;
+      }
       this.saveExitOCRProposal=true;
       // this.save(e);
       // this.saveExitOCRProposal=false;
@@ -498,10 +518,10 @@ export default {
         return vm.missing_fields.length
     },
 
-    can_submit: function(){
+    can_submit: function(check_action){
       let vm=this;
       let blank_fields=[]
-      blank_fields=vm.can_submit_occurrence_report();
+      blank_fields=vm.can_submit_occurrence_report(check_action);
       
       if(blank_fields.length==0){
         return true;
@@ -511,7 +531,7 @@ export default {
       }
 
     },
-    can_submit_occurrence_report: function(){
+    can_submit_occurrence_report: function(check_action){
       let vm=this;
       let blank_fields=[]
       if (vm.occurrence_report_obj.group_type == 'flora' || vm.occurrence_report_obj.group_type == 'fauna'){
@@ -524,12 +544,15 @@ export default {
             blank_fields.push(' Community is missing')
         }
       }
+      if(check_action == "submit"){
+        //TODO add validation for fields required before submit
+      }
       return blank_fields
     },
     submit: function(){
         let vm = this;
 
-        var missing_data= vm.can_submit();
+        var missing_data= vm.can_submit("submit");
         if(missing_data!=true){
           swal.fire({
             title: "Please fix following errors before submitting",

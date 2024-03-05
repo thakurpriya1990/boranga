@@ -357,8 +357,8 @@ export default {
             }
         },
         datatable_headers: function(){
-            return ['Number','Species','Scientific Name','Conservation List', 
-                    'Conservation Category', 'Family', 'Genera' /*, 'Region', 'District'*/,'Status', 'Action']
+            return ['Number','Species','Scientific Name','Common Name','Conservation List', 
+                    'Conservation Category', /*'Family', 'Genera' , 'Region', 'District',*/'Status', 'Action']
         },
         column_number: function(){
             return {
@@ -405,7 +405,7 @@ export default {
                 name: "conservation_status__species__taxonomy__scientific_name",
             }
         },
-        /*column_common_name: function(){
+        column_common_name: function(){
             return {
                 data: "common_name",
                 orderable: true,
@@ -418,7 +418,7 @@ export default {
                 //'createdCell': helpers.dtPopoverCellFn,
                 name: "conservation_status__species__taxonomy__vernaculars__vernacular_name",
             }
-        },*/
+        },
         column_conservation_list: function(){
             return {
                 data: "conservation_list",
@@ -451,7 +451,7 @@ export default {
                 name: "conservation_status__conservation_category__code",
             }
         },
-        column_family: function(){
+        /*column_family: function(){
             return {
                 data: "family",
                 orderable: true,
@@ -478,7 +478,7 @@ export default {
                 //'createdCell': helpers.dtPopoverCellFn,
                 name: "species__taxonomy__genus__name",
             }
-        },
+        },*/
         column_status: function(){
             return {
                 // 9. Workflow Status
@@ -571,12 +571,12 @@ export default {
                 vm.column_number,
                 vm.column_species_number,
                 vm.column_scientific_name,
-                /*vm.column_common_name,*/
+                vm.column_common_name,
                 vm.column_conservation_list,
                 vm.column_conservation_category,
-                vm.column_family,
+                /*vm.column_family,
                 vm.column_genera,
-                /*vm.column_region,
+                vm.column_region,
                 vm.column_district,*/
                 vm.column_status,
                 vm.column_action,
@@ -957,6 +957,16 @@ export default {
                     }
                 },
                 "3":{
+                    "data":"common_name",
+                    "name":"conservation_status__species__taxonomy__vernaculars__vernacular_name",
+                    "searchable":"true",
+                    "orderable":"true",
+                    "search":{
+                        "value":"",
+                        "regex":"false"
+                    }
+                },
+                "4":{
                     "data":"conservation_list",
                     "name":"conservation_status__conservation_list__code",
                     "searchable":"true",
@@ -966,7 +976,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "4":{
+                "5":{
                     "data":"conservation_category",
                     "name":"conservation_status__conservation_category__code",
                     "searchable":"true",
@@ -976,7 +986,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "5":{
+                /*"6":{
                     "data":"family",
                     "name":"species__taxonomy__family__name",
                     "searchable":"true",
@@ -986,7 +996,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "6":{
+                "7":{
                     "data":"genus",
                     "name":"species__taxonomy__genus__name",
                     "searchable":"true",
@@ -995,8 +1005,8 @@ export default {
                         "value":"",
                         "regex":"false"
                     }
-                },
-                "7":{
+                },*/
+                "6":{
                     "data":"processing_status",
                     "name":"conservation_status__processing_status",
                     "searchable":"true",
@@ -1006,7 +1016,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                "8":{
+                "7":{
                     "data":"id",
                     "name":"",
                     "searchable":"false",
@@ -1016,7 +1026,7 @@ export default {
                         "regex":"false"
                     }
                 },
-                // "9":{
+                // "8":{
                 //     "data":"conservation_status",
                 //     "name":"",
                 //     "searchable":"true",

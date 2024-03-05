@@ -477,7 +477,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         qs = ConservationStatusReferral.objects.filter(referral=request.user.id) if is_internal(self.request) else ConservationStatusReferral.objects.none()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get('export_format')
-        allowed_fields = ['species_number', 'scientific_name', 'family', 'genus', 'conservation_list', 'conservation_category', 'processing_status', 'conservation_status_number']
+        allowed_fields = ['species_number', 'scientific_name', 'common_name', 'family', 'genus', 'conservation_list', 'conservation_category', 'processing_status', 'conservation_status_number']
 
         serializer = DTConservationStatusReferralSerializer(qs, context={'request': request}, many=True)
         serialized_data = serializer.data
@@ -500,9 +500,9 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
 
             flattened_data = [flatten_dict(item) for item in filtered_data]
             df = pd.DataFrame(flattened_data)
-            new_headings = ['Processing Status', 'Number', 'Species', 'Scientific Name', 'Conservation List', 'Conservation Category', 'Family', 'Genera']
+            new_headings = ['Processing Status', 'Number', 'Species', 'Scientific Name', 'Common Name' , 'Conservation List', 'Conservation Category']
             df.columns = new_headings
-            column_order = ['Number', 'Species', 'Scientific Name', 'Conservation List', 'Conservation Category', 'Family', 'Genera', 'Processing Status']
+            column_order = ['Number', 'Species', 'Scientific Name', 'Common Name', 'Conservation List', 'Conservation Category', 'Processing Status']
             df = df[column_order]
 
             if export_format is not None:

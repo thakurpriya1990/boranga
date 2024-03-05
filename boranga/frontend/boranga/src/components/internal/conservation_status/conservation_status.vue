@@ -328,6 +328,7 @@ export default {
             logs_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/action_log'),
             comparing: false,
             initialisedSelects: false,
+            cs_proposal_readonly: true,
         }
     },
     components: {
@@ -548,6 +549,17 @@ export default {
         },
         save: async function(e) {
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                //vm.paySubmitting=false;
+                return false;
+            }
             vm.savingConservationStatus=true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
@@ -572,6 +584,17 @@ export default {
         },
         save_exit: async function(e){
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                //vm.paySubmitting=false;
+                return false;
+            }
             vm.saveExitConservationStatus=true;
             this.save(e);
             vm.saveExitConservationStatus=false;
@@ -604,16 +627,31 @@ export default {
             });
             return result;
         },
-        can_submit: function(){
+        // can_save: function(){
+        //     let vm=this;
+        //     let blank_fields=[]
+        //     if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
+        //         if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
+        //             blank_fields.push(' Species is missing')
+        //         }
+        //     }
+        //     else{
+        //         if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == ''){
+        //             blank_fields.push(' Community is missing')
+        //         }
+        //     }
+        //     if(blank_fields.length==0){
+        //         return true;
+        //     }
+        //     else{
+        //         return blank_fields;
+        //     }
+        // },
+        can_submit: function(check_action){
             let vm=this;
             let blank_fields=[]
             // TODO check blank 
-            /*if (vm.conservation_status_obj.application_type==vm.application_type_tclass) {
-            } 
-            else if (vm.conservation_status_obj.application_type==vm.application_type_event) {
-                blank_fields=vm.can_submit_event();
-            }*/
-            blank_fields=vm.can_submit_conservation_status();
+            blank_fields=vm.can_submit_conservation_status(check_action);
             
             if(blank_fields.length==0){
                 return true;
@@ -622,7 +660,7 @@ export default {
                 return blank_fields;
             }
         },
-        can_submit_conservation_status: function(){
+        can_submit_conservation_status: function(check_action){
             let vm=this;
             let blank_fields=[]
             if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
@@ -635,18 +673,20 @@ export default {
                     blank_fields.push(' Community is missing')
                 }
             }
-            if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == ''){
-                blank_fields.push(' Conservation List is missing')
-            }
-            if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == ''){
-                blank_fields.push(' Conservation Category is missing')
+            if(check_action == "submit"){
+                if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == ''){
+                    blank_fields.push(' Conservation List is missing')
+                }
+                if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == ''){
+                    blank_fields.push(' Conservation Category is missing')
+                }
             }
             return blank_fields
         },
         submit: async function(){
             let vm = this;
 
-            var missing_data= vm.can_submit();
+            var missing_data= vm.can_submit("submit");
             if(missing_data!=true){
                 swal.fire({
                     title: "Please fix following errors before submitting",
@@ -1103,6 +1143,7 @@ export default {
         Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(res => {
               next(vm => {
                 vm.conservation_status_obj = res.body.conservation_status_obj;
+                vm.setdata(vm.conservation_status_obj.readonly);
               });
             },
             err => {
