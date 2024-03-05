@@ -119,7 +119,7 @@ class UserFilterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    boranga_organisations = serializers.SerializerMethodField()
+    # boranga_organisations = serializers.SerializerMethodField()
     residential_address = UserAddressSerializer()
     personal_details = serializers.SerializerMethodField()
     address_details = serializers.SerializerMethodField()
@@ -142,7 +142,7 @@ class UserSerializer(serializers.ModelSerializer):
             'residential_address',
             'phone_number',
             'mobile_number',
-            'boranga_organisations',
+            # 'boranga_organisations',
             'personal_details',
             'address_details',
             'contact_details',
@@ -174,20 +174,21 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.get_full_name()
 
     def get_is_department_user(self, obj):
-        if obj.email:
-            return in_dbca_domain(obj)
+        request = self.context["request"] if self.context else None
+        if request:
+            return in_dbca_domain(request)
         else:
             return False
 
     #def get_is_payment_admin(self, obj):
      #   return is_payment_admin(obj)
 
-    def get_boranga_organisations(self, obj):
-        boranga_organisations = obj.boranga_organisations
-        serialized_orgs = UserOrganisationSerializer(
-            boranga_organisations, many=True, context={
-                'user_id': obj.id}).data
-        return serialized_orgs
+    # def get_boranga_organisations(self, obj):
+    #     boranga_organisations = obj.boranga_organisations
+    #     serialized_orgs = UserOrganisationSerializer(
+    #         boranga_organisations, many=True, context={
+    #             'user_id': obj.id}).data
+    #     return serialized_orgs
 
     def get_system_settings(self, obj):
         try:
