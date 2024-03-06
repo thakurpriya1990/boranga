@@ -891,6 +891,7 @@ class SpeciesDistribution(models.Model):
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
     species = models.OneToOneField(Species, on_delete=models.CASCADE, null=True, related_name="species_distribution")
+    distribution = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -1377,12 +1378,12 @@ class CommunityDistribution(models.Model):
     area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
-    number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
     # Community Ecological Attributes
     community_original_area = models.IntegerField(null=True, blank=True)
     community_original_area_accuracy = models.IntegerField(null=True, blank=True)
     community_original_area_reference = models.CharField(max_length=512, null=True, blank=True)
     community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="community_distribution")
+    distribution = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'

@@ -72,6 +72,12 @@
         </FormSection>
         <FormSection :formCollapse="false" label="Distribution" Index="distribution">
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Distribution:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder="" v-model="species_community.distribution.distribution"/>
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)" v-model="species_community.region_id" placeholder="Select Region">

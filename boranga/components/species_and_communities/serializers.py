@@ -460,7 +460,8 @@ class SpeciesDistributionSerializer(serializers.ModelSerializer):
 			'cal_area_of_occupancy_actual',
 			'aoo_actual_auto',
 			'number_of_iucn_locations',
-			'number_of_iucn_subpopulations'
+			'number_of_iucn_subpopulations',
+			'distribution',
 			)
 
 	def get_cal_number_of_occurrences(self,obj):
@@ -492,7 +493,8 @@ class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
 			'area_of_occupancy_actual',
 			'aoo_actual_auto',
 			'number_of_iucn_locations',
-			'number_of_iucn_subpopulations'
+			'number_of_iucn_subpopulations',
+			'distribution',
 			)
 
 
@@ -696,10 +698,10 @@ class CommunityDistributionSerializer(serializers.ModelSerializer):
 			'cal_area_of_occupancy_actual',
 			'aoo_actual_auto',
 			'number_of_iucn_locations',
-			'number_of_iucn_subpopulations',
 			'community_original_area',
 			'community_original_area_accuracy',
 			'community_original_area_reference',
+			'distribution',
 			)
 
 	def get_cal_number_of_occurrences(self,obj):
@@ -731,10 +733,10 @@ class SaveCommunityDistributionSerializer(serializers.ModelSerializer):
 			'area_of_occupancy_actual',
 			'aoo_actual_auto',
 			'number_of_iucn_locations',
-			'number_of_iucn_subpopulations',
 			'community_original_area',
 			'community_original_area_accuracy',
 			'community_original_area_reference',
+			'distribution',
 			)
 
 
