@@ -166,13 +166,6 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Number of IUCN Sub-populations:</label>
-                <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="number_of_iucn_subpopulations"
-                    placeholder="" v-model="species_community.distribution.number_of_iucn_subpopulations"/>
-                </div>
-            </div>
-            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community Original Area (ha):</label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="community_original_area" placeholder="" v-model="species_community.distribution.community_original_area"/>
