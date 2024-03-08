@@ -453,7 +453,8 @@ class Species(models.Model):
             return "{} {}\n{}".format(
                 email_user.first_name,
                 email_user.last_name,
-                email_user.addresses.all().first())
+                # email_user.addresses.all().first()
+                )
 
     @property
     def applicant_address(self):
@@ -984,7 +985,9 @@ class Community(models.Model):
             return "{} {}\n{}".format(
                 email_user.first_name,
                 email_user.last_name,
-                email_user.addresses.all().first())
+                # commented below to resolve the Uppercase context error for community submit
+                # email_user.addresses.all().first()
+                )
 
     @property
     def applicant_address(self):
