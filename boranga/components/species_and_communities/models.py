@@ -886,7 +886,7 @@ class SpeciesDistribution(models.Model):
     eoo_auto = models.BooleanField(default=True) # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
     aoo_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy
-    area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
+    area_of_occupancy_actual = models.DecimalField(max_digits=15, decimal_places=5, null=True, blank=True)
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
@@ -1375,12 +1375,12 @@ class CommunityDistribution(models.Model):
     eoo_auto = models.BooleanField(default=True) # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
     aoo_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy
-    area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
+    area_of_occupancy_actual = models.DecimalField(max_digits=15, decimal_places=5, null=True, blank=True)
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     # Community Ecological Attributes
     community_original_area = models.IntegerField(null=True, blank=True)
-    community_original_area_accuracy = models.IntegerField(null=True, blank=True)
+    community_original_area_accuracy = models.DecimalField(max_digits=15, decimal_places=5, null=True, blank=True)
     community_original_area_reference = models.CharField(max_length=512, null=True, blank=True)
     community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="community_distribution")
     distribution = models.CharField(max_length=512, null=True, blank=True)

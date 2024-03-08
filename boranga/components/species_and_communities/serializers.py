@@ -465,16 +465,16 @@ class SpeciesDistributionSerializer(serializers.ModelSerializer):
 			)
 
 	def get_cal_number_of_occurrences(self,obj):
-		return 1 # TODO get calculated value from occurrence report
+		return None # TODO get calculated value from occurrence report
 
 	def get_cal_extent_of_occurrences(self,obj):
-		return 1 # TODO get calculated value from occurrence report
+		return None # TODO get calculated value from occurrence report
 
 	def get_cal_area_of_occupancy(self,obj):
-		return 1 # TODO get calculated value from occurrence report
+		return None # TODO get calculated value from occurrence report
 
 	def get_cal_area_of_occupancy_actual(self,obj):
-		return 1 # TODO get calculated value from occurrence report
+		return None # TODO get calculated value from occurrence report
 
 
 class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
@@ -705,20 +705,21 @@ class CommunityDistributionSerializer(serializers.ModelSerializer):
 			)
 
 	def get_cal_number_of_occurrences(self,obj):
-		return 1 # TODO get calculated value from occurrence report
+		return None # TODO get calculated value from occurrence report
 
 	def get_cal_extent_of_occurrences(self,obj):
-		return 1 # TODO get calculated value from occurrence report
+		return None # TODO get calculated value from occurrence report
 
 	def get_cal_area_of_occupancy(self,obj):
-		return 1 # TODO get calculated value from occurrence report
+		return None # TODO get calculated value from occurrence report
 
 	def get_cal_area_of_occupancy_actual(self,obj):
-		return 1 # TODO get calculated value from occurrence report
+		return None # TODO get calculated value from occurrence report
 
 
 class SaveCommunityDistributionSerializer(serializers.ModelSerializer): 
 	community_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+	area_of_occupancy = serializers.IntegerField(required=False, allow_null=True ,)
 	class Meta:
 		model = CommunityDistribution
 		fields = (
