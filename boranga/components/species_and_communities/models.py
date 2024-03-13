@@ -450,10 +450,11 @@ class Species(models.Model):
     def applicant_details(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
-            return "{} {}\n{}".format(
+            return "{} {}".format(
                 email_user.first_name,
                 email_user.last_name,
-                email_user.addresses.all().first())
+                # email_user.addresses.all().first()
+                )
 
     @property
     def applicant_address(self):
@@ -886,11 +887,12 @@ class SpeciesDistribution(models.Model):
     eoo_auto = models.BooleanField(default=True) # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
     aoo_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy
-    area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
+    area_of_occupancy_actual = models.DecimalField(max_digits=15, decimal_places=5, null=True, blank=True)
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
     species = models.OneToOneField(Species, on_delete=models.CASCADE, null=True, related_name="species_distribution")
+    distribution = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -980,10 +982,12 @@ class Community(models.Model):
     def applicant_details(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
-            return "{} {}\n{}".format(
+            return "{} {}".format(
                 email_user.first_name,
                 email_user.last_name,
-                email_user.addresses.all().first())
+                # commented below to resolve the Uppercase context error for community submit
+                # email_user.addresses.all().first()
+                )
 
     @property
     def applicant_address(self):
@@ -1374,15 +1378,15 @@ class CommunityDistribution(models.Model):
     eoo_auto = models.BooleanField(default=True) # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
     aoo_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy
-    area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
+    area_of_occupancy_actual = models.DecimalField(max_digits=15, decimal_places=5, null=True, blank=True)
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
-    number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
     # Community Ecological Attributes
     community_original_area = models.IntegerField(null=True, blank=True)
-    community_original_area_accuracy = models.IntegerField(null=True, blank=True)
+    community_original_area_accuracy = models.DecimalField(max_digits=15, decimal_places=5, null=True, blank=True)
     community_original_area_reference = models.CharField(max_length=512, null=True, blank=True)
     community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="community_distribution")
+    distribution = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'

@@ -170,6 +170,7 @@ export default {
             logs_url: helpers.add_endpoint_json(api_endpoints.meeting,vm.$route.params.meeting_id+'/action_log'),
             comparing: false,
             initialisedSelects: false,
+            isSaved: false,
         }
     },
     components: {
@@ -298,10 +299,11 @@ export default {
                 })
                 return false;
             }
+            vm.isSaved = false;
             vm.savingMeeting=true;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            vm.$http.post(vm.meeting_form_url,payload).then(res=>{
+            await vm.$http.post(vm.meeting_form_url,payload).then(res=>{
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes has been saved',
@@ -309,6 +311,7 @@ export default {
                     confirmButtonColor:'#226fbb'
                 });
               vm.savingMeeting=false;
+              vm.isSaved = true;
             },err=>{
                 var errorText=helpers.apiVueResourceError(err); 
                 swal.fire({
@@ -318,6 +321,7 @@ export default {
                     confirmButtonColor:'#226fbb'
                 });
                 vm.savingMeeting=false;
+                vm.isSaved = false;
             });
         },
         save_exit: async function(e){
@@ -333,13 +337,17 @@ export default {
                 return false;
             }
             vm.saveExitMeeting=true;
-            this.save(e);
-            vm.saveExitMeeting=false;
-            // redirect back to dashboard
-            vm.$router.push({
-                    name: 'internal-meetings-dash'
-                    
-                });
+            await this.save(e).then(() => {
+                if(vm.isSaved === true){
+                    // redirect back to dashboard
+                    vm.$router.push({
+                            name: 'internal-meetings-dash'
+                            
+                        });
+                }else{
+                    vm.saveExitMeeting=false;
+                }
+            })
         },
         save_before_submit: async function(e) {
             //console.log('save before submit');

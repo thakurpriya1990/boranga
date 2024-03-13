@@ -96,6 +96,12 @@
         </FormSection>
         <FormSection :formCollapse="false" label="Distribution" :Index="distributionBody">
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Distribution:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder="" v-model="species_community.distribution.distribution"/>
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)" v-model="species_community.region_id">
@@ -150,7 +156,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Area of Occupancy (km2):</label>
+                <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(2km x 2km):</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupany" placeholder="" 
                     v-model="species_community.distribution.area_of_occupancy"/>
@@ -167,7 +173,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Area of Occupancy Actual<br>(km2):</label>
                 <div class="col-sm-6">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupancy_actual" placeholder="" 
+                    <input :disabled="isReadOnly" type="number" step="any" class="form-control" id="area_of_occupancy_actual" placeholder="" 
                     v-model="species_community.distribution.area_of_occupancy_actual"/>
                 </div>
                 <div class="col-sm-3">    
@@ -791,6 +797,7 @@ export default {
                 var selectedValue = newVal;
                     if(selectedValue === "true"){
                         vm.species_community.distribution.area_of_occupancy_actual=vm.species_community.distribution.cal_area_of_occupancy_actual;
+
                     }
                     else{
                         vm.species_community.distribution.area_of_occupancy_actual=null;
@@ -804,6 +811,42 @@ export default {
                     }
                     else{
                         vm.species_community.distribution.area_of_occupancy=null;
+                    }
+            },
+            "species_community.distribution.number_of_occurrences": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.number_of_occurrences=null;
+                    }
+            },
+            "species_community.distribution.extent_of_occurrences": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.extent_of_occurrences=null;
+                    }
+            },
+            "species_community.distribution.area_of_occupancy": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.area_of_occupancy=null;
+                    }
+            },
+            "species_community.distribution.area_of_occupancy_actual": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.area_of_occupancy_actual=null;
+                    }
+            },
+            "species_community.distribution.number_of_iucn_locations": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.number_of_iucn_locations=null;
+                    }
+            },
+            "species_community.distribution.number_of_iucn_subpopulations": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.number_of_iucn_subpopulations=null;
                     }
             },
         },

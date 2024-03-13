@@ -50,13 +50,13 @@
                                   <div class="navbar-inner-right">
                                     <div v-if="occurrence_report_obj && !occurrence_report_obj.readonly" class="container">
                                       <p class="pull-right" style="margin-top:5px">
-                                        <button v-if="saveExitOCRProposal" type="button" class="btn btn-primary me-2" disabled>Save and Exit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary me-2" value="Save and Exit" :disabled="savingOCRProposal || submitting"/>
-
                                         <button v-if="savingOCRProposal" type="button" class="btn btn-primary me-2" disabled>Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2" value="Save and Continue" :disabled="saveExitOCRProposal || submitting"/>
+
+                                        <button v-if="saveExitOCRProposal" type="button" class="btn btn-primary me-2" disabled>Save and Exit&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary me-2" value="Save and Exit" :disabled="savingOCRProposal || submitting"/>
 
                                         <button v-if="submitting" type="button" class="btn btn-primary" disabled>{{ submit_text() }}&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -108,6 +108,7 @@ export default {
       newText: "",
       pBody: 'pBody',
       missing_fields: [],
+      isSaved: false,
     }
   },
   components: {
@@ -144,11 +145,7 @@ export default {
       //vm.form=document.forms.new_ocr_proposal;
       let formData = new FormData(vm.form);
 
-      //console.log('land activities', vm.proposal.selected_parks_activities);
-      formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-      formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-      formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-
+      // formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
       return formData;
     },
     // save: async function() {
@@ -194,6 +191,7 @@ export default {
         return false;
       }
       vm.savingOCRProposal=true;
+      vm.isSaved = false;
       // add map geometry to the occurrence_report_obj
       if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
         vm.occurrence_report_obj.ocr_geometry =vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
@@ -246,6 +244,7 @@ export default {
           this.$nextTick(async () => {
               this.$refs.occurrence_report.$refs.ocr_location.incrementComponentMapKey();
           });
+          vm.isSaved = true;
           return resData; 
         },err=>{
           var errorText=helpers.apiVueResourceError(err); 
@@ -256,9 +255,10 @@ export default {
             confirmButtonColor:'#226fbb',
           });
           vm.savingOCRProposal=false;
+          vm.isSaved = false;
         });
     },
-    save_exit: function() {
+    save_exit: async function() {
       let vm = this;
       // this.submitting = true;
       var missing_data= vm.can_submit("");
@@ -279,11 +279,14 @@ export default {
       //   name: 'external-occurrence_report-dash'
       // });
       // this also resolves the bug of not updating the datatable when router is pushed back to dashboard
-      this.save().then(() => {
-          this.saveExitProposal = false;
+      await this.save().then(() => {
+        if(vm.isSaved === true){
           vm.$router.push({
-              name: 'external-occurrence_report-dash',
+            name: 'external-occurrence_report-dash',
           });
+        }else{
+          this.saveExitOCRProposal = false;
+        }
       });
     },
 
@@ -362,7 +365,7 @@ export default {
           // Provide an action to have the backend lock the geometry
           payload.action = 'submit';
       }
-      const result = vm.$http.post(vm.ocr_proposal_form_url,payload).then(res=>{
+      const result = await vm.$http.post(vm.ocr_proposal_form_url,payload).then(res=>{
         // vm.submitting=false;
         // vm.saveError=false;
         this.$nextTick(async () => {
