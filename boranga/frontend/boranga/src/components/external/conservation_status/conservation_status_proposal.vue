@@ -66,13 +66,13 @@
                                   <div class="navbar-inner-right">
                                     <div v-if="conservation_status_obj && !conservation_status_obj.readonly" class="container">
                                       <p class="pull-right" style="margin-top:5px">
-                                        <button v-if="saveExitCSProposal" type="button" class="btn btn-primary me-2" disabled>Save and Exit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary me-2" value="Save and Exit" :disabled="savingCSProposal || paySubmitting"/>
-
                                         <button v-if="savingCSProposal" type="button" class="btn btn-primary me-2" disabled>Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2" value="Save and Continue" :disabled="saveExitCSProposal || paySubmitting"/>
+
+                                        <button v-if="saveExitCSProposal" type="button" class="btn btn-primary me-2" disabled>Save and Exit&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary me-2" value="Save and Exit" :disabled="savingCSProposal || paySubmitting"/>
 
                                         <button v-if="paySubmitting" type="button" class="btn btn-primary" disabled>{{ submit_text() }}&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -127,6 +127,7 @@ export default {
       pBody: 'pBody',
       missing_fields: [],
       proposal_parks:null,
+      isSaved : false,
     }
   },
   components: {
@@ -186,13 +187,10 @@ export default {
       let formData = new FormData(vm.form);
 
       //console.log('land activities', vm.proposal.selected_parks_activities);
-      formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-      formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-      formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-
+      //formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
       return formData;
     },
-    save: function(e) {
+    save: async function(e) {
       let vm = this;
       var missing_data= vm.can_submit("");
         if(missing_data!=true){
@@ -206,10 +204,10 @@ export default {
           return false;
         }
       vm.savingCSProposal=true;
-
+      vm.isSaved = false;
       let payload = new Object();
       Object.assign(payload, vm.conservation_status_obj);
-      vm.$http.post(vm.cs_proposal_form_url,payload).then(res=>{
+      await vm.$http.post(vm.cs_proposal_form_url,payload).then(res=>{
           swal.fire({
             title: 'Saved',
             text: 'Your application has been saved',
@@ -217,6 +215,7 @@ export default {
             confirmButtonColor:'#226fbb'
           });;
           vm.savingCSProposal=false;
+          vm.isSaved = true;
       },err=>{
         var errorText=helpers.apiVueResourceError(err); 
                   swal.fire({
@@ -226,9 +225,10 @@ export default {
                       confirmButtonColor:'#226fbb'
                   });
         vm.savingCSProposal=false;
+        vm.isSaved = false;
       });
     },
-    save_exit: function(e) {
+    save_exit: async function(e) {
       let vm = this;
       var missing_data= vm.can_submit("");
         if(missing_data!=true){
@@ -243,11 +243,15 @@ export default {
         }
       this.submitting = true;
       this.saveExitCSProposal=true;
-      this.save(e);
-      this.saveExitCSProposal=false;
-      // redirect back to dashboard
-      vm.$router.push({
-        name: 'external-conservation_status-dash'
+      await this.save(e).then(() => {
+        if(vm.isSaved === true){
+          // redirect back to dashboard
+          vm.$router.push({
+            name: 'external-conservation_status-dash'
+          });
+        }else{
+          this.saveExitCSProposal=false;
+        }
       });
     },
 

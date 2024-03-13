@@ -189,6 +189,7 @@ export default {
             submitSpeciesCommunity: false,
             uploadedID: null,
             imageURL:'',
+            isSaved:false,
 
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
@@ -435,9 +436,10 @@ export default {
 
             });
         },
-        save: async function(e) {
+        save: async function() {
             let vm = this;
             var missing_data= vm.can_submit("");
+            vm.isSaved = false;
             if(missing_data!=true){
                 swal.fire({
                     title: "Please fix following errors before saving",
@@ -445,23 +447,20 @@ export default {
                     icon:'error',
                     confirmButtonColor:'#226fbb'
                 })
-                //vm.paySubmitting=false;
                 return false;
             }
             vm.savingSpeciesCommunity=true;
             let payload = new Object();
             Object.assign(payload, vm.species_community);
-            vm.$http.post(vm.species_community_form_url,payload).then(res=>{
+            await vm.$http.post(vm.species_community_form_url,payload).then(res=>{
                 swal.fire({
-                    // 'Saved',
-                    // 'Your changes has been saved',
-                    // 'success'
                     title: "Saved",
                     text: "Your changes has been saved",
                     icon: "success",
                     confirmButtonColor:'#226fbb'
                 });
               vm.savingSpeciesCommunity=false;
+              vm.isSaved=true;
           },err=>{
             var errorText=helpers.apiVueResourceError(err); 
                 swal.fire({
@@ -470,8 +469,9 @@ export default {
                     icon: 'error',
                     confirmButtonColor:'#226fbb'
                 });
-            vm.savingSpeciesCommunity=false;
-          });
+                vm.savingSpeciesCommunity=false;
+                vm.isSaved=false;
+            });
         },
         save_exit: async function(e){
             let vm = this;
@@ -487,12 +487,16 @@ export default {
                 return false;
             }
             vm.saveExitSpeciesCommunity=true;
-            this.save(e);
-            vm.saveExitSpeciesCommunity=false;
-            // redirect back to dashboard
-            vm.$router.push({
-                    name: 'internal-species-communities-dash'
-                });
+            await vm.save().then(() => {
+                if(vm.isSaved === true){
+                    vm.$router.push({
+                        name: 'internal-species-communities-dash'
+                    });
+                }
+                else{
+                    vm.saveExitSpeciesCommunity=false;
+                }
+            });
         },
         save_before_submit: async function(e) {
             //console.log('save before submit');
@@ -523,12 +527,12 @@ export default {
             let blank_fields=[]
             if (vm.species_community.group_type == 'flora' || vm.species_community.group_type == 'fauna'){
                 if (vm.species_community.taxonomy_id == null || vm.species_community.taxonomy_id == ''){
-                    blank_fields.push(' Scientific Name is missing')
+                    blank_fields.push('Scientific Name is missing')
                 }
             }
             else{
                 if (vm.species_community.taxonomy_details.community_name == null || vm.species_community.taxonomy_details.community_name == ''){
-                    blank_fields.push(' Community Name is missing')
+                    blank_fields.push('Community Name is missing')
                 }
             }
             if(check_action == 'submit'){

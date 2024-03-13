@@ -329,6 +329,7 @@ export default {
             comparing: false,
             initialisedSelects: false,
             cs_proposal_readonly: true,
+            isSaved:false,
         }
     },
     components: {
@@ -560,10 +561,11 @@ export default {
                 //vm.paySubmitting=false;
                 return false;
             }
+            vm.isSaved = false;
             vm.savingConservationStatus=true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            await vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes has been saved',
@@ -571,6 +573,7 @@ export default {
                     confirmButtonColor:'#226fbb',
                 });
               vm.savingConservationStatus=false;
+              vm.isSaved = true;
           },err=>{
             var errorText=helpers.apiVueResourceError(err); 
                 swal.fire({
@@ -580,6 +583,7 @@ export default {
                     confirmButtonColor:'#226fbb'
                 });
             vm.savingConservationStatus=false;
+            vm.isSaved = false;
           });
         },
         save_exit: async function(e){
@@ -596,12 +600,16 @@ export default {
                 return false;
             }
             vm.saveExitConservationStatus=true;
-            this.save(e);
-            vm.saveExitConservationStatus=false;
-            // redirect back to dashboard
-            vm.$router.push({
-                    name: 'internal-conservation_status-dash'
-                });
+            await this.save(e).then(()=>{
+                if(vm.isSaved === true){
+                    // redirect back to dashboard
+                    vm.$router.push({
+                            name: 'internal-conservation_status-dash'
+                        });
+                }else{
+                    vm.saveExitConservationStatus=false;
+                }
+            });
         },
         save_before_submit: async function(e) {
             //console.log('save before submit');
@@ -1143,7 +1151,7 @@ export default {
         Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(res => {
               next(vm => {
                 vm.conservation_status_obj = res.body.conservation_status_obj;
-                vm.setdata(vm.conservation_status_obj.readonly);
+                //vm.setdata(vm.conservation_status_obj.readonly);
               });
             },
             err => {

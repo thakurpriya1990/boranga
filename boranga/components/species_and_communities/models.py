@@ -450,7 +450,7 @@ class Species(models.Model):
     def applicant_details(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
-            return "{} {}\n{}".format(
+            return "{} {}".format(
                 email_user.first_name,
                 email_user.last_name,
                 # email_user.addresses.all().first()
@@ -982,7 +982,7 @@ class Community(models.Model):
     def applicant_details(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
-            return "{} {}\n{}".format(
+            return "{} {}".format(
                 email_user.first_name,
                 email_user.last_name,
                 # commented below to resolve the Uppercase context error for community submit
