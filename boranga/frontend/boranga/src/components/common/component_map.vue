@@ -1,94 +1,10 @@
 <template>
-    <!--
-        TODO tasks (and ideas):
-        - populate tenure, locality, and categorisation from geoserver response (see: map_functions::validateFeature for response values and owsQuery prop for query paramerters)
-        - [DONE] prevent polygon delete after save (or save + status change)
-        - [DONE] polygon redo button
-        - [DONE] polygon edit button (move and add/remove vertices)
-        - pass in map tab filterable proposals as prop (see: prop featureCollection)
-        - standardise feature tooltip fields (lodgement_date formatting, application_type, processing_status, etc.) across models
-        - hide feature tooltip on save as it might overlap the save response modal
-        - solve click-select and hover-select for overlapping polygons (cannot click-select a feature for delete if it is under another feature)
-        - prevent referrals from creating/editing polygons in the frontend (does not save in backend anyway)
-        - disable draw tool for external when model is not in draft status
-        - disable draw tool for referral when model is not in with referral status
-        - [] display polygons of approved proposal on new license proposal (external 017, internal 041)
-        - [] display polygons from the competitive process of an proposal that proceeded to a competitive process on the proposal page
-        - implement map on approval details page and map tab
-        - keyboard input (del to delete a feature, ctrl+z to undo, ctrl+y to redo, d to draw, etc.)
-        - delete old map files
-        - rename this file
-        - automatic zoom to all on map load
-     -->
     <div>
-        <!-- <CollapsibleFilters
-            v-if="filterable"
-            ref="collapsible_filters"
-            :component_title="'Filters' + filterInformation"
-            class="mb-2"
-            @created="collapsible_component_mounted"
-        >
-            <div class="row">
-                <div class="col-md-3">
-                    <label for="">Type</label>
-                    <select
-                        v-model="filterApplicationsMapApplicationType"
-                        class="form-control"
-                    >
-                        <option value="all" selected>All</option>
-                        <option
-                            v-for="application_type in application_types"
-                            :key="application_type.id"
-                            :value="application_type.id"
-                        >
-                            {{ application_type.name_display }}
-                        </option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="">Status</label>
-                    <select
-                        v-model="filterApplicationsMapProcessingStatus"
-                        class="form-control"
-                    >
-                        <option value="all" selected>All</option>
-                        <option
-                            v-for="processing_status in processing_statuses"
-                            :key="processing_status.id"
-                            :value="processing_status.id"
-                        >
-                            {{ processing_status.text }}
-                        </option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="">Lodged From</label>
-                    <div ref="proposalDateFromPicker" class="input-group date">
-                        <input
-                            v-model="filterApplicationsMapLodgedFrom"
-                            type="date"
-                            class="form-control"
-                        />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label for="">Lodged To</label>
-                    <div ref="proposalDateToPicker" class="input-group date">
-                        <input
-                            v-model="filterApplicationsMapLodgedTo"
-                            type="date"
-                            class="form-control"
-                        />
-                    </div>
-                </div>
-            </div>
-        </CollapsibleFilters> -->
-
         <div class="justify-content-end align-items-center mb-2">
             <div v-if="mapInfoText.length > 0" class="row">
                 <div class="col-md-6">
                     <!-- <BootstrapAlert class="mb-0">
-                        // eslint-disable vue/no-v-html 
+                        // eslint-disable vue/no-v-html
                         <p><span v-html="mapInfoText"></span></p>
                         //eslint-enable
                     </BootstrapAlert> -->
@@ -687,7 +603,6 @@
 <script>
 import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks';
-//import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
 
 import { toRaw } from 'vue';
 import 'ol/ol.css';
@@ -721,9 +636,8 @@ import {
 } from '@/components/common/map_functions.js';
 
 export default {
-    name: 'MapComponentWithFiltersV2',
+    name: 'MapComponent',
     components: {
-        //CollapsibleFilters,
         FileField,
         alert,
         //RangeSlider,
@@ -737,26 +651,6 @@ export default {
                 return options.indexOf(val) != -1 ? true : false;
             },
         },
-        // filterApplicationsMapApplicationTypeCacheName: {
-        //     type: String,
-        //     required: false,
-        //     default: 'filterApplicationType',
-        // },
-        // filterApplicationsMapProcessingStatusCacheName: {
-        //     type: String,
-        //     required: false,
-        //     default: 'filterApplicationStatus',
-        // },
-        // filterApplicationsMapLodgedFromCacheName: {
-        //     type: String,
-        //     required: false,
-        //     default: 'filterApplicationLodgedFrom',
-        // },
-        // filterApplicationsMapLodgedToCacheName: {
-        //     type: String,
-        //     required: false,
-        //     default: 'filterApplicationLodgedTo',
-        // },
         /**
          * The context of the map. This is used to determine which layers to show on the map.
          * The context should be a model object, e.g. a Proposal, Application, etc.
@@ -863,14 +757,6 @@ export default {
         //     },
         // },
         /**
-         * Whether to display a filter component above the map
-         */
-        // filterable: {
-        //     type: Boolean,
-        //     required: false,
-        //     default: true,
-        // },
-        /**
          * Whether to enable drawing of new features
          */
         drawable: {
@@ -936,42 +822,6 @@ export default {
     data() {
         let vm = this;
         return {
-            // selected values for filtering
-            // filterApplicationsMapApplicationType: sessionStorage.getItem(
-            //     vm.filterApplicationsMapApplicationTypeCacheName
-            // )
-            //     ? sessionStorage.getItem(
-            //           vm.filterApplicationsMapApplicationTypeCacheName
-            //       )
-            //     : 'all',
-            // filterApplicationsMapProcessingStatus: sessionStorage.getItem(
-            //     vm.filterApplicationsMapProcessingStatusCacheName
-            // )
-            //     ? sessionStorage.getItem(
-            //           vm.filterApplicationsMapProcessingStatusCacheName
-            //       )
-            //     : 'all',
-            // filterApplicationsMapLodgedFrom: sessionStorage.getItem(
-            //     vm.filterApplicationsMapLodgedFromCacheName
-            // )
-            //     ? sessionStorage.getItem(
-            //           vm.filterApplicationsMapLodgedFromCacheName
-            //       )
-            //     : '',
-            // filterApplicationsMapLodgedTo: sessionStorage.getItem(
-            //     vm.filterApplicationsMapLodgedToCacheName
-            // )
-            //     ? sessionStorage.getItem(
-            //           vm.filterApplicationsMapLodgedToCacheName
-            //       )
-            //     : '',
-
-            // filtering options
-            // application_types: null,
-            // processing_statuses: null,
-            // select2AppliedToApplicationType: false,
-            // select2AppliedToApplicationStatus: false,
-
             elem_id: uuid(),
             map_container_id: uuid(),
             map: null,
@@ -997,7 +847,6 @@ export default {
             loadingMap: false,
             fetchingProposals: false,
             proposals: [],
-            // filteredProposals: [],
             modelQuerySource: null,
             modelQueryLayer: null,
             selectedFeatureIds: [],
@@ -1037,7 +886,7 @@ export default {
             // } else if (this.context?.model_name == 'competitiveprocess') {
             //     endpoint = api_endpoints.competitive_process;
             //     obj_id = this.context.id;
-            // } 
+            // }
             if (this.context?.model_name == 'occurrencereport') {
                 endpoint = api_endpoints.occurrence_report;
                 obj_id = this.context.id;
@@ -1052,35 +901,6 @@ export default {
             console.log({ url });
             return url;
         },
-        // filterApplied: function () {
-        //     let filter_applied = true;
-        //     if (
-        //         this.filterApplicationsMapProcessingStatus === 'all' &&
-        //         this.filterApplicationsMapApplicationType === 'all' &&
-        //         this.filterApplicationsMapLodgedFrom.toLowerCase() === '' &&
-        //         this.filterApplicationsMapLodgedTo.toLowerCase() === ''
-        //     ) {
-        //         filter_applied = false;
-        //     }
-        //     return filter_applied;
-        // },
-        // filterApplicationsMapLodgedFromMoment: function () {
-        //     return this.filterApplicationsMapLodgedFrom
-        //         ? moment(this.filterApplicationsMapLodgedFrom)
-        //         : null;
-        // },
-        // filterApplicationsMapLodgedToMoment: function () {
-        //     return this.filterApplicationsMapLodgedTo
-        //         ? moment(this.filterApplicationsMapLodgedTo)
-        //         : null;
-        // },
-        // filterInformation: function () {
-        //     if (this.proposals.length === this.filteredProposals.length) {
-        //         return ` (Showing all ${this.proposals.length} Proposals)`;
-        //     } else {
-        //         return ` (Showing ${this.filteredProposals.length} of ${this.proposals.length} Proposals)`;
-        //     }
-        // },
         canUndoAction: function () {
             // The ol-ext undo/redo module states it is still experimental, might want to disable undo/redo at all
             return true;
@@ -1182,50 +1002,6 @@ export default {
         },
     },
     watch: {
-        // filterApplicationsMapApplicationType: function () {
-        //     console.log(
-        //         'filterApplicationsMapApplicationType',
-        //         this.filterApplicationsMapApplicationType
-        //     );
-        //     this.applyFiltersFrontEnd();
-        //     sessionStorage.setItem(
-        //         this.filterApplicationsMapApplicationTypeCacheName,
-        //         this.filterApplicationsMapApplicationType
-        //     );
-        //     this.$emit('filter-appied');
-        // },
-        // filterApplicationsMapProcessingStatus: function () {
-        //     this.applyFiltersFrontEnd();
-        //     sessionStorage.setItem(
-        //         this.filterApplicationsMapProcessingStatusCacheName,
-        //         this.filterApplicationsMapProcessingStatus
-        //     );
-        //     this.$emit('filter-appied');
-        // },
-        // filterApplicationsMapLodgedFrom: function () {
-        //     this.applyFiltersFrontEnd();
-        //     sessionStorage.setItem(
-        //         'filterApplicationsMapLodgedFromForMap',
-        //         this.filterApplicationsMapLodgedFrom
-        //     );
-        //     this.$emit('filter-appied');
-        // },
-        // filterApplicationsMapLodgedTo: function () {
-        //     this.applyFiltersFrontEnd();
-        //     sessionStorage.setItem(
-        //         'filterApplicationsMapLodgedToForMap',
-        //         this.filterApplicationsMapLodgedTo
-        //     );
-        //     this.$emit('filter-appied');
-        // },
-        // filterApplied: function () {
-        //     if (this.$refs.collapsible_filters) {
-        //         // Collapsible component exists
-        //         this.$refs.collapsible_filters.show_warning_icon(
-        //             this.filterApplied
-        //         );
-        //     }
-        // },
         selectedFeatureIds: function () {
             if (this.selectedFeatureIds.length == 0) {
                 this.errorMessageProperty(null);
@@ -1233,8 +1009,7 @@ export default {
         },
     },
     created: function () {
-        console.log('created()');
-        //this.fetchFilterLists();
+        console.log('created()');        
         this.fetchProposals();
     },
     mounted: function () {
@@ -1266,52 +1041,6 @@ export default {
         });
     },
     methods: {
-        // updateFilters: function () {
-        //     this.$nextTick(function () {
-        //         console.log('updateFilters');
-        //         this.filterApplicationsMapApplicationType =
-        //             sessionStorage.getItem(
-        //                 this.filterApplicationsMapApplicationTypeCacheName
-        //             )
-        //                 ? sessionStorage.getItem(
-        //                       this.filterApplicationsMapApplicationTypeCacheName
-        //                   )
-        //                 : 'all';
-        //         console.log(
-        //             'this.filterApplicationsMapApplicationType',
-        //             this.filterApplicationsMapApplicationType
-        //         );
-        //         console.log(
-        //             'sessionStorage.getItem(this.filterApplicationsMapProcessingStatusCacheName)',
-        //             sessionStorage.getItem(
-        //                 this.filterApplicationsMapProcessingStatusCacheName
-        //             )
-        //         );
-        //         this.filterApplicationsMapProcessingStatus =
-        //             sessionStorage.getItem(
-        //                 this.filterApplicationsMapProcessingStatusCacheName
-        //             )
-        //                 ? sessionStorage.getItem(
-        //                       this
-        //                           .filterApplicationsMapProcessingStatusCacheName
-        //                   )
-        //                 : 'all';
-        //         this.filterApplicationsMapLodgedFrom = sessionStorage.getItem(
-        //             this.filterApplicationsMapLodgedFromCacheName
-        //         )
-        //             ? sessionStorage.getItem(
-        //                   this.filterApplicationsMapLodgedFromCacheName
-        //               )
-        //             : '';
-        //         this.filterApplicationsMapLodgedTo = sessionStorage.getItem(
-        //             this.filterApplicationsMapLodgedToCacheName
-        //         )
-        //             ? sessionStorage.getItem(
-        //                   this.filterApplicationsMapLodgedToCacheName
-        //               )
-        //             : '';
-        //     });
-        // },
         /**
          * Returns the euclidean distance between two pixel coordinates
          * @param {Array} p1 a pixel coordinate pair in the form [x1, y1]
@@ -1322,57 +1051,6 @@ export default {
                 Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2)
             );
         },
-        // applyFiltersFrontEnd: function () {
-        //     this.filteredProposals = [...this.proposals];
-        //     console.log('applyFiltersFrontEnd', this.filteredProposals);
-        //     console.log('this.filteredProposals', this.filteredProposals);
-        //     console.log(
-        //         'this.filterApplicationsMapApplicationType',
-        //         this.filterApplicationsMapApplicationType
-        //     );
-        //     console.log(
-        //         'this.filterApplicationsMapApplicationType typeof',
-        //         typeof this.filterApplicationsMapApplicationType
-        //     );
-        //     if ('all' != this.filterApplicationsMapApplicationType) {
-        //         this.filteredProposals = [
-        //             ...this.filteredProposals.filter(
-        //                 (proposal) =>
-        //                     proposal.application_type_id ==
-        //                     this.filterApplicationsMapApplicationType
-        //             ),
-        //         ];
-        //         console.log('this.filteredProposals', this.filteredProposals);
-        //     }
-        //     if ('all' != this.filterApplicationsMapProcessingStatus) {
-        //         this.filteredProposals = [
-        //             ...this.filteredProposals.filter(
-        //                 (proposal) =>
-        //                     proposal.processing_status ==
-        //                     this.filterApplicationsMapProcessingStatus
-        //             ),
-        //         ];
-        //     }
-        //     if ('' != this.filterApplicationsMapLodgedFrom) {
-        //         this.filteredProposals = [
-        //             ...this.filteredProposals.filter(
-        //                 (proposal) =>
-        //                     new Date(proposal.lodgement_date) >=
-        //                     new Date(this.filterApplicationsMapLodgedFrom)
-        //             ),
-        //         ];
-        //     }
-        //     if ('' != this.filterApplicationsMapLodgedTo) {
-        //         this.filteredProposals = [
-        //             ...this.filteredProposals.filter(
-        //                 (proposal) =>
-        //                     new Date(proposal.lodgement_date) <=
-        //                     new Date(this.filterApplicationsMapLodgedTo)
-        //             ),
-        //         ];
-        //     }
-        //     this.loadFeatures(this.filteredProposals);
-        // },
         valueChanged: function (value, tileLayer) {
             tileLayer.setOpacity(value / 100);
         },
@@ -1429,13 +1107,13 @@ export default {
         // changeLayerVisibility: function (targetLayer) {
         //     targetLayer.setVisible(!targetLayer.getVisible());
         // },
-        // clearMeasurementLayer: function () {
-        //     let vm = this;
-        //     let features = vm.measurementLayer.getSource().getFeatures();
-        //     features.forEach((feature) => {
-        //         vm.measurementLayer.getSource().removeFeature(feature);
-        //     });
-        // },
+        clearMeasurementLayer: function () {
+            let vm = this;
+            let features = vm.measurementLayer.getSource().getFeatures();
+            features.forEach((feature) => {
+                vm.measurementLayer.getSource().removeFeature(feature);
+            });
+        },
         forceToRefreshMap(timeout = 700) {
             let vm = this;
             setTimeout(function () {
@@ -1631,7 +1309,7 @@ export default {
             let fullScreenControl = new FullScreenControl();
             vm.map.addControl(fullScreenControl);
 
-            // vm.initialiseMeasurementLayer();
+            vm.initialiseMeasurementLayer();
             vm.initialiseQueryLayer();
             vm.initialiseDrawLayer();
 
@@ -1705,40 +1383,40 @@ export default {
             vm.modifySetActive(false);
 
             vm.initialiseSingleClickEvent();
-            // vm.initialiseDoubleClickEvent();
+            vm.initialiseDoubleClickEvent();
         },
-        // initialiseMeasurementLayer: function () {
-        //     let vm = this;
+        initialiseMeasurementLayer: function () {
+            let vm = this;
 
-        //     // Measure tool
-        //     let draw_source = new VectorSource({ wrapX: false });
-        //     vm.drawForMeasure = new Draw({
-        //         source: draw_source,
-        //         type: 'LineString',
-        //         style: vm.styleFunctionForMeasurement,
-        //     });
-        //     // Set a custom listener to the Measure tool
-        //     vm.drawForMeasure.set('escKey', '');
-        //     vm.drawForMeasure.on('change:escKey', function () {});
-        //     vm.drawForMeasure.on('drawstart', function () {
-        //         // Set measuring to true on mode change (fn `set_mode`), not drawstart
-        //     });
-        //     vm.drawForMeasure.on('drawend', function () {
-        //         // Set measuring to false on mode change
-        //     });
+            // Measure tool
+            let draw_source = new VectorSource({ wrapX: false });
+            vm.drawForMeasure = new Draw({
+                source: draw_source,
+                type: 'LineString',
+                style: vm.styleFunctionForMeasurement,
+            });
+            // Set a custom listener to the Measure tool
+            vm.drawForMeasure.set('escKey', '');
+            vm.drawForMeasure.on('change:escKey', function () {});
+            vm.drawForMeasure.on('drawstart', function () {
+                // Set measuring to true on mode change (fn `set_mode`), not drawstart
+            });
+            vm.drawForMeasure.on('drawend', function () {
+                // Set measuring to false on mode change
+            });
 
-        //     // Create a layer to retain the measurement
-        //     vm.measurementLayer = new VectorLayer({
-        //         title: 'Measurement Layer',
-        //         source: draw_source,
-        //         style: function (feature, resolution) {
-        //             feature.set('for_layer', true);
-        //             return vm.styleFunctionForMeasurement(feature, resolution);
-        //         },
-        //     });
-        //     vm.map.addInteraction(vm.drawForMeasure);
-        //     vm.map.addLayer(vm.measurementLayer);
-        // },
+            // Create a layer to retain the measurement
+            vm.measurementLayer = new VectorLayer({
+                title: 'Measurement Layer',
+                source: draw_source,
+                style: function (feature, resolution) {
+                    feature.set('for_layer', true);
+                    return vm.styleFunctionForMeasurement(feature, resolution);
+                },
+            });
+            vm.map.addInteraction(vm.drawForMeasure);
+            vm.map.addLayer(vm.measurementLayer);
+        },
         initialiseQueryLayer: function () {
             let vm = this;
 
@@ -1965,18 +1643,18 @@ export default {
                 );
 
                 // Change to info cursor if hovering over an optional layer
-                // let layer_at_pixel = layerAtEventPixel(vm, evt);
-                // // Compare layer names at pixel with optional layer names and set `hit` property accordingly
-                // let optional_layer_names = vm.optionalLayers.map((layer) => {
-                //     return layer.get('name');
-                // });
-                // let hit = layer_at_pixel.some(
-                //     (lyr) => optional_layer_names.indexOf(lyr.get('name')) >= 0
-                // );
+                let layer_at_pixel = layerAtEventPixel(vm, evt);
+                // Compare layer names at pixel with optional layer names and set `hit` property accordingly
+                let optional_layer_names = vm.optionalLayers.map((layer) => {
+                    return layer.get('name');
+                });
+                let hit = layer_at_pixel.some(
+                    (lyr) => optional_layer_names.indexOf(lyr.get('name')) >= 0
+                );
 
-                // vm.map.getTargetElement().style.cursor = hit
-                //     ? 'help'
-                //     : 'default';
+                vm.map.getTargetElement().style.cursor = hit
+                    ? 'help'
+                    : 'default';
 
                 if (selected) {
                     vm.featureToast.show();
@@ -2013,10 +1691,10 @@ export default {
                             } else {
                                 // not selected, so select
                                 // Priya commented the below to avoid the duplication count of 2 on delete button
-                                // selected.push(feature);
+                                selected.push(feature);
                             }
                             interaction.dispatchEvent({
-                                type: 'select',
+                                type: 'selected feature',
                                 selected: selected,
                                 deselected: deselected,
                             });
@@ -2050,7 +1728,8 @@ export default {
                     let pathnames = [
                         window.location.pathname,
                         model.details_url,
-                    ];
+                    ].filter((path) => path !== undefined);
+
                     for (let i = 0; i < pathnames.length; i++) {
                         let path_name = pathnames[i];
                         if (path_name[path_name.length - 1] === '/') {
@@ -2123,8 +1802,13 @@ export default {
                 layers: [vm.modelQueryLayer],
                 wrapX: false,
             });
-
-            selectSingleClick.on('select', (evt) => {
+            selectSingleClick.on('select', function (evt) {
+                console.log('original select event', evt);
+                evt.preventDefault();
+                evt.stopPropagation();
+                return false;
+            });
+            selectSingleClick.on('selected feature', (evt) => {
                 if (vm.transforming) {
                     return;
                 }
@@ -2338,11 +2022,6 @@ export default {
                         .includes(id)
             );
         },
-        // collapsible_component_mounted: function () {
-        //     this.$refs.collapsible_filters.show_warning_icon(
-        //         this.filterApplied
-        //     );
-        // },
         fetchProposals: async function () {
             let vm = this;
             vm.fetchingProposals = true;
@@ -2354,16 +2033,6 @@ export default {
                 url +=
                     `${chars.pop()}proposal_ids=` + vm.proposalIds.toString();
             }
-            // if (vm.filterApplicationsMapApplicationType != 'all') {
-            //     url +=
-            //         `${chars.pop()}application_type=` +
-            //         vm.filterApplicationsMapApplicationType;
-            // }
-            // if (vm.filterApplicationsMapProcessingStatus != 'all') {
-            //     url +=
-            //         `${chars.pop()}processing_status=` +
-            //         vm.filterApplicationsMapProcessingStatus;
-            // }
             fetch(url)
                 .then(async (response) => {
                     const data = await response.json();
@@ -2374,15 +2043,13 @@ export default {
                         return Promise.reject(error);
                     }
                     vm.proposals = data;
-                    // vm.filteredProposals = [...vm.proposals];
                     let initialisers = [
                         vm.assignProposalFeatureColors(vm.proposals),
                         vm.loadFeatures(vm.proposals),
-                        // vm.applyFiltersFrontEnd(),
                     ];
                     Promise.all(initialisers).then(() => {
                         console.log(
-                            'Done loading features and applying filters'
+                            'Done loading features'
                         );
                     });
                 })
@@ -2393,29 +2060,6 @@ export default {
                     vm.fetchingProposals = false;
                 });
         },
-        // fetchFilterLists: function () {
-        //     let vm = this;
-
-        //     // Application Types
-        //     fetch(api_endpoints.application_types + 'key-value-list/').then(
-        //         async (response) => {
-        //             const resData = await response.json();
-        //             vm.application_types = resData;
-        //         },
-        //         () => {}
-        //     );
-
-        //     // Application Statuses
-        //     fetch(
-        //         api_endpoints.application_statuses_dict + '?for_filter=true'
-        //     ).then(
-        //         async (response) => {
-        //             const resData = await response.json();
-        //             vm.processing_statuses = resData;
-        //         },
-        //         () => {}
-        //     );
-        // },
         addFeatureCollectionToMap: function (featureCollection) {
             let vm = this;
             if (featureCollection == null) {
@@ -2500,7 +2144,7 @@ export default {
             });
             // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
             feature.setId(featureData.id);
-            
+
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
             delete propertyModel.ocr_geometry;
@@ -2796,16 +2440,16 @@ export default {
             this.transformSetActive(false);
 
             if (this.mode === 'layer') {
-                //this.clearMeasurementLayer();
+                this.clearMeasurementLayer();
                 vm.toggle_draw_measure_license.bind(this)(false, false);
             } else if (this.mode === 'draw') {
-                //this.clearMeasurementLayer();
+                this.clearMeasurementLayer();
                 this.sketchCoordinates = [[]];
                 this.sketchCoordinatesHistory = [[]];
                 vm.toggle_draw_measure_license.bind(this)(false, true);
                 this.drawing = true;
             } else if (this.mode === 'transform') {
-                //this.clearMeasurementLayer();
+                this.clearMeasurementLayer();
                 this.transformSetActive(true);
                 vm.toggle_draw_measure_license.bind(this)(false, false);
                 this.transforming = true;
