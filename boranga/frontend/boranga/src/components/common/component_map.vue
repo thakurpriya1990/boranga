@@ -522,12 +522,12 @@
             <div class="col-sm-6">Redo Stack:</div>
             <div class="col-sm-6">
                 <div v-for="(item, idx) in undoStack" :key="idx">
-                    <div>u{{ item.name }}</div>
+                    <div>{{ idx }} {{ item.type }}</div>
                 </div>
             </div>
             <div class="col-sm-6">
                 <div v-for="(item, idx) in redoStack" :key="idx">
-                    <div>r{{ item.name }}</div>
+                    <div>{{ idx }} {{ item.type }}</div>
                 </div>
             </div>
         </div>
@@ -2429,7 +2429,7 @@ export default {
         undo: function () {
             let vm = this;
             // Need to do double check here
-            if (vm.mode === 'draw' && vm.canUndoDrawnVertex) {
+            if (vm.canUndoDrawnVertex) {
                 vm.undoredo_forSketch.undo();
             } else if (vm.canUndoAction) {
                 vm.undoredo.undo();
