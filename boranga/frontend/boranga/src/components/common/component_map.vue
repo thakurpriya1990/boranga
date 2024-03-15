@@ -1009,7 +1009,7 @@ export default {
         },
     },
     created: function () {
-        console.log('created()');        
+        console.log('created()');
         this.fetchProposals();
     },
     mounted: function () {
@@ -1668,8 +1668,7 @@ export default {
             vm.map.on('singleclick', function (evt) {
                 if (vm.drawing || vm.measuring) {
                     console.log(evt);
-                    // TODO: must be a feature
-                    vm.lastPoint = new Point(evt.coordinate);
+                    vm.lastPoint = new Feature(new Point(evt.coordinate));
                     return;
                 }
 
@@ -1694,7 +1693,7 @@ export default {
                                 selected.push(feature);
                             }
                             interaction.dispatchEvent({
-                                type: 'selected feature',
+                                type: 'select',
                                 selected: selected,
                                 deselected: deselected,
                             });
@@ -1801,14 +1800,12 @@ export default {
                 style: vm.basicSelectStyle,
                 layers: [vm.modelQueryLayer],
                 wrapX: false,
+                condition: function (event) {
+                    // Prevent the interaction's standard select event
+                    return false;
+                },
             });
-            selectSingleClick.on('select', function (evt) {
-                console.log('original select event', evt);
-                evt.preventDefault();
-                evt.stopPropagation();
-                return false;
-            });
-            selectSingleClick.on('selected feature', (evt) => {
+            selectSingleClick.on('select', (evt) => {
                 if (vm.transforming) {
                     return;
                 }
