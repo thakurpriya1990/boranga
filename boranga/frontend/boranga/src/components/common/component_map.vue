@@ -631,7 +631,7 @@ import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 // import FileField from '@/components/forms/filefield_immediate.vue';
 import {
     // addOptionalLayers,
-    //set_mode,
+    set_mode,
     baselayer_name,
     // validateFeature,
     layerAtEventPixel,
@@ -868,7 +868,7 @@ export default {
                 color: 'rgba(255, 255, 255, 0.5)',
                 width: 1,
             }),
-            // set_mode: set_mode,
+            set_mode: set_mode,
             isValidating: false,
             errorMessage: null,
             overlayFeatureInfo: {},
@@ -1799,8 +1799,7 @@ export default {
                 style: vm.basicSelectStyle,
                 layers: [vm.modelQueryLayer],
                 wrapX: false,
-                // eslint-disable-next-line no-unused-vars
-                condition: function (event) {
+                condition: function () {
                     // Prevent the interaction's standard select event
                     return false;
                 },
@@ -2411,61 +2410,6 @@ export default {
                 );
             }
             return 'last action';
-        },
-
-        set_mode: function (mode) {
-            let vm = this;
-            // Toggle map mode on/off when the new mode is the old one
-            if (this.mode == mode) {
-                this.mode = 'layer';
-            } else {
-                this.mode = mode;
-            }
-
-            this.drawing = false;
-            this.measuring = false;
-            this.informing = false;
-            this.transforming = false;
-            this.errorMessageProperty(null);
-            this.overlay(undefined);
-            this.map.getTargetElement().style.cursor = 'default';
-            this.transformSetActive(false);
-
-            if (this.mode === 'layer') {
-                this.clearMeasurementLayer();
-                vm.toggle_draw_measure_license.bind(this)(false, false);
-            } else if (this.mode === 'draw') {
-                this.clearMeasurementLayer();
-                this.sketchCoordinates = [[]];
-                this.sketchCoordinatesHistory = [[]];
-                vm.toggle_draw_measure_license.bind(this)(false, true);
-                this.drawing = true;
-            } else if (this.mode === 'transform') {
-                this.clearMeasurementLayer();
-                this.transformSetActive(true);
-                vm.toggle_draw_measure_license.bind(this)(false, false);
-                this.transforming = true;
-            } else if (this.mode === 'measure') {
-                vm.toggle_draw_measure_license.bind(this)(true, false);
-                this.measuring = true;
-            } else if (this.mode === 'info') {
-                vm.toggle_draw_measure_license.bind(this)(false, false);
-                this.informing = true;
-            } else {
-                console.error(`Cannot set mode ${mode}`);
-                return false;
-            }
-            if (this.select) {
-                // Call back to the map so selected features can adept their style to the new mode
-                this.select.dispatchEvent({
-                    type: 'map:modeChanged',
-                    details: {
-                        new_mode: this.mode,
-                    },
-                });
-            }
-
-            return true;
         },
         toggle_draw_measure_license: function (drawForMeasure, drawForModel) {
             if (this.drawForMeasure) {
