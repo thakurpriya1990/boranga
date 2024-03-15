@@ -8,7 +8,10 @@
                         <p><span v-html="mapInfoText"></span></p>
                         //eslint-enable
                     </BootstrapAlert> -->
-                    <alert type="info"><strong><p><span v-html="mapInfoText"></span></p></strong></alert>
+                    <alert type="info"
+                        ><strong
+                            ><p><span v-html="mapInfoText"></span></p></strong
+                    ></alert>
                 </div>
                 <div class="col-md-6">
                     <div class="row" style="margin: auto">
@@ -19,7 +22,7 @@
                             icon="exclamation-triangle-fill"
                         >
                             <span> {{ errorMessage }} </span>
-                    </alert>
+                        </alert>
                     </div>
                     <div class="row" style="margin: auto">
                         <alert
@@ -322,9 +325,8 @@
                             <img src="" class="rounded me-2" alt="" />
                             <!-- FIXME: Can this be standardised into the same field name? -->
                             <strong class="me-auto">
-                                {{
-                                    selectedModel.label
-                                }}: {{ selectedModel.occurrence_report_number }}
+                                {{ selectedModel.label }}:
+                                {{ selectedModel.occurrence_report_number }}
                             </strong>
                         </div>
                         <div class="toast-body">
@@ -606,7 +608,7 @@ import { api_endpoints, helpers } from '@/utils/hooks';
 
 import { toRaw } from 'vue';
 import 'ol/ol.css';
-import alert from '@vue-utils/alert.vue'
+import alert from '@vue-utils/alert.vue';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
@@ -626,19 +628,19 @@ import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
-import FileField from '@/components/forms/filefield_immediate.vue';
+// import FileField from '@/components/forms/filefield_immediate.vue';
 import {
-    addOptionalLayers,
+    // addOptionalLayers,
     //set_mode,
     baselayer_name,
-    validateFeature,
+    // validateFeature,
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
 
 export default {
     name: 'MapComponent',
     components: {
-        FileField,
+        // FileField,
         alert,
         //RangeSlider,
     },
@@ -820,6 +822,7 @@ export default {
     // emits: ['filter-appied', 'validate-feature', 'refreshFromResponse'],
     emits: ['validate-feature', 'refreshFromResponse'],
     data() {
+        // eslint-disable-next-line no-unused-vars
         let vm = this;
         return {
             elem_id: uuid(),
@@ -1067,11 +1070,7 @@ export default {
                 vm.modelQuerySource.getFeatures(),
                 {}
             );
-            vm.download_content(
-                json,
-                'boranga_layers.geojson',
-                'text/plain'
-            );
+            vm.download_content(json, 'boranga_layers.geojson', 'text/plain');
         },
         displayAllFeatures: function () {
             console.log('in displayAllFeatures()');
@@ -1800,6 +1799,7 @@ export default {
                 style: vm.basicSelectStyle,
                 layers: [vm.modelQueryLayer],
                 wrapX: false,
+                // eslint-disable-next-line no-unused-vars
                 condition: function (event) {
                     // Prevent the interaction's standard select event
                     return false;
@@ -1916,7 +1916,7 @@ export default {
 
             modify.addEventListener('modifyend', function (evt) {
                 console.log('Modify end', evt.features);
-                let feature = evt.features[0];
+                // let feature = evt.features[0];
                 //commented validateFeature by Priya
                 //validateFeature(feature, vm);
             });
@@ -1932,6 +1932,7 @@ export default {
             });
 
             const transformEndCallback = function (evt) {
+                // eslint-disable-next-line no-unused-vars
                 evt.features.forEach((feature) => {
                     //commented validateFeature by Priya
                     // validateFeature(feature, vm);
@@ -2045,9 +2046,7 @@ export default {
                         vm.loadFeatures(vm.proposals),
                     ];
                     Promise.all(initialisers).then(() => {
-                        console.log(
-                            'Done loading features'
-                        );
+                        console.log('Done loading features');
                     });
                 })
                 .catch((error) => {
@@ -2088,21 +2087,17 @@ export default {
             // Remove all features from the layer
             vm.modelQuerySource.clear();
             proposals.forEach(function (proposal) {
-                proposal.ocr_geometry.features.forEach(
-                    function (featureData) {
-                        let feature = vm.featureFromDict(featureData, proposal);
-                        if (
-                            vm.modelQuerySource.getFeatureById(feature.getId())
-                        ) {
-                            console.warn(
-                                `Feature ${feature.getId()} already exists in the source. Skipping...`
-                            );
-                            return;
-                        }
-                        vm.modelQuerySource.addFeature(feature);
-                        vm.newFeatureId++;
+                proposal.ocr_geometry.features.forEach(function (featureData) {
+                    let feature = vm.featureFromDict(featureData, proposal);
+                    if (vm.modelQuerySource.getFeatureById(feature.getId())) {
+                        console.warn(
+                            `Feature ${feature.getId()} already exists in the source. Skipping...`
+                        );
+                        return;
                     }
-                );
+                    vm.modelQuerySource.addFeature(feature);
+                    vm.newFeatureId++;
+                });
             });
             // vm.addFeatureCollectionToMap();
             vm.map.dispatchEvent({
@@ -2150,7 +2145,7 @@ export default {
                 model: propertyModel,
             });
             feature.setStyle(style);
-            console.log(feature)
+            console.log(feature);
 
             return feature;
         },
@@ -2419,7 +2414,7 @@ export default {
         },
 
         set_mode: function (mode) {
-            let vm=this;
+            let vm = this;
             // Toggle map mode on/off when the new mode is the old one
             if (this.mode == mode) {
                 this.mode = 'layer';
