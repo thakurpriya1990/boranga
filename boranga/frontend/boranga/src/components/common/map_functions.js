@@ -315,7 +315,15 @@ const _helper = {
             this.drawForMeasure.setActive(drawForMeasure);
         }
         if (this.drawForModel) {
-            this.drawForModel.setActive(drawForModel);
+            if (drawForModel && this.subMode === 'Polygon') {
+                this.drawForModel.setActive(true);
+                // TODO: set points layer false
+            } else if (drawForModel && this.subMode === 'Point') {
+                this.drawForModel.setActive(false);
+                // TODO: set points layer true
+            } else {
+                this.drawForModel.setActive(drawForModel);
+            }
         }
     },
     /**
