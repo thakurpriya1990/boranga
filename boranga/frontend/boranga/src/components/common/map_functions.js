@@ -189,23 +189,23 @@ export function set_mode(mode, subMode = null) {
 
     if (this.mode === 'layer') {
         this.clearMeasurementLayer();
-        _helper.toggle_draw_measure_license.bind(this)(false, false);
+        _helper.toggle_draw_or_measure.bind(this)(false, false);
     } else if (this.mode === 'draw') {
         this.clearMeasurementLayer();
         this.sketchCoordinates = [[]];
-        _helper.toggle_draw_measure_license.bind(this)(false, true);
+        _helper.toggle_draw_or_measure.bind(this)(false, true);
         this.undoredo_forSketch.clear(); // Clear the sketch coordinates undo/redo stack
         this.drawing = true;
     } else if (this.mode === 'transform') {
         this.clearMeasurementLayer();
         this.transformSetActive(true);
-        _helper.toggle_draw_measure_license.bind(this)(false, false);
+        _helper.toggle_draw_or_measure.bind(this)(false, false);
         this.transforming = true;
     } else if (this.mode === 'measure') {
-        _helper.toggle_draw_measure_license.bind(this)(true, false);
+        _helper.toggle_draw_or_measure.bind(this)(true, false);
         this.measuring = true;
     } else if (this.mode === 'info') {
-        _helper.toggle_draw_measure_license.bind(this)(false, false);
+        _helper.toggle_draw_or_measure.bind(this)(false, false);
         this.informing = true;
     } else {
         console.error(`Cannot set mode ${mode}`);
@@ -310,7 +310,7 @@ const _helper = {
      * @param {boolean} drawForMeasure Whether to set the measure layer active or inactive
      * @param {boolean} drawForModel Whether to set the model's polygon layer active or inactive
      */
-    toggle_draw_measure_license: function (drawForMeasure, drawForModel) {
+    toggle_draw_or_measure: function (drawForMeasure, drawForModel) {
         if (this.drawForMeasure) {
             this.drawForMeasure.setActive(drawForMeasure);
         }

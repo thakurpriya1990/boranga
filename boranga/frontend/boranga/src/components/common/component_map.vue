@@ -2546,14 +2546,6 @@ export default {
             }
             return 'last action';
         },
-        toggle_draw_measure_license: function (drawForMeasure, drawForModel) {
-            if (this.drawForMeasure) {
-                this.drawForMeasure.setActive(drawForMeasure);
-            }
-            if (this.drawForModel) {
-                this.drawForModel.setActive(drawForModel);
-            }
-        },
         toggleElementVisibility: function (elementId) {
             let element = document.getElementById(elementId);
             if (element.style.display !== 'block') {
