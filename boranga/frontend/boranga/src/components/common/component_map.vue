@@ -9,8 +9,9 @@
                         //eslint-enable
                     </BootstrapAlert> -->
                     <alert type="info"
-                        ><strong
-                            ><p><span v-html="mapInfoText"></span></p></strong
+                        ><strong>
+                            <!-- eslint-disable-next-line vue/no-v-html -->
+                            <p><span v-html="mapInfoText"></span></p></strong
                     ></alert>
                 </div>
                 <div class="col-md-6">
@@ -149,29 +150,42 @@
                             <div class="submenu-button-wrapper">
                                 <div
                                     :title="
-                                        mode == 'draw'
+                                        mode == 'draw' && subMode == 'Polygon'
                                             ? 'Deactivate draw tool'
-                                            : 'Draw a new feature or edit a selected one'
+                                            : 'Draw a new polygon feature or edit a selected one'
                                     "
                                     class="btn optional-layers-button"
                                     :class="[
-                                        mode == 'draw'
+                                        mode == 'draw' && subMode == 'Polygon'
                                             ? 'optional-layers-button-active'
                                             : 'optional-layers-button',
                                     ]"
-                                    @click="set_mode('draw')"
+                                    @click="set_mode('draw', 'Polygon')"
                                 >
                                     <img
                                         class="svg-icon"
-                                        src="../../assets/pen-icon.svg"
+                                        src="../../assets/draw-polygon.svg"
                                     />
                                 </div>
                             </div>
                             <div class="submenu-button-wrapper">
-                                <div class="optional-layers-button">
+                                <div
+                                    :title="
+                                        mode == 'draw' && subMode == 'Point'
+                                            ? 'Deactivate draw tool'
+                                            : 'Draw new point features'
+                                    "
+                                    class="btn optional-layers-button"
+                                    :class="[
+                                        mode == 'draw' && subMode == 'Point'
+                                            ? 'optional-layers-button-active'
+                                            : 'optional-layers-button',
+                                    ]"
+                                    @click="set_mode('draw', 'Point')"
+                                >
                                     <img
                                         class="svg-icon"
-                                        src="../../assets/pen-icon.svg"
+                                        src="../../assets/draw-points.svg"
                                     />
                                 </div>
                             </div>
@@ -885,6 +899,7 @@ export default {
             optionalLayers: [],
             hover: false,
             mode: 'normal',
+            subMode: null,
             drawForMeasure: null,
             drawForModel: null,
             newFeatureId: 0,

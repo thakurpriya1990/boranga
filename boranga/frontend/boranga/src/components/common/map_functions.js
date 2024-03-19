@@ -161,13 +161,21 @@ export async function addOptionalLayers(map_component) {
 /**
  * Sets the mode of interaction of the map.
  * @param {string} mode The mode to set the map to (layer, draw, measure)
+ * @param {string=} subMode The submode to set the map to (e.g. draw: 'Polygon', 'Point')
  */
-export function set_mode(mode) {
+export function set_mode(mode, subMode = null) {
     // Toggle map mode on/off when the new mode is the old one
     if (this.mode == mode) {
-        this.mode = 'layer';
+        if (this.subMode == subMode) {
+            this.mode = 'layer';
+            this.subMode = null;
+        } else {
+            // If only the submode is different, set the new submode but keep the mode
+            this.subMode = subMode;
+        }
     } else {
         this.mode = mode;
+        this.subMode = subMode;
     }
 
     this.drawing = false;
