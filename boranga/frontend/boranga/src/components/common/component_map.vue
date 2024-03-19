@@ -140,20 +140,58 @@
                             />
                         </div>
                     </div>
+
+                    <div
+                        id="submenu-draw"
+                        class="map-menu-submenu moved-menu-vertical"
+                    >
+                        <div class="scaled-button">
+                            <div class="submenu-button-wrapper">
+                                <div
+                                    :title="
+                                        mode == 'draw'
+                                            ? 'Deactivate draw tool'
+                                            : 'Draw a new feature or edit a selected one'
+                                    "
+                                    class="btn optional-layers-button"
+                                    :class="[
+                                        mode == 'draw'
+                                            ? 'optional-layers-button-active'
+                                            : 'optional-layers-button',
+                                    ]"
+                                    @click="set_mode('draw')"
+                                >
+                                    <img
+                                        class="svg-icon"
+                                        src="../../assets/pen-icon.svg"
+                                    />
+                                </div>
+                            </div>
+                            <div class="submenu-button-wrapper">
+                                <div class="optional-layers-button">
+                                    <img
+                                        class="svg-icon"
+                                        src="../../assets/pen-icon.svg"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div v-if="drawable" class="optional-layers-button-wrapper">
                         <div
                             :title="
                                 mode == 'draw'
-                                    ? 'Deactivate draw tool'
-                                    : 'Draw a new feature or edit a selected one'
+                                    ? 'Drawing mode active'
+                                    : 'Select a drawing mode'
                             "
-                            class="btn"
+                            class="btn optional-layers-button"
                             :class="[
                                 mode == 'draw'
                                     ? 'optional-layers-button-active'
                                     : 'optional-layers-button',
                             ]"
-                            @click="set_mode('draw')"
+                            @click="toggleElementVisibility('submenu-draw')"
                         >
                             <img
                                 class="svg-icon"
@@ -2501,6 +2539,14 @@ export default {
                 this.drawForModel.setActive(drawForModel);
             }
         },
+        toggleElementVisibility: function (elementId) {
+            let element = document.getElementById(elementId);
+            if (element.style.display !== 'block') {
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
+        },
     },
 };
 </script>
@@ -2548,5 +2594,8 @@ export default {
 
 .force-parent-lh {
     line-height: inherit !important;
+}
+#submenu-draw {
+    display: none;
 }
 </style>
