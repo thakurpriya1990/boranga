@@ -217,6 +217,7 @@ export function set_mode(mode, subMode = null) {
             type: 'map:modeChanged',
             details: {
                 new_mode: this.mode,
+                new_subMode: this.subMode,
             },
         });
     }

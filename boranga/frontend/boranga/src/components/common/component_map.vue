@@ -152,7 +152,7 @@
                                     :title="
                                         mode == 'draw' && subMode == 'Polygon'
                                             ? 'Deactivate draw tool'
-                                            : 'Draw a new polygon feature or edit a selected one'
+                                            : 'Draw a new polygon feature'
                                     "
                                     class="btn optional-layers-button"
                                     :class="[
@@ -173,7 +173,7 @@
                                     :title="
                                         mode == 'draw' && subMode == 'Point'
                                             ? 'Deactivate draw tool'
-                                            : 'Draw new point features'
+                                            : 'Draw new point features or edit selected points or polygon vertices'
                                     "
                                     class="btn optional-layers-button"
                                     :class="[
@@ -2144,7 +2144,10 @@ export default {
             // When the map mode changes between draw and anything else, update the style of the selected features
             selectSingleClick.addEventListener('map:modeChanged', (evt) => {
                 console.log('map mode changed', evt);
-                if (evt.details.new_mode === 'draw') {
+                if (
+                    evt.details.new_mode === 'draw' &&
+                    evt.details.new_subMode === 'Point'
+                ) {
                     vm.setStyleForUnAndSelectedFeatures(vm.modifySelectStyle);
                 } else {
                     vm.setStyleForUnAndSelectedFeatures();
@@ -2179,7 +2182,6 @@ export default {
 
                     features.forEach((feature) => {
                         let coords = feature.getGeometry().getCoordinates();
-                        console.log('delete coord length', coords.length);
 
                         for (let j = 0; j < coords.length; j++) {
                             let coord = coords[j];
@@ -2187,6 +2189,7 @@ export default {
                                 // Needs three vertices to form a polygon, four because the first and last are the same
                                 return false;
                             }
+
                             for (let k = 0; k < coord.length; k++) {
                                 let pxl1 = evt.pixel; // clicked pixel coordinates
                                 let pxl2 = vm.map.getPixelFromCoordinate(
@@ -2197,6 +2200,7 @@ export default {
                                 let distance = vm.pixelDistance(pxl1, pxl2);
                                 if (distance <= vm.pixelTolerance) {
                                     let selectedCoord = coord[k];
+                                    console.log('delete coord', selectedCoord);
                                     coord.splice(k, 1);
                                     if (selectedCoord == null) {
                                         return;
