@@ -105,6 +105,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     submitter = serializers.SerializerMethodField()
     processing_status_display = serializers.CharField(source="get_processing_status_display")
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    internal_user_edit = serializers.SerializerMethodField()
     class Meta:
         model = OccurrenceReport
         fields = (
@@ -119,6 +120,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             'processing_status_display',
             'can_user_edit',
             'can_user_view',
+            'internal_user_edit',
         )
         datatables_always_serialize = (
             'id',
@@ -131,6 +133,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             'processing_status_display',
             'can_user_edit',
             'can_user_view',
+            'internal_user_edit',
         )   
 
     def get_scientific_name(self,obj):
@@ -145,6 +148,15 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             return email_user.get_full_name()
         else:
             return None
+    
+    def get_internal_user_edit(self,obj):
+        request = self.context['request']
+        user = request.user
+        if obj.can_user_edit:
+            if obj.internal_application == True:
+                return True
+        else:
+            return False
 
 class HabitatCompositionSerializer(serializers.ModelSerializer):
     
