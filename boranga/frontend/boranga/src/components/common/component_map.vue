@@ -1196,14 +1196,7 @@ export default {
             }, timeout);
         },
         addJoint: function (point, styles) {
-            let s = new Style({
-                image: new CircleStyle({
-                    radius: 2,
-                    fill: new Fill({
-                        color: '#3399cc',
-                    }),
-                }),
-            });
+            let s = this.createStyle('#3399cc', '#3399cc', 'Point', 2);
             s.setGeometry(point);
             styles.push(s);
 
@@ -1232,42 +1225,46 @@ export default {
         },
         /**
          * Returns a style based on feature type. Defaults to a polygon style
+         * @param {string|object} fill The fill color or a Fill object
+         * @param {string=|object=} stroke The stroke color or a Stroke object
+         * @param {string=} type The feature type
+         * @param {number=} radius The radius of the point style, defaults to 7
          */
-        createStyle: function (fillColor, strokeColor = null, type = null) {
+        createStyle: function (fill, stroke = null, type = null, radius = 7) {
             let vm = this;
-            if (!fillColor) {
-                fillColor = vm.defaultColor;
+            if (!fill) {
+                fill = vm.defaultColor;
             }
-            if (!strokeColor) {
-                strokeColor = vm.defaultColor;
+            if (!stroke) {
+                stroke = vm.defaultColor;
+            }
+            if (!(fill instanceof Fill)) {
+                // TODO: check is color
+                fill = new Fill({ color: fill });
+            }
+            if (!(stroke instanceof Stroke)) {
+                // TODO: check is color
+                stroke = new Stroke({
+                    color: stroke,
+                    width: type === 'Point' ? 2 : 1,
+                });
             }
 
             if (['Polygon', null].includes(type)) {
                 return new Style({
-                    stroke: new Stroke({
-                        color: strokeColor,
-                        width: 1,
-                    }),
-                    fill: new Fill({
-                        color: fillColor,
-                    }),
+                    stroke: stroke,
+                    fill: fill,
                 });
             } else if (type === 'LineString') {
                 return new Style({
-                    stroke: new Stroke({
-                        color: strokeColor,
-                        width: 2,
-                    }),
+                    stroke: stroke,
                 });
             } else if (type === 'Point') {
                 return new Style({
                     image: new CircleStyle({
-                        radius: 7,
-                        stroke: new Stroke({
-                            color: strokeColor,
-                            width: 2,
-                        }),
-                        fill: new Fill({ color: fillColor }),
+                        radius: radius,
+                        stroke: stroke,
+                        fill: fill,
                     }),
                 });
             } else {
@@ -1545,21 +1542,12 @@ export default {
             let vm = this;
 
             vm.modelQuerySource = new VectorSource({});
-            const polygonStyle = new Style({
-                fill: new Fill({
-                    color: vm.defaultColor,
-                }),
-            });
-            const pointStyle = new Style({
-                image: new CircleStyle({
-                    radius: 7,
-                    fill: new Fill({ color: vm.defaultColor }),
-                    stroke: new Stroke({
-                        color: vm.defaultColor,
-                        width: 2,
-                    }),
-                }),
-            });
+            const polygonStyle = vm.createStyle(null, null, 'Polygon');
+            const pointStyle = vm.createStyle(
+                vm.defaultColor,
+                vm.defaultColor,
+                'Point'
+            );
 
             vm.modelQueryLayer = new VectorLayer({
                 title: 'Model Occurrence Report',
@@ -1846,17 +1834,17 @@ export default {
         initialisePointerMoveEvent: function () {
             let vm = this;
 
-            const hoverStylePolygon = new Style({
-                fill: vm.hoverFill,
-                stroke: vm.hoverStrokePolygon,
-            });
-            const hoverStylePoint = new Style({
-                image: new CircleStyle({
-                    radius: 7,
-                    fill: vm.hoverFill,
-                    stroke: vm.hoverStrokePoint,
-                }),
-            });
+            const hoverStylePolygon = vm.createStyle(
+                vm.hoverFill,
+                vm.hoverStrokePolygon,
+                'Polygon'
+            );
+
+            const hoverStylePoint = vm.createStyle(
+                vm.hoverFill,
+                vm.hoverStrokePoint,
+                'Point'
+            );
 
             // Cache the hover fill so we don't have to create a new one every time
             // Also prevent overwriting property `hoverFill` color
@@ -2073,14 +2061,7 @@ export default {
             // A basic style for selected polygons
             vm.basicSelectStyle = function (feature) {
                 var color = feature.get('color') || vm.defaultColor;
-                return [
-                    new Style({
-                        stroke: vm.clickSelectStroke,
-                        fill: new Fill({
-                            color: color,
-                        }),
-                    }),
-                ];
+                return [vm.createStyle(color, vm.clickSelectStroke, 'Polygon')];
             };
             // Basic style plus extra circles for vertices to help with modifying
             // See: https://github.com/openlayers/openlayers/issues/3165#issuecomment-71432465
@@ -2101,12 +2082,7 @@ export default {
                             return new MultiPoint(coordinates);
                         },
                     }),
-                    new Style({
-                        stroke: vm.clickSelectStroke,
-                        fill: new Fill({
-                            color: color,
-                        }),
-                    }),
+                    vm.createStyle(color, vm.clickSelectStroke, 'Polygon'),
                 ];
             };
 
