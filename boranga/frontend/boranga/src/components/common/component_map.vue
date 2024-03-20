@@ -1228,9 +1228,16 @@ export default {
          * @param {string|object} fill The fill color or a Fill object
          * @param {string=|object=} stroke The stroke color or a Stroke object
          * @param {string=} type The feature type
-         * @param {number=} radius The radius of the point style, defaults to 7
+         * @param {number=} radius The radius of the point circle, defaults to 7
+         * @param {number=} width The stroke width, defaults to 2
          */
-        createStyle: function (fill, stroke = null, type = null, radius = 7) {
+        createStyle: function (
+            fill,
+            stroke = null,
+            type = null,
+            radius = 7,
+            width = 2
+        ) {
             let vm = this;
             if (!fill) {
                 fill = vm.defaultColor;
@@ -1246,7 +1253,7 @@ export default {
                 // TODO: check is color
                 stroke = new Stroke({
                     color: stroke,
-                    width: type === 'Point' ? 2 : 1,
+                    width: width,
                 });
             }
 
@@ -1543,11 +1550,7 @@ export default {
 
             vm.modelQuerySource = new VectorSource({});
             const polygonStyle = vm.createStyle(null, null, 'Polygon');
-            const pointStyle = vm.createStyle(
-                vm.defaultColor,
-                vm.defaultColor,
-                'Point'
-            );
+            const pointStyle = vm.createStyle(null, null, 'Point');
 
             vm.modelQueryLayer = new VectorLayer({
                 title: 'Model Occurrence Report',
