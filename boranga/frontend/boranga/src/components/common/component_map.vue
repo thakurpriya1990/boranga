@@ -2061,7 +2061,8 @@ export default {
             // A basic style for selected polygons
             vm.basicSelectStyle = function (feature) {
                 var color = feature.get('color') || vm.defaultColor;
-                return [vm.createStyle(color, vm.clickSelectStroke, 'Polygon')];
+                const type = feature.getGeometry().getType();
+                return [vm.createStyle(color, vm.clickSelectStroke, type)];
             };
             // Basic style plus extra circles for vertices to help with modifying
             // See: https://github.com/openlayers/openlayers/issues/3165#issuecomment-71432465
@@ -2076,7 +2077,11 @@ export default {
                     new Style({
                         image: image,
                         geometry: function (feature) {
-                            var coordinates = feature
+                            const type = feature.getGeometry().getType();
+                            if (type === 'Point') {
+                                return feature.getGeometry();
+                            }
+                            const coordinates = feature
                                 .getGeometry()
                                 .getCoordinates()[0];
                             return new MultiPoint(coordinates);
