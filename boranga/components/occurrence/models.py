@@ -555,8 +555,14 @@ class OccurrenceReportGeometryManager(models.Manager):
 class OccurrenceReportGeometry(models.Model):
     objects = OccurrenceReportGeometryManager()
 
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="ocr_geometry")
+    occurrence_report = models.ForeignKey(
+        OccurrenceReport,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="ocr_geometry",
+    )
     polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
+    point = gis_models.PointField(srid=4326, blank=True, null=True)
     intersects = models.BooleanField(default=False)
     copied_from = models.ForeignKey(
         "self", on_delete=models.SET_NULL, blank=True, null=True
@@ -566,10 +572,10 @@ class OccurrenceReportGeometry(models.Model):
 
     class Meta:
         app_label = "boranga"
-    
+
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
-    
+
     @property
     def area_sqm(self):
         if not hasattr(self, "area") or not self.area:
