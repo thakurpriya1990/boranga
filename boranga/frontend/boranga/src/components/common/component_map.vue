@@ -2429,11 +2429,22 @@ export default {
             }
 
             let color = vm.styleByColor(featureData, model);
-            let style = vm.createStyle(color);
+            const type = featureData.geometry.type;
+            let style = vm.createStyle(color, vm.defaultColor, type);
+            let geometry;
+            if (type === 'Polygon') {
+                geometry = new Polygon(featureData.geometry.coordinates);
+            } else if (type === 'Point') {
+                geometry = new Point(featureData.geometry.coordinates);
+            } else if (type === 'LineString') {
+                alert('LineString not yet supported');
+            } else {
+                console.error(`Unsupported geometry type ${type}`);
+            }
 
             let feature = new Feature({
                 id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
-                geometry: new Polygon(featureData.geometry.coordinates),
+                geometry: geometry,
                 name: model.id,
                 // label: model.label || model.application_type_name_display,
                 label: model.label,
