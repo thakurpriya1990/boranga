@@ -15,6 +15,8 @@ def config(request):
         page_status['conservation_status'] = True
     elif request.path == '/internal/meetings':
         page_status['meetings'] = True
+    elif request.path == '/internal/occurrence':
+        page_status['occurrence'] = True
     elif request.path == '/external/conservation-status':
         page_status['conservation_status'] = True
     elif request.path == '/external/occurrence-report':

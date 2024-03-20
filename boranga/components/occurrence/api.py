@@ -154,6 +154,9 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
             
             if filter_submitted_from_date and filter_submitted_to_date:
                 queryset = queryset.filter(reported_date__range=[filter_submitted_from_date, filter_submitted_to_date])
+
+            if filter_submitted_to_date and not filter_submitted_from_date:
+                queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
         
         if 'external' in view.name:
             total_count = queryset.count()
@@ -228,8 +231,6 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     def occurrence_report_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
         qs = qs.filter(Q(internal_application=False))
-        # TODO Not Sure but to filter for only WA listed conservation lists for external
-        #qs = qs.filter(Q(conservation_list__applies_to_wa=True))
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -240,13 +241,79 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET',], detail=False)
     def occurrence_report_internal(self, request, *args, **kwargs):
         qs = self.get_queryset()
-        qs = qs.filter(Q(internal_application=False))
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListInternalOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
+    
+    @list_route(methods=['GET',], detail=False)
+    def occurrence_report_internal_export(self, request, *args, **kwargs):
+        
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get('export_format')
+        allowed_fields = ['species', 'scientific_name', 'reported_date', 'submitter', 'processing_status', 'occurrence_report_number']
+
+        serializer = ListInternalOccurrenceReportSerializer(qs, context={'request': request}, many=True)
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key='', sep='_'):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = ['Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter',  'Processing Status']
+            df.columns = new_headings
+            column_order = ['Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter',  'Processing Status']
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_OccurrenceReport_Species.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_OccurrenceReport_Species.csv'
+                    response.write(csv_data)
+                    return response
+                
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
 
 class OccurrenceReportViewSet(viewsets.ModelViewSet):
     queryset = OccurrenceReport.objects.none()

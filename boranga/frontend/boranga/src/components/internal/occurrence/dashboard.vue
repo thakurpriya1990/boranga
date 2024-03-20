@@ -46,7 +46,7 @@
                     <OccurrenceReportFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="species_or_url" />
+                    :url="species_ocr_url" />
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
@@ -54,7 +54,7 @@
                     <OccurrenceReportFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="species_or_url"/>
+                    :url="species_ocr_url"/>
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
@@ -62,7 +62,7 @@
                     <OccurrenceReportCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="community_or_url"/>
+                    :url="community_ocr_url"/>
                 </FormSection>
             </div>
         </div>
@@ -89,8 +89,8 @@ export default {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
             group_name: null,
-            species_or_url: api_endpoints.occurrence_report_paginated_internal,
-            community_or_url: api_endpoints.occurrence_report_paginated_internal,
+            species_ocr_url: api_endpoints.occurrence_report_paginated_internal,
+            community_ocr_url: api_endpoints.occurrence_report_paginated_internal,
 
         }
     },

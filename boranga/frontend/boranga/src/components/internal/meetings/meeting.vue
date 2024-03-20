@@ -392,10 +392,12 @@ export default {
             if (vm.meeting_obj.title == null || vm.meeting_obj.title == ''){
                     blank_fields.push(' Title is missing')
                 }
-            else{
-                if (vm.meeting_obj.meeting_type == null || vm.meeting_obj.meeting_type == ''){
+            else if(vm.meeting_obj.meeting_type == null || vm.meeting_obj.meeting_type == ''){
                     blank_fields.push(' Please select meeting type')
                 }
+            else if(vm.$refs.meeting.isMeetingDateValid!= true){
+                    //  to also check the start and end date of meeting validation befor saving
+                blank_fields.push('Please select End Date that is later than Start Date');
             }
             if(check_action == "submit"){
                 //TODO add validation for fields required before submit

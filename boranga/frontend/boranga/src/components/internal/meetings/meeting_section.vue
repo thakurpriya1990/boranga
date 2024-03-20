@@ -260,6 +260,21 @@ export default {
             },
         },
         watch:{
+            // to fix the dateformat error when select to clear the date (ie. "") string value
+            "meeting_obj.start_date": function(newVal) {
+                let vm=this;
+                var selectedValue = newVal;
+                    if(selectedValue === ""){
+                        vm.meeting_obj.start_date=null;
+                    }
+            },
+            "meeting_obj.end_date": function(newVal) {
+                let vm=this;
+                var selectedValue = newVal;
+                    if(selectedValue === ""){
+                        vm.meeting_obj.end_date=null;
+                    }
+            },
         },
         methods:{
             eventListeners:function (){
