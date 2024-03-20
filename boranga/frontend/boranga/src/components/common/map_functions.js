@@ -312,20 +312,32 @@ const _helper = {
      * @param {boolean} drawForModel Whether to set the model's polygon layer active or inactive
      */
     toggle_draw_or_measure: function (drawForMeasure, drawForModel) {
+        /**
+         * Sets the active state of the Draw layers
+         * @param {boolean} pointsActive Set the active state of the points layer
+         * @param {boolean} polygonsActive Set the active state of the polygons layer
+         */
+        var drawForModelSetActive = function (pointsActive, polygonsActive) {
+            if (this.drawPointsForModel) {
+                this.drawPointsForModel.setActive(pointsActive);
+            }
+            if (this.drawPolygonsForModel) {
+                this.drawPolygonsForModel.setActive(polygonsActive);
+            }
+        }.bind(this);
+
         if (this.drawForMeasure) {
             this.drawForMeasure.setActive(drawForMeasure);
         }
-        if (this.drawForModel) {
-            if (drawForModel && this.subMode === 'Polygon') {
-                this.drawForModel.setActive(true);
-                this.drawPointsForModel.setActive(false);
-            } else if (drawForModel && this.subMode === 'Point') {
-                this.drawForModel.setActive(false);
-                this.drawPointsForModel.setActive(true);
-            } else {
-                this.drawForModel.setActive(false);
-                this.drawPointsForModel.setActive(false);
-            }
+        if (drawForModel && this.subMode === 'Polygon') {
+            // Set points drawing layer inactive and polygons drawing layer active
+            drawForModelSetActive(false, true);
+        } else if (drawForModel && this.subMode === 'Point') {
+            // Set points drawing layer active and polygons drawing layer inactive
+            drawForModelSetActive(true, false);
+        } else {
+            // Set both points and polygons drawing layers inactive
+            drawForModelSetActive(false, false);
         }
     },
     /**

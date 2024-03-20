@@ -901,7 +901,8 @@ export default {
             mode: 'normal',
             subMode: null,
             drawForMeasure: null,
-            drawForModel: null,
+            drawPolygonsForModel: null, // Polygon Draw interaction
+            drawPointsForModel: null, // Points Draw interaction
             newFeatureId: 0,
             measurementLayer: null,
             style: MeasureStyles.defaultStyle,
@@ -989,8 +990,8 @@ export default {
             return (
                 this.mode == 'draw' &&
                 !this.unOrRedoing_sketchPoint &&
-                this.drawForModel &&
-                this.drawForModel.getActive() &&
+                this.drawPolygonsForModel &&
+                this.drawPolygonsForModel.getActive() &&
                 this.undoredo_forSketch.getStack('undo').length > 0
             );
         },
@@ -999,8 +1000,8 @@ export default {
             return (
                 this.mode == 'draw' &&
                 !this.unOrRedoing_sketchPoint &&
-                this.drawForModel &&
-                this.drawForModel.getActive() &&
+                this.drawPolygonsForModel &&
+                this.drawPolygonsForModel.getActive() &&
                 this.undoredo_forSketch.getStack('redo').length > 0
             );
         },
@@ -1580,7 +1581,7 @@ export default {
                 return;
             }
 
-            vm.drawForModel = new Draw({
+            vm.drawPolygonsForModel = new Draw({
                 source: vm.modelQuerySource,
                 type: 'Polygon',
                 geometryFunction: function (coordinates, geometry) {
@@ -1762,18 +1763,18 @@ export default {
                 // },
             });
 
-            vm.drawForModel.set('escKey', '');
-            vm.drawForModel.on('change:escKey', function () {
+            vm.drawPolygonsForModel.set('escKey', '');
+            vm.drawPolygonsForModel.on('change:escKey', function () {
                 console.log('ESC key pressed');
             });
-            vm.drawForModel.on('drawstart', function () {
+            vm.drawPolygonsForModel.on('drawstart', function () {
                 vm.errorMessage = null;
                 vm.lastPoint = null;
             });
-            vm.drawForModel.on('click', function (evt) {
+            vm.drawPolygonsForModel.on('click', function (evt) {
                 console.log('Draw: click event', evt);
             });
-            vm.drawForModel.on('drawend', function (evt) {
+            vm.drawPolygonsForModel.on('drawend', function (evt) {
                 console.log(evt);
                 console.log(evt.feature.values_.geometry.flatCoordinates);
                 // Priya I think context is the occurrencereport_obj thats sent through prop
@@ -1831,7 +1832,7 @@ export default {
                 vm.sketchCoordinates = [[]];
             });
 
-            vm.map.addInteraction(vm.drawForModel);
+            vm.map.addInteraction(vm.drawPolygonsForModel);
             vm.map.addInteraction(vm.drawPointsForModel);
         },
         initialisePointerMoveEvent: function () {
@@ -2256,14 +2257,15 @@ export default {
                 vm.sketchCoordinates = [[]];
                 this.selectedFeatureId = null;
             } else {
-                vm.drawForModel.removeLastPoint();
+                vm.drawPolygonsForModel.removeLastPoint();
             }
         },
         redoLeaseLicensePoint: function () {
             let vm = this;
 
-            const sketchLineGeom = vm.drawForModel.sketchLine_?.getGeometry();
-            let coordinates = vm.drawForModel.sketchCoords_[0];
+            const sketchLineGeom =
+                vm.drawPolygonsForModel.sketchLine_?.getGeometry();
+            let coordinates = vm.drawPolygonsForModel.sketchCoords_[0];
             // Redo finish coordinate
             let finishCoordinate = vm.sketchCoordinates.slice(-1);
 
@@ -2273,10 +2275,10 @@ export default {
             }
 
             if (finishCoordinate) {
-                vm.drawForModel.appendCoordinates(finishCoordinate);
+                vm.drawPolygonsForModel.appendCoordinates(finishCoordinate);
             }
 
-            vm.drawForModel.updateSketchFeatures_();
+            vm.drawPolygonsForModel.updateSketchFeatures_();
         },
         removeModelFeatures: function () {
             let vm = this;
@@ -2519,7 +2521,7 @@ export default {
             let vm = this;
             vm.queryingGeoserver = false;
             vm.errorMessage = null;
-            vm.drawForModel.finishDrawing();
+            vm.drawPolygonsForModel.finishDrawing();
             if (vm.mode == 'draw' && vm.selectedFeatureIds.length == 0) {
                 vm.set_mode('layer');
             }
