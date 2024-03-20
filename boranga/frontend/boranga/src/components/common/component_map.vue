@@ -930,9 +930,13 @@ export default {
             hoverFill: new Fill({
                 color: 'rgba(255, 255, 255, 0.5)',
             }),
-            hoverStroke: new Stroke({
+            hoverStrokePolygon: new Stroke({
                 color: 'rgba(255, 255, 255, 0.5)',
                 width: 1,
+            }),
+            hoverStrokePoint: new Stroke({
+                color: 'rgba(255, 255, 255, 0.5)',
+                width: 2,
             }),
             set_mode: set_mode,
             isValidating: false,
@@ -1226,23 +1230,49 @@ export default {
                 return vm.featureColors['unknown'] || vm.defaultColor;
             }
         },
-        createStyle: function (color) {
+        /**
+         * Returns a style based on feature type. Defaults to a polygon style
+         */
+        createStyle: function (fillColor, strokeColor = null, type = null) {
             let vm = this;
-            if (!color) {
-                color = vm.defaultColor;
+            if (!fillColor) {
+                fillColor = vm.defaultColor;
+            }
+            if (!strokeColor) {
+                strokeColor = vm.defaultColor;
             }
 
-            let style = new Style({
-                stroke: new Stroke({
-                    color: color,
-                    width: 1,
-                }),
-                fill: new Fill({
-                    color: color,
-                }),
-            });
-
-            return style;
+            if (['Polygon', null].includes(type)) {
+                return new Style({
+                    stroke: new Stroke({
+                        color: strokeColor,
+                        width: 1,
+                    }),
+                    fill: new Fill({
+                        color: fillColor,
+                    }),
+                });
+            } else if (type === 'LineString') {
+                return new Style({
+                    stroke: new Stroke({
+                        color: strokeColor,
+                        width: 2,
+                    }),
+                });
+            } else if (type === 'Point') {
+                return new Style({
+                    image: new CircleStyle({
+                        radius: 7,
+                        stroke: new Stroke({
+                            color: strokeColor,
+                            width: 2,
+                        }),
+                        fill: new Fill({ color: fillColor }),
+                    }),
+                });
+            } else {
+                console.error('Unknown feature type: ' + type);
+            }
         },
         styleFunctionForMeasurement: function (feature) {
             let vm = this;
@@ -1515,9 +1545,19 @@ export default {
             let vm = this;
 
             vm.modelQuerySource = new VectorSource({});
-            const style = new Style({
+            const polygonStyle = new Style({
                 fill: new Fill({
                     color: vm.defaultColor,
+                }),
+            });
+            const pointStyle = new Style({
+                image: new CircleStyle({
+                    radius: 7,
+                    fill: new Fill({ color: vm.defaultColor }),
+                    stroke: new Stroke({
+                        color: vm.defaultColor,
+                        width: 2,
+                    }),
                 }),
             });
 
@@ -1527,7 +1567,14 @@ export default {
                 source: vm.modelQuerySource,
                 style: function (feature) {
                     const color = feature.get('color') || vm.defaultColor;
-                    style.getFill().setColor(color);
+                    let style = polygonStyle;
+                    if (feature.getGeometry().getType() === 'Polygon') {
+                        style.getFill().setColor(color);
+                    } else if (feature.getGeometry().getType() === 'Point') {
+                        style = pointStyle;
+                        style.getImage().getFill().setColor(color);
+                        style.getImage().getStroke().setColor(color);
+                    }
                     return style;
                 },
             });
@@ -1632,6 +1679,98 @@ export default {
                     return true;
                 },
             });
+
+            vm.drawPointsForModel = new Draw({
+                source: vm.modelQuerySource,
+                type: 'Point',
+                // geometryFunction: function (coordinates, geometry) {
+                //     if (geometry) {
+                //         if (coordinates[0].length) {
+                //             // Add a closing coordinate to match the first
+                //             geometry.setCoordinates(
+                //                 [coordinates[0].concat([coordinates[0][0]])],
+                //                 this.geometryLayout_
+                //             );
+                //         } else {
+                //             geometry.setCoordinates([], this.geometryLayout_);
+                //         }
+                //     } else {
+                //         geometry = new Polygon(
+                //             coordinates,
+                //             this.geometryLayout_
+                //         );
+                //     }
+
+                //     if (vm.unOrRedoing_sketchPoint) {
+                //         // Don't run below undo stack logic while executing an undo/redo of sketch points
+                //         return geometry;
+                //     }
+
+                //     // Current feature id list for undo stack
+                //     let before = [...vm.sketchCoordinates];
+                //     // Ignore the last coordinate that is the movable cursor point
+                //     let drawnVertexCoords = coordinates[0].toSpliced(-1);
+                //     if (before.length != drawnVertexCoords.length) {
+                //         // Sort out back-to-back duplicate coordinates
+                //         let sketchCoordinates = drawnVertexCoords
+                //             .slice()
+                //             .reduce((acc, cur) => {
+                //                 let prev = acc.slice(-1)[0] || [];
+                //                 if (prev[0] !== cur[0] && prev[1] !== cur[1]) {
+                //                     acc.push(cur);
+                //                 }
+                //                 return acc;
+                //             }, []);
+
+                //         // Return from calculation if the new sketch coordinates are the same as the previous
+                //         if (
+                //             before.length === sketchCoordinates.length &&
+                //             before
+                //                 .flat(1)
+                //                 .every(
+                //                     (coord, index) =>
+                //                         coord ===
+                //                         sketchCoordinates.flat(1)[index]
+                //                 )
+                //         ) {
+                //             return geometry;
+                //         }
+                //         // Set new sketch coordinates
+                //         vm.sketchCoordinates = sketchCoordinates;
+
+                //         // Add to undo stack
+                //         vm.undoredo_forSketch.push('add polygon point', {
+                //             before: before,
+                //             after: vm.sketchCoordinates,
+                //         });
+                //     }
+
+                //     return geometry;
+                // },
+                // condition: function (evt) {
+                //     if (evt.originalEvent.buttons === 1) {
+                //         // Only allow drawing when the left mouse button is pressed
+                //         return true;
+                //     } else if (evt.originalEvent.buttons === 2) {
+                //         // If the right mouse button is pressed, undo the last point
+                //         if (vm.canUndoDrawnVertex) {
+                //             vm.undoredo_forSketch.undo();
+                //         } else {
+                //             vm.set_mode('layer');
+                //         }
+                //     } else {
+                //         return false;
+                //     }
+                // },
+                // finishCondition: function () {
+                //     if (vm.lastPoint) {
+                //         // vm.$emit('validate-feature');
+                //         vm.finishDrawing();
+                //     }
+                //     return true;
+                // },
+            });
+
             vm.drawForModel.set('escKey', '');
             vm.drawForModel.on('change:escKey', function () {
                 console.log('ESC key pressed');
@@ -1658,7 +1797,6 @@ export default {
                     model: model,
                     polygon_source: 'New',
                     name: model.id || -1,
-                    // FIXME: Can this be standardised into the same field name?
                     label:
                         model.occurrence_report_number ||
                         model.label ||
@@ -1675,20 +1813,60 @@ export default {
                 vm.lastPoint = evt.feature;
                 vm.sketchCoordinates = [[]];
             });
+
+            vm.drawPointsForModel.on('drawend', function (evt) {
+                console.log(evt);
+                console.log(evt.feature.values_.geometry.flatCoordinates);
+                let model = vm.context || {};
+
+                let color =
+                    vm.featureColors['draw'] ||
+                    vm.featureColors['unknown'] ||
+                    vm.defaultColor;
+                evt.feature.setProperties({
+                    id: vm.newFeatureId,
+                    model: model,
+                    // TODO: rename polygon_source
+                    polygon_source: 'New',
+                    name: model.id || -1,
+                    label:
+                        model.occurrence_report_number || model.label || 'Draw',
+                    color: color,
+                    locked: false,
+                });
+                vm.newFeatureId++;
+                console.log('newFeatureId = ' + vm.newFeatureId);
+                vm.lastPoint = evt.feature;
+                vm.sketchCoordinates = [[]];
+            });
+
             vm.map.addInteraction(vm.drawForModel);
+            vm.map.addInteraction(vm.drawPointsForModel);
         },
         initialisePointerMoveEvent: function () {
             let vm = this;
 
-            const hoverStyle = new Style({
+            const hoverStylePolygon = new Style({
                 fill: vm.hoverFill,
-                stroke: vm.hoverStroke,
+                stroke: vm.hoverStrokePolygon,
             });
+            const hoverStylePoint = new Style({
+                image: new CircleStyle({
+                    radius: 7,
+                    fill: vm.hoverFill,
+                    stroke: vm.hoverStrokePoint,
+                }),
+            });
+
             // Cache the hover fill so we don't have to create a new one every time
             // Also prevent overwriting property `hoverFill` color
             let _hoverFill = null;
             function hoverSelect(feature) {
                 const color = feature.get('color') || vm.defaultColor;
+                let hoverStyle = hoverStylePolygon;
+                if (feature.getGeometry().getType() === 'Point') {
+                    hoverStyle = hoverStylePoint;
+                }
                 _hoverFill = new Fill({ color: color });
 
                 // If the feature is already selected, use the select stroke when hovering
@@ -1698,8 +1876,13 @@ export default {
                     hoverStyle.setFill(_hoverFill);
                     hoverStyle.setStroke(vm.clickSelectStroke);
                 } else {
-                    hoverStyle.setFill(vm.hoverFill);
-                    hoverStyle.setStroke(vm.hoverStroke);
+                    if (feature.getGeometry().getType() === 'Polygon') {
+                        hoverStyle.setFill(vm.hoverFill);
+                        hoverStyle.setStroke(vm.hoverStrokePolygon);
+                    } else if (feature.getGeometry().getType() === 'Point') {
+                        hoverStyle.getImage().setFill(vm.hoverFill);
+                        hoverStyle.getImage().setStroke(vm.hoverStrokePoint);
+                    }
                 }
                 return hoverStyle;
             }
@@ -1730,8 +1913,13 @@ export default {
                         if (!(vm.measuring || vm.drawing)) {
                             // Don't highlight features when measuring or drawing
                             selected.setStyle(undefined);
+                            const type = selected.getGeometry().getType();
                             selected.setStyle(
-                                vm.createStyle(selected.values_.color)
+                                vm.createStyle(
+                                    selected.values_.color,
+                                    null,
+                                    type
+                                )
                             );
                         }
                     }

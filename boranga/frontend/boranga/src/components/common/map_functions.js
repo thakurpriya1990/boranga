@@ -317,12 +317,13 @@ const _helper = {
         if (this.drawForModel) {
             if (drawForModel && this.subMode === 'Polygon') {
                 this.drawForModel.setActive(true);
-                // TODO: set points layer false
+                this.drawPointsForModel.setActive(false);
             } else if (drawForModel && this.subMode === 'Point') {
                 this.drawForModel.setActive(false);
-                // TODO: set points layer true
+                this.drawPointsForModel.setActive(true);
             } else {
-                this.drawForModel.setActive(drawForModel);
+                this.drawForModel.setActive(false);
+                this.drawPointsForModel.setActive(false);
             }
         }
     },
