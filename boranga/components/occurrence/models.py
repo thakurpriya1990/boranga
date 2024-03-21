@@ -572,6 +572,12 @@ class OccurrenceReportGeometry(models.Model):
 
     class Meta:
         app_label = "boranga"
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(polygon__isnull=False, point__isnull=False),
+                name="point_and_polygon_mutually_exclusive",
+            )
+        ]
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
