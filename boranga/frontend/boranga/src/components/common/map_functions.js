@@ -161,13 +161,21 @@ export async function addOptionalLayers(map_component) {
 /**
  * Sets the mode of interaction of the map.
  * @param {string} mode The mode to set the map to (layer, draw, measure)
+ * @param {string=} subMode The submode to set the map to (e.g. draw: 'Polygon', 'Point')
  */
-export function set_mode(mode) {
+export function set_mode(mode, subMode = null) {
     // Toggle map mode on/off when the new mode is the old one
     if (this.mode == mode) {
-        this.mode = 'layer';
+        if (this.subMode == subMode) {
+            this.mode = 'layer';
+            this.subMode = null;
+        } else {
+            // If only the submode is different, set the new submode but keep the mode
+            this.subMode = subMode;
+        }
     } else {
         this.mode = mode;
+        this.subMode = subMode;
     }
 
     this.drawing = false;
@@ -181,23 +189,23 @@ export function set_mode(mode) {
 
     if (this.mode === 'layer') {
         this.clearMeasurementLayer();
-        _helper.toggle_draw_measure_license.bind(this)(false, false);
+        _helper.toggle_draw_or_measure.bind(this)(false, false);
     } else if (this.mode === 'draw') {
         this.clearMeasurementLayer();
         this.sketchCoordinates = [[]];
-        this.sketchCoordinatesHistory = [[]];
-        _helper.toggle_draw_measure_license.bind(this)(false, true);
+        _helper.toggle_draw_or_measure.bind(this)(false, true);
+        this.undoredo_forSketch.clear(); // Clear the sketch coordinates undo/redo stack
         this.drawing = true;
     } else if (this.mode === 'transform') {
         this.clearMeasurementLayer();
         this.transformSetActive(true);
-        _helper.toggle_draw_measure_license.bind(this)(false, false);
+        _helper.toggle_draw_or_measure.bind(this)(false, false);
         this.transforming = true;
     } else if (this.mode === 'measure') {
-        _helper.toggle_draw_measure_license.bind(this)(true, false);
+        _helper.toggle_draw_or_measure.bind(this)(true, false);
         this.measuring = true;
     } else if (this.mode === 'info') {
-        _helper.toggle_draw_measure_license.bind(this)(false, false);
+        _helper.toggle_draw_or_measure.bind(this)(false, false);
         this.informing = true;
     } else {
         console.error(`Cannot set mode ${mode}`);
@@ -209,6 +217,7 @@ export function set_mode(mode) {
             type: 'map:modeChanged',
             details: {
                 new_mode: this.mode,
+                new_subMode: this.subMode,
             },
         });
     }
@@ -302,12 +311,33 @@ const _helper = {
      * @param {boolean} drawForMeasure Whether to set the measure layer active or inactive
      * @param {boolean} drawForModel Whether to set the model's polygon layer active or inactive
      */
-    toggle_draw_measure_license: function (drawForMeasure, drawForModel) {
+    toggle_draw_or_measure: function (drawForMeasure, drawForModel) {
+        /**
+         * Sets the active state of the Draw layers
+         * @param {boolean} pointsActive Set the active state of the points layer
+         * @param {boolean} polygonsActive Set the active state of the polygons layer
+         */
+        var drawForModelSetActive = function (pointsActive, polygonsActive) {
+            if (this.drawPointsForModel) {
+                this.drawPointsForModel.setActive(pointsActive);
+            }
+            if (this.drawPolygonsForModel) {
+                this.drawPolygonsForModel.setActive(polygonsActive);
+            }
+        }.bind(this);
+
         if (this.drawForMeasure) {
             this.drawForMeasure.setActive(drawForMeasure);
         }
-        if (this.drawForModel) {
-            this.drawForModel.setActive(drawForModel);
+        if (drawForModel && this.subMode === 'Polygon') {
+            // Set points drawing layer inactive and polygons drawing layer active
+            drawForModelSetActive(false, true);
+        } else if (drawForModel && this.subMode === 'Point') {
+            // Set points drawing layer active and polygons drawing layer inactive
+            drawForModelSetActive(true, false);
+        } else {
+            // Set both points and polygons drawing layers inactive
+            drawForModelSetActive(false, false);
         }
     },
     /**

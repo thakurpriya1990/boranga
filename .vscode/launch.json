@@ -5,8 +5,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
-            "type": "python",
+            "name": "Python: Django",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
             "args": [
@@ -14,7 +14,27 @@
                 "0.0.0.0:9001"
             ],
             "django": true
-            
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "env": { "PORT": "9001" },
+            "name": "Node: Chrome",
+            "url": "http://localhost:9001",
+            "webRoot": "${workspaceFolder}/boranga/frontend/boranga/",
+            "skipFiles": [
+              "${workspaceFolder}/boranga/frontend/boranga/node_modules/**/",
+              "*/<node_internals>/**",
+              "*/<node_modules>/**"
+            ],
+            "sourceMaps": true,
+            "smartStep": true,
+            "outFiles": [
+              "${workspaceFolder}/boranga/frontend/boranga/src/**/*.js",
+              "${workspaceFolder}/boranga/frontend/boranga/**/*.vue",
+              "${workspaceFolder}/boranga/frontend/boranga/**/*.html"
+            ],
+            "preLaunchTask": "node: serve"
         }
     ]
 }

@@ -8,7 +8,7 @@
                   Index="amendment_request" customColor="red">
                     <div v-for="a in amendment_request">
                       <p>Reason: {{a.reason}}</p>
-                      <p>Details: <p v-for="t in splitText(a.text)">{{t}}</p></p>
+                      <p>Details: <p v-for="t in splitText(a.text)">{{t}}</p>
                     </div>
                   </FormSection>
                 </div> 
