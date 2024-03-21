@@ -239,13 +239,11 @@
                             />
                         </div>
                     </div>
-                    <div
-                        v-if="polygonCount"
-                        class="optional-layers-button-wrapper"
-                    >
+                    <div class="optional-layers-button-wrapper">
                         <div
                             title="Zoom map to layer(s)"
                             class="optional-layers-button btn"
+                            :class="polygonCount ? '' : 'disabled'"
                             @click="displayAllFeatures"
                         >
                             <img
