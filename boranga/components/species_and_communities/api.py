@@ -132,27 +132,36 @@ class GetGroupTypeDict(views.APIView):
                 group_type_list.append({'id': group.id,'name':group.name, 'display':group.get_name_display()});
         return Response(group_type_list)
 
-# used for external conservation status dash
+# used for external conservation status/ occurrence report dash
 class GetSpecies(views.APIView):
     def get(self, request, format=None):
         search_term = request.GET.get('term', '')
         if search_term:
+            dumped_species = cache.get('get_species_data')
+            species_data_cache = None
+            if dumped_species is None:
+                species_data_cache = Species.objects.all()
+                cache.set('get_species_data', species_data_cache, 86400)
+                # print("NOT from CACHE")
+            else:
+                species_data_cache = dumped_species
+                # print("from CACHE")
+            # don't allow to choose species that are still in draft status
             exculde_status = ['draft']
-            data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
-            data = data.filter(taxonomy__scientific_name__icontains=search_term).values('id', 'taxonomy__scientific_name')[:10]
-            data_transform = [{'id': taxon['id'], 'text': taxon['taxonomy__scientific_name']} for taxon in data]
+            data = species_data_cache.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None) & Q(taxonomy__scientific_name__icontains=search_term)).values('id', 'taxonomy__scientific_name')[:10]
+            data_transform = [{'id': species['id'], 'text': species['taxonomy__scientific_name']} for species in data]
             return Response({"results": data_transform})
         return Response()
 
-# used for external conservation status dash
+# used for external conservation status/ occurrence report dash
 class GetCommunities(views.APIView):
     def get(self, request, format=None):
         search_term = request.GET.get('term', '')
         if search_term:
+            # don't allow to choose communities that are still in draft status
             exculde_status = ['draft']
-            data = Community.objects.filter(~Q(processing_status__in=exculde_status))
-            data = data.filter(taxonomy__community_name__icontains=search_term).values('id', 'taxonomy__community_name')[:10]
-            data_transform = [{'id': taxon['id'], 'text': taxon['taxonomy__community_name']} for taxon in data]
+            data = Community.objects.filter(~Q(processing_status__in=exculde_status) & Q(taxonomy__community_name__icontains=search_term)).values('id', 'taxonomy__community_name')[:10]
+            data_transform = [{'id': community['id'], 'text': community['taxonomy__community_name']} for community in data]
             return Response({"results": data_transform})
         return Response()
 
@@ -160,8 +169,8 @@ class GetCommunities(views.APIView):
 # used on dashboards and forms
 class GetScientificName(views.APIView):
     def get(self, request, format=None):
-        group_type_id = request.GET.get('group_type_id', '')
         search_term = request.GET.get('term', '')
+        group_type_id = request.GET.get('group_type_id', '')
         cs_referral = request.GET.get('cs_referral', '')
         # used for conservation status form
         cs_species = request.GET.get('cs_species', '')
@@ -209,26 +218,26 @@ class GetScientificName(views.APIView):
                     data = species_data_cache.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
                 else:
                     exculde_status = ['draft']
-                    data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
+                    data = species_data_cache.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
                 data = data.filter(taxonomy__scientific_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id)[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name, 'taxon_previous_name': species.taxonomy.taxon_previous_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif combine_species != '':
                 # TODO do we need to check the taxonomy is_current=True as well
-                data = Species.objects.filter(Q(processing_status='active') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
+                data = species_data_cache.filter(Q(processing_status='active') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             else:
                 if taxon_details != '':
-                    species_status = Species.objects.get(id=species_id).processing_status
+                    species_status = species_data_cache.get(id=species_id).processing_status
                     if species_status == Species.PROCESSING_STATUS_DRAFT:
-                        qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id, name_currency=True)[:10]
+                        qs = taxonomy_data_cache.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id, name_currency=True)[:10]
                     else:
-                        qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
+                        qs = taxonomy_data_cache.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
                     serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
                     data_transform = serializer.data
                 else:
-                    data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+                    data = taxonomy_data_cache.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
                     data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
                     data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
