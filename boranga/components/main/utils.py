@@ -81,7 +81,7 @@ def handle_validation_error(e):
 #
 #    return from_date
 
-def get_polygon_source(geometry_obj):
+def get_geometry_source(geometry_obj):
     from boranga.components.occurrence.models import OccurrenceReportGeometry
 
     source = ""

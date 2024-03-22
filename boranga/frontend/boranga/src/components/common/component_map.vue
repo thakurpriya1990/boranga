@@ -438,10 +438,10 @@
                                             }}
                                         </td>
                                     </tr>
-                                    <tr v-if="selectedModel.polygon_source">
-                                        <th scope="row">Polygon Source</th>
+                                    <tr v-if="selectedModel.geometry_source">
+                                        <th scope="row">Geometry Source</th>
                                         <td>
-                                            {{ selectedModel.polygon_source }}
+                                            {{ selectedModel.geometry_source }}
                                         </td>
                                     </tr>
                                     <tr v-if="selectedModel.area_sqm">
@@ -1211,9 +1211,9 @@ export default {
             let vm = this;
 
             if (vm.styleBy === 'assessor') {
-                // Assume the object is a feature containing a polygon_source property
+                // Assume the object is a feature containing a geometry_source property
                 return vm.featureColors[
-                    featureData.properties.polygon_source.toLowerCase()
+                    featureData.properties.geometry_source.toLowerCase()
                 ];
             } else if (vm.styleBy === 'model') {
                 // Assume the object is a model containing a color field
@@ -1477,7 +1477,7 @@ export default {
                                 return (
                                     (['addfeature'].includes(item.type) &&
                                         item.feature.getProperties()
-                                            .polygon_source === 'New') ||
+                                            .geometry_source === 'New') ||
                                     ['translate', 'rotate', 'scale'].includes(
                                         item.name
                                     )
@@ -1785,7 +1785,7 @@ export default {
                 evt.feature.setProperties({
                     id: vm.newFeatureId,
                     model: model,
-                    polygon_source: 'New',
+                    geometry_source: 'New',
                     name: model.id || -1,
                     label:
                         model.occurrence_report_number ||
@@ -1816,8 +1816,7 @@ export default {
                 evt.feature.setProperties({
                     id: vm.newFeatureId,
                     model: model,
-                    // TODO: rename polygon_source
-                    polygon_source: 'New',
+                    geometry_source: 'New',
                     name: model.id || -1,
                     label:
                         model.occurrence_report_number || model.label || 'Draw',
@@ -1923,8 +1922,8 @@ export default {
                         if (!model) {
                             console.error('No model found for feature');
                         } else {
-                            model.polygon_source =
-                                selected.getProperties().polygon_source;
+                            model.geometry_source =
+                                selected.getProperties().geometry_source;
                             model.copied_from =
                                 selected.getProperties().copied_from;
                             model.area_sqm = Math.round(
@@ -2448,7 +2447,7 @@ export default {
                 label: model.label,
                 color: color,
                 source: featureData.properties.source,
-                polygon_source: featureData.properties.polygon_source,
+                geometry_source: featureData.properties.geometry_source,
                 locked: featureData.properties.locked,
                 copied_from: featureData.properties.report_copied_from,
                 area_sqm: featureData.properties.area_sqm,

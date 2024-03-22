@@ -40,7 +40,7 @@ from boranga.components.main.serializers import(
     EmailUserSerializer,
     )
 from boranga.components.main.utils import (
-    get_polygon_source,
+    get_geometry_source,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
@@ -365,7 +365,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
-    polygon_source = serializers.SerializerMethodField()
+    geometry_source = serializers.SerializerMethodField()
     report_copied_from = serializers.SerializerMethodField(read_only=True)
     geo_field = serializers.SerializerMethodField(read_only=True)
 
@@ -395,14 +395,14 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             "area_sqm",
             "area_sqhm",
             "intersects",
-            "polygon_source",
+            "geometry_source",
             "locked",
             "report_copied_from",
         )
         read_only_fields = ("id",)
 
-    def get_polygon_source(self, obj):
-        return get_polygon_source(obj)
+    def get_geometry_source(self, obj):
+        return get_geometry_source(obj)
 
     def get_report_copied_from(self, obj):
         if obj.copied_from:
