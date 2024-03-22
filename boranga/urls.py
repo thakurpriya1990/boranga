@@ -52,7 +52,6 @@ router.register(r'community_conservation_status_paginated',conservation_status_a
 # router.register(r'species_conservation_plans_paginated',conservation_plans_api.SpeciesConservationPlansPaginatedViewSet)
 #router.register(r'community_conservation_plans_paginated',conservation_plans_api.CommunityConservationPlansPaginatedViewSet)
 router.register(r'conservation_status_paginated',conservation_status_api.ConservationStatusPaginatedViewSet, 'conservation_status_paginated')
-router.register(r'conservation_status',conservation_status_api.ConservationStatusViewSet)
 router.register(r'conservation_status_documents',conservation_status_api.ConservationStatusDocumentViewSet)
 router.register(r'cs_referrals',conservation_status_api.ConservationStatusReferralViewSet)
 # router.register(r'species_conservation_status',conservation_status_api.SpeciesConservationStatusViewSet)
