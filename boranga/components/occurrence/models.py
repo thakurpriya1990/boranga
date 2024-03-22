@@ -2,7 +2,7 @@ import logging
 import datetime
 from django.utils import timezone
 from django.db import models
-from django.db.models.functions import Cast
+from django.db.models.functions import Cast, Coalesce
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.core.exceptions import ValidationError
@@ -545,10 +545,15 @@ class Location(models.Model):
 
 class OccurrenceReportGeometryManager(models.Manager):
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .annotate(area=Area(Cast("polygon", gis_models.PolygonField(geography=True))))
+        qs = super().get_queryset()
+        return qs.annotate(
+            area=models.Case(
+                models.When(
+                    polygon__isnull=False,
+                    then=Area(Cast("polygon", gis_models.PolygonField(geography=True))),
+                ),
+                default=None,
+            )
         )
 
 
@@ -585,14 +590,12 @@ class OccurrenceReportGeometry(models.Model):
     @property
     def area_sqm(self):
         if not hasattr(self, "area") or not self.area:
-            logger.warn(f"OccurrenceReportGeometry: {self.id} has no area")
             return None
         return self.area.sq_m
 
     @property
     def area_sqhm(self):
         if not hasattr(self, "area") or not self.area:
-            logger.warn(f"OccurrenceReportGeometry: {self.id} has no area")
             return None
         return self.area.sq_m / 10000
 
