@@ -28,7 +28,7 @@ six>=1.16.0
 django-ical~=1.9
 django-taggit==4.0.0
 geojson~=3.1
-unicodecsv==0.14.1
+unicodecsv==0.14.1 # A Python 2.7 drop-in replacement from 2015
 PyPDF2==3.0.1 # Development continues here: https://pypi.org/project/pypdf/
 django-extra-fields==3.0.2 # Deprecated
 django-crispy-forms==2.0
@@ -38,9 +38,9 @@ djangorestframework-datatables~=0.7
 django-confy==1.0.4
 xlwt==1.3.0
 xlsxwriter~=3.2
-gunicorn==21.2.0
+gunicorn~=21.2
 dj-static==0.0.6
-Pillow==10.2.0
+Pillow~=10.2
 mixer~=7.2
 django-dirtyfields~=1.9
 python-docx~=1.1.0
@@ -63,8 +63,8 @@ babel~=2.14
 pandas~=2.2
 git+https://github.com/dbca-wa/wagov_utils
 git+https://github.com/dbca-wa/appmonitor_client.git#egg=appmonitor_client
-python-decouple==3.8
+python-decouple~=3.8
 numpy~=1.26
 setuptools~=69.2
 wheel~=0.43
-pygraphviz==1.12
+pygraphviz~=1.12
