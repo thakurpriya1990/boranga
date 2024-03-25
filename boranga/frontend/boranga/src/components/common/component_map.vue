@@ -2031,7 +2031,7 @@ export default {
                     let pathnames = [
                         window.location.pathname,
                         model.details_url,
-                    ].filter((path) => path !== undefined);
+                    ].filter((path) => ![undefined, null, ''].includes(path));
 
                     for (let i = 0; i < pathnames.length; i++) {
                         let path_name = pathnames[i];
@@ -2042,6 +2042,7 @@ export default {
                     }
                     // array remove duplicates
                     pathnames = [...new Set(pathnames)];
+
                     if (pathnames.length === 1) {
                         console.log('already on model details page');
                         vm.redirectingToModelDetails = false;

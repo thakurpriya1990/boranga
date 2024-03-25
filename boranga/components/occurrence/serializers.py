@@ -1,7 +1,10 @@
 import json
 import logging
 
+from django.urls import reverse
 from django.conf import settings
+
+from boranga.helpers import is_internal
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
 from boranga.components.species_and_communities.models import(
     GroupType,
@@ -305,7 +308,7 @@ class AnimalObservationSerializer(serializers.ModelSerializer):
         self.fields['primary_detection_method'] = serializers.MultipleChoiceField(choices=[(primary_det_instance.id, primary_det_instance.name) for primary_det_instance in PrimaryDetectionMethod.objects.all()], allow_blank=False)
         self.fields['secondary_sign'] = serializers.MultipleChoiceField(choices=[(sec_sign_instance.id, sec_sign_instance.name) for sec_sign_instance in SecondarySign.objects.all()], allow_blank=False)
         self.fields['reproductive_maturity'] = serializers.MultipleChoiceField(choices=[(rep_maturity_instance.id, rep_maturity_instance.name) for rep_maturity_instance in ReproductiveMaturity.objects.all()], allow_blank=False)
-    
+
 
 class IdentificationSerializer(serializers.ModelSerializer):
 	
@@ -437,20 +440,26 @@ class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
             "lodgement_date_display",
             "details_url",
         )
-    
+
     def get_label(self, obj):
         return 'Occurrence Report'
 
     def get_details_url(self, obj):
-        # request = self.context["request"]
-        # if request.user.is_authenticated:
-        #     if is_internal(request):
-        #         return reverse("internal-proposal-detail", kwargs={"pk": obj.id})
-        #     else:
-        #         return reverse(
-        #             "external-proposal-detail", kwargs={"proposal_pk": obj.id}
-        #         )
-        return ''
+        request = self.context["request"]
+
+        if request.user.is_authenticated:
+            if is_internal(request):
+                return reverse(
+                    "internal-occurrence-report-detail",
+                    kwargs={"ocr_proposal_pk": obj.id},
+                )
+            else:
+                return reverse(
+                    "external-occurrence-report-detail",
+                    kwargs={"ocr_proposal_pk": obj.id},
+                )
+
+        return None
 
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -1043,4 +1052,3 @@ class SaveOCRConservationThreatSerializer(serializers.ModelSerializer):
 			'potential_threat_onset',
 			'date_observed',
 			)
-
