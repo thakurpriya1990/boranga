@@ -73,7 +73,6 @@ def is_species_processor(user_id):
 def is_community_processor(user_id):
     if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
         user_id = user_id.id
-    print("USER ID",user_id)
     community_group = SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
     return True if user_id in community_group.get_system_group_member_ids() else False
 
