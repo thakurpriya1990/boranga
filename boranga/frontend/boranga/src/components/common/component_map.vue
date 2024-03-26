@@ -438,10 +438,10 @@
                                             }}
                                         </td>
                                     </tr>
-                                    <tr v-if="selectedModel.polygon_source">
-                                        <th scope="row">Polygon Source</th>
+                                    <tr v-if="selectedModel.geometry_source">
+                                        <th scope="row">Geometry Source</th>
                                         <td>
-                                            {{ selectedModel.polygon_source }}
+                                            {{ selectedModel.geometry_source }}
                                         </td>
                                     </tr>
                                     <tr v-if="selectedModel.area_sqm">
@@ -582,7 +582,7 @@
             </div>
         </div>
         <!-- If no context provided, e.g. no proposal or cp, don't allow for shapefile upload -->
-        <!-- <div v-if="context" class="row shapefile-row">
+        <div v-if="context" class="row shapefile-row">
             <div class="col-sm-6 border p-2">
                 <div class="row mb-2">
                     <div class="col">
@@ -607,7 +607,8 @@
                 </div>
                 <div class="row">
                     <div class="col">
-                        <BootstrapAlert
+                        <!-- <BootstrapAlert> -->
+                        <alert
                             >If you do not upload a .prj file, we will use
                             <a
                                 href="https://en.wikipedia.org/wiki/World_Geodetic_System#WGS84"
@@ -615,7 +616,8 @@
                                 >WGS 84</a
                             >
                             / 'EPSG:4326'
-                        </BootstrapAlert>
+                        </alert>
+                        <!-- </BootstrapAlert> -->
                     </div>
                 </div>
                 <div class="row">
@@ -657,7 +659,7 @@
                     <img src="" />
                 </div>
             </div>
-        </div> -->
+        </div>
     </div>
 </template>
 
@@ -687,7 +689,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
-// import FileField from '@/components/forms/filefield_immediate.vue';
+import FileField from '@/components/forms/filefield_immediate.vue';
 import {
     // addOptionalLayers,
     set_mode,
@@ -699,7 +701,7 @@ import {
 export default {
     name: 'MapComponent',
     components: {
-        // FileField,
+        FileField,
         alert,
         //RangeSlider,
     },
@@ -1075,6 +1077,9 @@ export default {
                 return stack.length > 0;
             }
         },
+        csrf_token: function () {
+            return helpers.getCookie('csrftoken');
+        },
     },
     watch: {
         selectedFeatureIds: function () {
@@ -1211,9 +1216,9 @@ export default {
             let vm = this;
 
             if (vm.styleBy === 'assessor') {
-                // Assume the object is a feature containing a polygon_source property
+                // Assume the object is a feature containing a geometry_source property
                 return vm.featureColors[
-                    featureData.properties.polygon_source.toLowerCase()
+                    featureData.properties.geometry_source.toLowerCase()
                 ];
             } else if (vm.styleBy === 'model') {
                 // Assume the object is a model containing a color field
@@ -1477,7 +1482,7 @@ export default {
                                 return (
                                     (['addfeature'].includes(item.type) &&
                                         item.feature.getProperties()
-                                            .polygon_source === 'New') ||
+                                            .geometry_source === 'New') ||
                                     ['translate', 'rotate', 'scale'].includes(
                                         item.name
                                     )
@@ -1785,7 +1790,7 @@ export default {
                 evt.feature.setProperties({
                     id: vm.newFeatureId,
                     model: model,
-                    polygon_source: 'New',
+                    geometry_source: 'New',
                     name: model.id || -1,
                     label:
                         model.occurrence_report_number ||
@@ -1816,8 +1821,7 @@ export default {
                 evt.feature.setProperties({
                     id: vm.newFeatureId,
                     model: model,
-                    // TODO: rename polygon_source
-                    polygon_source: 'New',
+                    geometry_source: 'New',
                     name: model.id || -1,
                     label:
                         model.occurrence_report_number || model.label || 'Draw',
@@ -1923,8 +1927,8 @@ export default {
                         if (!model) {
                             console.error('No model found for feature');
                         } else {
-                            model.polygon_source =
-                                selected.getProperties().polygon_source;
+                            model.geometry_source =
+                                selected.getProperties().geometry_source;
                             model.copied_from =
                                 selected.getProperties().copied_from;
                             model.area_sqm = Math.round(
@@ -2032,7 +2036,7 @@ export default {
                     let pathnames = [
                         window.location.pathname,
                         model.details_url,
-                    ].filter((path) => path !== undefined);
+                    ].filter((path) => ![undefined, null, ''].includes(path));
 
                     for (let i = 0; i < pathnames.length; i++) {
                         let path_name = pathnames[i];
@@ -2043,6 +2047,7 @@ export default {
                     }
                     // array remove duplicates
                     pathnames = [...new Set(pathnames)];
+
                     if (pathnames.length === 1) {
                         console.log('already on model details page');
                         vm.redirectingToModelDetails = false;
@@ -2448,7 +2453,7 @@ export default {
                 label: model.label,
                 color: color,
                 source: featureData.properties.source,
-                polygon_source: featureData.properties.polygon_source,
+                geometry_source: featureData.properties.geometry_source,
                 locked: featureData.properties.locked,
                 copied_from: featureData.properties.report_copied_from,
                 area_sqm: featureData.properties.area_sqm,
@@ -2578,57 +2583,60 @@ export default {
                 vm.deletedFeatures.push(feature);
             }
         },
-        // validate_map_docs: function () {
-        //     let vm = this;
-        //     vm.isValidating = true;
-        //     vm.errorString = '';
-        //     const options = {
-        //         method: 'POST',
-        //         'content-type': 'application/json',
-        //     };
-        //     fetch(
-        //         helpers.add_endpoint_json(
-        //             api_endpoints.proposals,
-        //             vm.context.id + '/validate_map_files'
-        //         ),
-        //         options
-        //     )
-        //         .then(async (response) => {
-        //             if (!response.ok) {
-        //                 const text = await response.json();
-        //                 throw new Error(text);
-        //             } else {
-        //                 return response.json();
-        //             }
-        //         })
-        //         .then((data) => {
-        //             vm.$emit('refreshFromResponse', data);
-        //             // Once the shapefile is converted to a proposal geometry the files are deleted
-        //             // so calling this will remove the file list from the front end
-        //             vm.$refs.shapefile_document.get_documents();
-        //             vm.$nextTick(() => {
-        //                 vm.loadFeatures([data]);
-        //                 vm.displayAllFeatures();
-        //                 swal.fire(
-        //                     'Success',
-        //                     'Shapefile processed successfully',
-        //                     'success'
-        //                 );
-        //             });
-        //         })
-        //         .catch((error) => {
-        //             console.log(error);
-        //             vm.errorString = helpers.apiVueResourceError(error);
-        //             swal.fire({
-        //                 title: 'Validation',
-        //                 text: error,
-        //                 icon: 'error',
-        //             });
-        //         })
-        //         .finally(() => {
-        //             vm.isValidating = false;
-        //         });
-        // },
+        validate_map_docs: function () {
+            var formData = new FormData();
+            var vm = this;
+            formData.append('csrfmiddlewaretoken', vm.csrf_token);
+            vm.isValidating = true;
+            vm.errorString = '';
+            const options = {
+                method: 'POST',
+                body: formData,
+                'content-type': 'application/json',
+            };
+            fetch(
+                helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/${vm.context.id}/validate_map_files/`
+                ),
+                options
+            )
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const text = await response.json();
+                        throw new Error(text);
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then((data) => {
+                    vm.$emit('refreshFromResponse', data);
+                    // Once the shapefile is converted to a proposal geometry the files are deleted
+                    // so calling this will remove the file list from the front end
+                    vm.$refs.shapefile_document.get_documents();
+                    vm.$nextTick(() => {
+                        vm.loadFeatures([data]);
+                        vm.displayAllFeatures();
+                        swal.fire(
+                            'Success',
+                            'Shapefile processed successfully',
+                            'success'
+                        );
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    vm.errorString = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Validation',
+                        text: error,
+                        icon: 'error',
+                    });
+                })
+                .finally(() => {
+                    vm.isValidating = false;
+                });
+        },
         /**
          * Returns the selected features
          */
