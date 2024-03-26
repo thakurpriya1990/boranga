@@ -13,7 +13,7 @@ from django.db import transaction
 
 from datetime import datetime, timedelta
 
-from boranga.helpers import is_internal
+from boranga.helpers import is_internal, is_customer
 from boranga.forms import *
 from boranga.components.conservation_status.models import ConservationStatus,ConservationStatusReferral
 from boranga.components.species_and_communities.models import Species, Community
@@ -254,27 +254,34 @@ class ManagementCommandsView(LoginRequiredMixin, TemplateView):
         return render(request, self.template_name, data)
 
 
+def is_authorised_to_access_document(request):
+    
+    if is_internal(request):
+        return True
+    elif is_customer(request):
+        return False
+    else:
+        return False
+
+
 def getPrivateFile(request):
-  allow_access = False
-  # Add permission rules
-  allow_access = True
-  ####
 
-  #if request.user.is_superuser:
-  if allow_access == True:
-      file_name_path =  request.path 
-      full_file_path= settings.BASE_DIR+file_name_path
-      if os.path.isfile(full_file_path) is True:
-              extension = file_name_path.split(".")[-1]
-              the_file = open(full_file_path, 'rb')
-              the_data = the_file.read()
-              the_file.close()
-              if extension == 'msg':
-                  return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
-              if extension == 'eml':
-                  return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+    if is_authorised_to_access_document(request):
+        file_name_path =  request.path 
+        #norm path will convert any traversal or repeat / in to its normalised form
+        full_file_path= os.path.normpath(settings.BASE_DIR+file_name_path) 
+        #we then ensure the normalised path is within the BASE_DIR (and the file exists)
+        if full_file_path.startswith(settings.BASE_DIR) and os.path.isfile(full_file_path):
+            extension = file_name_path.split(".")[-1]
+            the_file = open(full_file_path, 'rb')
+            the_data = the_file.read()
+            the_file.close()
+            if extension == 'msg':
+                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+            if extension == 'eml':
+                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
 
-              return HttpResponse(the_data, content_type=mimetypes.types_map['.'+str(extension)])
-  else:
-              return
+            return HttpResponse(the_data, content_type=mimetypes.types_map['.'+str(extension)])
+    
+    return HttpResponse()
 
