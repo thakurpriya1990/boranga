@@ -25,7 +25,7 @@ from copy import deepcopy
 from django.shortcuts import render, redirect, get_object_or_404
 
 from boranga.components.species_and_communities.models import GroupType
-from boranga.components.occurrence.utils import ocr_proposal_submit
+from boranga.components.occurrence.utils import ocr_proposal_submit, validate_map_files
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from boranga.components.main.decorators import basic_exception_handler
 
@@ -1186,6 +1186,23 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             return Response(returned_data)
         else:
             return Response({})
+
+    @detail_route(methods=["POST"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @basic_exception_handler
+    def validate_map_files(self, request, *args, **kwargs):
+        instance = self.get_object()
+        valid_geometry_saved = validate_map_files(
+            request, instance, "occurrence_report"
+        )
+        instance.save()
+        # if valid_geometry_saved:
+        #     populate_gis_data(
+        #         instance, "competitive_process_geometries", "competitive_process"
+        #     )
+        serializer = self.get_serializer(instance)
+        logger.debug(f"validate_map_files response: {serializer.data}")
+        return Response(serializer.data)
 
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):

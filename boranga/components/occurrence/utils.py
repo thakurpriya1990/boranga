@@ -169,6 +169,7 @@ def save_document(request, instance, comms_instance, document_type, input_name=N
         document._file = _file
         document.save()
 
+@transaction.atomic
 def delete_document(request, instance, comms_instance, document_type, input_name=None):
     document_id = request.data.get("document_id", None)
     if document_id:
@@ -216,3 +217,123 @@ def process_shapefile_document(request, instance, *args, **kwargs):
         if d._file
     ]
     return {"filedata": returned_file_data}
+
+def validate_map_files(request, instance, foreign_key_field=None):
+    # Validates shapefiles uploaded with via the proposal map or the competitive process map.
+    # Shapefiles are valid when the shp, shx, and dbf extensions are provided
+    # and when they intersect with DBCA legislated land or water polygons
+
+    valid_geometry_saved = False
+
+    logger.debug(f"Shapefile documents: {instance.shapefile_documents.all()}")
+
+    if not instance.shapefile_documents.exists():
+        raise ValidationError(
+            "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended)"
+        )
+
+    # Shapefile extensions shp (geometry), shx (index between shp and dbf), dbf (data) are essential
+    shp_file_qs = instance.shapefile_documents.filter(
+        Q(name__endswith=".shp")
+        | Q(name__endswith=".shx")
+        | Q(name__endswith=".dbf")
+        | Q(name__endswith=".prj")
+    )
+
+    # Validate shapefile and all the other related files are present
+    if not shp_file_qs:
+        raise ValidationError(
+            "You can only attach files with the following extensions: .shp, .shx, and .dbf"
+        )
+
+    shp_files = shp_file_qs.filter(name__endswith=".shp").count()
+    shx_files = shp_file_qs.filter(name__endswith=".shx").count()
+    dbf_files = shp_file_qs.filter(name__endswith=".dbf").count()
+
+    if shp_files != 1 or shx_files != 1 or dbf_files != 1:
+        raise ValidationError(
+            "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended)"
+        )
+
+    # Add the shapefiles to a zip file for archiving purposes
+    # (as they are deleted after being converted to proposal geometry)
+    shapefile_archive_name = (
+        os.path.splitext(instance.shapefile_documents.first().path)[0]
+        + "-"
+        + timezone.now().strftime("%Y%m%d%H%M%S")
+        + ".zip"
+    )
+    shapefile_archive = ZipFile(shapefile_archive_name, "w")
+    for shp_file_obj in shp_file_qs:
+        shapefile_archive.write(shp_file_obj.path, shp_file_obj.name)
+    shapefile_archive.close()
+
+    # A list of all uploaded shapefiles
+    shp_file_objs = shp_file_qs.filter(Q(name__endswith=".shp"))
+
+    for shp_file_obj in shp_file_objs:
+        gdf = gpd.read_file(shp_file_obj.path)  # Shapefile to GeoDataFrame
+
+        # If no prj file assume WGS-84 datum
+        if not gdf.crs:
+            gdf_transform = gdf.set_crs("epsg:4326", inplace=True)
+        else:
+            gdf_transform = gdf.to_crs("epsg:4326")
+
+        geometries = gdf.geometry  # GeoSeries
+
+        # Only accept polygons
+        geom_type = geometries.geom_type.values[0]
+        if geom_type not in ("Polygon", "MultiPolygon"):
+            raise ValidationError(f"Geometry of type {geom_type} not allowed")
+
+        # Check for intersection with DBCA geometries
+        gdf_transform["valid"] = False
+        for geom in geometries:
+            srid = SpatialReference(
+                geometries.crs.srs
+            ).srid  # spatial reference identifier
+
+            polygon = GEOSGeometry(geom.wkt, srid=srid)
+
+            # Add the file name as identifier to the geojson for use in the frontend
+            if "source_" not in gdf_transform:
+                gdf_transform["source_"] = shp_file_obj.name
+
+            # Imported geometry is valid if it intersects with any one of the DBCA geometries
+            if not polygon_intersects_with_layer(
+                polygon, "public:dbca_legislated_lands_and_waters"
+            ):
+                raise ValidationError(
+                    "One or more polygons does not intersect with a relevant layer"
+                )
+
+            gdf_transform["valid"] = True
+
+            # Some generic code to save the geometry to the database
+            # That will work for both a proposal instance and a competitive process instance
+            instance_name = instance._meta.model.__name__
+
+            if not foreign_key_field:
+                foreign_key_field = instance_name.lower()
+
+            geometry_model = apps.get_model(
+                "leaseslicensing", f"{instance_name}Geometry"
+            )
+
+            geometry_model.objects.create(
+                **{
+                    foreign_key_field: instance,
+                    "polygon": polygon,
+                    "intersects": True,
+                    "drawn_by": request.user.id,
+                }
+            )
+
+        instance.save()
+        valid_geometry_saved = True
+
+    # Delete all shapefile documents so the user can upload another one if they wish.
+    instance.shapefile_documents.all().delete()
+
+    return valid_geometry_saved

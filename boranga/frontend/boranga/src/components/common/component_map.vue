@@ -1077,6 +1077,9 @@ export default {
                 return stack.length > 0;
             }
         },
+        csrf_token: function () {
+            return helpers.getCookie('csrftoken');
+        },
     },
     watch: {
         selectedFeatureIds: function () {
@@ -2581,17 +2584,20 @@ export default {
             }
         },
         validate_map_docs: function () {
-            let vm = this;
+            var formData = new FormData();
+            var vm = this;
+            formData.append('csrfmiddlewaretoken', vm.csrf_token);
             vm.isValidating = true;
             vm.errorString = '';
             const options = {
                 method: 'POST',
+                body: formData,
                 'content-type': 'application/json',
             };
             fetch(
-                helpers.add_endpoint_json(
-                    api_endpoints.proposals,
-                    vm.context.id + '/validate_map_files'
+                helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/${vm.context.id}/validate_map_files/`
                 ),
                 options
             )
