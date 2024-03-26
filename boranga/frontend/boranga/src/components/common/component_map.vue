@@ -582,7 +582,7 @@
             </div>
         </div>
         <!-- If no context provided, e.g. no proposal or cp, don't allow for shapefile upload -->
-        <!-- <div v-if="context" class="row shapefile-row">
+        <div v-if="context" class="row shapefile-row">
             <div class="col-sm-6 border p-2">
                 <div class="row mb-2">
                     <div class="col">
@@ -607,7 +607,8 @@
                 </div>
                 <div class="row">
                     <div class="col">
-                        <BootstrapAlert
+                        <!-- <BootstrapAlert> -->
+                        <alert
                             >If you do not upload a .prj file, we will use
                             <a
                                 href="https://en.wikipedia.org/wiki/World_Geodetic_System#WGS84"
@@ -615,7 +616,8 @@
                                 >WGS 84</a
                             >
                             / 'EPSG:4326'
-                        </BootstrapAlert>
+                        </alert>
+                        <!-- </BootstrapAlert> -->
                     </div>
                 </div>
                 <div class="row">
@@ -657,7 +659,7 @@
                     <img src="" />
                 </div>
             </div>
-        </div> -->
+        </div>
     </div>
 </template>
 
@@ -687,7 +689,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
-// import FileField from '@/components/forms/filefield_immediate.vue';
+import FileField from '@/components/forms/filefield_immediate.vue';
 import {
     // addOptionalLayers,
     set_mode,
@@ -699,7 +701,7 @@ import {
 export default {
     name: 'MapComponent',
     components: {
-        // FileField,
+        FileField,
         alert,
         //RangeSlider,
     },
@@ -2578,57 +2580,57 @@ export default {
                 vm.deletedFeatures.push(feature);
             }
         },
-        // validate_map_docs: function () {
-        //     let vm = this;
-        //     vm.isValidating = true;
-        //     vm.errorString = '';
-        //     const options = {
-        //         method: 'POST',
-        //         'content-type': 'application/json',
-        //     };
-        //     fetch(
-        //         helpers.add_endpoint_json(
-        //             api_endpoints.proposals,
-        //             vm.context.id + '/validate_map_files'
-        //         ),
-        //         options
-        //     )
-        //         .then(async (response) => {
-        //             if (!response.ok) {
-        //                 const text = await response.json();
-        //                 throw new Error(text);
-        //             } else {
-        //                 return response.json();
-        //             }
-        //         })
-        //         .then((data) => {
-        //             vm.$emit('refreshFromResponse', data);
-        //             // Once the shapefile is converted to a proposal geometry the files are deleted
-        //             // so calling this will remove the file list from the front end
-        //             vm.$refs.shapefile_document.get_documents();
-        //             vm.$nextTick(() => {
-        //                 vm.loadFeatures([data]);
-        //                 vm.displayAllFeatures();
-        //                 swal.fire(
-        //                     'Success',
-        //                     'Shapefile processed successfully',
-        //                     'success'
-        //                 );
-        //             });
-        //         })
-        //         .catch((error) => {
-        //             console.log(error);
-        //             vm.errorString = helpers.apiVueResourceError(error);
-        //             swal.fire({
-        //                 title: 'Validation',
-        //                 text: error,
-        //                 icon: 'error',
-        //             });
-        //         })
-        //         .finally(() => {
-        //             vm.isValidating = false;
-        //         });
-        // },
+        validate_map_docs: function () {
+            let vm = this;
+            vm.isValidating = true;
+            vm.errorString = '';
+            const options = {
+                method: 'POST',
+                'content-type': 'application/json',
+            };
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.proposals,
+                    vm.context.id + '/validate_map_files'
+                ),
+                options
+            )
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const text = await response.json();
+                        throw new Error(text);
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then((data) => {
+                    vm.$emit('refreshFromResponse', data);
+                    // Once the shapefile is converted to a proposal geometry the files are deleted
+                    // so calling this will remove the file list from the front end
+                    vm.$refs.shapefile_document.get_documents();
+                    vm.$nextTick(() => {
+                        vm.loadFeatures([data]);
+                        vm.displayAllFeatures();
+                        swal.fire(
+                            'Success',
+                            'Shapefile processed successfully',
+                            'success'
+                        );
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    vm.errorString = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Validation',
+                        text: error,
+                        icon: 'error',
+                    });
+                })
+                .finally(() => {
+                    vm.isValidating = false;
+                });
+        },
         /**
          * Returns the selected features
          */

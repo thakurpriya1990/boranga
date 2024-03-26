@@ -1172,6 +1172,21 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(methods=["POST"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @basic_exception_handler
+    def process_shapefile_document(self, request, *args, **kwargs):
+        instance = self.get_object()
+        returned_data = None
+        # TODO: process shapefile document
+        # returned_data = process_generic_document(
+        #     request, instance, document_type="shapefile_document"
+        # )
+        if returned_data:
+            return Response(returned_data)
+        else:
+            return Response({})
+
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
     # queryset = ObserverDetail.objects.all().order_by('id')
