@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 import json
 
@@ -162,9 +163,27 @@ def save_document(request, instance, comms_instance, document_type, input_name=N
             document = instance.shapefile_documents.get_or_create(
                 input_name=input_name, name=filename
             )[0]
+        else:
+            raise ValidationError(f"Invalid document type {document_type}")
 
         document._file = _file
         document.save()
+
+def delete_document(request, instance, comms_instance, document_type, input_name=None):
+    document_id = request.data.get("document_id", None)
+    if document_id:
+        if document_type == "shapefile_document":
+            document = instance.shapefile_documents.get(id=document_id)
+        else:
+            raise ValidationError(f"Invalid document type {document_type}")
+
+        if not document:
+            raise ValidationError(f"Document id {document_id} not found")
+
+        if document._file and os.path.isfile(document._file.path):
+            os.remove(document._file.path)
+
+        document.delete()
 
 @transaction.atomic
 def process_shapefile_document(request, instance, *args, **kwargs):
@@ -177,13 +196,7 @@ def process_shapefile_document(request, instance, *args, **kwargs):
     if action == "list":
         pass
     elif action == "delete":
-        # TODO:
         delete_document(
-            request, instance, comms_instance, document_type, input_name
-        )
-    elif action == "cancel":
-        # TODO:
-        deleted = cancel_document(
             request, instance, comms_instance, document_type, input_name
         )
     elif action == "save":
