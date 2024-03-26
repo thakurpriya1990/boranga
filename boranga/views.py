@@ -265,7 +265,7 @@ def is_authorised_to_access_community_document(request,document_id):
             is_django_admin(request) or
             is_assessor(request) or
             is_approver(request) or
-            is_community_processor
+            is_community_processor(request)
         )
 
 def is_authorised_to_access_species_document(request,document_id):
