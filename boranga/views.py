@@ -13,7 +13,10 @@ from django.db import transaction
 
 from datetime import datetime, timedelta
 
-from boranga.helpers import is_internal, is_customer
+from boranga.helpers import (is_internal, is_customer,
+is_boranga_admin, is_django_admin, is_assessor, is_approver,
+is_species_processor, is_community_processor, is_conservation_status_referee,
+is_conservation_status_editor)
 from boranga.forms import *
 from boranga.components.conservation_status.models import ConservationStatus,ConservationStatusReferral
 from boranga.components.species_and_communities.models import Species, Community
@@ -253,9 +256,55 @@ class ManagementCommandsView(LoginRequiredMixin, TemplateView):
 
         return render(request, self.template_name, data)
 
-def is_authorised_to_access_occurence_report_document(request,document_id):
+def is_authorised_to_access_community_document(request,document_id):
     if is_internal(request):
-        return True
+        #check auth
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request) or
+            is_approver(request) or
+            is_community_processor
+        )
+
+def is_authorised_to_access_species_document(request,document_id):
+    if is_internal(request):
+        #check auth
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request) or
+            is_approver(request) or
+            is_species_processor(request)
+        )
+
+def is_authorised_to_access_meeting_document(request,document_id):
+    if is_internal(request):
+        #check auth #TODO review
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request) or
+            is_approver(request) or
+            is_species_processor(request) or
+            is_community_processor(request) or
+            is_conservation_status_editor(request) or
+            is_conservation_status_referee(request)
+        )
+
+def is_authorised_to_access_occurrence_report_document(request,document_id):
+    if is_internal(request):
+        #check auth
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request) or
+            is_approver(request)
+        )
     elif is_customer(request):
         user = request.user
         return OccurrenceReport.objects.filter(internal_application=False,id=document_id).filter(
@@ -263,7 +312,16 @@ def is_authorised_to_access_occurence_report_document(request,document_id):
     
 def is_authorised_to_access_conservation_status_document(request,document_id):
     if is_internal(request):
-        return True
+        #check auth
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request) or
+            is_approver(request) or
+            is_conservation_status_editor(request) or
+            is_conservation_status_referee(request)
+        )
     elif is_customer(request):
         user = request.user
         return ConservationStatus.objects.filter(internal_application=False,id=document_id).filter(
@@ -282,24 +340,23 @@ def get_file_path_id(check_str,file_path):
         return False
 
 def is_authorised_to_access_document(request):
-    
-    if is_internal(request):
-        return True
-    elif is_customer(request):
+
         #occurrence reports
         o_document_id = get_file_path_id("occurrence_report",request.path)
         if o_document_id:
-            return is_authorised_to_access_occurence_report_document(request,o_document_id)
+            return is_authorised_to_access_occurrence_report_document(request,o_document_id)
     
-        #conservation status (may not be required, but okay to have)
-        c_document_id = get_file_path_id("occurrence_report",request.path)
+        #conservation status
+        c_document_id = get_file_path_id("conservation_status",request.path)
         if c_document_id:
             return is_authorised_to_access_conservation_status_document(request,c_document_id)
 
-        return False
-    else:
-        return False
+        #meeting
+        m_document_id = get_file_path_id("meeting",request.path)
+        if m_document_id:
+            return is_authorised_to_access_meeting_document(request,m_document_id)
 
+        return False
 
 def getPrivateFile(request):
 
@@ -320,5 +377,5 @@ def getPrivateFile(request):
 
             return HttpResponse(the_data, content_type=mimetypes.types_map['.'+str(extension)])
     
-    return HttpResponse()
+    return HttpResponse('Unauthorized', status=401)
 
