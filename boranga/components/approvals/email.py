@@ -389,7 +389,7 @@ def _log_approval_email(email_message, approval, sender=None):
 
 
 
-from boranga.components.organisations.models import OrganisationLogEntry, Organisation
+# from boranga.components.organisations.models import OrganisationLogEntry, Organisation
 def _log_org_email(email_message, organisation, customer ,sender=None):
     if not isinstance(organisation, Organisation):
         # is a proxy_applicant

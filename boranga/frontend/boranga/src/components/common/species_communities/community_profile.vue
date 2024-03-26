@@ -58,7 +58,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Name Authority:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="name_authority" placeholder="" 
+                    <textarea :disabled="isReadOnly" rows="1" class="form-control" id="name_authority" placeholder="" 
                     v-model="species_community.taxonomy_details.name_authority"/>
                 </div>
             </div>
@@ -71,6 +71,12 @@
             </div>
         </FormSection>
         <FormSection :formCollapse="false" label="Distribution" Index="distribution">
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Distribution:</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder="" v-model="species_community.distribution.distribution"/>
+                </div>
+            </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
@@ -142,9 +148,9 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Area of Occupancy Actual<br>(10km x 10km):</label>
+                <label for="" class="col-sm-3 control-label">Area of Occupancy Actual (km2):</label>
                 <div class="col-sm-6">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupancy_actual" placeholder="" 
+                    <input :disabled="isReadOnly" type="number" step="any" class="form-control" id="area_of_occupancy_actual" placeholder="" 
                     v-model="species_community.distribution.area_of_occupancy_actual"/>
                 </div>
                 <div class="col-sm-3">    
@@ -163,13 +169,6 @@
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="no_of_iucn_locations"
                     placeholder="" v-model="species_community.distribution.number_of_iucn_locations"/>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Number of IUCN Sub-populations:</label>
-                <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="number_of_iucn_subpopulations"
-                    placeholder="" v-model="species_community.distribution.number_of_iucn_subpopulations"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -464,6 +463,54 @@ export default {
                     }
                     else{
                         vm.species_community.distribution.area_of_occupancy=null;
+                    }
+            },
+            "species_community.distribution.number_of_occurrences": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.number_of_occurrences=null;
+                    }
+            },
+            "species_community.distribution.extent_of_occurrences": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.extent_of_occurrences=null;
+                    }
+            },
+            "species_community.distribution.area_of_occupancy": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.area_of_occupancy=null;
+                    }
+            },
+            "species_community.distribution.area_of_occupancy_actual": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.area_of_occupancy_actual=null;
+                    }
+            },
+            "species_community.distribution.number_of_iucn_locations": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.number_of_iucn_locations=null;
+                    }
+            },
+            "species_community.distribution.community_original_area": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.community_original_area=null;
+                    }
+            },
+            "species_community.distribution.community_original_area_accuracy": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.community_original_area_accuracy=null;
+                    }
+            },
+            "species_community.distribution.community_original_area_reference": function(newVal) {
+                let vm=this;
+                if(newVal == ""){
+                        vm.species_community.distribution.community_original_area_reference=null;
                     }
             },
         },

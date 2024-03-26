@@ -1,0 +1,12 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+	A new Occurrence Report {{ ocr_proposal.occurrence_report_number }} has been submitted and can be assessed.
+
+    <p>
+    You can access this Report using the following link:
+    </p>
+    <a href="{{url}}">Access Report</a>
+
+
+{%  endblock %}

@@ -12,17 +12,23 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, B
 from rest_framework.pagination import PageNumberPagination
 from django.urls import reverse
 from boranga.components.main.models import (
-        ApplicationType, 
-        RequiredDocument, Question, GlobalSettings
+        # ApplicationType, 
+        # RequiredDocument, 
+        # Question, 
+        GlobalSettings
         )
 from boranga.components.main.serializers import (
-        ApplicationTypeSerializer, 
-        RequiredDocumentSerializer, QuestionSerializer, GlobalSettingsSerializer, OracleSerializer, BookingSettlementReportSerializer, 
+        # ApplicationTypeSerializer, 
+        # RequiredDocumentSerializer, 
+        # QuestionSerializer, 
+        GlobalSettingsSerializer, 
+        OracleSerializer, 
+        BookingSettlementReportSerializer, 
         )
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from boranga.components.proposals.models import Proposal
-from boranga.components.proposals.serializers import ProposalSerializer
+# from boranga.components.proposals.models import Proposal
+# from boranga.components.proposals.serializers import ProposalSerializer
 from ledger_api_client.utils import create_basket_session, create_checkout_session, place_order_submission
 from collections import namedtuple
 import json
@@ -33,22 +39,27 @@ logger = logging.getLogger('payment_checkout')
 
 
 class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = GlobalSettings.objects.all().order_by('id')
+    queryset = GlobalSettings.objects.none()
     serializer_class = GlobalSettingsSerializer
 
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            qs = GlobalSettings.objects.all().order_by('id')
+            return qs
 
-class RequiredDocumentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = RequiredDocument.objects.all()
-    serializer_class = RequiredDocumentSerializer
+
+# class RequiredDocumentViewSet(viewsets.ReadOnlyModelViewSet):
+#     queryset = RequiredDocument.objects.all()
+#     serializer_class = RequiredDocumentSerializer
 
     # def get_queryset(self):
     #     categories=ActivityCategory.objects.filter(activity_type='marine')
     #     return categories
 
 
-class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
+# class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
+#     queryset = Question.objects.all()
+#     serializer_class = QuestionSerializer
 
 
 

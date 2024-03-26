@@ -9,7 +9,7 @@ from rest_framework.decorators import action as detail_route, renderer_classes
 from rest_framework.decorators import action as list_route
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from datetime import datetime
+from datetime import datetime, time
 from ledger_api_client.settings_base import TIME_ZONE
 from boranga import settings
 from boranga import exceptions
@@ -25,7 +25,7 @@ from copy import deepcopy
 from django.shortcuts import render, redirect, get_object_or_404
 
 from boranga.components.species_and_communities.models import GroupType
-from boranga.components.conservation_status.utils import cs_proposal_submit
+from boranga.components.occurrence.utils import ocr_proposal_submit
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from boranga.components.main.decorators import basic_exception_handler
 
@@ -75,6 +75,9 @@ from boranga.components.occurrence.models import(
     LocationAccuracy,
     Location,
     ObserverDetail,
+    OccurrenceReportDocument,
+    OCRConservationThreat,
+    OccurrenceReportUserAction,
 )
 from boranga.components.occurrence.serializers import(
     ListOccurrenceReportSerializer,
@@ -91,6 +94,13 @@ from boranga.components.occurrence.serializers import(
     ObserverDetailSerializer,
     ListOCRReportMinimalSerializer,
     SaveOccurrenceReportSerializer,
+    ListInternalOccurrenceReportSerializer,
+    OccurrenceReportUserActionSerializer,
+    OccurrenceReportLogEntrySerializer,
+    OccurrenceReportDocumentSerializer,
+    SaveOccurrenceReportDocumentSerializer,
+    OCRConservationThreatSerializer,
+    SaveOCRConservationThreatSerializer,
 )
 
 from boranga.components.occurrence.utils import (
@@ -108,33 +118,73 @@ logger = logging.getLogger(__name__)
 
 class OccurrenceReportFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        total_count = queryset.count()
+        if 'internal' in view.name:
+            total_count = queryset.count()
+            
+            filter_group_type = request.GET.get('filter_group_type')
+            if filter_group_type and not filter_group_type.lower() == 'all':
+                queryset = queryset.filter(group_type__name=filter_group_type)
 
-        flora = GroupType.GROUP_TYPE_FLORA
-        fauna = GroupType.GROUP_TYPE_FAUNA
-        community = GroupType.GROUP_TYPE_COMMUNITY
+            # To do - change group_type__name based on the relevant model
+            # filter_occurrence = request.GET.get('filter_occurrence')
+            # if filter_occurrence and not filter_occurrence.lower() == 'all':
+            #     queryset = queryset.filter(group_type__name=filter_occurrence)
+
+            filter_scientific_name = request.GET.get('filter_scientific_name')
+            if filter_scientific_name and not filter_scientific_name.lower() == 'all':
+                queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
+
+            filter_status = request.GET.get('filter_status')
+            if filter_status and not filter_status.lower() == 'all':
+                queryset = queryset.filter(processing_status=filter_status)
+
+            def get_date(filter_date):
+                date = request.GET.get(filter_date)
+                if date:
+                    date = datetime.strptime(date,'%Y-%m-%d')
+                return date
+
+            filter_submitted_from_date = get_date('filter_submitted_from_date')
+            filter_submitted_to_date = get_date('filter_submitted_to_date')
+            if filter_submitted_to_date: 
+                filter_submitted_to_date = datetime.combine(filter_submitted_to_date , time.max)
+
+            if filter_submitted_from_date and not filter_submitted_to_date:
+                queryset = queryset.filter(reported_date__gte=filter_submitted_from_date)
+            
+            if filter_submitted_from_date and filter_submitted_to_date:
+                queryset = queryset.filter(reported_date__range=[filter_submitted_from_date, filter_submitted_to_date])
+
+            if filter_submitted_to_date and not filter_submitted_from_date:
+                queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
         
-        filter_group_type = request.GET.get('filter_group_type')
-        if filter_group_type and not filter_group_type.lower() == 'all':
-            queryset = queryset.filter(group_type__name=filter_group_type)
-        
-        # filter_scientific_name is the species_id
-        filter_scientific_name = request.GET.get('filter_scientific_name')
-        if filter_scientific_name and not filter_scientific_name.lower() == 'all':
-            queryset = queryset.filter(species=filter_scientific_name)
+        if 'external' in view.name:
+            total_count = queryset.count()
 
-        # filter_community_name is the community_id
-        filter_community_name = request.GET.get('filter_community_name')
-        if filter_community_name and not filter_community_name.lower() == 'all':
-            queryset = queryset.filter(community=filter_community_name)
+            flora = GroupType.GROUP_TYPE_FLORA
+            fauna = GroupType.GROUP_TYPE_FAUNA
+            community = GroupType.GROUP_TYPE_COMMUNITY
+            
+            filter_group_type = request.GET.get('filter_group_type')
+            if filter_group_type and not filter_group_type.lower() == 'all':
+                queryset = queryset.filter(group_type__name=filter_group_type)
+            
+            # filter_scientific_name is the species_id
+            filter_scientific_name = request.GET.get('filter_scientific_name')
+            if filter_scientific_name and not filter_scientific_name.lower() == 'all':
+                queryset = queryset.filter(species=filter_scientific_name)
 
-        filter_application_status = request.GET.get('filter_application_status')
-        if filter_application_status and not filter_application_status.lower() == 'all':
-            queryset = queryset.filter(customer_status=filter_application_status)
+            # filter_community_name is the community_id
+            filter_community_name = request.GET.get('filter_community_name')
+            if filter_community_name and not filter_community_name.lower() == 'all':
+                queryset = queryset.filter(community=filter_community_name)
 
-        getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+            filter_application_status = request.GET.get('filter_application_status')
+            if filter_application_status and not filter_application_status.lower() == 'all':
+                queryset = queryset.filter(customer_status=filter_application_status)
+
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
@@ -146,31 +196,32 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class OccurrenceReportRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(OccurrenceReportRenderer, self).render(data, accepted_media_type, renderer_context)
+# class OccurrenceReportRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(OccurrenceReportRenderer, self).render(data, accepted_media_type, renderer_context)
 
 
 class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (OccurrenceReportFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (OccurrenceReportRenderer,)
+    # renderer_classes = (OccurrenceReportRenderer,)
     queryset = OccurrenceReport.objects.none()
     serializer_class = ListOccurrenceReportSerializer
     page_size = 10
 
     def get_queryset(self):
         request_user = self.request.user
-        qs = OccurrenceReport.objects.all()
+        qs = OccurrenceReport.objects.none()
 
         if is_internal(self.request):
             qs = OccurrenceReport.objects.all()
         elif is_customer(self.request):
-            #user_orgs = [org.id for org in request_user.mooringlicensing_organisations.all()]
+            #user_orgs =
+            #  [org.id for org in request_user.mooringlicensing_organisations.all()]
             #qs = all.filter(Q(org_applicant_id__in=user_orgs) | Q(submitter=request_user) | Q(site_licensee_email=request_user.email))
-            qs = qs.filter(Q(submitter=request_user.id))
+            qs = OccurrenceReport.objects.filter(Q(submitter=request_user.id))
             return qs
 
         return qs
@@ -179,8 +230,6 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     def occurrence_report_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
         qs = qs.filter(Q(internal_application=False))
-        # TODO Not Sure but to filter for only WA listed conservation lists for external
-        #qs = qs.filter(Q(conservation_list__applies_to_wa=True))
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -188,6 +237,82 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         serializer = ListOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
 
+    @list_route(methods=['GET',], detail=False)
+    def occurrence_report_internal(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListInternalOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
+    
+    @list_route(methods=['GET',], detail=False)
+    def occurrence_report_internal_export(self, request, *args, **kwargs):
+        
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get('export_format')
+        allowed_fields = ['species', 'scientific_name', 'reported_date', 'submitter', 'processing_status', 'occurrence_report_number']
+
+        serializer = ListInternalOccurrenceReportSerializer(qs, context={'request': request}, many=True)
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key='', sep='_'):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = ['Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter',  'Processing Status']
+            df.columns = new_headings
+            column_order = ['Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter',  'Processing Status']
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_OccurrenceReport_Species.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_OccurrenceReport_Species.csv'
+                    response.write(csv_data)
+                    return response
+                
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
 
 class OccurrenceReportViewSet(viewsets.ModelViewSet):
     queryset = OccurrenceReport.objects.none()
@@ -201,8 +326,8 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             return qs
         elif is_customer(self.request):
             # user_orgs = [org.id for org in user.boranga_organisations.all()]
-            queryset =  OccurrenceReport.objects.filter( Q(submitter = user.id) )
-            return queryset
+            qs =  OccurrenceReport.objects.filter( Q(submitter = user.id) )
+            return qs
         logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
         return OccurrenceReport.objects.none()
 
@@ -553,14 +678,12 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
             location_instance, created = Location.objects.get_or_create(occurrence_report=ocr_instance)
             # species_id saved seperately as its not field of Location but OCR
             species = request.data.get('species_id')
-            if species:
-                ocr_instance.species_id = species
-                ocr_instance.save()
+            ocr_instance.species_id = species
+            ocr_instance.save()
             # community_id saved seperately as its not field of Location but OCR
             community = request.data.get('community_id')
-            if community:
-                ocr_instance.community_id = community
-                ocr_instance.save()
+            ocr_instance.community_id = community
+            ocr_instance.save()
 
             # ocr geometry data to save seperately
             geometry_data = request.data.get('ocr_geometry')
@@ -816,80 +939,88 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         try:
             with transaction.atomic():
                 instance = self.get_object()
-                request_data = request.data
+                # request_data = request.data
+                proposal_data = request.data.get("proposal") if request.data.get("proposal") else {}
                 #request.data['submitter'] = u'{}'.format(request.user.id)
-                if request_data['submitter']:
-                    request.data['submitter'] = u'{}'.format(request_data['submitter'].get('id'))
-                if(request_data.get('habitat_composition')):
+                if proposal_data['submitter']:
+                    request.data.get("proposal")['submitter'] = u'{}'.format(proposal_data['submitter'].get('id'))
+                if(proposal_data.get('habitat_composition')):
                     habitat_instance, created = HabitatComposition.objects.get_or_create(occurrence_report=instance)
-                    serializer = SaveHabitatCompositionSerializer(habitat_instance, data = request_data.get('habitat_composition'))
+                    serializer = SaveHabitatCompositionSerializer(habitat_instance, data = proposal_data.get('habitat_composition'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
                 
-                if(request_data.get('habitat_condition')):
+                if(proposal_data.get('habitat_condition')):
                     hab_cond_instance, created = HabitatCondition.objects.get_or_create(occurrence_report=instance)
-                    serializer = SaveHabitatConditionSerializer(hab_cond_instance, data = request_data.get('habitat_condition'))
+                    serializer = SaveHabitatConditionSerializer(hab_cond_instance, data = proposal_data.get('habitat_condition'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
                 
-                if(request_data.get('fire_history')):
+                if(proposal_data.get('fire_history')):
                     fire_instance, created = FireHistory.objects.get_or_create(occurrence_report=instance)
-                    serializer = SaveFireHistorySerializer(fire_instance, data = request_data.get('fire_history'))
+                    serializer = SaveFireHistorySerializer(fire_instance, data = proposal_data.get('fire_history'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
                 
-                if(request_data.get('associated_species')):
+                if(proposal_data.get('associated_species')):
                     assoc_species_instance, created = AssociatedSpecies.objects.get_or_create(occurrence_report=instance)
-                    serializer = SaveAssociatedSpeciesSerializer(assoc_species_instance, data = request_data.get('associated_species'))
+                    serializer = SaveAssociatedSpeciesSerializer(assoc_species_instance, data = proposal_data.get('associated_species'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
                 
-                if(request_data.get('observation_detail')):
+                if(proposal_data.get('observation_detail')):
                     obs_det_instance, created = ObservationDetail.objects.get_or_create(occurrence_report=instance)
-                    serializer = SaveObservationDetailSerializer(obs_det_instance, data = request_data.get('observation_detail'))
+                    serializer = SaveObservationDetailSerializer(obs_det_instance, data = proposal_data.get('observation_detail'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
                 
-                if(request_data.get('plant_count')):
+                if(proposal_data.get('plant_count')):
                     plant_count_instance, created = PlantCount.objects.get_or_create(occurrence_report=instance)
-                    serializer = SavePlantCountSerializer(plant_count_instance, data = request_data.get('plant_count'))
+                    serializer = SavePlantCountSerializer(plant_count_instance, data = proposal_data.get('plant_count'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
                 
-                if(request_data.get('animal_observation')):
+                if(proposal_data.get('animal_observation')):
                     animal_obs_instance, created = AnimalObservation.objects.get_or_create(occurrence_report=instance)
-                    serializer = SaveAnimalObservationSerializer(animal_obs_instance, data = request_data.get('animal_observation'))
+                    serializer = SaveAnimalObservationSerializer(animal_obs_instance, data = proposal_data.get('animal_observation'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
                 
-                if(request_data.get('identification')):
+                if(proposal_data.get('identification')):
                     identification_instance, created = Identification.objects.get_or_create(occurrence_report=instance)
-                    serializer = SaveIdentificationSerializer(identification_instance, data = request_data.get('identification'))
+                    serializer = SaveIdentificationSerializer(identification_instance, data = proposal_data.get('identification'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
                 
-                if(request_data.get('location')):
+                if(proposal_data.get('location')):
                     location_instance, created = Location.objects.get_or_create(occurrence_report=instance)
-                    serializer = SaveLocationSerializer(location_instance, data = request_data.get('location'))
+                    serializer = SaveLocationSerializer(location_instance, data = proposal_data.get('location'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
+                
+                # ocr geometry data to save seperately
+                geometry_data = proposal_data.get("ocr_geometry", None)
+                if geometry_data:
+                    save_geometry(request, instance, geometry_data)
 
-                serializer=SaveOccurrenceReportSerializer(instance, data = request_data, partial=True)
+                serializer=SaveOccurrenceReportSerializer(instance, data = proposal_data, partial=True)
 
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
                     saved_instance = serializer.save()
 
-            return redirect(reverse('external'))
+            # return redirect(reverse('external'))
+            serializer = self.get_serializer(saved_instance)
+            return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -901,12 +1032,163 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
                     raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
-        raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def submit(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            #instance.submit(request,self)
+            ocr_proposal_submit(instance, request)
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            #return redirect(reverse('external'))
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['GET',], detail=True)
+    def action_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.action_logs.all()
+            serializer = OccurrenceReportUserActionSerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def comms_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.comms_logs.all()
+            serializer = OccurrenceReportLogEntrySerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def add_comms_log(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                mutable=request.data._mutable
+                request.data._mutable=True
+                request.data['occurrence_report'] = u'{}'.format(instance.id)
+                request.data['staff'] = u'{}'.format(request.user.id)
+                request.data._mutable=mutable
+                serializer = OccurrenceReportLogEntrySerializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                comms = serializer.save()
+                # Save the files
+                for f in request.FILES:
+                    document = comms.documents.create()
+                    document.name = str(request.FILES[f])
+                    document._file = request.FILES[f]
+                    document.save()
+                # End Save Documents
+
+                return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def documents(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            # qs = instance.documents.all()
+            if is_internal(self.request):
+                qs = instance.documents.all()
+            elif is_customer(self.request):
+                qs = instance.documents.filter(Q(uploaded_by=request.user.id))
+            # qs = qs.exclude(input_name='occurrence_report_approval_doc') # TODO do we need/not to show approval doc in cs documents tab
+            qs = qs.order_by('-uploaded_date')
+            serializer = OccurrenceReportDocumentSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['GET',], detail=True)
+    def threats(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            # qs = instance.ocr_threats.all()
+            if is_internal(self.request):
+                qs = instance.ocr_threats.all()
+            elif is_customer(self.request):
+                # TODO Do we need to sort the threats for external user (similar like documents)
+                # qs = qs.filter(Q(uploaded_by=request.user.id))
+                qs = instance.ocr_threats.all()
+            qs = qs.order_by('-date_observed')
+            serializer = OCRConservationThreatSerializer(qs,many=True, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
-    queryset = ObserverDetail.objects.all().order_by('id')
+    # queryset = ObserverDetail.objects.all().order_by('id')
+    queryset = ObserverDetail.objects.none()
     serializer_class = ObserverDetailSerializer
+
+    def get_queryset(self):
+        request_user = self.request.user
+        qs = ObserverDetail.objects.none()
+
+        if is_internal(self.request):
+            qs = ObserverDetail.objects.all().order_by('id')
+        elif is_customer(self.request):
+            # not sure what qs it should be for api security check
+            qs = ObserverDetail.objects.all().order_by('id')
+            return qs
+        return qs
 
     def update(self, request, *args, **kwargs):
         try:
@@ -942,5 +1224,188 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
+class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
+    queryset = OccurrenceReportDocument.objects.none()
+    serializer_class = OccurrenceReportDocumentSerializer
+
+    def get_queryset(self):
+        request_user = self.request.user
+        qs = OccurrenceReportDocument.objects.none()
+
+        if is_internal(self.request):
+            qs = OccurrenceReportDocument.objects.all().order_by('id')
+        elif is_customer(self.request):
+            qs = OccurrenceReportDocument.objects.filter(Q(uploaded_by=request_user.id))
+            return qs
+        return qs
+
+    @detail_route(methods=['GET',], detail=True)
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = False
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    @detail_route(methods=['GET',], detail=True)
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
+    def update(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveOccurrenceReportDocumentSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                instance.add_documents(request)
+                instance.uploaded_by = request.user.id
+                instance.save()
+                return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
 
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                serializer = SaveOccurrenceReportDocumentSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                instance.add_documents(request)
+                instance.uploaded_by = request.user.id
+                instance.save()
+                return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+class OCRConservationThreatViewSet(viewsets.ModelViewSet):
+    queryset = OCRConservationThreat.objects.none()
+    serializer_class = OCRConservationThreatSerializer
+
+    def get_queryset(self):
+        request_user = self.request.user
+        qs = OCRConservationThreat.objects.none()
+
+        if is_internal(self.request):
+            qs = OCRConservationThreat.objects.all().order_by('id')
+        elif is_customer(self.request):
+            # TODO filter qs as per added_by
+            qs = OCRConservationThreat.objects.all().order_by('id')
+            return qs
+        return qs
+
+    @detail_route(methods=['GET',], detail=True)
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = False
+            instance.save()
+            if instance.occurrence_report:
+                instance.occurrence_report.log_user_action(OccurrenceReportUserAction.ACTION_DISCARD_THREAT.format(instance.threat_number,instance.occurrence_report.occurrence_report_number),request)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',], detail=True)
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
+            instance.save()
+            if instance.occurrence_report:
+                instance.occurrence_report.log_user_action(OccurrenceReportUserAction.ACTION_REINSTATE_THREAT.format(instance.threat_number,instance.occurrence_report.occurrence_report_number),request)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def update(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveOCRConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                if instance.occurrence_report:
+                    instance.occurrence_report.log_user_action(OccurrenceReportUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.occurrence_report.occurrence_report_number),request)
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                serializer = SaveOCRConservationThreatSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                if instance.occurrence_report:
+                    instance.occurrence_report.log_user_action(OccurrenceReportUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.occurrence_report.occurrence_report_number),request)
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))

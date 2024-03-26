@@ -2,7 +2,10 @@ from rest_framework import serializers
 from django.db.models import Sum, Max
 from boranga.components.main.models import (
         CommunicationsLogEntry, 
-        RequiredDocument, Question, GlobalSettings, ApplicationType,
+        # RequiredDocument, 
+        # Question, 
+        GlobalSettings, 
+        # ApplicationType,
         )
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, EmailUserRO
 from datetime import datetime, date
@@ -33,16 +36,16 @@ class CommunicationLogEntrySerializer(serializers.ModelSerializer):
         return [[d.name,d._file.url] for d in obj.documents.all()]
 
 
-class ApplicationTypeSerializer(serializers.ModelSerializer):
-    #regions = RegionSerializer(many=True)
-    #activity_app_types = ActivitySerializer(many=True)
-    #tenure_app_types = TenureSerializer(many=True)
-    class Meta:
-        model = ApplicationType
-        #fields = ('id', 'name', 'activity_app_types', 'tenure_app_types')
-        #fields = ('id', 'name', 'tenure_app_types')
-        fields = '__all__'
-        #extra_fields = ['pizzas']
+# class ApplicationTypeSerializer(serializers.ModelSerializer):
+#     #regions = RegionSerializer(many=True)
+#     #activity_app_types = ActivitySerializer(many=True)
+#     #tenure_app_types = TenureSerializer(many=True)
+#     class Meta:
+#         model = ApplicationType
+#         #fields = ('id', 'name', 'activity_app_types', 'tenure_app_types')
+#         #fields = ('id', 'name', 'tenure_app_types')
+#         fields = '__all__'
+#         #extra_fields = ['pizzas']
 
 
 class GlobalSettingsSerializer(serializers.ModelSerializer):
@@ -52,16 +55,16 @@ class GlobalSettingsSerializer(serializers.ModelSerializer):
 
 
 
-class RequiredDocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RequiredDocument
-        fields = ('id', 'park','activity', 'question')
+# class RequiredDocumentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = RequiredDocument
+#         fields = ('id', 'park','activity', 'question')
 
 
-class QuestionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Question
-        fields = ('id', 'question_text', 'answer_one', 'answer_two', 'answer_three', 'answer_four','correct_answer', 'correct_answer_value')
+# class QuestionSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Question
+#         fields = ('id', 'question_text', 'answer_one', 'answer_two', 'answer_three', 'answer_four','correct_answer', 'correct_answer_value')
 
 
 class BookingSettlementReportSerializer(serializers.Serializer):

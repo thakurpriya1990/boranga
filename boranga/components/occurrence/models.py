@@ -38,11 +38,25 @@ from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
     Community,
+    ThreatCategory,
+    ThreatAgent,
+    PotentialImpact,
+    PotentialThreatOnset,
+    CurrentImpact,
 )
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.ordered_model import OrderedModel
 
 logger = logging.getLogger(__name__)
+
+private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+
+
+def update_occurrence_report_comms_log_filename(instance, filename):
+    return '{}/occurrence_report/{}/communications/{}'.format(settings.MEDIA_APP_DIR, instance.log_entry.occurrence_report.id,filename)
+
+def update_occurrence_report_doc_filename(instance, filename):
+    return '{}/occurrence_report/{}/documents/{}'.format(settings.MEDIA_APP_DIR, instance.occurrence_report.id,filename)
 
 
 class OccurrenceReport(models.Model):
@@ -231,6 +245,9 @@ class OccurrenceReport(models.Model):
         #     return 'submitter'
         return 'submitter'
     
+    def log_user_action(self, action, request):
+        return OccurrenceReportUserAction.log_action(self, action, request.user.id)
+    
     @property
     def can_user_edit(self):
         """
@@ -285,12 +302,12 @@ class OccurrenceReport(models.Model):
         group = None
         # TODO: Take application_type into account
         if self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
         ]:
             group = self.get_approver_group()
         elif self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
-            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
             # ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
         ]:
             group = self.get_assessor_group()
@@ -350,6 +367,93 @@ class OccurrenceReport(models.Model):
     #Check if the user is member of assessor group for the OCR Proposal
     def is_approver(self,user):
             return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+
+class OccurrenceReportLogEntry(CommunicationsLogEntry):
+    occurrence_report = models.ForeignKey(OccurrenceReport, related_name='comms_logs', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{} - {}'.format(self.reference, self.subject)
+
+    class Meta:
+        app_label = 'boranga'
+
+    def save(self, **kwargs):
+        # save the application reference if the reference not provided
+        if not self.reference:
+            self.reference = self.occurrence_report.reference
+        super(OccurrenceReportLogEntry, self).save(**kwargs)
+
+
+class OccurrenceReportLogDocument(Document):
+    log_entry = models.ForeignKey('OccurrenceReportLogEntry',related_name='documents', on_delete=models.CASCADE)
+    _file = models.FileField(upload_to=update_occurrence_report_comms_log_filename, max_length=512, storage=private_storage)
+
+    class Meta:
+        app_label = 'boranga'
+
+
+class OccurrenceReportUserAction(UserAction):
+    #OccurrenceReport Proposal
+    ACTION_EDIT_OCCURRENCE_REPORT= "Edit occurrence report {}"
+    ACTION_LODGE_PROPOSAL = "Lodge proposal for occurrence report {}"
+    ACTION_SAVE_APPLICATION = "Save proposal {}"
+    ACTION_EDIT_APPLICATION = "Edit proposal {}"
+    ACTION_ASSIGN_TO_ASSESSOR = "Assign occurrence report proposal {} to {} as the assessor"
+    ACTION_UNASSIGN_ASSESSOR = "Unassign assessor from occurrence report proposal {}"
+    ACTION_ASSIGN_TO_APPROVER = "Assign occurrence report proposal {} to {} as the approver"
+    ACTION_UNASSIGN_APPROVER = "Unassign approver from occurrence report proposal {}"
+    ACTION_DECLINE = "Decline occurrence report application {}"
+    ACTION_APPROVE_PROPOSAL_ = "Approve occurrence report  proposal {}"
+    ACTION_CLOSE_CONSERVATIONSTATUS = "De list occurrence report {}"
+    ACTION_DISCARD_PROPOSAL = "Discard occurrence report proposal {}"
+    ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
+
+    #Amendment
+    ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
+    
+    # Assessors
+    ACTION_SAVE_ASSESSMENT_ = "Save assessment {}"
+    ACTION_CONCLUDE_ASSESSMENT_ = "Conclude assessment {}"
+    ACTION_PROPOSED_READY_FOR_AGENDA = "Occurrence report proposal {} has been proposed for ready for agenda"
+    ACTION_PROPOSED_APPROVAL = "Occurrence report proposal {} has been proposed for approval"
+    ACTION_PROPOSED_DECLINE = "Occurrence report proposal {} has been proposed for decline"
+
+    # Referrals
+    ACTION_SEND_REFERRAL_TO = "Send referral {} for occurrence report proposal {} to {}"
+    ACTION_RESEND_REFERRAL_TO = "Resend referral {} for occurrence report proposal {} to {}"
+    ACTION_REMIND_REFERRAL = "Send reminder for referral {} for occurrence report proposal {} to {}"
+    ACTION_BACK_TO_PROCESSING = "Back to processing for occurrence report proposal {}"
+    RECALL_REFERRAL = "Referral {} for occurrence report proposal {} has been recalled"
+    COMMENT_REFERRAL = "Referral {} for occurrence report proposal {} has been commented by {}"
+    CONCLUDE_REFERRAL = "Referral {} for occurrence report proposal {} has been concluded by {}"
+
+     # Document
+    ACTION_ADD_DOCUMENT= "Document {} added for occurrence report {}"
+    ACTION_UPDATE_DOCUMENT= "Document {} updated for occurrence report {}"
+    ACTION_DISCARD_DOCUMENT= "Document {} discarded for occurrence report {}"
+    ACTION_REINSTATE_DOCUMENT= "Document {} reinstated for occurrence report {}"
+
+    # Threat
+    ACTION_ADD_THREAT= "Threat {} added for occurrence report {}"
+    ACTION_UPDATE_THREAT= "Threat {} updated for occurrence report {}"
+    ACTION_DISCARD_THREAT= "Threat {} discarded for occurrence report {}"
+    ACTION_REINSTATE_THREAT= "Threat {} reinstated for occurrence report {}"
+
+
+    class Meta:
+        app_label = 'boranga'
+        ordering = ('-when',)
+
+    @classmethod
+    def log_action(cls, occurrence_report, action, user):
+        return cls.objects.create(
+            occurrence_report=occurrence_report,
+            who=user,
+            what=str(action)
+        )
+
+    occurrence_report= models.ForeignKey(OccurrenceReport, related_name='action_logs', on_delete=models.CASCADE)
 
 
 class Datum(models.Model):
@@ -417,7 +521,8 @@ class Location(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="location")
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="location")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="location")
     observation_date = models.DateTimeField(null=True, blank=True)
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
@@ -450,8 +555,14 @@ class OccurrenceReportGeometryManager(models.Manager):
 class OccurrenceReportGeometry(models.Model):
     objects = OccurrenceReportGeometryManager()
 
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="ocr_geometry")
+    occurrence_report = models.ForeignKey(
+        OccurrenceReport,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="ocr_geometry",
+    )
     polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
+    point = gis_models.PointField(srid=4326, blank=True, null=True)
     intersects = models.BooleanField(default=False)
     copied_from = models.ForeignKey(
         "self", on_delete=models.SET_NULL, blank=True, null=True
@@ -461,10 +572,16 @@ class OccurrenceReportGeometry(models.Model):
 
     class Meta:
         app_label = "boranga"
-    
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(polygon__isnull=False, point__isnull=False),
+                name="point_and_polygon_mutually_exclusive",
+            )
+        ]
+
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
-    
+
     @property
     def area_sqm(self):
         if not hasattr(self, "area") or not self.area:
@@ -502,7 +619,7 @@ class ObserverDetail(models.Model):
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
 
-
+# Is used in HabitatComposition for multiple selection
 class LandForm(models.Model):
     """
     # Admin List
@@ -631,8 +748,8 @@ class HabitatComposition(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="habitat_composition")
-    
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="habitat_composition")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="habitat_composition")
     land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     rock_type = models.ForeignKey(RockType, on_delete=models.SET_NULL, null=True, blank=True)
     loose_rock_percent = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)])
@@ -659,8 +776,8 @@ class HabitatCondition(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="habitat_condition")
-    
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="habitat_condition")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="habitat_condition")
     pristine = models.IntegerField(null=True, blank=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     excellent = models.IntegerField(null=True, blank=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     very_good = models.IntegerField(null=True, blank=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
@@ -704,7 +821,8 @@ class FireHistory(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="fire_history")
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="fire_history")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="fire_history")
     last_fire_estimate = models.DateField(null=True, blank=True)
     intensity = models.ForeignKey(Intensity, on_delete=models.SET_NULL, null=True, blank=True)
     comment = models.CharField(max_length=1000, null=True, blank=True)
@@ -725,7 +843,8 @@ class AssociatedSpecies(models.Model):
     Is:
     - Table
     """
-    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="associated_species")
+    # occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, unique=True, null=True, related_name="associated_species")
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="associated_species")
     related_species = models.TextField(blank=True)
 
     class Meta:
@@ -907,13 +1026,13 @@ class PlantCount(models.Model):
     def __str__(self):
         return str(self.occurrence_report)
 
-
+# used for Animal Observation(MultipleSelect)
 class PrimaryDetectionMethod(models.Model):
     """
     # Admin List
 
     Used by:
-    - AnimalObservation
+    - AnimalObservation (MultipleSelect)
 
     """
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
@@ -925,13 +1044,13 @@ class PrimaryDetectionMethod(models.Model):
     def __str__(self):
         return str(self.name)
 
-
+# used for Animal Observation(MultipleSelect)
 class ReproductiveMaturity(models.Model):
     """
     # Admin List
 
     Used by:
-    - AnimalObservation
+    - AnimalObservation (MultipleSelect)
 
     """
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
@@ -983,13 +1102,13 @@ class DeathReason(models.Model):
     def __str__(self):
         return str(self.name)
 
-
+# sed for Animal Observation(MultipleSelect)
 class SecondarySign(models.Model):
     """
     # Admin List
 
     Used by:
-    - AnimalObservation
+    - AnimalObservation (MultipleSelect)
 
     """
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
@@ -1140,3 +1259,99 @@ class Identification(models.Model):
 
     def __str__(self):
         return str(self.occurrence_report)
+
+
+class OccurrenceReportDocument(Document):
+    document_number = models.CharField(max_length=9, blank=True, default='')
+    occurrence_report = models.ForeignKey('OccurrenceReport',related_name='documents', on_delete=models.CASCADE)
+    _file = models.FileField(upload_to=update_occurrence_report_doc_filename, max_length=512, storage=private_storage)
+    input_name = models.CharField(max_length=255,null=True,blank=True)
+    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
+    can_hide= models.BooleanField(default=False) # after initial submit, document cannot be deleted but can be hidden
+    hidden=models.BooleanField(default=False) # after initial submit prevent document from being deleted # Priya alternatively used below visible field in boranga
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+    document_category = models.ForeignKey(DocumentCategory,
+                                          null=True,
+                                          blank=True,
+                                          on_delete=models.SET_NULL)
+    document_sub_category = models.ForeignKey(DocumentSubCategory,
+                                          null=True,
+                                          blank=True,
+                                          on_delete=models.SET_NULL)
+    uploaded_by = models.IntegerField(null=True)  # EmailUserRO
+
+    class Meta:
+        app_label = 'boranga'
+        verbose_name = "Occurrence Report Document"
+
+    def save(self, *args, **kwargs):
+        # Prefix "D" char to document_number.
+        super(OccurrenceReportDocument, self).save(*args,**kwargs)
+        if self.document_number == '':
+            new_document_id = 'D{}'.format(str(self.pk))
+            self.document_number = new_document_id
+            self.save()
+
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                # if not data.get('update'):
+                #     documents_qs = self.filter(input_name='species_doc', visible=True)
+                #     documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    self._file=_file
+                    self.name=_file.name
+                    self.input_name = data['input_name']
+                    self.can_delete = True
+                    self.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
+
+class OCRConservationThreat(models.Model):
+    """
+    Threat for a occurrence_report in a particular location.
+
+    NB: Maybe make many to many
+
+    Has a:
+    - occurrence_report
+    Used for:
+    - OccurrenceReport
+    Is:
+    - Table
+    """
+    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE, null=True, blank=True , related_name="ocr_threats")
+    threat_number = models.CharField(max_length=9, blank=True, default='')
+    threat_category = models.ForeignKey(ThreatCategory, on_delete=models.CASCADE, default=None, null=True, blank=True)
+    threat_agent = models.ForeignKey(ThreatAgent, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    current_impact = models.ForeignKey(CurrentImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    potential_impact = models.ForeignKey(PotentialImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    potential_threat_onset = models.ForeignKey(PotentialThreatOnset, on_delete=models.SET_NULL, default=None, null=True, blank=True)
+    comment = models.CharField(max_length=512,
+                               default="None")
+    date_observed = models.DateField(blank =True, null=True)
+    visible = models.BooleanField(default=True) # to prevent deletion, hidden and still be available in history
+
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.id)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        super(OCRConservationThreat, self).save(*args,**kwargs)
+        if self.threat_number == '':
+            new_threat_id = 'T{}'.format(str(self.pk))
+            self.threat_number = new_threat_id
+            self.save()
+
+    @property
+    def source(self):
+        return self.occurrence_report.id

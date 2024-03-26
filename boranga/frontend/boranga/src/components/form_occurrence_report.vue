@@ -42,6 +42,32 @@
                   Observation
                 </a>
               </li>
+              <li class="nav-item">
+                <a 
+                    class="nav-link" 
+                    id="pills-documents-tab" 
+                    data-bs-toggle="pill" 
+                    :href="'#' + documentBody" 
+                    role="tab" 
+                    :aria-selected="documentBody" 
+                    aria-selected="false"
+                    @click="tabClicked()">
+                  Documents
+                </a>
+              </li>
+              <li class="nav-item">
+                <a 
+                    class="nav-link" 
+                    id="pills-threats-tab" 
+                    data-bs-toggle="pill" 
+                    :href="'#' + threatBody" 
+                    role="tab" 
+                    :aria-selected="threatBody" 
+                    aria-selected="false"
+                    @click="tabClicked()">
+                  Threats
+                </a>
+              </li>
               <!-- <li class="nav-item">
                 <a 
                   class="nav-link" 
@@ -88,6 +114,25 @@
                     :occurrence_report_obj="occurrence_report_obj">
                 </OCRObservation>
               </div>
+              <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
+                <OCRDocuments
+                    :key="reloadcount"
+                    ref="ocr_documents" 
+                    id="ocrDocuments" 
+                    :is_internal="is_internal"
+                    :is_external="is_external"
+                    :occurrence_report_obj="occurrence_report_obj">
+                </OCRDocuments>
+              </div>
+              <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
+                <OCRThreats
+                    :key="reloadcount"
+                    ref="ocr_threats" 
+                    id="ocrThreats" 
+                    :is_internal="is_internal"
+                    :occurrence_report_obj="occurrence_report_obj">
+                </OCRThreats>
+              </div>
               <!-- <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems
                     :key="reloadcount" 
@@ -109,6 +154,8 @@
     import OCRObservation from '@/components/common/occurrence/ocr_observation.vue'
     // import OCRHabitat from '@/components/common/conservation_status/cs_documents.vue'
     // import RelatedItems from '@/components/common/table_related_items.vue'
+    import OCRDocuments from '@/components/common/occurrence/ocr_documents.vue'
+    import OCRThreats from '@/components/common/occurrence/ocr_threats.vue'
     
     export default {
         props:{
@@ -142,6 +189,7 @@
                 locationBody: 'locationBody' + vm._uid,
                 habitatBody: 'habitatBody' + vm._uid,
                 observationBody: 'observationBody' + vm._uid,
+                threatBody: 'threatBody' + vm._uid,
                 documentBody: 'documentBody' + vm._uid,
                 relatedItemBody: 'relatedItemBody' + vm._uid,
             }
@@ -150,14 +198,13 @@
             OCRLocation,
             OCRHabitat,
             OCRObservation,
+            OCRDocuments,
+            OCRThreats,
             // CommunityStatus,
             // CSDocuments,
             // RelatedItems,
         },
         computed:{
-            isCommunity: function(){
-                return this.occurrence_report_obj.group_type == "community"
-            },
             related_items_ajax_url: function(){
               return '/api/conservation_status/' + this.occurrence_report_obj.id + '/get_related_items/'
             },

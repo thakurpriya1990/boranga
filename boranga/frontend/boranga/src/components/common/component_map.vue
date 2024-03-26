@@ -1,98 +1,18 @@
 <template>
-    <!--
-        TODO tasks (and ideas):
-        - populate tenure, locality, and categorisation from geoserver response (see: map_functions::validateFeature for response values and owsQuery prop for query paramerters)
-        - [DONE] prevent polygon delete after save (or save + status change)
-        - [DONE] polygon redo button
-        - [DONE] polygon edit button (move and add/remove vertices)
-        - pass in map tab filterable proposals as prop (see: prop featureCollection)
-        - standardise feature tooltip fields (lodgement_date formatting, application_type, processing_status, etc.) across models
-        - hide feature tooltip on save as it might overlap the save response modal
-        - solve click-select and hover-select for overlapping polygons (cannot click-select a feature for delete if it is under another feature)
-        - prevent referrals from creating/editing polygons in the frontend (does not save in backend anyway)
-        - disable draw tool for external when model is not in draft status
-        - disable draw tool for referral when model is not in with referral status
-        - [] display polygons of approved proposal on new license proposal (external 017, internal 041)
-        - [] display polygons from the competitive process of an proposal that proceeded to a competitive process on the proposal page
-        - implement map on approval details page and map tab
-        - keyboard input (del to delete a feature, ctrl+z to undo, ctrl+y to redo, d to draw, etc.)
-        - delete old map files
-        - rename this file
-        - automatic zoom to all on map load
-     -->
     <div>
-        <!-- <CollapsibleFilters
-            v-if="filterable"
-            ref="collapsible_filters"
-            :component_title="'Filters' + filterInformation"
-            class="mb-2"
-            @created="collapsible_component_mounted"
-        >
-            <div class="row">
-                <div class="col-md-3">
-                    <label for="">Type</label>
-                    <select
-                        v-model="filterApplicationsMapApplicationType"
-                        class="form-control"
-                    >
-                        <option value="all" selected>All</option>
-                        <option
-                            v-for="application_type in application_types"
-                            :key="application_type.id"
-                            :value="application_type.id"
-                        >
-                            {{ application_type.name_display }}
-                        </option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="">Status</label>
-                    <select
-                        v-model="filterApplicationsMapProcessingStatus"
-                        class="form-control"
-                    >
-                        <option value="all" selected>All</option>
-                        <option
-                            v-for="processing_status in processing_statuses"
-                            :key="processing_status.id"
-                            :value="processing_status.id"
-                        >
-                            {{ processing_status.text }}
-                        </option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="">Lodged From</label>
-                    <div ref="proposalDateFromPicker" class="input-group date">
-                        <input
-                            v-model="filterApplicationsMapLodgedFrom"
-                            type="date"
-                            class="form-control"
-                        />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label for="">Lodged To</label>
-                    <div ref="proposalDateToPicker" class="input-group date">
-                        <input
-                            v-model="filterApplicationsMapLodgedTo"
-                            type="date"
-                            class="form-control"
-                        />
-                    </div>
-                </div>
-            </div>
-        </CollapsibleFilters> -->
-
         <div class="justify-content-end align-items-center mb-2">
             <div v-if="mapInfoText.length > 0" class="row">
                 <div class="col-md-6">
                     <!-- <BootstrapAlert class="mb-0">
-                        // eslint-disable vue/no-v-html 
+                        // eslint-disable vue/no-v-html
                         <p><span v-html="mapInfoText"></span></p>
                         //eslint-enable
                     </BootstrapAlert> -->
-                    <alert type="info"><strong><p><span v-html="mapInfoText"></span></p></strong></alert>
+                    <alert type="info"
+                        ><strong>
+                            <!-- eslint-disable-next-line vue/no-v-html -->
+                            <p><span v-html="mapInfoText"></span></p></strong
+                    ></alert>
                 </div>
                 <div class="col-md-6">
                     <div class="row" style="margin: auto">
@@ -103,7 +23,7 @@
                             icon="exclamation-triangle-fill"
                         >
                             <span> {{ errorMessage }} </span>
-                    </alert>
+                        </alert>
                     </div>
                     <div class="row" style="margin: auto">
                         <alert
@@ -221,20 +141,71 @@
                             />
                         </div>
                     </div>
+
+                    <div
+                        id="submenu-draw"
+                        class="map-menu-submenu moved-menu-vertical"
+                    >
+                        <div class="scaled-button">
+                            <div class="submenu-button-wrapper">
+                                <div
+                                    :title="
+                                        mode == 'draw' && subMode == 'Polygon'
+                                            ? 'Deactivate draw tool'
+                                            : 'Draw a new polygon feature'
+                                    "
+                                    class="btn optional-layers-button"
+                                    :class="[
+                                        mode == 'draw' && subMode == 'Polygon'
+                                            ? 'optional-layers-button-active'
+                                            : 'optional-layers-button',
+                                    ]"
+                                    @click="set_mode('draw', 'Polygon')"
+                                >
+                                    <img
+                                        class="svg-icon"
+                                        src="../../assets/draw-polygon.svg"
+                                    />
+                                </div>
+                            </div>
+                            <div class="submenu-button-wrapper">
+                                <div
+                                    :title="
+                                        mode == 'draw' && subMode == 'Point'
+                                            ? 'Deactivate draw tool'
+                                            : 'Draw new point features or edit selected points or polygon vertices'
+                                    "
+                                    class="btn optional-layers-button"
+                                    :class="[
+                                        mode == 'draw' && subMode == 'Point'
+                                            ? 'optional-layers-button-active'
+                                            : 'optional-layers-button',
+                                    ]"
+                                    @click="set_mode('draw', 'Point')"
+                                >
+                                    <img
+                                        class="svg-icon"
+                                        src="../../assets/draw-points.svg"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div v-if="drawable" class="optional-layers-button-wrapper">
                         <div
                             :title="
                                 mode == 'draw'
-                                    ? 'Deactivate draw tool'
-                                    : 'Draw a new feature or edit a selected one'
+                                    ? 'Drawing mode active'
+                                    : 'Select a drawing mode'
                             "
-                            class="btn"
+                            class="btn optional-layers-button"
                             :class="[
                                 mode == 'draw'
                                     ? 'optional-layers-button-active'
                                     : 'optional-layers-button',
                             ]"
-                            @click="set_mode('draw')"
+                            @click="toggleElementVisibility('submenu-draw')"
                         >
                             <img
                                 class="svg-icon"
@@ -268,13 +239,11 @@
                             />
                         </div>
                     </div>
-                    <div
-                        v-if="polygonCount"
-                        class="optional-layers-button-wrapper"
-                    >
+                    <div class="optional-layers-button-wrapper">
                         <div
                             title="Zoom map to layer(s)"
                             class="optional-layers-button btn"
+                            :class="polygonCount ? '' : 'disabled'"
                             @click="displayAllFeatures"
                         >
                             <img
@@ -306,11 +275,12 @@
                     >
                         <div
                             class="optional-layers-button btn"
-                            :class="
+                            :class="[
                                 selectedFeatureIds.length == 0
                                     ? 'disabled'
-                                    : 'btn-danger'
-                            "
+                                    : 'btn-danger',
+                                navbarButtonsDisabled ? 'disabled' : '',
+                            ]"
                             title="Delete selected features"
                             @click="removeModelFeatures()"
                         >
@@ -333,9 +303,13 @@
                     >
                         <div
                             class="optional-layers-button btn"
-                            :class="
-                                hasUndo || canUndoDrawnVertex ? '' : 'disabled'
-                            "
+                            :class="[
+                                (mode !== 'draw' && hasUndo) ||
+                                (mode === 'draw' && canUndoDrawnVertex)
+                                    ? ''
+                                    : 'disabled',
+                                navbarButtonsDisabled ? 'disabled' : '',
+                            ]"
                             :title="
                                 'Undo ' +
                                 (canUndoDrawnVertex
@@ -357,9 +331,13 @@
                     >
                         <div
                             class="optional-layers-button btn"
-                            :class="
-                                hasRedo || canRedoDrawnVertex ? '' : 'disabled'
-                            "
+                            :class="[
+                                (mode !== 'draw' && hasRedo) ||
+                                (mode === 'draw' && canRedoDrawnVertex)
+                                    ? ''
+                                    : 'disabled',
+                                navbarButtonsDisabled ? 'disabled' : '',
+                            ]"
                             :title="
                                 'Redo ' +
                                 (canRedoDrawnVertex
@@ -406,9 +384,8 @@
                             <img src="" class="rounded me-2" alt="" />
                             <!-- FIXME: Can this be standardised into the same field name? -->
                             <strong class="me-auto">
-                                {{
-                                    selectedModel.label
-                                }}: {{ selectedModel.occurrence_report_number }}
+                                {{ selectedModel.label }}:
+                                {{ selectedModel.occurrence_report_number }}
                             </strong>
                         </div>
                         <div class="toast-body">
@@ -595,12 +572,12 @@
             <div class="col-sm-6">Redo Stack:</div>
             <div class="col-sm-6">
                 <div v-for="(item, idx) in undoStack" :key="idx">
-                    <div>{{ item.name }}</div>
+                    <div>{{ idx }} {{ item.type }}</div>
                 </div>
             </div>
             <div class="col-sm-6">
                 <div v-for="(item, idx) in redoStack" :key="idx">
-                    <div>{{ item.name }}</div>
+                    <div>{{ idx }} {{ item.type }}</div>
                 </div>
             </div>
         </div>
@@ -687,11 +664,10 @@
 <script>
 import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks';
-//import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
 
 import { toRaw } from 'vue';
 import 'ol/ol.css';
-import alert from '@vue-utils/alert.vue'
+import alert from '@vue-utils/alert.vue';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
@@ -711,20 +687,19 @@ import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
-import FileField from '@/components/forms/filefield_immediate.vue';
+// import FileField from '@/components/forms/filefield_immediate.vue';
 import {
-    addOptionalLayers,
-    //set_mode,
+    // addOptionalLayers,
+    set_mode,
     baselayer_name,
-    validateFeature,
+    // validateFeature,
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
 
 export default {
-    name: 'MapComponentWithFiltersV2',
+    name: 'MapComponent',
     components: {
-        //CollapsibleFilters,
-        FileField,
+        // FileField,
         alert,
         //RangeSlider,
     },
@@ -737,26 +712,6 @@ export default {
                 return options.indexOf(val) != -1 ? true : false;
             },
         },
-        // filterApplicationsMapApplicationTypeCacheName: {
-        //     type: String,
-        //     required: false,
-        //     default: 'filterApplicationType',
-        // },
-        // filterApplicationsMapProcessingStatusCacheName: {
-        //     type: String,
-        //     required: false,
-        //     default: 'filterApplicationStatus',
-        // },
-        // filterApplicationsMapLodgedFromCacheName: {
-        //     type: String,
-        //     required: false,
-        //     default: 'filterApplicationLodgedFrom',
-        // },
-        // filterApplicationsMapLodgedToCacheName: {
-        //     type: String,
-        //     required: false,
-        //     default: 'filterApplicationLodgedTo',
-        // },
         /**
          * The context of the map. This is used to determine which layers to show on the map.
          * The context should be a model object, e.g. a Proposal, Application, etc.
@@ -863,14 +818,6 @@ export default {
         //     },
         // },
         /**
-         * Whether to display a filter component above the map
-         */
-        // filterable: {
-        //     type: Boolean,
-        //     required: false,
-        //     default: true,
-        // },
-        /**
          * Whether to enable drawing of new features
          */
         drawable: {
@@ -930,48 +877,18 @@ export default {
             required: false,
             default: 0, // 0 means no limit
         },
+        navbarButtonsDisabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+        },
     },
     // emits: ['filter-appied', 'validate-feature', 'refreshFromResponse'],
     emits: ['validate-feature', 'refreshFromResponse'],
     data() {
+        // eslint-disable-next-line no-unused-vars
         let vm = this;
         return {
-            // selected values for filtering
-            // filterApplicationsMapApplicationType: sessionStorage.getItem(
-            //     vm.filterApplicationsMapApplicationTypeCacheName
-            // )
-            //     ? sessionStorage.getItem(
-            //           vm.filterApplicationsMapApplicationTypeCacheName
-            //       )
-            //     : 'all',
-            // filterApplicationsMapProcessingStatus: sessionStorage.getItem(
-            //     vm.filterApplicationsMapProcessingStatusCacheName
-            // )
-            //     ? sessionStorage.getItem(
-            //           vm.filterApplicationsMapProcessingStatusCacheName
-            //       )
-            //     : 'all',
-            // filterApplicationsMapLodgedFrom: sessionStorage.getItem(
-            //     vm.filterApplicationsMapLodgedFromCacheName
-            // )
-            //     ? sessionStorage.getItem(
-            //           vm.filterApplicationsMapLodgedFromCacheName
-            //       )
-            //     : '',
-            // filterApplicationsMapLodgedTo: sessionStorage.getItem(
-            //     vm.filterApplicationsMapLodgedToCacheName
-            // )
-            //     ? sessionStorage.getItem(
-            //           vm.filterApplicationsMapLodgedToCacheName
-            //       )
-            //     : '',
-
-            // filtering options
-            // application_types: null,
-            // processing_statuses: null,
-            // select2AppliedToApplicationType: false,
-            // select2AppliedToApplicationStatus: false,
-
             elem_id: uuid(),
             map_container_id: uuid(),
             map: null,
@@ -980,8 +897,10 @@ export default {
             optionalLayers: [],
             hover: false,
             mode: 'normal',
+            subMode: null,
             drawForMeasure: null,
-            drawForModel: null,
+            drawPolygonsForModel: null, // Polygon Draw interaction
+            drawPointsForModel: null, // Points Draw interaction
             newFeatureId: 0,
             measurementLayer: null,
             style: MeasureStyles.defaultStyle,
@@ -997,13 +916,11 @@ export default {
             loadingMap: false,
             fetchingProposals: false,
             proposals: [],
-            // filteredProposals: [],
             modelQuerySource: null,
             modelQueryLayer: null,
             selectedFeatureIds: [],
             lastPoint: null,
             sketchCoordinates: [[]],
-            sketchCoordinatesHistory: [[]],
             defaultColor: '#eeeeee',
             clickSelectStroke: new Stroke({
                 color: 'rgba(255, 0, 0, 0.7)',
@@ -1012,71 +929,52 @@ export default {
             hoverFill: new Fill({
                 color: 'rgba(255, 255, 255, 0.5)',
             }),
-            hoverStroke: new Stroke({
+            hoverStrokePolygon: new Stroke({
                 color: 'rgba(255, 255, 255, 0.5)',
                 width: 1,
             }),
-            // set_mode: set_mode,
+            hoverStrokePoint: new Stroke({
+                color: 'rgba(255, 255, 255, 0.5)',
+                width: 2,
+            }),
+            set_mode: set_mode,
             isValidating: false,
             errorMessage: null,
             overlayFeatureInfo: {},
             deletedFeatures: [], // keep track of deleted features
             undoredo: null,
+            undoredo_forSketch: null, // Undo/redo stack for the sketch layer
+            unOrRedoing_sketchPoint: false, // Whether currently undoing or redoing a sketch point
             modifiedFeaturesStack: [], // A stack of only those undoable actions that modified a feature
             drawing: false, // Whether the map is in draw (pencil icon) mode
             transforming: false, // Whether the map is in transform (resize, scale, rotate) mode
         };
     },
     computed: {
-        // shapefileDocumentUrl: function () {
-        //     let endpoint = '';
-        //     let obj_id = 0;
-        //     if (this.context?.model_name == 'proposal') {
-        //         endpoint = api_endpoints.proposal;
-        //         obj_id = this.context.id;
-        //     } else if (this.context?.model_name == 'competitiveprocess') {
-        //         endpoint = api_endpoints.competitive_process;
-        //         obj_id = this.context.id;
-        //     } else {
-        //         console.warn('shapefileDocumentUrl: invalid context');
-        //         return ''; // Should not reach here.
-        //     }
-        //     let url = helpers.add_endpoint_join(
-        //         endpoint,
-        //         '/' + obj_id + '/process_shapefile_document/'
-        //     );
-        //     console.log({ url });
-        //     return url;
-        // },
-        // filterApplied: function () {
-        //     let filter_applied = true;
-        //     if (
-        //         this.filterApplicationsMapProcessingStatus === 'all' &&
-        //         this.filterApplicationsMapApplicationType === 'all' &&
-        //         this.filterApplicationsMapLodgedFrom.toLowerCase() === '' &&
-        //         this.filterApplicationsMapLodgedTo.toLowerCase() === ''
-        //     ) {
-        //         filter_applied = false;
-        //     }
-        //     return filter_applied;
-        // },
-        // filterApplicationsMapLodgedFromMoment: function () {
-        //     return this.filterApplicationsMapLodgedFrom
-        //         ? moment(this.filterApplicationsMapLodgedFrom)
-        //         : null;
-        // },
-        // filterApplicationsMapLodgedToMoment: function () {
-        //     return this.filterApplicationsMapLodgedTo
-        //         ? moment(this.filterApplicationsMapLodgedTo)
-        //         : null;
-        // },
-        // filterInformation: function () {
-        //     if (this.proposals.length === this.filteredProposals.length) {
-        //         return ` (Showing all ${this.proposals.length} Proposals)`;
-        //     } else {
-        //         return ` (Showing ${this.filteredProposals.length} of ${this.proposals.length} Proposals)`;
-        //     }
-        // },
+        shapefileDocumentUrl: function () {
+            let endpoint = '';
+            let obj_id = 0;
+            // if (this.context?.model_name == 'proposal') {
+            //     endpoint = api_endpoints.proposal;
+            //     obj_id = this.context.id;
+            // } else if (this.context?.model_name == 'competitiveprocess') {
+            //     endpoint = api_endpoints.competitive_process;
+            //     obj_id = this.context.id;
+            // }
+            if (this.context?.model_name == 'occurrencereport') {
+                endpoint = api_endpoints.occurrence_report;
+                obj_id = this.context.id;
+            } else {
+                console.warn('shapefileDocumentUrl: invalid context');
+                return ''; // Should not reach here.
+            }
+            let url = helpers.add_endpoint_join(
+                endpoint,
+                '/' + obj_id + '/process_shapefile_document/'
+            );
+            console.log({ url });
+            return url;
+        },
         canUndoAction: function () {
             // The ol-ext undo/redo module states it is still experimental, might want to disable undo/redo at all
             return true;
@@ -1086,23 +984,24 @@ export default {
             return true;
         },
         canUndoDrawnVertex: function () {
+            this.sketchCoordinates || this.unOrRedoing_sketchPoint; // Mentioned here to force update of the computed property
             return (
                 this.mode == 'draw' &&
-                this.drawForModel &&
-                this.drawForModel.getActive() &&
-                this.sketchCoordinates.length > 1
+                !this.unOrRedoing_sketchPoint &&
+                this.drawPolygonsForModel &&
+                this.drawPolygonsForModel.getActive() &&
+                this.undoredo_forSketch.getStack('undo').length > 0
             );
         },
         canRedoDrawnVertex: function () {
-            return false;
-            /* Todo: The redo button is partially implemented so it is disabled for now.
+            this.sketchCoordinates || this.unOrRedoing_sketchPoint; // Mentioned here to force update of the computed property
             return (
                 this.mode == 'draw' &&
-                this.drawForModel &&
-                this.drawForModel.getActive() &&
-                this.sketchCoordinatesHistory.length >
-                    this.sketchCoordinates.length
-            )*/
+                !this.unOrRedoing_sketchPoint &&
+                this.drawPolygonsForModel &&
+                this.drawPolygonsForModel.getActive() &&
+                this.undoredo_forSketch.getStack('redo').length > 0
+            );
         },
         optionalLayersActive: function () {
             if (this.optionalLayers.length == 0) {
@@ -1139,10 +1038,10 @@ export default {
          */
         undoStack: function () {
             let vm = this;
-            if (!vm.undoredo) {
+            if (!vm.undoredo_forSketch) {
                 return [];
             } else {
-                return vm.undoredo.getStack('undo');
+                return vm.undoredo_forSketch.getStack('undo');
             }
         },
         /**
@@ -1150,10 +1049,10 @@ export default {
          */
         redoStack: function () {
             let vm = this;
-            if (!vm.undoredo) {
+            if (!vm.undoredo_forSketch) {
                 return [];
             } else {
-                return vm.undoredo.getStack('redo');
+                return vm.undoredo_forSketch.getStack('redo');
             }
         },
         hasUndo: function () {
@@ -1178,50 +1077,6 @@ export default {
         },
     },
     watch: {
-        // filterApplicationsMapApplicationType: function () {
-        //     console.log(
-        //         'filterApplicationsMapApplicationType',
-        //         this.filterApplicationsMapApplicationType
-        //     );
-        //     this.applyFiltersFrontEnd();
-        //     sessionStorage.setItem(
-        //         this.filterApplicationsMapApplicationTypeCacheName,
-        //         this.filterApplicationsMapApplicationType
-        //     );
-        //     this.$emit('filter-appied');
-        // },
-        // filterApplicationsMapProcessingStatus: function () {
-        //     this.applyFiltersFrontEnd();
-        //     sessionStorage.setItem(
-        //         this.filterApplicationsMapProcessingStatusCacheName,
-        //         this.filterApplicationsMapProcessingStatus
-        //     );
-        //     this.$emit('filter-appied');
-        // },
-        // filterApplicationsMapLodgedFrom: function () {
-        //     this.applyFiltersFrontEnd();
-        //     sessionStorage.setItem(
-        //         'filterApplicationsMapLodgedFromForMap',
-        //         this.filterApplicationsMapLodgedFrom
-        //     );
-        //     this.$emit('filter-appied');
-        // },
-        // filterApplicationsMapLodgedTo: function () {
-        //     this.applyFiltersFrontEnd();
-        //     sessionStorage.setItem(
-        //         'filterApplicationsMapLodgedToForMap',
-        //         this.filterApplicationsMapLodgedTo
-        //     );
-        //     this.$emit('filter-appied');
-        // },
-        // filterApplied: function () {
-        //     if (this.$refs.collapsible_filters) {
-        //         // Collapsible component exists
-        //         this.$refs.collapsible_filters.show_warning_icon(
-        //             this.filterApplied
-        //         );
-        //     }
-        // },
         selectedFeatureIds: function () {
             if (this.selectedFeatureIds.length == 0) {
                 this.errorMessageProperty(null);
@@ -1230,7 +1085,6 @@ export default {
     },
     created: function () {
         console.log('created()');
-        //this.fetchFilterLists();
         this.fetchProposals();
     },
     mounted: function () {
@@ -1262,52 +1116,6 @@ export default {
         });
     },
     methods: {
-        // updateFilters: function () {
-        //     this.$nextTick(function () {
-        //         console.log('updateFilters');
-        //         this.filterApplicationsMapApplicationType =
-        //             sessionStorage.getItem(
-        //                 this.filterApplicationsMapApplicationTypeCacheName
-        //             )
-        //                 ? sessionStorage.getItem(
-        //                       this.filterApplicationsMapApplicationTypeCacheName
-        //                   )
-        //                 : 'all';
-        //         console.log(
-        //             'this.filterApplicationsMapApplicationType',
-        //             this.filterApplicationsMapApplicationType
-        //         );
-        //         console.log(
-        //             'sessionStorage.getItem(this.filterApplicationsMapProcessingStatusCacheName)',
-        //             sessionStorage.getItem(
-        //                 this.filterApplicationsMapProcessingStatusCacheName
-        //             )
-        //         );
-        //         this.filterApplicationsMapProcessingStatus =
-        //             sessionStorage.getItem(
-        //                 this.filterApplicationsMapProcessingStatusCacheName
-        //             )
-        //                 ? sessionStorage.getItem(
-        //                       this
-        //                           .filterApplicationsMapProcessingStatusCacheName
-        //                   )
-        //                 : 'all';
-        //         this.filterApplicationsMapLodgedFrom = sessionStorage.getItem(
-        //             this.filterApplicationsMapLodgedFromCacheName
-        //         )
-        //             ? sessionStorage.getItem(
-        //                   this.filterApplicationsMapLodgedFromCacheName
-        //               )
-        //             : '';
-        //         this.filterApplicationsMapLodgedTo = sessionStorage.getItem(
-        //             this.filterApplicationsMapLodgedToCacheName
-        //         )
-        //             ? sessionStorage.getItem(
-        //                   this.filterApplicationsMapLodgedToCacheName
-        //               )
-        //             : '';
-        //     });
-        // },
         /**
          * Returns the euclidean distance between two pixel coordinates
          * @param {Array} p1 a pixel coordinate pair in the form [x1, y1]
@@ -1318,57 +1126,6 @@ export default {
                 Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2)
             );
         },
-        // applyFiltersFrontEnd: function () {
-        //     this.filteredProposals = [...this.proposals];
-        //     console.log('applyFiltersFrontEnd', this.filteredProposals);
-        //     console.log('this.filteredProposals', this.filteredProposals);
-        //     console.log(
-        //         'this.filterApplicationsMapApplicationType',
-        //         this.filterApplicationsMapApplicationType
-        //     );
-        //     console.log(
-        //         'this.filterApplicationsMapApplicationType typeof',
-        //         typeof this.filterApplicationsMapApplicationType
-        //     );
-        //     if ('all' != this.filterApplicationsMapApplicationType) {
-        //         this.filteredProposals = [
-        //             ...this.filteredProposals.filter(
-        //                 (proposal) =>
-        //                     proposal.application_type_id ==
-        //                     this.filterApplicationsMapApplicationType
-        //             ),
-        //         ];
-        //         console.log('this.filteredProposals', this.filteredProposals);
-        //     }
-        //     if ('all' != this.filterApplicationsMapProcessingStatus) {
-        //         this.filteredProposals = [
-        //             ...this.filteredProposals.filter(
-        //                 (proposal) =>
-        //                     proposal.processing_status ==
-        //                     this.filterApplicationsMapProcessingStatus
-        //             ),
-        //         ];
-        //     }
-        //     if ('' != this.filterApplicationsMapLodgedFrom) {
-        //         this.filteredProposals = [
-        //             ...this.filteredProposals.filter(
-        //                 (proposal) =>
-        //                     new Date(proposal.lodgement_date) >=
-        //                     new Date(this.filterApplicationsMapLodgedFrom)
-        //             ),
-        //         ];
-        //     }
-        //     if ('' != this.filterApplicationsMapLodgedTo) {
-        //         this.filteredProposals = [
-        //             ...this.filteredProposals.filter(
-        //                 (proposal) =>
-        //                     new Date(proposal.lodgement_date) <=
-        //                     new Date(this.filterApplicationsMapLodgedTo)
-        //             ),
-        //         ];
-        //     }
-        //     this.loadFeatures(this.filteredProposals);
-        // },
         valueChanged: function (value, tileLayer) {
             tileLayer.setOpacity(value / 100);
         },
@@ -1385,11 +1142,7 @@ export default {
                 vm.modelQuerySource.getFeatures(),
                 {}
             );
-            vm.download_content(
-                json,
-                'boranga_layers.geojson',
-                'text/plain'
-            );
+            vm.download_content(json, 'boranga_layers.geojson', 'text/plain');
         },
         displayAllFeatures: function () {
             console.log('in displayAllFeatures()');
@@ -1425,13 +1178,13 @@ export default {
         // changeLayerVisibility: function (targetLayer) {
         //     targetLayer.setVisible(!targetLayer.getVisible());
         // },
-        // clearMeasurementLayer: function () {
-        //     let vm = this;
-        //     let features = vm.measurementLayer.getSource().getFeatures();
-        //     features.forEach((feature) => {
-        //         vm.measurementLayer.getSource().removeFeature(feature);
-        //     });
-        // },
+        clearMeasurementLayer: function () {
+            let vm = this;
+            let features = vm.measurementLayer.getSource().getFeatures();
+            features.forEach((feature) => {
+                vm.measurementLayer.getSource().removeFeature(feature);
+            });
+        },
         forceToRefreshMap(timeout = 700) {
             let vm = this;
             setTimeout(function () {
@@ -1442,14 +1195,7 @@ export default {
             }, timeout);
         },
         addJoint: function (point, styles) {
-            let s = new Style({
-                image: new CircleStyle({
-                    radius: 2,
-                    fill: new Fill({
-                        color: '#3399cc',
-                    }),
-                }),
-            });
+            let s = this.createStyle('#3399cc', '#3399cc', 'Point', 2);
             s.setGeometry(point);
             styles.push(s);
 
@@ -1476,23 +1222,60 @@ export default {
                 return vm.featureColors['unknown'] || vm.defaultColor;
             }
         },
-        createStyle: function (color) {
+        /**
+         * Returns a style based on feature type. Defaults to a polygon style
+         * @param {string|object} fill The fill color or a Fill object
+         * @param {string=|object=} stroke The stroke color or a Stroke object
+         * @param {string=} type The feature type
+         * @param {number=} radius The radius of the point circle, defaults to 7
+         * @param {number=} width The stroke width, defaults to 2
+         */
+        createStyle: function (
+            fill,
+            stroke = null,
+            type = null,
+            radius = 7,
+            width = 2
+        ) {
             let vm = this;
-            if (!color) {
-                color = vm.defaultColor;
+            if (!fill) {
+                fill = vm.defaultColor;
+            }
+            if (!stroke) {
+                stroke = vm.defaultColor;
+            }
+            if (!(fill instanceof Fill)) {
+                // TODO: check is color
+                fill = new Fill({ color: fill });
+            }
+            if (!(stroke instanceof Stroke)) {
+                // TODO: check is color
+                stroke = new Stroke({
+                    color: stroke,
+                    width: width,
+                });
             }
 
-            let style = new Style({
-                stroke: new Stroke({
-                    color: color,
-                    width: 1,
-                }),
-                fill: new Fill({
-                    color: color,
-                }),
-            });
-
-            return style;
+            if (['Polygon', null].includes(type)) {
+                return new Style({
+                    stroke: stroke,
+                    fill: fill,
+                });
+            } else if (type === 'LineString') {
+                return new Style({
+                    stroke: stroke,
+                });
+            } else if (type === 'Point') {
+                return new Style({
+                    image: new CircleStyle({
+                        radius: radius,
+                        stroke: stroke,
+                        fill: fill,
+                    }),
+                });
+            } else {
+                console.error('Unknown feature type: ' + type);
+            }
         },
         styleFunctionForMeasurement: function (feature) {
             let vm = this;
@@ -1627,7 +1410,7 @@ export default {
             let fullScreenControl = new FullScreenControl();
             vm.map.addControl(fullScreenControl);
 
-            // vm.initialiseMeasurementLayer();
+            vm.initialiseMeasurementLayer();
             vm.initialiseQueryLayer();
             vm.initialiseDrawLayer();
 
@@ -1660,6 +1443,31 @@ export default {
                         }
                     );
 
+                    // Setup a dedicated undo/redo for sketch points on the draw layer
+                    vm.undoredo_forSketch = new UndoRedo({
+                        layers: [vm.modelQueryLayer],
+                    });
+                    vm.undoredo_forSketch.clear();
+
+                    vm.undoredo_forSketch.setMaxLength(vm.undoStackMaxLength);
+                    vm.undoredo_forSketch.define(
+                        'add polygon point',
+                        function (s) {
+                            // Undo fn: set to the previous sketch coordinates
+                            vm.unOrRedoing_sketchPoint = true;
+                            vm.sketchCoordinates = s.before;
+                            vm.undoLeaseLicensePoint();
+                            vm.unOrRedoing_sketchPoint = false;
+                        },
+                        function (s) {
+                            // Redo fn: reset the sketch coordinates
+                            vm.unOrRedoing_sketchPoint = true;
+                            vm.sketchCoordinates = s.after;
+                            vm.redoLeaseLicensePoint();
+                            vm.unOrRedoing_sketchPoint = false;
+                        }
+                    );
+
                     for (let eventName of ['stack:add', 'stack:remove']) {
                         vm.undoredo.addEventListener(eventName, function () {
                             let undo_stack = vm.undoredo.getStack('undo');
@@ -1681,6 +1489,7 @@ export default {
                     }
 
                     vm.map.addInteraction(vm.undoredo);
+                    vm.map.addInteraction(vm.undoredo_forSketch);
                 }
             });
 
@@ -1701,49 +1510,46 @@ export default {
             vm.modifySetActive(false);
 
             vm.initialiseSingleClickEvent();
-            // vm.initialiseDoubleClickEvent();
+            vm.initialiseDoubleClickEvent();
         },
-        // initialiseMeasurementLayer: function () {
-        //     let vm = this;
+        initialiseMeasurementLayer: function () {
+            let vm = this;
 
-        //     // Measure tool
-        //     let draw_source = new VectorSource({ wrapX: false });
-        //     vm.drawForMeasure = new Draw({
-        //         source: draw_source,
-        //         type: 'LineString',
-        //         style: vm.styleFunctionForMeasurement,
-        //     });
-        //     // Set a custom listener to the Measure tool
-        //     vm.drawForMeasure.set('escKey', '');
-        //     vm.drawForMeasure.on('change:escKey', function () {});
-        //     vm.drawForMeasure.on('drawstart', function () {
-        //         // Set measuring to true on mode change (fn `set_mode`), not drawstart
-        //     });
-        //     vm.drawForMeasure.on('drawend', function () {
-        //         // Set measuring to false on mode change
-        //     });
+            // Measure tool
+            let draw_source = new VectorSource({ wrapX: false });
+            vm.drawForMeasure = new Draw({
+                source: draw_source,
+                type: 'LineString',
+                style: vm.styleFunctionForMeasurement,
+            });
+            // Set a custom listener to the Measure tool
+            vm.drawForMeasure.set('escKey', '');
+            vm.drawForMeasure.on('change:escKey', function () {});
+            vm.drawForMeasure.on('drawstart', function () {
+                // Set measuring to true on mode change (fn `set_mode`), not drawstart
+            });
+            vm.drawForMeasure.on('drawend', function () {
+                // Set measuring to false on mode change
+            });
 
-        //     // Create a layer to retain the measurement
-        //     vm.measurementLayer = new VectorLayer({
-        //         title: 'Measurement Layer',
-        //         source: draw_source,
-        //         style: function (feature, resolution) {
-        //             feature.set('for_layer', true);
-        //             return vm.styleFunctionForMeasurement(feature, resolution);
-        //         },
-        //     });
-        //     vm.map.addInteraction(vm.drawForMeasure);
-        //     vm.map.addLayer(vm.measurementLayer);
-        // },
+            // Create a layer to retain the measurement
+            vm.measurementLayer = new VectorLayer({
+                title: 'Measurement Layer',
+                source: draw_source,
+                style: function (feature, resolution) {
+                    feature.set('for_layer', true);
+                    return vm.styleFunctionForMeasurement(feature, resolution);
+                },
+            });
+            vm.map.addInteraction(vm.drawForMeasure);
+            vm.map.addLayer(vm.measurementLayer);
+        },
         initialiseQueryLayer: function () {
             let vm = this;
 
             vm.modelQuerySource = new VectorSource({});
-            const style = new Style({
-                fill: new Fill({
-                    color: vm.defaultColor,
-                }),
-            });
+            const polygonStyle = vm.createStyle(null, null, 'Polygon');
+            const pointStyle = vm.createStyle(null, null, 'Point');
 
             vm.modelQueryLayer = new VectorLayer({
                 title: 'Model Occurrence Report',
@@ -1751,7 +1557,14 @@ export default {
                 source: vm.modelQuerySource,
                 style: function (feature) {
                     const color = feature.get('color') || vm.defaultColor;
-                    style.getFill().setColor(color);
+                    let style = polygonStyle;
+                    if (feature.getGeometry().getType() === 'Polygon') {
+                        style.getFill().setColor(color);
+                    } else if (feature.getGeometry().getType() === 'Point') {
+                        style = pointStyle;
+                        style.getImage().getFill().setColor(color);
+                        style.getImage().getStroke().setColor(color);
+                    }
                     return style;
                 },
             });
@@ -1766,7 +1579,7 @@ export default {
                 return;
             }
 
-            vm.drawForModel = new Draw({
+            vm.drawPolygonsForModel = new Draw({
                 source: vm.modelQuerySource,
                 type: 'Polygon',
                 geometryFunction: function (coordinates, geometry) {
@@ -1786,14 +1599,49 @@ export default {
                             this.geometryLayout_
                         );
                     }
-                    vm.sketchCoordinates = coordinates[0].slice();
-                    if (
-                        coordinates[0].length >
-                        vm.sketchCoordinatesHistory.length
-                    ) {
-                        // Only reassign the sketchCoordinatesHistory if the new coordinates are longer than the previous
-                        // so we don't lose the history when the user undoes a point
-                        vm.sketchCoordinatesHistory = coordinates[0].slice();
+
+                    if (vm.unOrRedoing_sketchPoint) {
+                        // Don't run below undo stack logic while executing an undo/redo of sketch points
+                        return geometry;
+                    }
+
+                    // Current feature id list for undo stack
+                    let before = [...vm.sketchCoordinates];
+                    // Ignore the last coordinate that is the movable cursor point
+                    let drawnVertexCoords = coordinates[0].toSpliced(-1);
+                    if (before.length != drawnVertexCoords.length) {
+                        // Sort out back-to-back duplicate coordinates
+                        let sketchCoordinates = drawnVertexCoords
+                            .slice()
+                            .reduce((acc, cur) => {
+                                let prev = acc.slice(-1)[0] || [];
+                                if (prev[0] !== cur[0] && prev[1] !== cur[1]) {
+                                    acc.push(cur);
+                                }
+                                return acc;
+                            }, []);
+
+                        // Return from calculation if the new sketch coordinates are the same as the previous
+                        if (
+                            before.length === sketchCoordinates.length &&
+                            before
+                                .flat(1)
+                                .every(
+                                    (coord, index) =>
+                                        coord ===
+                                        sketchCoordinates.flat(1)[index]
+                                )
+                        ) {
+                            return geometry;
+                        }
+                        // Set new sketch coordinates
+                        vm.sketchCoordinates = sketchCoordinates;
+
+                        // Add to undo stack
+                        vm.undoredo_forSketch.push('add polygon point', {
+                            before: before,
+                            after: vm.sketchCoordinates,
+                        });
                     }
 
                     return geometry;
@@ -1805,7 +1653,7 @@ export default {
                     } else if (evt.originalEvent.buttons === 2) {
                         // If the right mouse button is pressed, undo the last point
                         if (vm.canUndoDrawnVertex) {
-                            vm.undoLeaseLicensePoint();
+                            vm.undoredo_forSketch.undo();
                         } else {
                             vm.set_mode('layer');
                         }
@@ -1816,23 +1664,115 @@ export default {
                 finishCondition: function () {
                     if (vm.lastPoint) {
                         // vm.$emit('validate-feature');
-                        //vm.finishDrawing();
+                        vm.finishDrawing();
                     }
                     return true;
                 },
             });
-            vm.drawForModel.set('escKey', '');
-            vm.drawForModel.on('change:escKey', function () {
+
+            vm.drawPointsForModel = new Draw({
+                source: vm.modelQuerySource,
+                type: 'Point',
+                // geometryFunction: function (coordinates, geometry) {
+                //     if (geometry) {
+                //         if (coordinates[0].length) {
+                //             // Add a closing coordinate to match the first
+                //             geometry.setCoordinates(
+                //                 [coordinates[0].concat([coordinates[0][0]])],
+                //                 this.geometryLayout_
+                //             );
+                //         } else {
+                //             geometry.setCoordinates([], this.geometryLayout_);
+                //         }
+                //     } else {
+                //         geometry = new Polygon(
+                //             coordinates,
+                //             this.geometryLayout_
+                //         );
+                //     }
+
+                //     if (vm.unOrRedoing_sketchPoint) {
+                //         // Don't run below undo stack logic while executing an undo/redo of sketch points
+                //         return geometry;
+                //     }
+
+                //     // Current feature id list for undo stack
+                //     let before = [...vm.sketchCoordinates];
+                //     // Ignore the last coordinate that is the movable cursor point
+                //     let drawnVertexCoords = coordinates[0].toSpliced(-1);
+                //     if (before.length != drawnVertexCoords.length) {
+                //         // Sort out back-to-back duplicate coordinates
+                //         let sketchCoordinates = drawnVertexCoords
+                //             .slice()
+                //             .reduce((acc, cur) => {
+                //                 let prev = acc.slice(-1)[0] || [];
+                //                 if (prev[0] !== cur[0] && prev[1] !== cur[1]) {
+                //                     acc.push(cur);
+                //                 }
+                //                 return acc;
+                //             }, []);
+
+                //         // Return from calculation if the new sketch coordinates are the same as the previous
+                //         if (
+                //             before.length === sketchCoordinates.length &&
+                //             before
+                //                 .flat(1)
+                //                 .every(
+                //                     (coord, index) =>
+                //                         coord ===
+                //                         sketchCoordinates.flat(1)[index]
+                //                 )
+                //         ) {
+                //             return geometry;
+                //         }
+                //         // Set new sketch coordinates
+                //         vm.sketchCoordinates = sketchCoordinates;
+
+                //         // Add to undo stack
+                //         vm.undoredo_forSketch.push('add polygon point', {
+                //             before: before,
+                //             after: vm.sketchCoordinates,
+                //         });
+                //     }
+
+                //     return geometry;
+                // },
+                // condition: function (evt) {
+                //     if (evt.originalEvent.buttons === 1) {
+                //         // Only allow drawing when the left mouse button is pressed
+                //         return true;
+                //     } else if (evt.originalEvent.buttons === 2) {
+                //         // If the right mouse button is pressed, undo the last point
+                //         if (vm.canUndoDrawnVertex) {
+                //             vm.undoredo_forSketch.undo();
+                //         } else {
+                //             vm.set_mode('layer');
+                //         }
+                //     } else {
+                //         return false;
+                //     }
+                // },
+                // finishCondition: function () {
+                //     if (vm.lastPoint) {
+                //         // vm.$emit('validate-feature');
+                //         vm.finishDrawing();
+                //     }
+                //     return true;
+                // },
+            });
+
+            vm.drawPolygonsForModel.set('escKey', '');
+            vm.drawPolygonsForModel.on('change:escKey', function () {
                 console.log('ESC key pressed');
             });
-            vm.drawForModel.on('drawstart', function () {
+            vm.drawPolygonsForModel.on('drawstart', function () {
                 vm.errorMessage = null;
                 vm.lastPoint = null;
             });
-            vm.drawForModel.on('click', function (evt) {
+            vm.drawPolygonsForModel.on('click', function (evt) {
                 console.log('Draw: click event', evt);
             });
-            vm.drawForModel.on('drawend', function (evt) {
+            vm.drawPolygonsForModel.on('drawend', function (evt) {
                 console.log(evt);
                 console.log(evt.feature.values_.geometry.flatCoordinates);
                 // Priya I think context is the occurrencereport_obj thats sent through prop
@@ -1847,7 +1787,6 @@ export default {
                     model: model,
                     polygon_source: 'New',
                     name: model.id || -1,
-                    // FIXME: Can this be standardised into the same field name?
                     label:
                         model.occurrence_report_number ||
                         model.label ||
@@ -1863,22 +1802,61 @@ export default {
                 console.log('newFeatureId = ' + vm.newFeatureId);
                 vm.lastPoint = evt.feature;
                 vm.sketchCoordinates = [[]];
-                vm.sketchCoordinatesHistory = [[]];
             });
-            vm.map.addInteraction(vm.drawForModel);
+
+            vm.drawPointsForModel.on('drawend', function (evt) {
+                console.log(evt);
+                console.log(evt.feature.values_.geometry.flatCoordinates);
+                let model = vm.context || {};
+
+                let color =
+                    vm.featureColors['draw'] ||
+                    vm.featureColors['unknown'] ||
+                    vm.defaultColor;
+                evt.feature.setProperties({
+                    id: vm.newFeatureId,
+                    model: model,
+                    // TODO: rename polygon_source
+                    polygon_source: 'New',
+                    name: model.id || -1,
+                    label:
+                        model.occurrence_report_number || model.label || 'Draw',
+                    color: color,
+                    locked: false,
+                });
+                vm.newFeatureId++;
+                console.log('newFeatureId = ' + vm.newFeatureId);
+                vm.lastPoint = evt.feature;
+                vm.sketchCoordinates = [[]];
+            });
+
+            vm.map.addInteraction(vm.drawPolygonsForModel);
+            vm.map.addInteraction(vm.drawPointsForModel);
         },
         initialisePointerMoveEvent: function () {
             let vm = this;
 
-            const hoverStyle = new Style({
-                fill: vm.hoverFill,
-                stroke: vm.hoverStroke,
-            });
+            const hoverStylePolygon = vm.createStyle(
+                vm.hoverFill,
+                vm.hoverStrokePolygon,
+                'Polygon'
+            );
+
+            const hoverStylePoint = vm.createStyle(
+                vm.hoverFill,
+                vm.hoverStrokePoint,
+                'Point'
+            );
+
             // Cache the hover fill so we don't have to create a new one every time
             // Also prevent overwriting property `hoverFill` color
             let _hoverFill = null;
             function hoverSelect(feature) {
                 const color = feature.get('color') || vm.defaultColor;
+                let hoverStyle = hoverStylePolygon;
+                if (feature.getGeometry().getType() === 'Point') {
+                    hoverStyle = hoverStylePoint;
+                }
                 _hoverFill = new Fill({ color: color });
 
                 // If the feature is already selected, use the select stroke when hovering
@@ -1888,8 +1866,13 @@ export default {
                     hoverStyle.setFill(_hoverFill);
                     hoverStyle.setStroke(vm.clickSelectStroke);
                 } else {
-                    hoverStyle.setFill(vm.hoverFill);
-                    hoverStyle.setStroke(vm.hoverStroke);
+                    if (feature.getGeometry().getType() === 'Polygon') {
+                        hoverStyle.setFill(vm.hoverFill);
+                        hoverStyle.setStroke(vm.hoverStrokePolygon);
+                    } else if (feature.getGeometry().getType() === 'Point') {
+                        hoverStyle.getImage().setFill(vm.hoverFill);
+                        hoverStyle.getImage().setStroke(vm.hoverStrokePoint);
+                    }
                 }
                 return hoverStyle;
             }
@@ -1920,8 +1903,13 @@ export default {
                         if (!(vm.measuring || vm.drawing)) {
                             // Don't highlight features when measuring or drawing
                             selected.setStyle(undefined);
+                            const type = selected.getGeometry().getType();
                             selected.setStyle(
-                                vm.createStyle(selected.values_.color)
+                                vm.createStyle(
+                                    selected.values_.color,
+                                    null,
+                                    type
+                                )
                             );
                         }
                     }
@@ -1945,6 +1933,7 @@ export default {
                                 })
                             );
                         }
+                        vm.selectedModel = null;
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
                             selected.setStyle(hoverSelect);
@@ -1960,18 +1949,18 @@ export default {
                 );
 
                 // Change to info cursor if hovering over an optional layer
-                // let layer_at_pixel = layerAtEventPixel(vm, evt);
-                // // Compare layer names at pixel with optional layer names and set `hit` property accordingly
-                // let optional_layer_names = vm.optionalLayers.map((layer) => {
-                //     return layer.get('name');
-                // });
-                // let hit = layer_at_pixel.some(
-                //     (lyr) => optional_layer_names.indexOf(lyr.get('name')) >= 0
-                // );
+                let layer_at_pixel = layerAtEventPixel(vm, evt);
+                // Compare layer names at pixel with optional layer names and set `hit` property accordingly
+                let optional_layer_names = vm.optionalLayers.map((layer) => {
+                    return layer.get('name');
+                });
+                let hit = layer_at_pixel.some(
+                    (lyr) => optional_layer_names.indexOf(lyr.get('name')) >= 0
+                );
 
-                // vm.map.getTargetElement().style.cursor = hit
-                //     ? 'help'
-                //     : 'default';
+                vm.map.getTargetElement().style.cursor = hit
+                    ? 'help'
+                    : 'default';
 
                 if (selected) {
                     vm.featureToast.show();
@@ -1984,9 +1973,7 @@ export default {
             let vm = this;
             vm.map.on('singleclick', function (evt) {
                 if (vm.drawing || vm.measuring) {
-                    console.log(evt);
-                    // TODO: must be a feature
-                    vm.lastPoint = new Point(evt.coordinate);
+                    vm.lastPoint = new Feature(new Point(evt.coordinate));
                     return;
                 }
 
@@ -2007,6 +1994,7 @@ export default {
                                 deselected.push(feature);
                             } else {
                                 // not selected, so select
+                                // Priya commented the below to avoid the duplication count of 2 on delete button
                                 selected.push(feature);
                             }
                             interaction.dispatchEvent({
@@ -2044,7 +2032,8 @@ export default {
                     let pathnames = [
                         window.location.pathname,
                         model.details_url,
-                    ];
+                    ].filter((path) => path !== undefined);
+
                     for (let i = 0; i < pathnames.length; i++) {
                         let path_name = pathnames[i];
                         if (path_name[path_name.length - 1] === '/') {
@@ -2074,14 +2063,8 @@ export default {
             // A basic style for selected polygons
             vm.basicSelectStyle = function (feature) {
                 var color = feature.get('color') || vm.defaultColor;
-                return [
-                    new Style({
-                        stroke: vm.clickSelectStroke,
-                        fill: new Fill({
-                            color: color,
-                        }),
-                    }),
-                ];
+                const type = feature.getGeometry().getType();
+                return [vm.createStyle(color, vm.clickSelectStroke, type)];
             };
             // Basic style plus extra circles for vertices to help with modifying
             // See: https://github.com/openlayers/openlayers/issues/3165#issuecomment-71432465
@@ -2096,18 +2079,17 @@ export default {
                     new Style({
                         image: image,
                         geometry: function (feature) {
-                            var coordinates = feature
+                            const type = feature.getGeometry().getType();
+                            if (type === 'Point') {
+                                return feature.getGeometry();
+                            }
+                            const coordinates = feature
                                 .getGeometry()
                                 .getCoordinates()[0];
                             return new MultiPoint(coordinates);
                         },
                     }),
-                    new Style({
-                        stroke: vm.clickSelectStroke,
-                        fill: new Fill({
-                            color: color,
-                        }),
-                    }),
+                    vm.createStyle(color, vm.clickSelectStroke, 'Polygon'),
                 ];
             };
 
@@ -2116,8 +2098,11 @@ export default {
                 style: vm.basicSelectStyle,
                 layers: [vm.modelQueryLayer],
                 wrapX: false,
+                condition: function () {
+                    // Prevent the interaction's standard select event
+                    return false;
+                },
             });
-
             selectSingleClick.on('select', (evt) => {
                 if (vm.transforming) {
                     return;
@@ -2158,7 +2143,10 @@ export default {
             // When the map mode changes between draw and anything else, update the style of the selected features
             selectSingleClick.addEventListener('map:modeChanged', (evt) => {
                 console.log('map mode changed', evt);
-                if (evt.details.new_mode === 'draw') {
+                if (
+                    evt.details.new_mode === 'draw' &&
+                    evt.details.new_subMode === 'Point'
+                ) {
                     vm.setStyleForUnAndSelectedFeatures(vm.modifySelectStyle);
                 } else {
                     vm.setStyleForUnAndSelectedFeatures();
@@ -2193,7 +2181,6 @@ export default {
 
                     features.forEach((feature) => {
                         let coords = feature.getGeometry().getCoordinates();
-                        console.log('delete coord length', coords.length);
 
                         for (let j = 0; j < coords.length; j++) {
                             let coord = coords[j];
@@ -2201,6 +2188,7 @@ export default {
                                 // Needs three vertices to form a polygon, four because the first and last are the same
                                 return false;
                             }
+
                             for (let k = 0; k < coord.length; k++) {
                                 let pxl1 = evt.pixel; // clicked pixel coordinates
                                 let pxl2 = vm.map.getPixelFromCoordinate(
@@ -2211,6 +2199,7 @@ export default {
                                 let distance = vm.pixelDistance(pxl1, pxl2);
                                 if (distance <= vm.pixelTolerance) {
                                     let selectedCoord = coord[k];
+                                    console.log('delete coord', selectedCoord);
                                     coord.splice(k, 1);
                                     if (selectedCoord == null) {
                                         return;
@@ -2229,7 +2218,7 @@ export default {
 
             modify.addEventListener('modifyend', function (evt) {
                 console.log('Modify end', evt.features);
-                let feature = evt.features[0];
+                // let feature = evt.features[0];
                 //commented validateFeature by Priya
                 //validateFeature(feature, vm);
             });
@@ -2245,6 +2234,7 @@ export default {
             });
 
             const transformEndCallback = function (evt) {
+                // eslint-disable-next-line no-unused-vars
                 evt.features.forEach((feature) => {
                     //commented validateFeature by Priya
                     // validateFeature(feature, vm);
@@ -2259,28 +2249,34 @@ export default {
         },
         undoLeaseLicensePoint: function () {
             let vm = this;
-            console.log(vm.drawForModel.sketchCoords_);
             if (vm.lastPoint) {
                 vm.modelQuerySource.removeFeature(vm.lastPoint);
                 vm.lastPoint = null;
                 vm.sketchCoordinates = [[]];
-                vm.sketchCoordinatesHistory = [[]];
                 this.selectedFeatureId = null;
             } else {
-                vm.drawForModel.removeLastPoint();
+                vm.drawPolygonsForModel.removeLastPoint();
             }
         },
         redoLeaseLicensePoint: function () {
             let vm = this;
-            if (
-                vm.sketchCoordinatesHistory.length > vm.sketchCoordinates.length
-            ) {
-                let nextCoordinate = vm.sketchCoordinatesHistory.slice(
-                    vm.sketchCoordinates.length,
-                    vm.sketchCoordinates.length + 1
-                );
-                vm.drawForLeaselicence.appendCoordinates([nextCoordinate[0]]);
+
+            const sketchLineGeom =
+                vm.drawPolygonsForModel.sketchLine_?.getGeometry();
+            let coordinates = vm.drawPolygonsForModel.sketchCoords_[0];
+            // Redo finish coordinate
+            let finishCoordinate = vm.sketchCoordinates.slice(-1);
+
+            if (sketchLineGeom !== undefined) {
+                // No geometry, only the first sketch coordinates point present
+                sketchLineGeom.setCoordinates([coordinates]);
             }
+
+            if (finishCoordinate) {
+                vm.drawPolygonsForModel.appendCoordinates(finishCoordinate);
+            }
+
+            vm.drawPolygonsForModel.updateSketchFeatures_();
         },
         removeModelFeatures: function () {
             let vm = this;
@@ -2332,11 +2328,6 @@ export default {
                         .includes(id)
             );
         },
-        // collapsible_component_mounted: function () {
-        //     this.$refs.collapsible_filters.show_warning_icon(
-        //         this.filterApplied
-        //     );
-        // },
         fetchProposals: async function () {
             let vm = this;
             vm.fetchingProposals = true;
@@ -2348,16 +2339,6 @@ export default {
                 url +=
                     `${chars.pop()}proposal_ids=` + vm.proposalIds.toString();
             }
-            // if (vm.filterApplicationsMapApplicationType != 'all') {
-            //     url +=
-            //         `${chars.pop()}application_type=` +
-            //         vm.filterApplicationsMapApplicationType;
-            // }
-            // if (vm.filterApplicationsMapProcessingStatus != 'all') {
-            //     url +=
-            //         `${chars.pop()}processing_status=` +
-            //         vm.filterApplicationsMapProcessingStatus;
-            // }
             fetch(url)
                 .then(async (response) => {
                     const data = await response.json();
@@ -2368,16 +2349,12 @@ export default {
                         return Promise.reject(error);
                     }
                     vm.proposals = data;
-                    // vm.filteredProposals = [...vm.proposals];
                     let initialisers = [
                         vm.assignProposalFeatureColors(vm.proposals),
                         vm.loadFeatures(vm.proposals),
-                        // vm.applyFiltersFrontEnd(),
                     ];
                     Promise.all(initialisers).then(() => {
-                        console.log(
-                            'Done loading features and applying filters'
-                        );
+                        console.log('Done loading features');
                     });
                 })
                 .catch((error) => {
@@ -2387,29 +2364,6 @@ export default {
                     vm.fetchingProposals = false;
                 });
         },
-        // fetchFilterLists: function () {
-        //     let vm = this;
-
-        //     // Application Types
-        //     fetch(api_endpoints.application_types + 'key-value-list/').then(
-        //         async (response) => {
-        //             const resData = await response.json();
-        //             vm.application_types = resData;
-        //         },
-        //         () => {}
-        //     );
-
-        //     // Application Statuses
-        //     fetch(
-        //         api_endpoints.application_statuses_dict + '?for_filter=true'
-        //     ).then(
-        //         async (response) => {
-        //             const resData = await response.json();
-        //             vm.processing_statuses = resData;
-        //         },
-        //         () => {}
-        //     );
-        // },
         addFeatureCollectionToMap: function (featureCollection) {
             let vm = this;
             if (featureCollection == null) {
@@ -2441,24 +2395,19 @@ export default {
             // Remove all features from the layer
             vm.modelQuerySource.clear();
             proposals.forEach(function (proposal) {
-                proposal.ocr_geometry.features.forEach(
-                    function (featureData) {
-                        let feature = vm.featureFromDict(featureData, proposal);
-
-                        if (
-                            vm.modelQuerySource.getFeatureById(feature.getId())
-                        ) {
-                            console.warn(
-                                `Feature ${feature.getId()} already exists in the source. Skipping...`
-                            );
-                            return;
-                        }
-                        vm.modelQuerySource.addFeature(feature);
-                        vm.newFeatureId++;
+                proposal.ocr_geometry.features.forEach(function (featureData) {
+                    let feature = vm.featureFromDict(featureData, proposal);
+                    if (vm.modelQuerySource.getFeatureById(feature.getId())) {
+                        console.warn(
+                            `Feature ${feature.getId()} already exists in the source. Skipping...`
+                        );
+                        return;
                     }
-                );
+                    vm.modelQuerySource.addFeature(feature);
+                    vm.newFeatureId++;
+                });
             });
-            vm.addFeatureCollectionToMap();
+            // vm.addFeatureCollectionToMap();
             vm.map.dispatchEvent({
                 type: 'features-loaded',
                 details: {
@@ -2478,11 +2427,22 @@ export default {
             }
 
             let color = vm.styleByColor(featureData, model);
-            let style = vm.createStyle(color);
+            const type = featureData.geometry.type;
+            let style = vm.createStyle(color, vm.defaultColor, type);
+            let geometry;
+            if (type === 'Polygon') {
+                geometry = new Polygon(featureData.geometry.coordinates);
+            } else if (type === 'Point') {
+                geometry = new Point(featureData.geometry.coordinates);
+            } else if (type === 'LineString') {
+                alert('LineString not yet supported');
+            } else {
+                console.error(`Unsupported geometry type ${type}`);
+            }
 
             let feature = new Feature({
                 id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
-                geometry: new Polygon(featureData.geometry.coordinates),
+                geometry: geometry,
                 name: model.id,
                 // label: model.label || model.application_type_name_display,
                 label: model.label,
@@ -2496,10 +2456,15 @@ export default {
             // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
             feature.setId(featureData.id);
 
+            // to remove the ocr_geometry as it shows up when the geometry is downloaded
+            let propertyModel = model;
+            delete propertyModel.ocr_geometry;
+
             feature.setProperties({
-                model: model,
+                model: propertyModel,
             });
             feature.setStyle(style);
+            console.log(feature);
 
             return feature;
         },
@@ -2565,7 +2530,10 @@ export default {
             let vm = this;
             vm.queryingGeoserver = false;
             vm.errorMessage = null;
-            vm.drawForModel.finishDrawing();
+            vm.drawPolygonsForModel.finishDrawing();
+            if (vm.mode == 'draw' && vm.selectedFeatureIds.length == 0) {
+                vm.set_mode('layer');
+            }
         },
         /**
          * Returns the current error message or sets it to the provided message.
@@ -2700,8 +2668,9 @@ export default {
          */
         undo: function () {
             let vm = this;
+            // Need to do double check here
             if (vm.canUndoDrawnVertex) {
-                vm.undoLeaseLicensePoint();
+                vm.undoredo_forSketch.undo();
             } else if (vm.canUndoAction) {
                 vm.undoredo.undo();
                 // Find the last feature in the redo stack and validate it (the last feature doesn't necessarily need to be the last item in the stack, as the last item could e.g. be a 'blockend' object)
@@ -2714,8 +2683,7 @@ export default {
                         }
                     });
                 if (item && item.feature) {
-                    //commented validateFeature by Priya
-                    // validateFeature(item.feature, vm);
+                    vm.finishDrawing();
                 }
             } else {
                 // Nothing
@@ -2727,7 +2695,7 @@ export default {
         redo: function () {
             let vm = this;
             if (vm.canRedoDrawnVertex) {
-                vm.redoLeaseLicensePoint();
+                vm.undoredo_forSketch.redo();
             } else if (vm.canRedoAction) {
                 vm.undoredo.redo();
                 // Find the last feature in the undo stack and validate it
@@ -2740,8 +2708,7 @@ export default {
                         }
                     });
                 if (item && item.feature) {
-                    //commented validateFeature by Priya
-                    // validateFeature(item.feature, vm);
+                    vm.finishDrawing();
                 }
             } else {
                 // Nothing
@@ -2766,67 +2733,12 @@ export default {
             }
             return 'last action';
         },
-
-        set_mode: function (mode) {
-            let vm=this;
-            // Toggle map mode on/off when the new mode is the old one
-            if (this.mode == mode) {
-                this.mode = 'layer';
+        toggleElementVisibility: function (elementId) {
+            let element = document.getElementById(elementId);
+            if (element.style.display !== 'block') {
+                element.style.display = 'block';
             } else {
-                this.mode = mode;
-            }
-
-            this.drawing = false;
-            this.measuring = false;
-            this.informing = false;
-            this.transforming = false;
-            this.errorMessageProperty(null);
-            this.overlay(undefined);
-            this.map.getTargetElement().style.cursor = 'default';
-            this.transformSetActive(false);
-
-            if (this.mode === 'layer') {
-                //this.clearMeasurementLayer();
-                vm.toggle_draw_measure_license.bind(this)(false, false);
-            } else if (this.mode === 'draw') {
-                //this.clearMeasurementLayer();
-                this.sketchCoordinates = [[]];
-                this.sketchCoordinatesHistory = [[]];
-                vm.toggle_draw_measure_license.bind(this)(false, true);
-                this.drawing = true;
-            } else if (this.mode === 'transform') {
-                //this.clearMeasurementLayer();
-                this.transformSetActive(true);
-                vm.toggle_draw_measure_license.bind(this)(false, false);
-                this.transforming = true;
-            } else if (this.mode === 'measure') {
-                vm.toggle_draw_measure_license.bind(this)(true, false);
-                this.measuring = true;
-            } else if (this.mode === 'info') {
-                vm.toggle_draw_measure_license.bind(this)(false, false);
-                this.informing = true;
-            } else {
-                console.error(`Cannot set mode ${mode}`);
-                return false;
-            }
-            if (this.select) {
-                // Call back to the map so selected features can adept their style to the new mode
-                this.select.dispatchEvent({
-                    type: 'map:modeChanged',
-                    details: {
-                        new_mode: this.mode,
-                    },
-                });
-            }
-
-            return true;
-        },
-        toggle_draw_measure_license: function (drawForMeasure, drawForModel) {
-            if (this.drawForMeasure) {
-                this.drawForMeasure.setActive(drawForMeasure);
-            }
-            if (this.drawForModel) {
-                this.drawForModel.setActive(drawForModel);
+                element.style.display = 'none';
             }
         },
     },
@@ -2876,5 +2788,8 @@ export default {
 
 .force-parent-lh {
     line-height: inherit !important;
+}
+#submenu-draw {
+    display: none;
 }
 </style>

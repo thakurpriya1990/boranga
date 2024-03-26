@@ -46,42 +46,24 @@
                     <OccurrenceReportFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="species_cs_url" />
+                    :url="species_ocr_url" />
                 </FormSection>
-                <!-- <FormSection :formCollapse="false" label="Conservation Status - Flora Applications Referred To Me" Index="flora_cs">
-                    <CSFloraReferralsDashTable v-if="isFlora" ref="flora_referral_table"
-                    :group_type_name="group_name"
-                    :group_type_id="getGroupId"
-                    :url="species_cs_referrals_url" />
-                </FormSection> -->
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
                 <FormSection :formCollapse="false" label="Occurrence Report - Fauna" Index="fauna">
                     <OccurrenceReportFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="species_cs_url"/>
+                    :url="species_ocr_url"/>
                 </FormSection>
-                <!-- <FormSection :formCollapse="false" label="Conservation Status - Fauna Applications Referred To Me" Index="fauna_cs">
-                    <CSFaunaReferralsDashTable v-if="isFauna" ref="fauna_referral_table"
-                    :group_type_name="group_name"
-                    :group_type_id="getGroupId"
-                    :url="species_cs_referrals_url" />
-                </FormSection> -->
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
                 <FormSection :formCollapse="false" label="Occurrence Report - Community" Index="community">
                     <OccurrenceReportCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
-                    :url="community_cs_url"/>
+                    :url="community_ocr_url"/>
                 </FormSection>
-                <!-- <FormSection :formCollapse="false" label="Conservation Status - Community Applications Referred To Me" Index="community_cs">
-                    <CSCommunityReferralsDashTable v-if="isCommunity" ref="community_referral_table"
-                    :group_type_name="group_name"
-                    :group_type_id="getGroupId"
-                    :url="community_cs_referrals_url" />
-                </FormSection> -->
             </div>
         </div>
 
@@ -93,9 +75,6 @@ import datatable from '@/utils/vue/datatable.vue'
 import OccurrenceReportFloraDashTable from '@/components/common/occurrence_report_flora_dashboard.vue'
 import OccurrenceReportFaunaDashTable from '@common-utils/occurrence_report_fauna_dashboard.vue'
 import OccurrenceReportCommunityDashTable from '@common-utils/occurrence_report_community_dashboard.vue'
-// import CSFloraReferralsDashTable from '@common-utils/cs_flora_referrals_dashboard.vue'
-// import CSFaunaReferralsDashTable from '@common-utils/cs_fauna_referrals_dashboard.vue'
-// import CSCommunityReferralsDashTable from '@common-utils/cs_community_referrals_dashboard.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
 import {
   api_endpoints,
@@ -110,10 +89,9 @@ export default {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
             group_name: null,
-            species_cs_url: api_endpoints.species_conservation_status_paginated_internal,
-            // species_cs_referrals_url: api_endpoints.species_conservation_status_referrals_paginated_internal,
-            community_cs_url: api_endpoints.community_conservation_status_paginated_internal,
-            // community_cs_referrals_url: api_endpoints.community_conservation_status_referrals_paginated_internal,
+            species_ocr_url: api_endpoints.occurrence_report_paginated_internal,
+            community_ocr_url: api_endpoints.occurrence_report_paginated_internal,
+
         }
     },
     watch: {},
@@ -121,9 +99,6 @@ export default {
         OccurrenceReportFloraDashTable,
         OccurrenceReportFaunaDashTable,
         OccurrenceReportCommunityDashTable,
-        // CSFloraReferralsDashTable,
-        // CSFaunaReferralsDashTable,
-        // CSCommunityReferralsDashTable,
         FormSection,
     },
     computed: {

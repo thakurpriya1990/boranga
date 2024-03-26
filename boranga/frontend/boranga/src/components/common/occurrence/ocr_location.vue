@@ -63,7 +63,7 @@
                     :map-info-text="
                                 is_internal
                                     ? ''
-                                    : 'Use the <b>draw</b> tool to draw the area of the report on the map.</br>Display layers to check attributes of polygons with the <b>info</b> tool.</br>You can <b>save</b> the report and continue at a later time.'
+                                    : 'Use the <b>draw</b> tool to draw the area of the report on the map.</br>You can <b>save</b> the report and continue at a later time.'
                             "
                     @validate-feature="validateFeature.bind(this)()"
                     @refreshFromResponse="refreshFromResponse"
@@ -383,7 +383,7 @@ export default {
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.species_id = ''
+                    vm.occurrence_report_obj.species_id = null
                     vm.species_display = '';
                     vm.taxon_previous_name = '';
                 }).
@@ -438,7 +438,7 @@ export default {
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.community_id = ''
+                    vm.occurrence_report_obj.community_id = null
                     vm.community_display = '';
                 }).
                 on("select2:open",function (e) {
@@ -522,7 +522,7 @@ export default {
                         confirmButtonColor:'#226fbb',
                         
                     });
-                    vm.$refs.component_map.forceToRefreshMap();;
+                    vm.$refs.component_map.forceToRefreshMap();
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
                     swal.fire({
@@ -533,6 +533,9 @@ export default {
                     });
                     vm.updatingLocationDetails = false;
                 });
+            },
+            incrementComponentMapKey: function () {
+                this.uuid = uuid();
             },
             refreshFromResponse: function (data) {
                 //this.proposal = Object.assign({}, data);

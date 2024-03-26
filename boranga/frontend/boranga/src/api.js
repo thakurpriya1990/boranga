@@ -31,8 +31,7 @@ module.exports = {
     cs_referrals:"/api/cs_referrals.json",
     /*species_conservation_status:"/api/species_conservation_status",
     community_conservation_status:"/api/community_conservation_status",*/
-    document_categories: "/api/document_categories.json",
-    document_sub_categories: "/api/document_sub_categories.json",
+    document_categories_dict:"/api/document_categories_dict",
     species_documents:"/api/species_documents.json",
     community_documents:"/api/community_documents.json",
     threat:"/api/threat.json",
@@ -93,6 +92,8 @@ module.exports = {
     community_conservation_status_referrals_paginated_internal: "/api/community_conservation_status_paginated/community_cs_referrals_internal/?format=datatables",
     community_cs_referrals_internal_export: "/api/community_conservation_status_paginated/community_cs_referrals_internal_export",
     conservation_status_paginated_external: "/api/conservation_status_paginated/conservation_status_external?format=datatables",
+    occurrence_report_paginated_internal: "/api/occurrence_report_paginated/occurrence_report_internal?format=datatables",
+    occurrence_report_internal_export: "/api/occurrence_report_paginated/occurrence_report_internal_export",
     occurrence_report_paginated_external: "/api/occurrence_report_paginated/occurrence_report_external?format=datatables",
     species_conservation_plans_paginated_internal: "/api/species_conservation_plans_paginated/species_cp_internal/?format=datatables",
     community_conservation_plans_paginated_internal: "/api/community_conservation_plans_paginated/community_cp_internal/?format=datatables",
@@ -107,6 +108,7 @@ module.exports = {
     species_lookup:"/api/species_lookup",
     communities_lookup:"/api/communities_lookup",
     scientific_name_lookup:"/api/scientific_name_lookup",
+    scientific_name_lookup_by_groupname:"/api/scientific_name_lookup_by_groupname",
     //taxon_name_lookup:"/api/taxon_name_lookup",
     common_name_lookup:"/api/common_name_lookup",
     family_lookup:"/api/family_lookup",
@@ -114,6 +116,9 @@ module.exports = {
     phylo_group_lookup:"/api/phylo_group_lookup",
     community_id_lookup:"/api/community_id_lookup",
     community_name_lookup:"/api/community_name_lookup",
+    // Pending - need to create viewsets for the below when working on search filters for OR dashboard
+    or_status_lookup:"/api/or_status_lookup",
+    or_submitted_from_lookup:"/api/or_submitted_from_lookup",
 
     //conservation Status profile page list of value dict
     cs_profile_dict:"/api/cs_profile_dict",
@@ -137,6 +142,8 @@ module.exports = {
 
     occurrence_report:"/api/occurrence_report",
     observer_detail:"/api/observer_detail.json",
+    occurrence_report_documents:"/api/occurrence_report_documents.json",
+    ocr_threat:"/api/ocr_threat.json",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",

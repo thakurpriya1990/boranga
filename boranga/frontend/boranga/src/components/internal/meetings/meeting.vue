@@ -170,6 +170,7 @@ export default {
             logs_url: helpers.add_endpoint_json(api_endpoints.meeting,vm.$route.params.meeting_id+'/action_log'),
             comparing: false,
             initialisedSelects: false,
+            isSaved: false,
         }
     },
     components: {
@@ -288,10 +289,21 @@ export default {
        
         save: async function(e) {
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                return false;
+            }
+            vm.isSaved = false;
             vm.savingMeeting=true;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            vm.$http.post(vm.meeting_form_url,payload).then(res=>{
+            await vm.$http.post(vm.meeting_form_url,payload).then(res=>{
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes has been saved',
@@ -299,6 +311,7 @@ export default {
                     confirmButtonColor:'#226fbb'
                 });
               vm.savingMeeting=false;
+              vm.isSaved = true;
             },err=>{
                 var errorText=helpers.apiVueResourceError(err); 
                 swal.fire({
@@ -308,18 +321,33 @@ export default {
                     confirmButtonColor:'#226fbb'
                 });
                 vm.savingMeeting=false;
+                vm.isSaved = false;
             });
         },
         save_exit: async function(e){
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                return false;
+            }
             vm.saveExitMeeting=true;
-            this.save(e);
-            vm.saveExitMeeting=false;
-            // redirect back to dashboard
-            vm.$router.push({
-                    name: 'internal-meetings-dash'
-                    
-                });
+            await this.save(e).then(() => {
+                if(vm.isSaved === true){
+                    // redirect back to dashboard
+                    vm.$router.push({
+                            name: 'internal-meetings-dash'
+                            
+                        });
+                }else{
+                    vm.saveExitMeeting=false;
+                }
+            })
         },
         save_before_submit: async function(e) {
             //console.log('save before submit');
@@ -345,11 +373,11 @@ export default {
             });
             return result;
         },
-        can_submit: function(){
+        can_submit: function(check_action){
             let vm=this;
             let blank_fields=[]
             
-            blank_fields=vm.can_submit_meeting();
+            blank_fields=vm.can_submit_meeting(check_action);
             
             if(blank_fields.length==0){
                 return true;
@@ -358,16 +386,21 @@ export default {
                 return blank_fields;
             }
         },
-        can_submit_meeting: function(){
+        can_submit_meeting: function(check_action){
             let vm=this;
             let blank_fields=[]
             if (vm.meeting_obj.title == null || vm.meeting_obj.title == ''){
                     blank_fields.push(' Title is missing')
                 }
-            else{
-                if (vm.meeting_obj.meeting_type == null || vm.meeting_obj.meeting_type == ''){
+            else if(vm.meeting_obj.meeting_type == null || vm.meeting_obj.meeting_type == ''){
                     blank_fields.push(' Please select meeting type')
                 }
+            else if(vm.$refs.meeting.isMeetingDateValid!= true){
+                    //  to also check the start and end date of meeting validation befor saving
+                blank_fields.push('Please select End Date that is later than Start Date');
+            }
+            if(check_action == "submit"){
+                //TODO add validation for fields required before submit
             }
             
             return blank_fields
@@ -375,7 +408,7 @@ export default {
         submit: async function(){
             let vm = this;
 
-            var missing_data= vm.can_submit();
+            var missing_data= vm.can_submit("submit");
             if(missing_data!=true){
                 swal.fire({
                     title: "Please fix following errors before submitting",

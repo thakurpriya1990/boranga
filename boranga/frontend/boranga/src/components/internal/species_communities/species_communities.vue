@@ -1,7 +1,7 @@
 <template lang="html">
     <div v-if="species_community" class="container" id="internalSpeciesCommunity">
       <div class="row" style="padding-bottom: 50px;">
-        <h3>{{ display_number }} - {{display_name }}</h3>
+        <h3>{{ display_group_type }} {{ display_number }} - {{display_name }}</h3>
         <h4>{{species_community.conservation_status.conservation_category }}</h4>
         <div v-if="!comparing" class="col-md-3">
             <!-- TODO -->
@@ -189,6 +189,7 @@ export default {
             submitSpeciesCommunity: false,
             uploadedID: null,
             imageURL:'',
+            isSaved:false,
 
             
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
@@ -228,6 +229,11 @@ export default {
           return (this.species_community.group_type === "community") ? 
                   `community`: 
                   `species`;
+        },
+        display_group_type: function() {
+            let group_type_string=this.species_community.group_type
+            // to Capitalize only first character
+            return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
         },
         display_number: function() {
             return (this.species_community.group_type === "community") ? 
@@ -430,22 +436,31 @@ export default {
 
             });
         },
-        save: async function(e) {
+        save: async function() {
             let vm = this;
+            var missing_data= vm.can_submit("");
+            vm.isSaved = false;
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                return false;
+            }
             vm.savingSpeciesCommunity=true;
             let payload = new Object();
             Object.assign(payload, vm.species_community);
-            vm.$http.post(vm.species_community_form_url,payload).then(res=>{
+            await vm.$http.post(vm.species_community_form_url,payload).then(res=>{
                 swal.fire({
-                    // 'Saved',
-                    // 'Your changes has been saved',
-                    // 'success'
                     title: "Saved",
                     text: "Your changes has been saved",
                     icon: "success",
                     confirmButtonColor:'#226fbb'
                 });
               vm.savingSpeciesCommunity=false;
+              vm.isSaved=true;
           },err=>{
             var errorText=helpers.apiVueResourceError(err); 
                 swal.fire({
@@ -454,18 +469,34 @@ export default {
                     icon: 'error',
                     confirmButtonColor:'#226fbb'
                 });
-            vm.savingSpeciesCommunity=false;
-          });
+                vm.savingSpeciesCommunity=false;
+                vm.isSaved=false;
+            });
         },
         save_exit: async function(e){
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                //vm.paySubmitting=false;
+                return false;
+            }
             vm.saveExitSpeciesCommunity=true;
-            this.save(e);
-            vm.saveExitSpeciesCommunity=false;
-            // redirect back to dashboard
-            vm.$router.push({
-                    name: 'internal-species-communities-dash'
-                });
+            await vm.save().then(() => {
+                if(vm.isSaved === true){
+                    vm.$router.push({
+                        name: 'internal-species-communities-dash'
+                    });
+                }
+                else{
+                    vm.saveExitSpeciesCommunity=false;
+                }
+            });
         },
         save_before_submit: async function(e) {
             //console.log('save before submit');
@@ -491,18 +522,21 @@ export default {
             });
             return result;
         },
-        can_submit: function(){
+        can_submit: function(check_action){
             let vm=this;
             let blank_fields=[]
             if (vm.species_community.group_type == 'flora' || vm.species_community.group_type == 'fauna'){
                 if (vm.species_community.taxonomy_id == null || vm.species_community.taxonomy_id == ''){
-                    blank_fields.push(' Scientific Name is missing')
+                    blank_fields.push('Scientific Name is missing')
                 }
             }
             else{
                 if (vm.species_community.taxonomy_details.community_name == null || vm.species_community.taxonomy_details.community_name == ''){
-                    blank_fields.push(' Community Name is missing')
+                    blank_fields.push('Community Name is missing')
                 }
+            }
+            if(check_action == 'submit'){
+                //TODO add validation for fields required before submit
             }
             if(blank_fields.length==0){
                 return true;
@@ -514,7 +548,7 @@ export default {
         submit: async function(){
             let vm = this;
 
-            var missing_data= vm.can_submit();
+            var missing_data= vm.can_submit("submit");
             if(missing_data!=true){
                 swal.fire({
                     title: "Please fix following errors before submitting",

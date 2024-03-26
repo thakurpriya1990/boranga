@@ -8,7 +8,7 @@
                   Index="amendment_request" customColor="red">
                     <div v-for="a in amendment_request">
                       <p>Reason: {{a.reason}}</p>
-                      <p>Details: <p v-for="t in splitText(a.text)">{{t}}</p></p>
+                      <p>Details: <p v-for="t in splitText(a.text)">{{t}}></p></p>
                     </div>
                   </FormSection>
                 </div> 
@@ -25,7 +25,7 @@
             </div> -->
 
             <div v-if="occurrence_report_obj" id="scrollspy-heading" class="col-lg-12" >
-                <h4>Occurrence Report - <!-- {{proposal.application_type}} --> application: {{occurrence_report_obj.occurrence_report_number}}</h4>
+                <h4>Occurrence Report - <!-- {{proposal.application_type}} --> {{ display_group_type }}: {{ occurrence_report_obj.occurrence_report_number }}</h4>
             </div>
 
             <ProposalOccurrenceReport 
@@ -50,15 +50,15 @@
                                   <div class="navbar-inner-right">
                                     <div v-if="occurrence_report_obj && !occurrence_report_obj.readonly" class="container">
                                       <p class="pull-right" style="margin-top:5px">
-                                        <button v-if="saveExitOCRProposal" type="button" class="btn btn-primary me-2" disabled>Save and Exit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary me-2" value="Save and Exit" :disabled="savingOCRProposal || paySubmitting"/>
-
                                         <button v-if="savingOCRProposal" type="button" class="btn btn-primary me-2" disabled>Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2" value="Save and Continue" :disabled="saveExitOCRProposal || paySubmitting"/>
+                                        <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2" value="Save and Continue" :disabled="saveExitOCRProposal || submitting"/>
 
-                                        <button v-if="paySubmitting" type="button" class="btn btn-primary" disabled>{{ submit_text() }}&nbsp;
+                                        <button v-if="saveExitOCRProposal" type="button" class="btn btn-primary me-2" disabled>Save and Exit&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <input v-else type="button" @click.prevent="save_exit" class="btn btn-primary me-2" value="Save and Exit" :disabled="savingOCRProposal || submitting"/>
+
+                                        <button v-if="submitting" type="button" class="btn btn-primary" disabled>{{ submit_text() }}&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <input v-else type="button" @click.prevent="submit" class="btn btn-primary" :value="submit_text()" :disabled="saveExitOCRProposal || savingOCRProposal"/>
                                         <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm" class="btn btn-primary" value="Save Without Confirmation"/>
@@ -108,6 +108,7 @@ export default {
       newText: "",
       pBody: 'pBody',
       missing_fields: [],
+      isSaved: false,
     }
   },
   components: {
@@ -127,6 +128,11 @@ export default {
     canEditStatus: function(){
       return this.occurrence_report_obj ? this.occurrence_report_obj.can_user_edit: 'false';
     },
+    display_group_type: function() {
+        let group_type_string=this.occurrence_report_obj.group_type
+        // to Capitalize only first character
+        return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
+    },
   },
   methods: {
     submit_text: function() {
@@ -139,47 +145,148 @@ export default {
       //vm.form=document.forms.new_ocr_proposal;
       let formData = new FormData(vm.form);
 
-      //console.log('land activities', vm.proposal.selected_parks_activities);
-      formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-      formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-      formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-
+      // formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
       return formData;
     },
-    save: function(e) {
-      let vm = this;
-      vm.savingOCRProposal=true;
+    // save: async function() {
+    //   let vm = this;
+    //   vm.savingOCRProposal=true;
+    //   // add map geometry to the occurrence_report_obj
+    //   if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
+    //     vm.occurrence_report_obj.ocr_geometry =vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
 
-      let payload = new Object();
-      Object.assign(payload, vm.occurrence_report_obj);
-      vm.$http.post(vm.ocr_proposal_form_url,payload).then(res=>{
+    //   }
+    //   let payload = new Object();
+    //   Object.assign(payload, vm.occurrence_report_obj);
+    //   vm.$http.post(vm.ocr_proposal_form_url,payload).then(res=>{
+    //       swal.fire({
+    //         title: 'Saved',
+    //         text: 'Your report has been saved',
+    //         icon: 'success',
+    //         confirmButtonColor:'#226fbb',
+    //       });
+    //       vm.savingOCRProposal=false;
+    //   },err=>{
+    //     var errorText=helpers.apiVueResourceError(err); 
+    //     swal.fire({
+    //       title: 'Save Error',
+    //       text: errorText,
+    //       icon: 'error',
+    //       confirmButtonColor:'#226fbb',
+    //     });
+    //     vm.savingOCRProposal=false;
+    //   });
+    // },
+    // Priya updated this save function from LL for map
+    save: async function() {
+      let vm = this;
+      var missing_data= vm.can_submit("");
+      if(missing_data!=true){
+        swal.fire({
+          title: "Please fix following errors before saving",
+          text: missing_data,
+          icon:'error',
+          confirmButtonColor:'#226fbb',
+        })
+        return false;
+      }
+      vm.savingOCRProposal=true;
+      vm.isSaved = false;
+      // add map geometry to the occurrence_report_obj
+      if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
+        vm.occurrence_report_obj.ocr_geometry =vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
+
+      }
+      let payload = { proposal: vm.occurrence_report_obj};
+
+      let deleted_features = this.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.deletedFeaturesProperty();
+      // Save right away if there are no deleted features, otherwise ask for confirmation
+      let commence_saving = deleted_features.length == 0 ? true : false;
+
+      let warning_text = `${deleted_features.length} ${
+          deleted_features.length == 1 ? 'feature' : 'features'
+      } will be deleted. Are you sure?`;
+      if (deleted_features.length > 0) {
+          await swal
+              .fire({
+                  title: 'Save Report',
+                  text: warning_text,
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonText: 'Continue',
+              })
+              .then(async (result) => {
+                  if (result.isConfirmed) {
+                      // When Yes
+                      commence_saving = true;
+                  }
+              });
+      }
+
+      if (!commence_saving) {
+          vm.savingOCRProposal = false;
+          return;
+      }
+
+      if (vm.submitting) {
+          // Provide an action to have the backend lock the geometry
+          payload.action = 'submit';
+      }
+      const res = await vm.$http.post(vm.ocr_proposal_form_url,payload).then(res=>{
           swal.fire({
-            title: 'Saved',
-            text: 'Your report has been saved',
-            icon: 'success',
+                  title: 'Saved',
+                  text: 'Your report has been saved',
+                  icon: 'success',
+              });
+          vm.savingOCRProposal = false;
+          const resData = res.data;
+          this.occurrence_report_obj = Object.assign({}, resData);
+          this.$nextTick(async () => {
+              this.$refs.occurrence_report.$refs.ocr_location.incrementComponentMapKey();
+          });
+          vm.isSaved = true;
+          return resData; 
+        },err=>{
+          var errorText=helpers.apiVueResourceError(err); 
+          swal.fire({
+            title: 'Save Error',
+            text: errorText,
+            icon: 'error',
             confirmButtonColor:'#226fbb',
           });
           vm.savingOCRProposal=false;
-      },err=>{
-        var errorText=helpers.apiVueResourceError(err); 
-        swal.fire({
-          title: 'Save Error',
-          text: errorText,
-          icon: 'error',
-          confirmButtonColor:'#226fbb',
+          vm.isSaved = false;
         });
-        vm.savingOCRProposal=false;
-      });
     },
-    save_exit: function(e) {
+    save_exit: async function() {
       let vm = this;
-      this.submitting = true;
+      // this.submitting = true;
+      var missing_data= vm.can_submit("");
+      if(missing_data!=true){
+        swal.fire({
+          title: "Please fix following errors before saving",
+          text: missing_data,
+          icon:'error',
+          confirmButtonColor:'#226fbb',
+        })
+        return false;
+      }
       this.saveExitOCRProposal=true;
-      this.save(e);
-      this.saveExitOCRProposal=false;
-      // redirect back to dashboard
-      vm.$router.push({
-        name: 'external-occurrence_report-dash'
+      // this.save(e);
+      // this.saveExitOCRProposal=false;
+      // // redirect back to dashboard
+      // vm.$router.push({
+      //   name: 'external-occurrence_report-dash'
+      // });
+      // this also resolves the bug of not updating the datatable when router is pushed back to dashboard
+      await this.save().then(() => {
+        if(vm.isSaved === true){
+          vm.$router.push({
+            name: 'external-occurrence_report-dash',
+          });
+        }else{
+          this.saveExitOCRProposal = false;
+        }
       });
     },
 
@@ -191,25 +298,90 @@ export default {
     },
     save_before_submit: async function(e) {
       //console.log('save before submit');
+      // let vm = this;
+      // vm.saveError=false;
+
+      // // add map geometry to the occurrence_report_obj
+      // if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
+      //   vm.occurrence_report_obj.ocr_geometry =vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
+      // }
+      // let payload = new Object();
+      // Object.assign(payload, vm.occurrence_report_obj);
+      // const result = await vm.$http.post(vm.ocr_proposal_form_url,payload).then(res=>{
+      //     //return true;
+      // },err=>{
+      //   var errorText=helpers.apiVueResourceError(err); 
+      //   swal.fire({
+      //     title: 'Submit Error',
+      //     //helpers.apiVueResourceError(err),
+      //     text: errorText,
+      //     icon: 'error',
+      //     confirmButtonColor:'#226fbb',
+      //   });
+      //   vm.submitting=false;
+      //   vm.saveError=true;
+      //   //return false;
+      // });
+      // return result;
+      console.log('save before submit');
       let vm = this;
       vm.saveError=false;
+      // add map geometry to the occurrence_report_obj
+      if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
+        vm.occurrence_report_obj.ocr_geometry =vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
 
-      let payload = new Object();
-      Object.assign(payload, vm.occurrence_report_obj);
+      }
+      let payload = { proposal: vm.occurrence_report_obj};
+      let deleted_features = this.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.deletedFeaturesProperty();
+      // Save right away if there are no deleted features, otherwise ask for confirmation
+      let commence_saving = deleted_features.length == 0 ? true : false;
+
+      let warning_text = `${deleted_features.length} ${
+          deleted_features.length == 1 ? 'feature' : 'features'
+      } will be deleted. Are you sure?`;
+      if (deleted_features.length > 0) {
+          await swal
+              .fire({
+                  title: 'Save Report',
+                  text: warning_text,
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonText: 'Continue',
+              })
+              .then(async (result) => {
+                  if (result.isConfirmed) {
+                      // When Yes
+                      commence_saving = true;
+                  }
+              });
+      }
+
+      if (!commence_saving) {
+          vm.submitting = false;
+          return;
+      }
+
+      if (vm.submitting) {
+          // Provide an action to have the backend lock the geometry
+          payload.action = 'submit';
+      }
       const result = await vm.$http.post(vm.ocr_proposal_form_url,payload).then(res=>{
-          //return true;
+        // vm.submitting=false;
+        // vm.saveError=false;
+        this.$nextTick(async () => {
+            this.$refs.occurrence_report.$refs.ocr_location.incrementComponentMapKey();
+        });
       },err=>{
-        var errorText=helpers.apiVueResourceError(err); 
-        swal.fire({
+          var errorText=helpers.apiVueResourceError(err); 
+          swal.fire({
           title: 'Submit Error',
           //helpers.apiVueResourceError(err),
           text: errorText,
           icon: 'error',
           confirmButtonColor:'#226fbb',
         });
-        vm.paySubmitting=false;
+        vm.submitting=false;
         vm.saveError=true;
-        //return false;
       });
       return result;
     },
@@ -349,10 +521,10 @@ export default {
         return vm.missing_fields.length
     },
 
-    can_submit: function(){
+    can_submit: function(check_action){
       let vm=this;
       let blank_fields=[]
-      blank_fields=vm.can_submit_occurrence_report();
+      blank_fields=vm.can_submit_occurrence_report(check_action);
       
       if(blank_fields.length==0){
         return true;
@@ -362,7 +534,7 @@ export default {
       }
 
     },
-    can_submit_occurrence_report: function(){
+    can_submit_occurrence_report: function(check_action){
       let vm=this;
       let blank_fields=[]
       if (vm.occurrence_report_obj.group_type == 'flora' || vm.occurrence_report_obj.group_type == 'fauna'){
@@ -375,12 +547,15 @@ export default {
             blank_fields.push(' Community is missing')
         }
       }
+      if(check_action == "submit"){
+        //TODO add validation for fields required before submit
+      }
       return blank_fields
     },
     submit: function(){
         let vm = this;
 
-        var missing_data= vm.can_submit();
+        var missing_data= vm.can_submit("submit");
         if(missing_data!=true){
           swal.fire({
             title: "Please fix following errors before submitting",
@@ -393,11 +568,10 @@ export default {
 
         // remove the confirm prompt when navigating away from window (on button 'Submit' click)
         vm.submitting = true;
-        vm.paySubmitting=true;
 
         swal.fire({
-            title: vm.submit_text() + " Application",
-            text: "Are you sure you want to " + vm.submit_text().toLowerCase()+ " this application?",
+            title: vm.submit_text() + " Report",
+            text: "Are you sure you want to " + vm.submit_text().toLowerCase()+ " this report?",
             icon: "question",
             showCancelButton: true,
             confirmButtonText: vm.submit_text(),
@@ -414,7 +588,7 @@ export default {
               vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,vm.occurrence_report_obj.id+'/submit'),payload).then(res=>{
                   vm.occurrence_report_obj = res.body;
                   vm.$router.push({
-                      name: 'submit_cs_proposal',
+                      name: 'submit_ocr_proposal',
                       params: { occurrence_report_obj: vm.occurrence_report_obj}
                   });
               },err=>{
@@ -428,11 +602,11 @@ export default {
             }
           }
         },(error) => {
-          vm.paySubmitting=false;
+          vm.submitting=false;
         });
     },
     refreshFromResponse: function (data) {
-        //this.proposal = Object.assign({}, data);
+        this.occurrence_report_obj = Object.assign({}, data);
     },
 },
 

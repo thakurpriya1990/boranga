@@ -10,9 +10,9 @@ class ConservationListAdmin(admin.ModelAdmin):
 class ConservationCategoryAdmin(admin.ModelAdmin):
     list_display = ['code','label','conservation_list']
 
-@admin.register(models.ConservationCriteria)
-class ConservationCriteriaAdmin(admin.ModelAdmin):
-    list_display = ['code','label','conservation_list']
+# @admin.register(models.ConservationCriteria)
+# class ConservationCriteriaAdmin(admin.ModelAdmin):
+#     list_display = ['code','label','conservation_list']
 
 # @admin.register(models.ConservationChangeCode)
 # class ConservationChangeCodeAdmin(admin.ModelAdmin):

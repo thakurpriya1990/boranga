@@ -1,6 +1,7 @@
 import traceback
 import base64
 import geojson
+import logging
 from six.moves.urllib.parse import urlparse
 from wsgiref.util import FileWrapper
 from django.db.models import Q, Min
@@ -27,9 +28,9 @@ from django.core.cache import cache
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address, EmailIdentity #EmailUserAction
 from ledger_api_client.country_models import Country
 from datetime import datetime,timedelta, date
-from boranga.components.organisations.models import  (
-                                    Organisation,
-                                )
+# from boranga.components.organisations.models import  (
+#                                     Organisation,
+#                                 )
 
 from boranga.components.users.serializers import   (
                                                 UserSerializer,
@@ -42,11 +43,26 @@ from boranga.components.users.serializers import   (
                                                 #EmailUserLogEntrySerializer,
                                                 UserSystemSettingsSerializer,
                                             )
-from boranga.components.organisations.serializers import (
-    OrganisationRequestDTSerializer,
-)
+# from boranga.components.organisations.serializers import (
+#     OrganisationRequestDTSerializer,
+# )
 from boranga.components.main.utils import retrieve_department_users
 from boranga.components.main.models import UserSystemSettings
+from boranga.permissions import (
+    IsApprover,
+    IsAssessor,
+    IsConservationStatusEditor,
+    IsConservationStatusReferee,
+)
+from boranga.helpers import (
+    is_assessor,
+    is_approver,
+    is_conservation_status_editor,
+    is_conservation_status_referee,
+    is_internal,
+)
+
+logger = logging.getLogger(__name__)
 
 class DepartmentUserList(views.APIView):
     renderer_classes = [JSONRenderer,]
@@ -86,6 +102,10 @@ class UserListFilterView(generics.ListAPIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = EmailUser.objects.all()
     serializer_class = UserSerializer
+    # Add permission groups that can access the userviewset, can add more group later as required
+    permission_classes = [
+        IsAssessor | IsApprover | IsConservationStatusEditor
+    ]
 
     @list_route(methods=['GET',], detail=False)
     def get_department_users(self, request, *args, **kwargs):

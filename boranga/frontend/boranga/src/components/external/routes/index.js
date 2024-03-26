@@ -4,6 +4,7 @@ import ConservationStatusProposal from '../conservation_status/conservation_stat
 import ConservationStatusProposalSubmit from '../conservation_status/conservation_status_proposal_submit.vue'
 import ExternalOccurrenceReportDash from '../occurrence/dashboard.vue'
 import OccurrenceReportProposal from '../occurrence/occurrence_report_proposal.vue'
+import OCRProposalSubmit from '../occurrence/ocr_proposal_submit.vue'
 import Proposal from '../proposal.vue'
 //import CommercialOperatorLicence from '../commercial_operator_licence.vue'
 import ProposalApply from '../proposal_apply.vue'
@@ -44,6 +45,12 @@ export default
             path: 'occurrence-report/:occurrence_report_id',
             component: OccurrenceReportProposal,
             name:"draft_ocr_proposal"
+
+        },
+        {
+            path: 'occurrence-report/submit',
+            component: OCRProposalSubmit,
+            name:"submit_ocr_proposal"
 
         },
         {

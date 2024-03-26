@@ -2,20 +2,22 @@
 {% load utils %}
 {% load static %}
 {% is_internal as is_internal_login %}
+{% comment %} {{ page_status}}  {% endcomment %}
 
 {% if is_internal_login %}
-    <li class="nav-item"><a class="nav-link" href="/internal/species-communities">
+    <li class="nav-item"><a class="nav-link {% if page_status.species_and_communities is True %} active {% endif %}" href="/internal/species-communities">
         <div style="inline">Species & Communities</div></a>
     </li>
-    <li class="nav-item"><a class="nav-link" href="/internal/conservation-status">Conservation Status</a></li>
-    <li class="nav-item"><a class="nav-link" href="/internal/meetings">Meetings</a></li>
+    <li class="nav-item"><a class="nav-link {% if page_status.conservation_status is True %} active {% endif %}" href="/internal/conservation-status">Conservation Status</a></li>
+    <li class="nav-item"><a class="nav-link {% if page_status.meetings is True %} active {% endif %}" href="/internal/meetings">Meetings</a></li>
+    <li class="nav-item"><a class="nav-link {% if page_status.occurrence is True %} active {% endif %}" href="/internal/occurrence">Occurrences</a></li>
     {% comment %} <li class="nav-item"><a class="nav-link" href="/internal/conservation-plans">Conservation Plan</a></li> {% endcomment %}
     {% comment %} <li class="nav-item"><a class="nav-link" href="/internal/occurrence">Occurrences</a></li> {% endcomment %}
 
     {% comment %} <li class="nav-item"><a class="nav-link" href="/internal/organisations/access">User Access</a></li> {% endcomment %}
 
 {% else %}
-    <li class="nav-item"><a class="nav-link" href="/external/conservation-status">Conservation Status</a></li>
-    {% comment %} <li class="nav-item"><a class="nav-link" href="/external/occurrence-report">Occurrences</a></li> {% endcomment %}
+    <li class="nav-item"><a class="nav-link {% if page_status.conservation_status is True %} active {% endif %}" href="/external/conservation-status">Conservation Status</a></li>
+    <li class="nav-item"><a class="nav-link {% if page_status.occurrence_report is True %} active {% endif %}" href="/external/occurrence-report">Occurrence Reports</a></li>
 {% endif %}
 

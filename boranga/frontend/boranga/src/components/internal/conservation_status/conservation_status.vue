@@ -1,8 +1,7 @@
 <template lang="html">
     <div v-if="conservation_status_obj" class="container" id="internalConservationStatus">
       <div class="row" style="padding-bottom: 50px;">
-        <h3>{{ display_number }} - {{display_name }}</h3>
-        
+        <h3>{{ display_group_type }} {{ display_number }} - {{display_name }}</h3>
         <div v-if="!comparing" class="col-md-3">
            <!-- TODO -->
 
@@ -329,6 +328,8 @@ export default {
             logs_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/action_log'),
             comparing: false,
             initialisedSelects: false,
+            cs_proposal_readonly: true,
+            isSaved:false,
         }
     },
     components: {
@@ -363,6 +364,11 @@ export default {
             else{
                 return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
             }
+        },
+        display_group_type: function() {
+            let group_type_string=this.conservation_status_obj.group_type
+            // to Capitalize only first character
+            return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
         },
         display_number: function() {
             return this.conservation_status_obj.conservation_status_number;
@@ -544,10 +550,22 @@ export default {
         },
         save: async function(e) {
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                //vm.paySubmitting=false;
+                return false;
+            }
+            vm.isSaved = false;
             vm.savingConservationStatus=true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            await vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes has been saved',
@@ -555,6 +573,7 @@ export default {
                     confirmButtonColor:'#226fbb',
                 });
               vm.savingConservationStatus=false;
+              vm.isSaved = true;
           },err=>{
             var errorText=helpers.apiVueResourceError(err); 
                 swal.fire({
@@ -564,17 +583,33 @@ export default {
                     confirmButtonColor:'#226fbb'
                 });
             vm.savingConservationStatus=false;
+            vm.isSaved = false;
           });
         },
         save_exit: async function(e){
             let vm = this;
+            var missing_data= vm.can_submit("");
+            if(missing_data!=true){
+                swal.fire({
+                    title: "Please fix following errors before saving",
+                    text: missing_data,
+                    icon:'error',
+                    confirmButtonColor:'#226fbb'
+                })
+                //vm.paySubmitting=false;
+                return false;
+            }
             vm.saveExitConservationStatus=true;
-            this.save(e);
-            vm.saveExitConservationStatus=false;
-            // redirect back to dashboard
-            vm.$router.push({
-                    name: 'internal-conservation_status-dash'
-                });
+            await this.save(e).then(()=>{
+                if(vm.isSaved === true){
+                    // redirect back to dashboard
+                    vm.$router.push({
+                            name: 'internal-conservation_status-dash'
+                        });
+                }else{
+                    vm.saveExitConservationStatus=false;
+                }
+            });
         },
         save_before_submit: async function(e) {
             //console.log('save before submit');
@@ -600,16 +635,31 @@ export default {
             });
             return result;
         },
-        can_submit: function(){
+        // can_save: function(){
+        //     let vm=this;
+        //     let blank_fields=[]
+        //     if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
+        //         if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
+        //             blank_fields.push(' Species is missing')
+        //         }
+        //     }
+        //     else{
+        //         if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == ''){
+        //             blank_fields.push(' Community is missing')
+        //         }
+        //     }
+        //     if(blank_fields.length==0){
+        //         return true;
+        //     }
+        //     else{
+        //         return blank_fields;
+        //     }
+        // },
+        can_submit: function(check_action){
             let vm=this;
             let blank_fields=[]
             // TODO check blank 
-            /*if (vm.conservation_status_obj.application_type==vm.application_type_tclass) {
-            } 
-            else if (vm.conservation_status_obj.application_type==vm.application_type_event) {
-                blank_fields=vm.can_submit_event();
-            }*/
-            blank_fields=vm.can_submit_conservation_status();
+            blank_fields=vm.can_submit_conservation_status(check_action);
             
             if(blank_fields.length==0){
                 return true;
@@ -618,7 +668,7 @@ export default {
                 return blank_fields;
             }
         },
-        can_submit_conservation_status: function(){
+        can_submit_conservation_status: function(check_action){
             let vm=this;
             let blank_fields=[]
             if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
@@ -631,27 +681,20 @@ export default {
                     blank_fields.push(' Community is missing')
                 }
             }
-            if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == ''){
-                blank_fields.push(' Conservation List is missing')
+            if(check_action == "submit"){
+                if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == ''){
+                    blank_fields.push(' Conservation List is missing')
+                }
+                if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == ''){
+                    blank_fields.push(' Conservation Category is missing')
+                }
             }
-            if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == ''){
-                blank_fields.push(' Conservation Category is missing')
-            }
-            if (vm.conservation_status_obj.conservation_criteria.length == 0){
-                blank_fields.push(' Conservation criteria is missing')
-            }
-            if (vm.conservation_status_obj.comment == null || vm.conservation_status_obj.comment == ''){
-                blank_fields.push(' Conservation comment is missing')
-            }
-            /*if(vm.$refs.proposal_filming.$refs.filming_other_details.$refs.deed_poll_doc.documents.length==0){
-                blank_fields.push(' Deed poll document is missing')
-            }*/
             return blank_fields
         },
         submit: async function(){
             let vm = this;
 
-            var missing_data= vm.can_submit();
+            var missing_data= vm.can_submit("submit");
             if(missing_data!=true){
                 swal.fire({
                     title: "Please fix following errors before submitting",
@@ -1108,6 +1151,7 @@ export default {
         Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(res => {
               next(vm => {
                 vm.conservation_status_obj = res.body.conservation_status_obj;
+                //vm.setdata(vm.conservation_status_obj.readonly);
               });
             },
             err => {

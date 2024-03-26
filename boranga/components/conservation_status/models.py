@@ -214,6 +214,22 @@ class ConservationChangeCode(models.Model):
         return str(self.code)
 
 
+class IUCNVersion(models.Model):
+    """
+    IUCN Version while approving the List
+    """
+    code = models.CharField(max_length=32,
+                            default="None")
+    label = models.CharField(max_length=512,
+                            default="None")
+
+    class Meta:
+        app_label = 'boranga'
+
+    def __str__(self):
+        return str(self.code)
+
+
 class ConservationStatus(models.Model):
     """
     Several lists with different attributes
@@ -298,6 +314,7 @@ class ConservationStatus(models.Model):
     RECURRENCE_PATTERNS = [(1, 'Month'), (2, 'Year')]
     change_code = models.ForeignKey(ConservationChangeCode, 
                                     on_delete=models.SET_NULL , blank=True, null=True)
+    change_date = models.DateField(null=True, blank=True)
     
     APPLICATION_TYPE_CHOICES = (
         ('new_proposal', 'New Application'),
@@ -327,15 +344,20 @@ class ConservationStatus(models.Model):
                                              on_delete=models.CASCADE, blank=True, null=True, related_name="curr_conservation_list")
     conservation_category = models.ForeignKey(ConservationCategory, 
                                               on_delete=models.SET_NULL, blank=True, null=True, related_name="curr_conservation_category")
-    conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True, related_name="curr_conservation_criteria")
+    # conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True, related_name="curr_conservation_criteria")
+    conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
     # recommended listing details in a meeting
     recommended_conservation_list = models.ForeignKey(ConservationList,
                                              on_delete=models.CASCADE, blank=True, null=True)
     recommended_conservation_category = models.ForeignKey(ConservationCategory,
                                               on_delete=models.SET_NULL, blank=True, null=True)
-    recommended_conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True)
+    # recommended_conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True)
+    recommended_conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
+    iucn_version = models.ForeignKey(IUCNVersion, on_delete=models.SET_NULL, blank=True, null=True, related_name="iucn_version")
     comment = models.CharField(max_length=512, blank=True, null=True)
+    review_due_date = models.DateField(null=True, blank=True)
     review_date = models.DateField(null=True,blank=True)
+    reviewed_by = models.IntegerField(null=True) #EmailUserRO
     recurrence_pattern = models.SmallIntegerField(choices=RECURRENCE_PATTERNS,default=1)
     recurrence_schedule = models.IntegerField(null=True,blank=True)
     proposed_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
@@ -358,9 +380,13 @@ class ConservationStatus(models.Model):
     deficiency_data = models.TextField(null=True, blank=True) # deficiency comment
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
     # to store the proposed start and end date of proposal
-    proposed_issuance_approval = JSONField(blank=True, null=True) # Not used in boranga as created another model to store the details
+    # proposed_issuance_approval = JSONField(blank=True, null=True) # Not used in boranga as created another model to store the details
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
+    listing_date = models.DateField(null=True, blank=True)
+    delisting_date = models.DateField(null=True, blank=True)
+    cs_start_date = models.DateField(null=True, blank=True) # TODO is effective_start_date different from this date
+    cs_end_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'

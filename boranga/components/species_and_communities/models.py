@@ -450,10 +450,11 @@ class Species(models.Model):
     def applicant_details(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
-            return "{} {}\n{}".format(
+            return "{} {}".format(
                 email_user.first_name,
                 email_user.last_name,
-                email_user.addresses.all().first())
+                # email_user.addresses.all().first()
+                )
 
     @property
     def applicant_address(self):
@@ -886,35 +887,18 @@ class SpeciesDistribution(models.Model):
     eoo_auto = models.BooleanField(default=True) # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
     aoo_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy
-    area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
+    area_of_occupancy_actual = models.DecimalField(max_digits=15, decimal_places=5, null=True, blank=True)
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
     number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
     species = models.OneToOneField(Species, on_delete=models.CASCADE, null=True, related_name="species_distribution")
+    distribution = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'
 
     def __str__(self):
         return str(self.id)  # TODO: is the most appropriate?
-
-
-# TODO Model not used anymore
-class CommunityName(models.Model):
-    """
-    # list derived from TEC
-
-    Used by:
-    - Taxonomy
-
-    """
-    name = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
-
-    def __str__(self):
-        return str(self.name)
 
 
 class Community(models.Model):
@@ -998,10 +982,12 @@ class Community(models.Model):
     def applicant_details(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
-            return "{} {}\n{}".format(
+            return "{} {}".format(
                 email_user.first_name,
                 email_user.last_name,
-                email_user.addresses.all().first())
+                # commented below to resolve the Uppercase context error for community submit
+                # email_user.addresses.all().first()
+                )
 
     @property
     def applicant_address(self):
@@ -1392,15 +1378,15 @@ class CommunityDistribution(models.Model):
     eoo_auto = models.BooleanField(default=True) # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
     aoo_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy
-    area_of_occupancy_actual = models.IntegerField(null=True, blank=True)
+    area_of_occupancy_actual = models.DecimalField(max_digits=15, decimal_places=5, null=True, blank=True)
     aoo_actual_auto = models.BooleanField(default=True) # to check auto or manual entry of area_of_occupancy_actual
     number_of_iucn_locations = models.IntegerField(null=True, blank=True)
-    number_of_iucn_subpopulations = models.IntegerField(null=True, blank=True)
     # Community Ecological Attributes
     community_original_area = models.IntegerField(null=True, blank=True)
-    community_original_area_accuracy = models.IntegerField(null=True, blank=True)
+    community_original_area_accuracy = models.DecimalField(max_digits=15, decimal_places=5, null=True, blank=True)
     community_original_area_reference = models.CharField(max_length=512, null=True, blank=True)
     community = models.OneToOneField(Community, on_delete=models.CASCADE, null=True, related_name="community_distribution")
+    distribution = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = 'boranga'
@@ -1732,47 +1718,6 @@ class ConservationThreat(models.Model):
             return self.community.id
 
 
-# list used in Conservation Attributes
-# class FloweringPeriod(models.Model):
-#     """
-#     # list derived from WACensus
-
-#     Used by:
-#     - SpeciesConservationAttributes
-
-#     """
-#     period = models.CharField(max_length=200, blank=False, unique=True)
-
-#     class Meta:
-#         app_label = 'boranga'
-#         verbose_name = "Flowering Period"
-#         verbose_name_plural = "Flowering Periods"
-#         ordering = ['period']
-
-#     def __str__(self):
-#         return str(self.period)
-
-
-# class FruitingPeriod(models.Model):
-#     """
-#     # list derived from WACensus
-
-#     Used by:
-#     - SpeciesConservationAttributes
-
-#     """
-#     period = models.CharField(max_length=200, blank=False, unique=True)
-
-#     class Meta:
-#         app_label = 'boranga'
-#         verbose_name = "Fruiting Period"
-#         verbose_name_plural = "Fruiting Periods"
-#         ordering = ['period']
-
-#     def __str__(self):
-#         return str(self.period)
-
-
 class FloraRecruitmentType(models.Model):
     """
     # list derived from WACensus
@@ -1792,24 +1737,6 @@ class FloraRecruitmentType(models.Model):
     def __str__(self):
         return str(self.recruitment_type)
 
-# TODO Not used 
-class SeedViabilityGerminationInfo(models.Model):
-    """
-    # list derived from WACensus
-
-    Used by:
-    - SpeciesConservationAttributes
-
-    """
-    name = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
-        ordering = ['name']
-
-    def __str__(self):
-        return str(self.name)
-
 
 class RootMorphology(models.Model):
     """
@@ -1825,24 +1752,6 @@ class RootMorphology(models.Model):
         app_label = 'boranga'
         verbose_name = "Root Morphology"
         verbose_name_plural = "Root Morphologies"
-        ordering = ['name']
-
-    def __str__(self):
-        return str(self.name)
-
-# TODO Not used
-class PollinatorInformation(models.Model):
-    """
-    # list derived from WACensus
-
-    Used by:
-    - SpeciesConservationAttributes
-
-    """
-    name = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
         ordering = ['name']
 
     def __str__(self):
@@ -1867,44 +1776,6 @@ class PostFireHabitatInteraction(models.Model):
 
     def __str__(self):
         return str(self.name)
-
-
-# class BreedingPeriod(models.Model):
-#     """
-#     # list derived from WACensus
-
-#     Used by:
-#     - SpeciesConservationAttributes
-
-#     """
-#     period = models.CharField(max_length=200, blank=False, unique=True)
-
-#     class Meta:
-#         app_label = 'boranga'
-#         verbose_name = "Breeding Period"
-#         verbose_name_plural = "Breeding Periods"
-#         ordering = ['period']
-
-#     def __str__(self):
-#         return str(self.period)
-
-# TODO Not USed
-class FaunaBreeding(models.Model):
-    """
-    # list derived from WACensus
-
-    Used by:
-    - SpeciesConservationAttributes
-
-    """
-    breeding_type = models.CharField(max_length=200, blank=False, unique=True)
-
-    class Meta:
-        app_label = 'boranga'
-        ordering = ['breeding_type']
-
-    def __str__(self):
-        return str(self.breeding_type)
 
 
 class SpeciesConservationAttributes(models.Model):

@@ -60,15 +60,9 @@ from boranga.components.species_and_communities.models import (
     District,
     SpeciesDistribution,
     CommunityDistribution,
-    # FloweringPeriod,
-    # FruitingPeriod,
     FloraRecruitmentType,
-    SeedViabilityGerminationInfo,
     RootMorphology,
-    PollinatorInformation,
     PostFireHabitatInteraction,
-    # BreedingPeriod,
-    FaunaBreeding,
     SpeciesConservationAttributes,
     CommunityConservationAttributes,
     DocumentCategory,
@@ -138,27 +132,36 @@ class GetGroupTypeDict(views.APIView):
                 group_type_list.append({'id': group.id,'name':group.name, 'display':group.get_name_display()});
         return Response(group_type_list)
 
-# used for external conservation status dash
+# used for external conservation status/ occurrence report dash
 class GetSpecies(views.APIView):
     def get(self, request, format=None):
         search_term = request.GET.get('term', '')
         if search_term:
+            dumped_species = cache.get('get_species_data')
+            species_data_cache = None
+            if dumped_species is None:
+                species_data_cache = Species.objects.all()
+                cache.set('get_species_data', species_data_cache, 86400)
+                # print("NOT from CACHE")
+            else:
+                species_data_cache = dumped_species
+                # print("from CACHE")
+            # don't allow to choose species that are still in draft status
             exculde_status = ['draft']
-            data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
-            data = data.filter(taxonomy__scientific_name__icontains=search_term).values('id', 'taxonomy__scientific_name')[:10]
-            data_transform = [{'id': taxon['id'], 'text': taxon['taxonomy__scientific_name']} for taxon in data]
+            data = species_data_cache.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None) & Q(taxonomy__scientific_name__icontains=search_term)).values('id', 'taxonomy__scientific_name')[:10]
+            data_transform = [{'id': species['id'], 'text': species['taxonomy__scientific_name']} for species in data]
             return Response({"results": data_transform})
         return Response()
 
-# used for external conservation status dash
+# used for external conservation status/ occurrence report dash
 class GetCommunities(views.APIView):
     def get(self, request, format=None):
         search_term = request.GET.get('term', '')
         if search_term:
+            # don't allow to choose communities that are still in draft status
             exculde_status = ['draft']
-            data = Community.objects.filter(~Q(processing_status__in=exculde_status))
-            data = data.filter(taxonomy__community_name__icontains=search_term).values('id', 'taxonomy__community_name')[:10]
-            data_transform = [{'id': taxon['id'], 'text': taxon['taxonomy__community_name']} for taxon in data]
+            data = Community.objects.filter(~Q(processing_status__in=exculde_status) & Q(taxonomy__community_name__icontains=search_term)).values('id', 'taxonomy__community_name')[:10]
+            data_transform = [{'id': community['id'], 'text': community['taxonomy__community_name']} for community in data]
             return Response({"results": data_transform})
         return Response()
 
@@ -166,8 +169,8 @@ class GetCommunities(views.APIView):
 # used on dashboards and forms
 class GetScientificName(views.APIView):
     def get(self, request, format=None):
-        group_type_id = request.GET.get('group_type_id', '')
         search_term = request.GET.get('term', '')
+        group_type_id = request.GET.get('group_type_id', '')
         cs_referral = request.GET.get('cs_referral', '')
         # used for conservation status form
         cs_species = request.GET.get('cs_species', '')
@@ -215,30 +218,40 @@ class GetScientificName(views.APIView):
                     data = species_data_cache.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
                 else:
                     exculde_status = ['draft']
-                    data = Species.objects.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
+                    data = species_data_cache.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
                 data = data.filter(taxonomy__scientific_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id)[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name, 'taxon_previous_name': species.taxonomy.taxon_previous_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif combine_species != '':
                 # TODO do we need to check the taxonomy is_current=True as well
-                data = Species.objects.filter(Q(processing_status='active') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
+                data = species_data_cache.filter(Q(processing_status='active') & Q(taxonomy__scientific_name__icontains=search_term) & Q(taxonomy__kingdom_fk__grouptype=group_type_id))[:10]
                 data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             else:
                 if taxon_details != '':
-                    species_status = Species.objects.get(id=species_id).processing_status
+                    species_status = species_data_cache.get(id=species_id).processing_status
                     if species_status == Species.PROCESSING_STATUS_DRAFT:
-                        qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id, name_currency=True)[:10]
+                        qs = taxonomy_data_cache.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id, name_currency=True)[:10]
                     else:
-                        qs = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
+                        qs = taxonomy_data_cache.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id)[:10]
                     serializer = TaxonomySerializer(qs, context={'request': request}, many=True)
                     data_transform = serializer.data
                 else:
-                    data = Taxonomy.objects.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
+                    data = taxonomy_data_cache.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).values('id', 'scientific_name')[:10]
                     data_transform = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in data]
                     data_transform = sorted(data_transform, key=lambda x: x['text'])
             return Response({"results": data_transform})
         return Response()
+
+class GetScientificNameByGroup(views.APIView): 
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        if search_term:
+            group_type_id = request.GET.get('group_type_id', '')
+            queryset = Taxonomy.objects.values_list('scientific_name', flat=True)
+            queryset = queryset.filter(scientific_name__icontains=search_term, kingdom_fk__grouptype=group_type_id).distinct().values('id', 'scientific_name')[:10]
+            queryset = [{'id': taxon['id'], 'text': taxon['scientific_name']} for taxon in queryset]
+        return Response({"results": queryset})
 
 class GetCommonName(views.APIView):
     def get(self, request, format=None):
@@ -425,14 +438,44 @@ class GetRegionDistrictFilterDict(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
 
+class GetDocumentCategoriesDict(views.APIView):
+    
+    def get(self, request, format=None):
+        document_category_list = []
+        categories = DocumentCategory.objects.all()
+        if categories:
+            for option in categories:
+                document_category_list.append({'id': option.id,
+                    'name':option.document_category_name,
+                    });
+        document_sub_category_list = []
+        sub_categories = DocumentSubCategory.objects.all()
+        if sub_categories:
+            for option in sub_categories:
+                document_sub_category_list.append({'id': option.id,
+                    'name':option.document_sub_category_name,
+                    'category_id': option.document_category_id,
+                    });
+        res_json = {
+        "document_category_list":document_category_list,
+        "document_sub_category_list":document_sub_category_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
 
+# Not used now on SpeciesProfile 
 class TaxonomyViewSet(viewsets.ModelViewSet):
-    queryset = Taxonomy.objects.all()
+    queryset = Taxonomy.objects.none()
     serializer_class = TaxonomySerializer
 
     def get_queryset(self):
-        qs = Taxonomy.objects.all()
-        return qs
+        # qs = Taxonomy.objects.all()
+        # return qs
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= Taxonomy.objects.all()
+            return qs
+        return Taxonomy.objects.none()
 
     @list_route(methods=['GET',], detail=False)
     def taxon_names(self, request, *args, **kwargs):
@@ -547,13 +590,19 @@ class GetSpeciesProfileDict(views.APIView):
         return HttpResponse(res_json, content_type='application/json')
 
 
+# Not used now on CommunityProfile
 class CommunityTaxonomyViewSet(viewsets.ModelViewSet):
-    queryset = CommunityTaxonomy.objects.all()
+    queryset = CommunityTaxonomy.objects.none()
     serializer_class = CommunityTaxonomySerializer
 
     def get_queryset(self):
-        qs = CommunityTaxonomy.objects.all()
-        return qs
+        # qs = CommunityTaxonomy.objects.all()
+        # return qs
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= CommunityTaxonomy.objects.all()
+            return qs
+        return CommunityTaxonomy.objects.none()
 
     # not used for community profile now
     @list_route(methods=['GET',], detail=False)
@@ -630,9 +679,8 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if filter_district and not filter_district.lower() == 'all':
             queryset = queryset.filter(district=filter_district)
 
-        getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
@@ -644,16 +692,16 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class SpeciesRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(SpeciesRenderer, self).render(data, accepted_media_type, renderer_context)
+# class SpeciesRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(SpeciesRenderer, self).render(data, accepted_media_type, renderer_context)
 
 class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (SpeciesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (SpeciesRenderer,)
+    # renderer_classes = (SpeciesRenderer,)
     queryset = Species.objects.none()
     serializer_class = ListSpeciesSerializer
     page_size = 10
@@ -786,9 +834,9 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         if filter_district and not filter_district.lower() == 'all':
             queryset = queryset.filter(district=filter_district)
 
-        getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        # getter = request.query_params.get
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
@@ -800,16 +848,16 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-class CommunitiesRenderer(DatatablesRenderer):
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-        return super(CommunitiesRenderer, self).render(data, accepted_media_type, renderer_context)
+# class CommunitiesRenderer(DatatablesRenderer):
+#     def render(self, data, accepted_media_type=None, renderer_context=None):
+#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
+#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
+#         return super(CommunitiesRenderer, self).render(data, accepted_media_type, renderer_context)
 
 class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (CommunitiesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    renderer_classes = (CommunitiesRenderer,)
+    # renderer_classes = (CommunitiesRenderer,)
     queryset = Community.objects.none()
     serializer_class = ListCommunitiesSerializer
     page_size = 10
@@ -1819,39 +1867,46 @@ class CommunityViewSet(viewsets.ModelViewSet):
     
 
 
-class DocumentCategoryViewSet(viewsets.ModelViewSet):
-    queryset = DocumentCategory.objects.all()
+# class DocumentCategoryViewSet(viewsets.ModelViewSet):
+#     queryset = DocumentCategory.objects.all()
 
-    def get_queryset(self):
-        return DocumentCategory.objects.none()
+#     def get_queryset(self):
+#         return DocumentCategory.objects.none()
 
-    @list_route(methods=['GET', ], detail = False)    
-    def document_category_choices(self, request, *args, **kwargs):
-        res_obj = [] 
-        for choice in DocumentCategory.objects.all():
-            res_obj.append({'id': choice.id, 'name': choice.document_category_name})
-        res_json = json.dumps(res_obj)
-        return HttpResponse(res_json, content_type='application/json')
+#     @list_route(methods=['GET', ], detail = False)    
+#     def document_category_choices(self, request, *args, **kwargs):
+#         res_obj = [] 
+#         for choice in DocumentCategory.objects.all():
+#             res_obj.append({'id': choice.id, 'name': choice.document_category_name})
+#         res_json = json.dumps(res_obj)
+#         return HttpResponse(res_json, content_type='application/json')
 
 
-class DocumentSubCategoryViewSet(viewsets.ModelViewSet):
-    queryset = DocumentSubCategory.objects.all()
+# class DocumentSubCategoryViewSet(viewsets.ModelViewSet):
+#     queryset = DocumentSubCategory.objects.all()
 
-    def get_queryset(self):
-        return DocumentSubCategory.objects.none()
+#     def get_queryset(self):
+#         return DocumentSubCategory.objects.none()
 
-    @list_route(methods=['GET', ], detail = False)    
-    def document_sub_category_choices(self, request, *args, **kwargs):
-        res_obj = [] 
-        for choice in DocumentSubCategory.objects.all():
-            res_obj.append({'id': choice.id, 'name': choice.document_sub_category_name, 'category_id': choice.document_category_id,})
-        res_json = json.dumps(res_obj)
-        return HttpResponse(res_json, content_type='application/json')
+#     @list_route(methods=['GET', ], detail = False)    
+#     def document_sub_category_choices(self, request, *args, **kwargs):
+#         res_obj = [] 
+#         for choice in DocumentSubCategory.objects.all():
+#             res_obj.append({'id': choice.id, 'name': choice.document_sub_category_name, 'category_id': choice.document_category_id,})
+#         res_json = json.dumps(res_obj)
+#         return HttpResponse(res_json, content_type='application/json')
 
 
 class SpeciesDocumentViewSet(viewsets.ModelViewSet):
-    queryset = SpeciesDocument.objects.all().order_by('id')
+    queryset = SpeciesDocument.objects.none()
     serializer_class = SpeciesDocumentSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= SpeciesDocument.objects.all().order_by('id')
+            return qs
+        return SpeciesDocument.objects.none()
 
     @detail_route(methods=['GET',], detail=True)
     def discard(self, request, *args, **kwargs):
@@ -1910,13 +1965,14 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         try:
-            instance = self.get_object()
-            serializer = SaveSpeciesDocumentSerializer(instance, data=json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            instance.add_documents(request)
-            instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
-            return Response(serializer.data)
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveSpeciesDocumentSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                instance.add_documents(request)
+                instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
+                return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1924,12 +1980,13 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            serializer = SaveSpeciesDocumentSerializer(data= json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception = True)
-            instance = serializer.save()
-            instance.add_documents(request)
-            instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
-            return Response(serializer.data)
+            with transaction.atomic():
+                serializer = SaveSpeciesDocumentSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                instance.add_documents(request)
+                instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
+                return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -1945,8 +2002,15 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
 
 
 class CommunityDocumentViewSet(viewsets.ModelViewSet):
-    queryset = CommunityDocument.objects.all().order_by('id')
+    queryset = CommunityDocument.objects.none()
     serializer_class = CommunityDocumentSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= CommunityDocument.objects.all().order_by('id')
+            return qs
+        return CommunityDocument.objects.none()
 
     @detail_route(methods=['GET',], detail=True)
     def discard(self, request, *args, **kwargs):
@@ -2005,13 +2069,14 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         try:
-            instance = self.get_object()
-            serializer = SaveCommunityDocumentSerializer(instance, data=json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            instance.add_documents(request)
-            instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
-            return Response(serializer.data)
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveCommunityDocumentSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                instance.add_documents(request)
+                instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
+                return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2019,12 +2084,13 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            serializer = SaveCommunityDocumentSerializer(data= json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception = True)
-            instance = serializer.save()
-            instance.add_documents(request)
-            instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
-            return Response(serializer.data)
+            with transaction.atomic():
+                serializer = SaveCommunityDocumentSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                instance.add_documents(request)
+                instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
+                return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -2040,8 +2106,15 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
 
 
 class ConservationThreatViewSet(viewsets.ModelViewSet):
-    queryset = ConservationThreat.objects.all().order_by('id')
+    queryset = ConservationThreat.objects.none()
     serializer_class = ConservationThreatSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= ConservationThreat.objects.all().order_by('id')
+            return qs
+        return ConservationThreat.objects.none()
 
     #used for Threat Form dropdown lists 
     @list_route(methods=['GET',], detail=False)
@@ -2127,7 +2200,6 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             elif instance.community:
                 instance.community.log_user_action(CommunityUserAction.ACTION_REINSTATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
-            serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -2141,16 +2213,17 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         try:
-            instance = self.get_object()
-            serializer = SaveConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            if instance.species:
-                instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
-            elif instance.community:
-                instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                if instance.species:
+                    instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
+                elif instance.community:
+                    instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.community.community_number),request)
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2158,15 +2231,16 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            serializer = SaveConservationThreatSerializer(data= json.loads(request.data.get('data')))
-            serializer.is_valid(raise_exception = True)
-            instance = serializer.save()
-            if instance.species:
-                instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.species.species_number),request)
-            elif instance.community:
-                instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            with transaction.atomic():
+                serializer = SaveConservationThreatSerializer(data= json.loads(request.data.get('data')))
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                if instance.species:
+                    instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.species.species_number),request)
+                elif instance.community:
+                    instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise

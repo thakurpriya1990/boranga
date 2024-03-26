@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.conf import settings
@@ -26,6 +27,10 @@ from boranga.components.occurrence.models import(
     Location,
     ObserverDetail,
     OccurrenceReportGeometry,
+    OccurrenceReportLogEntry,
+    OccurrenceReportUserAction,
+    OccurrenceReportDocument,
+    OCRConservationThreat,
     )
 
 from boranga.components.users.serializers import UserSerializer
@@ -34,6 +39,9 @@ from boranga.components.main.serializers import(
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
     )
+from boranga.components.main.utils import (
+    get_polygon_source,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
 from django.db.models import Q
@@ -92,6 +100,64 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
                 return ''
         return ''
 
+
+class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
+    scientific_name = serializers.SerializerMethodField()
+    submitter = serializers.SerializerMethodField()
+    processing_status_display = serializers.CharField(source="get_processing_status_display")
+    reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    internal_user_edit = serializers.SerializerMethodField()
+    class Meta:
+        model = OccurrenceReport
+        fields = (
+            'id',
+            'occurrence_report_number',
+            'species',
+            # 'group_type',
+            'scientific_name',
+            'reported_date',
+            'submitter',
+            'processing_status',
+            'processing_status_display',
+            'can_user_edit',
+            'can_user_view',
+            'internal_user_edit',
+        )
+        datatables_always_serialize = (
+            'id',
+            'occurrence_report_number',
+            'species',
+            'scientific_name',
+            'reported_date',
+            'submitter',
+            'processing_status',
+            'processing_status_display',
+            'can_user_edit',
+            'can_user_view',
+            'internal_user_edit',
+        )   
+
+    def get_scientific_name(self,obj):
+        if obj.species:
+            if obj.species.taxonomy:
+                return obj.species.taxonomy.scientific_name
+        return ''
+    
+    def get_submitter(self,obj):
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return email_user.get_full_name()
+        else:
+            return None
+    
+    def get_internal_user_edit(self,obj):
+        request = self.context['request']
+        user = request.user
+        if obj.can_user_edit:
+            if obj.internal_application == True:
+                return True
+        else:
+            return False
 
 class HabitatCompositionSerializer(serializers.ModelSerializer):
     
@@ -301,14 +367,31 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
     polygon_source = serializers.SerializerMethodField()
     report_copied_from = serializers.SerializerMethodField(read_only=True)
+    geo_field = serializers.SerializerMethodField(read_only=True)
+
+    def get_point_as_geo_field(self, obj):
+         return json.loads(obj.point.json)
+
+    def get_polygon_as_geo_field(self, obj):
+         return json.loads(obj.polygon.json)
+
+    def get_geo_field(self, obj):
+        if obj.polygon:
+            return self.get_polygon_as_geo_field(obj)
+        elif obj.point:
+            return self.get_point_as_geo_field(obj)
+        else:
+            return None
 
     class Meta:
         model = OccurrenceReportGeometry
-        geo_field = "polygon"
+        geo_field = "geo_field"
         fields = (
             "id",
+            "geo_field",
             "occurrence_report_id",
             "polygon",
+            "point",
             "area_sqm",
             "area_sqhm",
             "intersects",
@@ -319,9 +402,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
         read_only_fields = ("id",)
 
     def get_polygon_source(self, obj):
-        # TODO not sure if we need to show this
-        # return get_polygon_source(obj)
-        return ''
+        return get_polygon_source(obj)
 
     def get_report_copied_from(self, obj):
         if obj.copied_from:
@@ -388,8 +469,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     animal_observation = serializers.SerializerMethodField()
     identification = serializers.SerializerMethodField()
     ocr_geometry = OccurrenceReportGeometrySerializer(many=True, read_only=True)
-    # label used for featuretoast on map_component
+    # label used for new polygon featuretoast on map_component
     label = serializers.SerializerMethodField(read_only=True)
+    model_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -431,6 +513,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
                 'identification',
                 'ocr_geometry',
                 'label',
+                'model_name',
                 )
 
     def get_readonly(self,obj):
@@ -519,6 +602,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     
     def get_label(self,obj):
         return 'Occurrence Report'
+    
+    def get_model_name(self,obj):
+        return 'occurrencereport'
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
@@ -785,6 +871,7 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "id",
             "occurrence_report_id",
             "polygon",
+            'point',
             "intersects",
             "drawn_by",
             "locked",
@@ -816,4 +903,144 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
                 'assessor_data',
                 )
         read_only_fields=('id',)
+
+class OccurrenceReportUserActionSerializer(serializers.ModelSerializer):
+    who = serializers.SerializerMethodField()
+    class Meta:
+        model = OccurrenceReportUserAction
+        fields = '__all__'
+
+    def get_who(self, occurrence_report_user_action):
+        email_user = retrieve_email_user(occurrence_report_user_action.who)
+        fullname = email_user.get_full_name()
+        return fullname
+
+
+class OccurrenceReportLogEntrySerializer(CommunicationLogEntrySerializer):
+    documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceReportLogEntry
+        fields = "__all__"
+        read_only_fields = ("customer",)
+
+    def get_documents(self, obj):
+        return [[d.name, d._file.url] for d in obj.documents.all()]
+
+
+class OccurrenceReportDocumentSerializer(serializers.ModelSerializer):
+	document_category_name = serializers.SerializerMethodField()
+	document_sub_category_name = serializers.SerializerMethodField()
+	class Meta:
+		model = OccurrenceReportDocument
+		fields = (
+			'id',
+			'document_number',
+			'occurrence_report',
+			'name',
+			'_file',
+			'description',
+			'input_name',
+			'uploaded_date',
+			'document_category',
+			'document_category_name',
+			'document_sub_category',
+			'document_sub_category_name',
+			'visible',
+		)
+		read_only_fields = ('id','document_number')
+
+	def get_document_category_name(self,obj):
+		if obj.document_category:
+			return obj.document_category.document_category_name
+
+	def get_document_sub_category_name(self,obj):
+		if obj.document_sub_category:
+			return obj.document_sub_category.document_sub_category_name
+
+
+class SaveOccurrenceReportDocumentSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = OccurrenceReportDocument
+		fields = (
+			'id',
+			'occurrence_report',
+			'name',
+			'description',
+			'input_name',
+			'uploaded_date',
+			'document_category',
+			'document_sub_category',
+            )
+
+
+class OCRConservationThreatSerializer(serializers.ModelSerializer):
+	threat_category = serializers.SerializerMethodField()
+	threat_agent = serializers.SerializerMethodField()
+	current_impact_name = serializers.SerializerMethodField()
+	potential_impact_name = serializers.SerializerMethodField()
+	potential_threat_onset_name = serializers.SerializerMethodField()
+	class Meta:
+		model = OCRConservationThreat
+		fields = (
+			'id',
+			'threat_number',
+			'threat_category_id',
+			'threat_category',
+			'threat_agent',
+			'threat_agent_id',
+			'current_impact',
+			'current_impact_name',
+			'potential_impact',
+			'potential_impact_name',
+			'potential_threat_onset',
+			'potential_threat_onset_name',
+			'comment',
+			'date_observed',
+			'source',
+			'occurrence_report',
+			'visible',
+		)
+		read_only_fields = ('id','threat_number',)
+
+	def get_threat_category(self,obj):
+		if obj.threat_category:
+			return obj.threat_category.name
+	
+	def get_threat_agent(self,obj):
+		if obj.threat_agent:
+			return obj.threat_agent.name
+
+	def get_current_impact_name(self,obj):
+		if obj.current_impact:
+			return obj.current_impact.name
+
+	def get_potential_impact_name(self,obj):
+		if obj.potential_impact:
+			return obj.potential_impact.name
+
+	def get_potential_threat_onset_name(self,obj):
+		if obj.potential_threat_onset:
+			return obj.potential_threat_onset.name
+
+
+class SaveOCRConservationThreatSerializer(serializers.ModelSerializer):
+
+    threat_category_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    threat_agent_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    date_observed = serializers.DateField(format='%Y-%m-%d', required=False, allow_null = True)
+
+    class Meta:
+        model = OCRConservationThreat
+        fields = (
+			'id',
+			'occurrence_report',
+			'threat_category_id',
+			'threat_agent_id',
+			'comment',
+			'current_impact',
+			'potential_impact',
+			'potential_threat_onset',
+			'date_observed',
+			)
 

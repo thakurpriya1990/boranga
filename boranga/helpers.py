@@ -4,7 +4,7 @@ from ledger_api_client.managed_models import SystemGroup
 from django.conf import settings
 from django.core.cache import cache
 
-from boranga.settings import GROUP_NAME_ASSESSOR, GROUP_NAME_APPROVER, GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR
+from boranga.settings import GROUP_NAME_ASSESSOR, GROUP_NAME_APPROVER, GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR,GROUP_NAME_EDITOR
 
 import logging
 import ledger_api_client
@@ -76,6 +76,21 @@ def is_community_processor(user_id):
     community_group = SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
     return True if user_id in community_group.get_system_group_member_ids() else False
 
+def is_conservation_status_referee(request, cs_proposal=None):
+    from boranga.components.conservation_status.models import ConservationStatusReferral
+
+    qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
+    if cs_proposal:
+        qs = qs.filter(conservation_status=cs_proposal)
+
+    return qs.exists()
+
+def is_conservation_status_editor(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
+    return True if user_id in assessor_group.get_system_group_member_ids() else False
+
 def in_dbca_domain(request):
     user = request.user
     domain = user.email.split('@')[1]
@@ -95,7 +110,7 @@ def is_departmentUser(request):
     return request.user.is_authenticated and in_dbca_domain(request)
 
 def is_customer(request):
-    return request.user.is_authenticated
+    return request.user.is_authenticated and not request.user.is_staff
 
 def is_internal(request):
     return is_departmentUser(request)

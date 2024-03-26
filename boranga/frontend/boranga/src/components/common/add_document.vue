@@ -269,20 +269,35 @@ export default {
    },
    created: async function () {
         // documentCategories
-        let returned_categories = await this.$http.get('/api/document_categories/document_category_choices/');
-        Object.assign(this.documentCategories, returned_categories.body);
-        // blank entry allows user to clear selection
-        this.documentCategories.splice(0, 0, 
+        // let returned_categories = await this.$http.get(api_endpoints.document_categories_dict);
+        // Object.assign(this.documentCategories, returned_categories.body);
+        // // blank entry allows user to clear selection
+        // this.documentCategories.splice(0, 0, 
+        //     {
+        //       id: "", 
+        //       name: "",
+        //     });
+        // // documentSubCategories
+        // let returned_sub_categories = await this.$http.get('/api/document_sub_categories/document_sub_category_choices/');
+        // Object.assign(this.documentSubCategories, returned_sub_categories.body);
+        // // blank entry allows user to clear selection
+   
+        // this.filterSubCategory();
+        this.$http.get(api_endpoints.document_categories_dict).then(response => {
+            let document_dict = response.body; 
+            this.documentCategories = document_dict.document_category_list;
+            // blank entry allows user to clear selection
+            this.documentCategories.splice(0, 0, 
             {
               id: "", 
               name: "",
             });
-        // documentSubCategories
-        let returned_sub_categories = await this.$http.get('/api/document_sub_categories/document_sub_category_choices/');
-        Object.assign(this.documentSubCategories, returned_sub_categories.body);
-        // blank entry allows user to clear selection
-   
-        this.filterSubCategory();
+            // documentSubCategories
+            this.documentSubCategories = document_dict.document_sub_category_list;
+            this.filterSubCategory();
+        },(error) => {
+                console.log(error);
+        })
    },
    mounted:function () {
         let vm =this;

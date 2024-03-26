@@ -1,5 +1,10 @@
 from django.conf import settings
-from boranga.components.proposals.models import Proposal, ProposalType, HelpPage, ApplicationType
+from boranga.components.proposals.models import ( 
+    # Proposal, 
+    # ProposalType, 
+    HelpPage, 
+    # ApplicationType
+)
 from collections import OrderedDict
 from copy import deepcopy
 
