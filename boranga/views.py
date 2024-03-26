@@ -253,12 +253,49 @@ class ManagementCommandsView(LoginRequiredMixin, TemplateView):
 
         return render(request, self.template_name, data)
 
+def is_authorised_to_access_occurence_report_document(request,document_id):
+    if is_internal(request):
+        return True
+    elif is_customer(request):
+        user = request.user
+        return OccurrenceReport.objects.filter(internal_application=False,id=document_id).filter(
+                submitter=user.id).exists()
+    
+def is_authorised_to_access_conservation_status_document(request,document_id):
+    if is_internal(request):
+        return True
+    elif is_customer(request):
+        user = request.user
+        return ConservationStatus.objects.filter(internal_application=False,id=document_id).filter(
+                submitter=user.id).exists()
+
+def get_file_path_id(check_str,file_path):
+    file_name_path_split = file_path.split("/")
+    #if the check_str is in the file path, the next value should be the id
+    if check_str in file_name_path_split:
+        id_index = file_name_path_split.index(check_str)+1
+        if len(file_name_path_split) > id_index and file_name_path_split[id_index].isnumeric():
+            return int(file_name_path_split[id_index])
+        else:
+            return False
+    else:
+        return False
 
 def is_authorised_to_access_document(request):
     
     if is_internal(request):
         return True
     elif is_customer(request):
+        #occurrence reports
+        o_document_id = get_file_path_id("occurrence_report",request.path)
+        if o_document_id:
+            return is_authorised_to_access_occurence_report_document(request,o_document_id)
+    
+        #conservation status (may not be required, but okay to have)
+        c_document_id = get_file_path_id("occurrence_report",request.path)
+        if c_document_id:
+            return is_authorised_to_access_conservation_status_document(request,c_document_id)
+
         return False
     else:
         return False
