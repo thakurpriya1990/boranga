@@ -125,15 +125,15 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Number of Occurrences:</label>
                 <div class="col-sm-6">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="no_of_occurrences" placeholder="" v-model="species_community.distribution.number_of_occurrences"/>
+                    <input :disabled="isNOOReadOnly" type="number" class="form-control" id="no_of_occurrences" placeholder="" v-model="species_community.distribution.number_of_occurrences"/>
                 </div>
                 <div class="col-sm-3">    
                     <input :disabled="isReadOnly" type="radio" value="true" 
-                            class="noo_auto form-check-input" name="noo_auto" 
+                            class="form-check-input" id="noo_auto" @click="switchNOO('true')"
                             v-model="species_community.distribution.noo_auto">
                     <label>auto</label>
-                    <input :disabled="isReadOnly" type="radio" value="false" 
-                            class="noo_auto form-check-input" name="noo_auto" 
+                    <input :disabled="isReadOnly" type="radio" value="false" @click="switchNOO('false')"
+                            class="form-check-input"  id="noo_manual"
                             v-model="species_community.distribution.noo_auto">
                     <label>manual</label>
                 </div>
@@ -141,16 +141,16 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Extent of Occurrence (km2):</label>
                 <div class="col-sm-6">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="extent_of_occurrence" 
+                    <input :disabled="isEOOReadOnly" type="number" class="form-control" id="extent_of_occurrence" 
                     placeholder="" v-model="species_community.distribution.extent_of_occurrences"/>
                 </div>
                 <div class="col-sm-3">    
                     <input :disabled="isReadOnly" type="radio" value="true" 
-                            class="eoo_auto form-check-input" name="eoo_auto" 
+                            class="form-check-input" id="eoo_auto" @click="switchEOO('true')"
                             v-model="species_community.distribution.eoo_auto">
                     <label>auto</label>
                     <input :disabled="isReadOnly" type="radio" value="false" 
-                            class="eoo_auto form-check-input" name="eoo_auto" 
+                            class="form-check-input" id="eoo_manual" @click="switchEOO('false')"
                             v-model="species_community.distribution.eoo_auto">
                     <label>manual</label>
                 </div>
@@ -747,7 +747,7 @@ export default {
                     average_lifespan_error:null,
                     generation_length_error:null,
                     time_to_maturity_error:null
-                }
+                },
             }
         },
         components: {
@@ -770,34 +770,80 @@ export default {
                     }
                 }
             },
+            isNOOReadOnly: function(){
+                let vm = this;
+                if(vm.species_community.distribution.noo_auto === true){
+                    return true;
+                }
+                else{
+                    return vm.isReadOnly;
+                }
+            },
+            isEOOReadOnly: function(){
+                let vm = this;
+                if(vm.species_community.distribution.eoo_auto === true){
+                    return true;
+                }
+                else{
+                    return vm.isReadOnly;
+                }
+            }
         },
         watch:{
-            "species_community.distribution.noo_auto": function(newVal) {
-                let vm=this;
-                var selectedValue = newVal;
-                    if(selectedValue === "true"){
-                        vm.species_community.distribution.number_of_occurrences=vm.species_community.distribution.cal_number_of_occurrences;
-                    }
-                    else{
-                        vm.species_community.distribution.number_of_occurrences=null;
-                    }
-            },
-            "species_community.distribution.eoo_auto": function(newVal) {
-                let vm=this;
-                var selectedValue = newVal;
-                    if(selectedValue === "true"){
-                        vm.species_community.distribution.extent_of_occurrences=vm.species_community.distribution.cal_extent_of_occurrences;
-                    }
-                    else{
-                        vm.species_community.distribution.extent_of_occurrences=null;
-                    }
-            },
+            // "species_community.distribution.noo_auto": function(newVal) {
+            //     let vm=this;
+            //     var selectedValue = newVal;
+            //     alert(selectedValue)
+            //         if(selectedValue === "true"){
+            //             swal.fire({
+            //                 title: "Warning",
+            //                 text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
+            //                 icon: "warning",
+            //                 showCancelButton: true,
+            //                 confirmButtonText: 'ok',
+            //                 confirmButtonColor:'#d9534f'
+            //             }).then((swalresult) => {
+            //                 if(swalresult.isConfirmed){
+            //                     alert(2)
+            //                     alert(vm.species_community.distribution.number_of_occurrences)
+            //                     vm.species_community.distribution.number_of_occurrences=vm.species_community.distribution.cal_number_of_occurrences;
+            //                     document.getElementById("noo_auto").checked = true;
+            //                     document.getElementById("noo_manual").checked = false;
+            //                 }else if (swalresult.dismiss === swal.DismissReason.cancel){
+            //                     alert(3)
+            //                     alert(vm.species_community.distribution.number_of_occurrences)
+            //                     document.getElementById("noo_manual").checked = true;
+            //                     document.getElementById("noo_auto").checked = false;
+            //                     // vm.species_community.distribution.noo_auto = "false";
+            //                     vm.species_community.distribution.number_of_occurrences=vm.species_community.distribution.number_of_occurrences;
+            //                 }
+
+            //             },(error) => {
+
+            //             });
+            //             // vm.species_community.distribution.number_of_occurrences=vm.species_community.distribution.cal_number_of_occurrences;
+            //         }
+            //         else{
+            //             vm.species_community.distribution.number_of_occurrences=null;
+            //             document.getElementById("noo_manual").checked = true;
+            //             document.getElementById("noo_auto").checked = false;
+            //         }
+            // },
+            // "species_community.distribution.eoo_auto": function(newVal) {
+            //     let vm=this;
+            //     var selectedValue = newVal;
+            //         if(selectedValue === "true"){
+            //             vm.species_community.distribution.extent_of_occurrences=vm.species_community.distribution.cal_extent_of_occurrences;
+            //         }
+            //         else{
+            //             vm.species_community.distribution.extent_of_occurrences=null;
+            //         }
+            // },
             "species_community.distribution.aoo_actual_auto": function(newVal) {
                 let vm=this;
                 var selectedValue = newVal;
                     if(selectedValue === "true"){
                         vm.species_community.distribution.area_of_occupancy_actual=vm.species_community.distribution.cal_area_of_occupancy_actual;
-
                     }
                     else{
                         vm.species_community.distribution.area_of_occupancy_actual=null;
@@ -813,18 +859,18 @@ export default {
                         vm.species_community.distribution.area_of_occupancy=null;
                     }
             },
-            "species_community.distribution.number_of_occurrences": function(newVal) {
-                let vm=this;
-                if(newVal == ""){
-                        vm.species_community.distribution.number_of_occurrences=null;
-                    }
-            },
-            "species_community.distribution.extent_of_occurrences": function(newVal) {
-                let vm=this;
-                if(newVal == ""){
-                        vm.species_community.distribution.extent_of_occurrences=null;
-                    }
-            },
+            // "species_community.distribution.number_of_occurrences": function(newVal) {
+            //     let vm=this;
+            //     if(newVal == ""){
+            //             vm.species_community.distribution.number_of_occurrences=null;
+            //         }
+            // },
+            // "species_community.distribution.extent_of_occurrences": function(newVal) {
+            //     let vm=this;
+            //     if(newVal == ""){
+            //             vm.species_community.distribution.extent_of_occurrences=null;
+            //         }
+            // },
             "species_community.distribution.area_of_occupancy": function(newVal) {
                 let vm=this;
                 if(newVal == ""){
@@ -851,6 +897,82 @@ export default {
             },
         },
         methods:{
+            switchNOO: function(value){
+                let vm=this;
+                var selectedValue = value;
+                if(selectedValue === "true"){
+                    swal.fire({
+                        title: "Warning",
+                        text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: 'ok',
+                        confirmButtonColor:'#d9534f'
+                    }).then((swalresult) => {
+                        if(swalresult.isConfirmed){
+                            vm.species_community.distribution.number_of_occurrences=vm.species_community.distribution.cal_number_of_occurrences;
+                            document.getElementById("noo_auto").checked = true;
+                            document.getElementById("noo_manual").checked = false;
+                            vm.species_community.distribution.noo_auto= true
+                        }else if (swalresult.dismiss === swal.DismissReason.cancel){
+                            document.getElementById("noo_manual").checked = true;
+                            document.getElementById("noo_auto").checked = false;
+                            vm.species_community.distribution.noo_auto= false
+                            vm.species_community.distribution.number_of_occurrences=vm.species_community.distribution.number_of_occurrences;
+                        }
+
+                    },(error) => {
+                        console.error('Error:', error);
+                    });
+                }
+                else{
+                    vm.species_community.distribution.number_of_occurrences=null;
+                    document.getElementById("noo_manual").checked = true;
+                    document.getElementById("noo_auto").checked = false;
+                    vm.species_community.distribution.noo_auto= false
+                }
+            },
+            switchEOO: function(value){
+                let vm=this;
+                var selectedValue = value;
+                if(selectedValue === "true"){
+                    swal.fire({
+                        title: "Warning",
+                        text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: 'ok',
+                        confirmButtonColor:'#d9534f'
+                    }).then((swalresult) => {
+                        if(swalresult.isConfirmed){
+                            // set EOO field to calculted_EOO vale
+                            vm.species_community.distribution.extent_of_occurrences=vm.species_community.distribution.cal_extent_of_occurrences;
+                            document.getElementById("eoo_auto").checked = true;
+                            document.getElementById("eoo_manual").checked = false;
+                            // set eoo to true to fire the change of value so the EOO input box readonly
+                            vm.species_community.distribution.eoo_auto= true;
+                        }else if (swalresult.dismiss === swal.DismissReason.cancel){
+                            document.getElementById("eoo_manual").checked = true;
+                            document.getElementById("eoo_auto").checked = false;
+                            // set eoo to false to fire the change of value so the EOO input box will be editable
+                            vm.species_community.distribution.eoo_auto= false;
+                            //Otherwise revert back to its manual value if swal cancelled 
+                            vm.species_community.distribution.extent_of_occurrences=vm.species_community.distribution.extent_of_occurrences;
+                        }
+
+                    },(error) => {
+                        console.error('Error:', error);
+                    });
+                }
+                else{
+                    // set EOO value to null if manual selected
+                    vm.species_community.distribution.extent_of_occurrences=null;
+                    document.getElementById("eoo_manual").checked = true;
+                    document.getElementById("eoo_auto").checked = false;
+                    // set eoo to false to fire the change of value so the EOO input box will be editable
+                    vm.species_community.distribution.eoo_auto= false;
+                }
+            },
             filterDistrict: function(event) {
                 this.$nextTick(() => {
                     if(event){
@@ -1005,6 +1127,38 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.species_community.conservation_attributes.breeding_period = selected.val();
                 });
+
+                // const radioButtons = document.getElementsByName('noo_auto');
+                // // Add event listener to each radio button
+                // radioButtons.forEach(button => {
+                //     button.addEventListener('change', () => {
+                //         if(button.value == 'true') {
+                //         swal.fire({
+                //                 title: "Warning",
+                //                 text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
+                //                 icon: "warning",
+                //                 showCancelButton: true,
+                //                 confirmButtonText: 'ok',
+                //                 confirmButtonColor:'#d9534f'
+                //             }).then((swalresult) => {
+                //                 if(swalresult.isConfirmed){
+                //                     // Update the previous value
+                //                     button.checked = true;
+                //                     vm.species_community.distribution.number_of_occurrences=vm.species_community.distribution.cal_number_of_occurrences;
+                //                 }
+                //                 else{
+                //                     // If cancelled, revert 
+                //                     document.getElementById("noo_manual").checked = true;
+                //                 }
+                //                 },(error) => {
+
+                //                 });
+                //         }
+                //         else{
+                //             document.getElementById("noo_manual").checked = true;
+                //         }
+                //     });
+                // });
             },
             handleMinimumFireIntervalRange: function (e){
                 if(this.minimum_fire_interval_range == false){
@@ -1094,18 +1248,6 @@ export default {
             {
                 vm.time_to_maturity_range = true;
             }
-            //--------get api taxon_names depending on flora/fauna
-            // let taxon_api_url=null;
-            // if(vm.isFauna){
-            //     taxon_api_url=api_endpoints.taxonomy+'/fauna_taxon_names.json';
-            // }
-            // else{
-            //     taxon_api_url=api_endpoints.taxonomy+'/flora_taxon_names.json';
-            // }
-            // vm.$http.get(taxon_api_url).then((response) => {
-            //     vm.taxon_names = response.body;
-            //     this.loadTaxonomydetails();
-            // });
             //------fetch list of values
             const res = await Vue.http.get('/api/species_profile_dict/');
             vm.species_profile_dict = res.body;

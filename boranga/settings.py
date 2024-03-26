@@ -34,7 +34,7 @@ GROUP_NAME_EDITOR = 'ConservationStatusEditorGroup'
 GROUP_NAME_REFERRAL = 'ProposalReferralGroup'
 GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR = 'SpeciesCommunitiesProcessorGroup'
 
-#  Added fromm LL for polygon_source value
+#  Added fromm LL for geometry_source value
 GROUP_NAME_CHOICES = (
     (GROUP_NAME_ASSESSOR, "Proposal Assessor Group"),
     (GROUP_NAME_APPROVER, "Proposal Approver Group"),

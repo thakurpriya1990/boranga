@@ -226,7 +226,7 @@ export function set_mode(mode, subMode = null) {
 }
 
 /**
- * Defines polygon feature styling depending on whether the polygon source
+ * Defines polygon feature styling depending on whether the geometry source
  * is a Registration of Interest or a Competitive Process
  * @param {object} feature A single geometry feature (e.g. a drawn polygon)
  */
@@ -356,7 +356,7 @@ const _helper = {
                 geometry: new Polygon([coordinates]),
                 label: 'validation',
                 color: vm.defaultColor,
-                polygon_source: 'validation',
+                geometry_source: 'validation',
             });
         }
 

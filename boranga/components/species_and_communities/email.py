@@ -4,9 +4,9 @@ from django.core.mail import EmailMultiAlternatives, EmailMessage
 from django.utils.encoding import smart_text
 from django.urls import reverse
 from django.conf import settings
-from django.core.files.storage import default_storage
+#from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-
+from boranga.components.species_and_communities.models import private_storage
 from boranga.components.emails.emails import TemplateEmailBase
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from datetime import datetime
@@ -308,7 +308,8 @@ def _log_species_email(email_message, species_proposal, sender=None, file_bytes=
     if file_bytes and filename:
         # attach the file to the comms_log also
         path_to_file = '{}/species/{}/communications/{}'.format(settings.MEDIA_APP_DIR, species_proposal.id, filename)
-        path = default_storage.save(path_to_file, ContentFile(file_bytes))
+        #path = default_storage.save(path_to_file, ContentFile(file_bytes))
+        path = private_storage.save(path_to_file, ContentFile(file_bytes))
         email_entry.documents.get_or_create(_file=path_to_file, name=filename)
 
     return email_entry
@@ -361,7 +362,8 @@ def _log_community_email(email_message, community_proposal, sender=None, file_by
     if file_bytes and filename:
         # attach the file to the comms_log also
         path_to_file = '{}/community/{}/communications/{}'.format(settings.MEDIA_APP_DIR, community_proposal.id, filename)
-        path = default_storage.save(path_to_file, ContentFile(file_bytes))
+        #path = default_storage.save(path_to_file, ContentFile(file_bytes))
+        path = private_storage.save(path_to_file, ContentFile(file_bytes))
         email_entry.documents.get_or_create(_file=path_to_file, name=filename)
 
     return email_entry

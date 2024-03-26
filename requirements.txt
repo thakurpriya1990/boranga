@@ -1,6 +1,6 @@
 git+https://github.com/dbca-wa/webtemplate2.git#egg=webtemplate_dbca
 psycopg2-binary~=2.9
-Django~=3.2
+Django==3.2.25
 django-extensions~=3.2
 ipython~=8.22
 git+https://github.com/dbca-wa/ledger_api_client.git#egg=ledger_api_client
@@ -67,3 +67,4 @@ numpy~=1.26
 setuptools~=69.2
 wheel~=0.43
 pygraphviz~=1.12
+geopandas~=0.14
