@@ -173,6 +173,7 @@ def save_document(request, instance, comms_instance, document_type, input_name=N
         document._file = _file
         document.save()
 
+
 @transaction.atomic
 def delete_document(request, instance, comms_instance, document_type, input_name=None):
     document_id = request.data.get("document_id", None)
@@ -190,6 +191,7 @@ def delete_document(request, instance, comms_instance, document_type, input_name
 
         document.delete()
 
+
 @transaction.atomic
 def process_shapefile_document(request, instance, *args, **kwargs):
     action = request.data.get("action")
@@ -201,9 +203,7 @@ def process_shapefile_document(request, instance, *args, **kwargs):
     if action == "list":
         pass
     elif action == "delete":
-        delete_document(
-            request, instance, comms_instance, document_type, input_name
-        )
+        delete_document(request, instance, comms_instance, document_type, input_name)
     elif action == "save":
         save_document(request, instance, comms_instance, document_type, input_name)
     else:
@@ -221,6 +221,7 @@ def process_shapefile_document(request, instance, *args, **kwargs):
         if d._file
     ]
     return {"filedata": returned_file_data}
+
 
 def validate_map_files(request, instance, foreign_key_field=None):
     # Validates shapefiles uploaded with via the proposal map or the competitive process map.
@@ -289,9 +290,9 @@ def validate_map_files(request, instance, foreign_key_field=None):
 
         geometries = gdf.geometry  # GeoSeries
 
-        # Only accept polygons
+        # Only accept points or polygons
         geom_type = geometries.geom_type.values[0]
-        if geom_type not in ("Polygon", "MultiPolygon"):
+        if geom_type not in ("Point", "MultiPoint", "Polygon", "MultiPolygon"):
             raise ValidationError(f"Geometry of type {geom_type} not allowed")
 
         # Check for intersection with DBCA geometries
@@ -301,7 +302,7 @@ def validate_map_files(request, instance, foreign_key_field=None):
                 geometries.crs.srs
             ).srid  # spatial reference identifier
 
-            polygon = GEOSGeometry(geom.wkt, srid=srid)
+            geometry = GEOSGeometry(geom.wkt, srid=srid)
 
             # Add the file name as identifier to the geojson for use in the frontend
             if "source_" not in gdf_transform:
@@ -316,14 +317,15 @@ def validate_map_files(request, instance, foreign_key_field=None):
             if not foreign_key_field:
                 foreign_key_field = instance_name.lower()
 
-            geometry_model = apps.get_model(
-                "boranga", f"{instance_name}Geometry"
-            )
+            geometry_model = apps.get_model("boranga", f"{instance_name}Geometry")
 
             geometry_model.objects.create(
                 **{
                     foreign_key_field: instance,
-                    "polygon": polygon,
+                    "polygon": (
+                        geometry if geom_type in ["Polygon", "MultiPolygon"] else None
+                    ),
+                    "point": geometry if geom_type in ["Point", "MultiPoint"] else None,
                     "intersects": True,
                     "drawn_by": request.user.id,
                 }
