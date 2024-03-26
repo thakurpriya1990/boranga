@@ -7,14 +7,14 @@ LABEL maintainer="asi@dbca.wa.gov.au"
 LABEL org.opencontainers.image.source="https://github.com/dbca-wa/boranga"
 
 ENV DEBIAN_FRONTEND=noninteractive \
-	DEBUG=True \
-	TZ=Australia/Perth \
-	PRODUCTION_EMAIL=True \
-	SECRET_KEY="ThisisNotRealKey" \
-	SITE_PREFIX='qml-dev' \
-	SITE_DOMAIN='dbca.wa.gov.au' \
-	OSCAR_SHOP_NAME='Parks & Wildlife' \
-	BPAY_ALLOWED=False \
+    DEBUG=True \
+    TZ=Australia/Perth \
+    PRODUCTION_EMAIL=True \
+    SECRET_KEY="ThisisNotRealKey" \
+    SITE_PREFIX='qml-dev' \
+    SITE_DOMAIN='dbca.wa.gov.au' \
+    OSCAR_SHOP_NAME='Parks & Wildlife' \
+    BPAY_ALLOWED=False \
     NODE_MAJOR=16
 
 FROM builder_base_boranga as apt_packages_boranga
