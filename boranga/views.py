@@ -243,8 +243,14 @@ class HelpView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class ManagementCommandsView(LoginRequiredMixin, TemplateView):
+class ManagementCommandsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'boranga/mgt-commands.html'
+
+    def test_func(self):
+        return self.request.user.is_superuser or (
+        is_internal(self.request) and 
+        (is_boranga_admin(self.request) or
+        is_django_admin(self.request)))
 
     def post(self, request):
         data = {}
