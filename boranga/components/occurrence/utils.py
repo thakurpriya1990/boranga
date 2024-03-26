@@ -153,25 +153,51 @@ def ocr_proposal_submit(ocr_proposal, request):
         else:
             raise ValidationError("You can't edit this report at this moment")
 
+def save_document(request, instance, comms_instance, document_type, input_name=None):
+    if "filename" in request.data and input_name:
+        filename = request.data.get("filename")
+        _file = request.data.get("_file")
+
+        if document_type == "shapefile_document":
+            document = instance.shapefile_documents.get_or_create(
+                input_name=input_name, name=filename
+            )[0]
+
+        document._file = _file
+        document.save()
 
 @transaction.atomic
 def process_shapefile_document(request, instance, *args, **kwargs):
     action = request.data.get("action")
     input_name = request.data.get("input_name")
     document_type = "shapefile_document"
+    request.data.get("document_id")
+    comms_instance = None
 
-    if action != "list":
+    if action == "list":
+        pass
+    elif action == "delete":
+        # TODO:
+        delete_document(
+            request, instance, comms_instance, document_type, input_name
+        )
+    elif action == "cancel":
+        # TODO:
+        deleted = cancel_document(
+            request, instance, comms_instance, document_type, input_name
+        )
+    elif action == "save":
+        save_document(request, instance, comms_instance, document_type, input_name)
+    else:
         raise ValidationError(f"Invalid action {action} for shapefile document")
 
     documents_qs = instance.shapefile_documents
 
     returned_file_data = [
         dict(
-            secure_url=get_secure_document_url(instance, document_type + "s", d.id),
+            url=d.path,
             id=d.id,
             name=d.name,
-            approval_type=d.approval_type.id,
-            approval_type_document_type=d.approval_type_document_type.id,
         )
         for d in documents_qs.filter(input_name=input_name)
         if d._file

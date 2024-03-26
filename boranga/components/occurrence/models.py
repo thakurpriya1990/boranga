@@ -1316,6 +1316,54 @@ class OccurrenceReportDocument(Document):
                 raise
         return
 
+
+class ShapefileDocumentQueryset(models.QuerySet):
+    """Using a custom manager to make sure shapfiles are removed when a bulk .delete is called
+    as having multiple files with the shapefile extensions in the same folder causes issues.
+    """
+
+    def delete(self):
+        for obj in self:
+            obj._file.delete()
+        super().delete()
+
+
+class OccurrenceReportShapefileDocument(Document):
+    objects = ShapefileDocumentQueryset.as_manager()
+    occurrence_report = models.ForeignKey(
+        "OccurrenceReport", related_name="shapefile_documents", on_delete=models.CASCADE
+    )
+    _file = models.FileField(
+        upload_to=update_occurrence_report_doc_filename,
+        max_length=512,
+        storage=private_storage,
+    )
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    can_delete = models.BooleanField(
+        default=True
+    )  # after initial submit prevent document from being deleted
+    can_hide = models.BooleanField(
+        default=False
+    )  # after initial submit, document cannot be deleted but can be hidden
+    hidden = models.BooleanField(
+        default=False
+    )  # after initial submit prevent document from being deleted
+
+    def delete(self):
+        if self.can_delete:
+            self._file.delete()
+            return super().delete()
+        logger.info(
+            "Cannot delete existing document object after Occurrence Report has been submitted "
+            "(including document submitted before Occurrence Report pushback to status Draft): {}".format(
+                self.name
+            )
+        )
+
+    class Meta:
+        app_label = "boranga"
+
+
 class OCRConservationThreat(models.Model):
     """
     Threat for a occurrence_report in a particular location.
