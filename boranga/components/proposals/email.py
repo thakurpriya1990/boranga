@@ -5,11 +5,13 @@ from django.utils.encoding import smart_text
 #from django.core.urlresolvers import reverse
 from django.urls import reverse
 from django.conf import settings
-from django.core.files.storage import default_storage
+#from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 from boranga.components.emails.emails import TemplateEmailBase
 from datetime import datetime
+from django.core.files.storage import FileSystemStorage
+private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
 logger = logging.getLogger(__name__)
 
@@ -769,7 +771,8 @@ def _log_proposal_email(email_message, proposal, sender=None, file_bytes=None, f
     if file_bytes and filename:
         # attach the file to the comms_log also
         path_to_file = '{}/proposals/{}/communications/{}'.format(settings.MEDIA_APP_DIR, proposal.id, filename)
-        path = default_storage.save(path_to_file, ContentFile(file_bytes))
+        #path = default_storage.save(path_to_file, ContentFile(file_bytes))
+        path = private_storage.save(path_to_file, ContentFile(file_bytes))
         email_entry.documents.get_or_create(_file=path_to_file, name=filename)
 
     return email_entry
