@@ -34,6 +34,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     gdal-bin \
     git \
     htop \
+    ipython3 \
     libmagic-dev \
     libpq-dev \
     libproj-dev \
@@ -100,6 +101,8 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     chown -R oim.oim /app && \
     mkdir /container-config/ && \
     chown -R oim.oim /container-config/ && \    
+    mkdir -p /app/logs/.ipython && \
+    export IPYTHONDIR=/app/logs/.ipython/ && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 FROM configure_boranga as build_vue_boranga
