@@ -27,6 +27,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     apt-get upgrade -y && \
     apt-get install --no-install-recommends -y \
     binutils \
+    ca-certificates \
     bzip2 \
     cron \
     curl \
@@ -53,7 +54,9 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     systemd \
     tzdata \
     vim \
-    wget
+    wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates
 
 FROM apt_packages_boranga as node_boranga
 
