@@ -2,10 +2,14 @@ import logging
 import os
 import re
 import json
+from zipfile import ZipFile
+import geopandas as gpd
 
 from django.conf import settings
-from django.contrib.gis.geos import Polygon, Point
+from django.contrib.gis.geos import Polygon, Point, GEOSGeometry
+from django.contrib.gis.gdal import SpatialReference
 from django.core.exceptions import ValidationError
+from django.apps import apps
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import Q
@@ -274,6 +278,9 @@ def validate_map_files(request, instance, foreign_key_field=None):
     for shp_file_obj in shp_file_objs:
         gdf = gpd.read_file(shp_file_obj.path)  # Shapefile to GeoDataFrame
 
+        if gdf.empty:
+            raise ValidationError(f"Geometry is empty in {shp_file_obj.name}")
+
         # If no prj file assume WGS-84 datum
         if not gdf.crs:
             gdf_transform = gdf.set_crs("epsg:4326", inplace=True)
@@ -300,14 +307,6 @@ def validate_map_files(request, instance, foreign_key_field=None):
             if "source_" not in gdf_transform:
                 gdf_transform["source_"] = shp_file_obj.name
 
-            # Imported geometry is valid if it intersects with any one of the DBCA geometries
-            if not polygon_intersects_with_layer(
-                polygon, "public:dbca_legislated_lands_and_waters"
-            ):
-                raise ValidationError(
-                    "One or more polygons does not intersect with a relevant layer"
-                )
-
             gdf_transform["valid"] = True
 
             # Some generic code to save the geometry to the database
@@ -318,7 +317,7 @@ def validate_map_files(request, instance, foreign_key_field=None):
                 foreign_key_field = instance_name.lower()
 
             geometry_model = apps.get_model(
-                "leaseslicensing", f"{instance_name}Geometry"
+                "boranga", f"{instance_name}Geometry"
             )
 
             geometry_model.objects.create(
