@@ -13,7 +13,10 @@ from django.db import transaction
 
 from datetime import datetime, timedelta
 
-from boranga.helpers import is_internal
+from boranga.helpers import (is_internal, is_customer,
+is_boranga_admin, is_django_admin, is_assessor, is_approver,
+is_species_processor, is_community_processor, is_conservation_status_referee,
+is_conservation_status_editor)
 from boranga.forms import *
 from boranga.components.conservation_status.models import ConservationStatus,ConservationStatusReferral
 from boranga.components.species_and_communities.models import Species, Community
@@ -253,28 +256,136 @@ class ManagementCommandsView(LoginRequiredMixin, TemplateView):
 
         return render(request, self.template_name, data)
 
+def is_authorised_to_access_community_document(request,document_id):
+    if is_internal(request):
+        #check auth
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request.user) or
+            is_approver(request.user) or
+            is_community_processor(request.user)
+        )
+
+def is_authorised_to_access_species_document(request,document_id):
+    if is_internal(request):
+        #check auth
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request.user) or
+            is_approver(request.user) or
+            is_species_processor(request.user)
+        )
+
+def is_authorised_to_access_meeting_document(request,document_id):
+    if is_internal(request):
+        #check auth #TODO review
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request) or
+            is_approver(request) or
+            is_species_processor(request.user) or
+            is_community_processor(request.user) or
+            is_conservation_status_editor(request.user) or
+            is_conservation_status_referee(request)
+        )
+
+def is_authorised_to_access_occurrence_report_document(request,document_id):
+    if is_internal(request):
+        #check auth
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request.user) or
+            is_approver(request.user)
+        )
+    elif is_customer(request):
+        user = request.user
+        return OccurrenceReport.objects.filter(internal_application=False,id=document_id).filter(
+                submitter=user.id).exists()
+    
+def is_authorised_to_access_conservation_status_document(request,document_id):
+    if is_internal(request):
+        #check auth
+        return (
+            request.user.is_superuser or
+            is_boranga_admin(request) or
+            is_django_admin(request) or
+            is_assessor(request.user) or
+            is_approver(request.user) or
+            is_conservation_status_editor(request.user) or
+            is_conservation_status_referee(request)
+        )
+    elif is_customer(request):
+        user = request.user
+        return ConservationStatus.objects.filter(internal_application=False,id=document_id).filter(
+                submitter=user.id).exists()
+
+def get_file_path_id(check_str,file_path):
+    file_name_path_split = file_path.split("/")
+    #if the check_str is in the file path, the next value should be the id
+    if check_str in file_name_path_split:
+        id_index = file_name_path_split.index(check_str)+1
+        if len(file_name_path_split) > id_index and file_name_path_split[id_index].isnumeric():
+            return int(file_name_path_split[id_index])
+        else:
+            return False
+    else:
+        return False
+
+def is_authorised_to_access_document(request):
+
+        #occurrence reports
+        o_document_id = get_file_path_id("occurrence_report",request.path)
+        if o_document_id:
+            return is_authorised_to_access_occurrence_report_document(request,o_document_id)
+    
+        #conservation status
+        cs_document_id = get_file_path_id("conservation_status",request.path)
+        if cs_document_id:
+            return is_authorised_to_access_conservation_status_document(request,cs_document_id)
+
+        #meeting
+        m_document_id = get_file_path_id("meeting",request.path)
+        if m_document_id:
+            return is_authorised_to_access_meeting_document(request,m_document_id)
+        
+        #species
+        s_document_id = get_file_path_id("species",request.path)
+        if s_document_id:
+            return is_authorised_to_access_species_document(request,s_document_id)
+        
+        #community
+        c_document_id = get_file_path_id("community",request.path)
+        if c_document_id:
+            return is_authorised_to_access_community_document(request,c_document_id)
+
+        return False
 
 def getPrivateFile(request):
-  allow_access = False
-  # Add permission rules
-  allow_access = True
-  ####
 
-  #if request.user.is_superuser:
-  if allow_access == True:
-      file_name_path =  request.path 
-      full_file_path= settings.BASE_DIR+file_name_path
-      if os.path.isfile(full_file_path) is True:
-              extension = file_name_path.split(".")[-1]
-              the_file = open(full_file_path, 'rb')
-              the_data = the_file.read()
-              the_file.close()
-              if extension == 'msg':
-                  return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
-              if extension == 'eml':
-                  return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+    if is_authorised_to_access_document(request):
+        file_name_path =  request.path 
+        #norm path will convert any traversal or repeat / in to its normalised form
+        full_file_path= os.path.normpath(settings.BASE_DIR+file_name_path) 
+        #we then ensure the normalised path is within the BASE_DIR (and the file exists)
+        if full_file_path.startswith(settings.BASE_DIR) and os.path.isfile(full_file_path):
+            extension = file_name_path.split(".")[-1]
+            the_file = open(full_file_path, 'rb')
+            the_data = the_file.read()
+            the_file.close()
+            if extension == 'msg':
+                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+            if extension == 'eml':
+                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
 
-              return HttpResponse(the_data, content_type=mimetypes.types_map['.'+str(extension)])
-  else:
-              return
+            return HttpResponse(the_data, content_type=mimetypes.types_map['.'+str(extension)])
+    
+    return HttpResponse('Unauthorized', status=401)
 
