@@ -15,7 +15,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     SITE_DOMAIN='dbca.wa.gov.au' \
     OSCAR_SHOP_NAME='Parks & Wildlife' \
     BPAY_ALLOWED=False \
-    NODE_MAJOR=16
+    NODE_MAJOR=20
 
 FROM builder_base_boranga as apt_packages_boranga
 
