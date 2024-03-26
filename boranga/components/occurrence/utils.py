@@ -152,3 +152,28 @@ def ocr_proposal_submit(ocr_proposal, request):
 
         else:
             raise ValidationError("You can't edit this report at this moment")
+
+
+@transaction.atomic
+def process_shapefile_document(request, instance, *args, **kwargs):
+    action = request.data.get("action")
+    input_name = request.data.get("input_name")
+    document_type = "shapefile_document"
+
+    if action != "list":
+        raise ValidationError(f"Invalid action {action} for shapefile document")
+
+    documents_qs = instance.shapefile_documents
+
+    returned_file_data = [
+        dict(
+            secure_url=get_secure_document_url(instance, document_type + "s", d.id),
+            id=d.id,
+            name=d.name,
+            approval_type=d.approval_type.id,
+            approval_type_document_type=d.approval_type_document_type.id,
+        )
+        for d in documents_qs.filter(input_name=input_name)
+        if d._file
+    ]
+    return {"filedata": returned_file_data}

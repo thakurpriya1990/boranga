@@ -245,7 +245,7 @@ export default {
                 }).then(async (response) => {
                     const resData = await response.json();
                     if (!response.ok) {
-                        throw new Error("XYZ");
+                        throw new Error(resData);
                     }
                     this.documents = resData.filedata;
                     this.commsLogId = resData.comms_instance_id;

@@ -104,7 +104,8 @@ from boranga.components.occurrence.serializers import(
 )
 
 from boranga.components.occurrence.utils import (
-     save_geometry,
+    save_geometry,
+    process_shapefile_document,
 )
 
 from boranga.components.main.utils import (
@@ -1178,10 +1179,9 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
     def process_shapefile_document(self, request, *args, **kwargs):
         instance = self.get_object()
         returned_data = None
-        # TODO: process shapefile document
-        # returned_data = process_generic_document(
-        #     request, instance, document_type="shapefile_document"
-        # )
+        returned_data = process_shapefile_document(
+            request, instance
+        )
         if returned_data:
             return Response(returned_data)
         else:
