@@ -347,14 +347,24 @@ def is_authorised_to_access_document(request):
             return is_authorised_to_access_occurrence_report_document(request,o_document_id)
     
         #conservation status
-        c_document_id = get_file_path_id("conservation_status",request.path)
-        if c_document_id:
-            return is_authorised_to_access_conservation_status_document(request,c_document_id)
+        cs_document_id = get_file_path_id("conservation_status",request.path)
+        if cs_document_id:
+            return is_authorised_to_access_conservation_status_document(request,cs_document_id)
 
         #meeting
         m_document_id = get_file_path_id("meeting",request.path)
         if m_document_id:
             return is_authorised_to_access_meeting_document(request,m_document_id)
+        
+        #species
+        s_document_id = get_file_path_id("species",request.path)
+        if s_document_id:
+            return is_authorised_to_access_species_document(request,s_document_id)
+        
+        #community
+        c_document_id = get_file_path_id("community",request.path)
+        if c_document_id:
+            return is_authorised_to_access_community_document(request,c_document_id)
 
         return False
 
