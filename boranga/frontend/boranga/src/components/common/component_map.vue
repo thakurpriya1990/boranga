@@ -587,7 +587,9 @@
                 <div class="row mb-2">
                     <div class="col">
                         <label for="shapefile_document" class="fw-bold"
-                            >Upload Shapefile or archive(s) containing shapefiles <span>({{ archiveTypesAllowed.join(', ')}})</span>
+                            >Upload Shapefile or archive(s) containing
+                            shapefiles
+                            <span>({{ archiveTypesAllowed.join(', ') }})</span>
                         </label>
                     </div>
                     <div class="col">

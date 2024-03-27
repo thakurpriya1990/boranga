@@ -237,7 +237,28 @@ def validate_map_files(request, instance, foreign_key_field=None):
             "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended)"
         )
 
+    instance_name = instance._meta.model.__name__
+
+    archive_files_qs = instance.shapefile_documents.filter(Q(name__endswith=".zip"))
+
+    shapefile_archives = [qs._file for qs in archive_files_qs]
+    # TODO: Upload multiple archives
+    shapefiles_path = os.path.dirname(archive_files_qs.first().path)
+    for archive in shapefile_archives:
+        z = ZipFile(archive.path, "r")
+        z.extractall(shapefiles_path)
+
+        for zipped_file in z.filelist:
+            shapefile_model = apps.get_model("boranga", f"{instance_name}ShapefileDocument")
+            shapefile_model.objects.create(**{
+                foreign_key_field: instance,
+                "name": zipped_file.filename,
+                "input_name": "shapefile_document",
+                "_file": f"{shapefiles_path}/{zipped_file.filename}",
+            })
+
     # Shapefile extensions shp (geometry), shx (index between shp and dbf), dbf (data) are essential
+    instance.shapefile_documents.all()[0]
     shp_file_qs = instance.shapefile_documents.filter(
         Q(name__endswith=".shp")
         | Q(name__endswith=".shx")
@@ -246,9 +267,9 @@ def validate_map_files(request, instance, foreign_key_field=None):
     )
 
     # Validate shapefile and all the other related files are present
-    if not shp_file_qs:
+    if not shp_file_qs and not archive_files_qs:
         raise ValidationError(
-            "You can only attach files with the following extensions: .shp, .shx, and .dbf"
+            "You can only attach files with the following extensions: .shp, .shx, and .dbf or .zip"
         )
 
     shp_files = shp_file_qs.filter(name__endswith=".shp").count()
@@ -312,8 +333,6 @@ def validate_map_files(request, instance, foreign_key_field=None):
 
             # Some generic code to save the geometry to the database
             # That will work for both a proposal instance and a competitive process instance
-            instance_name = instance._meta.model.__name__
-
             if not foreign_key_field:
                 foreign_key_field = instance_name.lower()
 
