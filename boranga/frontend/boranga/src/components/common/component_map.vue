@@ -951,6 +951,7 @@ export default {
             modifiedFeaturesStack: [], // A stack of only those undoable actions that modified a feature
             drawing: false, // Whether the map is in draw (pencil icon) mode
             transforming: false, // Whether the map is in transform (resize, scale, rotate) mode
+            numShapefiles: 0,
         };
     },
     computed: {
@@ -1079,9 +1080,7 @@ export default {
             }
         },
         hasUploadedShapefiles: function () {
-            // TODO:
-            this.$refs.shapefile_document
-            return true;
+            return this.numShapefiles;
         },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
@@ -2755,10 +2754,9 @@ export default {
                 element.style.display = 'none';
             }
         },
-        shapeFilesUpdated: function (shapeFiles) {
-            // TODO:
-            let vm = this;
-            console.log("XXXX")
+        shapeFilesUpdated: function () {
+            let numShapefiles = this.$refs.shapefile_document?.numDocuments || 0;
+            this.numShapefiles = numShapefiles;
         },
     },
 };
