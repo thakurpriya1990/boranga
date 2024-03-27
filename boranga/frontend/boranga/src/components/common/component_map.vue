@@ -602,6 +602,7 @@
                             file-types=".dbf, .prj, .shp, .shx"
                             text_string="Attach File (.prj .dbf .shp
                                 .shx)"
+                            @update-parent="shapeFilesUpdated"
                         />
                     </div>
                 </div>
@@ -620,7 +621,7 @@
                         <!-- </BootstrapAlert> -->
                     </div>
                 </div>
-                <div class="row">
+                <div v-if="hasUploadedShapefiles" class="row">
                     <div class="col">
                         <button
                             v-if="isValidating"
@@ -1076,6 +1077,11 @@ export default {
                 let stack = vm.undoredo.getStack('redo');
                 return stack.length > 0;
             }
+        },
+        hasUploadedShapefiles: function () {
+            // TODO:
+            this.$refs.shapefile_document
+            return true;
         },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
@@ -2748,6 +2754,11 @@ export default {
             } else {
                 element.style.display = 'none';
             }
+        },
+        shapeFilesUpdated: function (shapeFiles) {
+            // TODO:
+            let vm = this;
+            console.log("XXXX")
         },
     },
 };
