@@ -34,8 +34,10 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     gcc \
     gdal-bin \
     git \
+    graphviz \
     htop \
     ipython3 \
+    libgraphviz-dev \
     libmagic-dev \
     libpq-dev \
     libproj-dev \
