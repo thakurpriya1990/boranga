@@ -14,10 +14,9 @@ echo "Starting Gunicorn"
 gunicorn boranga.wsgi --bind :8080 --config /app/gunicorn.ini
 status=$?
 if [ $status -ne 0 ]; then
-  echo "Failed to start gunicorn: $status"
-  exit $status
-fi
+    echo "Failed to start gunicorn: $status"
+    exit $status
 else
-   echo "ENABLE_WEB environment vairable not set to True, web server is not starting."
-   /bin/bash
+    echo "ENABLE_WEB environment vairable not set to True, web server is not starting."
+    /bin/bash
 fi
