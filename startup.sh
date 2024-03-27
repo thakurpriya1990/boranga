@@ -26,6 +26,5 @@ then
         exit $status
     fi
 else
-   echo "ENABLE_CRON environment vairable not set to True, cron is not starting."
-   /bin/bash
+   echo "ENABLE_CRON environment variable not set to True, cron is not starting."
 fi
