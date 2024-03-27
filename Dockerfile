@@ -85,12 +85,9 @@ FROM python_dependencies_boranga as configure_boranga
 # COPY libgeos.py.patch /app/
 # RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
 # RUN rm /app/libgeos.py.patch
- 
+
 COPY cron /etc/cron.d/dockercron
 COPY pre_startup.sh startup.sh /
-COPY --chown=oim:oim gunicorn.ini manage.py ./
-COPY --chown=oim:oim .git ./.git
-COPY --chown=oim:oim boranga ./boranga
 
 RUN chmod 0644 /etc/cron.d/dockercron && \
     crontab /etc/cron.d/dockercron && \
@@ -109,6 +106,10 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     mkdir -p /app/logs/.ipython && \
     export IPYTHONDIR=/app/logs/.ipython/ && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+COPY --chown=oim:oim gunicorn.ini manage.py ./
+COPY --chown=oim:oim .git ./.git
+COPY --chown=oim:oim boranga ./boranga
 
 FROM configure_boranga as build_vue_boranga
 
