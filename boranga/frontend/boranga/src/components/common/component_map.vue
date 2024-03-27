@@ -599,7 +599,7 @@
                             :is-repeatable="true"
                             :document-action-url="shapefileDocumentUrl"
                             :replace_button_by_text="true"
-                            file-types=".dbf, .prj, .shp, .shx"
+                            :file-types="shapefileTypesAllowed.join(', ')"
                             text_string="Attach File (.prj .dbf .shp
                                 .shx)"
                             @update-parent="shapeFilesUpdated"
@@ -641,6 +641,9 @@
                             v-else
                             type="button"
                             class="btn btn-primary"
+                            :class="
+                                requiredShapefilesComplete ? '' : 'disabled'
+                            "
                             @click="validate_map_docs"
                         >
                             <div class="row">
@@ -952,6 +955,9 @@ export default {
             drawing: false, // Whether the map is in draw (pencil icon) mode
             transforming: false, // Whether the map is in transform (resize, scale, rotate) mode
             numShapefiles: 0,
+            shapefileTypes: [], // The currently used shapefile types
+            shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx'], // The allowed shapefile types
+            shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
         };
     },
     computed: {
@@ -1084,6 +1090,11 @@ export default {
         },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
+        },
+        requiredShapefilesComplete: function () {
+            return this.shapefileTypesRequired.every((type) =>
+                this.shapefileTypes.includes(type)
+            );
         },
     },
     watch: {
@@ -2755,8 +2766,15 @@ export default {
             }
         },
         shapeFilesUpdated: function () {
-            let numShapefiles = this.$refs.shapefile_document?.numDocuments || 0;
+            let numShapefiles =
+                this.$refs.shapefile_document?.numDocuments || 0;
             this.numShapefiles = numShapefiles;
+            this.shapefileTypes = this.$refs.shapefile_document.documents.map(
+                (doc) => {
+                    return doc.name.slice(doc.name.lastIndexOf('.'));
+                },
+                []
+            );
         },
     },
 };
