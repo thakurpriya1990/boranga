@@ -25,7 +25,6 @@ then
     echo "Failed to start cron: $status"
     exit $status
     fi
-fi
 else
    echo "ENABLE_WEB environment vairable not set to True, web server is not starting."
    /bin/bash
