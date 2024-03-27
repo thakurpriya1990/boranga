@@ -9,6 +9,7 @@ from boranga.components.main.models import (
     Document
     )
 import json
+from reversion.models import Version
 from django.core.cache import cache
 import subprocess
 from django.db import models,transaction
@@ -1512,6 +1513,12 @@ class SpeciesDocument(Document):
                 raise
         return
 
+    @property
+    def reversion_ids(self):
+        current_revision_id = Version.objects.get_for_object(self).first().revision_id
+        versions = Version.objects.get_for_object(self).select_related("revision__user").filter(Q(revision__comment__icontains='status') | Q(revision_id=current_revision_id))
+        version_ids = [[i.id,i.revision.date_created] for i in versions]
+        return [dict(cur_version_id=version_ids[0][0], prev_version_id=version_ids[i+1][0], created=version_ids[i][1]) for i in range(len(version_ids)-1)]
 
 class CommunityDocument(Document):
     """
@@ -1883,3 +1890,6 @@ class CommunityConservationAttributes(models.Model):
 
     def __str__(self):
         return str(self.community)  # TODO: is the most appropriate?
+
+import reversion
+reversion.register(SpeciesDocument)
