@@ -107,6 +107,8 @@ INSTALLED_APPS += [
     'import_export',
     'ledger_api_client',
     'appmonitor_client',
+    'reversion',
+    'reversion_compare',
 ]
 
 ADD_REVERSION_ADMIN=True
