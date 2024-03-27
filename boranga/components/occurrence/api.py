@@ -25,7 +25,7 @@ from copy import deepcopy
 from django.shortcuts import render, redirect, get_object_or_404
 
 from boranga.components.species_and_communities.models import GroupType
-from boranga.components.occurrence.utils import ocr_proposal_submit
+from boranga.components.occurrence.utils import ocr_proposal_submit, validate_map_files
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from boranga.components.main.decorators import basic_exception_handler
 
@@ -104,7 +104,8 @@ from boranga.components.occurrence.serializers import(
 )
 
 from boranga.components.occurrence.utils import (
-     save_geometry,
+    save_geometry,
+    process_shapefile_document,
 )
 
 from boranga.components.main.utils import (
@@ -1171,6 +1172,31 @@ class OccurrenceReportViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=["POST"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @basic_exception_handler
+    def process_shapefile_document(self, request, *args, **kwargs):
+        instance = self.get_object()
+        returned_data = None
+        returned_data = process_shapefile_document(
+            request, instance
+        )
+        if returned_data:
+            return Response(returned_data)
+        else:
+            return Response({})
+
+    @detail_route(methods=["POST"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @basic_exception_handler
+    def validate_map_files(self, request, *args, **kwargs):
+        instance = self.get_object()
+        validate_map_files(request, instance, "occurrence_report")
+        instance.save()
+        serializer = self.get_serializer(instance)
+        logger.debug(f"validate_map_files response: {serializer.data}")
+        return Response(serializer.data)
 
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):

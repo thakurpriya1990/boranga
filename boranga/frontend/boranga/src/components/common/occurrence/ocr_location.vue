@@ -60,6 +60,7 @@
                     :drawable=true
                     :editable="true"
                     level="external"
+                    style-by="assessor"
                     :map-info-text="
                                 is_internal
                                     ? ''

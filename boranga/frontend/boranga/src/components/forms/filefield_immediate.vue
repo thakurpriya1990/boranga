@@ -30,11 +30,12 @@
             </li>
         </ul>
         <div v-if="show_spinner">
-            <BootstrapSpinner
+            <!-- <BootstrapSpinner
                 class="text-primary"
                 :center-of-screen="false"
                 :small="true"
-            />
+                /> -->
+            <i class="fa fa-4x fa-spinner fa-spin"></i>
         </div>
         <div
             v-if="
@@ -228,24 +229,36 @@ export default {
         },
         get_documents: async function () {
             var formData = new FormData();
-            this.show_spinner = true;
 
             if (this.document_action_url) {
+                this.show_spinner = true;
+
                 formData.append('action', 'list');
                 if (this.commsLogId) {
                     formData.append('comms_log_id', this.commsLogId);
                 }
                 formData.append('input_name', this.name);
                 formData.append('csrfmiddlewaretoken', this.csrf_token);
-                const res = await fetch(this.document_action_url, {
+                await fetch(this.document_action_url, {
                     body: formData,
                     method: 'POST',
+                }).then(async (response) => {
+                    const resData = await response.json();
+                    if (!response.ok) {
+                        throw new Error(resData);
+                    }
+                    this.documents = resData.filedata;
+                    this.commsLogId = resData.comms_instance_id;
+                }).catch((error) => {
+                    swal.fire({
+                        title: 'File Error',
+                        text: error,
+                        icon: 'error',
+                    });
+                }).finally(() => {
+                    this.show_spinner = false;
                 });
-                const resData = await res.json();
-                this.documents = resData.filedata;
-                this.commsLogId = resData.comms_instance_id;
             }
-            this.show_spinner = false;
         },
         delete_all_documents: function () {
             console.log('aho');
