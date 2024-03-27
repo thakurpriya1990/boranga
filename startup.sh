@@ -26,6 +26,6 @@ then
         exit $status
     fi
 else
-   echo "ENABLE_WEB environment vairable not set to True, web server is not starting."
+   echo "ENABLE_CRON environment vairable not set to True, cron is not starting."
    /bin/bash
 fi
