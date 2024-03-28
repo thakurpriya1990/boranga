@@ -60,8 +60,16 @@ def save_geometry(request, instance, geometry_data):
             continue
 
         # Create a Polygon object from the open layers feature
-        polygon = Polygon(feature.get("geometry").get("coordinates")[0]) if geometry_type == "Polygon" else None
-        point = Point(feature.get("geometry").get("coordinates")) if geometry_type == "Point" else None
+        polygon = (
+            Polygon(feature.get("geometry").get("coordinates")[0])
+            if geometry_type == "Polygon"
+            else None
+        )
+        point = (
+            Point(feature.get("geometry").get("coordinates"))
+            if geometry_type == "Point"
+            else None
+        )
 
         geometry_data = {
             "occurrence_report_id": instance.id,
@@ -158,6 +166,7 @@ def ocr_proposal_submit(ocr_proposal, request):
         else:
             raise ValidationError("You can't edit this report at this moment")
 
+
 def save_document(request, instance, comms_instance, document_type, input_name=None):
     if "filename" in request.data and input_name:
         filename = request.data.get("filename")
@@ -223,6 +232,32 @@ def process_shapefile_document(request, instance, *args, **kwargs):
     return {"filedata": returned_file_data}
 
 
+def extract_attached_archives(instance, foreign_key_field=None):
+    """Extracts shapefiles from attached zip archives and saves them as shapefile documents."""
+
+    archive_files_qs = instance.shapefile_documents.filter(Q(name__endswith=".zip"))
+    instance_name = instance._meta.model.__name__
+    shapefile_archives = [qs._file for qs in archive_files_qs]
+    # TODO: Upload multiple archives
+    for archive in shapefile_archives:
+        archive_path = os.path.dirname(archive.path)
+        z = ZipFile(archive.path, "r")
+        z.extractall(archive_path)
+
+        for zipped_file in z.filelist:
+            shapefile_model = apps.get_model(
+                "boranga", f"{instance_name}ShapefileDocument"
+            )
+            shapefile_model.objects.create(
+                **{
+                    foreign_key_field: instance,
+                    "name": zipped_file.filename,
+                    "input_name": "shapefile_document",
+                    "_file": f"{archive_path}/{zipped_file.filename}",
+                }
+            )
+
+
 def validate_map_files(request, instance, foreign_key_field=None):
     # Validates shapefiles uploaded with via the proposal map or the competitive process map.
     # Shapefiles are valid when the shp, shx, and dbf extensions are provided
@@ -237,25 +272,7 @@ def validate_map_files(request, instance, foreign_key_field=None):
             "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended)"
         )
 
-    instance_name = instance._meta.model.__name__
-
-    archive_files_qs = instance.shapefile_documents.filter(Q(name__endswith=".zip"))
-
-    shapefile_archives = [qs._file for qs in archive_files_qs]
-    # TODO: Upload multiple archives
-    for archive in shapefile_archives:
-        archive_path = os.path.dirname(archive.path)
-        z = ZipFile(archive.path, "r")
-        z.extractall(archive_path)
-
-        for zipped_file in z.filelist:
-            shapefile_model = apps.get_model("boranga", f"{instance_name}ShapefileDocument")
-            shapefile_model.objects.create(**{
-                foreign_key_field: instance,
-                "name": zipped_file.filename,
-                "input_name": "shapefile_document",
-                "_file": f"{archive_path}/{zipped_file.filename}",
-            })
+    extract_attached_archives(instance, foreign_key_field)
 
     # Shapefile extensions shp (geometry), shx (index between shp and dbf), dbf (data) are essential
     shp_file_qs = instance.shapefile_documents.filter(
@@ -332,6 +349,7 @@ def validate_map_files(request, instance, foreign_key_field=None):
 
             # Some generic code to save the geometry to the database
             # That will work for both a proposal instance and a competitive process instance
+            instance_name = instance._meta.model.__name__
             if not foreign_key_field:
                 foreign_key_field = instance_name.lower()
 
