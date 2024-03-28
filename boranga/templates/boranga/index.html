@@ -25,10 +25,9 @@
             </div>
             <div class="col-md-5">
                 {% if not request.user.is_authenticated %}
-                    <div id="ps-login-container">
-                        <h3>
-                            Access to {{system_name}}
-                        </h3>
+                <div class="card">
+                    <div class="card-header fw-bold">Access to {{system_name}}</div>
+                    <div class="card-body">
                         <form method="post" action=" url "social:complete" backend="email" ">
                             {% csrf_token %}
                             <div id="submit-container">
@@ -36,15 +35,20 @@
                             </div>
                         </form>
                         <p>Submit your email to login or start the new-user registration process.</p>
-                        <hr>
-                        <h4>
-                            {{system_name}} Password-less Logins
-                        </h4>
+                    </div>
+                    <div class="card-header border fw-bold">{{system_name}} Password-less Logins</div>
+                    <div class="card-body">
                         <p>
                             At the {{ settings.DEP_NAME }}, we employ a password-less authentication system, meaning you never need to remember
                             a password. When you need to login to a site, such as {{ system_name }}, simply enter your email and an 
                             authentication link will be sent to your registered email address. From there, simply follow the link to complete the login process.
                         </p>
+                    </div>
+                </div>
+                
+                
+                    <div id="ps-login-container">
+
                     </div>
                 {% endif %}
             </div>
