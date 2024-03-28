@@ -64,7 +64,7 @@ module.exports = {
 };
 </script>
 
-<style lang="css" scoped>
+<style lang="css">
     td > a{
         border: none;
         border-radius: 2px;
