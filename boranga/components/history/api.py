@@ -7,7 +7,12 @@ from reversion.models import Version
 from boranga.helpers import is_internal
 from rest_framework_datatables.pagination import PageNumberPagination
 import json
+from django.db.models import JSONField
+from django.db.models.functions import Cast
+from rest_framework_datatables.filters import DatatablesFilterBackend
+from django.db.models import F
 
+#keeping it as an APIView to control how its handled
 class InternalAuthorizationView(views.APIView):
     """ This ViewSet adds authorization that only allows internal users to
         return data.
@@ -18,11 +23,41 @@ class InternalAuthorizationView(views.APIView):
         if not is_internal(self.request):
             raise PermissionDenied()
         
+class VersionsFilterBackend(DatatablesFilterBackend):
+
+    def filter_queryset(self, request, queryset, view):
+        total_count = queryset.count()
+
+        queryset = queryset.annotate(data=Cast('serialized_data', JSONField()))
+        fields = self.get_fields(request)
+        print(fields)    
+        #TODO search function here
+        
+        ordering = []
+        ordering_values = []
+        for field, dir_ in self.get_ordering_fields(request, view, fields):
+            ordering.append(
+                '-' if dir_ == 'desc' else ''
+            )
+            ordering_values.append(field['name'][0])
+        print(ordering)
+        final_ordering_values = []
+        for i in range(0,len(ordering)):
+            print(ordering_values[i])
+            queryset = queryset.annotate(**{'order_field'+str(i):F("data__0__fields__"+ordering_values[i])})
+            final_ordering_values.append(ordering[i]+"order_field"+str(i))
+
+        queryset = queryset.order_by(*final_ordering_values)
+
+        print(queryset.query.asc())
+
+        return queryset
+
 class GetPaginatedVersionsView(InternalAuthorizationView):
+    filter_backend = VersionsFilterBackend
     paginator = PageNumberPagination()
     paginator.page_size = 10
 
-    """ A View to return all unique (no duplicated) versions of a model as .json """
     def get(self, request, app_label, component_name, model_name, pk, reference_id_field):
         """ Returns all versions for any model object
 
@@ -37,28 +72,20 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
         model = apps.get_model(app_label=app_label, model_name=model_name)
         instance = model.objects.get(pk=int(pk))
 
-        #revision_comment_filter = request.GET.get('revision_comment_filter')
-#
-        #if revision_comment_filter:
-        #    versions = Version.objects.get_for_object(instance).select_related('revision')\
-        #    .filter(revision__comment__contains=revision_comment_filter).get_unique()
-        #else:
-        versions = Version.objects.get_for_object(instance)#.select_related('revision')\
-        #.get_unique()
+        queryset = Version.objects.get_for_object(instance)
+        queryset = self.filter_backend().filter_queryset(self.request, queryset, self)
+        queryset = self.paginator.paginate_queryset(queryset, request, view=self)
 
-        #print(versions.count())
-        versions = self.paginator.paginate_queryset(versions,request, view=self)
-
-        #replace this with a serializer
         # Build the list of versions
         versions_list = []
-        for index, version in enumerate(versions):
+        for index, version in enumerate(queryset):
             ref_number = f'{getattr(instance, reference_id_field)}-{version.revision_id}'
+
             versions_list.append({
-                'ref_number': ref_number,
-                'date_created': version.revision.date_created,
-                'data': json.loads(version.serialized_data)
-                }
+               'ref_number': ref_number,
+               'date_created': version.revision.date_created,
+               'data': version.data,
+               }
             )
 
-        return self.paginator.get_paginated_response(versions_list)
+        return self.paginator.get_paginated_response(list(versions_list))
