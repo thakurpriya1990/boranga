@@ -587,7 +587,9 @@
                 <div class="row mb-2">
                     <div class="col">
                         <label for="shapefile_document" class="fw-bold"
-                            >Upload Shapefile
+                            >Upload Shapefile or archive(s) containing
+                            shapefiles
+                            <span>({{ archiveTypesAllowed.join(', ') }})</span>
                         </label>
                     </div>
                     <div class="col">
@@ -599,13 +601,25 @@
                             :is-repeatable="true"
                             :document-action-url="shapefileDocumentUrl"
                             :replace_button_by_text="true"
-                            file-types=".dbf, .prj, .shp, .shx"
-                            text_string="Attach File (.prj .dbf .shp
-                                .shx)"
+                            :file-types="
+                                shapefileTypesAllowed
+                                    .concat(archiveTypesAllowed)
+                                    .join(', ')
+                            "
+                            :text_string="`Attach Files ${shapefileTypesAllowed.join(
+                                ', '
+                            )} or ${archiveTypesAllowed.join(', ')}`"
+                            @update-parent="shapeFilesUpdated"
                         />
                     </div>
                 </div>
-                <div class="row">
+                <div
+                    v-if="
+                        !uploadedFileTypes.includes('.zip') &&
+                        !uploadedFileTypes.includes('.prj')
+                    "
+                    class="row"
+                >
                     <div class="col">
                         <!-- <BootstrapAlert> -->
                         <alert
@@ -620,7 +634,7 @@
                         <!-- </BootstrapAlert> -->
                     </div>
                 </div>
-                <div class="row">
+                <div v-if="hasUploadedShapefiles" class="row">
                     <div class="col">
                         <button
                             v-if="isValidating"
@@ -640,6 +654,7 @@
                             v-else
                             type="button"
                             class="btn btn-primary"
+                            :class="uploadedFilesComplete ? '' : 'disabled'"
                             @click="validate_map_docs"
                         >
                             <div class="row">
@@ -950,6 +965,11 @@ export default {
             modifiedFeaturesStack: [], // A stack of only those undoable actions that modified a feature
             drawing: false, // Whether the map is in draw (pencil icon) mode
             transforming: false, // Whether the map is in transform (resize, scale, rotate) mode
+            numShapefiles: 0,
+            uploadedFileTypes: [], // The currently uploaded types
+            archiveTypesAllowed: ['.zip'], // The allowed archive types
+            shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx'], // The allowed shapefile types
+            shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
         };
     },
     computed: {
@@ -1077,8 +1097,39 @@ export default {
                 return stack.length > 0;
             }
         },
+        hasUploadedShapefiles: function () {
+            return this.numShapefiles;
+        },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
+        },
+        /**
+         * Returns whether the uploaded files are either only shapefiles or only archives
+         */
+        uploadedFilesComplete: function () {
+            // The uploaded files contain archives
+            const containsArchiveTypes = this.archiveTypesAllowed.some((type) =>
+                this.uploadedFileTypes.includes(type)
+            );
+            // Every uploaded file is an archive
+            const archiveTypesComplete = this.uploadedFileTypes.every((type) =>
+                this.archiveTypesAllowed.includes(type)
+            );
+            // The uploaded files contain shapefiles
+            const containsShapefileTypes = this.shapefileTypesAllowed.some(
+                (type) => this.uploadedFileTypes.includes(type)
+            );
+            // Every required shapefile type is uploaded
+            const shapefileTypesComplete = this.shapefileTypesRequired.every(
+                (type) => this.uploadedFileTypes.includes(type)
+            );
+
+            // Either every uploaded file is an archive or
+            // every required shapefile type is uploaded but not both
+            return (
+                (archiveTypesComplete && !containsShapefileTypes) ||
+                (shapefileTypesComplete && !containsArchiveTypes)
+            );
         },
     },
     watch: {
@@ -2748,6 +2799,15 @@ export default {
             } else {
                 element.style.display = 'none';
             }
+        },
+        shapeFilesUpdated: function () {
+            let numShapefiles =
+                this.$refs.shapefile_document?.numDocuments || 0;
+            this.numShapefiles = numShapefiles;
+            this.uploadedFileTypes =
+                this.$refs.shapefile_document.documents.map((doc) => {
+                    return doc.name.slice(doc.name.lastIndexOf('.'));
+                }, []);
         },
     },
 };
