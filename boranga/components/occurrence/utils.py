@@ -50,7 +50,7 @@ def save_geometry(request, instance, geometry_data):
 
     geometry_ids = []
     for feature in geometry.get("features"):
-        allowed_geometry_types = ["Polygon", "Point"]
+        allowed_geometry_types = ["MultiPolygon", "Polygon", "MultiPoint", "Point"]
         geometry_type = feature.get("geometry").get("type")
         # check if feature is a polygon, continue if not
         if geometry_type not in allowed_geometry_types:
@@ -60,53 +60,64 @@ def save_geometry(request, instance, geometry_data):
             continue
 
         # Create a Polygon object from the open layers feature
-        polygon = (
-            Polygon(feature.get("geometry").get("coordinates")[0])
+        polygons = (
+            [Polygon(feature.get("geometry").get("coordinates")[0])]
             if geometry_type == "Polygon"
-            else None
+            else (
+                [Polygon(p) for p in feature.get("geometry").get("coordinates")[0]]
+                if geometry_type == "MultiPolygon"
+                else []
+            )
         )
-        point = (
-            Point(feature.get("geometry").get("coordinates"))
+        points = (
+            [Point(feature.get("geometry").get("coordinates"))]
             if geometry_type == "Point"
-            else None
+            else (
+                [Point(p) for p in feature.get("geometry").get("coordinates")]
+                if geometry_type == "MultiPoint"
+                else []
+            )
         )
 
-        geometry_data = {
-            "occurrence_report_id": instance.id,
-            "polygon": polygon,
-            "point": point,
-            # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
-        }
-        if feature.get("id"):
-            logger.info(
-                f"Updating existing OccurrenceReport geometry: {feature.get('id')} for Report: {instance}"
-            )
-            try:
-                geometry = OccurrenceReportGeometry.objects.get(id=feature.get("id"))
-            except OccurrenceReportGeometry.DoesNotExist:
-                logger.warn(
-                    f"OccurrenceReport geometry does not exist: {feature.get('id')}"
+        for pp in polygons + points:
+            geometry_data = {
+                "occurrence_report_id": instance.id,
+                "polygon": pp if pp.geom_type == "Polygon" else None,
+                "point": pp if pp.geom_type == "Point" else None,
+                # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
+            }
+            if feature.get("id"):
+                logger.info(
+                    f"Updating existing OccurrenceReport geometry: {feature.get('id')} for Report: {instance}"
                 )
-                continue
-            geometry_data["drawn_by"] = geometry.drawn_by
-            geometry_data["locked"] = (
-                action in ["submit"]
-                and geometry.drawn_by == request.user.id
-                or geometry.locked
-            )
-            serializer = OccurrenceReportGeometrySaveSerializer(
-                geometry, data=geometry_data
-            )
-        else:
-            logger.info(f"Creating new geometry for OccurrenceReport: {instance}")
-            geometry_data["drawn_by"] = request.user.id
-            geometry_data["locked"] = action in ["submit"]
-            serializer = OccurrenceReportGeometrySaveSerializer(data=geometry_data)
+                try:
+                    geometry = OccurrenceReportGeometry.objects.get(
+                        id=feature.get("id")
+                    )
+                except OccurrenceReportGeometry.DoesNotExist:
+                    logger.warn(
+                        f"OccurrenceReport geometry does not exist: {feature.get('id')}"
+                    )
+                    continue
+                geometry_data["drawn_by"] = geometry.drawn_by
+                geometry_data["locked"] = (
+                    action in ["submit"]
+                    and geometry.drawn_by == request.user.id
+                    or geometry.locked
+                )
+                serializer = OccurrenceReportGeometrySaveSerializer(
+                    geometry, data=geometry_data
+                )
+            else:
+                logger.info(f"Creating new geometry for OccurrenceReport: {instance}")
+                geometry_data["drawn_by"] = request.user.id
+                geometry_data["locked"] = action in ["submit"]
+                serializer = OccurrenceReportGeometrySaveSerializer(data=geometry_data)
 
-        serializer.is_valid(raise_exception=True)
-        ocr_geometry_instance = serializer.save()
-        logger.info(f"Saved OccurrenceReport geometry: {ocr_geometry_instance}")
-        geometry_ids.append(ocr_geometry_instance.id)
+            serializer.is_valid(raise_exception=True)
+            ocr_geometry_instance = serializer.save()
+            logger.info(f"Saved OccurrenceReport geometry: {ocr_geometry_instance}")
+            geometry_ids.append(ocr_geometry_instance.id)
 
     # Remove any ocr geometries from the db that are no longer in the ocr_geometry that was submitted
     # Prevent deletion of polygons that are locked after status change (e.g. after submit)
