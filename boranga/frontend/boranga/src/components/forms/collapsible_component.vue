@@ -86,7 +86,7 @@ export default {
     padding-left: 0.4em;
     padding-right: 0.4em;
 }
-.toggle_filters_wrapper .form-group .form-select {
+.toggle_filters_wrapper .form-group .form-select, .toggle_filters_wrapper .form-group .form-control {
     color:#6c757d;
 }
 .toggle_filters_button {

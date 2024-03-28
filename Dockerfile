@@ -70,21 +70,8 @@ RUN mkdir -p /etc/apt/keyrings && \
     apt-get update && \
     apt-get install -y nodejs
 
-FROM node_boranga as python_dependencies_boranga
 
-WORKDIR /app
-COPY requirements.txt ./
-RUN ln -s /usr/bin/python3 /usr/bin/python  && \
-    pip install --upgrade pip && \
-    pip3 install --no-cache-dir -r requirements.txt && \
-    rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
-
-FROM python_dependencies_boranga as configure_boranga
-
-# TODO: Is this still needed?
-# COPY libgeos.py.patch /app/
-# RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
-# RUN rm /app/libgeos.py.patch
+FROM node_boranga as configure_boranga
 
 COPY cron /etc/cron.d/dockercron
 COPY pre_startup.sh startup.sh /
@@ -100,6 +87,7 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     useradd -g 5000 -u 5000 oim -s /bin/bash -d /app && \
     usermod -a -G sudo oim && \
     echo "oim  ALL=(ALL)  NOPASSWD: /startup.sh" > /etc/sudoers.d/oim && \
+    mkdir /app && \
     chown -R oim.oim /app && \
     mkdir /container-config/ && \
     chown -R oim.oim /container-config/ && \    
@@ -107,11 +95,24 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     export IPYTHONDIR=/app/logs/.ipython/ && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-COPY --chown=oim:oim gunicorn.ini manage.py ./
+FROM configure_boranga as python_dependencies_boranga
+
+WORKDIR /app
+COPY --chown=oim:oim requirements.txt gunicorn.ini.py manage.py ./
 COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim boranga ./boranga
 
-FROM configure_boranga as build_vue_boranga
+RUN ln -s /usr/bin/python3 /usr/bin/python  && \
+    pip install --upgrade pip && \
+    pip3 install --no-cache-dir -r requirements.txt && \
+    rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
+
+# TODO: Is this still needed?
+# COPY libgeos.py.patch /app/
+# RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
+# RUN rm /app/libgeos.py.patch
+
+FROM python_dependencies_boranga as build_vue_boranga
 
 RUN cd /app/boranga/frontend/boranga; npm ci && \
     cd /app/boranga/frontend/boranga; npm run build
