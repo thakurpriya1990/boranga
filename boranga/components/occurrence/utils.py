@@ -243,10 +243,10 @@ def validate_map_files(request, instance, foreign_key_field=None):
 
     shapefile_archives = [qs._file for qs in archive_files_qs]
     # TODO: Upload multiple archives
-    shapefiles_path = os.path.dirname(archive_files_qs.first().path)
     for archive in shapefile_archives:
+        archive_path = os.path.dirname(archive.path)
         z = ZipFile(archive.path, "r")
-        z.extractall(shapefiles_path)
+        z.extractall(archive_path)
 
         for zipped_file in z.filelist:
             shapefile_model = apps.get_model("boranga", f"{instance_name}ShapefileDocument")
@@ -254,11 +254,10 @@ def validate_map_files(request, instance, foreign_key_field=None):
                 foreign_key_field: instance,
                 "name": zipped_file.filename,
                 "input_name": "shapefile_document",
-                "_file": f"{shapefiles_path}/{zipped_file.filename}",
+                "_file": f"{archive_path}/{zipped_file.filename}",
             })
 
     # Shapefile extensions shp (geometry), shx (index between shp and dbf), dbf (data) are essential
-    instance.shapefile_documents.all()[0]
     shp_file_qs = instance.shapefile_documents.filter(
         Q(name__endswith=".shp")
         | Q(name__endswith=".shx")
@@ -337,7 +336,6 @@ def validate_map_files(request, instance, foreign_key_field=None):
                 foreign_key_field = instance_name.lower()
 
             geometry_model = apps.get_model("boranga", f"{instance_name}Geometry")
-
             geometry_model.objects.create(
                 **{
                     foreign_key_field: instance,
