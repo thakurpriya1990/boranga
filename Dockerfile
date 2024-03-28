@@ -98,6 +98,9 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
 FROM configure_boranga as python_dependencies_boranga
 
 WORKDIR /app
+USER oim
+ENV PATH=/app/.local/bin:$PATH
+
 COPY --chown=oim:oim requirements.txt gunicorn.ini.py manage.py ./
 COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim boranga ./boranga
@@ -114,7 +117,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python  && \
 
 FROM python_dependencies_boranga as build_vue_boranga
 
-RUN cd /app/boranga/frontend/boranga; npm ci && \
+RUN cd /app/boranga/frontend/boranga; npm ci --omit-dev && \
     cd /app/boranga/frontend/boranga; npm run build
 
 FROM build_vue_boranga as collectstatic_boranga
