@@ -257,6 +257,8 @@ def extract_attached_archives(instance, foreign_key_field=None):
                 }
             )
 
+    return archive_files_qs
+
 
 def validate_map_files(request, instance, foreign_key_field=None):
     # Validates shapefiles uploaded with via the proposal map or the competitive process map.
@@ -272,7 +274,7 @@ def validate_map_files(request, instance, foreign_key_field=None):
             "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended)"
         )
 
-    extract_attached_archives(instance, foreign_key_field)
+    archive_files_qs = extract_attached_archives(instance, foreign_key_field)
 
     # Shapefile extensions shp (geometry), shx (index between shp and dbf), dbf (data) are essential
     shp_file_qs = instance.shapefile_documents.filter(
