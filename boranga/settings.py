@@ -31,21 +31,23 @@ LEDGER_TEMPLATE = "bootstrap5"
 EMAIL_DELIVERY = env("EMAIL_DELIVERY", "off")
 EMAIL_INSTANCE = env("EMAIL_INSTANCE", "DEV")
 
+GROUP_NAME_DJANGO_ADMIN = "Django Admin"
+GROUP_NAME_BORANGA_ADMIN = "Boranga Admin"
 GROUP_NAME_ASSESSOR = "ProposalAssessorGroup"
 GROUP_NAME_APPROVER = "ProposalApproverGroup"
 GROUP_NAME_EDITOR = "ConservationStatusEditorGroup"
 GROUP_NAME_REFERRAL = "ProposalReferralGroup"
 GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR = "SpeciesCommunitiesProcessorGroup"
 
-#  Added fromm LL for geometry_source value
 GROUP_NAME_CHOICES = (
+    (GROUP_NAME_DJANGO_ADMIN, "Django Admin"),
+    (GROUP_NAME_BORANGA_ADMIN, "Boranga Admin"),
     (GROUP_NAME_ASSESSOR, "Proposal Assessor Group"),
     (GROUP_NAME_APPROVER, "Proposal Approver Group"),
-    # (GROUP_NAME_EDITOR, "Conservation Status Editor Group'"),
-    # (GROUP_NAME_REFERRAL, "Proposal Referral Group"),
-    # (GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR, "Species Communities Processor Group"),
+    (GROUP_NAME_EDITOR, "Conservation Status Editor Group'"),
+    (GROUP_NAME_REFERRAL, "Proposal Referral Group"),
+    (GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR, "Species Communities Processor Group"),
 )
-
 
 if env("CONSOLE_EMAIL_BACKEND", False):
     #    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
