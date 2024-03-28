@@ -93,7 +93,9 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     chown -R oim.oim /container-config/ && \    
     mkdir -p /app/logs/.ipython && \
     export IPYTHONDIR=/app/logs/.ipython/ && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    ln -s /usr/bin/python3 /usr/bin/python  && \
+    pip install --upgrade pip
 
 FROM configure_boranga as python_dependencies_boranga
 
@@ -105,9 +107,7 @@ COPY --chown=oim:oim requirements.txt gunicorn.ini.py manage.py ./
 COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim boranga ./boranga
 
-RUN ln -s /usr/bin/python3 /usr/bin/python  && \
-    pip install --upgrade pip && \
-    pip3 install --no-cache-dir -r requirements.txt && \
+RUN pip install --no-cache-dir -r requirements.txt && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
 # TODO: Is this still needed?
