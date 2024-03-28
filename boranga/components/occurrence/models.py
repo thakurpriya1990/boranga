@@ -1389,7 +1389,6 @@ class OCRConservationThreat(models.Model):
     date_observed = models.DateField(blank =True, null=True)
     visible = models.BooleanField(default=True) # to prevent deletion, hidden and still be available in history
 
-
     class Meta:
         app_label = 'boranga'
 
@@ -1406,3 +1405,56 @@ class OCRConservationThreat(models.Model):
     @property
     def source(self):
         return self.occurrence_report.id
+
+
+class OccurrenceManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related("group_type", "species")
+
+
+class Occurrence(models.Model):
+    objects = OccurrenceManager()
+    occurrence_number = models.CharField(max_length=9, blank=True, default="")
+    group_type = models.ForeignKey(
+        GroupType, on_delete=models.PROTECT, null=True, blank=True
+    )
+    species = models.ForeignKey(
+        Species, on_delete=models.PROTECT, null=True, blank=True
+    )
+    created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
+    updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
+
+    PROCESSING_STATUS_DRAFT = "draft"
+    PROCESSING_STATUS_LOCKED = "locked"
+    PROCESSING_STATUS_SPLIT = "split"
+    PROCESSING_STATUS_COMBINE = "combine"
+    PROCESSING_STATUS_HISTORICAL = "historical"
+    PROCESSING_STATUS_CHOICES = (
+        (PROCESSING_STATUS_DRAFT, "Draft"),
+        (PROCESSING_STATUS_LOCKED, "Locked"),
+        (PROCESSING_STATUS_SPLIT, "Split"),
+        (PROCESSING_STATUS_COMBINE, "Combine"),
+        (PROCESSING_STATUS_HISTORICAL, "Historical"),
+    )
+    processing_status = models.CharField(
+        "Processing Status",
+        max_length=30,
+        choices=PROCESSING_STATUS_CHOICES,
+        default=PROCESSING_STATUS_DRAFT,
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["group_type"]),
+            models.Index(fields=["species"]),
+        ]
+        app_label = "boranga"
+
+    def save(self, *args, **kwargs):
+        super(Occurrence, self).save(*args, **kwargs)
+        if self.occurrence_number == "":
+            self.occurrence_number = "OCC{}".format(str(self.pk))
+            self.save()
+
+    def __str__(self):
+        return f"{self.occurrence_number} - {self.species} ({self.group_type}) [Created: {datetime.datetime.strftime(self.created_date, format='%Y-%m-%d %H:%M:%S')}]"
