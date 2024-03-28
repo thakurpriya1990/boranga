@@ -598,6 +598,7 @@
                             ref="shapefile_document"
                             :readonly="false"
                             name="shapefile_document"
+                            :multiple="true"
                             :is-repeatable="true"
                             :document-action-url="shapefileDocumentUrl"
                             :replace_button_by_text="true"
