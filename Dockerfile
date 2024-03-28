@@ -34,8 +34,10 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     gcc \
     gdal-bin \
     git \
+    graphviz \
     htop \
     ipython3 \
+    libgraphviz-dev \
     libmagic-dev \
     libpq-dev \
     libproj-dev \
@@ -68,27 +70,11 @@ RUN mkdir -p /etc/apt/keyrings && \
     apt-get update && \
     apt-get install -y nodejs
 
-FROM node_boranga as python_dependencies_boranga
 
-WORKDIR /app
-COPY requirements.txt ./
-RUN ln -s /usr/bin/python3 /usr/bin/python  && \
-    pip install --upgrade pip && \
-    pip3 install --no-cache-dir -r requirements.txt && \
-    rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
+FROM node_boranga as configure_boranga
 
-FROM python_dependencies_boranga as configure_boranga
-
-# TODO: Is this still needed?
-# COPY libgeos.py.patch /app/
-# RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
-# RUN rm /app/libgeos.py.patch
- 
 COPY cron /etc/cron.d/dockercron
 COPY pre_startup.sh startup.sh /
-COPY --chown=oim:oim gunicorn.ini manage.py ./
-COPY --chown=oim:oim .git ./.git
-COPY --chown=oim:oim boranga ./boranga
 
 RUN chmod 0644 /etc/cron.d/dockercron && \
     crontab /etc/cron.d/dockercron && \
@@ -101,6 +87,7 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     useradd -g 5000 -u 5000 oim -s /bin/bash -d /app && \
     usermod -a -G sudo oim && \
     echo "oim  ALL=(ALL)  NOPASSWD: /startup.sh" > /etc/sudoers.d/oim && \
+    mkdir /app && \
     chown -R oim.oim /app && \
     mkdir /container-config/ && \
     chown -R oim.oim /container-config/ && \    
@@ -108,7 +95,24 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     export IPYTHONDIR=/app/logs/.ipython/ && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-FROM configure_boranga as build_vue_boranga
+FROM configure_boranga as python_dependencies_boranga
+
+WORKDIR /app
+COPY --chown=oim:oim requirements.txt gunicorn.ini.py manage.py ./
+COPY --chown=oim:oim .git ./.git
+COPY --chown=oim:oim boranga ./boranga
+
+RUN ln -s /usr/bin/python3 /usr/bin/python  && \
+    pip install --upgrade pip && \
+    pip3 install --no-cache-dir -r requirements.txt && \
+    rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
+
+# TODO: Is this still needed?
+# COPY libgeos.py.patch /app/
+# RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
+# RUN rm /app/libgeos.py.patch
+
+FROM python_dependencies_boranga as build_vue_boranga
 
 RUN cd /app/boranga/frontend/boranga; npm ci && \
     cd /app/boranga/frontend/boranga; npm run build
@@ -120,6 +124,10 @@ RUN touch /app/.env && \
 
 FROM collectstatic_boranga as launch_boranga
 
+# Add k8s health check script
+RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/health_check.sh -O /bin/health_check.sh && \
+    chmod 755 /bin/health_check.sh
+
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
-CMD ["/startup.sh"]
+CMD ["/pre_startup.sh"]
