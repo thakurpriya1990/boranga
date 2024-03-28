@@ -39,7 +39,8 @@ from io import BytesIO
 from django.db.models.query import QuerySet
 from django.contrib.gis.geos import GEOSGeometry
 
-from boranga.components.occurrence.models import( 
+from boranga.components.occurrence.models import (
+    Occurrence,
     OccurrenceReport,
     RockType,
     SoilType,
@@ -79,8 +80,9 @@ from boranga.components.occurrence.models import(
     OCRConservationThreat,
     OccurrenceReportUserAction,
 )
-from boranga.components.occurrence.serializers import(
+from boranga.components.occurrence.serializers import (
     ListOccurrenceReportSerializer,
+    ListOccurrenceSerializer,
     OccurrenceReportSerializer,
     SaveHabitatCompositionSerializer,
     SaveHabitatConditionSerializer,
@@ -1403,7 +1405,6 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-
     def create(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
@@ -1426,3 +1427,16 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+
+class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
+    pagination_class = DatatablesPageNumberPagination
+    queryset = Occurrence.objects.none()
+    serializer_class = ListOccurrenceSerializer
+    page_size = 10
+
+    def get_queryset(self):
+        qs = Occurrence.objects.all()
+        if is_customer(self.request):
+            qs = qs.filter(submitter=self.request.user.id)
+        return qs

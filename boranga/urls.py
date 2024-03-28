@@ -1,5 +1,5 @@
 from django.conf import settings
-#from django.contrib import admin
+# from django.contrib import admin
 from boranga.admin import admin
 from django.conf.urls import url, include
 from django.urls import path
@@ -10,7 +10,7 @@ from django.contrib.auth import logout, login # DEV ONLY
 from django.conf.urls.static import static
 from rest_framework import routers
 from boranga import views
-#from boranga.admin import boranga_admin_site
+# from boranga.admin import boranga_admin_site
 from boranga.components.proposals import views as proposal_views
 from boranga.components.organisations import views as organisation_views
 
@@ -50,7 +50,7 @@ router.register(r'threat',species_communities_api.ConservationThreatViewSet)
 router.register(r'species_conservation_status_paginated',conservation_status_api.SpeciesConservationStatusPaginatedViewSet, 'species_conservation_status_paginated')
 router.register(r'community_conservation_status_paginated',conservation_status_api.CommunityConservationStatusPaginatedViewSet, 'community_conservation_status_paginated')
 # router.register(r'species_conservation_plans_paginated',conservation_plans_api.SpeciesConservationPlansPaginatedViewSet)
-#router.register(r'community_conservation_plans_paginated',conservation_plans_api.CommunityConservationPlansPaginatedViewSet)
+# router.register(r'community_conservation_plans_paginated',conservation_plans_api.CommunityConservationPlansPaginatedViewSet)
 router.register(r'conservation_status_paginated',conservation_status_api.ConservationStatusPaginatedViewSet, 'conservation_status_paginated')
 router.register(r'conservation_status_documents',conservation_status_api.ConservationStatusDocumentViewSet)
 router.register(r'cs_referrals',conservation_status_api.ConservationStatusReferralViewSet)
@@ -64,6 +64,11 @@ router.register(r'committee',meeting_api.CommitteeViewSet)
 router.register(r'meeting_agenda_items',meeting_api.AgendaItemViewSet)
 router.register(r'conservation_status',conservation_status_api.ConservationStatusViewSet)
 router.register(r'occurrence_report',occurrence_api.OccurrenceReportViewSet, 'occurrence_report')
+router.register(
+    r"occurrence_paginated",
+    occurrence_api.OccurrencePaginatedViewSet,
+    "occurrence_paginated",
+)
 router.register(r'occurrence_report_paginated',occurrence_api.OccurrenceReportPaginatedViewSet, 'occurrence_report_paginated')
 router.register(r'observer_detail',occurrence_api.ObserverDetailViewSet)
 router.register(r'occurrence_report_documents',occurrence_api.OccurrenceReportDocumentViewSet)
@@ -85,7 +90,7 @@ router.register(r'users',users_api.UserViewSet)
 # router.register(r'amendment_request',proposal_api.AmendmentRequestViewSet)
 # router.register(r'compliance_amendment_request',compliances_api.ComplianceAmendmentRequestViewSet)
 router.register(r'global_settings', main_api.GlobalSettingsViewSet)
-#router.register(r'application_types', main_api.ApplicationTypeViewSet)
+# router.register(r'application_types', main_api.ApplicationTypeViewSet)
 # router.register(r'assessments', proposal_api.ProposalAssessmentViewSet)
 # router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 # router.register(r'questions', main_api.QuestionViewSet)
@@ -197,7 +202,7 @@ urlpatterns.append(urls.path("logout/", auth_views.LogoutView.as_view(), {"next_
 if conf.settings.ENABLE_DJANGO_LOGIN:
     urlpatterns.append(urls.re_path(r"^ssologin/", auth_views.LoginView.as_view(), name="ssologin"))
 
-#if settings.SHOW_DEBUG_TOOLBAR:
+# if settings.SHOW_DEBUG_TOOLBAR:
 #    import debug_toolbar
 #    urlpatterns = [
 #        url('__debug__/', include(debug_toolbar.urls)),

@@ -1,5 +1,6 @@
 import logging
 import datetime
+import random
 from django.utils import timezone
 from django.db import models
 from django.db.models.functions import Cast, Coalesce
@@ -1458,3 +1459,8 @@ class Occurrence(models.Model):
 
     def __str__(self):
         return f"{self.occurrence_number} - {self.species} ({self.group_type}) [Created: {datetime.datetime.strftime(self.created_date, format='%Y-%m-%d %H:%M:%S')}]"
+
+    @property
+    def number_of_reports(self):
+        # TODO Once linked to occurrence report return actual count
+        return random.randint(1, 100)
