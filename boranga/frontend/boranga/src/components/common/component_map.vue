@@ -1556,9 +1556,11 @@ export default {
             vm.initialisePointerMoveEvent();
             vm.snap = new Snap({ source: vm.modelQuerySource });
             vm.dragAndDrop = new DragAndDrop({
+                projection: 'EPSG:4326',
                 formatConstructors: [GeoJSON],
             });
             vm.dragAndDrop.on('addfeatures', function (event) {
+                console.log('dragAndDrop addfeatures', event);
                 let features = event.features;
                 let source = vm.modelQuerySource;
                 for (let i = 0, ii = features.length; i < ii; i++) {
@@ -1610,6 +1612,18 @@ export default {
 
             vm.initialiseSingleClickEvent();
             vm.initialiseDoubleClickEvent();
+
+            // Custom drag and drop
+            vm.map.getViewport().addEventListener('dragover', function (evt) {
+                evt.preventDefault();
+            });
+            vm.map.getViewport().addEventListener('drop', function (evt) {
+                console.log('drag: drop', evt);
+                evt.preventDefault();
+                // TODO: Handle drop of shapefile zips, see: loadshp package, or https://www.npmjs.com/package/shape2json
+                const files = evt.dataTransfer.files;
+                files;
+            });
         },
         initialiseMeasurementLayer: function () {
             let vm = this;
