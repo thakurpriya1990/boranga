@@ -290,13 +290,21 @@ def validate_map_files(request, instance, foreign_key_field=None):
             "You can only attach files with the following extensions: .shp, .shx, and .dbf or .zip"
         )
 
-    shp_files = shp_file_qs.filter(name__endswith=".shp").count()
-    shx_files = shp_file_qs.filter(name__endswith=".shx").count()
-    dbf_files = shp_file_qs.filter(name__endswith=".dbf").count()
+    shp_files = shp_file_qs.filter(name__endswith=".shp").distinct()
+    shp_file_basenames = [s[:-4] for s in shp_files.values_list("name", flat=True)]
 
-    if shp_files != 1 or shx_files != 1 or dbf_files != 1:
+    shx_files = shp_file_qs.filter(name__in=[f"{b}.shx" for b in shp_file_basenames])
+    dbf_files = shp_file_qs.filter(name__in=[f"{b}.dbf" for b in shp_file_basenames])
+
+    # Check if no required files are missing
+    if any(f == 0 for f in [shp_files.count(), shx_files.count(), dbf_files.count()]):
         raise ValidationError(
             "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended)"
+        )
+    # Check if all files have the same count
+    if not (shp_files.count() == shx_files.count() == dbf_files.count()):
+        raise ValidationError(
+            "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended) for every shapefile"
         )
 
     # Add the shapefiles to a zip file for archiving purposes
