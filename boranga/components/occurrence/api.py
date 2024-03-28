@@ -207,23 +207,14 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
 class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (OccurrenceReportFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    # renderer_classes = (OccurrenceReportRenderer,)
     queryset = OccurrenceReport.objects.none()
     serializer_class = ListOccurrenceReportSerializer
     page_size = 10
 
     def get_queryset(self):
-        request_user = self.request.user
-        qs = OccurrenceReport.objects.none()
-
-        if is_internal(self.request):
-            qs = OccurrenceReport.objects.all()
-        elif is_customer(self.request):
-            #user_orgs =
-            #  [org.id for org in request_user.mooringlicensing_organisations.all()]
-            #qs = all.filter(Q(org_applicant_id__in=user_orgs) | Q(submitter=request_user) | Q(site_licensee_email=request_user.email))
-            qs = OccurrenceReport.objects.filter(Q(submitter=request_user.id))
-            return qs
+        qs = OccurrenceReport.objects.all()
+        if is_customer(self.request):
+            qs = qs.filter(submitter=self.request.user.id)
 
         return qs
 
