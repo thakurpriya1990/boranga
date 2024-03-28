@@ -18,12 +18,12 @@
 {% with system_name=settings.SYSTEM_NAME %}
     <div class="container px-4">
         <div class="row">
-            <div class="col-md-8 ms-3">
+            <div class="col-md-6 ms-3">
                 <h2 class="text-muted">
                     Welcome to the {{system_name}}
                 </h2>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-5">
                 {% if not request.user.is_authenticated %}
                     <div id="ps-login-container">
                         <h3>
