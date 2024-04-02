@@ -30,6 +30,9 @@ from django import urls
 from django.contrib.auth import views as auth_views
 from django import conf
 
+from boranga.management.default_data_manager import DefaultDataManager
+from boranga.utils import are_migrations_running
+
 # API patterns
 router = routers.DefaultRouter()
 if settings.DEBUG is not True:
@@ -207,3 +210,6 @@ if conf.settings.ENABLE_DJANGO_LOGIN:
 #    urlpatterns = [
 #        url('__debug__/', include(debug_toolbar.urls)),
 #    ] + urlpatterns
+
+if not are_migrations_running():
+    DefaultDataManager()
