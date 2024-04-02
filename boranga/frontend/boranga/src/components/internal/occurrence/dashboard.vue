@@ -1,5 +1,5 @@
 <template>
-    <div class="container" id="internalOccurrenceDash">
+    <div class="container" id="internal-occurrence-dash">
 
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
             <li class="nav-item">
