@@ -13,7 +13,8 @@ from boranga.components.species_and_communities.models import(
     Taxonomy,
     CommunityTaxonomy
     )
-from boranga.components.occurrence.models import(
+from boranga.components.occurrence.models import (
+    Occurrence,
     OccurrenceReport,
     HabitatComposition,
     HabitatCondition,
@@ -34,7 +35,7 @@ from boranga.components.occurrence.models import(
     OccurrenceReportUserAction,
     OccurrenceReportDocument,
     OCRConservationThreat,
-    )
+)
 
 from boranga.components.users.serializers import UserSerializer
 from boranga.components.users.serializers import UserAddressSerializer, DocumentSerializer
@@ -1052,3 +1053,34 @@ class SaveOCRConservationThreatSerializer(serializers.ModelSerializer):
 			'potential_threat_onset',
 			'date_observed',
 			)
+
+
+class ListOccurrenceSerializer(serializers.ModelSerializer):
+    processing_status_display = serializers.CharField(
+        source="get_processing_status_display"
+    )
+    scientific_name = serializers.CharField(
+        source="species.taxonomy.scientific_name", allow_null=True
+    )
+    group_type = serializers.CharField(source="group_type.name", allow_null=True)
+
+    class Meta:
+        model = Occurrence
+        fields = (
+            "id",
+            "occurrence_number",
+            "scientific_name",
+            "group_type",
+            "number_of_reports",
+            "processing_status",
+            "processing_status_display",
+        )
+        datatables_always_serialize = (
+            "id",
+            "occurrence_number",
+            "scientific_name",
+            "group_type",
+            "number_of_reports",
+            "processing_status",
+            "processing_status_display",
+        )

@@ -2,7 +2,7 @@
     <div>
         <div class="col-md-12">
 
-            <ul v-if="is_internal" class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            <ul v-if="is_internal" class="nav nav-pills" id="pills-tab" role="tablist">
               <li class="nav-item">
                 <a 
                     class="nav-link" 
