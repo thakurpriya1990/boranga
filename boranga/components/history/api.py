@@ -30,7 +30,7 @@ class VersionsFilterBackend(DatatablesFilterBackend):
 
         queryset = queryset.annotate(data=Cast('serialized_data', JSONField()))
         fields = self.get_fields(request)
-        print(fields)    
+ 
         #TODO search function here
         
         ordering = []
@@ -40,16 +40,12 @@ class VersionsFilterBackend(DatatablesFilterBackend):
                 '-' if dir_ == 'desc' else ''
             )
             ordering_values.append(field['name'][0])
-        print(ordering)
         final_ordering_values = []
         for i in range(0,len(ordering)):
-            print(ordering_values[i])
             queryset = queryset.annotate(**{'order_field'+str(i):F("data__0__fields__"+ordering_values[i])})
             final_ordering_values.append(ordering[i]+"order_field"+str(i))
 
         queryset = queryset.order_by(*final_ordering_values)
-
-        print(queryset.query.asc())
 
         return queryset
 
