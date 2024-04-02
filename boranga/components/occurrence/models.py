@@ -1422,6 +1422,7 @@ class Occurrence(models.Model):
     species = models.ForeignKey(
         Species, on_delete=models.PROTECT, null=True, blank=True
     )
+    submitter = models.IntegerField(null=True)  # EmailUserRO
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
 
