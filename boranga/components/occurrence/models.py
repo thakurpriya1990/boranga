@@ -1465,3 +1465,59 @@ class Occurrence(models.Model):
     def number_of_reports(self):
         # TODO Once linked to occurrence report return actual count
         return random.randint(1, 100)
+
+
+class OccurrenceLogEntry(CommunicationsLogEntry):
+    occurrence = models.ForeignKey(
+        Occurrence, related_name="comms_logs", on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return "{} - {}".format(self.reference, self.subject)
+
+    class Meta:
+        app_label = "boranga"
+
+    def save(self, **kwargs):
+        # save the application reference if the reference not provided
+        if not self.reference:
+            self.reference = self.occurrence.reference
+        super(OccurrenceLogEntry, self).save(**kwargs)
+
+
+def update_occurrence_comms_log_filename(instance, filename):
+    return "{}/occurrence/{}/communications/{}".format(
+        settings.MEDIA_APP_DIR, instance.log_entry.occurrence.id, filename
+    )
+
+
+class OccurrenceLogDocument(Document):
+    log_entry = models.ForeignKey(
+        OccurrenceLogEntry, related_name="documents", on_delete=models.CASCADE
+    )
+    _file = models.FileField(
+        upload_to=update_occurrence_comms_log_filename,
+        max_length=512,
+        storage=private_storage,
+    )
+
+    class Meta:
+        app_label = "boranga"
+
+
+class OccurrenceUserAction(UserAction):
+    ACTION_VIEW_OCCURRENCE = "View occurrence {}"
+    ACTION_SAVE_APPLICATION = "Save occurrence {}"
+    ACTION_EDIT_APPLICATION = "Edit occurrence {}"
+
+    class Meta:
+        app_label = "boranga"
+        ordering = ("-when",)
+
+    @classmethod
+    def log_action(cls, occurrence, action, user):
+        return cls.objects.create(occurrence=occurrence, who=user, what=str(action))
+
+    occurrence = models.ForeignKey(
+        Occurrence, related_name="action_logs", on_delete=models.CASCADE
+    )
