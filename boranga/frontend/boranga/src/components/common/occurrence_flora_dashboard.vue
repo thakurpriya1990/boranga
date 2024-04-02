@@ -278,7 +278,7 @@ export default {
                     if (!vm.is_external) {
                         if (full.internal_user_edit) {
                             links += `<a href='/internal/occurrence/${full.id}'>Continue</a><br/>`;
-                            links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
+                            links += `<a href='#${full.id}' data-discard-occ-proposal='${full.id}'>Discard</a><br/>`;
                         }
                         else {
                             if (full.assessor_process) {
@@ -286,9 +286,9 @@ export default {
                             }
                             else {
                                 if (full.assessor_edit) {
-                                    links += `<a href='/internal/occurrence/${full.id}?action=edit'>Edit</a><br/>`;
+                                    links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
                                 }
-                                links += `<a href='/internal/occurrence/${full.id}?action=view'>View</a><br/>`;
+                                links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                             }
                         }
                     }
@@ -527,9 +527,9 @@ export default {
         addEventListeners: function () {
             let vm = this;
             // internal Discard listener
-            vm.$refs.flora_occ_datatable.vmDataTable.on('click', 'a[data-discard-ocr-proposal]', function (e) {
+            vm.$refs.flora_occ_datatable.vmDataTable.on('click', 'a[data-discard-occ-proposal]', function (e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-ocr-proposal');
+                var id = $(this).attr('data-discard-occ-proposal');
                 vm.discardOCRProposal(id);
             });
         },
