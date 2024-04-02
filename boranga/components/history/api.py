@@ -5,7 +5,7 @@ from rest_framework.mixins import ListModelMixin
 from rest_framework import views
 from reversion.models import Version
 from boranga.helpers import is_internal
-from rest_framework_datatables.pagination import PageNumberPagination
+from rest_framework_datatables.pagination import PageNumberPagination, DatatablesPageNumberPagination
 import json
 from django.db.models import JSONField
 from django.db.models.functions import Cast
@@ -51,8 +51,8 @@ class VersionsFilterBackend(DatatablesFilterBackend):
 
 class GetPaginatedVersionsView(InternalAuthorizationView):
     filter_backend = VersionsFilterBackend
-    paginator = PageNumberPagination()
-    paginator.page_size = 10
+    paginator = DatatablesPageNumberPagination()
+    #paginator.page_size = 2
 
     def get(self, request, app_label, component_name, model_name, pk, reference_id_field):
         """ Returns all versions for any model object
@@ -70,6 +70,10 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
 
         queryset = Version.objects.get_for_object(instance)
         queryset = self.filter_backend().filter_queryset(self.request, queryset, self)
+
+        if not self.paginator.page_size:
+            self.paginator.page_size = 10
+
         queryset = self.paginator.paginate_queryset(queryset, request, view=self)
 
         # Build the list of versions

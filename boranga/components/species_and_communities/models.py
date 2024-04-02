@@ -1513,6 +1513,7 @@ class SpeciesDocument(Document):
                 raise
         return
 
+    #TODO: review - may not need this (?)
     @property
     def reversion_ids(self):
         current_revision_id = Version.objects.get_for_object(self).first().revision_id

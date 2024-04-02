@@ -189,6 +189,11 @@ module.exports = {
     discard_filming_park:function (id) {
       return `/api/proposal_filming_parks/${id}.json`;
     },
+
+    lookup_history_species_document:function (id) {
+      return `/api/history/versions/boranga/species_communities/SpeciesDocument/${id}/document_number/`;
+    },
+
     site_url: site_url,
     //dep_name: 'Department of Biodiversity, Conservation and Attractions',
     //dep_name_short: 'DBCA',
