@@ -50,7 +50,7 @@ def save_geometry(request, instance, geometry_data):
 
     geometry_ids = []
     for feature in geometry.get("features"):
-        allowed_geometry_types = ["Polygon", "Point"]
+        allowed_geometry_types = ["MultiPolygon", "Polygon", "MultiPoint", "Point"]
         geometry_type = feature.get("geometry").get("type")
         # check if feature is a polygon, continue if not
         if geometry_type not in allowed_geometry_types:
@@ -60,45 +60,64 @@ def save_geometry(request, instance, geometry_data):
             continue
 
         # Create a Polygon object from the open layers feature
-        polygon = Polygon(feature.get("geometry").get("coordinates")[0]) if geometry_type == "Polygon" else None
-        point = Point(feature.get("geometry").get("coordinates")) if geometry_type == "Point" else None
-
-        geometry_data = {
-            "occurrence_report_id": instance.id,
-            "polygon": polygon,
-            "point": point,
-            # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
-        }
-        if feature.get("id"):
-            logger.info(
-                f"Updating existing OccurrenceReport geometry: {feature.get('id')} for Report: {instance}"
+        polygons = (
+            [Polygon(feature.get("geometry").get("coordinates")[0])]
+            if geometry_type == "Polygon"
+            else (
+                [Polygon(p) for p in feature.get("geometry").get("coordinates")[0]]
+                if geometry_type == "MultiPolygon"
+                else []
             )
-            try:
-                geometry = OccurrenceReportGeometry.objects.get(id=feature.get("id"))
-            except OccurrenceReportGeometry.DoesNotExist:
-                logger.warn(
-                    f"OccurrenceReport geometry does not exist: {feature.get('id')}"
+        )
+        points = (
+            [Point(feature.get("geometry").get("coordinates"))]
+            if geometry_type == "Point"
+            else (
+                [Point(p) for p in feature.get("geometry").get("coordinates")]
+                if geometry_type == "MultiPoint"
+                else []
+            )
+        )
+
+        for pp in polygons + points:
+            geometry_data = {
+                "occurrence_report_id": instance.id,
+                "polygon": pp if pp.geom_type == "Polygon" else None,
+                "point": pp if pp.geom_type == "Point" else None,
+                # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
+            }
+            if feature.get("id"):
+                logger.info(
+                    f"Updating existing OccurrenceReport geometry: {feature.get('id')} for Report: {instance}"
                 )
-                continue
-            geometry_data["drawn_by"] = geometry.drawn_by
-            geometry_data["locked"] = (
-                action in ["submit"]
-                and geometry.drawn_by == request.user.id
-                or geometry.locked
-            )
-            serializer = OccurrenceReportGeometrySaveSerializer(
-                geometry, data=geometry_data
-            )
-        else:
-            logger.info(f"Creating new geometry for OccurrenceReport: {instance}")
-            geometry_data["drawn_by"] = request.user.id
-            geometry_data["locked"] = action in ["submit"]
-            serializer = OccurrenceReportGeometrySaveSerializer(data=geometry_data)
+                try:
+                    geometry = OccurrenceReportGeometry.objects.get(
+                        id=feature.get("id")
+                    )
+                except OccurrenceReportGeometry.DoesNotExist:
+                    logger.warn(
+                        f"OccurrenceReport geometry does not exist: {feature.get('id')}"
+                    )
+                    continue
+                geometry_data["drawn_by"] = geometry.drawn_by
+                geometry_data["locked"] = (
+                    action in ["submit"]
+                    and geometry.drawn_by == request.user.id
+                    or geometry.locked
+                )
+                serializer = OccurrenceReportGeometrySaveSerializer(
+                    geometry, data=geometry_data
+                )
+            else:
+                logger.info(f"Creating new geometry for OccurrenceReport: {instance}")
+                geometry_data["drawn_by"] = request.user.id
+                geometry_data["locked"] = action in ["submit"]
+                serializer = OccurrenceReportGeometrySaveSerializer(data=geometry_data)
 
-        serializer.is_valid(raise_exception=True)
-        ocr_geometry_instance = serializer.save()
-        logger.info(f"Saved OccurrenceReport geometry: {ocr_geometry_instance}")
-        geometry_ids.append(ocr_geometry_instance.id)
+            serializer.is_valid(raise_exception=True)
+            ocr_geometry_instance = serializer.save()
+            logger.info(f"Saved OccurrenceReport geometry: {ocr_geometry_instance}")
+            geometry_ids.append(ocr_geometry_instance.id)
 
     # Remove any ocr geometries from the db that are no longer in the ocr_geometry that was submitted
     # Prevent deletion of polygons that are locked after status change (e.g. after submit)
@@ -157,6 +176,7 @@ def ocr_proposal_submit(ocr_proposal, request):
 
         else:
             raise ValidationError("You can't edit this report at this moment")
+
 
 def save_document(request, instance, comms_instance, document_type, input_name=None):
     if "filename" in request.data and input_name:
@@ -223,6 +243,34 @@ def process_shapefile_document(request, instance, *args, **kwargs):
     return {"filedata": returned_file_data}
 
 
+def extract_attached_archives(instance, foreign_key_field=None):
+    """Extracts shapefiles from attached zip archives and saves them as shapefile documents."""
+
+    archive_files_qs = instance.shapefile_documents.filter(Q(name__endswith=".zip"))
+    instance_name = instance._meta.model.__name__
+    shapefile_archives = [qs._file for qs in archive_files_qs]
+    # TODO: Upload multiple archives
+    for archive in shapefile_archives:
+        archive_path = os.path.dirname(archive.path)
+        z = ZipFile(archive.path, "r")
+        z.extractall(archive_path)
+
+        for zipped_file in z.filelist:
+            shapefile_model = apps.get_model(
+                "boranga", f"{instance_name}ShapefileDocument"
+            )
+            shapefile_model.objects.create(
+                **{
+                    foreign_key_field: instance,
+                    "name": zipped_file.filename,
+                    "input_name": "shapefile_document",
+                    "_file": f"{archive_path}/{zipped_file.filename}",
+                }
+            )
+
+    return archive_files_qs
+
+
 def validate_map_files(request, instance, foreign_key_field=None):
     # Validates shapefiles uploaded with via the proposal map or the competitive process map.
     # Shapefiles are valid when the shp, shx, and dbf extensions are provided
@@ -237,6 +285,8 @@ def validate_map_files(request, instance, foreign_key_field=None):
             "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended)"
         )
 
+    archive_files_qs = extract_attached_archives(instance, foreign_key_field)
+
     # Shapefile extensions shp (geometry), shx (index between shp and dbf), dbf (data) are essential
     shp_file_qs = instance.shapefile_documents.filter(
         Q(name__endswith=".shp")
@@ -246,18 +296,26 @@ def validate_map_files(request, instance, foreign_key_field=None):
     )
 
     # Validate shapefile and all the other related files are present
-    if not shp_file_qs:
+    if not shp_file_qs and not archive_files_qs:
         raise ValidationError(
-            "You can only attach files with the following extensions: .shp, .shx, and .dbf"
+            "You can only attach files with the following extensions: .shp, .shx, and .dbf or .zip"
         )
 
-    shp_files = shp_file_qs.filter(name__endswith=".shp").count()
-    shx_files = shp_file_qs.filter(name__endswith=".shx").count()
-    dbf_files = shp_file_qs.filter(name__endswith=".dbf").count()
+    shp_files = shp_file_qs.filter(name__endswith=".shp").distinct()
+    shp_file_basenames = [s[:-4] for s in shp_files.values_list("name", flat=True)]
 
-    if shp_files != 1 or shx_files != 1 or dbf_files != 1:
+    shx_files = shp_file_qs.filter(name__in=[f"{b}.shx" for b in shp_file_basenames])
+    dbf_files = shp_file_qs.filter(name__in=[f"{b}.dbf" for b in shp_file_basenames])
+
+    # Check if no required files are missing
+    if any(f == 0 for f in [shp_files.count(), shx_files.count(), dbf_files.count()]):
         raise ValidationError(
             "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended)"
+        )
+    # Check if all files have the same count
+    if not (shp_files.count() == shx_files.count() == dbf_files.count()):
+        raise ValidationError(
+            "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended) for every shapefile"
         )
 
     # Add the shapefiles to a zip file for archiving purposes
@@ -313,12 +371,10 @@ def validate_map_files(request, instance, foreign_key_field=None):
             # Some generic code to save the geometry to the database
             # That will work for both a proposal instance and a competitive process instance
             instance_name = instance._meta.model.__name__
-
             if not foreign_key_field:
                 foreign_key_field = instance_name.lower()
 
             geometry_model = apps.get_model("boranga", f"{instance_name}Geometry")
-
             geometry_model.objects.create(
                 **{
                     foreign_key_field: instance,

@@ -7,7 +7,7 @@
             <!-- TODO -->
             <template>
                 <div class="">
-                    <div class="card card-default">
+                    <div class="card card-default mb-2">
                         <div class="card-header">
                         Image
                         </div>
@@ -29,12 +29,6 @@
                         </div>
                     </div>
                 </div>
-            </template>
-            <template>
-                <div class="card card-default">
-                    <!-- <div class="card-body card-collapse"></div> -->
-                </div>
-                
             </template>
 
             <CommsLogs

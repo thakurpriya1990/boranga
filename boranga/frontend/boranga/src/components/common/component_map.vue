@@ -587,7 +587,9 @@
                 <div class="row mb-2">
                     <div class="col">
                         <label for="shapefile_document" class="fw-bold"
-                            >Upload Shapefile
+                            >Upload Shapefile or archive(s) containing
+                            shapefiles
+                            <span>({{ archiveTypesAllowed.join(', ') }})</span>
                         </label>
                     </div>
                     <div class="col">
@@ -596,16 +598,29 @@
                             ref="shapefile_document"
                             :readonly="false"
                             name="shapefile_document"
+                            :multiple="true"
                             :is-repeatable="true"
                             :document-action-url="shapefileDocumentUrl"
                             :replace_button_by_text="true"
-                            file-types=".dbf, .prj, .shp, .shx"
-                            text_string="Attach File (.prj .dbf .shp
-                                .shx)"
+                            :file-types="
+                                shapefileTypesAllowed
+                                    .concat(archiveTypesAllowed)
+                                    .join(', ')
+                            "
+                            :text_string="`Attach Files ${shapefileTypesAllowed.join(
+                                ', '
+                            )} or ${archiveTypesAllowed.join(', ')}`"
+                            @update-parent="shapeFilesUpdated"
                         />
                     </div>
                 </div>
-                <div class="row">
+                <div
+                    v-if="
+                        !uploadedFileTypes.includes('.zip') &&
+                        !uploadedFileTypes.includes('.prj')
+                    "
+                    class="row"
+                >
                     <div class="col">
                         <!-- <BootstrapAlert> -->
                         <alert
@@ -620,7 +635,7 @@
                         <!-- </BootstrapAlert> -->
                     </div>
                 </div>
-                <div class="row">
+                <div v-if="hasUploadedShapefiles" class="row">
                     <div class="col">
                         <button
                             v-if="isValidating"
@@ -640,6 +655,7 @@
                             v-else
                             type="button"
                             class="btn btn-primary"
+                            :class="uploadedFilesComplete ? '' : 'disabled'"
                             @click="validate_map_docs"
                         >
                             <div class="row">
@@ -687,6 +703,7 @@ import { LineString, Point, MultiPoint, Polygon } from 'ol/geom';
 import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
+import DragAndDrop from 'ol/interaction/DragAndDrop.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
@@ -950,6 +967,11 @@ export default {
             modifiedFeaturesStack: [], // A stack of only those undoable actions that modified a feature
             drawing: false, // Whether the map is in draw (pencil icon) mode
             transforming: false, // Whether the map is in transform (resize, scale, rotate) mode
+            numShapefiles: 0,
+            uploadedFileTypes: [], // The currently uploaded types
+            archiveTypesAllowed: ['.zip'], // The allowed archive types
+            shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx'], // The allowed shapefile types
+            shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
         };
     },
     computed: {
@@ -1077,8 +1099,39 @@ export default {
                 return stack.length > 0;
             }
         },
+        hasUploadedShapefiles: function () {
+            return this.numShapefiles;
+        },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
+        },
+        /**
+         * Returns whether the uploaded files are either only shapefiles or only archives
+         */
+        uploadedFilesComplete: function () {
+            // The uploaded files contain archives
+            const containsArchiveTypes = this.archiveTypesAllowed.some((type) =>
+                this.uploadedFileTypes.includes(type)
+            );
+            // Every uploaded file is an archive
+            const archiveTypesComplete = this.uploadedFileTypes.every((type) =>
+                this.archiveTypesAllowed.includes(type)
+            );
+            // The uploaded files contain shapefiles
+            const containsShapefileTypes = this.shapefileTypesAllowed.some(
+                (type) => this.uploadedFileTypes.includes(type)
+            );
+            // Every required shapefile type is uploaded
+            const shapefileTypesComplete = this.shapefileTypesRequired.every(
+                (type) => this.uploadedFileTypes.includes(type)
+            );
+
+            // Either every uploaded file is an archive or
+            // every required shapefile type is uploaded but not both
+            return (
+                (archiveTypesComplete && !containsShapefileTypes) ||
+                (shapefileTypesComplete && !containsArchiveTypes)
+            );
         },
     },
     watch: {
@@ -1212,14 +1265,16 @@ export default {
          * @param {dict} featureData A feature object
          * @param {Proxy} model A model object
          */
-        styleByColor: function (featureData, model) {
+        styleByColor: function (featureData, model, geometry_source = null) {
             let vm = this;
+            if (!geometry_source) {
+                geometry_source =
+                    featureData.properties.geometry_source.toLowerCase();
+            }
 
             if (vm.styleBy === 'assessor') {
                 // Assume the object is a feature containing a geometry_source property
-                return vm.featureColors[
-                    featureData.properties.geometry_source.toLowerCase()
-                ];
+                return vm.featureColors[geometry_source];
             } else if (vm.styleBy === 'model') {
                 // Assume the object is a model containing a color field
                 return model.color;
@@ -1261,7 +1316,7 @@ export default {
                 });
             }
 
-            if (['Polygon', null].includes(type)) {
+            if (['MultiPolygon', 'Polygon', null].includes(type)) {
                 return new Style({
                     stroke: stroke,
                     fill: fill,
@@ -1500,8 +1555,49 @@ export default {
 
             vm.initialisePointerMoveEvent();
             vm.snap = new Snap({ source: vm.modelQuerySource });
+            vm.dragAndDrop = new DragAndDrop({
+                projection: 'EPSG:4326',
+                formatConstructors: [GeoJSON],
+            });
+            vm.dragAndDrop.on('addfeatures', function (event) {
+                console.log('dragAndDrop addfeatures', event);
+                let features = event.features;
+                let source = vm.modelQuerySource;
+                for (let i = 0, ii = features.length; i < ii; i++) {
+                    let feature = features[i];
+                    // feature.set('for_layer', true);
+                    let color = vm.styleByColor(feature, vm.context, 'draw');
+                    let style = vm.createStyle(
+                        color,
+                        null,
+                        feature.getGeometry().getType()
+                    );
+                    let area = Math.round(
+                        getArea(feature.getGeometry(), {
+                            projection: 'EPSG:4326',
+                        })
+                    );
 
-            let extent_interactions = [vm.snap];
+                    const properties = {
+                        id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
+                        model: vm.context,
+                        name: vm.context.id,
+                        label: vm.context.label,
+                        color: color,
+                        geometry_source: 'New',
+                        locked: false,
+                        copied_from: null,
+                        area_sqm: area,
+                    };
+
+                    feature.setProperties(properties);
+                    feature.setStyle(style);
+                    source.addFeature(feature);
+                    vm.newFeatureId++;
+                }
+            });
+
+            let extent_interactions = [vm.snap, vm.dragAndDrop];
             if (vm.editable) {
                 // Only add these interactions if polygons are editable
                 vm.select = vm.initialiseSelectFeatureEvent();
@@ -1516,6 +1612,18 @@ export default {
 
             vm.initialiseSingleClickEvent();
             vm.initialiseDoubleClickEvent();
+
+            // Custom drag and drop
+            vm.map.getViewport().addEventListener('dragover', function (evt) {
+                evt.preventDefault();
+            });
+            vm.map.getViewport().addEventListener('drop', function (evt) {
+                console.log('drag: drop', evt);
+                evt.preventDefault();
+                // TODO: Handle drop of shapefile zips, see: loadshp package, or https://www.npmjs.com/package/shape2json
+                const files = evt.dataTransfer.files;
+                files;
+            });
         },
         initialiseMeasurementLayer: function () {
             let vm = this;
@@ -2748,6 +2856,15 @@ export default {
             } else {
                 element.style.display = 'none';
             }
+        },
+        shapeFilesUpdated: function () {
+            let numShapefiles =
+                this.$refs.shapefile_document?.numDocuments || 0;
+            this.numShapefiles = numShapefiles;
+            this.uploadedFileTypes =
+                this.$refs.shapefile_document.documents.map((doc) => {
+                    return doc.name.slice(doc.name.lastIndexOf('.'));
+                }, []);
         },
     },
 };

@@ -1,6 +1,8 @@
 # Prepare the base environment.
 FROM dbcawa/boranga:latest as builder_base_borangadev
 
+USER root
+
 RUN apt-get update
 RUN apt-get install --no-install-recommends -y patch
 RUN apt-get install --no-install-recommends -y libpq-dev git ssh sudo 

@@ -1,19 +1,17 @@
 <template lang="html">
-    <div>
-        <div class="toggle_filters_wrapper">
-            <div data-bs-toggle="collapse" :data-bs-target="'#' + target_elem_id" :id="button_elem_id" class="toggle_filters_button collapsed d-flex align-items-center" @click="toggle_filters_button_clicked">
-                <div class="me-auto">{{ component_title }}</div>
-                <div class="">
-                    <i :id="warning_icon_id" :title="warning_icon_title" class="fa-solid fa-exclamation-circle fa-2x filter_warning_icon"></i>
-                </div>
-                <div class="ml-2">
-                    <i :id="chevron_elem_id" class="rotate_icon fa-solid fa-chevron-down"></i>
-                </div>
+    <div class="toggle_filters_wrapper rounded mb-3">
+        <div data-bs-toggle="collapse" :data-bs-target="'#' + target_elem_id" :id="button_elem_id" class="toggle_filters_button collapsed d-flex align-items-center" @click="toggle_filters_button_clicked">
+            <div class="me-auto ps-1 title">{{ component_title }}</div>
+            <div class="me-2">
+                <i :id="warning_icon_id" :title="warning_icon_title" class="fa-solid fa-exclamation-circle fa-2x filter_warning_icon"></i>
             </div>
+            <div class="me-2">
+                <i :id="chevron_elem_id" class="rotate_icon fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
 
-            <div class="collapse" :id="target_elem_id">
-                <slot></slot>
-            </div>
+        <div class="collapse border-top mt-1" :id="target_elem_id">
+            <slot></slot>
         </div>
     </div>
 </template>
@@ -75,11 +73,21 @@ export default {
 }
 </script>
 
-<style lang="css">
+<style lang="css" scoped>
 .toggle_filters_wrapper {
     background: #efefee;
     padding: 0.5em;
     display: grid;
+    color: #505050;
+}
+.toggle_filters_wrapper .form-group {
+    margin-top: 0.6em;
+    margin-bottom: 0.6em;
+    padding-left: 0.4em;
+    padding-right: 0.4em;
+}
+.toggle_filters_wrapper .form-group .form-select, .toggle_filters_wrapper .form-group .form-control {
+    color:#6c757d;
 }
 .toggle_filters_button {
     cursor: pointer;
@@ -93,5 +101,8 @@ export default {
 }
 .chev_rotated {
     transform: rotate(180deg);
+}
+.title, .rotate_icon {
+    color: #505050;
 }
 </style>
