@@ -1,3 +1,4 @@
+import sys
 from django.conf import settings
 from boranga.components.proposals.models import ( 
     # Proposal, 
@@ -7,6 +8,20 @@ from boranga.components.proposals.models import (
 )
 from collections import OrderedDict
 from copy import deepcopy
+
+
+def are_migrations_running():
+    """
+    Checks whether the app was launched with the migration-specific params
+    """
+    # return sys.argv and ('migrate' in sys.argv or 'makemigrations' in sys.argv)
+    return sys.argv and (
+        "migrate" in sys.argv
+        or "makemigrations" in sys.argv
+        or "showmigrations" in sys.argv
+        or "sqlmigrate" in sys.argv
+    )
+
 
 def search_all(search_list, application_type='T Class'):
 	"""
@@ -263,20 +278,22 @@ def search_keys(dictionary, search_list=['help_text', 'label']):
 	return help_list
 
 def missing_required_fields(proposal):
-	"""
+    """
 	Returns the missing required fields from the schema (no data is entered)
 	"""
-	data = flatten(proposal.data[0])
-	sections = search_multiple_keys(proposal.schema, primary_search='isRequired', search_list=['label', 'name'])
+    data = flatten(proposal.data[0])
+    sections = search_multiple_keys(
+        proposal.schema, primary_search="isRequired", search_list=["label", "name"]
+    )
 
-	missing_fields = []
-	#for flat_key in data.iteritems():
-	for flat_key in data.items():
-		for item in sections:
-			if flat_key[0].endswith(item['name']):
-				if not flat_key[1].strip():
-				   missing_fields.append( dict(name=flat_key[0], label=item['label']) )
-	return missing_fields
+    missing_fields = []
+    # for flat_key in data.iteritems():
+    for flat_key in data.items():
+        for item in sections:
+            if flat_key[0].endswith(item["name"]):
+                if not flat_key[1].strip():
+                    missing_fields.append(dict(name=flat_key[0], label=item["label"]))
+    return missing_fields
 
 def test_search_multiple_keys():
 	p=Proposal.objects.get(id=139)
@@ -365,19 +382,18 @@ def flatten(old_data, new_data=None, parent_key='', sep='.', width=4):
 
 
 def create_dummy_history(proposal_id):
-	p=Proposal.objects.get(id=proposal_id)
-	prev_proposal = deepcopy(p)
-	p.id=None
-	p.data[0]['proposalSummarySection'][0]['Section0-0']='dd 3'
-	p.data[0]['proposalSummarySection'][0]['Section0-1']='ee 3'
-	p.previous_application = prev_proposal
-	p.save()
+    p = Proposal.objects.get(id=proposal_id)
+    prev_proposal = deepcopy(p)
+    p.id = None
+    p.data[0]["proposalSummarySection"][0]["Section0-0"] = "dd 3"
+    p.data[0]["proposalSummarySection"][0]["Section0-1"] = "ee 3"
+    p.previous_application = prev_proposal
+    p.save()
 
-	prev_proposal = deepcopy(p)
-	p.id=None
-	p.data[0]['proposalSummarySection'][0]['Section0-0']='dd 44'
-	p.data[0]['proposalSummarySection'][0]['Section0-1']='ee 44'
-	p.previous_application = prev_proposal
-	p.save()
-	return p.id, p.get_history
-
+    prev_proposal = deepcopy(p)
+    p.id = None
+    p.data[0]["proposalSummarySection"][0]["Section0-0"] = "dd 44"
+    p.data[0]["proposalSummarySection"][0]["Section0-1"] = "ee 44"
+    p.previous_application = prev_proposal
+    p.save()
+    return p.id, p.get_history
