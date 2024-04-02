@@ -324,7 +324,22 @@ export default {
 
             let columns = []
             let search = null
-            let buttons = []
+            let buttons = [
+                {
+                    text: '<i class="fa-solid fa-download"></i> Excel',
+                    className: 'btn btn-primary me-2 rounded',
+                    action: function (e, dt, node, config) {
+                        vm.exportData("excel");
+                    }
+                },
+                {
+                    text: '<i class="fa-solid fa-download"></i> CSV',
+                    className: 'btn btn-primary rounded',
+                    action: function (e, dt, node, config) {
+                        vm.exportData("csv");
+                    }
+                }
+            ]
             if(vm.is_external){
                 columns = [
                     vm.column_number,
@@ -335,7 +350,7 @@ export default {
                     vm.column_action,
                 ]
                 search = false
-                buttons = []
+                buttons = buttons
             }
             
             return {
@@ -573,6 +588,151 @@ export default {
               
             }
             
+        },
+        exportData: function (format) {
+            let vm = this;
+            const columns_new = {
+                "0": {
+                    "data": "occurrence_report_number",
+                    "name": "occurrence_report__id, occurrence_report__occurrence_report_number",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "false"
+                },
+                "1": {
+                    "data": "group_type",
+                    "name": "occurrence_report__group_type__name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "2": {
+                    "data": "scientific_name",
+                    "name": "occurrence_report__species__taxonomy__scientific_name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "3": {
+                    "data": "community_name",
+                    "name": "occurrence_report__community__taxonomy__community_name",
+                    "searchable": "true",
+                    "orderable": "true",
+                    "search": {
+                        "value": "",
+                        "regex": "false"
+                    }
+                },
+                "4": {
+                    "data": "customer_status",
+                    "name": "occurrence_report__customer_status",
+                    "searchable": "true",
+                    "orderable": "true",
+                    "search": {
+                        "value": "",
+                        "regex": "false"
+                    }
+                },
+            };
+
+            const object_load = {
+                columns: columns_new,
+                filter_group_type : vm.filterOCRGroupType,
+                filter_scientific_name : vm.filterOCRScientificName,
+                filter_community_name : vm.filterOCRExCommunityName,
+                filter_application_status : vm.filterOCRApplicationStatus,
+                is_internal : vm.is_internal,
+                export_format: format
+            };
+
+            const url = api_endpoints.occurrence_report_external_export;
+            const keyValuePairs = [];
+
+            for (const key in object_load) {
+                if (object_load.hasOwnProperty(key)) {
+                    const encodedKey = encodeURIComponent(key);
+                    let encodedValue = '';
+
+                    if (typeof object_load[key] === 'object') {
+                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
+                    }
+                    else {
+                        encodedValue = encodeURIComponent(object_load[key]);
+                    }
+                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
+                }
+            }
+            const params = keyValuePairs.join('&');
+            const fullUrl = `${url}?${params}`;
+            try {
+                if (format === "excel") {
+                    $.ajax({
+                        type: "GET",
+                        url: fullUrl,
+                        contentType: "application/vnd.ms-excel",
+                        dataType: "binary",
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+
+                        success: function (response, status, request) {
+                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
+                            var filename = contentDispositionHeader.split('filename=')[1];
+                            window.URL = window.URL || window.webkitURL;
+                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
+
+                            var downloadUrl = window.URL.createObjectURL(blob);
+                            var a = document.createElement("a");
+                            a.href = downloadUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(error);
+                        },
+                    });
+                }
+                else if (format === "csv") {
+                    $.ajax({
+                        type: "GET",
+                        url: fullUrl,
+                        success: function (response, status, request) {
+                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
+                            var filename = contentDispositionHeader.split('filename=')[1];
+                            window.URL = window.URL || window.webkitURL;
+                            var blob = new Blob([response], { type: "text/csv" });
+
+                            var downloadUrl = window.URL.createObjectURL(blob);
+                            var a = document.createElement("a");
+                            a.href = downloadUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(error);
+                        },
+                    });
+                }
+            }
+            catch (err) {
+                console.log(err);
+                if (vm.is_internal) {
+                    return err;
+                }
+            }
         },
     },
     mounted: function(){
