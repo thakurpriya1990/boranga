@@ -36,12 +36,6 @@
                 </div>
             </div>
         </CollapsibleFilters>
-        <div v-if="addFloraOCCVisibility" class="col-md-12">
-            <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraOccurrence"><i
-                        class="fa-solid fa-circle-plus"></i> Add Occurrence</button>
-            </div>
-        </div>
         <div class="row">
             <div class="col-lg-12">
                 <datatable ref="flora_occ_datatable" :id="datatable_id" :dtOptions="datatable_options"
