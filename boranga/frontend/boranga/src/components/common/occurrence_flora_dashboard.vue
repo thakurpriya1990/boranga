@@ -4,24 +4,17 @@
             class="mb-2">
             <div class="row">
                 <div class="col-md-4">
-                    <div class="form-group" id="select_occurrence">
-                        <label for="ocr_occurrence_lookup">Occurrence:</label>
-                        <select id="ocr_occurrence_lookup" name="ocr_occurrence_lookup" ref="ocr_occurrence_lookup"
-                            class="form-control" />
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group" id="select_scientific_name_by_groupname">
-                        <label for="ocr_scientific_name_lookup_by_groupname">Scientific Name:</label>
-                        <select id="ocr_scientific_name_lookup_by_groupname"
-                            name="ocr_scientific_name_lookup_by_groupname" ref="ocr_scientific_name_lookup_by_groupname"
+                    <div class="form-group" id="select_scientific_name_by_groupname_occ">
+                        <label for="occ_scientific_name_lookup_by_groupname">Scientific Name:</label>
+                        <select id="occ_scientific_name_lookup_by_groupname"
+                            name="occ_scientific_name_lookup_by_groupname" ref="occ_scientific_name_lookup_by_groupname"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group" id="select_status">
                         <label for="">Status:</label>
-                        <select class="form-select" v-model="filterOCRFloraStatus">
+                        <select class="form-select" v-model="filterOCCFloraStatus">
                             <option value="all">All</option>
                             <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
                         </select>
@@ -31,27 +24,27 @@
                     <div class="form-group">
                         <label for="">Submitted From Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date"
-                            v-model="filterOCRFloraSubmittedFromDate">
+                            v-model="filterOCCFloraSubmittedFromDate">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="">Submitted To Date:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date"
-                            v-model="filterOCRFloraSubmittedToDate">
+                            v-model="filterOCCFloraSubmittedToDate">
                     </div>
                 </div>
             </div>
         </CollapsibleFilters>
-        <div v-if="addFloraOCRVisibility" class="col-md-12">
+        <div v-if="addFloraOCCVisibility" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraOccurrenceReport"><i
-                        class="fa-solid fa-circle-plus"></i> Add Occurrence Report</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraOccurrence"><i
+                        class="fa-solid fa-circle-plus"></i> Add Occurrence</button>
             </div>
         </div>
         <div class="row">
             <div class="col-lg-12">
-                <datatable ref="flora_ocr_datatable" :id="datatable_id" :dtOptions="datatable_options"
+                <datatable ref="flora_occ_datatable" :id="datatable_id" :dtOptions="datatable_options"
                     :dtHeaders="datatable_headers" />
             </div>
         </div>
@@ -99,57 +92,57 @@ export default {
             type: Object,
             required: false
         },
-        filterOCRFloraOccurrence_cache: {
+        filterOCCFloraOccurrence_cache: {
             type: String,
             required: false,
-            default: 'filterOCRFloraOccurrence',
+            default: 'filterOCCFloraOccurrence',
         },
-        filterOCRFloraScientificName_cache: {
+        filterOCCFloraScientificName_cache: {
             type: String,
             required: false,
-            default: 'filterOCRFloraScientificName',
+            default: 'filterOCCFloraScientificName',
         },
-        filterOCRFloraStatus_cache: {
+        filterOCCFloraStatus_cache: {
             type: String,
             required: false,
-            default: 'filterOCRFloraStatus',
+            default: 'filterOCCFloraStatus',
         },
-        filterOCRFloraSubmittedFromDate_cache: {
+        filterOCCFloraSubmittedFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterOCRFloraSubmittedFromDate',
+            default: 'filterOCCFloraSubmittedFromDate',
         },
-        filterOCRFloraSubmittedToDate_cache: {
+        filterOCCFloraSubmittedToDate_cache: {
             type: String,
             required: false,
-            default: 'filterOCRFloraSubmittedToDate',
+            default: 'filterOCCFloraSubmittedToDate',
         },
 
     },
     data() {
         let vm = this;
         return {
-            datatable_id: 'species_flora_or-datatable-' + vm._uid,
+            datatable_id: 'occurrence-flora-datatable-' + vm._uid,
 
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
-            filterOCRFloraOccurrence: sessionStorage.getItem(this.filterOCRFloraOccurrence_cache) ?
-                sessionStorage.getItem(this.filterOCRFloraOccurrence_cache) : 'all',
+            filterOCCFloraOccurrence: sessionStorage.getItem(this.filterOCCFloraOccurrence_cache) ?
+                sessionStorage.getItem(this.filterOCCFloraOccurrence_cache) : 'all',
 
-            filterOCRFloraScientificName: sessionStorage.getItem(this.filterOCRFloraScientificName_cache) ?
-                sessionStorage.getItem(this.filterOCRFloraScientificName_cache) : 'all',
+            filterOCCFloraScientificName: sessionStorage.getItem(this.filterOCCFloraScientificName_cache) ?
+                sessionStorage.getItem(this.filterOCCFloraScientificName_cache) : 'all',
 
-            filterOCRFloraStatus: sessionStorage.getItem(this.filterOCRFloraStatus_cache) ?
-                sessionStorage.getItem(this.filterOCRFloraStatus_cache) : 'all',
+            filterOCCFloraStatus: sessionStorage.getItem(this.filterOCCFloraStatus_cache) ?
+                sessionStorage.getItem(this.filterOCCFloraStatus_cache) : 'all',
 
-            filterOCRFloraSubmittedFromDate: sessionStorage.getItem(this.filterOCRFloraSubmittedFromDate_cache) ?
-                sessionStorage.getItem(this.filterOCRFloraSubmittedFromDate_cache) : '',
+            filterOCCFloraSubmittedFromDate: sessionStorage.getItem(this.filterOCCFloraSubmittedFromDate_cache) ?
+                sessionStorage.getItem(this.filterOCCFloraSubmittedFromDate_cache) : '',
 
-            filterOCRFloraSubmittedToDate: sessionStorage.getItem(this.filterOCRFloraSubmittedToDate_cache) ?
-                sessionStorage.getItem(this.filterOCRFloraSubmittedToDate_cache) : '',
+            filterOCCFloraSubmittedToDate: sessionStorage.getItem(this.filterOCCFloraSubmittedToDate_cache) ?
+                sessionStorage.getItem(this.filterOCCFloraSubmittedToDate_cache) : '',
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -161,11 +154,10 @@ export default {
             // filtering options
             internal_status: [
                 { value: 'draft', name: 'Draft' },
-                { value: 'with_assessor', name: 'With Assessor' },
-                { value: 'with_referral', name: 'With Referral' },
-                { value: 'with_approver', name: 'With Approver' },
-                { value: 'approved', name: 'Approved' },
-                { value: 'declined', name: 'Declined' },
+                { value: 'locked', name: 'Locked' },
+                { value: 'split', name: 'Split' },
+                { value: 'combine', name: 'Combine' },
+                { value: 'historical', name: 'Historical' },
             ],
 
             proposal_status: [],
@@ -177,30 +169,30 @@ export default {
         FormSection,
     },
     watch: {
-        filterOCRFloraOccurrence: function () {
+        filterOCCFloraOccurrence: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRFloraOccurrence_cache, vm.filterOCRFloraOccurrence);
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFloraOccurrence_cache, vm.filterOCCFloraOccurrence);
         },
-        filterOCRFloraScientificName: function () {
+        filterOCCFloraScientificName: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRFloraScientificName_cache, vm.filterOCRFloraScientificName);
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFloraScientificName_cache, vm.filterOCCFloraScientificName);
         },
-        filterOCRFloraStatus: function () {
+        filterOCCFloraStatus: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call. 
-            sessionStorage.setItem(vm.filterOCRFloraStatus_cache, vm.filterOCRFloraStatus);
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call. 
+            sessionStorage.setItem(vm.filterOCCFloraStatus_cache, vm.filterOCCFloraStatus);
         },
-        filterOCRFloraSubmittedFromDate: function () {
+        filterOCCFloraSubmittedFromDate: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRFloraSubmittedFromDate_cache, vm.filterOCRFloraSubmittedFromDate);
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFloraSubmittedFromDate_cache, vm.filterOCCFloraSubmittedFromDate);
         },
-        filterOCRFloraSubmittedToDate: function () {
+        filterOCCFloraSubmittedToDate: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRFloraSubmittedToDate_cache, vm.filterOCRFloraSubmittedToDate);
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFloraSubmittedToDate_cache, vm.filterOCCFloraSubmittedToDate);
         },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
@@ -211,11 +203,11 @@ export default {
     },
     computed: {
         filterApplied: function () {
-            if (this.filterOCRFloraOccurrence === 'all' &&
-                this.filterOCRFloraScientificName === 'all' &&
-                this.filterOCRFloraStatus === 'all' &&
-                this.filterOCRFloraSubmittedFromDate === '' &&
-                this.filterOCRFloraSubmittedToDate === '') {
+            if (this.filterOCCFloraOccurrence === 'all' &&
+                this.filterOCCFloraScientificName === 'all' &&
+                this.filterOCCFloraStatus === 'all' &&
+                this.filterOCCFloraSubmittedFromDate === '' &&
+                this.filterOCCFloraSubmittedToDate === '') {
                 return false
             } else {
                 return true
@@ -227,7 +219,7 @@ export default {
         is_internal: function () {
             return this.level == 'internal'
         },
-        addFloraOCRVisibility: function () {
+        addFloraOCCVisibility: function () {
             let visibility = false;
             if (this.is_internal) {
                 visibility = true;
@@ -291,18 +283,18 @@ export default {
                     let links = "";
                     if (!vm.is_external) {
                         if (full.internal_user_edit) {
-                            links += `<a href='/internal/occurrence_report/${full.id}'>Continue</a><br/>`;
+                            links += `<a href='/internal/occurrence/${full.id}'>Continue</a><br/>`;
                             links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                         }
                         else {
                             if (full.assessor_process) {
-                                links += `<a href='/internal/occurrence_report/${full.id}'>Process</a><br/>`;
+                                links += `<a href='/internal/occurrence/${full.id}'>Process</a><br/>`;
                             }
                             else {
                                 if (full.assessor_edit) {
-                                    links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Edit</a><br/>`;
+                                    links += `<a href='/internal/occurrence/${full.id}?action=edit'>Edit</a><br/>`;
                                 }
-                                links += `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
+                                links += `<a href='/internal/occurrence/${full.id}?action=view'>View</a><br/>`;
                             }
                         }
                     }
@@ -367,11 +359,11 @@ export default {
                     // adding extra GET params for Custom filtering
                     "data": function (d) {
                         d.filter_group_type = vm.group_type_name;
-                        d.filter_occurrence = vm.filterOCRFloraOccurrence;
-                        d.filter_scientific_name = vm.filterOCRFloraScientificName;
-                        d.filter_status = vm.filterOCRFloraStatus;
-                        d.filter_submitted_from_date = vm.filterOCRFloraSubmittedFromDate;
-                        d.filter_submitted_to_date = vm.filterOCRFloraSubmittedToDate;
+                        d.filter_occurrence = vm.filterOCCFloraOccurrence;
+                        d.filter_scientific_name = vm.filterOCCFloraScientificName;
+                        d.filter_status = vm.filterOCCFloraStatus;
+                        d.filter_submitted_from_date = vm.filterOCCFloraSubmittedFromDate;
+                        d.filter_submitted_to_date = vm.filterOCCFloraSubmittedToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -396,7 +388,7 @@ export default {
         },
         initialiseOccurrenceLookup: function () {
             let vm = this;
-            $(vm.$refs.ocr_occurrence_lookup).select2({
+            $(vm.$refs.occ_occurrence_lookup).select2({
                 minimumInputLength: 2,
                 dropdownParent: $("#select_occurrence"),
                 "theme": "bootstrap-5",
@@ -418,24 +410,24 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.filterOCRFloraOccurrence = data;
-                    sessionStorage.setItem("filterOCRFloraOccurrenceText", e.params.data.text);
+                    vm.filterOCCFloraOccurrence = data;
+                    sessionStorage.setItem("filterOCCFloraOccurrenceText", e.params.data.text);
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    vm.filterOCRFloraOccurrence = 'all';
-                    sessionStorage.setItem("filterOCRFloraOccurrenceText", '');
+                    vm.filterOCCFloraOccurrence = 'all';
+                    sessionStorage.setItem("filterOCCFloraOccurrenceText", '');
                 }).
                 on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-ocr_occurrence_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-occ_occurrence_lookup-results"]')
                     searchField[0].focus();
                 });
         },
         initialiseScientificNameLookup: function () {
             let vm = this;
-            $(vm.$refs.ocr_scientific_name_lookup_by_groupname).select2({
+            $(vm.$refs.occ_scientific_name_lookup_by_groupname).select2({
                 minimumInputLength: 2,
-                dropdownParent: $("#select_scientific_name_by_groupname"),
+                dropdownParent: $("#select_scientific_name_by_groupname_occ"),
                 theme: 'bootstrap-5',
                 allowClear: true,
                 placeholder: "Select Scientific Name",
@@ -455,16 +447,16 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.filterOCRFloraScientificName = data;
-                    sessionStorage.setItem("filterOCRFloraScientificNameText", e.params.data.text);
+                    vm.filterOCCFloraScientificName = data;
+                    sessionStorage.setItem("filterOCCFloraScientificNameText", e.params.data.text);
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    vm.filterOCRFloraScientificName = 'all';
-                    sessionStorage.setItem("filterOCRFloraScientificNameText", '');
+                    vm.filterOCCFloraScientificName = 'all';
+                    sessionStorage.setItem("filterOCCFloraScientificNameText", '');
                 }).
                 on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-ocr_scientific_name_lookup_by_groupname-results"]')
+                    const searchField = $('[aria-controls="select2-occ_scientific_name_lookup_by_groupname-results"]')
                     searchField[0].focus();
                 });
         },
@@ -487,10 +479,10 @@ export default {
                 console.log(error);
             })
         },
-        createFloraOccurrenceReport: async function () {
+        createFloraOccurrence: async function () {
             let newFloraOCRId = null
             try {
-                const createUrl = api_endpoints.occurrence_report + "/";
+                const createUrl = api_endpoints.occurrence + "/";
                 let payload = new Object();
                 payload.group_type_id = this.group_type_id
                 payload.internal_application = true
@@ -507,10 +499,10 @@ export default {
             }
             this.$router.push({
                 name: 'internal-occurrence',
-                params: { occurrence_report_id: newFloraOCRId },
+                params: { occurrence_id: newFloraOCRId },
             });
         },
-        discardOCRProposal: function (occurrence_report_id) {
+        discardOCRProposal: function (occurrence_id) {
             let vm = this;
             swal.fire({
                 title: "Discard Report",
@@ -521,7 +513,7 @@ export default {
                 confirmButtonColor: '#d9534f'
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_ocr_proposal(occurrence_report_id))
+                    vm.$http.delete(api_endpoints.discard_occ_proposal(occurrence_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -529,7 +521,7 @@ export default {
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb',
                             });
-                            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {
                             console.log(error);
                         });
@@ -541,7 +533,7 @@ export default {
         addEventListeners: function () {
             let vm = this;
             // internal Discard listener
-            vm.$refs.flora_ocr_datatable.vmDataTable.on('click', 'a[data-discard-ocr-proposal]', function (e) {
+            vm.$refs.flora_occ_datatable.vmDataTable.on('click', 'a[data-discard-ocr-proposal]', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-ocr-proposal');
                 vm.discardOCRProposal(id);
@@ -552,7 +544,7 @@ export default {
         },
         submitterSearch: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.table.dataTableExt.afnFiltering.push(
+            vm.$refs.flora_occ_datatable.table.dataTableExt.afnFiltering.push(
                 function (settings, data, dataIndex, original) {
                     let filtered_submitter = vm.filterProposalSubmitter;
                     if (filtered_submitter == 'All') { return true; }
@@ -565,7 +557,7 @@ export default {
             const columns_new = {
                 "0": {
                     "data": "occurrence",
-                    "name": "occurrence_report__id, occurrence_report__occurrence_report_number",
+                    "name": "occurrence__id, occurrence__occurrence_number",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -575,7 +567,7 @@ export default {
                 },
                 "1": {
                     "data": "species",
-                    "name": "occurrence_report__species",
+                    "name": "occurrence__species",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -585,7 +577,7 @@ export default {
                 },
                 "2": {
                     "data": "scientific_name",
-                    "name": "occurrence_report__species__taxonomy__scientific_name",
+                    "name": "occurrence__species__taxonomy__scientific_name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -595,7 +587,7 @@ export default {
                 },
                 "3": {
                     "data": "reported_date",
-                    "name": "occurrence_report__reported_date",
+                    "name": "occurrence__reported_date",
                     "searchable": "true",
                     "orderable": "true",
                     "search": {
@@ -605,7 +597,6 @@ export default {
                 },
                 "4": {
                     "data": "submitter",
-                    // "name": "occurrence_report__submitter",
                     "searchable": "true",
                     "orderable": "true",
                     "search": {
@@ -615,7 +606,7 @@ export default {
                 },
                 "5": {
                     "data": "processing_status",
-                    "name": "occurrence_report__processing_status",
+                    "name": "occurrence__processing_status",
                     "searchable": "true",
                     "orderable": "true",
                     "search": {
@@ -628,16 +619,16 @@ export default {
             const object_load = {
                 columns: columns_new,
                 filter_group_type: vm.group_type_name,
-                filter_occurrence: vm.filterOCRFloraOccurrence,
-                filter_scientific_name: vm.filterOCRFloraScientificName,
-                filter_status: vm.filterOCRFloraStatus,
-                filter_submitted_from_date: vm.filterOCRFloraSubmittedFromDate,
-                filter_submitted_to_date: vm.filterOCRFloraSubmittedToDate,
+                filter_occurrence: vm.filterOCCFloraOccurrence,
+                filter_scientific_name: vm.filterOCCFloraScientificName,
+                filter_status: vm.filterOCCFloraStatus,
+                filter_submitted_from_date: vm.filterOCCFloraSubmittedFromDate,
+                filter_submitted_to_date: vm.filterOCCFloraSubmittedToDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };
 
-            const url = api_endpoints.occurrence_report_internal_export;
+            const url = api_endpoints.occurrence_internal_export;
             const keyValuePairs = [];
 
             for (const key in object_load) {
@@ -719,7 +710,6 @@ export default {
         },
     },
 
-
     mounted: function () {
         this.fetchFilterLists();
         let vm = this;
@@ -732,20 +722,15 @@ export default {
         this.$nextTick(() => {
             vm.initialiseOccurrenceLookup();
             vm.initialiseScientificNameLookup();
-            //vm.initialiseSearch();
             vm.addEventListeners();
 
-            // -- to set the select2 field with the session value if exists onload()
-            if (sessionStorage.getItem("filterOCRFloraOccurrence") != 'all' && sessionStorage.getItem("filterOCRFloraOccurrence") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterOCRFloraOccurrenceText"), vm.filterOCRFloraOccurrence, false, true);
-                $('#ocr_occurrence_lookup').append(newOption);
-                //$('#scientific_name_lookup').append(newOption).trigger('change');
+            if (sessionStorage.getItem("filterOCCFloraOccurrence") != 'all' && sessionStorage.getItem("filterOCCFloraOccurrence") != null) {
+                var newOption = new Option(sessionStorage.getItem("filterOCCFloraOccurrenceText"), vm.filterOCCFloraOccurrence, false, true);
+                $('#occ_occurrence_lookup').append(newOption);
             }
-            if (sessionStorage.getItem("filterOCRFloraScientificName") != 'all' && sessionStorage.getItem("filterOCRFloraScientificName") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterOCRFloraScientificNameText"), vm.filterOCRFloraScientificName, false, true);
-                $('#ocr_scientific_name_lookup_by_groupname').append(newOption);
+            if (sessionStorage.getItem("filterOCCFloraScientificName") != 'all' && sessionStorage.getItem("filterOCCFloraScientificName") != null) {
+                var newOption = new Option(sessionStorage.getItem("filterOCCFloraScientificNameText"), vm.filterOCCFloraScientificName, false, true);
+                $('#occ_scientific_name_lookup_by_groupname').append(newOption);
             }
         });
     }
