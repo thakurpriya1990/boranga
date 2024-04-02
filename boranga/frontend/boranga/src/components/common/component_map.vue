@@ -598,6 +598,7 @@
                             ref="shapefile_document"
                             :readonly="false"
                             name="shapefile_document"
+                            :multiple="true"
                             :is-repeatable="true"
                             :document-action-url="shapefileDocumentUrl"
                             :replace_button_by_text="true"
@@ -702,6 +703,7 @@ import { LineString, Point, MultiPoint, Polygon } from 'ol/geom';
 import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
+import DragAndDrop from 'ol/interaction/DragAndDrop.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
@@ -1263,14 +1265,16 @@ export default {
          * @param {dict} featureData A feature object
          * @param {Proxy} model A model object
          */
-        styleByColor: function (featureData, model) {
+        styleByColor: function (featureData, model, geometry_source = null) {
             let vm = this;
+            if (!geometry_source) {
+                geometry_source =
+                    featureData.properties.geometry_source.toLowerCase();
+            }
 
             if (vm.styleBy === 'assessor') {
                 // Assume the object is a feature containing a geometry_source property
-                return vm.featureColors[
-                    featureData.properties.geometry_source.toLowerCase()
-                ];
+                return vm.featureColors[geometry_source];
             } else if (vm.styleBy === 'model') {
                 // Assume the object is a model containing a color field
                 return model.color;
@@ -1312,7 +1316,7 @@ export default {
                 });
             }
 
-            if (['Polygon', null].includes(type)) {
+            if (['MultiPolygon', 'Polygon', null].includes(type)) {
                 return new Style({
                     stroke: stroke,
                     fill: fill,
@@ -1551,8 +1555,49 @@ export default {
 
             vm.initialisePointerMoveEvent();
             vm.snap = new Snap({ source: vm.modelQuerySource });
+            vm.dragAndDrop = new DragAndDrop({
+                projection: 'EPSG:4326',
+                formatConstructors: [GeoJSON],
+            });
+            vm.dragAndDrop.on('addfeatures', function (event) {
+                console.log('dragAndDrop addfeatures', event);
+                let features = event.features;
+                let source = vm.modelQuerySource;
+                for (let i = 0, ii = features.length; i < ii; i++) {
+                    let feature = features[i];
+                    // feature.set('for_layer', true);
+                    let color = vm.styleByColor(feature, vm.context, 'draw');
+                    let style = vm.createStyle(
+                        color,
+                        null,
+                        feature.getGeometry().getType()
+                    );
+                    let area = Math.round(
+                        getArea(feature.getGeometry(), {
+                            projection: 'EPSG:4326',
+                        })
+                    );
 
-            let extent_interactions = [vm.snap];
+                    const properties = {
+                        id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
+                        model: vm.context,
+                        name: vm.context.id,
+                        label: vm.context.label,
+                        color: color,
+                        geometry_source: 'New',
+                        locked: false,
+                        copied_from: null,
+                        area_sqm: area,
+                    };
+
+                    feature.setProperties(properties);
+                    feature.setStyle(style);
+                    source.addFeature(feature);
+                    vm.newFeatureId++;
+                }
+            });
+
+            let extent_interactions = [vm.snap, vm.dragAndDrop];
             if (vm.editable) {
                 // Only add these interactions if polygons are editable
                 vm.select = vm.initialiseSelectFeatureEvent();
@@ -1567,6 +1612,18 @@ export default {
 
             vm.initialiseSingleClickEvent();
             vm.initialiseDoubleClickEvent();
+
+            // Custom drag and drop
+            vm.map.getViewport().addEventListener('dragover', function (evt) {
+                evt.preventDefault();
+            });
+            vm.map.getViewport().addEventListener('drop', function (evt) {
+                console.log('drag: drop', evt);
+                evt.preventDefault();
+                // TODO: Handle drop of shapefile zips, see: loadshp package, or https://www.npmjs.com/package/shape2json
+                const files = evt.dataTransfer.files;
+                files;
+            });
         },
         initialiseMeasurementLayer: function () {
             let vm = this;

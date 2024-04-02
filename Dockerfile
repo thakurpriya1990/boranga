@@ -91,20 +91,23 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     chown -R oim.oim /app && \
     mkdir /container-config/ && \
     chown -R oim.oim /container-config/ && \    
-    mkdir -p /app/logs/.ipython && \
-    export IPYTHONDIR=/app/logs/.ipython/ && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    ln -s /usr/bin/python3 /usr/bin/python  && \
+    pip install --upgrade pip && \
+    wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/health_check.sh -O /bin/health_check.sh && \
+    chmod 755 /bin/health_check.sh
 
 FROM configure_boranga as python_dependencies_boranga
 
 WORKDIR /app
+USER oim
+ENV PATH=/app/.local/bin:$PATH
+
 COPY --chown=oim:oim requirements.txt gunicorn.ini.py manage.py ./
 COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim boranga ./boranga
 
-RUN ln -s /usr/bin/python3 /usr/bin/python  && \
-    pip install --upgrade pip && \
-    pip3 install --no-cache-dir -r requirements.txt && \
+RUN pip install --no-cache-dir -r requirements.txt && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
 # TODO: Is this still needed?
@@ -114,7 +117,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python  && \
 
 FROM python_dependencies_boranga as build_vue_boranga
 
-RUN cd /app/boranga/frontend/boranga; npm ci && \
+RUN cd /app/boranga/frontend/boranga; npm ci --omit=dev && \
     cd /app/boranga/frontend/boranga; npm run build
 
 FROM build_vue_boranga as collectstatic_boranga
@@ -123,10 +126,6 @@ RUN touch /app/.env && \
     python manage.py collectstatic --noinput
 
 FROM collectstatic_boranga as launch_boranga
-
-# Add k8s health check script
-RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/health_check.sh -O /bin/health_check.sh && \
-    chmod 755 /bin/health_check.sh
 
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
