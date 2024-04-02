@@ -267,6 +267,8 @@ LOGGING["loggers"]["payment_checkout"] = {
 }
 
 LOGGING["loggers"]["boranga"] = {"handlers": ["file"], "level": "INFO"}
+if DEBUG:
+    LOGGING["loggers"]["boranga"] = {"handlers": ["console"], "level": "DEBUG"}
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 DEV_APP_BUILD_URL = env(
     "DEV_APP_BUILD_URL"
