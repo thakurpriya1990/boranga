@@ -714,6 +714,7 @@ import {
     // validateFeature,
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
+import shp from 'shpjs';
 
 export default {
     name: 'MapComponent',
@@ -1269,7 +1270,8 @@ export default {
             let vm = this;
             if (!geometry_source) {
                 geometry_source =
-                    featureData.properties.geometry_source.toLowerCase();
+                    featureData.properties.geometry_source?.toLowerCase() ||
+                    'draw';
             }
 
             if (vm.styleBy === 'assessor') {
@@ -1565,17 +1567,11 @@ export default {
                 let source = vm.modelQuerySource;
                 for (let i = 0, ii = features.length; i < ii; i++) {
                     let feature = features[i];
-                    // feature.set('for_layer', true);
                     let color = vm.styleByColor(feature, vm.context, 'draw');
                     let style = vm.createStyle(
                         color,
                         null,
                         feature.getGeometry().getType()
-                    );
-                    let area = Math.round(
-                        getArea(feature.getGeometry(), {
-                            projection: 'EPSG:4326',
-                        })
                     );
 
                     const properties = {
@@ -1587,7 +1583,7 @@ export default {
                         geometry_source: 'New',
                         locked: false,
                         copied_from: null,
-                        area_sqm: area,
+                        area_sqm: vm.featureArea(feature),
                     };
 
                     feature.setProperties(properties);
@@ -1616,13 +1612,45 @@ export default {
             // Custom drag and drop
             vm.map.getViewport().addEventListener('dragover', function (evt) {
                 evt.preventDefault();
+                for (let i = 0; i < evt.dataTransfer.items.length; i++) {
+                    console.log(
+                        'drag: dragover',
+                        evt.dataTransfer.items[i].type
+                    );
+                }
             });
             vm.map.getViewport().addEventListener('drop', function (evt) {
                 console.log('drag: drop', evt);
+                // Prevent default behavior (Prevent file from being opened)
                 evt.preventDefault();
+
                 // TODO: Handle drop of shapefile zips, see: loadshp package, or https://www.npmjs.com/package/shape2json
-                const files = evt.dataTransfer.files;
+                // TODO: Make this a function
+                // TODO: See if addFeatureCollectionToMap can be used for drag&drop of geojson files (search for dragAndDrop addfeatures)
+                shp;
+                const files = evt.dataTransfer.files[0];
                 files;
+                if (evt.dataTransfer.items) {
+                    // Use DataTransferItemList interface to access the file(s)
+                    [...evt.dataTransfer.items].forEach(async (item, i) => {
+                        // If dropped items aren't files, reject them
+                        if (item.kind === 'file') {
+                            const file = item.getAsFile();
+                            console.log(`… file[${i}].name = ${file.name}`);
+                            await file.arrayBuffer().then(async (buffer) => {
+                                await shp(buffer).then(function (geojson) {
+                                    console.log(geojson);
+                                    vm.addFeatureCollectionToMap(geojson);
+                                });
+                            });
+                        }
+                    });
+                } else {
+                    // Use DataTransfer interface to access the file(s)
+                    [...evt.dataTransfer.files].forEach((file, i) => {
+                        console.log(`… file[${i}].name = ${file.name}`);
+                    });
+                }
             });
         },
         initialiseMeasurementLayer: function () {
@@ -2536,7 +2564,7 @@ export default {
         featureFromDict: function (featureData, model) {
             let vm = this;
             if (model == null) {
-                model = {};
+                model = vm.context || {};
             }
 
             let color = vm.styleByColor(featureData, model);
@@ -2560,14 +2588,20 @@ export default {
                 // label: model.label || model.application_type_name_display,
                 label: model.label,
                 color: color,
-                source: featureData.properties.source,
-                geometry_source: featureData.properties.geometry_source,
-                locked: featureData.properties.locked,
-                copied_from: featureData.properties.report_copied_from,
-                area_sqm: featureData.properties.area_sqm,
+                source: featureData.properties.source || null,
+                geometry_source:
+                    featureData.properties.geometry_source || 'New',
+                locked: featureData.properties.locked || false,
+                copied_from: featureData.properties.report_copied_from || null,
+                area_sqm: featureData.properties.area_sqm || null,
             });
-            // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
-            feature.setId(featureData.id);
+            if (featureData.id) {
+                // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
+                feature.setId(featureData.id);
+            }
+            if (!feature.getProperties().area) {
+                feature.getProperties().area = vm.featureArea(feature);
+            }
 
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
@@ -2866,6 +2900,13 @@ export default {
                     return doc.name.slice(doc.name.lastIndexOf('.'));
                 }, []);
         },
+        featureArea: function (feature, projection = 'EPSG:4326') {
+            return Math.round(
+                getArea(feature.getGeometry(), {
+                    projection: projection,
+                })
+            );
+        },
     },
 };
 </script>
@@ -2901,6 +2942,7 @@ export default {
     vertical-align: top;
     margin-left: -10px;
 }
+
 .map-spinner {
     position: absolute !important;
 }
@@ -2914,6 +2956,7 @@ export default {
 .force-parent-lh {
     line-height: inherit !important;
 }
+
 #submenu-draw {
     display: none;
 }
