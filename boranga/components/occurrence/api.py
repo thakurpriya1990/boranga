@@ -84,6 +84,7 @@ from boranga.components.occurrence.serializers import (
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
     OccurrenceReportSerializer,
+    OccurrenceSerializer,
     SaveHabitatCompositionSerializer,
     SaveHabitatConditionSerializer,
     SaveFireHistorySerializer,
@@ -1432,8 +1433,10 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
 class OccurrenceFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         logger.debug(f"OccurrenceFilterBackend:filter_queryset: {view.name}")
-        if "internal" in view.name:
-            total_count = queryset.count()
+
+        total_count = queryset.count()
+
+        if view.name and "internal" in view.name:
 
             filter_group_type = request.GET.get("filter_group_type")
             if filter_group_type and not filter_group_type.lower() == "all":
@@ -1476,9 +1479,7 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
             if filter_submitted_to_date and not filter_submitted_from_date:
                 queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
 
-        if "external" in view.name:
-            total_count = queryset.count()
-
+        if view.name and "external" in view.name:
             filter_group_type = request.GET.get("filter_group_type")
             if filter_group_type and not filter_group_type.lower() == "all":
                 queryset = queryset.filter(group_type__name=filter_group_type)
@@ -1519,9 +1520,14 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
 class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
     pagination_class = DatatablesPageNumberPagination
     queryset = Occurrence.objects.none()
-    serializer_class = ListOccurrenceSerializer
+    serializer_class = OccurrenceSerializer
     page_size = 10
     filter_backends = (OccurrenceFilterBackend,)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ListOccurrenceSerializer
+        return super().get_serializer_class()
 
     def get_queryset(self):
         qs = Occurrence.objects.all()
