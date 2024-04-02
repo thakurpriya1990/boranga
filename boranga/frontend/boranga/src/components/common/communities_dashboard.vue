@@ -112,6 +112,7 @@ import FormSection from '@/components/forms/section_toggle.vue'
 import Vue from 'vue'
 import {
     api_endpoints,
+    constants,
     helpers
 }from '@/utils/hooks'
 export default {
@@ -526,7 +527,7 @@ export default {
             return {
                 autoWidth: false,
                 language: {
-                    processing: "<b>Loading...</b>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 order: [
                     [0, 'desc']

@@ -17,19 +17,6 @@ import datetime
 import string
 from dateutil.relativedelta import relativedelta
 
-
-def are_migrations_running():
-    """
-    Checks whether the app was launched with the migration-specific params
-    """
-    # return sys.argv and ('migrate' in sys.argv or 'makemigrations' in sys.argv)
-    return sys.argv and (
-        "migrate" in sys.argv
-        or "makemigrations" in sys.argv
-        or "showmigrations" in sys.argv
-        or "sqlmigrate" in sys.argv
-    )
-
 def run_deploy(tclass_csv, eclass_csv):
     """
     tclass_csv: 'boranga/utils/csv/Commercial-Licences-Migration-20191119.csv'
