@@ -44,6 +44,12 @@ body {
     color: #226fbb;
 }
 
+.page-item.active>.page-link {
+    color: #fff;
+    background-color: #226fbb !important;
+    border-color: #226fbb !important;
+}
+
 .nav-link {
     color: #226fbb;
 }

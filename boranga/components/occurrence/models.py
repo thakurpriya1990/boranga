@@ -3,6 +3,7 @@ import datetime
 import random
 from django.utils import timezone
 from django.db import models
+from django.db.models import Count
 from django.db.models.functions import Cast, Coalesce
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
@@ -146,11 +147,19 @@ class OccurrenceReport(models.Model):
     proposal_type = models.CharField('Application Status Type', max_length=40, choices=APPLICATION_TYPE_CHOICES,
                                         default=APPLICATION_TYPE_CHOICES[0][0])
 
-    #species related occurrence
+    # species related occurrence
     species = models.ForeignKey(Species, on_delete=models.CASCADE , related_name="occurrence_report", null=True, blank=True)
 
-    #communties related occurrence
+    # communties related occurrence
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name="occurrence_report", null=True, blank=True)
+
+    occurrence = models.ForeignKey(
+        "Occurrence",
+        on_delete=models.PROTECT,
+        related_name="occurrence_reports",
+        null=True,
+        blank=True,
+    )
 
     occurrence_report_number = models.CharField(max_length=9, blank=True, default='')
 
@@ -164,7 +173,7 @@ class OccurrenceReport(models.Model):
     assigned_approver = models.IntegerField(null=True) #EmailUserRO
     approved_by = models.IntegerField(null=True) #EmailUserRO
     # internal user who edits the approved conservation status(only specific fields)
-    #modified_by = models.IntegerField(null=True) #EmailUserRO 
+    # modified_by = models.IntegerField(null=True) #EmailUserRO
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
@@ -188,11 +197,11 @@ class OccurrenceReport(models.Model):
             new_occurrence_report_id = 'OCR{}'.format(str(self.pk))
             self.occurrence_report_number = new_occurrence_report_id
             self.save()
-    
+
     @property
     def reference(self):
         return '{}-{}'.format(self.occurrence_report_number,self.occurrence_report_number) #TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
-    
+
     @property
     def applicant(self):
         if self.submitter:
@@ -215,8 +224,8 @@ class OccurrenceReport(models.Model):
             return "{} {}".format(
                 email_user.first_name,
                 email_user.last_name)
-                # Priya commented the below as gives error on UAT and Dev only on external side
-                # email_user.addresses.all().first())
+            # Priya commented the below as gives error on UAT and Dev only on external side
+            # email_user.addresses.all().first())
 
     @property
     def applicant_address(self):
@@ -233,7 +242,7 @@ class OccurrenceReport(models.Model):
     @property
     def applicant_type(self):
         if self.submitter:
-            #return self.APPLICANT_TYPE_SUBMITTER
+            # return self.APPLICANT_TYPE_SUBMITTER
             return 'SUB'
 
     @property
@@ -245,10 +254,10 @@ class OccurrenceReport(models.Model):
         # else:
         #     return 'submitter'
         return 'submitter'
-    
+
     def log_user_action(self, action, request):
         return OccurrenceReportUserAction.log_action(self, action, request.user.id)
-    
+
     @property
     def can_user_edit(self):
         """
@@ -271,7 +280,7 @@ class OccurrenceReport(models.Model):
         2- or if the application has been pushed back to the user
         """
         return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
-    
+
     @property
     def is_flora_application(self):
         if self.group_type.name==GroupType.GROUP_TYPE_FLORA:
@@ -289,7 +298,7 @@ class OccurrenceReport(models.Model):
         if self.group_type.name==GroupType.GROUP_TYPE_COMMUNITY:
             return True
         return False
-    
+
     @property
     def allowed_assessors(self):
         # if self.processing_status == 'with_approver':
@@ -361,13 +370,13 @@ class OccurrenceReport(models.Model):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
-    #Check if the user is member of assessor group for the OCR Proposal
+    # Check if the user is member of assessor group for the OCR Proposal
     def is_assessor(self,user):
-            return user.id in self.get_assessor_group().get_system_group_member_ids()
+        return user.id in self.get_assessor_group().get_system_group_member_ids()
 
-    #Check if the user is member of assessor group for the OCR Proposal
+    # Check if the user is member of assessor group for the OCR Proposal
     def is_approver(self,user):
-            return user.id in self.get_assessor_group().get_system_group_member_ids()
+        return user.id in self.get_assessor_group().get_system_group_member_ids()
 
 
 class OccurrenceReportLogEntry(CommunicationsLogEntry):
@@ -1410,7 +1419,12 @@ class OCRConservationThreat(models.Model):
 
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related("group_type", "species")
+        return (
+            super()
+            .get_queryset()
+            .select_related("group_type", "species")
+            .annotate(occurrence_report_count=Count("occurrence_reports"))
+        )
 
 
 class Occurrence(models.Model):
@@ -1420,7 +1434,18 @@ class Occurrence(models.Model):
         GroupType, on_delete=models.PROTECT, null=True, blank=True
     )
     species = models.ForeignKey(
-        Species, on_delete=models.PROTECT, null=True, blank=True
+        Species,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="occurrences",
+    )
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="occurrences",
     )
     submitter = models.IntegerField(null=True)  # EmailUserRO
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
@@ -1463,5 +1488,60 @@ class Occurrence(models.Model):
 
     @property
     def number_of_reports(self):
-        # TODO Once linked to occurrence report return actual count
-        return random.randint(1, 100)
+        return self.occurrence_report_count
+
+
+class OccurrenceLogEntry(CommunicationsLogEntry):
+    occurrence = models.ForeignKey(
+        Occurrence, related_name="comms_logs", on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return "{} - {}".format(self.reference, self.subject)
+
+    class Meta:
+        app_label = "boranga"
+
+    def save(self, **kwargs):
+        # save the application reference if the reference not provided
+        if not self.reference:
+            self.reference = self.occurrence.reference
+        super(OccurrenceLogEntry, self).save(**kwargs)
+
+
+def update_occurrence_comms_log_filename(instance, filename):
+    return "{}/occurrence/{}/communications/{}".format(
+        settings.MEDIA_APP_DIR, instance.log_entry.occurrence.id, filename
+    )
+
+
+class OccurrenceLogDocument(Document):
+    log_entry = models.ForeignKey(
+        OccurrenceLogEntry, related_name="documents", on_delete=models.CASCADE
+    )
+    _file = models.FileField(
+        upload_to=update_occurrence_comms_log_filename,
+        max_length=512,
+        storage=private_storage,
+    )
+
+    class Meta:
+        app_label = "boranga"
+
+
+class OccurrenceUserAction(UserAction):
+    ACTION_VIEW_OCCURRENCE = "View occurrence {}"
+    ACTION_SAVE_APPLICATION = "Save occurrence {}"
+    ACTION_EDIT_APPLICATION = "Edit occurrence {}"
+
+    class Meta:
+        app_label = "boranga"
+        ordering = ("-when",)
+
+    @classmethod
+    def log_action(cls, occurrence, action, user):
+        return cls.objects.create(occurrence=occurrence, who=user, what=str(action))
+
+    occurrence = models.ForeignKey(
+        Occurrence, related_name="action_logs", on_delete=models.CASCADE
+    )
