@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 blank=True,
                 null=True,
                 on_delete=django.db.models.deletion.PROTECT,
-                related_name="occurrence_report",
+                related_name="occurrence_reports",
                 to="boranga.occurrence",
             ),
         ),

@@ -155,7 +155,7 @@ class OccurrenceReport(models.Model):
     occurrence = models.ForeignKey(
         "Occurrence",
         on_delete=models.PROTECT,
-        related_name="occurrence_report",
+        related_name="occurrence_reports",
         null=True,
         blank=True,
     )
@@ -1471,8 +1471,7 @@ class Occurrence(models.Model):
 
     @property
     def number_of_reports(self):
-        # TODO Once linked to occurrence report return actual count
-        return random.randint(1, 100)
+        return self.occurrence_reports.count()
 
 
 class OccurrenceLogEntry(CommunicationsLogEntry):
