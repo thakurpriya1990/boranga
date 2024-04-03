@@ -301,7 +301,7 @@ if SENTRY_DSN and EMAIL_INSTANCE:
         dsn=SENTRY_DSN,
         sample_rate=SENTRY_SAMPLE_RATE,
         traces_sample_rate=SENTRY_TRANSACTION_SAMPLE_RATE,
-        environment=EMAIL_INSTANCE,
+        environment=EMAIL_INSTANCE.lower(),
         release=APPLICATION_VERSION,
     )
 
