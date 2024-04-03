@@ -76,9 +76,10 @@
                                 <div class="row">
                                     <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
                                         enctype="multipart/form-data">
-                                        <ProposalSpeciesCommunities ref="species_communities" :occurrence_report="occurrence_report"
+                                        <!-- <ProposalSpeciesCommunities ref="species_communities" :occurrence_report="occurrence_report"
                                             id="speciesCommunityStart" :is_internal="true">
-                                        </ProposalSpeciesCommunities>
+                                        </ProposalSpeciesCommunities> -->
+
                                         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                         <input type='hidden' name="occurrence_report_id" :value="1" />
                                         <div class="row" style="margin-bottom: 50px">
@@ -197,7 +198,7 @@ export default {
             return helpers.getCookie('csrftoken')
         },
         isCommunity: function () {
-            return this.occurrence_report.group_type === "community"
+            return this.occurrence_report && this.occurrence_report.group_type === "community"
         },
         occurrence_report_form_url: function () {
             return (this.occurrence_report.group_type === "community") ?
