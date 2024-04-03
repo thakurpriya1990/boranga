@@ -84,6 +84,7 @@ from boranga.components.occurrence.serializers import (
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
     OccurrenceReportSerializer,
+    OccurrenceSerializer,
     SaveHabitatCompositionSerializer,
     SaveHabitatConditionSerializer,
     SaveFireHistorySerializer,
@@ -1499,8 +1500,10 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
 class OccurrenceFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         logger.debug(f"OccurrenceFilterBackend:filter_queryset: {view.name}")
-        if "internal" in view.name:
-            total_count = queryset.count()
+
+        total_count = queryset.count()
+
+        if view.name and "internal" in view.name:
 
             filter_group_type = request.GET.get("filter_group_type")
             if filter_group_type and not filter_group_type.lower() == "all":
@@ -1543,9 +1546,7 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
             if filter_submitted_to_date and not filter_submitted_from_date:
                 queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
 
-        if "external" in view.name:
-            total_count = queryset.count()
-
+        if view.name and "external" in view.name:
             filter_group_type = request.GET.get("filter_group_type")
             if filter_group_type and not filter_group_type.lower() == "all":
                 queryset = queryset.filter(group_type__name=filter_group_type)
@@ -1586,9 +1587,14 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
 class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
     pagination_class = DatatablesPageNumberPagination
     queryset = Occurrence.objects.none()
-    serializer_class = ListOccurrenceSerializer
+    serializer_class = OccurrenceSerializer
     page_size = 10
     filter_backends = (OccurrenceFilterBackend,)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ListOccurrenceSerializer
+        return super().get_serializer_class()
 
     def get_queryset(self):
         qs = Occurrence.objects.all()
@@ -1630,3 +1636,106 @@ class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
             result_page, context={"request": request}, many=True
         )
         return self.paginator.get_paginated_response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_internal_export(self, request, *args, **kwargs):
+
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get("export_format")
+        allowed_fields = [
+            "species",
+            "scientific_name",
+            "reported_date",
+            "submitter",
+            "processing_status",
+            "occurrence_report_number",
+        ]
+
+        serializer = ListInternalOccurrenceReportSerializer(
+            qs, context={"request": request}, many=True
+        )
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {
+                    key: value for key, value in obj.items() if key in allowed_fields
+                }
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key="", sep="_"):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = [
+                "Number",
+                "Occurrence",
+                "Scientific Name",
+                "Submission date/time",
+                "Submitter",
+                "Processing Status",
+            ]
+            df.columns = new_headings
+            column_order = [
+                "Number",
+                "Occurrence",
+                "Scientific Name",
+                "Submission date/time",
+                "Submitter",
+                "Processing Status",
+            ]
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = "Sheet1"
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(
+                        buffer.read(), content_type="application/vnd.ms-excel"
+                    )
+                    response["Content-Disposition"] = (
+                        "attachment; filename=DBCA_OccurrenceReport_Species.xlsx"
+                    )
+                    final_response = response
+                    buffer.close()
+                    return final_response
+
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type="text/csv")
+                    response["Content-Disposition"] = (
+                        "attachment; filename=DBCA_OccurrenceReport_Species.csv"
+                    )
+                    response.write(csv_data)
+                    return response
+
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")

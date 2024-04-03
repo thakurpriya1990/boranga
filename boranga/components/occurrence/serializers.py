@@ -1055,7 +1055,7 @@ class SaveOCRConservationThreatSerializer(serializers.ModelSerializer):
 			)
 
 
-class ListOccurrenceSerializer(serializers.ModelSerializer):
+class OccurrenceSerializer(serializers.ModelSerializer):
     processing_status_display = serializers.CharField(
         source="get_processing_status_display"
     )
@@ -1064,6 +1064,12 @@ class ListOccurrenceSerializer(serializers.ModelSerializer):
     )
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
 
+    class Meta:
+        model = Occurrence
+        fields = "__all__"
+
+
+class ListOccurrenceSerializer(OccurrenceSerializer):
     class Meta:
         model = Occurrence
         fields = (
