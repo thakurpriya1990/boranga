@@ -1,8 +1,9 @@
 <template lang="html">
-    <div class="container" id="internal-occurence-detail">
-        <div class="row" style="padding-bottom: 50px;">
+    <div class="container" id="internal-occurence-report-detail">
+        <div class="row pb-4">
             <div v-if="occurrence_report" class="col">
-                <h3>Occurrence Report: {{ occurrence_report.occurrence_report_number }}</h3>
+                <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }}</h3>
+                <h4 class="text-muted mb-3">Occurrence: {{ occurrence_report?.occurrence?.occurrence_number || 'NOT SET' }}</h4>
                 <div v-if="!comparing" class="col-md-3">
 
                     <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
@@ -68,7 +69,7 @@
                         </div>
                     </div>
                 </div>
-                <div :class="class_ncols">
+                <div>
                     <div class="row">
                         <template>
                             <div class="">
@@ -129,11 +130,6 @@
                             </div>
                         </template>
                     </div>
-                </div>
-            </div>
-            <div v-else>
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
         </div>
