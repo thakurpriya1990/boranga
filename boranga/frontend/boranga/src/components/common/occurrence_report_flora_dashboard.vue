@@ -369,9 +369,9 @@ export default {
                                 }
                                 else{
                                     if(full.assessor_edit){
-                                        links +=  `<a href='/internal/occurrence-report/${full.id}?action=edit'>Edit</a><br/>`;
+                                        links +=  `<a href='/internal/occurrence-report/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
                                     }
-                                    links +=  `<a href='/internal/occurrence-report/${full.id}?action=view'>View</a><br/>`;
+                                    links +=  `<a href='/internal/occurrence-report/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                                 }
                             }
                         }
