@@ -129,7 +129,7 @@ api_patterns = [
     url(r'^api/document_categories_dict$', species_communities_api.GetDocumentCategoriesDict.as_view(), name='get-document-categories-dict'),
     #url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
 
-    url(r'^api/history/versions/(?P<app_label>[\w-]+)/(?P<component_name>[\w-]+)/(?P<model_name>[\w-]+)/(?P<pk>\d+)/(?P<reference_id_field>[\w-]+)/$',
+    url(r'^api/history/versions/(?P<app_label>[\w-]+)/(?P<component_name>[\w-]+)/(?P<model_name>[\w-]+)/(?P<pk>\d+)/$',
             history_api.GetPaginatedVersionsView.as_view(), name='get-versions'),
 
     #url(r'^api/reports/booking_settlements$', main_api.BookingSettlementReportView.as_view(),name='booking-settlements-report'),

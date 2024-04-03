@@ -191,7 +191,7 @@ module.exports = {
     },
 
     lookup_history_species_document:function (id) {
-      return `/api/history/versions/boranga/species_communities/SpeciesDocument/${id}/document_number/`;
+      return `/api/history/versions/boranga/species_communities/SpeciesDocument/${id}/`;
     },
 
     site_url: site_url,

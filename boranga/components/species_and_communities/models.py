@@ -6,7 +6,8 @@ from django.db.models import Q
 from boranga.components.main.models import (
     CommunicationsLogEntry, 
     UserAction,
-    Document
+    Document,
+    RevisionedMixin,
     )
 import json
 from reversion.models import Version
@@ -1396,7 +1397,7 @@ class CommunityDistribution(models.Model):
         return str(self.id)  # TODO: is the most appropriate?
 
 
-class DocumentCategory(models.Model):
+class DocumentCategory(RevisionedMixin):
     """
     This is particularly useful for organisation of documents e.g. preventing inappropriate documents being added
     to certain tables.
@@ -1893,4 +1894,5 @@ class CommunityConservationAttributes(models.Model):
         return str(self.community)  # TODO: is the most appropriate?
 
 import reversion
-reversion.register(SpeciesDocument)
+reversion.register(SpeciesDocument, follow=['document_category'])
+reversion.register(DocumentCategory) #disable this, for testing only

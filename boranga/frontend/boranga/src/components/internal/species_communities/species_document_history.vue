@@ -2,7 +2,7 @@
     <div id="speciesDocumentHistory">
         <modal
             transition="modal fade"
-            :title="'Species Document History'"
+            :title="'Species Document History ' + documentId"
             :large="true"
             :full="true"
             :showOK="false"
@@ -69,8 +69,8 @@ export default {
         },
         datatable_headers: function () {
             return [
-                'id',
-                'Number',
+                'Revision Number',
+                'Revision Date',
                 'Category',
                 'Sub Category',
                 'Document',
@@ -86,7 +86,7 @@ export default {
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.data[0];
+                    return full.data.data.speciesdocument;
                 },
                 name: 'data',
             };
@@ -94,12 +94,12 @@ export default {
         column_id: function () {
             return {
                 // 1. ID
-                data: 'data.data[0].pk',
+                data: 'data.data.speciesdocument.pk',
                 orderable: false,
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data[0].pk;
+                    return full.data.speciesdocument.pk;
                 },
                 name: 'id',
             };
@@ -107,25 +107,57 @@ export default {
         column_number: function () {
             return {
                 // 2. Number
-                data: 'data.data[0].fields.document_number',
-                orderable: true,
+                data: 'data.data.speciesdocument.fields.document_number',
+                orderable: false,
                 searchable: false, 
-                visible: true,
+                visible: false,
                 render: function (row, type, full) {
-                    return full.data[0].fields.document_number;
+                    return full.data.speciesdocument.fields.document_number;
                 },
                 name: 'document_number',
             };
         },
-        column_category: function () {
+        column_revision_id: function () {
             return {
                 
-                data: 'data.data[0].fields.document_category',
+                data: 'revision_id',
                 orderable: true,
+                searchable: true, 
+                visible: true,
+                render: function (row, type, full) {
+                    return full.revision_id;
+                },
+                name: 'revision_id',
+            };
+        },
+        column_revision_date: function () {
+            return {
+                
+                data: 'date_created',
+                orderable: true,
+                searchable: true, 
+                visible: true,
+                render: function (row, type, full) {
+                    return full.date_created;
+                },
+                name: 'revision_date',
+            };
+        },
+        column_category: function () {
+            return {
+                //data: 'data.data.speciesdocument.fields.document_category', 
+                data: 'data.data.documentcategory.fields.document_category_name', //TODO: disable this, for testing only
+                defaultContent: '',
+                orderable: false, //TODO: make orderable when done testing foreign fields
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data[0].fields.document_category;
+                    //return full.data.speciesdocument.fields.document_category;
+                    if (full.data.documentcategory !== undefined) {
+                        return full.data.documentcategory.fields.document_category_name;
+                    } else {
+                        return ''
+                    }
                 },
                 name: 'document_category',
             };
@@ -133,12 +165,13 @@ export default {
         column_sub_category: function () {
             return {
                 
-                data: 'data.data[0].fields.document_sub_category',
+                data: 'data.data.speciesdocument.fields.document_sub_category',
+                defaultContent: '',
                 orderable: true,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data[0].fields.document_sub_category;
+                    return full.data.speciesdocument.fields.document_sub_category;
                 },
                 name: 'document_sub_category',
             };
@@ -146,16 +179,17 @@ export default {
         column_file: function () {
             return {
                 // 3. File
-                data: 'data.data[0].fields.name',
+                data: 'data.data.speciesdocument.fields.name',
+                defaultContent: '',
                 orderable: false,
                 searchable: true, 
                 visible: true,
                 mRender: function (row, type, full) {
                     let links='';
-                    if(full.data[0].fields.visible){
-                        links+='<a href="/private-media/'+ full.data[0].fields._file+'" target="_blank"><p>' + full.data[0].fields.name + '</p></a>' ;
+                    if(full.data.speciesdocument.fields.visible){
+                        links+='<a href="/private-media/'+ full.data.speciesdocument.fields._file+'" target="_blank"><p>' + full.data.speciesdocument.fields.name + '</p></a>' ;
                     }else{
-                        links+='<s>'+ full.data[0].fields.name +'</s>';
+                        links+='<s>'+ full.data.speciesdocument.fields.name +'</s>';
                     }
                     return links;
                 },
@@ -165,12 +199,13 @@ export default {
         column_description: function () {
             return {
                 // 4. Description
-                data: 'data.data[0].fields.description',
+                data: 'data.data.speciesdocument.fields.description',
+                defaultContent: '',
                 orderable: false,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data[0].fields.description;
+                    return full.data.speciesdocument.fields.description;
                 },
                 name: 'description',
             };
@@ -178,8 +213,8 @@ export default {
         datatable_options: function () {
             let vm = this;
             let columns = [
-                vm.column_id,
-                vm.column_number,
+                vm.column_revision_id,
+                vm.column_revision_date,
                 vm.column_category,
                 vm.column_sub_category,
                 vm.column_file,

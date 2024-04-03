@@ -42,8 +42,15 @@ class VersionsFilterBackend(DatatablesFilterBackend):
             ordering_values.append(field['name'][0])
         final_ordering_values = []
         for i in range(0,len(ordering)):
-            queryset = queryset.annotate(**{'order_field'+str(i):F("data__0__fields__"+ordering_values[i])})
-            final_ordering_values.append(ordering[i]+"order_field"+str(i))
+
+            #handle revision date and id 
+            if ordering_values[i] == 'revision_id':
+                final_ordering_values.append(ordering[i]+"revision")
+            elif ordering_values[i] == 'revision_date':
+                final_ordering_values.append(ordering[i]+"revision__date_created")
+            else:
+                queryset = queryset.annotate(**{'order_field'+str(i):F("data__0__fields__"+ordering_values[i])})
+                final_ordering_values.append(ordering[i]+"order_field"+str(i))
 
         queryset = queryset.order_by(*final_ordering_values)
 
@@ -54,7 +61,7 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
     paginator = DatatablesPageNumberPagination()
     #paginator.page_size = 2
 
-    def get(self, request, app_label, component_name, model_name, pk, reference_id_field):
+    def get(self, request, app_label, component_name, model_name, pk):
         """ Returns all versions for any model object
 
             api/history/app_label/component_name/model_name/pk/
@@ -78,13 +85,21 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
 
         # Build the list of versions
         versions_list = []
-        for index, version in enumerate(queryset):
-            ref_number = f'{getattr(instance, reference_id_field)}-{version.revision_id}'
+        related_versions = Version.objects.annotate(data=Cast('serialized_data', JSONField()))
+
+        for version in queryset:
+            #ref_number = f'{getattr(instance, reference_id_field)}-{version.revision_id}'
+
+            #TODO add other versioned models in the same revision (consider transforming in to dict)
+            revision_versions = related_versions.filter(revision_id=version.revision_id)
+            data = {}
+            for related_version in revision_versions:
+                data[related_version.content_type.model] = related_version.data[0]
 
             versions_list.append({
-               'ref_number': ref_number,
+               'revision_id': version.revision_id,
                'date_created': version.revision.date_created,
-               'data': version.data,
+               'data': data,
                }
             )
 
