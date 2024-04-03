@@ -3,6 +3,7 @@ import datetime
 import random
 from django.utils import timezone
 from django.db import models
+from django.db.models import Count
 from django.db.models.functions import Cast, Coalesce
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
@@ -1418,7 +1419,12 @@ class OCRConservationThreat(models.Model):
 
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related("group_type", "species")
+        return (
+            super()
+            .get_queryset()
+            .select_related("group_type", "species")
+            .annotate(occurrence_report_count=Count("occurrence_reports"))
+        )
 
 
 class Occurrence(models.Model):
@@ -1471,7 +1477,7 @@ class Occurrence(models.Model):
 
     @property
     def number_of_reports(self):
-        return self.occurrence_reports.count()
+        return self.occurrence_report_count
 
 
 class OccurrenceLogEntry(CommunicationsLogEntry):
