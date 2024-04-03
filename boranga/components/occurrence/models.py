@@ -1434,7 +1434,18 @@ class Occurrence(models.Model):
         GroupType, on_delete=models.PROTECT, null=True, blank=True
     )
     species = models.ForeignKey(
-        Species, on_delete=models.PROTECT, null=True, blank=True
+        Species,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="occurrences",
+    )
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="occurrences",
     )
     submitter = models.IntegerField(null=True)  # EmailUserRO
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
