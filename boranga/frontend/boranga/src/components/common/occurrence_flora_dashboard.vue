@@ -426,7 +426,7 @@ export default {
                 allowClear: true,
                 placeholder: "Select Scientific Name",
                 ajax: {
-                    url: api_endpoints.scientific_name_lookup_by_groupname,
+                    url: api_endpoints.scientific_name_lookup,
                     dataType: 'json',
                     data: function (params) {
                         var query = {
