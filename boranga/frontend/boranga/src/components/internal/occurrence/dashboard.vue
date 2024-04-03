@@ -41,7 +41,7 @@
 
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-                <FormSection :formCollapse="false" label="Occurrence - Flora" Index="occurrence-flora">
+                <FormSection :formCollapse="false" label="Occurrences - Flora" Index="occurrence-flora">
                     <OccurrenceFloraDashboard v-if="isFlora" ref="occ_flora_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
@@ -55,7 +55,7 @@
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-                <FormSection :formCollapse="false" label="Occurrence - Fauna" Index="occurrence-fauna">
+                <FormSection :formCollapse="false" label="Occurrences - Fauna" Index="occurrence-fauna">
                 <OccurrenceFaunaDashboard v-if="isFauna" ref="occ_fauna_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
@@ -69,7 +69,7 @@
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-                <FormSection :formCollapse="false" label="Occurrence - Community" Index="occurrence-community">
+                <FormSection :formCollapse="false" label="Occurrences - Community" Index="occurrence-community">
                     <OccurrenceCommunityDashboard v-if="isCommunity" ref="occ_community_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
