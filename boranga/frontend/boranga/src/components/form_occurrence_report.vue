@@ -5,7 +5,7 @@
                 <li class="nav-item">
                     <a
                         id="pills-location-tab"
-                        class="nav-link"
+                        class="nav-link active"
                         data-bs-toggle="pill"
                         :href="'#' + locationBody"
                         role="tab"
@@ -23,7 +23,7 @@
                         data-bs-toggle="pill"
                         :href="'#' + habitatBody"
                         role="tab"
-                        :aria-selected="habitatBody"
+                        aria-selected="false"
                         @click="tabClicked()"
                     >
                         Habitat
@@ -36,7 +36,6 @@
                         data-bs-toggle="pill"
                         :href="'#' + observationBody"
                         role="tab"
-                        :aria-selected="observationBody"
                         aria-selected="false"
                         @click="tabClicked()"
                     >
@@ -50,7 +49,6 @@
                         data-bs-toggle="pill"
                         :href="'#' + documentBody"
                         role="tab"
-                        :aria-selected="documentBody"
                         aria-selected="false"
                         @click="tabClicked()"
                     >
@@ -64,7 +62,6 @@
                         data-bs-toggle="pill"
                         :href="'#' + threatBody"
                         role="tab"
-                        :aria-selected="threatBody"
                         aria-selected="false"
                         @click="tabClicked()"
                     >
