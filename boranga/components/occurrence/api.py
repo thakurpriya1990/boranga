@@ -217,6 +217,11 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     serializer_class = ListOccurrenceReportSerializer
     page_size = 10
 
+    def get_serializer_class(self):
+        if self.action == "occurrence_report_internal":
+            return ListInternalOccurrenceReportSerializer
+        return super().get_serializer_class()
+
     def get_queryset(self):
         qs = OccurrenceReport.objects.all()
         if is_customer(self.request):
@@ -244,10 +249,10 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListInternalOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
-    
+
     @list_route(methods=['GET',], detail=False)
     def occurrence_report_external_export(self, request, *args, **kwargs):
-        
+
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get('export_format')
@@ -299,22 +304,22 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
                     final_response = response
                     buffer.close()
                     return final_response
-                
+
                 elif export_format == "csv":
                     csv_data = df.to_csv(index=False)
                     response = HttpResponse(content_type='text/csv')
                     response['Content-Disposition'] = 'attachment; filename=DBCA_ExternalOccurrenceReports.csv'
                     response.write(csv_data)
                     return response
-                
+
                 else:
                     return Response(status=400, data="Format not valid")
         except:
             return Response(status=500, data="Internal Server Error")
-    
+
     @list_route(methods=['GET',], detail=False)
     def occurrence_report_internal_export(self, request, *args, **kwargs):
-        
+
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get('export_format')
@@ -366,14 +371,14 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
                     final_response = response
                     buffer.close()
                     return final_response
-                
+
                 elif export_format == "csv":
                     csv_data = df.to_csv(index=False)
                     response = HttpResponse(content_type='text/csv')
                     response['Content-Disposition'] = 'attachment; filename=DBCA_OccurrenceReport_Species.csv'
                     response.write(csv_data)
                     return response
-                
+
                 else:
                     return Response(status=400, data="Format not valid")
         except:
@@ -1595,7 +1600,7 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
     filter_backends = (OccurrenceFilterBackend,)
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "occurrence_internal", "occurrence_external"]:
             return ListOccurrenceSerializer
         return super().get_serializer_class()
 
