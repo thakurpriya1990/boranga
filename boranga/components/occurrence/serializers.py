@@ -8,6 +8,7 @@ from boranga.helpers import is_internal
 from boranga.components.species_and_communities.models import CommunityTaxonomy
 from boranga.components.occurrence.models import (
     Occurrence,
+    OccurrenceLogEntry,
     OccurrenceReport,
     HabitatComposition,
     HabitatCondition,
@@ -15,6 +16,7 @@ from boranga.components.occurrence.models import (
     FireHistory,
     AssociatedSpecies,
     ObservationDetail,
+    OccurrenceUserAction,
     PlantCount,
     PrimaryDetectionMethod,
     AnimalObservation,
@@ -450,6 +452,31 @@ class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
                 )
 
         return None
+
+
+class OccurrenceUserActionSerializer(serializers.ModelSerializer):
+    who = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceUserAction
+        fields = "__all__"
+
+    def get_who(self, obj):
+        email_user = retrieve_email_user(obj.who)
+        fullname = email_user.get_full_name()
+        return fullname
+
+
+class OccurrenceLogEntrySerializer(CommunicationLogEntrySerializer):
+    documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceLogEntry
+        fields = "__all__"
+        read_only_fields = ("customer",)
+
+    def get_documents(self, obj):
+        return [[d.name, d._file.url] for d in obj.documents.all()]
 
 
 class OccurrenceSerializer(serializers.ModelSerializer):
