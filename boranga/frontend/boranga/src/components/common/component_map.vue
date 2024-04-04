@@ -403,7 +403,6 @@
                                             }}
                                         </td>
                                     </tr>
-                                    <!-- TODO: `created_at` is not formatted to DD/MM/YYYY -->
                                     <tr
                                         v-if="
                                             selectedModel.copied_from ||
@@ -714,6 +713,8 @@ import {
     // validateFeature,
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
+import shp, { combine, parseShp, parseDbf } from 'shpjs';
+import proj4 from 'proj4';
 
 export default {
     name: 'MapComponent',
@@ -970,7 +971,7 @@ export default {
             numShapefiles: 0,
             uploadedFileTypes: [], // The currently uploaded types
             archiveTypesAllowed: ['.zip'], // The allowed archive types
-            shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx'], // The allowed shapefile types
+            shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
         };
     },
@@ -1269,7 +1270,8 @@ export default {
             let vm = this;
             if (!geometry_source) {
                 geometry_source =
-                    featureData.properties.geometry_source.toLowerCase();
+                    featureData.properties.geometry_source?.toLowerCase() ||
+                    'draw';
             }
 
             if (vm.styleBy === 'assessor') {
@@ -1298,18 +1300,16 @@ export default {
             width = 2
         ) {
             let vm = this;
-            if (!fill) {
+            if (!fill || !vm.isColor(fill)) {
                 fill = vm.defaultColor;
             }
-            if (!stroke) {
+            if (!stroke || !vm.isColor(stroke)) {
                 stroke = vm.defaultColor;
             }
             if (!(fill instanceof Fill)) {
-                // TODO: check is color
                 fill = new Fill({ color: fill });
             }
             if (!(stroke instanceof Stroke)) {
-                // TODO: check is color
                 stroke = new Stroke({
                     color: stroke,
                     width: width,
@@ -1565,17 +1565,11 @@ export default {
                 let source = vm.modelQuerySource;
                 for (let i = 0, ii = features.length; i < ii; i++) {
                     let feature = features[i];
-                    // feature.set('for_layer', true);
                     let color = vm.styleByColor(feature, vm.context, 'draw');
                     let style = vm.createStyle(
                         color,
                         null,
                         feature.getGeometry().getType()
-                    );
-                    let area = Math.round(
-                        getArea(feature.getGeometry(), {
-                            projection: 'EPSG:4326',
-                        })
                     );
 
                     const properties = {
@@ -1587,7 +1581,7 @@ export default {
                         geometry_source: 'New',
                         locked: false,
                         copied_from: null,
-                        area_sqm: area,
+                        area_sqm: vm.featureArea(feature),
                     };
 
                     feature.setProperties(properties);
@@ -1619,10 +1613,9 @@ export default {
             });
             vm.map.getViewport().addEventListener('drop', function (evt) {
                 console.log('drag: drop', evt);
+                // Prevent default behavior (Prevent file from being opened)
                 evt.preventDefault();
-                // TODO: Handle drop of shapefile zips, see: loadshp package, or https://www.npmjs.com/package/shape2json
-                const files = evt.dataTransfer.files;
-                files;
+                vm.processDatatransferEvent(evt);
             });
         },
         initialiseMeasurementLayer: function () {
@@ -2138,7 +2131,6 @@ export default {
                         return;
                     }
 
-                    // TODO: Return path from serializer
                     let model_path = model.details_url;
                     // Remove trailing slash from urls
                     let pathnames = [
@@ -2536,7 +2528,7 @@ export default {
         featureFromDict: function (featureData, model) {
             let vm = this;
             if (model == null) {
-                model = {};
+                model = vm.context || {};
             }
 
             let color = vm.styleByColor(featureData, model);
@@ -2560,14 +2552,20 @@ export default {
                 // label: model.label || model.application_type_name_display,
                 label: model.label,
                 color: color,
-                source: featureData.properties.source,
-                geometry_source: featureData.properties.geometry_source,
-                locked: featureData.properties.locked,
-                copied_from: featureData.properties.report_copied_from,
-                area_sqm: featureData.properties.area_sqm,
+                source: featureData.properties.source || null,
+                geometry_source:
+                    featureData.properties.geometry_source || 'New',
+                locked: featureData.properties.locked || false,
+                copied_from: featureData.properties.report_copied_from || null,
+                area_sqm: featureData.properties.area_sqm || null,
             });
-            // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
-            feature.setId(featureData.id);
+            if (featureData.id) {
+                // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
+                feature.setId(featureData.id);
+            }
+            if (!feature.getProperties().area) {
+                feature.getProperties().area = vm.featureArea(feature);
+            }
 
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
@@ -2866,6 +2864,115 @@ export default {
                     return doc.name.slice(doc.name.lastIndexOf('.'));
                 }, []);
         },
+        featureArea: function (feature, projection = 'EPSG:4326') {
+            return Math.round(
+                getArea(feature.getGeometry(), {
+                    projection: projection,
+                })
+            );
+        },
+        getShpExtensionIdxFromDict: function (dict, ext) {
+            return ext in dict ? dict[ext] : null;
+        },
+        processDatatransferEvent: function (evt) {
+            let vm = this;
+            // Array to store dropped shapefiles
+            const shapeFiles = [];
+            if (evt.dataTransfer.items) {
+                // Use DataTransferItemList interface to access the file(s)
+                // eslint-disable-next-line no-unused-vars
+                [...evt.dataTransfer.items].forEach(async (item, i) => {
+                    // If dropped items aren't files, reject them
+                    if (item.kind === 'file') {
+                        const file = item.getAsFile();
+                        const fileType = file.name.slice(-4);
+
+                        if (vm.shapefileTypesAllowed.includes(fileType)) {
+                            // Non-compressed list of files
+                            shapeFiles.push(file);
+                        } else if (vm.archiveTypesAllowed.includes(fileType)) {
+                            // Compressed archive
+                            await file.arrayBuffer().then(async (buffer) => {
+                                await shp(buffer)
+                                    .then((geojson) => {
+                                        console.log(geojson);
+                                        vm.addFeatureCollectionToMap(geojson);
+                                    })
+                                    .catch((error) => {
+                                        swal.fire({
+                                            title: 'Error',
+                                            text: error,
+                                            icon: 'error',
+                                        });
+                                    });
+                            });
+                        } else {
+                            // Nothing
+                        }
+                    }
+                });
+
+                if (!shapeFiles.length) {
+                    return;
+                }
+
+                // Map of shapefile extensions to their index in the shapeFiles/shapeBuffers array
+                vm.shpExtensionIdxMap = {};
+                let shapeBuffers = shapeFiles.map((shp, idx) => {
+                    console.log(this.shpExtensionIdxMap);
+                    this.shpExtensionIdxMap[shp.name.slice(-4)] = idx;
+                    return shp.arrayBuffer();
+                });
+
+                Promise.all(shapeBuffers).then(async (buffers) => {
+                    const dict = vm.shpExtensionIdxMap;
+                    const shpIdx = vm.getShpExtensionIdxFromDict(dict, '.shp');
+                    const prjIdx = vm.getShpExtensionIdxFromDict(dict, '.prj');
+                    const dbfIdx = vm.getShpExtensionIdxFromDict(dict, '.dbf');
+                    // Note: why doesn't shape2json use index files?
+                    // eslint-disable-next-line no-unused-vars
+                    const shxIdx = vm.getShpExtensionIdxFromDict(dict, '.shx');
+                    // Char-set / encoding description file
+                    const cpgIdx = vm.getShpExtensionIdxFromDict(dict, '.cpg');
+
+                    if (!buffers[shpIdx] || !buffers[dbfIdx]) {
+                        console.error('No .shp or .dbf file provided');
+                        return;
+                    }
+
+                    // Using default WGS84 specification if no .prj file is provided
+                    let prjStr =
+                        '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs';
+                    if (buffers[prjIdx]) {
+                        prjStr = new TextDecoder().decode(
+                            new Uint8Array(buffers[prjIdx])
+                        );
+                    }
+                    console.log('Using proj4 string:', prjStr);
+
+                    const geojson = combine([
+                        parseShp(buffers[shpIdx], prjStr),
+                        parseDbf(buffers[dbfIdx], buffers[cpgIdx]),
+                    ]);
+
+                    vm.addFeatureCollectionToMap(geojson);
+                    console.log('Done loading features');
+                    delete vm.shpExtensionIdxMap;
+                });
+            } else {
+                // Use DataTransfer interface to access the file(s)
+                [...evt.dataTransfer.files].forEach((file, i) => {
+                    console.log(
+                        `Implement for files: file[${i}].name = ${file.name}`
+                    );
+                });
+            }
+        },
+        isColor: function (colorStr) {
+            let s = new Option().style;
+            s.color = colorStr;
+            return s.color !== '';
+        },
     },
 };
 </script>
@@ -2901,6 +3008,7 @@ export default {
     vertical-align: top;
     margin-left: -10px;
 }
+
 .map-spinner {
     position: absolute !important;
 }
@@ -2914,6 +3022,7 @@ export default {
 .force-parent-lh {
     line-height: inherit !important;
 }
+
 #submenu-draw {
     display: none;
 }
