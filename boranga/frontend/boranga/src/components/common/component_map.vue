@@ -403,7 +403,6 @@
                                             }}
                                         </td>
                                     </tr>
-                                    <!-- TODO: `created_at` is not formatted to DD/MM/YYYY -->
                                     <tr
                                         v-if="
                                             selectedModel.copied_from ||
@@ -715,6 +714,7 @@ import {
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
 import shp, { combine, parseShp, parseDbf } from 'shpjs';
+import proj4 from 'proj4';
 
 export default {
     name: 'MapComponent',
@@ -1300,18 +1300,16 @@ export default {
             width = 2
         ) {
             let vm = this;
-            if (!fill) {
+            if (!fill || !vm.isColor(fill)) {
                 fill = vm.defaultColor;
             }
-            if (!stroke) {
+            if (!stroke || !vm.isColor(stroke)) {
                 stroke = vm.defaultColor;
             }
             if (!(fill instanceof Fill)) {
-                // TODO: check is color
                 fill = new Fill({ color: fill });
             }
             if (!(stroke instanceof Stroke)) {
-                // TODO: check is color
                 stroke = new Stroke({
                     color: stroke,
                     width: width,
@@ -2133,7 +2131,6 @@ export default {
                         return;
                     }
 
-                    // TODO: Return path from serializer
                     let model_path = model.details_url;
                     // Remove trailing slash from urls
                     let pathnames = [
@@ -2970,6 +2967,11 @@ export default {
                     );
                 });
             }
+        },
+        isColor: function (colorStr) {
+            let s = new Option().style;
+            s.color = colorStr;
+            return s.color !== '';
         },
     },
 };
