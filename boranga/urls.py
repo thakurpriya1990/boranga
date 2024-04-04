@@ -33,6 +33,12 @@ from django import conf
 from boranga.management.default_data_manager import DefaultDataManager
 from boranga.utils import are_migrations_running
 
+
+# To test sentry
+def trigger_error(request):
+    division_by_zero = 1 / 0  # noqa
+
+
 # API patterns
 router = routers.DefaultRouter()
 if settings.DEBUG is not True:
@@ -142,56 +148,98 @@ api_patterns = [
 
 # URL Patterns
 urlpatterns = [
-    #url(r'^admin/', include(boranga_admin_site.urls)),
-    #url(r'^admin/', boranga_admin_site.urls),
-    path(r'admin/', admin.site.urls),
-    #url(r'^login/', LoginView.as_view(),name='login'),
-    #path('login/', login, name='login'),
+    # url(r'^admin/', include(boranga_admin_site.urls)),
+    # url(r'^admin/', boranga_admin_site.urls),
+    path(r"admin/", admin.site.urls),
+    # url(r'^login/', LoginView.as_view(),name='login'),
+    # path('login/', login, name='login'),
     # url(r'^logout/$', LogoutView.as_view(), {'next_page': '/'}, name='logout'),
-    url(r'', include(api_patterns)),
-    #url(r'^$', views.BorangaRoutingView.as_view(), name='ds_home'),
-    url(r'^$', views.BorangaRoutingView.as_view(), name='home'),
-    url(r'^contact/', views.BorangaContactView.as_view(), name='ds_contact'),
-    url(r'^further_info/', views.BorangaFurtherInformationView.as_view(), name='ds_further_info'),
-    url(r'^internal/', views.InternalView.as_view(), name='internal'),
+    url(r"", include(api_patterns)),
+    # url(r'^$', views.BorangaRoutingView.as_view(), name='ds_home'),
+    url(r"^$", views.BorangaRoutingView.as_view(), name="home"),
+    url(r"^contact/", views.BorangaContactView.as_view(), name="ds_contact"),
+    url(
+        r"^further_info/",
+        views.BorangaFurtherInformationView.as_view(),
+        name="ds_further_info",
+    ),
+    url(r"^internal/", views.InternalView.as_view(), name="internal"),
     # url(r'^internal/proposal/(?P<proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$', views.ReferralView.as_view(), name='internal-referral-detail'),
-    url(r'^external/', views.ExternalView.as_view(), name='external'),
-    url(r'^firsttime/$', views.first_time, name='first_time'),
-    url(r'^account/$', views.ExternalView.as_view(), name='manage-account'),
-    url(r'^profiles/', views.ExternalView.as_view(), name='manage-profiles'),
-    url(r'^help/(?P<application_type>[^/]+)/(?P<help_type>[^/]+)/$', views.HelpView.as_view(), name='help'),
-    url(r'^mgt-commands/$', views.ManagementCommandsView.as_view(), name='mgt-commands'),
-    #url(r'test-emails/$', proposal_views.TestEmailView.as_view(), name='test-emails'),
+    url(r"^external/", views.ExternalView.as_view(), name="external"),
+    url(r"^firsttime/$", views.first_time, name="first_time"),
+    url(r"^account/$", views.ExternalView.as_view(), name="manage-account"),
+    url(r"^profiles/", views.ExternalView.as_view(), name="manage-profiles"),
+    url(
+        r"^help/(?P<application_type>[^/]+)/(?P<help_type>[^/]+)/$",
+        views.HelpView.as_view(),
+        name="help",
+    ),
+    url(
+        r"^mgt-commands/$", views.ManagementCommandsView.as_view(), name="mgt-commands"
+    ),
+    # url(r'test-emails/$', proposal_views.TestEmailView.as_view(), name='test-emails'),
     # url(r'^proposal/$', proposal_views.ProposalView.as_view(), name='proposal'),
-    #url(r'^preview/licence-pdf/(?P<proposal_pk>\d+)',proposal_views.PreviewLicencePDFView.as_view(), name='preview_licence_pdf'),
-    url(r'^private-media/', views.getPrivateFile, name='view_private_file'),
-
-    #following url is defined so that to include url path when sending Proposal amendment request to user.
-    url(r'^external/conservation_status/(?P<cs_proposal_pk>\d+)/$', views.ExternalConservationStatusView.as_view(), name='external-conservation-status-detail'),
-    url(r'^internal/conservation_status/(?P<cs_proposal_pk>\d+)/$', views.InternalConservationStatusView.as_view(), name='internal-conservation-status-detail'),
-    url(r'^internal/conservation-status/', views.InternalConservationStatusDashboardView.as_view(), name='internal-conservation-status-dashboard'),
-    url(r'^internal/conservation_status/(?P<cs_proposal_pk>\d+)/cs_referral/(?P<referral_pk>\d+)/$', views.ConservationStatusReferralView.as_view(), name='internal-conservation-status-referral-detail'),
-    url(r'^internal/species_communities/(?P<species_proposal_pk>\d+)/$', views.InternalSpeciesView.as_view(), name='internal-species-detail'),
-    url(r'^internal/species_communities/(?P<community_proposal_pk>\d+)/$', views.InternalCommunityView.as_view(), name='internal-community-detail'),
-    url(r'^internal/meetings/', views.InternalMeetingDashboardView.as_view(), name='internal-meeting-dashboard'),
-    url(r'^external/occurrence-report/(?P<ocr_proposal_pk>\d+)/$', views.ExternalOccurrenceReportView.as_view(), name='external-occurrence-report-detail'),
-    url(r'^internal/occurrence_report/(?P<ocr_proposal_pk>\d+)/$', views.InternalOccurrenceReportView.as_view(), name='internal-occurrence-report-detail'),
-    #url(r'^external/proposal/(?P<proposal_pk>\d+)/$', views.ExternalProposalView.as_view(), name='external-proposal-detail'),
-    #url(r'^internal/proposal/(?P<proposal_pk>\d+)/$', views.InternalProposalView.as_view(), name='internal-proposal-detail'),
-    
-
+    # url(r'^preview/licence-pdf/(?P<proposal_pk>\d+)',proposal_views.PreviewLicencePDFView.as_view(), name='preview_licence_pdf'),
+    url(r"^private-media/", views.getPrivateFile, name="view_private_file"),
+    # following url is defined so that to include url path when sending Proposal amendment request to user.
+    url(
+        r"^external/conservation_status/(?P<cs_proposal_pk>\d+)/$",
+        views.ExternalConservationStatusView.as_view(),
+        name="external-conservation-status-detail",
+    ),
+    url(
+        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/$",
+        views.InternalConservationStatusView.as_view(),
+        name="internal-conservation-status-detail",
+    ),
+    url(
+        r"^internal/conservation-status/",
+        views.InternalConservationStatusDashboardView.as_view(),
+        name="internal-conservation-status-dashboard",
+    ),
+    url(
+        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/cs_referral/(?P<referral_pk>\d+)/$",
+        views.ConservationStatusReferralView.as_view(),
+        name="internal-conservation-status-referral-detail",
+    ),
+    url(
+        r"^internal/species_communities/(?P<species_proposal_pk>\d+)/$",
+        views.InternalSpeciesView.as_view(),
+        name="internal-species-detail",
+    ),
+    url(
+        r"^internal/species_communities/(?P<community_proposal_pk>\d+)/$",
+        views.InternalCommunityView.as_view(),
+        name="internal-community-detail",
+    ),
+    url(
+        r"^internal/meetings/",
+        views.InternalMeetingDashboardView.as_view(),
+        name="internal-meeting-dashboard",
+    ),
+    url(
+        r"^external/occurrence-report/(?P<ocr_proposal_pk>\d+)/$",
+        views.ExternalOccurrenceReportView.as_view(),
+        name="external-occurrence-report-detail",
+    ),
+    url(
+        r"^internal/occurrence_report/(?P<ocr_proposal_pk>\d+)/$",
+        views.InternalOccurrenceReportView.as_view(),
+        name="internal-occurrence-report-detail",
+    ),
+    # url(r'^external/proposal/(?P<proposal_pk>\d+)/$', views.ExternalProposalView.as_view(), name='external-proposal-detail'),
+    # url(r'^internal/proposal/(?P<proposal_pk>\d+)/$', views.InternalProposalView.as_view(), name='internal-proposal-detail'),
     ##url(r'^organisations/(?P<pk>\d+)/confirm-delegate-access/(?P<uid>[0-9A-Za-z]+)-(?P<token>.+)/$', views.ConfirmDelegateAccess.as_view(), name='organisation_confirm_delegate_access'),
     ## reversion history-compare
-    #url(r'^history/proposal/(?P<pk>\d+)/$', proposal_views.ProposalHistoryCompareView.as_view(), name='proposal_history'),
-    #url(r'^history/filtered/(?P<pk>\d+)/$', proposal_views.ProposalFilteredHistoryCompareView.as_view(), name='proposal_filtered_history'),
-    #url(r'^history/referral/(?P<pk>\d+)/$', proposal_views.ReferralHistoryCompareView.as_view(), name='referral_history'),
-    #url(r'^history/approval/(?P<pk>\d+)/$', proposal_views.ApprovalHistoryCompareView.as_view(), name='approval_history'),
-    #url(r'^history/compliance/(?P<pk>\d+)/$', proposal_views.ComplianceHistoryCompareView.as_view(), name='compliance_history'),
-    #url(r'^history/proposaltype/(?P<pk>\d+)/$', proposal_views.ProposalTypeHistoryCompareView.as_view(), name='proposaltype_history'),
-    #url(r'^history/helppage/(?P<pk>\d+)/$', proposal_views.HelpPageHistoryCompareView.as_view(), name='helppage_history'),
-    #url(r'^history/organisation/(?P<pk>\d+)/$', organisation_views.OrganisationHistoryCompareView.as_view(), name='organisation_history'),
-
-
+    # url(r'^history/proposal/(?P<pk>\d+)/$', proposal_views.ProposalHistoryCompareView.as_view(), name='proposal_history'),
+    # url(r'^history/filtered/(?P<pk>\d+)/$', proposal_views.ProposalFilteredHistoryCompareView.as_view(), name='proposal_filtered_history'),
+    # url(r'^history/referral/(?P<pk>\d+)/$', proposal_views.ReferralHistoryCompareView.as_view(), name='referral_history'),
+    # url(r'^history/approval/(?P<pk>\d+)/$', proposal_views.ApprovalHistoryCompareView.as_view(), name='approval_history'),
+    # url(r'^history/compliance/(?P<pk>\d+)/$', proposal_views.ComplianceHistoryCompareView.as_view(), name='compliance_history'),
+    # url(r'^history/proposaltype/(?P<pk>\d+)/$', proposal_views.ProposalTypeHistoryCompareView.as_view(), name='proposaltype_history'),
+    # url(r'^history/helppage/(?P<pk>\d+)/$', proposal_views.HelpPageHistoryCompareView.as_view(), name='helppage_history'),
+    # url(r'^history/organisation/(?P<pk>\d+)/$', organisation_views.OrganisationHistoryCompareView.as_view(), name='organisation_history'),
+    urls.path("sentry-debug/", trigger_error),
 ] + ledger_patterns
 
 # if settings.EMAIL_INSTANCE != 'PROD':

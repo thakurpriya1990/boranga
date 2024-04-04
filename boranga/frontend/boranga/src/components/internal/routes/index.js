@@ -24,6 +24,8 @@ import Meeting from '../meetings/meeting.vue'
 import ConservationPlansDash from '../conservation_plans/dashboard.vue'
 import OccurrenceDash from '../occurrence/dashboard.vue'
 import Occurrence from '../occurrence/occurrence.vue'
+import OccurrenceReport from '../occurrence/occurrence_report.vue'
+
 export default
     {
         path: '/internal',
@@ -80,6 +82,11 @@ export default
                 component: Occurrence,
                 name: "internal-occurrence-detail"
             },
+            {
+                path: 'occurrence-report/:occurrence_report_id',
+                component: OccurrenceReport,
+                name: "internal-occurrence-report-detail"
+            },            
             {
                 path: 'approval/:approval_id',
                 component: Approval,
