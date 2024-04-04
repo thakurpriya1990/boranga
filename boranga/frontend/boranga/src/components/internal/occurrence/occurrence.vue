@@ -68,16 +68,15 @@
                         </div>
                     </div>
                 </div>
-                <div :class="class_ncols">
+                <div>
                     <div class="row">
                         <template>
                             <div class="">
                                 <div class="row">
                                     <form :action="occurrence_form_url" method="post" name="occurrence"
                                         enctype="multipart/form-data">
-                                        <ProposalSpeciesCommunities ref="species_communities" :occurrence="occurrence"
-                                            id="speciesCommunityStart" :is_internal="true">
-                                        </ProposalSpeciesCommunities>
+
+
                                         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                         <input type='hidden' name="occurrence_id" :value="1" />
                                         <div class="row" style="margin-bottom: 50px">
