@@ -17,6 +17,7 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from django.urls import reverse
 from django.shortcuts import redirect
+from boranga.components.main.api import UserActionLoggingViewset
 from boranga.helpers import is_customer, is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -1586,7 +1587,7 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
+class OccurrencePaginatedViewSet(UserActionLoggingViewset):
     pagination_class = DatatablesPageNumberPagination
     queryset = Occurrence.objects.none()
     serializer_class = OccurrenceSerializer
@@ -1799,10 +1800,10 @@ class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 mutable = request.data._mutable
                 request.data._mutable = True
-                request.data["conservation_status"] = "{}".format(instance.id)
+                request.data["occurrence"] = "{}".format(instance.id)
                 request.data["staff"] = "{}".format(request.user.id)
                 request.data._mutable = mutable
-                serializer = ConservationStatusLogEntrySerializer(data=request.data)
+                serializer = OccurrenceLogEntrySerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
                 comms = serializer.save()
                 # Save the files

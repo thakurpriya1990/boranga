@@ -318,3 +318,21 @@ NOMOS_URL = env("NOMOS_URL")
 NOMOS_USERNAME = env("NOMOS_USERNAME")
 NOMOS_PASSWORD = env("NOMOS_PASSWORD")
 KMI_SERVER_URL = env("KMI_SERVER_URL", "https://kmi.dbca.wa.gov.au")
+
+# ---------- Identifier fields for logging ----------
+
+""" Fields that the logging functions will check for on the instance
+    and use to identify the instance in the logs. """
+ACTION_LOGGING_IDENTIFIER_FIELDS = [
+    "lodgement_number",
+    "occurrence_number",
+    "occurrence_report_number",
+    "id",
+]
+
+# ---------- User Log Actions ----------
+
+ACTION_VIEW = "View {} {}"
+ACTION_CREATE = "Create {} {}"
+ACTION_UPDATE = "Update {} {}"
+ACTION_DESTROY = "Destroy {} {}"
