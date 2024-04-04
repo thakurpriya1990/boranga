@@ -35,11 +35,11 @@ def belongs_to(user, group_name):
 
     #return user.groups.filter(name=group_name).exists()
 
-#def is_model_backend(request):
+# def is_model_backend(request):
 #    # Return True if user logged in via single sign-on (i.e. an internal)
 #    return 'ModelBackend' in request.session.get('_auth_user_backend')
 #
-#def is_email_auth_backend(request):
+# def is_email_auth_backend(request):
 #    # Return True if user logged in via social_auth (i.e. an external user signing in with a login-token)
 #    return 'EmailAuth' in request.session.get('_auth_user_backend')
 
@@ -118,3 +118,12 @@ def is_internal(request):
 def get_all_officers():
     return EmailUser.objects.filter(groups__name=settings.ADMIN_GROUP)
 
+
+def get_instance_identifier(instance):
+    """Checks the instance for the attributes specified in settings"""
+    for field in settings.ACTION_LOGGING_IDENTIFIER_FIELDS:
+        if hasattr(instance, field):
+            return getattr(instance, field)
+    raise AttributeError(
+        f"Model instance has no valid identifier to use for logging. Tried: {settings.ACTION_LOGGING_IDENTIFIER_FIELDS}"
+    )

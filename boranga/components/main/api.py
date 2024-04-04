@@ -1,41 +1,15 @@
-import traceback
-from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.conf import settings
-from django.db import transaction
-from wsgiref.util import FileWrapper
-from rest_framework import viewsets, serializers, status, generics, views
-from rest_framework.decorators import action as detail_route, renderer_classes, parser_classes
-from rest_framework.decorators import action as list_route
-from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
-from rest_framework.pagination import PageNumberPagination
-from django.urls import reverse
-from boranga.components.main.models import (
-        # ApplicationType, 
-        # RequiredDocument, 
-        # Question, 
-        GlobalSettings
-        )
-from boranga.components.main.serializers import (
-        # ApplicationTypeSerializer, 
-        # RequiredDocumentSerializer, 
-        # QuestionSerializer, 
-        GlobalSettingsSerializer, 
-        OracleSerializer, 
-        BookingSettlementReportSerializer, 
-        )
-from django.core.exceptions import ValidationError
-from django.db.models import Q
-# from boranga.components.proposals.models import Proposal
-# from boranga.components.proposals.serializers import ProposalSerializer
-from ledger_api_client.utils import create_basket_session, create_checkout_session, place_order_submission
-from collections import namedtuple
-import json
-from decimal import Decimal
-
 import logging
-logger = logging.getLogger('payment_checkout')
+
+from django.conf import settings
+from rest_framework import viewsets
+
+from boranga.components.main.models import GlobalSettings
+from boranga.components.main.serializers import (
+    GlobalSettingsSerializer,
+)
+from boranga import helpers
+
+logger = logging.getLogger("payment_checkout")
 
 
 class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -44,87 +18,58 @@ class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            qs = GlobalSettings.objects.all().order_by('id')
+            qs = GlobalSettings.objects.all().order_by("id")
             return qs
 
 
-# class RequiredDocumentViewSet(viewsets.ReadOnlyModelViewSet):
-#     queryset = RequiredDocument.objects.all()
-#     serializer_class = RequiredDocumentSerializer
+class UserActionLoggingViewset(viewsets.ModelViewSet):
+    """Class that extends the ModelViewSet to log the common user actions
 
-    # def get_queryset(self):
-    #     categories=ActivityCategory.objects.filter(activity_type='marine')
-    #     return categories
+    will scan the instance provided for the fields listed in settings
+    use the first one it finds. If it doesn't find one it will raise an AttributeError.
+    """
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.log_user_action(
+            settings.ACTION_VIEW.format(
+                instance._meta.verbose_name.title(),  # pylint: disable=protected-access
+                helpers.get_instance_identifier(instance),
+            ),
+            request,
+        )
+        return super().retrieve(request, *args, **kwargs)
 
-# class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
-#     queryset = Question.objects.all()
-#     serializer_class = QuestionSerializer
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        instance = response.data.serializer.instance
+        instance.log_user_action(
+            settings.ACTION_CREATE.format(
+                instance._meta.verbose_name.title(),  # pylint: disable=protected-acces
+                helpers.get_instance_identifier(instance),
+            ),
+            request,
+        )
+        return response
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.log_user_action(
+            settings.ACTION_UPDATE.format(
+                instance._meta.verbose_name.title(),  # pylint: disable=protected-access
+                helpers.get_instance_identifier(instance),
+            ),
+            request,
+        )
+        return super().update(request, *args, **kwargs)
 
-
-#class PaymentViewSet(viewsets.ModelViewSet):
-#    #queryset = Proposal.objects.all()
-#    queryset = Proposal.objects.none()
-#    #serializer_class = ProposalSerializer
-#    serializer_class = ProposalSerializer
-#    lookup_field = 'id'
-#
-#    def create(self, request, *args, **kwargs):
-#        response = super(PaymentViewSet, self).create(request, *args, **kwargs)
-#        # here may be placed additional operations for
-#        # extracting id of the object and using reverse()
-#        fallback_url = request.build_absolute_uri('/')
-#        return HttpResponseRedirect(redirect_to=fallback_url + '/success/')
-#
-#
-#class BookingSettlementReportView(views.APIView):
-#    renderer_classes = (JSONRenderer,)
-#
-#    def get(self,request,format=None):
-#        try:
-#            http_status = status.HTTP_200_OK
-#            #parse and validate data
-#            report = None
-#            data = {
-#                "date":request.GET.get('date'),
-#            }
-#            serializer = BookingSettlementReportSerializer(data=data)
-#            serializer.is_valid(raise_exception=True)
-#            filename = 'Booking Settlement Report-{}'.format(str(serializer.validated_data['date']))
-#            # Generate Report
-#            report = reports.booking_bpoint_settlement_report(serializer.validated_data['date'])
-#            if report:
-#                response = HttpResponse(FileWrapper(report), content_type='text/csv')
-#                response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(filename)
-#                return response
-#            else:
-#                raise serializers.ValidationError('No report was generated.')
-#        except serializers.ValidationError:
-#            raise
-#        except Exception as e:
-#            traceback.print_exc()
-#
-#
-#class OracleJob(views.APIView):
-#    renderer_classes = [JSONRenderer,]
-#    def get(self, request, format=None):
-#        try:
-#            data = {
-#                "date":request.GET.get("date"),
-#                "override": request.GET.get("override")
-#            }
-#            serializer = OracleSerializer(data=data)
-#            serializer.is_valid(raise_exception=True)
-#            oracle_integration(serializer.validated_data['date'].strftime('%Y-%m-%d'),serializer.validated_data['override'])
-#            data = {'successful':True}
-#            return Response(data)
-#        except serializers.ValidationError:
-#            print(traceback.print_exc())
-#            raise
-#        except ValidationError as e:
-#            raise serializers.ValidationError(repr(e.error_dict)) if hasattr(e, 'error_dict') else serializers.ValidationError(e)
-#        except Exception as e:
-#            print(traceback.print_exc())
-#            raise serializers.ValidationError(str(e[0]))
-
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.log_user_action(
+            settings.ACTION_DESTROY.format(
+                instance._meta.verbose_name.title(),  # pylint: disable=protected-access
+                helpers.get_instance_identifier(instance),
+            ),
+            request,
+        )
+        return super().destroy(request, *args, **kwargs)
