@@ -11,6 +11,7 @@ from django.db.models import JSONField
 from django.db.models.functions import Cast
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from django.db.models import F
+from rest_framework_datatables.utils import get_param
 
 #keeping it as an APIView to control how its handled
 class InternalAuthorizationView(views.APIView):
@@ -25,13 +26,61 @@ class InternalAuthorizationView(views.APIView):
         
 class VersionsFilterBackend(DatatablesFilterBackend):
 
+    def search_versions(self, request, queryset, view):
+
+        search_value = get_param(request, 'search[value]')
+        if (search_value):
+            #get all revision ids in existing queryset
+            revision_ids = queryset.distinct("revision_id").order_by("revision_id").values_list("revision_id",flat=True)
+            #get all versions with those revision ids
+            all_versions = Version.objects.filter(revision_id__in=revision_ids)
+            #get all search fields
+            fields = self.get_fields(request)
+            search_fields = []
+            search_fields_regex = ""
+            for i in fields:
+                if i['searchable']:
+                    search_fields.append(i['name'][0])
+                    if i['name'][0] != "revision_id" and i['name'][0] != "revision_date":
+                        search_fields_regex = search_fields_regex + i['name'][0] + "|"
+            if search_fields_regex:
+                search_fields_regex = search_fields_regex[:-1]
+            
+            filter_regex = ".*\"(?:"+search_fields_regex+")\":\s\"?[\sa-zA-Z0-9-]*(?:"+search_value+")[\sa-zA-Z0-9-]*\"?.*"
+            print(filter_regex)
+            #apply search term to all searchable fields
+            #revision id
+            qs_revision_id = all_versions
+            if "revision_id" in search_fields:
+                qs_revision_id = qs_revision_id.filter(revision__id__icontains=search_value)
+            
+            qs_revision_date = all_versions
+            #revision date
+            if "revision_date" in search_fields:
+                qs_revision_date = qs_revision_date.filter(revision__date_created__icontains=search_value)
+
+            qs_revision_data = all_versions
+            #otherwise, json data fields (regex?)
+            if search_fields_regex:
+                qs_revision_data = qs_revision_data.filter(serialized_data__iregex=filter_regex)
+
+            #union resulting querysets
+            all_versions = qs_revision_data.union(qs_revision_date).union(qs_revision_id)
+
+            #get remaining revision ids, apply to main queryset for result
+            remaining_revision_ids = list(set(all_versions.values_list("revision_id",flat=True)))
+            queryset = queryset.filter(revision_id__in=remaining_revision_ids)
+        
+        return queryset
+
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
 
         queryset = queryset.annotate(data=Cast('serialized_data', JSONField()))
         fields = self.get_fields(request)
  
-        #TODO search function here
+        #search function
+        queryset = self.search_versions(request, queryset, view)
         
         ordering = []
         ordering_values = []
@@ -88,9 +137,7 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
         related_versions = Version.objects.annotate(data=Cast('serialized_data', JSONField()))
 
         for version in queryset:
-            #ref_number = f'{getattr(instance, reference_id_field)}-{version.revision_id}'
-
-            #TODO add other versioned models in the same revision (consider transforming in to dict)
+            #add other versioned models in the same revision
             revision_versions = related_versions.filter(revision_id=version.revision_id)
             data = {}
             for related_version in revision_versions:

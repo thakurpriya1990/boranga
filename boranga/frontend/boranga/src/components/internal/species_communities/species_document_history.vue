@@ -149,7 +149,7 @@ export default {
                 data: 'data.data.documentcategory.fields.document_category_name', //TODO: disable this, for testing only
                 defaultContent: '',
                 orderable: false, //TODO: make orderable when done testing foreign fields
-                searchable: false, 
+                searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
                     //return full.data.speciesdocument.fields.document_category;
@@ -159,7 +159,7 @@ export default {
                         return ''
                     }
                 },
-                name: 'document_category',
+                name: 'document_category_name',
             };
         },
         column_sub_category: function () {
