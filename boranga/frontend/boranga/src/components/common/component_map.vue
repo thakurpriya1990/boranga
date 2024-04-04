@@ -714,7 +714,7 @@ import {
     // validateFeature,
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
-import shp from 'shpjs';
+import shp, { combine, parseShp, parseDbf } from 'shpjs';
 
 export default {
     name: 'MapComponent',
@@ -971,7 +971,7 @@ export default {
             numShapefiles: 0,
             uploadedFileTypes: [], // The currently uploaded types
             archiveTypesAllowed: ['.zip'], // The allowed archive types
-            shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx'], // The allowed shapefile types
+            shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
         };
     },
@@ -1612,45 +1612,12 @@ export default {
             // Custom drag and drop
             vm.map.getViewport().addEventListener('dragover', function (evt) {
                 evt.preventDefault();
-                for (let i = 0; i < evt.dataTransfer.items.length; i++) {
-                    console.log(
-                        'drag: dragover',
-                        evt.dataTransfer.items[i].type
-                    );
-                }
             });
             vm.map.getViewport().addEventListener('drop', function (evt) {
                 console.log('drag: drop', evt);
                 // Prevent default behavior (Prevent file from being opened)
                 evt.preventDefault();
-
-                // TODO: Handle drop of shapefile zips, see: loadshp package, or https://www.npmjs.com/package/shape2json
-                // TODO: Make this a function
-                // TODO: See if addFeatureCollectionToMap can be used for drag&drop of geojson files (search for dragAndDrop addfeatures)
-                shp;
-                const files = evt.dataTransfer.files[0];
-                files;
-                if (evt.dataTransfer.items) {
-                    // Use DataTransferItemList interface to access the file(s)
-                    [...evt.dataTransfer.items].forEach(async (item, i) => {
-                        // If dropped items aren't files, reject them
-                        if (item.kind === 'file') {
-                            const file = item.getAsFile();
-                            console.log(`… file[${i}].name = ${file.name}`);
-                            await file.arrayBuffer().then(async (buffer) => {
-                                await shp(buffer).then(function (geojson) {
-                                    console.log(geojson);
-                                    vm.addFeatureCollectionToMap(geojson);
-                                });
-                            });
-                        }
-                    });
-                } else {
-                    // Use DataTransfer interface to access the file(s)
-                    [...evt.dataTransfer.files].forEach((file, i) => {
-                        console.log(`… file[${i}].name = ${file.name}`);
-                    });
-                }
+                vm.processDatatransferEvent(evt);
             });
         },
         initialiseMeasurementLayer: function () {
@@ -2906,6 +2873,103 @@ export default {
                     projection: projection,
                 })
             );
+        },
+        getShpExtensionIdxFromDict: function (dict, ext) {
+            return ext in dict ? dict[ext] : null;
+        },
+        processDatatransferEvent: function (evt) {
+            let vm = this;
+            // Array to store dropped shapefiles
+            const shapeFiles = [];
+            if (evt.dataTransfer.items) {
+                // Use DataTransferItemList interface to access the file(s)
+                // eslint-disable-next-line no-unused-vars
+                [...evt.dataTransfer.items].forEach(async (item, i) => {
+                    // If dropped items aren't files, reject them
+                    if (item.kind === 'file') {
+                        const file = item.getAsFile();
+                        const fileType = file.name.slice(-4);
+
+                        if (vm.shapefileTypesAllowed.includes(fileType)) {
+                            // Non-compressed list of files
+                            shapeFiles.push(file);
+                        } else if (vm.archiveTypesAllowed.includes(fileType)) {
+                            // Compressed archive
+                            await file.arrayBuffer().then(async (buffer) => {
+                                await shp(buffer)
+                                    .then((geojson) => {
+                                        console.log(geojson);
+                                        vm.addFeatureCollectionToMap(geojson);
+                                    })
+                                    .catch((error) => {
+                                        swal.fire({
+                                            title: 'Error',
+                                            text: error,
+                                            icon: 'error',
+                                        });
+                                    });
+                            });
+                        } else {
+                            // Nothing
+                        }
+                    }
+                });
+
+                if (!shapeFiles.length) {
+                    return;
+                }
+
+                // Map of shapefile extensions to their index in the shapeFiles/shapeBuffers array
+                vm.shpExtensionIdxMap = {};
+                let shapeBuffers = shapeFiles.map((shp, idx) => {
+                    console.log(this.shpExtensionIdxMap);
+                    this.shpExtensionIdxMap[shp.name.slice(-4)] = idx;
+                    return shp.arrayBuffer();
+                });
+
+                Promise.all(shapeBuffers).then(async (buffers) => {
+                    const dict = vm.shpExtensionIdxMap;
+                    const shpIdx = vm.getShpExtensionIdxFromDict(dict, '.shp');
+                    const prjIdx = vm.getShpExtensionIdxFromDict(dict, '.prj');
+                    const dbfIdx = vm.getShpExtensionIdxFromDict(dict, '.dbf');
+                    // Note: why doesn't shape2json use index files?
+                    // eslint-disable-next-line no-unused-vars
+                    const shxIdx = vm.getShpExtensionIdxFromDict(dict, '.shx');
+                    // Char-set / encoding description file
+                    const cpgIdx = vm.getShpExtensionIdxFromDict(dict, '.cpg');
+
+                    if (!buffers[shpIdx] || !buffers[dbfIdx]) {
+                        console.error('No .shp or .dbf file provided');
+                        return;
+                    }
+
+                    // Using default WGS84 specification if no .prj file is provided
+                    let prjStr =
+                        '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs';
+                    if (buffers[prjIdx]) {
+                        prjStr = new TextDecoder().decode(
+                            new Uint8Array(buffers[prjIdx])
+                        );
+                    }
+                    console.log('Using proj4 string:', prjStr);
+
+                    const geojson = combine([
+                        parseShp(buffers[shpIdx], prjStr),
+                        parseDbf(buffers[dbfIdx], buffers[cpgIdx]),
+                    ]);
+
+                    vm.addFeatureCollectionToMap(geojson);
+                    console.log('Done loading features');
+                    delete vm.shpExtensionIdxMap;
+                });
+            } else {
+                // Use DataTransfer interface to access the file(s)
+                [...evt.dataTransfer.files].forEach((file, i) => {
+                    console.log(
+                        `Implement for files: file[${i}].name = ${file.name}`
+                    );
+                });
+            }
         },
     },
 };
