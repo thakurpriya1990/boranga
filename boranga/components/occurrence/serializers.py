@@ -5,14 +5,7 @@ from django.urls import reverse
 from django.conf import settings
 
 from boranga.helpers import is_internal
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
-from boranga.components.species_and_communities.models import(
-    GroupType,
-    Species,
-    Community,
-    Taxonomy,
-    CommunityTaxonomy
-    )
+from boranga.components.species_and_communities.models import CommunityTaxonomy
 from boranga.components.occurrence.models import (
     Occurrence,
     OccurrenceReport,
@@ -37,8 +30,6 @@ from boranga.components.occurrence.models import (
     OCRConservationThreat,
 )
 
-from boranga.components.users.serializers import UserSerializer
-from boranga.components.users.serializers import UserAddressSerializer, DocumentSerializer
 from boranga.components.main.serializers import(
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
@@ -48,8 +39,6 @@ from boranga.components.main.utils import (
 )
 from boranga.ledger_api_utils import retrieve_email_user
 from rest_framework import serializers
-from django.db.models import Q
-from django.contrib.gis.geos import GEOSGeometry
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 logger = logging.getLogger('boranga')
@@ -463,6 +452,43 @@ class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
         return None
 
 
+class OccurrenceSerializer(serializers.ModelSerializer):
+    processing_status_display = serializers.CharField(
+        source="get_processing_status_display"
+    )
+    scientific_name = serializers.CharField(
+        source="species.taxonomy.scientific_name", allow_null=True
+    )
+    group_type = serializers.CharField(source="group_type.name", allow_null=True)
+
+    class Meta:
+        model = Occurrence
+        fields = "__all__"
+
+
+class ListOccurrenceSerializer(OccurrenceSerializer):
+    class Meta:
+        model = Occurrence
+        fields = (
+            "id",
+            "occurrence_number",
+            "scientific_name",
+            "group_type",
+            "number_of_reports",
+            "processing_status",
+            "processing_status_display",
+        )
+        datatables_always_serialize = (
+            "id",
+            "occurrence_number",
+            "scientific_name",
+            "group_type",
+            "number_of_reports",
+            "processing_status",
+            "processing_status_display",
+        )
+
+
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
@@ -482,56 +508,58 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     # label used for new polygon featuretoast on map_component
     label = serializers.SerializerMethodField(read_only=True)
     model_name = serializers.SerializerMethodField(read_only=True)
+    occurrence = OccurrenceSerializer(read_only=True, allow_null=True)
 
     class Meta:
         model = OccurrenceReport
         fields = (
-                'id',
-                'group_type',
-                'group_type_id',
-                'species_id',
-                'community_id',
-                'occurrence_report_number',
-                'reported_date',
-                'lodgement_date',
-                'reported_date',
-                'applicant_type',
-                'applicant',
-                'submitter',
-                # 'assigned_officer',
-                'customer_status',
-                'processing_status',
-                'review_status',
-                'readonly',
-                'can_user_edit',
-                'can_user_view',
-                'reference',
-                'applicant_details',
-                # 'assigned_approver',
-                'allowed_assessors',
-                'deficiency_data',
-                'assessor_data',
-                # 'list_approval_level',
-                'location',
-                'habitat_composition',
-                'habitat_condition',
-                'fire_history',
-                'associated_species',
-                'observation_detail',
-                'plant_count',
-                'animal_observation',
-                'identification',
-                'ocr_geometry',
-                'label',
-                'model_name',
-                )
+            "id",
+            "group_type",
+            "group_type_id",
+            "species_id",
+            "community_id",
+            "occurrence_report_number",
+            "reported_date",
+            "lodgement_date",
+            "reported_date",
+            "applicant_type",
+            "applicant",
+            "submitter",
+            # 'assigned_officer',
+            "customer_status",
+            "processing_status",
+            "review_status",
+            "readonly",
+            "can_user_edit",
+            "can_user_view",
+            "reference",
+            "applicant_details",
+            # 'assigned_approver',
+            "allowed_assessors",
+            "deficiency_data",
+            "assessor_data",
+            # 'list_approval_level',
+            "location",
+            "habitat_composition",
+            "habitat_condition",
+            "fire_history",
+            "associated_species",
+            "observation_detail",
+            "plant_count",
+            "animal_observation",
+            "identification",
+            "ocr_geometry",
+            "label",
+            "model_name",
+            "occurrence",
+        )
 
     def get_readonly(self,obj):
         return False
-    
+
     def get_group_type(self,obj):
         return obj.group_type.name
-    
+
     def get_processing_status(self,obj):
         return obj.get_processing_status_display()
 
@@ -540,7 +568,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_customer_status(self,obj):
         return obj.get_customer_status_display()
-    
+
     # def get_list_approval_level(self,obj):
     #     if obj.conservation_list:
     #         return obj.conservation_list.approval_level
@@ -560,59 +588,59 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             return HabitatCompositionSerializer(qs).data
         except HabitatComposition.DoesNotExist:
             return HabitatCompositionSerializer().data
-    
+
     def get_habitat_condition(self,obj):
         try:
             qs = HabitatCondition.objects.get(occurrence_report=obj)
             return HabitatConditionSerializer(qs).data
         except HabitatCondition.DoesNotExist:
             return HabitatConditionSerializer().data
-    
+
     def get_fire_history(self,obj):
         try:
             qs = FireHistory.objects.get(occurrence_report=obj)
             return FireHistorySerializer(qs).data
         except FireHistory.DoesNotExist:
             return FireHistorySerializer().data
-    
+
     def get_associated_species(self,obj):
         try:
             qs = AssociatedSpecies.objects.get(occurrence_report=obj)
             return AssociatedSpeciesSerializer(qs).data
         except AssociatedSpecies.DoesNotExist:
             return AssociatedSpeciesSerializer().data
-    
+
     def get_observation_detail(self,obj):
         try:
             qs = ObservationDetail.objects.get(occurrence_report=obj)
             return ObservationDetailSerializer(qs).data
         except ObservationDetail.DoesNotExist:
             return ObservationDetailSerializer().data
-    
+
     def get_plant_count(self,obj):
         try:
             qs = PlantCount.objects.get(occurrence_report=obj)
             return PlantCountSerializer(qs).data
         except PlantCount.DoesNotExist:
             return PlantCountSerializer().data
-    
+
     def get_animal_observation(self,obj):
         try:
             qs = AnimalObservation.objects.get(occurrence_report=obj)
             return AnimalObservationSerializer(qs).data
         except AnimalObservation.DoesNotExist:
             return AnimalObservationSerializer().data
-    
+
     def get_identification(self,obj):
         try:
             qs = Identification.objects.get(occurrence_report=obj)
             return IdentificationSerializer(qs).data
         except Identification.DoesNotExist:
             return IdentificationSerializer().data
-    
+
     def get_label(self,obj):
         return 'Occurrence Report'
-    
+
     def get_model_name(self,obj):
         return 'occurrencereport'
 
@@ -1053,40 +1081,3 @@ class SaveOCRConservationThreatSerializer(serializers.ModelSerializer):
 			'potential_threat_onset',
 			'date_observed',
 			)
-
-
-class OccurrenceSerializer(serializers.ModelSerializer):
-    processing_status_display = serializers.CharField(
-        source="get_processing_status_display"
-    )
-    scientific_name = serializers.CharField(
-        source="species.taxonomy.scientific_name", allow_null=True
-    )
-    group_type = serializers.CharField(source="group_type.name", allow_null=True)
-
-    class Meta:
-        model = Occurrence
-        fields = "__all__"
-
-
-class ListOccurrenceSerializer(OccurrenceSerializer):
-    class Meta:
-        model = Occurrence
-        fields = (
-            "id",
-            "occurrence_number",
-            "scientific_name",
-            "group_type",
-            "number_of_reports",
-            "processing_status",
-            "processing_status_display",
-        )
-        datatables_always_serialize = (
-            "id",
-            "occurrence_number",
-            "scientific_name",
-            "group_type",
-            "number_of_reports",
-            "processing_status",
-            "processing_status_display",
-        )
