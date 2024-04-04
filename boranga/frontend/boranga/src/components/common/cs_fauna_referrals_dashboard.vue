@@ -155,6 +155,7 @@ import Vue from 'vue'
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
 import {
     api_endpoints,
+    constants,
     helpers
 }from '@/utils/hooks'
 export default {
@@ -602,7 +603,7 @@ export default {
             return {
                 autoWidth: false,
                 language: {
-                    processing: "<b>Loading...</b>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 order: [
                     [0, 'desc']

@@ -39,7 +39,8 @@ from io import BytesIO
 from django.db.models.query import QuerySet
 from django.contrib.gis.geos import GEOSGeometry
 
-from boranga.components.occurrence.models import( 
+from boranga.components.occurrence.models import (
+    Occurrence,
     OccurrenceReport,
     RockType,
     SoilType,
@@ -79,9 +80,11 @@ from boranga.components.occurrence.models import(
     OCRConservationThreat,
     OccurrenceReportUserAction,
 )
-from boranga.components.occurrence.serializers import(
+from boranga.components.occurrence.serializers import (
     ListOccurrenceReportSerializer,
+    ListOccurrenceSerializer,
     OccurrenceReportSerializer,
+    OccurrenceSerializer,
     SaveHabitatCompositionSerializer,
     SaveHabitatConditionSerializer,
     SaveFireHistorySerializer,
@@ -121,7 +124,7 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if 'internal' in view.name:
             total_count = queryset.count()
-            
+
             filter_group_type = request.GET.get('filter_group_type')
             if filter_group_type and not filter_group_type.lower() == 'all':
                 queryset = queryset.filter(group_type__name=filter_group_type)
@@ -152,24 +155,24 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
 
             if filter_submitted_from_date and not filter_submitted_to_date:
                 queryset = queryset.filter(reported_date__gte=filter_submitted_from_date)
-            
+
             if filter_submitted_from_date and filter_submitted_to_date:
                 queryset = queryset.filter(reported_date__range=[filter_submitted_from_date, filter_submitted_to_date])
 
             if filter_submitted_to_date and not filter_submitted_from_date:
                 queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
-        
+
         if 'external' in view.name:
             total_count = queryset.count()
 
             flora = GroupType.GROUP_TYPE_FLORA
             fauna = GroupType.GROUP_TYPE_FAUNA
             community = GroupType.GROUP_TYPE_COMMUNITY
-            
+
             filter_group_type = request.GET.get('filter_group_type')
             if filter_group_type and not filter_group_type.lower() == 'all':
                 queryset = queryset.filter(group_type__name=filter_group_type)
-            
+
             # filter_scientific_name is the species_id
             filter_scientific_name = request.GET.get('filter_scientific_name')
             if filter_scientific_name and not filter_scientific_name.lower() == 'all':
@@ -238,6 +241,73 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListInternalOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
+    
+    @list_route(methods=['GET',], detail=False)
+    def occurrence_report_external_export(self, request, *args, **kwargs):
+        
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get('export_format')
+        allowed_fields = ['group_type', 'scientific_name', 'community_name', 'customer_status', 'occurrence_report_number']
+
+        serializer = ListOccurrenceReportSerializer(qs, context={'request': request}, many=True)
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {key: value for key, value in obj.items() if key in allowed_fields}
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key='', sep='_'):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = ['Number', 'Type', 'Scientific Name', 'Community Name', 'Status']
+            df.columns = new_headings
+            column_order = ['Number', 'Type', 'Scientific Name', 'Community Name', 'Status']
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = 'Sheet1'
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(buffer.read(), content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ExternalOccurrenceReports.xlsx'
+                    final_response = response
+                    buffer.close()
+                    return final_response
+                
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename=DBCA_ExternalOccurrenceReports.csv'
+                    response.write(csv_data)
+                    return response
+                
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")
     
     @list_route(methods=['GET',], detail=False)
     def occurrence_report_internal_export(self, request, *args, **kwargs):
@@ -1403,7 +1473,6 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-
     def create(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
@@ -1426,3 +1495,247 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+
+class OccurrenceFilterBackend(DatatablesFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        logger.debug(f"OccurrenceFilterBackend:filter_queryset: {view.name}")
+
+        total_count = queryset.count()
+
+        if view.name and "internal" in view.name:
+
+            filter_group_type = request.GET.get("filter_group_type")
+            if filter_group_type and not filter_group_type.lower() == "all":
+                queryset = queryset.filter(group_type__name=filter_group_type)
+
+            filter_scientific_name = request.GET.get("filter_scientific_name")
+            if filter_scientific_name and not filter_scientific_name.lower() == "all":
+                queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
+
+            filter_status = request.GET.get("filter_status")
+            if filter_status and not filter_status.lower() == "all":
+                queryset = queryset.filter(processing_status=filter_status)
+
+            def get_date(filter_date):
+                date = request.GET.get(filter_date)
+                if date:
+                    date = datetime.strptime(date, "%Y-%m-%d")
+                return date
+
+            filter_submitted_from_date = get_date("filter_submitted_from_date")
+            filter_submitted_to_date = get_date("filter_submitted_to_date")
+            if filter_submitted_to_date:
+                filter_submitted_to_date = datetime.combine(
+                    filter_submitted_to_date, time.max
+                )
+
+            if filter_submitted_from_date and not filter_submitted_to_date:
+                queryset = queryset.filter(
+                    reported_date__gte=filter_submitted_from_date
+                )
+
+            if filter_submitted_from_date and filter_submitted_to_date:
+                queryset = queryset.filter(
+                    reported_date__range=[
+                        filter_submitted_from_date,
+                        filter_submitted_to_date,
+                    ]
+                )
+
+            if filter_submitted_to_date and not filter_submitted_from_date:
+                queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
+
+        if view.name and "external" in view.name:
+            filter_group_type = request.GET.get("filter_group_type")
+            if filter_group_type and not filter_group_type.lower() == "all":
+                queryset = queryset.filter(group_type__name=filter_group_type)
+
+            # filter_scientific_name is the species_id
+            filter_scientific_name = request.GET.get("filter_scientific_name")
+            if filter_scientific_name and not filter_scientific_name.lower() == "all":
+                queryset = queryset.filter(species=filter_scientific_name)
+
+            # filter_community_name is the community_id
+            filter_community_name = request.GET.get("filter_community_name")
+            if filter_community_name and not filter_community_name.lower() == "all":
+                queryset = queryset.filter(community=filter_community_name)
+
+            filter_application_status = request.GET.get("filter_application_status")
+            if (
+                filter_application_status
+                and not filter_application_status.lower() == "all"
+            ):
+                queryset = queryset.filter(customer_status=filter_application_status)
+
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
+        queryset = queryset.order_by(*ordering)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        try:
+            queryset = super(OccurrenceReportFilterBackend, self).filter_queryset(
+                request, queryset, view
+            )
+        except Exception as e:
+            print(e)
+        setattr(view, "_datatables_total_count", total_count)
+        return queryset
+
+
+class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
+    pagination_class = DatatablesPageNumberPagination
+    queryset = Occurrence.objects.none()
+    serializer_class = OccurrenceSerializer
+    page_size = 10
+    filter_backends = (OccurrenceFilterBackend,)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ListOccurrenceSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        qs = Occurrence.objects.all()
+        if is_customer(self.request):
+            qs = qs.filter(submitter=self.request.user.id)
+        return qs
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_external(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = qs.filter(Q(internal_application=False))
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListOccurrenceSerializer(
+            result_page, context={"request": request}, many=True
+        )
+        return self.paginator.get_paginated_response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_internal(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListOccurrenceSerializer(
+            result_page, context={"request": request}, many=True
+        )
+        return self.paginator.get_paginated_response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_internal_export(self, request, *args, **kwargs):
+
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+        export_format = request.GET.get("export_format")
+        allowed_fields = [
+            "species",
+            "scientific_name",
+            "reported_date",
+            "submitter",
+            "processing_status",
+            "occurrence_report_number",
+        ]
+
+        serializer = ListInternalOccurrenceReportSerializer(
+            qs, context={"request": request}, many=True
+        )
+        serialized_data = serializer.data
+
+        try:
+            filtered_data = []
+            for obj in serialized_data:
+                filtered_obj = {
+                    key: value for key, value in obj.items() if key in allowed_fields
+                }
+                filtered_data.append(filtered_obj)
+
+            def flatten_dict(d, parent_key="", sep="_"):
+                flattened_dict = {}
+                for k, v in d.items():
+                    new_key = parent_key + sep + k if parent_key else k
+                    if isinstance(v, dict):
+                        flattened_dict.update(flatten_dict(v, new_key, sep))
+                    else:
+                        flattened_dict[new_key] = v
+                return flattened_dict
+
+            flattened_data = [flatten_dict(item) for item in filtered_data]
+            df = pd.DataFrame(flattened_data)
+            new_headings = [
+                "Number",
+                "Occurrence",
+                "Scientific Name",
+                "Submission date/time",
+                "Submitter",
+                "Processing Status",
+            ]
+            df.columns = new_headings
+            column_order = [
+                "Number",
+                "Occurrence",
+                "Scientific Name",
+                "Submission date/time",
+                "Submitter",
+                "Processing Status",
+            ]
+            df = df[column_order]
+
+            if export_format is not None:
+                if export_format == "excel":
+                    buffer = BytesIO()
+                    workbook = Workbook()
+                    sheet_name = "Sheet1"
+                    sheet = workbook.active
+                    sheet.title = sheet_name
+
+                    for row in dataframe_to_rows(df, index=False, header=True):
+                        sheet.append(row)
+                    for cell in sheet[1]:
+                        cell.font = Font(bold=True)
+
+                    workbook.save(buffer)
+                    buffer.seek(0)
+                    response = HttpResponse(
+                        buffer.read(), content_type="application/vnd.ms-excel"
+                    )
+                    response["Content-Disposition"] = (
+                        "attachment; filename=DBCA_OccurrenceReport_Species.xlsx"
+                    )
+                    final_response = response
+                    buffer.close()
+                    return final_response
+
+                elif export_format == "csv":
+                    csv_data = df.to_csv(index=False)
+                    response = HttpResponse(content_type="text/csv")
+                    response["Content-Disposition"] = (
+                        "attachment; filename=DBCA_OccurrenceReport_Species.csv"
+                    )
+                    response.write(csv_data)
+                    return response
+
+                else:
+                    return Response(status=400, data="Format not valid")
+        except:
+            return Response(status=500, data="Internal Server Error")

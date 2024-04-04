@@ -1,6 +1,5 @@
 <template>
-    <div class="container" id="internalOccurrenceDash">
-
+    <div class="container" id="internal-occurrence-dash">
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
             <li class="nav-item">
                 <a
@@ -42,7 +41,13 @@
 
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-                <FormSection :formCollapse="false" label="Occurrence Report - Flora" Index="flora">
+                <FormSection :formCollapse="false" label="Occurrences - Flora" Index="occurrence-flora">
+                    <OccurrenceFloraDashboard v-if="isFlora" ref="occ_flora_table" level="internal"
+                    :group_type_name="group_name"
+                    :group_type_id="getGroupId"
+                    :url="species_occ_url" />
+                </FormSection>
+                <FormSection :formCollapse="false" label="Occurrence Report - Flora" Index="occurrence-report-flora">
                     <OccurrenceReportFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
                     :group_type_name="group_name"
                     :group_type_id="getGroupId"
@@ -50,6 +55,12 @@
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
+                <FormSection :formCollapse="false" label="Occurrences - Fauna" Index="occurrence-fauna">
+                <OccurrenceFaunaDashboard v-if="isFauna" ref="occ_fauna_table" level="internal"
+                    :group_type_name="group_name"
+                    :group_type_id="getGroupId"
+                    :url="species_occ_url" />
+                </FormSection>
                 <FormSection :formCollapse="false" label="Occurrence Report - Fauna" Index="fauna">
                     <OccurrenceReportFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
                     :group_type_name="group_name"
@@ -58,6 +69,12 @@
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
+                <FormSection :formCollapse="false" label="Occurrences - Community" Index="occurrence-community">
+                    <OccurrenceCommunityDashboard v-if="isCommunity" ref="occ_community_table" level="internal"
+                    :group_type_name="group_name"
+                    :group_type_id="getGroupId"
+                    :url="community_occ_url"/>
+                </FormSection>                
                 <FormSection :formCollapse="false" label="Occurrence Report - Community" Index="community">
                     <OccurrenceReportCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                     :group_type_name="group_name"
@@ -70,12 +87,16 @@
     </div>
 </template>
 <script>
-import datatable from '@/utils/vue/datatable.vue'
-// import OccurrenceReportFloraDashTable from '@common-utils/occurrence/occurrence_report_flora_dashtable.vue'
+
+import OccurrenceFloraDashboard from '@/components/common/occurrence_flora_dashboard.vue'
+import OccurrenceFaunaDashboard from '@/components/common/occurrence_fauna_dashboard.vue'
+import OccurrenceCommunityDashboard from '@/components/common/occurrence_community_dashboard.vue'
+
 import OccurrenceReportFloraDashTable from '@/components/common/occurrence_report_flora_dashboard.vue'
 import OccurrenceReportFaunaDashTable from '@common-utils/occurrence_report_fauna_dashboard.vue'
 import OccurrenceReportCommunityDashTable from '@common-utils/occurrence_report_community_dashboard.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+
 import {
   api_endpoints,
   helpers
@@ -89,13 +110,17 @@ export default {
             user_preference:'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
             group_name: null,
+            species_occ_url: api_endpoints.occurrence_paginated_internal,
+            community_occ_url: api_endpoints.occurrence_paginated_internal,
             species_ocr_url: api_endpoints.occurrence_report_paginated_internal,
             community_ocr_url: api_endpoints.occurrence_report_paginated_internal,
-
         }
     },
     watch: {},
     components: {
+        OccurrenceFloraDashboard,
+        OccurrenceFaunaDashboard,
+        OccurrenceCommunityDashboard,
         OccurrenceReportFloraDashTable,
         OccurrenceReportFaunaDashTable,
         OccurrenceReportCommunityDashTable,
@@ -134,17 +159,6 @@ export default {
 
     },
     methods: {
-        /*load_group_datatable: function(grouptype){
-            if(grouptype === 'flora'){
-                this.filterGroupType = grouptype;
-            }
-            else if(grouptype === 'fauna'){
-                this.filterGroupType = grouptype;
-            }
-            else if(grouptype === 'community'){
-                this.filterGroupType = grouptype;
-            }
-        },*/
         set_active_tab: function(group_name){
             this.group_name=group_name;
             localStorage.setItem("occurrenceActiveTab",group_name);

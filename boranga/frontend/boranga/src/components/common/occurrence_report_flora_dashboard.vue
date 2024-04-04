@@ -77,6 +77,7 @@ import Vue from 'vue'
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
 import {
     api_endpoints,
+    constants,
     helpers
 }from '@/utils/hooks'
 export default {
@@ -359,18 +360,18 @@ export default {
                     if (!vm.is_external){
                             if(full.internal_user_edit)
                             {
-                                links +=  `<a href='/internal/occurrence_report/${full.id}'>Continue</a><br/>`;
+                                links +=  `<a href='/internal/occurrence-report/${full.id}'>Continue</a><br/>`;
                                 links +=  `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                             }
                             else{
                                 if(full.assessor_process){
-                                        links +=  `<a href='/internal/occurrence_report/${full.id}'>Process</a><br/>`;
+                                        links +=  `<a href='/internal/occurrence-report/${full.id}'>Process</a><br/>`;
                                 }
                                 else{
                                     if(full.assessor_edit){
-                                        links +=  `<a href='/internal/occurrence_report/${full.id}?action=edit'>Edit</a><br/>`;
+                                        links +=  `<a href='/internal/occurrence-report/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
                                     }
-                                    links +=  `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
+                                    links +=  `<a href='/internal/occurrence-report/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                                 }
                             }
                         }
@@ -415,7 +416,7 @@ export default {
             return {
                 autoWidth: false,
                 language: {
-                    processing: "<b>Loading...</b>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 order: [
                     [0, 'desc']
