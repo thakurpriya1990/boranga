@@ -23,6 +23,14 @@
                                         :dt-options="datatable_options"
                                         :dt-headers="datatable_headers"
                                     />
+                                    <div v-if="historyId">
+                                    <DisplayHistory
+                                        ref="display_history"
+                                        :key="historyId"
+                                        :revision_id="historyId"
+                                        :primary_model="'SpeciesDocument'"
+                                    />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -37,6 +45,7 @@ import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import { helpers, api_endpoints, constants, utils } from '@/utils/hooks.js';
 import datatable from '@/utils/vue/datatable.vue';
+import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
@@ -45,6 +54,7 @@ export default {
         modal,
         alert,
         datatable,
+        DisplayHistory,
     },
     props: {
         documentId: {
@@ -58,6 +68,7 @@ export default {
     },
     data: function () {
         return {
+            historyId: null,
             datatable_id: 'history-datatable-' + uuid(),
             documentDetails: {
             },
@@ -220,8 +231,9 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function(data, type, full){
+                mRender: function(data, type, full){
                     let links = "";
+                    links += `<a href='#' data-view-history='${full.revision_id}'>View</a><br>`;
                     return links;
                 }
             };
@@ -237,24 +249,6 @@ export default {
                 vm.column_description,
                 vm.column_action,
             ];
-            let buttons = [
-                {
-                    extend: 'excel',
-                    text: '<i class="fa-solid fa-download"></i> Excel',
-                    className: 'btn btn-primary me-2 rounded',
-                    exportOptions: {
-                        orthogonal: 'export' 
-                    }
-                },
-                {
-                    extend: 'csv',
-                    text: '<i class="fa-solid fa-download"></i> CSV',
-                    className: 'btn btn-primary rounded',
-                    exportOptions: {
-                        orthogonal: 'export' 
-                    }
-                },
-            ];
             return {
                 autoWidth: false,
                 language: {
@@ -269,8 +263,27 @@ export default {
                     url: api_endpoints.lookup_history_species_document(this.documentId)+"?format=datatables",
                     dataSrc: 'data',
                 },
-                dom: 'lBfrtip',
-                buttons,
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fa-solid fa-download"></i> Excel',
+                        className: 'btn btn-primary me-2 rounded',
+                        exportOptions: {
+                            orthogonal: 'export' 
+                        }
+                    },
+                    {
+                        extend: 'csv',
+                        text: '<i class="fa-solid fa-download"></i> CSV',
+                        className: 'btn btn-primary rounded',
+                        exportOptions: {
+                            orthogonal: 'export' 
+                        }
+                    },
+                ],
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                         "<'row'<'col-sm-12'tr>>" +
+                         "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
                 processing: true,
             };
@@ -282,6 +295,47 @@ export default {
             this.isModalOpen = false;
             $('.has-error').removeClass('has-error');
         },
+        viewHistory: function(id){
+                console.log("viewHistory");
+                this.historyId = parseInt(id);
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.display_history.isModalOpen = true;
+                });
+            },
+        addEventListeners:function (){
+            let vm=this;
+            vm.$refs.history_datatable.vmDataTable.on('click', 'a[data-view-history]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-view-history');
+                vm.viewHistory(id);
+            });
+        }
     },
+    mounted: function(){
+            let vm = this;
+            this.$nextTick(() => {
+                vm.addEventListeners();
+            });
+        },
 };
 </script>
+
+<style lang="css" scoped>
+    /*ul, li {
+        zoom:1;
+        display: inline;
+    }*/
+    fieldset.scheduler-border {
+    border: 1px groove #ddd !important;
+    padding: 0 1.4em 1.4em 1.4em !important;
+    margin: 0 0 1.5em 0 !important;
+    -webkit-box-shadow:  0px 0px 0px 0px #000;
+            box-shadow:  0px 0px 0px 0px #000;
+    }
+    legend.scheduler-border {
+    width:inherit; /* Or auto */
+    padding:0 10px; /* To give a bit of padding on the left and right */
+    border-bottom:none;
+    }
+</style>

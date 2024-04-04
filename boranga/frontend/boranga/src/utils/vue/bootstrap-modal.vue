@@ -29,7 +29,6 @@
                 </div>
             </div>
         </div>
-        SHOW NOW
         <div class="modal-backdrop show"></div>
     </div>
 </template>

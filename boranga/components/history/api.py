@@ -151,3 +151,38 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
             )
 
         return self.paginator.get_paginated_response(list(versions_list))
+    
+class GetRevisionVersionsView(InternalAuthorizationView):
+
+    def get(self, request, primary_model_name, revision_id):
+        """ Returns all versions for a revision id, oriented by a primary model
+
+            api/history/primary_model_name/revision_id/
+
+            Example:
+
+            api/history/SpeciesDocument/112/
+        """
+        super().get(self)
+
+        queryset = Version.objects.filter(revision_id=revision_id).annotate(data=Cast('serialized_data', JSONField()))
+
+        # Build the list of versions
+        primary_version = queryset.get(content_type__model__iexact=primary_model_name)
+        revision_dict = {
+            'revision_id': primary_version.revision_id,
+            'date_created': primary_version.revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        version_data = {}
+        if primary_version.data:
+            version_data[primary_version.content_type.model.lower()] = primary_version.data[0]
+            version_data[primary_version.content_type.model.lower()]["model_display_name"] = primary_version.content_type.name
+
+        for version in queryset:
+            if not version.content_type.model.lower() == primary_model_name.lower() and version.data:
+                version_data[version.content_type.model.lower()] = version.data[0]
+                version_data[version.content_type.model.lower()]["model_display_name"] = version.content_type.name
+
+        revision_dict["version_data"] = version_data
+        
+        return Response(revision_dict)
