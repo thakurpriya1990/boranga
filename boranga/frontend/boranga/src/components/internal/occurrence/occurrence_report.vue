@@ -1,10 +1,19 @@
 <template lang="html">
-    <div class="container" id="internal-occurence-report-detail">
+    <div v-if="occurrence_report" class="container" id="internal-occurence-report-detail">
         <div class="row">
-            <div v-if="occurrence_report" class="col">
+            <div class="col">
                 <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }}</h3>
-                <h4 class="text-muted mb-3">Occurrence: {{ occurrence_report?.occurrence?.occurrence_number || 'NOT SET'
-                    }}</h4>
+                <h4 class="text-muted mb-3">
+                    Occurrence:
+                    <template v-if="occurrence_report.occurrence">
+                        {{ occurrence_report.occurrence.occurrence_number }} <small><a
+                                :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${$route.query.group_type_name}&action=view`" target="_blank"><i
+                                    class="bi bi-box-arrow-up-right"></i></a></small>
+                    </template>
+                    <template v-else>
+                        NOT SET
+                    </template>
+                </h4>
             </div>
         </div>
         <div class="row pb-4">
@@ -17,68 +26,39 @@
                     :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"
                     class="mb-3" />
 
-                <div>
-                    <div class="card card-default">
-                        <div class="card-header">
-                            Workflow
+                <div class="card card-default sticky-top">
+                    <div class="card-header">
+                        Workflow
+                    </div>
+                    <div class="card-body border-bottom">
+                        <strong>Status</strong><br />
+                        {{ occurrence_report.processing_status }}
+                    </div>
+                    <div class="card-body">
+                        <strong>Actions</strong><br />
+                        <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
+                            <template v-if="hasUserEditMode">
+                                <div class="row">
+                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                        @click.prevent="splitSpecies()">Split</button><br />
+                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                        @click.prevent="combineSpecies()">Combine</button><br />
+                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                        @click.prevent="renameSpecies()">Rename</button><br />
+                                </div>
+                            </template>
+                            <button v-if="canDiscard" style="width:80%;" class="btn btn-primary top-buffer-s"
+                                @click.prevent="discardSpeciesProposal()">Discard</button><br />
                         </div>
-                        <div class="card-body card-collapse">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <strong>Status</strong><br />
-                                    {{ occurrence_report.processing_status }}
-                                </div>
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                                <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
-                                    <template v-if="hasUserEditMode">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <strong>Action</strong><br />
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="splitSpecies()">Split</button><br />
-                                            </div>
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="combineSpecies()">Combine</button><br />
-                                            </div>
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="renameSpecies()">Rename</button><br />
-                                            </div>
-                                        </div>
-                                    </template>
-                                    <template v-if="canDiscard">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <strong>Action</strong><br />
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="discardSpeciesProposal()">Discard</button><br />
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
             </div>
-            <div class="col-md-8">
+            <div class="col-md-9">
                 <template>
                     <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
                         enctype="multipart/form-data">
                         <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
-                            id="OccurrenceReportStart" :canEditStatus="canEditStatus" :is_external="true"
+                            id="OccurrenceReportStart" :canEditStatus="false" :is_external="true"
                             ref="occurrence_report" @refreshFromResponse="refreshFromResponse">
                         </ProposalOccurrenceReport>
 
@@ -86,7 +66,7 @@
                         <input type='hidden' name="occurrence_report_id" :value="1" />
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="occurrence_report.can_user_edit" class="container">
+                                <div v-if="hasUserEditMode" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2 pull-right"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
@@ -135,7 +115,6 @@
             @refreshFromResponse="refreshFromResponse" />
         <SpeciesRename ref="species_rename" :occurrence_report_original="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" /> -->
-    </div>
 
 </template>
 <script>
@@ -167,8 +146,6 @@ export default {
             submitOccurrenceReport: false,
             imageURL: '',
             isSaved: false,
-
-
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comparing: false,
         }
