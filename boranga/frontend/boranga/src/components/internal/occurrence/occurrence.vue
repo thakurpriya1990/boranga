@@ -131,11 +131,6 @@
                     </div>
                 </div>
             </div>
-            <div v-else>
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
         </div>
         <!-- <SpeciesSplit ref="species_split" :occurrence="occurrence" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
@@ -260,44 +255,16 @@ export default {
             return this.occurrence && this.occurrence.processing_status === "Draft" ? true : false;
         },
         comms_url: function () {
-            return (this.occurrence.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.occurrence_id + '/comms_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.occurrence_id + '/comms_log');
+            return helpers.add_endpoint_json(api_endpoints.occurrence, this.$route.params.occurrence_id + '/comms_log')
         },
         comms_add_url: function () {
-            return (this.occurrence.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.occurrence_id + '/add_comms_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.occurrence_id + '/add_comms_log');
+            return helpers.add_endpoint_json(api_endpoints.occurrence, this.$route.params.occurrence_id + '/add_comms_log')
         },
         logs_url: function () {
-            return (this.occurrence.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.occurrence_id + '/action_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.occurrence_id + '/action_log');
+            return helpers.add_endpoint_json(api_endpoints.occurrence, this.$route.params.occurrence_id + '/action_log')
         },
     },
     methods: {
-        fetchOccurrence: function (occurrence_id) {
-            if (this.$route.query.group_type_name === 'flora' || this.$route.query.group_type_name === "fauna") {
-                Vue.http.get(`/api/occurrence/${occurrence_id}/`).then(res => {
-                    next(vm => {
-                        vm.occurrence = res.body;
-                    });
-                },
-                    err => {
-                        console.log(err);
-                    });
-            }
-            else {
-                Vue.http.get(`/api/community/${occurrence_id}/internal_community.json`).then(res => {
-                    next(vm => {
-                        vm.occurrence = res.body;
-                    });
-                },
-                    err => {
-                        console.log(err);
-                    });
-            }
-        },
         discardSpeciesProposal: function () {
             let vm = this;
             swal.fire({
@@ -603,9 +570,6 @@ export default {
         this.$nextTick(() => {
             vm.form = document.forms.occurrence;
         });
-    },
-    created: function () {
-        this.fetchOccurrence(this.$route.params.occurrence_id);
     },
     beforeRouteEnter: function (to, from, next) {
         if (to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna") {
