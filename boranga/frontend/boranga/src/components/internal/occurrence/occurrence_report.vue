@@ -257,19 +257,13 @@ export default {
             return this.occurrence_report && this.occurrence_report.processing_status === "Draft" ? true : false;
         },
         comms_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.occurrence_report_id + '/comms_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.occurrence_report_id + '/comms_log');
+            return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/comms_log')
         },
         comms_add_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.occurrence_report_id + '/add_comms_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.occurrence_report_id + '/add_comms_log');
+            return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/add_comms_log')
         },
         logs_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.occurrence_report_id + '/action_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.occurrence_report_id + '/action_log');
+            return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/action_log')
         },
     },
     methods: {

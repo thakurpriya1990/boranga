@@ -379,7 +379,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         except:
             return Response(status=500, data="Internal Server Error")
 
-class OccurrenceReportViewSet(viewsets.ModelViewSet):
+class OccurrenceReportViewSet(UserActionLoggingViewset):
     queryset = OccurrenceReport.objects.none()
     serializer_class = OccurrenceReportSerializer
     lookup_field = 'id'
