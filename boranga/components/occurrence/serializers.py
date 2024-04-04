@@ -4,7 +4,7 @@ import logging
 from django.urls import reverse
 from django.conf import settings
 
-from boranga.helpers import is_internal
+from boranga.helpers import is_assessor, is_internal
 from boranga.components.species_and_communities.models import CommunityTaxonomy
 from boranga.components.occurrence.models import (
     Occurrence,
@@ -53,27 +53,27 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceReport
         fields = (
-                'id',
-                'occurrence_report_number',
-                'group_type',
-                'scientific_name',
-                'community_name',
-                'processing_status',
-                'customer_status',
-                'can_user_edit',
-                'can_user_view',
-            )
+            "id",
+            "occurrence_report_number",
+            "group_type",
+            "scientific_name",
+            "community_name",
+            "processing_status",
+            "customer_status",
+            "can_user_view",
+            "can_user_edit",
+        )
         datatables_always_serialize = (
-                'id',
-                'occurrence_report_number',
-                'group_type',
-                'scientific_name',
-                'community_name',
-                'processing_status',
-                'customer_status',
-                'can_user_edit',
-                'can_user_view',
-            )   
+            "id",
+            "occurrence_report_number",
+            "group_type",
+            "scientific_name",
+            "community_name",
+            "processing_status",
+            "customer_status",
+            "can_user_view",
+            "can_user_edit",
+        )
 
     def get_group_type(self,obj):
         if obj.group_type:
@@ -102,49 +102,53 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     processing_status_display = serializers.CharField(source="get_processing_status_display")
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     internal_user_edit = serializers.SerializerMethodField()
+    can_user_assess = serializers.SerializerMethodField()
+
     class Meta:
         model = OccurrenceReport
         fields = (
-            'id',
-            'occurrence_report_number',
-            'species',
+            "id",
+            "occurrence_report_number",
+            "species",
             # 'group_type',
-            'scientific_name',
-            'reported_date',
-            'submitter',
-            'processing_status',
-            'processing_status_display',
-            'can_user_edit',
-            'can_user_view',
-            'internal_user_edit',
+            "scientific_name",
+            "reported_date",
+            "submitter",
+            "processing_status",
+            "processing_status_display",
+            "can_user_edit",
+            "can_user_view",
+            "can_user_assess",
+            "internal_user_edit",
         )
         datatables_always_serialize = (
-            'id',
-            'occurrence_report_number',
-            'species',
-            'scientific_name',
-            'reported_date',
-            'submitter',
-            'processing_status',
-            'processing_status_display',
-            'can_user_edit',
-            'can_user_view',
-            'internal_user_edit',
-        )   
+            "id",
+            "occurrence_report_number",
+            "species",
+            "scientific_name",
+            "reported_date",
+            "submitter",
+            "processing_status",
+            "processing_status_display",
+            "can_user_edit",
+            "can_user_view",
+            "can_user_assess",
+            "internal_user_edit",
+        )
 
     def get_scientific_name(self,obj):
         if obj.species:
             if obj.species.taxonomy:
                 return obj.species.taxonomy.scientific_name
         return ''
-    
+
     def get_submitter(self,obj):
         if obj.submitter:
             email_user = retrieve_email_user(obj.submitter)
             return email_user.get_full_name()
         else:
             return None
-    
+
     def get_internal_user_edit(self,obj):
         request = self.context['request']
         user = request.user
@@ -153,6 +157,15 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
                 return True
         else:
             return False
+
+    def get_can_user_assess(self, obj):
+        request = self.context["request"]
+        return (
+            is_assessor(request.user)
+            and obj.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+        )
+
 
 class HabitatCompositionSerializer(serializers.ModelSerializer):
     
@@ -494,6 +507,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
 
 
 class ListOccurrenceSerializer(OccurrenceSerializer):
+    can_user_assess = serializers.SerializerMethodField()
     class Meta:
         model = Occurrence
         fields = (
@@ -504,6 +518,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "number_of_reports",
             "processing_status",
             "processing_status_display",
+            "can_user_assess",
         )
         datatables_always_serialize = (
             "id",
@@ -513,6 +528,15 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "number_of_reports",
             "processing_status",
             "processing_status_display",
+            "can_user_assess",
+        )
+
+    def get_can_user_assess(self, obj):
+        request = self.context["request"]
+        return (
+            is_assessor(request.user)
+            and obj.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
         )
 
 
@@ -536,6 +560,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     label = serializers.SerializerMethodField(read_only=True)
     model_name = serializers.SerializerMethodField(read_only=True)
     occurrence = OccurrenceSerializer(read_only=True, allow_null=True)
+    lodgement_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True)
 
     class Meta:
         model = OccurrenceReport
@@ -688,6 +713,19 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             return EmailUserSerializer(email_user).data
         else:
             return None
+
+
+class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
+    can_user_assess = serializers.SerializerMethodField()
+
+    def get_can_user_assess(self, obj):
+        request = self.context["request"]
+        return (
+            is_assessor(request.user)
+            and obj.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+        )
+
 
 class SaveHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
