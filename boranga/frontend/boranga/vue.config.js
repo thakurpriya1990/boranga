@@ -1,5 +1,5 @@
 // vue.config.js
-const { defineConfig } = require('@vue/cli-service')
+const { defineConfig } = require('@vue/cli-service');
 const path = require('path');
 const webpack = require('webpack');
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
@@ -26,6 +26,11 @@ module.exports = defineConfig({
     },
     configureWebpack: {
         devtool: 'source-map',
+        resolve: {
+            fallback: {
+                buffer: require.resolve('buffer/'),
+            },
+        },
         plugins: [
             new webpack.ProvidePlugin({
                 $: 'jquery',
@@ -34,6 +39,9 @@ module.exports = defineConfig({
                 _: 'lodash',
             }),
             new MomentLocalesPlugin(),
+            new webpack.ProvidePlugin({
+                Buffer: ['buffer', 'Buffer'],
+            }),
         ],
         devServer: {
             host: '0.0.0.0',
@@ -45,7 +53,7 @@ module.exports = defineConfig({
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers':
-                'Origin, X-Requested-With, Content-Type, Accept',
+                    'Origin, X-Requested-With, Content-Type, Accept',
             },
             client: {
                 webSocketURL: 'ws://0.0.0.0:' + port + '/ws',
@@ -75,4 +83,4 @@ module.exports = defineConfig({
             hints: false,
         },
     },
-})
+});
