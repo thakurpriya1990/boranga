@@ -23,6 +23,7 @@
                 ref="species_document_history"
                 :key="speciesDocumentHistoryId"
                 :document-id="speciesDocumentHistoryId"
+                :species-id="species_community.id"
             />
         </div>
     </div>

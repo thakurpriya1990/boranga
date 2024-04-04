@@ -2,7 +2,7 @@
     <div id="speciesDocumentHistory">
         <modal
             transition="modal fade"
-            :title="'Species Document History ' + documentId"
+            :title="'Species '+ speciesId +' - Document ' + documentId + ' - History ' "
             :large="true"
             :full="true"
             :showOK="false"
@@ -51,6 +51,10 @@ export default {
             type: Number,
             required: true,
         },
+        speciesId: {
+            type: Number,
+            required: true,
+        },
     },
     data: function () {
         return {
@@ -75,7 +79,7 @@ export default {
                 'Sub Category',
                 'Document',
                 'Description',
-                 //'Action',
+                'Action',
             ];
         },
         column_data: function () {
@@ -210,6 +214,18 @@ export default {
                 name: 'description',
             };
         },
+        column_action: function () {
+            return {
+                data: 'revision_id',
+                orderable: false,
+                searchable: false,
+                visible: true,
+                'render': function(data, type, full){
+                    let links = "";
+                    return links;
+                }
+            };
+        },
         datatable_options: function () {
             let vm = this;
             let columns = [
@@ -219,6 +235,7 @@ export default {
                 vm.column_sub_category,
                 vm.column_file,
                 vm.column_description,
+                vm.column_action,
             ];
             let buttons = [
                 {
@@ -259,28 +276,12 @@ export default {
             };
         },
     },
-    created: function () {
-        //this.fetchDocumentDetails();
-    },
     methods: {
         close: function () {
             this.errorString = '';
             this.isModalOpen = false;
             $('.has-error').removeClass('has-error');
         },
-        //fetchDocumentDetails: async function () {
-        //    let vm = this;
-        //    let url = api_endpoints.lookup_history_species_document(this.documentId)+"?format=datatables";
-        //    utils
-        //        .fetchUrl(url)
-        //        .then((data) => {
-        //            vm.documentDetails = Object.assign({}, data);
-        //        })
-        //        .catch((error) => {
-        //            this.errorMessage = constants.ERRORS.API_ERROR;
-        //            console.error(`Error fetching document details: ${error}`);
-        //        });
-        //},
     },
 };
 </script>

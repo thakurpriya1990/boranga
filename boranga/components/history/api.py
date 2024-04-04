@@ -47,7 +47,7 @@ class VersionsFilterBackend(DatatablesFilterBackend):
                 search_fields_regex = search_fields_regex[:-1]
             
             filter_regex = ".*\"(?:"+search_fields_regex+")\":\s\"?[\sa-zA-Z0-9-]*(?:"+search_value+")[\sa-zA-Z0-9-]*\"?.*"
-            print(filter_regex)
+
             #apply search term to all searchable fields
             #revision id
             qs_revision_id = all_versions
@@ -145,7 +145,7 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
 
             versions_list.append({
                'revision_id': version.revision_id,
-               'date_created': version.revision.date_created,
+               'date_created': version.revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
                'data': data,
                }
             )
