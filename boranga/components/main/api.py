@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -77,12 +78,28 @@ class UserActionLoggingViewset(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
+def get_cached_epsg_codes(auth_name="EPSG", pj_type="GEODETIC_CRS"):
+    # TODO: This is a temporary solution to get the geodetic datums for australia
+    cool_codes = ["4203", "4202", "7844", "9309", "4283", "4326"]
+
+    cache_key = settings.CACHE_KEY_EPSG_CODES.format(
+        **{"auth_name": auth_name, "pj_type": pj_type}
+    )
+    if cache.get(cache_key):
+        return cache.get(cache_key)
+
+    import pyproj
+
+    codes = [c for c in pyproj.get_codes(auth_name, pj_type) if c in cool_codes]
+    cache.set(cache_key, codes, timeout=60 * 60 * 24)
+
+    return codes
+
+
 def search_datums(search):
     import pyproj
 
-    # TODO: This is a temporary solution to get the geodetic datums for australia
-    cool_codes = ["4203", "4202", "7844", "9309", "4283", "4326"]
-    codes = [c for c in pyproj.get_codes("EPSG", "GEODETIC_CRS") if c in cool_codes]
+    codes = get_cached_epsg_codes()
 
     geodetic_crs = [
         {"id": int(c), "name": f"EPSG:{c} - {pyproj.CRS.from_string(c).name}"}
