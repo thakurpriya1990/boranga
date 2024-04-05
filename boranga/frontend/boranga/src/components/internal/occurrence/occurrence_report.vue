@@ -7,8 +7,8 @@
                     Occurrence:
                     <template v-if="occurrence_report.occurrence">
                         {{ occurrence_report.occurrence.occurrence_number }} <small><a
-                                :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${$route.query.group_type_name}&action=view`" target="_blank"><i
-                                    class="bi bi-box-arrow-up-right"></i></a></small>
+                                :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${$route.query.group_type_name}&action=view`"
+                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
                     </template>
                     <template v-else>
                         NOT SET
@@ -34,20 +34,49 @@
                         <strong>Status</strong><br />
                         {{ occurrence_report.processing_status }}
                     </div>
+                    <div class="card-body border-bottom">
+                        <div class="mb-2"><strong>Currently assigned to</strong></div>
+                        <template v-if="occurrence_report.processing_status == 'With Approver'">
+                            <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
+                                v-model="occurrence_report.assigned_approver">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
+                                    {{ member.first_name }} {{ member.last_name }}</option>
+                            </select>
+                            <a v-if="occurrence_report.can_user_edit && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign to me</a>
+                        </template>
+                        <template v-else>
+                            <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
+                                v-model="occurrence_report.assigned_officer">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
+                                    {{ member.first_name }} {{ member.last_name }}</option>
+                            </select>
+                            <a v-if="occurrence_report.can_user_edit && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
+                        </template>
+                    </div>
+                    <div class="card-body border-bottom">
+                        <div class="mb-2"><strong>Referrals</strong></div>
+                        <select class="form-select mb-2" placeholder="Select a referee">
+                            <option value="">Unassigned</option>
+                            <option value="1">User 1</option>
+                        </select>
+                        <a href="">Show referrals</a>
+                    </div>
                     <div class="card-body">
-                        <strong>Actions</strong><br />
-                        <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
+                        <div class="mb-3"><strong>Actions</strong></div>
+                        <div v-if='!isCommunity'>
                             <template v-if="hasUserEditMode">
-                                <div class="row">
-                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                <div class="text-center">
+                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                        @click.prevent="">Approve</button><br />
+                                    <button style="width:80%;" class="btn btn-primary mb-2" @click.prevent="">Request
+                                        Amendment</button><br />
+                                    <button style="width:80%;" class="btn btn-primary mb-2"
                                         @click.prevent="splitSpecies()">Split</button><br />
-                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                        @click.prevent="combineSpecies()">Combine</button><br />
-                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                        @click.prevent="renameSpecies()">Rename</button><br />
                                 </div>
                             </template>
-                            <button v-if="canDiscard" style="width:80%;" class="btn btn-primary top-buffer-s"
+                            <button v-if="canDiscard" style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="discardSpeciesProposal()">Discard</button><br />
                         </div>
                     </div>
@@ -68,7 +97,7 @@
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
                                 <div v-if="hasUserEditMode" class="container">
                                     <div class="col-md-12 text-end">
-                                        <button v-if="savingOccurrenceReport" class="btn btn-primary me-2 pull-right"
+                                        <button v-if="savingOccurrenceReport" class="btn btn-primary me-2 float-end"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <button v-else class="btn btn-primary me-2 ull-right" style="margin-top:5px;"
@@ -76,28 +105,28 @@
                                             :disabled="saveExitOccurrenceReport || submitOccurrenceReport">Save
                                             and Continue</button>
 
-                                        <button v-if="saveExitOccurrenceReport" class="btn btn-primary me-2 pull-right"
+                                        <button v-if="saveExitOccurrenceReport" class="btn btn-primary me-2 float-end"
                                             style="margin-top:5px;" disabled>Save and Exit&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <button v-else class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
+                                        <button v-else class="btn btn-primary me-2 float-end" style="margin-top:5px;"
                                             @click.prevent="save_exit()"
                                             :disabled="savingOccurrenceReport || submitOccurrenceReport">Save
                                             and Exit</button>
 
-                                        <button v-if="submitOccurrenceReport" class="btn btn-primary pull-right"
+                                        <button v-if="submitOccurrenceReport" class="btn btn-primary float-end"
                                             style="margin-top:5px;" disabled>Submit&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <button v-else class="btn btn-primary pull-right" style="margin-top:5px;"
+                                        <button v-else class="btn btn-primary float-end" style="margin-top:5px;"
                                             @click.prevent="submit()"
                                             :disbaled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
                                 <div v-else-if="hasUserEditMode" class="container">
                                     <div class="col-md-12 text-end">
-                                        <button v-if="savingOccurrenceReport" class="btn btn-primary pull-right"
+                                        <button v-if="savingOccurrenceReport" class="btn btn-primary float-end"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <button v-else class="btn btn-primary pull-right" style="margin-top:5px;"
+                                        <button v-else class="btn btn-primary float-end" style="margin-top:5px;"
                                             @click.prevent="save()">Save
                                             Changes</button>
                                     </div>
@@ -140,6 +169,8 @@ export default {
         let vm = this;
         return {
             occurrence_report: null,
+            original_occurrence_report: null,
+            initialisedSelects: false,
             form: null,
             savingOccurrenceReport: false,
             saveExitOccurrenceReport: false,
@@ -218,8 +249,8 @@ export default {
         },
         hasUserEditMode: function () {
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (this.$route.query.action == 'edit') {
-                return this.occurrence_report && this.occurrence_report.user_edit_mode ? true : false;
+            if (['edit', 'process'].includes(this.$route.query.action)) {
+                return this.occurrence_report && this.occurrence_report.can_user_edit;
             }
             else {
                 return false;
@@ -414,7 +445,7 @@ export default {
                             vm.occurrence = res.body;
                             // vm.$router.push({
                             //     name: 'submit_cs_proposal',
-                            //     params: { conservation_status_obj: vm.conservation_status_obj}
+                            //     params: { occurrence_report: vm.occurrence_report}
                             // });
                             // TODO router should push to submit_cs_proposal for internal side 
                             vm.$router.push({
@@ -537,11 +568,158 @@ export default {
                 this.$refs.species_rename.new_rename_species = rename_species_obj;
                 this.$refs.species_rename.isModalOpen = true;
             }
-        }
+        },
+        initialiseSelects: function(){
+            let vm = this;
+            if (!vm.initialisedSelects){
+                $(vm.$refs.department_users).select2({
+                minimumInputLength: 2,
+                "theme": "bootstrap-5",
+                allowClear: true,
+                placeholder:"Select Referrer",
+                ajax: {
+                    url: api_endpoints.users_api + '/get_department_users/',
+                    dataType: 'json',
+                    data: function(params) {
+                        var query = {
+                            term: params.term,
+                            type: 'public',
+                        }
+                        return query;
+                    },
+                },
+                })
+                .on("select2:select", function (e) {
+                    let data = e.params.data.id;
+                    vm.selected_referral = data;
+                })
+                .on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.selected_referral = null;
+                })
+                vm.initialiseAssignedOfficerSelect();
+                vm.initialisedSelects = true;
+            }
+        },        
+        initialiseAssignedOfficerSelect:function(reinit=false){
+            let vm = this;
+            if (reinit){
+                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy'): '';
+            }
+            // Assigned officer select
+            $(vm.$refs.assigned_officer).select2({
+                "theme": "bootstrap-5",
+                allowClear: true,
+                placeholder:"Select Officer"
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                if (vm.occurrence_report.processing_status == 'With Approver'){
+                    vm.occurrence_report.assigned_approver = selected.val();
+                }
+                else{
+                    vm.occurrence_report.assigned_officer = selected.val();
+                }
+                vm.assignTo();
+            }).on("select2:unselecting", function(e) {
+                var self = $(this);
+                setTimeout(() => {
+                    self.select2('close');
+                }, 0);
+            }).on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                if (vm.occurrence_report.processing_status == 'With Approver'){
+                    vm.occurrence_report.assigned_approver = null;
+                }
+                else{
+                    vm.occurrence_report.assigned_officer = null;
+                }
+                vm.assignTo();
+            });
+        },        
+        updateAssignedOfficerSelect:function(){
+            let vm = this;
+            if (vm.occurrence_report.processing_status == 'With Approver'){
+                $(vm.$refs.assigned_officer).val(vm.occurrence_report.assigned_approver);
+                $(vm.$refs.assigned_officer).trigger('change');
+            }
+            else{
+                $(vm.$refs.assigned_officer).val(vm.occurrence_report.assigned_officer);
+                $(vm.$refs.assigned_officer).trigger('change');
+            }
+        },
+        assignTo: function(){
+            let vm = this;
+            let unassign = true;
+            let data = {};
+            if (vm.occurrence_report.processing_status == 'With Approver'){
+                unassign = vm.occurrence_report.assigned_approver != null && vm.occurrence_report.assigned_approver != 'undefined' ? false: true;
+                data = {'assessor_id': vm.occurrence_report.assigned_approver};
+            }
+            else{
+                unassign = vm.occurrence_report.assigned_officer != null && vm.occurrence_report.assigned_officer != 'undefined' ? false: true;
+                data = {'assessor_id': vm.occurrence_report.assigned_officer};
+            }
+            if (!unassign){
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report.id+'/assign_to')),JSON.stringify(data),{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.occurrence_report = response.body;
+                    vm.original_occurrence_report = helpers.copyObject(response.body);
+                    vm.updateAssignedOfficerSelect();
+                }, (error) => {
+                    vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
+                    vm.updateAssignedOfficerSelect();
+                    swal.fire({
+                        title: 'Application Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
+                    });
+                });
+            }
+            else{
+                vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report.id+'/unassign')))
+                .then((response) => {
+                    vm.occurrence_report = response.body;
+                    vm.original_occurrence_report = helpers.copyObject(response.body);
+                    vm.updateAssignedOfficerSelect();
+                }, (error) => {
+                    vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
+                    vm.updateAssignedOfficerSelect();
+                    swal.fire({
+                        title: 'Application Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb'
+                    });
+                });
+            }
+        },
+        assignRequestUser: function(){
+            let vm = this;
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report.id+'/assign_request_user')))
+            .then((response) => {
+                vm.occurrence_report = response.body;
+                vm.original_occurrence_report = helpers.copyObject(response.body);
+                vm.updateAssignedOfficerSelect();
+
+            }, (error) => {
+                vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
+                vm.updateAssignedOfficerSelect();
+                swal.fire({
+                    title: 'Application Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon :'error',
+                    confirmButtonColor:'#226fbb'
+                });
+            });
+        },
     },
-    updated: function () {
+    updated: function(){
         let vm = this;
         this.$nextTick(() => {
+            vm.initialiseSelects();
             vm.form = document.forms.occurrence_report;
         });
     },
