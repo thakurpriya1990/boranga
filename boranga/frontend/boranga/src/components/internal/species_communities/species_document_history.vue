@@ -160,21 +160,21 @@ export default {
         },
         column_category: function () {
             return {
-                //data: 'data.data.speciesdocument.fields.document_category', 
-                data: 'data.data.documentcategory.fields.document_category_name', //TODO: disable this, for testing only
+                data: 'data.data.speciesdocument.fields.document_category', 
+                //data: 'data.data.documentcategory.fields.document_category_name', //used for testing
                 defaultContent: '',
-                orderable: false, //TODO: make orderable when done testing foreign fields
+                orderable: true,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    //return full.data.speciesdocument.fields.document_category;
-                    if (full.data.documentcategory !== undefined) {
-                        return full.data.documentcategory.fields.document_category_name;
-                    } else {
-                        return ''
-                    }
+                    return full.data.speciesdocument.fields.document_category;
+                    //if (full.data.documentcategory !== undefined) {
+                    //    return full.data.documentcategory.fields.document_category_name;
+                    //} else {
+                    //    return ''
+                    //}
                 },
-                name: 'document_category_name',
+                name: 'document_category', //_name',
             };
         },
         column_sub_category: function () {

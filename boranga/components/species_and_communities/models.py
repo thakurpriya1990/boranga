@@ -1894,5 +1894,5 @@ class CommunityConservationAttributes(models.Model):
         return str(self.community)  # TODO: is the most appropriate?
 
 import reversion
-reversion.register(SpeciesDocument, follow=['document_category'])
-reversion.register(DocumentCategory) #disable this, for testing only
+reversion.register(SpeciesDocument)
+#reversion.register(DocumentCategory) 
