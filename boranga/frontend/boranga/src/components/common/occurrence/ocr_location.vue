@@ -316,7 +316,7 @@
                 <label for="" class="col-sm-3 control-label">Datum:</label>
                 <div class="col-sm-9">
                     <VueSelect
-                        v-model="occurrence_report_obj.location.datum_id"
+                        v-model="occurrence_report_obj.location.epsg_code"
                         :options="datum_list"
                         :reduce="(option) => option.id"
                         label="name"
