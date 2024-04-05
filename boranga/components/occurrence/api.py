@@ -82,6 +82,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportUserAction,
 )
 from boranga.components.occurrence.serializers import (
+    InternalOccurrenceReportSerializer,
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
     OccurrenceLogEntrySerializer,
@@ -402,20 +403,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         return OccurrenceReport.objects.none()
 
     def get_serializer_class(self):
-        try:
-            return OccurrenceReportSerializer
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e,'error_dict'):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e,'message'):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        if is_internal(self.request):
+            return InternalOccurrenceReportSerializer
+        return OccurrenceReportSerializer
 
     def create(self, request, *args, **kwargs):
         try:
@@ -437,7 +427,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
                 serializer=SaveLocationSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
-                
+
                 # create HabitatComposition for new instance
                 serializer=SaveHabitatCompositionSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
@@ -473,11 +463,11 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
-                 # create Identification for new instance
+                # create Identification for new instance
                 serializer=SaveIdentificationSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
-                
+
                 headers = self.get_success_headers(serializer.data)
                 return Response(
                     new_instance.id,
@@ -493,8 +483,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-    
-    #used for Location Tab of Occurrence Report external form 
+
+    # used for Location Tab of Occurrence Report external form
     @list_route(methods=['GET',], detail=False)
     def location_list_of_values(self, request, *args, **kwargs):
         """ used for Occurrence Report external form  """
@@ -530,8 +520,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
-    
-    #used for Occurrence Report external form 
+
+    # used for Occurrence Report external form
     @list_route(methods=['GET',], detail=False)
     def list_of_values(self, request, *args, **kwargs):
         """ used for Occurrence Report external form  """
@@ -603,8 +593,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
-    
-    #used for Occurrence Report Observation external form 
+
+    # used for Occurrence Report Observation external form
     @list_route(methods=['GET',], detail=False)
     def observation_list_of_values(self, request, *args, **kwargs):
         """ used for Occurrence Report external form  """
@@ -739,7 +729,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
-    
+
     @list_route(methods=['POST',], detail=True)
     def update_location_details(self, request, *args, **kwargs):
         try:
@@ -758,8 +748,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             # ocr geometry data to save seperately
             geometry_data = request.data.get('ocr_geometry')
             if geometry_data:
-                  save_geometry(request, ocr_instance, geometry_data)
-                 
+                save_geometry(request, ocr_instance, geometry_data)
+
             # print(request.data.get('geojson_polygon'))
             # polygon = request.data.get('geojson_polygon')
             # if polygon:
@@ -774,15 +764,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
-                print(traceback.print_exc())
-                raise
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(repr(e.error_dict))
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(str(e))
-    
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(methods=['POST',], detail=True)
     def update_habitat_composition_details(self, request, *args, **kwargs):
         try:
@@ -794,15 +784,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
-                print(traceback.print_exc())
-                raise
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(repr(e.error_dict))
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(str(e))
-    
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(methods=['POST',], detail=True)
     def update_habitat_condition_details(self, request, *args, **kwargs):
         try:
@@ -814,15 +804,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
-                print(traceback.print_exc())
-                raise
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(repr(e.error_dict))
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(str(e))
-    
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(methods=['POST',], detail=True)
     def update_fire_history_details(self, request, *args, **kwargs):
         try:
@@ -834,15 +824,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
-                print(traceback.print_exc())
-                raise
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(repr(e.error_dict))
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(str(e))
-    
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(methods=['POST',], detail=True)
     def update_associated_species_details(self, request, *args, **kwargs):
         try:
@@ -854,15 +844,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
-                print(traceback.print_exc())
-                raise
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(repr(e.error_dict))
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(str(e))
-    
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(methods=['POST',], detail=True)
     def update_observation_details(self, request, *args, **kwargs):
         try:
@@ -874,15 +864,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
-                print(traceback.print_exc())
-                raise
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(repr(e.error_dict))
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(str(e))
-    
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(methods=['POST',], detail=True)
     def update_plant_count_details(self, request, *args, **kwargs):
         try:
@@ -894,15 +884,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
-                print(traceback.print_exc())
-                raise
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(repr(e.error_dict))
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(str(e))
-    
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(methods=['POST',], detail=True)
     def update_animal_observation_details(self, request, *args, **kwargs):
         try:
@@ -914,15 +904,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
-                print(traceback.print_exc())
-                raise
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(repr(e.error_dict))
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(str(e))
-    
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(methods=['POST',], detail=True)
     def update_identification_details(self, request, *args, **kwargs):
         try:
@@ -934,15 +924,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
-                print(traceback.print_exc())
-                raise
+            print(traceback.print_exc())
+            raise
         except ValidationError as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(repr(e.error_dict))
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
-                print(traceback.print_exc())
-                raise serializers.ValidationError(str(e))
-    
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     # used for observer detail datatable on location tab
     @detail_route(methods=['GET',], detail=True)
     def observer_details(self, request, *args, **kwargs):
@@ -960,7 +950,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-    
+
     @list_route(methods=["GET"], detail=False)
     def list_for_map(self, request, *args, **kwargs):
         """Returns the proposals for the map"""
@@ -1002,7 +992,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             qs, context={"request": request}, many=True
         )
         return Response(serializer.data)
-    
+
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
     def draft(self, request, *args, **kwargs):
@@ -1011,7 +1001,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
                 instance = self.get_object()
                 # request_data = request.data
                 proposal_data = request.data.get("proposal") if request.data.get("proposal") else {}
-                #request.data['submitter'] = u'{}'.format(request.user.id)
+                # request.data['submitter'] = u'{}'.format(request.user.id)
                 if proposal_data['submitter']:
                     request.data.get("proposal")['submitter'] = u'{}'.format(proposal_data['submitter'].get('id'))
                 if(proposal_data.get('habitat_composition')):
@@ -1020,63 +1010,63 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-                
+
                 if(proposal_data.get('habitat_condition')):
                     hab_cond_instance, created = HabitatCondition.objects.get_or_create(occurrence_report=instance)
                     serializer = SaveHabitatConditionSerializer(hab_cond_instance, data = proposal_data.get('habitat_condition'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-                
+
                 if(proposal_data.get('fire_history')):
                     fire_instance, created = FireHistory.objects.get_or_create(occurrence_report=instance)
                     serializer = SaveFireHistorySerializer(fire_instance, data = proposal_data.get('fire_history'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-                
+
                 if(proposal_data.get('associated_species')):
                     assoc_species_instance, created = AssociatedSpecies.objects.get_or_create(occurrence_report=instance)
                     serializer = SaveAssociatedSpeciesSerializer(assoc_species_instance, data = proposal_data.get('associated_species'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-                
+
                 if(proposal_data.get('observation_detail')):
                     obs_det_instance, created = ObservationDetail.objects.get_or_create(occurrence_report=instance)
                     serializer = SaveObservationDetailSerializer(obs_det_instance, data = proposal_data.get('observation_detail'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-                
+
                 if(proposal_data.get('plant_count')):
                     plant_count_instance, created = PlantCount.objects.get_or_create(occurrence_report=instance)
                     serializer = SavePlantCountSerializer(plant_count_instance, data = proposal_data.get('plant_count'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-                
+
                 if(proposal_data.get('animal_observation')):
                     animal_obs_instance, created = AnimalObservation.objects.get_or_create(occurrence_report=instance)
                     serializer = SaveAnimalObservationSerializer(animal_obs_instance, data = proposal_data.get('animal_observation'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-                
+
                 if(proposal_data.get('identification')):
                     identification_instance, created = Identification.objects.get_or_create(occurrence_report=instance)
                     serializer = SaveIdentificationSerializer(identification_instance, data = proposal_data.get('identification'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-                
+
                 if(proposal_data.get('location')):
                     location_instance, created = Location.objects.get_or_create(occurrence_report=instance)
                     serializer = SaveLocationSerializer(location_instance, data = proposal_data.get('location'))
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
                         serializer.save()
-                
+
                 # ocr geometry data to save seperately
                 geometry_data = proposal_data.get("ocr_geometry", None)
                 if geometry_data:
@@ -1103,18 +1093,18 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-    
+
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            #instance.submit(request,self)
+            # instance.submit(request,self)
             ocr_proposal_submit(instance, request)
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
-            #return redirect(reverse('external'))
+            # return redirect(reverse('external'))
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -1127,7 +1117,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-    
+
     @detail_route(methods=['GET',], detail=True)
     def action_log(self, request, *args, **kwargs):
         try:
@@ -1217,7 +1207,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-    
+
     @detail_route(methods=['GET',], detail=True)
     def threats(self, request, *args, **kwargs):
         try:
@@ -1266,6 +1256,88 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         serializer = self.get_serializer(instance)
         logger.debug(f"validate_map_files response: {serializer.data}")
         return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def assign_request_user(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.assign_officer(request, request.user)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def assign_to(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            user_id = request.data.get("assessor_id", None)
+            user = None
+            if not user_id:
+                raise serializers.ValidationError("An assessor id is required")
+            try:
+                user = EmailUser.objects.get(id=user_id)
+            except EmailUser.DoesNotExist:
+                raise serializers.ValidationError(
+                    "A user with the id passed in does not exist"
+                )
+            instance.assign_officer(request, user)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def unassign(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.unassign(request)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
