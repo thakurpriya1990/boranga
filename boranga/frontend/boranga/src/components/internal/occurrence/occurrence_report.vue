@@ -96,36 +96,36 @@
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
                                 <div v-if="hasUserEditMode" class="container">
                                     <div class="col-md-12 text-end">
-                                        <button v-if="savingOccurrenceReport" class="btn btn-primary me-2 float-end"
+                                        <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <button v-else class="btn btn-primary me-2 ull-right" style="margin-top:5px;"
+                                        <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
                                             @click.prevent="save()"
                                             :disabled="saveExitOccurrenceReport || submitOccurrenceReport">Save
                                             and Continue</button>
 
-                                        <button v-if="saveExitOccurrenceReport" class="btn btn-primary me-2 float-end"
+                                        <button v-if="saveExitOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Exit&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <button v-else class="btn btn-primary me-2 float-end" style="margin-top:5px;"
+                                        <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
                                             @click.prevent="save_exit()"
                                             :disabled="savingOccurrenceReport || submitOccurrenceReport">Save
                                             and Exit</button>
 
-                                        <button v-if="submitOccurrenceReport" class="btn btn-primary float-end"
+                                        <button v-if="submitOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Submit&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <button v-else class="btn btn-primary float-end" style="margin-top:5px;"
+                                        <button v-else class="btn btn-primary" style="margin-top:5px;"
                                             @click.prevent="submit()"
                                             :disbaled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
                                 <div v-else-if="hasUserEditMode" class="container">
                                     <div class="col-md-12 text-end">
-                                        <button v-if="savingOccurrenceReport" class="btn btn-primary float-end"
+                                        <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <button v-else class="btn btn-primary float-end" style="margin-top:5px;"
+                                        <button v-else class="btn btn-primary" style="margin-top:5px;"
                                             @click.prevent="save()">Save
                                             Changes</button>
                                     </div>
