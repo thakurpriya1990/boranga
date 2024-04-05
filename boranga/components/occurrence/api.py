@@ -509,10 +509,11 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
         id = request.GET.get("id", None)
         try:
-            epsg_code = qs.get(id=id)
+            qs = qs.get(id=id)
         except OccurrenceReport.DoesNotExist:
             logger.error(f"Occurrence Report with id {id} not found")
         else:
+            epsg_code = qs.location.epsg_code
             datum_list = search_datums(epsg_code)
 
         coordination_source_list = []

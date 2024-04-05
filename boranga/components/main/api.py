@@ -80,9 +80,19 @@ class UserActionLoggingViewset(viewsets.ModelViewSet):
 def search_datums(search):
     import pyproj
 
-    name = pyproj.CRS.from_string("EPSG:4326").name
-    datum_list = [{"id": 4326, "name": name}]
-    return datum_list
+    # TODO: This is a temporary solution to get the geodetic datums for australia
+    cool_codes = ["4203", "4202", "7844", "9309", "4283", "4326"]
+    codes = [c for c in pyproj.get_codes("EPSG", "GEODETIC_CRS") if c in cool_codes]
+
+    geodetic_crs = [
+        {"id": int(c), "name": f"EPSG:{c} - {pyproj.CRS.from_string(c).name}"}
+        for c in codes
+    ]
+
+    datums = [c for c in geodetic_crs if f"{search}".lower() in c["name"].lower()]
+
+    return datums
+
 
 class DatumSearchMixing:
     @action(detail=False, methods=["get"], url_path="epsg-code-datums")
