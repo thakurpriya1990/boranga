@@ -34,7 +34,7 @@
                         <strong>Status</strong><br />
                         {{ occurrence_report.processing_status }}
                     </div>
-                    <div class="card-body border-bottom">
+                    <div class="card-body" :class="isAssignedOfficer ? 'border-bottom' : ''">
                         <div class="mb-2"><strong>Currently assigned to</strong></div>
                         <template v-if="occurrence_report.processing_status == 'With Approver'">
                             <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
@@ -52,10 +52,11 @@
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="occurrence_report.can_user_edit && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
+                                me</a>
                         </template>
                     </div>
-                    <div class="card-body border-bottom">
+                    <div v-if="isAssignedOfficer" class="card-body" :class="canAction ? 'border-bottom' : ''">
                         <div class="mb-2"><strong>Referrals</strong></div>
                         <select class="form-select mb-2" placeholder="Select a referee">
                             <option value="">Unassigned</option>
@@ -63,21 +64,19 @@
                         </select>
                         <a href="">Show referrals</a>
                     </div>
-                    <div class="card-body">
-                        <div class="mb-3"><strong>Actions</strong></div>
-                        <div v-if='!isCommunity'>
-                            <template v-if="hasUserEditMode">
-                                <div class="text-center">
-                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                        @click.prevent="">Approve</button><br />
-                                    <button style="width:80%;" class="btn btn-primary mb-2" @click.prevent="">Request
-                                        Amendment</button><br />
-                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                        @click.prevent="splitSpecies()">Split</button><br />
-                                </div>
-                            </template>
-                            <button v-if="canDiscard" style="width:80%;" class="btn btn-primary mb-2"
-                                @click.prevent="discardSpeciesProposal()">Discard</button><br />
+                    <div v-if="canAction" class="card-body">
+                        <div class="mb-3">
+                            <strong>Actions</strong>
+                        </div>
+                        <div class="text-center">
+                            <button style="width:80%;" class="btn btn-primary mb-2"
+                                @click.prevent="">Approve</button><br />
+                            <button style="width:80%;" class="btn btn-primary mb-2" @click.prevent="">Request
+                                Amendment</button><br />
+                            <button style="width:80%;" class="btn btn-primary mb-2"
+                                @click.prevent="splitSpecies()">Split</button><br />
+                            <button style="width:80%;" class="btn btn-primary mb-2"
+                                @click.prevent="discardSpeciesProposal()">Discard</button>
                         </div>
                     </div>
                 </div>
@@ -255,6 +254,15 @@ export default {
             else {
                 return false;
             }
+        },
+        isAssignedOfficer: function () {
+            return this.occurrence_report && this.occurrence_report.assigned_officer == this.occurrence_report.current_assessor.id;
+        },
+        isAssignedApprover: function () {
+            return this.occurrence_report && this.occurrence_report.assigned_approver == this.occurrence_report.current_assessor.id;
+        },
+        canAction: function () {
+            return this.occurrence_report && this.isAssignedOfficer || this.isAssignedApprover;
         },
         canDiscard: function () {
             return this.occurrence_report && this.occurrence_report.processing_status === "Draft" ? true : false;
@@ -569,100 +577,100 @@ export default {
                 this.$refs.species_rename.isModalOpen = true;
             }
         },
-        initialiseSelects: function(){
+        initialiseSelects: function () {
             let vm = this;
-            if (!vm.initialisedSelects){
+            if (!vm.initialisedSelects) {
                 $(vm.$refs.department_users).select2({
-                minimumInputLength: 2,
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder:"Select Referrer",
-                ajax: {
-                    url: api_endpoints.users_api + '/get_department_users/',
-                    dataType: 'json',
-                    data: function(params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                        }
-                        return query;
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder: "Select Referrer",
+                    ajax: {
+                        url: api_endpoints.users_api + '/get_department_users/',
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            }
+                            return query;
+                        },
                     },
-                },
                 })
-                .on("select2:select", function (e) {
-                    let data = e.params.data.id;
-                    vm.selected_referral = data;
-                })
-                .on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_referral = null;
-                })
+                    .on("select2:select", function (e) {
+                        let data = e.params.data.id;
+                        vm.selected_referral = data;
+                    })
+                    .on("select2:unselect", function (e) {
+                        var selected = $(e.currentTarget);
+                        vm.selected_referral = null;
+                    })
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
-        },        
-        initialiseAssignedOfficerSelect:function(reinit=false){
+        },
+        initialiseAssignedOfficerSelect: function (reinit = false) {
             let vm = this;
-            if (reinit){
-                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy'): '';
+            if (reinit) {
+                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy') : '';
             }
             // Assigned officer select
             $(vm.$refs.assigned_officer).select2({
                 "theme": "bootstrap-5",
                 allowClear: true,
-                placeholder:"Select Officer"
+                placeholder: "Select Officer"
             }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                if (vm.occurrence_report.processing_status == 'With Approver'){
-                    vm.occurrence_report.assigned_approver = selected.val();
-                }
-                else{
-                    vm.occurrence_report.assigned_officer = selected.val();
-                }
-                vm.assignTo();
-            }).on("select2:unselecting", function(e) {
-                var self = $(this);
-                setTimeout(() => {
-                    self.select2('close');
-                }, 0);
-            }).on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                if (vm.occurrence_report.processing_status == 'With Approver'){
-                    vm.occurrence_report.assigned_approver = null;
-                }
-                else{
-                    vm.occurrence_report.assigned_officer = null;
-                }
-                vm.assignTo();
-            });
-        },        
-        updateAssignedOfficerSelect:function(){
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    if (vm.occurrence_report.processing_status == 'With Approver') {
+                        vm.occurrence_report.assigned_approver = selected.val();
+                    }
+                    else {
+                        vm.occurrence_report.assigned_officer = selected.val();
+                    }
+                    vm.assignTo();
+                }).on("select2:unselecting", function (e) {
+                    var self = $(this);
+                    setTimeout(() => {
+                        self.select2('close');
+                    }, 0);
+                }).on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    if (vm.occurrence_report.processing_status == 'With Approver') {
+                        vm.occurrence_report.assigned_approver = null;
+                    }
+                    else {
+                        vm.occurrence_report.assigned_officer = null;
+                    }
+                    vm.assignTo();
+                });
+        },
+        updateAssignedOfficerSelect: function () {
             let vm = this;
-            if (vm.occurrence_report.processing_status == 'With Approver'){
+            if (vm.occurrence_report.processing_status == 'With Approver') {
                 $(vm.$refs.assigned_officer).val(vm.occurrence_report.assigned_approver);
                 $(vm.$refs.assigned_officer).trigger('change');
             }
-            else{
+            else {
                 $(vm.$refs.assigned_officer).val(vm.occurrence_report.assigned_officer);
                 $(vm.$refs.assigned_officer).trigger('change');
             }
         },
-        assignTo: function(){
+        assignTo: function () {
             let vm = this;
             let unassign = true;
             let data = {};
-            if (vm.occurrence_report.processing_status == 'With Approver'){
-                unassign = vm.occurrence_report.assigned_approver != null && vm.occurrence_report.assigned_approver != 'undefined' ? false: true;
-                data = {'assessor_id': vm.occurrence_report.assigned_approver};
+            if (vm.occurrence_report.processing_status == 'With Approver') {
+                unassign = vm.occurrence_report.assigned_approver != null && vm.occurrence_report.assigned_approver != 'undefined' ? false : true;
+                data = { 'assessor_id': vm.occurrence_report.assigned_approver };
             }
-            else{
-                unassign = vm.occurrence_report.assigned_officer != null && vm.occurrence_report.assigned_officer != 'undefined' ? false: true;
-                data = {'assessor_id': vm.occurrence_report.assigned_officer};
+            else {
+                unassign = vm.occurrence_report.assigned_officer != null && vm.occurrence_report.assigned_officer != 'undefined' ? false : true;
+                data = { 'assessor_id': vm.occurrence_report.assigned_officer };
             }
-            if (!unassign){
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report.id+'/assign_to')),JSON.stringify(data),{
-                    emulateJSON:true
+            if (!unassign) {
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assign_to')), JSON.stringify(data), {
+                    emulateJSON: true
                 }).then((response) => {
                     vm.occurrence_report = response.body;
                     vm.original_occurrence_report = helpers.copyObject(response.body);
@@ -674,16 +682,36 @@ export default {
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor:'#226fbb'
+                        confirmButtonColor: '#226fbb'
                     });
                 });
             }
-            else{
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report.id+'/unassign')))
+            else {
+                vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/unassign')))
+                    .then((response) => {
+                        vm.occurrence_report = response.body;
+                        vm.original_occurrence_report = helpers.copyObject(response.body);
+                        vm.updateAssignedOfficerSelect();
+                    }, (error) => {
+                        vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
+                        vm.updateAssignedOfficerSelect();
+                        swal.fire({
+                            title: 'Application Error',
+                            text: helpers.apiVueResourceError(error),
+                            icon: 'error',
+                            confirmButtonColor: '#226fbb'
+                        });
+                    });
+            }
+        },
+        assignRequestUser: function () {
+            let vm = this;
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assign_request_user')))
                 .then((response) => {
                     vm.occurrence_report = response.body;
                     vm.original_occurrence_report = helpers.copyObject(response.body);
                     vm.updateAssignedOfficerSelect();
+
                 }, (error) => {
                     vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
                     vm.updateAssignedOfficerSelect();
@@ -691,32 +719,12 @@ export default {
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor:'#226fbb'
+                        confirmButtonColor: '#226fbb'
                     });
                 });
-            }
-        },
-        assignRequestUser: function(){
-            let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report.id+'/assign_request_user')))
-            .then((response) => {
-                vm.occurrence_report = response.body;
-                vm.original_occurrence_report = helpers.copyObject(response.body);
-                vm.updateAssignedOfficerSelect();
-
-            }, (error) => {
-                vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
-                vm.updateAssignedOfficerSelect();
-                swal.fire({
-                    title: 'Application Error',
-                    text: helpers.apiVueResourceError(error),
-                    icon :'error',
-                    confirmButtonColor:'#226fbb'
-                });
-            });
         },
     },
-    updated: function(){
+    updated: function () {
         let vm = this;
         this.$nextTick(() => {
             vm.initialiseSelects();
