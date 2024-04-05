@@ -322,6 +322,7 @@
                         label="name"
                         :disabled="isReadOnly"
                         class="form-select"
+                        @search="searchDatum"
                     >
                     </VueSelect>
                 </div>
@@ -562,6 +563,9 @@ export default {
         componentMapKey: function () {
             return `component-map-${this.uuid}`;
         },
+        csrf_token: function () {
+            return helpers.getCookie('csrftoken');
+        },
     },
     watch: {},
     created: async function () {
@@ -594,25 +598,40 @@ export default {
         );
 
         //------fetch list of values
-        const res = await Vue.http.get(
-            '/api/occurrence_report/location_list_of_values.json'
-        );
-        vm.listOfValuesDict = res.body;
-        vm.datum_list = vm.listOfValuesDict.datum_list;
-        vm.coordination_source_list =
-            vm.listOfValuesDict.coordination_source_list;
-        vm.coordination_source_list.splice(0, 0, {
-            id: null,
-            name: null,
-        });
-        vm.location_accuracy_list = vm.listOfValuesDict.location_accuracy_list;
-        vm.location_accuracy_list.splice(0, 0, {
-            id: null,
-            name: null,
-        });
-        if (!vm.is_external) {
-            this.generateReferralCommentBoxes();
-        }
+        fetch(
+            helpers.add_endpoint_join(
+                api_endpoints.occurrence_report,
+                `/location-list-of-values/?id=${vm.occurrence_report_obj.id}`
+            )
+        )
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                vm.listOfValuesDict = Object.assign({}, data);
+                vm.datum_list = vm.listOfValuesDict.datum_list;
+                vm.coordination_source_list =
+                    vm.listOfValuesDict.coordination_source_list;
+                vm.coordination_source_list.splice(0, 0, {
+                    id: null,
+                    name: null,
+                });
+                vm.location_accuracy_list =
+                    vm.listOfValuesDict.location_accuracy_list;
+                vm.location_accuracy_list.splice(0, 0, {
+                    id: null,
+                    name: null,
+                });
+                if (!vm.is_external) {
+                    this.generateReferralCommentBoxes();
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching location values list:', error);
+            });
     },
     mounted: function () {
         let vm = this;
@@ -860,6 +879,44 @@ export default {
         // eslint-disable-next-line no-unused-vars
         refreshFromResponse: function (data) {
             //this.proposal = Object.assign({}, data);
+        },
+        searchDatum: function (search, loading) {
+            const vm = this;
+            if (search.length < 2) {
+                loading(false);
+                return;
+            }
+
+            loading(true);
+            fetch(
+                helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/epsg-code-datums/?search=${search}`
+                )
+            )
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const text = await response.json();
+                        throw new Error(text);
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then((data) => {
+                    console.log('New search data return:', data);
+                    vm.datum_list = Object.assign([], data);
+                })
+                .catch((error) => {
+                    console.log(error);
+                    swal.fire({
+                        title: 'Search',
+                        text: error,
+                        icon: 'error',
+                    });
+                })
+                .finally(() => {
+                    loading(false);
+                });
         },
     },
 };
