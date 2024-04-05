@@ -2,6 +2,8 @@ import logging
 
 from django.conf import settings
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from boranga.components.main.models import GlobalSettings
 from boranga.components.main.serializers import (
@@ -73,3 +75,18 @@ class UserActionLoggingViewset(viewsets.ModelViewSet):
             request,
         )
         return super().destroy(request, *args, **kwargs)
+
+
+def search_datums(search):
+    import pyproj
+
+    name = pyproj.CRS.from_string("EPSG:4326").name
+    datum_list = [{"id": 4326, "name": name}]
+    return datum_list
+
+class DatumSearchMixing:
+    @action(detail=False, methods=["get"], url_path="epsg-code-datums")
+    def get_epsg_code_datums(self, request):
+        search = request.GET.get("search", None)
+
+        return Response(search_datums(search))

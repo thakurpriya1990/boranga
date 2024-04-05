@@ -17,7 +17,7 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from django.urls import reverse
 from django.shortcuts import redirect
-from boranga.components.main.api import UserActionLoggingViewset
+from boranga.components.main.api import DatumSearchMixing, UserActionLoggingViewset, search_datums
 from boranga.helpers import is_customer, is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -384,7 +384,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         except:
             return Response(status=500, data="Internal Server Error")
 
-class OccurrenceReportViewSet(UserActionLoggingViewset):
+class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     queryset = OccurrenceReport.objects.none()
     serializer_class = OccurrenceReportSerializer
     lookup_field = 'id'
@@ -500,26 +500,21 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
             "GET",
         ],
         detail=False,
+        url_path="location-list-of-values",
     )
     def location_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
         qs = self.get_queryset()
         datum_list = []
-        values = Datum.objects.all()
 
-        # TODO: remove this when we have the correct data
-        import pyproj
-        name = pyproj.CRS.from_string("EPSG:4326").name
-        datum_list = [{"id": 4326, "name": name}]
+        id = request.GET.get("id", None)
+        try:
+            epsg_code = qs.get(id=id)
+        except OccurrenceReport.DoesNotExist:
+            logger.error(f"Occurrence Report with id {id} not found")
+        else:
+            datum_list = search_datums(epsg_code)
 
-        if values:
-            for val in values:
-                datum_list.append(
-                    {
-                        "id": val.id,
-                        "name": val.name,
-                    }
-                )
         coordination_source_list = []
         values = CoordinationSource.objects.all()
         if values:
