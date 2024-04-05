@@ -92,6 +92,7 @@ module.exports = {
     community_conservation_status_referrals_paginated_internal: "/api/community_conservation_status_paginated/community_cs_referrals_internal/?format=datatables",
     community_cs_referrals_internal_export: "/api/community_conservation_status_paginated/community_cs_referrals_internal_export",
     conservation_status_paginated_external: "/api/conservation_status_paginated/conservation_status_external?format=datatables",
+    occurrence: "/api/occurrence_paginated/",
     occurrence_paginated_internal: "/api/occurrence_paginated/occurrence_internal?format=datatables",
     occurrence_internal_export: "/api/occurrence_paginated/occurrence_internal_export",
     occurrence_report_paginated_internal: "/api/occurrence_report_paginated/occurrence_report_internal?format=datatables",

@@ -1,146 +1,120 @@
 <template lang="html">
-    <div class="container" id="internal-occurence-report-detail">
-        <div class="row pb-4">
-            <div v-if="occurrence_report" class="col">
+    <div v-if="occurrence_report" class="container" id="internal-occurence-report-detail">
+        <div class="row">
+            <div class="col">
                 <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }}</h3>
-                <h4 class="text-muted mb-3">Occurrence: {{ occurrence_report?.occurrence?.occurrence_number || 'NOT SET' }}</h4>
-                <div v-if="!comparing" class="col-md-3">
+                <h4 class="text-muted mb-3">
+                    Occurrence:
+                    <template v-if="occurrence_report.occurrence">
+                        {{ occurrence_report.occurrence.occurrence_number }} <small><a
+                                :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${$route.query.group_type_name}&action=view`" target="_blank"><i
+                                    class="bi bi-box-arrow-up-right"></i></a></small>
+                    </template>
+                    <template v-else>
+                        NOT SET
+                    </template>
+                </h4>
+            </div>
+        </div>
+        <div class="row pb-4">
+            <div v-if="!comparing" class="col-md-3">
 
-                    <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                        :disable_add_entry="false" class="mb-2" />
+                <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
+                    :disable_add_entry="false" class="mb-3" />
 
-                    <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
-                        :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"
-                        class="mb-2" />
+                <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
+                    :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"
+                    class="mb-3" />
 
-                    <div>
-                        <div class="card card-default">
-                            <div class="card-header">
-                                Workflow
-                            </div>
-                            <div class="card-body card-collapse">
+                <div class="card card-default sticky-top">
+                    <div class="card-header">
+                        Workflow
+                    </div>
+                    <div class="card-body border-bottom">
+                        <strong>Status</strong><br />
+                        {{ occurrence_report.processing_status }}
+                    </div>
+                    <div class="card-body">
+                        <strong>Actions</strong><br />
+                        <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
+                            <template v-if="hasUserEditMode">
                                 <div class="row">
-                                    <div class="col-sm-12">
-                                        <strong>Status</strong><br />
-                                        {{ occurrence_report.processing_status }}
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <div class="separator"></div>
-                                    </div>
-                                    <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
-                                        <template v-if="hasUserEditMode">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <strong>Action</strong><br />
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="splitSpecies()">Split</button><br />
-                                                </div>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="combineSpecies()">Combine</button><br />
-                                                </div>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="renameSpecies()">Rename</button><br />
-                                                </div>
-                                            </div>
-                                        </template>
-                                        <template v-if="canDiscard">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <strong>Action</strong><br />
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="discardSpeciesProposal()">Discard</button><br />
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
+                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                        @click.prevent="splitSpecies()">Split</button><br />
+                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                        @click.prevent="combineSpecies()">Combine</button><br />
+                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                        @click.prevent="renameSpecies()">Rename</button><br />
                                 </div>
-                            </div>
-
+                            </template>
+                            <button v-if="canDiscard" style="width:80%;" class="btn btn-primary top-buffer-s"
+                                @click.prevent="discardSpeciesProposal()">Discard</button><br />
                         </div>
                     </div>
                 </div>
-                <div>
-                    <div class="row">
-                        <template>
-                            <div class="">
-                                <div class="row">
-                                    <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
-                                        enctype="multipart/form-data">
-                                        <!-- <ProposalSpeciesCommunities ref="species_communities" :occurrence_report="occurrence_report"
-                                            id="speciesCommunityStart" :is_internal="true">
-                                        </ProposalSpeciesCommunities> -->
+            </div>
+            <div class="col-md-9">
+                <template>
+                    <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
+                        enctype="multipart/form-data">
+                        <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
+                            id="OccurrenceReportStart" :canEditStatus="false" :is_external="true"
+                            ref="occurrence_report" @refreshFromResponse="refreshFromResponse">
+                        </ProposalOccurrenceReport>
 
-                                        <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                        <input type='hidden' name="occurrence_report_id" :value="1" />
-                                        <div class="row" style="margin-bottom: 50px">
-                                            <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                                <div v-if="occurrence_report.can_user_edit" class="container">
-                                                    <div class="col-md-12 text-end">
-                                                        <button v-if="savingOccurrenceReport"
-                                                            class="btn btn-primary me-2 pull-right"
-                                                            style="margin-top:5px;" disabled>Save and Continue&nbsp;
-                                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                        <button v-else class="btn btn-primary me-2 ull-right"
-                                                            style="margin-top:5px;" @click.prevent="save()"
-                                                            :disabled="saveExitOccurrenceReport || submitOccurrenceReport">Save
-                                                            and Continue</button>
+                        <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                        <input type='hidden' name="occurrence_report_id" :value="1" />
+                        <div class="row" style="margin-bottom: 50px">
+                            <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                <div v-if="hasUserEditMode" class="container">
+                                    <div class="col-md-12 text-end">
+                                        <button v-if="savingOccurrenceReport" class="btn btn-primary me-2 pull-right"
+                                            style="margin-top:5px;" disabled>Save and Continue&nbsp;
+                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <button v-else class="btn btn-primary me-2 ull-right" style="margin-top:5px;"
+                                            @click.prevent="save()"
+                                            :disabled="saveExitOccurrenceReport || submitOccurrenceReport">Save
+                                            and Continue</button>
 
-                                                        <button v-if="saveExitOccurrenceReport"
-                                                            class="btn btn-primary me-2 pull-right"
-                                                            style="margin-top:5px;" disabled>Save and Exit&nbsp;
-                                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                        <button v-else class="btn btn-primary me-2 pull-right"
-                                                            style="margin-top:5px;" @click.prevent="save_exit()"
-                                                            :disabled="savingOccurrenceReport || submitOccurrenceReport">Save
-                                                            and Exit</button>
+                                        <button v-if="saveExitOccurrenceReport" class="btn btn-primary me-2 pull-right"
+                                            style="margin-top:5px;" disabled>Save and Exit&nbsp;
+                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <button v-else class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
+                                            @click.prevent="save_exit()"
+                                            :disabled="savingOccurrenceReport || submitOccurrenceReport">Save
+                                            and Exit</button>
 
-                                                        <button v-if="submitOccurrenceReport"
-                                                            class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                            disabled>Submit&nbsp;
-                                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                        <button v-else class="btn btn-primary pull-right"
-                                                            style="margin-top:5px;" @click.prevent="submit()"
-                                                            :disbaled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
-                                                    </div>
-                                                </div>
-                                                <div v-else-if="hasUserEditMode" class="container">
-                                                    <div class="col-md-12 text-end">
-                                                        <button v-if="savingOccurrenceReport"
-                                                            class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                            disabled>Save Changes&nbsp;
-                                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                        <button v-else class="btn btn-primary pull-right"
-                                                            style="margin-top:5px;" @click.prevent="save()">Save
-                                                            Changes</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
+                                        <button v-if="submitOccurrenceReport" class="btn btn-primary pull-right"
+                                            style="margin-top:5px;" disabled>Submit&nbsp;
+                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <button v-else class="btn btn-primary pull-right" style="margin-top:5px;"
+                                            @click.prevent="submit()"
+                                            :disbaled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
+                                    </div>
+                                </div>
+                                <div v-else-if="hasUserEditMode" class="container">
+                                    <div class="col-md-12 text-end">
+                                        <button v-if="savingOccurrenceReport" class="btn btn-primary pull-right"
+                                            style="margin-top:5px;" disabled>Save Changes&nbsp;
+                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <button v-else class="btn btn-primary pull-right" style="margin-top:5px;"
+                                            @click.prevent="save()">Save
+                                            Changes</button>
+                                    </div>
                                 </div>
                             </div>
-                        </template>
-                    </div>
-                </div>
+                        </div>
+                    </form>
+                </template>
             </div>
         </div>
-        <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
+    </div>
+    <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
         <SpeciesCombine ref="species_combine" :occurrence_report="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
         <SpeciesRename ref="species_rename" :occurrence_report_original="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" /> -->
-    </div>
 
 </template>
 <script>
@@ -149,7 +123,7 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
-import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
+import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 
 // import SpeciesSplit from './species_split.vue'
 // import SpeciesCombine from './species_combine.vue'
@@ -172,8 +146,6 @@ export default {
             submitOccurrenceReport: false,
             imageURL: '',
             isSaved: false,
-
-
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comparing: false,
         }
@@ -183,7 +155,7 @@ export default {
         CommsLogs,
         Submission,
         Workflow,
-        ProposalSpeciesCommunities,
+        ProposalOccurrenceReport,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,
@@ -257,19 +229,13 @@ export default {
             return this.occurrence_report && this.occurrence_report.processing_status === "Draft" ? true : false;
         },
         comms_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.occurrence_report_id + '/comms_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.occurrence_report_id + '/comms_log');
+            return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/comms_log')
         },
         comms_add_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.occurrence_report_id + '/add_comms_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.occurrence_report_id + '/add_comms_log');
+            return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/add_comms_log')
         },
         logs_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.occurrence_report_id + '/action_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.occurrence_report_id + '/action_log');
+            return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/action_log')
         },
     },
     methods: {

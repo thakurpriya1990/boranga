@@ -17,6 +17,7 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from django.urls import reverse
 from django.shortcuts import redirect
+from boranga.components.main.api import UserActionLoggingViewset
 from boranga.helpers import is_customer, is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -83,8 +84,10 @@ from boranga.components.occurrence.models import (
 from boranga.components.occurrence.serializers import (
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
+    OccurrenceLogEntrySerializer,
     OccurrenceReportSerializer,
     OccurrenceSerializer,
+    OccurrenceUserActionSerializer,
     SaveHabitatCompositionSerializer,
     SaveHabitatConditionSerializer,
     SaveFireHistorySerializer,
@@ -214,6 +217,11 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     serializer_class = ListOccurrenceReportSerializer
     page_size = 10
 
+    def get_serializer_class(self):
+        if self.action == "occurrence_report_internal":
+            return ListInternalOccurrenceReportSerializer
+        return super().get_serializer_class()
+
     def get_queryset(self):
         qs = OccurrenceReport.objects.all()
         if is_customer(self.request):
@@ -241,10 +249,10 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListInternalOccurrenceReportSerializer(result_page, context={'request': request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
-    
+
     @list_route(methods=['GET',], detail=False)
     def occurrence_report_external_export(self, request, *args, **kwargs):
-        
+
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get('export_format')
@@ -296,22 +304,22 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
                     final_response = response
                     buffer.close()
                     return final_response
-                
+
                 elif export_format == "csv":
                     csv_data = df.to_csv(index=False)
                     response = HttpResponse(content_type='text/csv')
                     response['Content-Disposition'] = 'attachment; filename=DBCA_ExternalOccurrenceReports.csv'
                     response.write(csv_data)
                     return response
-                
+
                 else:
                     return Response(status=400, data="Format not valid")
         except:
             return Response(status=500, data="Internal Server Error")
-    
+
     @list_route(methods=['GET',], detail=False)
     def occurrence_report_internal_export(self, request, *args, **kwargs):
-        
+
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get('export_format')
@@ -363,20 +371,20 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
                     final_response = response
                     buffer.close()
                     return final_response
-                
+
                 elif export_format == "csv":
                     csv_data = df.to_csv(index=False)
                     response = HttpResponse(content_type='text/csv')
                     response['Content-Disposition'] = 'attachment; filename=DBCA_OccurrenceReport_Species.csv'
                     response.write(csv_data)
                     return response
-                
+
                 else:
                     return Response(status=400, data="Format not valid")
         except:
             return Response(status=500, data="Internal Server Error")
 
-class OccurrenceReportViewSet(viewsets.ModelViewSet):
+class OccurrenceReportViewSet(UserActionLoggingViewset):
     queryset = OccurrenceReport.objects.none()
     serializer_class = OccurrenceReportSerializer
     lookup_field = 'id'
@@ -1584,7 +1592,7 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
+class OccurrencePaginatedViewSet(UserActionLoggingViewset):
     pagination_class = DatatablesPageNumberPagination
     queryset = Occurrence.objects.none()
     serializer_class = OccurrenceSerializer
@@ -1592,7 +1600,7 @@ class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (OccurrenceFilterBackend,)
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "occurrence_internal", "occurrence_external"]:
             return ListOccurrenceSerializer
         return super().get_serializer_class()
 
@@ -1739,3 +1747,85 @@ class OccurrencePaginatedViewSet(viewsets.ModelViewSet):
                     return Response(status=400, data="Format not valid")
         except:
             return Response(status=500, data="Internal Server Error")
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def action_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.action_logs.all()
+            serializer = OccurrenceUserActionSerializer(qs, many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def comms_log(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.comms_logs.all()
+            serializer = OccurrenceLogEntrySerializer(qs, many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    @renderer_classes((JSONRenderer,))
+    def add_comms_log(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                mutable = request.data._mutable
+                request.data._mutable = True
+                request.data["occurrence"] = "{}".format(instance.id)
+                request.data["staff"] = "{}".format(request.user.id)
+                request.data._mutable = mutable
+                serializer = OccurrenceLogEntrySerializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                comms = serializer.save()
+                # Save the files
+                for f in request.FILES:
+                    document = comms.documents.create()
+                    document.name = str(request.FILES[f])
+                    document._file = request.FILES[f]
+                    document.save()
+                # End Save Documents
+
+                return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
