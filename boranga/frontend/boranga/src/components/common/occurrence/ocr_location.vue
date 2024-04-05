@@ -315,19 +315,15 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Datum:</label>
                 <div class="col-sm-9">
-                    <select
+                    <VueSelect
                         v-model="occurrence_report_obj.location.datum_id"
+                        :options="datum_list"
+                        :reduce="(option) => option.id"
+                        label="name"
                         :disabled="isReadOnly"
                         class="form-select"
                     >
-                        <option
-                            v-for="option in datum_list"
-                            :key="option.id"
-                            :value="option.id"
-                        >
-                            {{ option.name }}
-                        </option>
-                    </select>
+                    </VueSelect>
                 </div>
             </div>
             <div class="row mb-3">
@@ -436,6 +432,7 @@ import MapComponent from '../component_map.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 // require("select2/dist/css/select2.min.css");
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
+import { VueSelect } from 'vue-select';
 
 export default {
     name: 'OCRLocation',
@@ -443,6 +440,7 @@ export default {
         FormSection,
         ObserverDatatable,
         MapComponent,
+        VueSelect,
     },
     props: {
         occurrence_report_obj: {
@@ -601,10 +599,6 @@ export default {
         );
         vm.listOfValuesDict = res.body;
         vm.datum_list = vm.listOfValuesDict.datum_list;
-        vm.datum_list.splice(0, 0, {
-            id: null,
-            name: null,
-        });
         vm.coordination_source_list =
             vm.listOfValuesDict.coordination_source_list;
         vm.coordination_source_list.splice(0, 0, {
@@ -872,6 +866,7 @@ export default {
 </script>
 
 <style lang="css" scoped>
+@import 'vue-select/dist/vue-select.css';
 /*ul, li {
         zoom:1;
         display: inline;
