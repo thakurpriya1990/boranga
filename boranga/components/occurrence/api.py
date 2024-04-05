@@ -493,44 +493,61 @@ class OccurrenceReportViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-    
-    #used for Location Tab of Occurrence Report external form 
-    @list_route(methods=['GET',], detail=False)
+
+    # used for Location Tab of Occurrence Report external form
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
     def location_list_of_values(self, request, *args, **kwargs):
-        """ used for Occurrence Report external form  """
-        qs =  self.get_queryset()
+        """used for Occurrence Report external form"""
+        qs = self.get_queryset()
         datum_list = []
         values = Datum.objects.all()
+
+        # TODO: remove this when we have the correct data
+        import pyproj
+        name = pyproj.CRS.from_string("EPSG:4326").name
+        datum_list = [{"id": 4326, "name": name}]
+
         if values:
             for val in values:
-                datum_list.append({
-                    'id': val.id,
-                    'name':val.name,
-                    });
+                datum_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
         coordination_source_list = []
         values = CoordinationSource.objects.all()
         if values:
             for val in values:
-                coordination_source_list.append({
-                    'id': val.id,
-                    'name':val.name,
-                    });
+                coordination_source_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
         location_accuracy_list = []
         values = LocationAccuracy.objects.all()
         if values:
             for val in values:
-                location_accuracy_list.append({
-                    'id': val.id,
-                    'name':val.name,
-                    });
+                location_accuracy_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
         res_json = {
-        "datum_list":datum_list,
-        "coordination_source_list":coordination_source_list,
-        "location_accuracy_list": location_accuracy_list,
+            "datum_list": datum_list,
+            "coordination_source_list": coordination_source_list,
+            "location_accuracy_list": location_accuracy_list,
         }
         res_json = json.dumps(res_json)
-        return HttpResponse(res_json, content_type='application/json')
-    
+        return HttpResponse(res_json, content_type="application/json")
+
     #used for Occurrence Report external form 
     @list_route(methods=['GET',], detail=False)
     def list_of_values(self, request, *args, **kwargs):
