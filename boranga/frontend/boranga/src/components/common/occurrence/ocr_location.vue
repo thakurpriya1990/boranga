@@ -321,7 +321,6 @@
                         :reduce="(option) => option.id"
                         label="name"
                         :disabled="isReadOnly"
-                        class="form-select"
                         @search="searchDatum"
                     >
                     </VueSelect>
@@ -424,7 +423,6 @@
 </template>
 
 <script>
-import Vue from 'vue';
 import { v4 as uuid } from 'uuid';
 // import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
