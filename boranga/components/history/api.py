@@ -184,7 +184,13 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
             revision_versions = related_versions.filter(revision_id=version.revision_id)
             data = {}
             for related_version in revision_versions:
-                data[related_version.content_type.model] = related_version.data[0]
+                #if multiple records are of the same model, convert the dict in to a list
+                if related_version.content_type.model in data:
+                    if not isinstance(data[related_version.content_type.model],list):
+                        data[related_version.content_type.model] = [data[related_version.content_type.model]]
+                    data[related_version.content_type.model].append(related_version.data[0])
+                else:
+                    data[related_version.content_type.model] = related_version.data[0]
 
             versions_list.append({
                'revision_id': version.revision_id,
@@ -211,20 +217,38 @@ class GetRevisionVersionsView(InternalAuthorizationView):
         queryset = Version.objects.filter(revision_id=revision_id).annotate(data=Cast('serialized_data', JSONField()))
 
         # Build the list of versions
-        primary_version = queryset.get(content_type__model__iexact=model_name)
+        primary_version = queryset.filter(content_type__model__iexact=model_name)
+        if primary_version.count() < 1:
+            return Response()
+
         revision_dict = {
-            'revision_id': primary_version.revision_id,
-            'date_created': primary_version.revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
+            'revision_id': primary_version[0].revision_id,
+            'date_created': primary_version[0].revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
         }
         version_data = {}
-        if primary_version.data:
-            version_data[primary_version.content_type.model.lower()] = primary_version.data[0]
-            version_data[primary_version.content_type.model.lower()]["model_display_name"] = primary_version.content_type.name
+
+        if primary_version.count() > 1:
+            version_data[primary_version[0].content_type.model.lower()] = []
+            for primary_version_sub in primary_version:
+                if primary_version_sub.data:
+                    data = primary_version_sub.data[0]
+                    data["model_display_name"] = primary_version_sub.content_type.name
+                    version_data[primary_version[0].content_type.model.lower()].append(data)
+        else:
+            if primary_version[0].data:
+                version_data[primary_version[0].content_type.model.lower()] = primary_version[0].data[0]
+                version_data[primary_version[0].content_type.model.lower()]["model_display_name"] = primary_version[0].content_type.name
 
         for version in queryset:
             if not version.content_type.model.lower() == model_name.lower() and version.data:
-                version_data[version.content_type.model.lower()] = version.data[0]
-                version_data[version.content_type.model.lower()]["model_display_name"] = version.content_type.name
+                if version.content_type.model in version_data:
+                    if not isinstance(version_data[version.content_type.model],list):
+                        version_data[version.content_type.model] = [version_data[version.content_type.model]]
+                    version.data[0]["model_display_name"] = version.content_type.name
+                    version_data[version.content_type.model].append(version.data[0])
+                else:
+                    version.data[0]["model_display_name"] = version.content_type.name
+                    version_data[version.content_type.model] = version.data[0]
 
         revision_dict["version_data"] = version_data
         

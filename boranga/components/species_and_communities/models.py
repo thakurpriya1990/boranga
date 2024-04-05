@@ -281,6 +281,14 @@ class Taxonomy(models.Model):
             # commented the above as gives None scientific_name if there is no old_taxon instance in Taxonomy api data
             previous_names_list = CrossReference.objects.filter(~Q(old_taxonomy__scientific_name=None), new_taxonomy=self.id).values_list('old_taxonomy__scientific_name', flat=True)
             return ','.join(previous_names_list)
+        
+    @property
+    def taxon_previous_queryset(self):
+        if self.new_taxon.all():
+            previous_queryset = CrossReference.objects.filter(~Q(old_taxonomy__scientific_name=None), new_taxonomy=self.id).order_by('-cross_reference_id')
+            return previous_queryset
+        else:
+            return CrossReference.objects.none()
 
 
 class TaxonVernacular(models.Model):
@@ -1896,3 +1904,6 @@ class CommunityConservationAttributes(models.Model):
 import reversion
 reversion.register(SpeciesDocument)
 #reversion.register(DocumentCategory) 
+reversion.register(Species, follow=["taxonomy"])
+reversion.register(Taxonomy, follow=["taxon_previous_queryset"])
+reversion.register(CrossReference, follow=["old_taxonomy"])
