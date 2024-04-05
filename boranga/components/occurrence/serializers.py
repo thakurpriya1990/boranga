@@ -560,8 +560,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     label = serializers.SerializerMethodField(read_only=True)
     model_name = serializers.SerializerMethodField(read_only=True)
     occurrence = OccurrenceSerializer(read_only=True, allow_null=True)
-    lodgement_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True)
-
+    lodgement_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
     class Meta:
         model = OccurrenceReport
         fields = (
@@ -717,6 +718,52 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
 
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_assess = serializers.SerializerMethodField()
+    current_assessor = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReport
+        fields = (
+            "id",
+            "group_type",
+            "group_type_id",
+            "species_id",
+            "community_id",
+            "occurrence_report_number",
+            "reported_date",
+            "lodgement_date",
+            "reported_date",
+            "applicant_type",
+            "applicant",
+            "submitter",
+            "assigned_officer",
+            "customer_status",
+            "processing_status",
+            "review_status",
+            "readonly",
+            "can_user_edit",
+            "can_user_view",
+            "can_user_assess",
+            "reference",
+            "applicant_details",
+            "allowed_assessors",
+            "deficiency_data",
+            "assessor_data",
+            "location",
+            "habitat_composition",
+            "habitat_condition",
+            "fire_history",
+            "associated_species",
+            "observation_detail",
+            "plant_count",
+            "animal_observation",
+            "identification",
+            "ocr_geometry",
+            "label",
+            "model_name",
+            "occurrence",
+            "current_assessor",
+            "assigned_officer",
+        )
 
     def get_can_user_assess(self, obj):
         request = self.context["request"]
@@ -725,6 +772,14 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             and obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
         )
+
+    def get_current_assessor(self, obj):
+        user = self.context["request"].user
+        return {
+            "id": user.id,
+            "name": user.get_full_name(),
+            "email": user.email,
+        }
 
 
 class SaveHabitatCompositionSerializer(serializers.ModelSerializer):
