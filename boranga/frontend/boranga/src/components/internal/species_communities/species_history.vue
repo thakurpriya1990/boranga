@@ -28,7 +28,7 @@
                                         ref="display_history"
                                         :key="historyId"
                                         :revision_id="historyId"
-                                        :primary_model="'species'"
+                                        :primary_model="'Species'"
                                     />
                                     </div>
                                 </div>
