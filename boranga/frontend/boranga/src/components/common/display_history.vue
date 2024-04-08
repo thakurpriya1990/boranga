@@ -12,12 +12,12 @@
             <div>
                 <strong>Revision Date:</strong> {{ revision_date }}
             </div></br>
-            <div v-for="data in version_data">
+            <div v-for="(data, itemObjKey) in version_data">
                 <div v-if="data.fields">
-                <FormSection :formCollapse="false" :label="data.model_display_name+' - '+data.pk" :Index="data.pk">
+                <FormSection :formCollapse="false" :label="data.model_display_name+' - '+data.pk" :Index="itemObjKey+data.pk">
                     <div class="card-body card-collapse">
                         <div v-for="(value,index) in data.fields">
-                            <div class="row mb-3">
+                            <div v-if="value" class="row mb-3">
                                 <label class="col-sm-3 control-label"><strong>{{index}}:</strong></label>
                                 <div class="col-sm-9">
                                 <input :disabled="true" type="text" class="form-control" :value=value>
@@ -28,11 +28,11 @@
                 </FormSection>
                 </div>
                 <div v-else>
-                    <div v-for="sub_data in data">
-                    <FormSection :formCollapse="false" :label="sub_data.model_display_name+' - '+sub_data.pk" :Index="sub_data.pk">
+                    <div v-for="(sub_data) in data">
+                    <FormSection :formCollapse="false" :label="sub_data.model_display_name+' - '+sub_data.pk" :Index="itemObjKey+sub_data.pk">
                         <div class="card-body card-collapse">
                             <div v-for="(value,index) in sub_data.fields">
-                                <div class="row mb-3">
+                                <div v-if="value" class="row mb-3">
                                     <label class="col-sm-3 control-label"><strong>{{index}}:</strong></label>
                                     <div class="col-sm-9">
                                     <input :disabled="true" type="text" class="form-control" :value=value>

@@ -1904,6 +1904,8 @@ class CommunityConservationAttributes(models.Model):
 import reversion
 reversion.register(SpeciesDocument)
 #reversion.register(DocumentCategory) 
-reversion.register(Species, follow=["taxonomy"])
+reversion.register(Species, follow=["taxonomy","species_distribution","species_conservation_attributes"])
 reversion.register(Taxonomy, follow=["taxon_previous_queryset"])
 reversion.register(CrossReference, follow=["old_taxonomy"])
+reversion.register(SpeciesDistribution)
+reversion.register(SpeciesConservationAttributes)

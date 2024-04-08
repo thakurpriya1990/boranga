@@ -84,7 +84,7 @@ export default {
                 'Revision Number',
                 'Revision Date',
                 'Scientific Name',
-                'Non-current Name',
+                'Previous Name',
                 'Processing Status',
                 'Comment',
                 'Action',
