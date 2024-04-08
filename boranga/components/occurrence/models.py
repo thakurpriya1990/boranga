@@ -1194,19 +1194,18 @@ class OccurrenceReportGeometry(models.Model):
                 check=~models.Q(polygon__isnull=False, point__isnull=False),
                 name="point_and_polygon_mutually_exclusive",
             ),
-            # TODO: check on foreign key does not work in dj?
-            models.CheckConstraint(
-                check=~models.Q(
-                    occurrence_report__group_type=GroupType.GROUP_TYPE_FAUNA,
-                    polygon__isnull=False,
-                    _connector="AND",
-                ),
-                name="fauna_map_utilises_points_only",
-            ),
         ]
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        if (
+            self.occurrence_report.group_type.name == GroupType.GROUP_TYPE_FAUNA
+            and self.polygon
+        ):
+            raise ValidationError("Fauna occurrence reports cannot have polygons")
+        super().save(*args, **kwargs)
 
     @property
     def area_sqm(self):
