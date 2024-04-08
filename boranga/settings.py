@@ -1,7 +1,9 @@
 from django.core.exceptions import ImproperlyConfigured
 
-import os, hashlib
+import os
+import hashlib
 import confy
+import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if os.path.exists(BASE_DIR + "/.env"):
@@ -288,13 +290,15 @@ if len(GIT_COMMIT_HASH) == 0:
 
 APPLICATION_VERSION = env("APPLICATION_VERSION", "1.0.0") + "-" + GIT_COMMIT_HASH[:7]
 
+RUNNING_DEVSERVER = len(sys.argv) > 1 and sys.argv[1] == "runserver"
+
 # Sentry settings
 SENTRY_DSN = env("SENTRY_DSN", default=None)
 SENTRY_SAMPLE_RATE = env("SENTRY_SAMPLE_RATE", default=1.0)  # Error sampling rate
 SENTRY_TRANSACTION_SAMPLE_RATE = env(
     "SENTRY_TRANSACTION_SAMPLE_RATE", default=0.0
 )  # Transaction sampling
-if SENTRY_DSN and EMAIL_INSTANCE:
+if not RUNNING_DEVSERVER and SENTRY_DSN and EMAIL_INSTANCE:
     import sentry_sdk
 
     sentry_sdk.init(

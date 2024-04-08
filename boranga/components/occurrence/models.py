@@ -301,14 +301,6 @@ class OccurrenceReport(models.Model):
 
     @property
     def allowed_assessors(self):
-        # if self.processing_status == 'with_approver':
-        #     group = self.__approver_group()
-        # elif self.processing_status =='with_qa_officer':
-        #     group = QAOfficerGroup.objects.get(default=True)
-        # else:
-        #     group = self.__assessor_group()
-        # return group.members.all() if group else []
-
         group = None
         # TODO: Take application_type into account
         if self.processing_status in [
@@ -318,14 +310,9 @@ class OccurrenceReport(models.Model):
         elif self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
-            # ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
         ]:
             group = self.get_assessor_group()
-        # for tO SHOW edit action on dashoard of CS
-        # elif self.processing_status in [
-        #     ConservationStatus.PROCESSING_STATUS_APPROVED,
-        # ]:
-        #     group = self.get_editor_group()
+
         users = (
             list(
                 map(
@@ -377,6 +364,83 @@ class OccurrenceReport(models.Model):
     # Check if the user is member of assessor group for the OCR Proposal
     def is_approver(self,user):
         return user.id in self.get_assessor_group().get_system_group_member_ids()
+
+    def can_assess(self, user):
+        if self.processing_status in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+        ]:
+            return user.id in self.get_assessor_group().get_system_group_member_ids()
+        elif self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
+            return user.id in self.get_approver_group().get_system_group_member_ids()
+        else:
+            return False
+
+    @transaction.atomic
+    def assign_officer(self, request, officer):
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
+
+        if not self.can_assess(officer):
+            raise ValidationError(
+                "The selected person is not authorised to be assigned to this proposal"
+            )
+
+        if self.processing_status == "with_approver":
+            if officer != self.assigned_approver:
+                self.assigned_approver = officer.id
+                self.save()
+
+                # Create a log entry for the proposal
+                self.log_user_action(
+                    OccurrenceReportUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                        self.occurrence_report_number,
+                        "{}({})".format(officer.get_full_name(), officer.email),
+                    ),
+                    request,
+                )
+        else:
+            if officer != self.assigned_officer:
+                self.assigned_officer = officer.id
+                self.save()
+
+                # Create a log entry for the proposal
+                self.log_user_action(
+                    OccurrenceReportUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                        self.occurrence_report_number,
+                        "{}({})".format(officer.get_full_name(), officer.email),
+                    ),
+                    request,
+                )
+
+    def unassign(self, request):
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
+
+        if self.processing_status == "with_approver":
+            if self.assigned_approver:
+                self.assigned_approver = None
+                self.save()
+
+                # Create a log entry for the proposal
+                self.log_user_action(
+                    OccurrenceReportUserAction.ACTION_UNASSIGN_APPROVER.format(
+                        self.occurrence_report_number
+                    ),
+                    request,
+                )
+        else:
+            if self.assigned_officer:
+                self.assigned_officer = None
+                self.save()
+
+                # Create a log entry for the proposal
+                self.log_user_action(
+                    OccurrenceReportUserAction.ACTION_UNASSIGN_ASSESSOR.format(
+                        self.occurrence_report_number
+                    ),
+                    request,
+                )
 
 
 class OccurrenceReportLogEntry(CommunicationsLogEntry):

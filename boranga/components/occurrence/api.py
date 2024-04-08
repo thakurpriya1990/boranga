@@ -86,6 +86,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportUserAction,
 )
 from boranga.components.occurrence.serializers import (
+    InternalOccurrenceReportSerializer,
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
     OccurrenceLogEntrySerializer,
@@ -510,20 +511,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         return OccurrenceReport.objects.none()
 
     def get_serializer_class(self):
-        try:
-            return OccurrenceReportSerializer
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        if is_internal(self.request):
+            return InternalOccurrenceReportSerializer
+        return OccurrenceReportSerializer
 
     def create(self, request, *args, **kwargs):
         try:
@@ -1603,6 +1593,88 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         serializer = self.get_serializer(instance)
         logger.debug(f"validate_map_files response: {serializer.data}")
         return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def assign_request_user(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.assign_officer(request, request.user)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def assign_to(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            user_id = request.data.get("assessor_id", None)
+            user = None
+            if not user_id:
+                raise serializers.ValidationError("An assessor id is required")
+            try:
+                user = EmailUser.objects.get(id=user_id)
+            except EmailUser.DoesNotExist:
+                raise serializers.ValidationError(
+                    "A user with the id passed in does not exist"
+                )
+            instance.assign_officer(request, user)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def unassign(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.unassign(request)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
