@@ -336,3 +336,7 @@ ACTION_VIEW = "View {} {}"
 ACTION_CREATE = "Create {} {}"
 ACTION_UPDATE = "Update {} {}"
 ACTION_DESTROY = "Destroy {} {}"
+
+# ---------- Cache keys ----------
+
+CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}"
