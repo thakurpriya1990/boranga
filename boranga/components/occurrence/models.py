@@ -1490,6 +1490,9 @@ class Occurrence(models.Model):
     def number_of_reports(self):
         return self.occurrence_report_count
 
+    def log_user_action(self, action, request):
+        return OccurrenceUserAction.log_action(self, action, request.user.id)
+
 
 class OccurrenceLogEntry(CommunicationsLogEntry):
     occurrence = models.ForeignKey(
@@ -1505,7 +1508,7 @@ class OccurrenceLogEntry(CommunicationsLogEntry):
     def save(self, **kwargs):
         # save the application reference if the reference not provided
         if not self.reference:
-            self.reference = self.occurrence.reference
+            self.reference = self.occurrence.occurrence_number
         super(OccurrenceLogEntry, self).save(**kwargs)
 
 
