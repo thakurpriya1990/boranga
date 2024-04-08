@@ -2,7 +2,7 @@
     <div id="displayHistory">
         <modal
             transition="modal fade"
-            :title="primary_model + ' History - Revision ' + revision_id"
+            :title="primary_model + ' History - Revision ' + revision_sequence"
             :large="true"
             :full="true"
             :showOK="false"
@@ -10,7 +10,7 @@
             @cancel="close()">
 
             <div>
-                <strong>Revision Date:</strong> {{ revision_date }}
+                <strong>Date Modified:</strong> {{ revision_date }}
             </div></br>
             <div v-for="(data, itemObjKey) in version_data">
                 <div v-if="data.fields">
@@ -70,6 +70,10 @@ export default {
             required:true
         },
         revision_id:{
+            type: Number,
+            required:true
+        },
+        revision_sequence:{
             type: Number,
             required:true
         },

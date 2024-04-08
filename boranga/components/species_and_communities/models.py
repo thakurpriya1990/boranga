@@ -367,7 +367,7 @@ class InformalGroup(models.Model):
         return str(self.informal_group_id)  # TODO: is the most appropriate?
 
 
-class Species(models.Model):
+class Species(RevisionedMixin):
     """
     Forms the basis for a Species and Communities record.
 
@@ -1905,7 +1905,8 @@ import reversion
 reversion.register(SpeciesDocument)
 #reversion.register(DocumentCategory) 
 reversion.register(Species, follow=["taxonomy","species_distribution","species_conservation_attributes"])
-reversion.register(Taxonomy, follow=["taxon_previous_queryset"])
+reversion.register(Taxonomy, follow=["taxon_previous_queryset","vernaculars"])
 reversion.register(CrossReference, follow=["old_taxonomy"])
 reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)
+reversion.register(TaxonVernacular)

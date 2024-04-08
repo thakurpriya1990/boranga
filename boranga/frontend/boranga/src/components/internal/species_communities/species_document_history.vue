@@ -28,6 +28,7 @@
                                         ref="display_history"
                                         :key="historyId"
                                         :revision_id="historyId"
+                                        :revision_sequence="historySequence"
                                         :primary_model="'SpeciesDocument'"
                                     />
                                     </div>
@@ -69,6 +70,7 @@ export default {
     data: function () {
         return {
             historyId: null,
+            historySequence: null,
             datatable_id: 'history-datatable-' + uuid(),
             documentDetails: {
             },
@@ -84,8 +86,8 @@ export default {
         },
         datatable_headers: function () {
             return [
-                'Revision Number',
-                'Revision Date',
+                'Number',
+                'Date Modified',
                 'Category',
                 'Sub Category',
                 'Document',
@@ -106,6 +108,19 @@ export default {
                 name: 'data',
             };
         },
+        column_sequence: function () {
+            return {
+                
+                data: 'revision_sequence',
+                orderable: true,
+                searchable: false,
+                visible: true,
+                render: function (row, type, full) {
+                    return full.data.speciesdocument.fields.document_number+'-'+full.revision_sequence;
+                },
+                name: 'revision_sequence',
+            };
+        },
         column_id: function () {
             return {
                 // 1. ID
@@ -123,11 +138,12 @@ export default {
             return {
                 // 2. Number
                 data: 'data.data.speciesdocument.fields.document_number',
+                defaultContent: '',
                 orderable: false,
                 searchable: false, 
-                visible: false,
+                visible: true,
                 render: function (row, type, full) {
-                    return full.data.speciesdocument.fields.document_number;
+                    return full.data.speciesdocument.fields.document_number+'-'+full.revision_sequence;
                 },
                 name: 'document_number',
             };
@@ -202,9 +218,16 @@ export default {
                 mRender: function (row, type, full) {
                     let links='';
                     if(full.data.speciesdocument.fields.visible){
-                        links+='<a href="/private-media/'+ full.data.speciesdocument.fields._file+'" target="_blank"><p>' + full.data.speciesdocument.fields.name + '</p></a>' ;
+                        let name = full.data.speciesdocument.fields.name;
+                        if (name.length > 30)
+                        {
+                            name = name.substring(0, 27) + "...";
+                        }
+                        links+='<a href="/private-media/'+ full.data.speciesdocument.fields._file+'" target="_blank"><p>' + name + '</p></a>' ;
                     }else{
-                        links+='<s>'+ full.data.speciesdocument.fields.name +'</s>';
+                        let value = full.data.speciesdocument.fields.name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        links+='<s>'+ type=='export' ? value : result +'</s>';
                     }
                     return links;
                 },
@@ -220,7 +243,9 @@ export default {
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.speciesdocument.fields.description;
+                    let value = full.data.speciesdocument.fields.description;
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
                 },
                 name: 'description',
             };
@@ -233,7 +258,7 @@ export default {
                 visible: true,
                 mRender: function(data, type, full){
                     let links = "";
-                    links += `<a href='#' data-view-history='${full.revision_id}'>View</a><br>`;
+                    links += `<a href='#' data-view-history='${full.revision_id}' data-view-history-seq='${full.revision_sequence}'>View</a><br>`;
                     return links;
                 }
             };
@@ -241,7 +266,8 @@ export default {
         datatable_options: function () {
             let vm = this;
             let columns = [
-                vm.column_revision_id,
+                vm.column_sequence,
+                //vm.column_number,
                 vm.column_revision_date,
                 vm.column_category,
                 vm.column_sub_category,
@@ -295,9 +321,10 @@ export default {
             this.isModalOpen = false;
             $('.has-error').removeClass('has-error');
         },
-        viewHistory: function(id){
+        viewHistory: function(id,seq){
                 console.log("viewHistory");
                 this.historyId = parseInt(id);
+                this.historySequence = parseInt(seq);
                 this.uuid++;
                 this.$nextTick(() => {
                     this.$refs.display_history.isModalOpen = true;
@@ -308,7 +335,8 @@ export default {
             vm.$refs.history_datatable.vmDataTable.on('click', 'a[data-view-history]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-view-history');
-                vm.viewHistory(id);
+                var seq = $(this).attr('data-view-history-seq');
+                vm.viewHistory(id,seq);
             });
         }
     },

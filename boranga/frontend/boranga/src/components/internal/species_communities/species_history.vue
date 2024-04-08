@@ -81,9 +81,10 @@ export default {
         },
         datatable_headers: function () {
             return [
-                'Revision Number',
-                'Revision Date',
+                'Number',
+                'Date Modified',
                 'Scientific Name',
+                'Common Name',
                 'Previous Name',
                 'Processing Status',
                 'Comment',
@@ -101,6 +102,19 @@ export default {
                     return full.data.data.species;
                 },
                 name: 'data',
+            };
+        },
+        column_sequence: function () {
+            return {
+                
+                data: 'revision_sequence',
+                orderable: true,
+                searchable: false,
+                visible: true,
+                render: function (row, type, full) {
+                    return full.data.species.fields.species_number+'-'+full.revision_sequence;
+                },
+                name: 'revision_sequence',
             };
         },
         column_id: function () {
@@ -122,9 +136,9 @@ export default {
                 data: 'data.data.species.fields.species_number',
                 orderable: false,
                 searchable: false, 
-                visible: false,
+                visible: true,
                 render: function (row, type, full) {
-                    return full.data.species.fields.document_number;
+                    return full.data.species.fields.species_number;
                 },
                 name: 'species_number',
             };
@@ -175,13 +189,19 @@ export default {
                             }
                             for (var i = 0; i < full.data.taxonomy.length; i++) {
                                 if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    return full.data.taxonomy[i].fields.scientific_name
+                                    //return full.data.taxonomy[i].fields.scientific_name
+                                    let value = full.data.taxonomy[i].fields.scientific_name;
+                                    let result = helpers.dtPopover(value, 30, 'hover');
+                                    return type=='export' ? value : result;
                                 }
                             }                               
                             return '';
                         }
 
-                        return full.data.taxonomy.fields.scientific_name;
+                        //return full.data.taxonomy.fields.scientific_name;
+                        let value = full.data.taxonomy.fields.scientific_name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type=='export' ? value : result;
                     } else {
                         return ''
                     }
@@ -209,12 +229,50 @@ export default {
                             }
                             for (var i = 0; i < full.data.taxonomy.length; i++) {
                                 if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    return full.data.taxonomy[i].fields.scientific_name
+                                    //return full.data.taxonomy[i].fields.scientific_name
+                                    let value = full.data.taxonomy[i].fields.scientific_name;
+                                    let result = helpers.dtPopover(value, 30, 'hover');
+                                    return type=='export' ? value : result;
                                 }
                             }                               
                             return '';
                         }
                         return '';
+                    } else {
+                        return ''
+                    }
+                },
+                name: 'non_current_name', //_name',
+            };
+        },
+        column_common_name: function () {
+            return {
+                data: 'data.data.taxonvernacular.fields.vernacular_name', 
+                defaultContent: '',
+                orderable: false,
+                searchable: false,
+                visible: true,
+                render: function (row, type, full) {
+                    if (full.data.taxonvernacular !== undefined) {
+                        //list not dict
+                        if (full.data.taxonvernacular.fields === undefined) {
+                            var combined_name = ""
+                            for (var i = 0; i < full.data.taxonvernacular.length; i++) {
+                                if (i==0) {
+                                    combined_name = full.data.taxonvernacular[i].fields.vernacular_name;
+                                } else {
+                                    combined_name += ","+full.data.taxonvernacular[i].fields.vernacular_name
+                                }
+                            }                               
+                            //return combined_name;
+                            let value = combined_name;
+                            let result = helpers.dtPopover(value, 30, 'hover');
+                            return type=='export' ? value : result;
+                        }
+                        //return full.data.taxonvernacular.fields.vernacular_name;
+                        let value = full.data.taxonvernacular.fields.vernacular_name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type=='export' ? value : result;
                     } else {
                         return ''
                     }
@@ -245,7 +303,10 @@ export default {
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.species.fields.comment;
+                    //return full.data.species.fields.comment;
+                    let value = full.data.species.fields.comment;
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type=='export' ? value : result;
                 },
                 name: 'comment',
             };
@@ -258,7 +319,7 @@ export default {
                 visible: true,
                 mRender: function(data, type, full){
                     let links = "";
-                    links += `<a href='#' data-view-history='${full.revision_id}'>View</a><br>`;
+                    links += `<a href='#' data-view-history='${full.revision_id}' data-view-history-seq='${full.revision_sequence}'>View</a><br>`;
                     return links;
                 }
             };
@@ -266,9 +327,10 @@ export default {
         datatable_options: function () {
             let vm = this;
             let columns = [
-                vm.column_revision_id,
+                vm.column_sequence,
                 vm.column_revision_date,
                 vm.column_scientific_name,
+                vm.column_common_name,
                 vm.column_non_current_name,
                 vm.column_processing_status,
                 vm.column_comment,
@@ -311,6 +373,9 @@ export default {
                          "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
                 processing: true,
+                initComplete: function() {
+                    helpers.enablePopovers();
+                },
             };
         },
     },
@@ -345,22 +410,3 @@ export default {
         },
 };
 </script>
-
-<style lang="css" scoped>
-    /*ul, li {
-        zoom:1;
-        display: inline;
-    }*/
-    fieldset.scheduler-border {
-    border: 1px groove #ddd !important;
-    padding: 0 1.4em 1.4em 1.4em !important;
-    margin: 0 0 1.5em 0 !important;
-    -webkit-box-shadow:  0px 0px 0px 0px #000;
-            box-shadow:  0px 0px 0px 0px #000;
-    }
-    legend.scheduler-border {
-    width:inherit; /* Or auto */
-    padding:0 10px; /* To give a bit of padding on the left and right */
-    border-bottom:none;
-    }
-</style>

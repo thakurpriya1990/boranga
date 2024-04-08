@@ -15,6 +15,8 @@ from boranga.helpers import (is_internal, is_customer,
 is_boranga_admin, is_django_admin, is_assessor, is_approver,
 is_species_processor, is_community_processor,
 is_conservation_status_editor)
+from django.db.models.expressions import Window
+from django.db.models.functions import RowNumber
 
 #keeping it as an APIView to control how its handled
 class InternalAuthorizationView(views.APIView):
@@ -93,26 +95,33 @@ class VersionsFilterBackend(DatatablesFilterBackend):
 
             #apply search term to all searchable fields
             #revision id
-            qs_revision_id = all_versions
+            qs_revision_id = all_versions.none()
             if "revision_id" in search_fields:
+                qs_revision_id = all_versions
                 qs_revision_id = qs_revision_id.filter(revision__id__icontains=search_value)
             
-            qs_revision_date = all_versions
+            qs_revision_date = all_versions.none()
             #revision date
             if "revision_date" in search_fields:
+                qs_revision_date = all_versions
                 qs_revision_date = qs_revision_date.filter(revision__date_created__icontains=search_value)
 
-            qs_revision_data = all_versions
+            qs_revision_data = all_versions.none()
             #otherwise, json data fields (regex?)
             if search_fields_regex:
+                qs_revision_data = all_versions
                 qs_revision_data = qs_revision_data.filter(serialized_data__iregex=filter_regex)
 
             #union resulting querysets
             all_versions = qs_revision_data.union(qs_revision_date).union(qs_revision_id)
 
             #get remaining revision ids, apply to main queryset for result
-            remaining_revision_ids = list(set(all_versions.values_list("revision_id",flat=True)))
-            queryset = queryset.filter(revision_id__in=remaining_revision_ids)
+            try:
+                remaining_revision_ids = list(set(all_versions.values_list("revision_id",flat=True)))
+                queryset = queryset.filter(revision_id__in=remaining_revision_ids)
+            except Exception as e:
+                print(e)
+                print("Invalid search term")
         
         return queryset
 
@@ -138,6 +147,8 @@ class VersionsFilterBackend(DatatablesFilterBackend):
             #handle revision date and id 
             if ordering_values[i] == 'revision_id':
                 final_ordering_values.append(ordering[i]+"revision")
+            elif ordering_values[i] == 'revision_sequence':
+                final_ordering_values.append(ordering[i]+"revision")        
             elif ordering_values[i] == 'revision_date':
                 final_ordering_values.append(ordering[i]+"revision__date_created")
             else:
@@ -168,6 +179,9 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
         instance = model.objects.get(pk=int(pk))
 
         queryset = Version.objects.get_for_object(instance)
+
+        id_sequence_index = list(queryset.order_by("revision_id").values_list("revision_id",flat=True))
+
         queryset = self.filter_backend().filter_queryset(self.request, queryset, self)
 
         if not self.paginator.page_size:
@@ -194,6 +208,7 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
 
             versions_list.append({
                'revision_id': version.revision_id,
+               'revision_sequence': id_sequence_index.index(version.revision_id),
                'date_created': version.revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
                'data': data,
                }
