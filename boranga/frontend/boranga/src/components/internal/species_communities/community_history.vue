@@ -1,8 +1,8 @@
 <template lang="html">
-    <div id="speciesHistory">
+    <div id="communityHistory">
         <modal
             transition="modal fade"
-            :title="'Species '+ speciesId +' - History'"
+            :title="'Community '+ communityId +' - History'"
             :large="true"
             :full="true"
             :showOK="false"
@@ -16,7 +16,7 @@
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
-                                <div v-if="speciesId" class="col-lg-12">
+                                <div v-if="communityId" class="col-lg-12">
                                     <datatable
                                         :id="datatable_id"
                                         ref="history_datatable"
@@ -29,7 +29,7 @@
                                         :key="historyId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
-                                        :primary_model="'Species'"
+                                        :primary_model="'Community'"
                                     />
                                     </div>
                                 </div>
@@ -50,7 +50,7 @@ import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
-    name: 'speciesHistory',
+    name: 'communityHistory',
     components: {
         modal,
         alert,
@@ -58,7 +58,7 @@ export default {
         DisplayHistory,
     },
     props: {
-        speciesId: {
+        communityId: {
             type: Number,
             required: true,
         },
@@ -85,8 +85,7 @@ export default {
             return [
                 'Number',
                 'Date Modified',
-                'Scientific Name',
-                'Common Name',
+                'Coommunity Name',
                 'Previous Name',
                 'Processing Status',
                 'Comment',
@@ -101,7 +100,7 @@ export default {
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.data.species;
+                    return full.data.data.community;
                 },
                 name: 'data',
             };
@@ -114,7 +113,7 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.species.fields.species_number+'-'+full.revision_sequence;
+                    return full.data.community.fields.community_number+'-'+full.revision_sequence;
                 },
                 name: 'revision_sequence',
             };
@@ -122,12 +121,12 @@ export default {
         column_id: function () {
             return {
                 // 1. ID
-                data: 'data.data.species.pk',
+                data: 'data.data.community.pk',
                 orderable: false,
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.species.pk;
+                    return full.data.community.pk;
                 },
                 name: 'id',
             };
@@ -135,14 +134,14 @@ export default {
         column_number: function () {
             return {
                 // 2. Number
-                data: 'data.data.species.fields.species_number',
+                data: 'data.data.community.fields.community_number',
                 orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.species.fields.species_number;
+                    return full.data.community.fields.community_number;
                 },
-                name: 'species_number',
+                name: 'community_number',
             };
         },
         column_revision_id: function () {
@@ -171,127 +170,93 @@ export default {
                 name: 'revision_date',
             };
         },
-        column_scientific_name: function () {
+        column_community_name: function () {
             return {
-                data: 'data.data.taxonomy.fields.scientific_name', 
+                data: 'data.data.communitytaxonomy.fields.community_name', 
                 defaultContent: '',
                 orderable: false,
                 searchable: true, 
                 visible: true,
+                //TODO: determine if communities can have multiple taxonomies (if not, change this to be more simple)
                 render: function (row, type, full) {
-                    if (full.data.taxonomy !== undefined) {
+                    if (full.data.communitytaxonomy !== undefined) {
                         //list not dict
-                        if (full.data.taxonomy.fields === undefined) {
-                            var current_name_pk = '';
-                            //get the crossreference new_tax and compare to pk
-                            if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
-                                current_name_pk = full.data.crossreference.fields.new_taxonomy
-                            } else if (full.data.crossreference.length > 0) {
-                                current_name_pk = full.data.crossreference[0].fields.new_taxonomy
-                            }
-                            for (var i = 0; i < full.data.taxonomy.length; i++) {
-                                if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    //return full.data.taxonomy[i].fields.scientific_name
-                                    let value = full.data.taxonomy[i].fields.scientific_name;
+                        var fallback_name = ""; //if none of the names are current somehow, use this
+                        if (full.data.communitytaxonomy.fields === undefined) {
+                            for (var i = 0; i < full.data.communitytaxonomy.length; i++) {
+                                if (full.data.communitytaxonomy[i].name_currency) { 
+                                    //return full.data.communitytaxonomy[i].fields.community_name
+                                    let value = full.data.communitytaxonomy[i].fields.community_name;
                                     let result = helpers.dtPopover(value, 30, 'hover');
                                     return type=='export' ? value : result;
+                                } else {
+                                    let value = full.data.communitytaxonomy[i].fields.community_name;
+                                    let result = helpers.dtPopover(value, 30, 'hover');
+                                    fallback_name = type=='export' ? value : result;
                                 }
                             }                               
-                            return '';
+                            return fallback_name;
                         }
 
-                        //return full.data.taxonomy.fields.scientific_name;
-                        let value = full.data.taxonomy.fields.scientific_name;
+                        //return full.data.communitytaxonomy.fields.community_name;
+                        let value = full.data.communitytaxonomy.fields.community_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         return type=='export' ? value : result;
                     } else {
                         return ''
                     }
                 },
-                name: 'scientific_name', //_name',
+                name: 'community_name',
             };
         },
-        column_non_current_name: function () {
+        column_previous_name: function () {
             return {
-                data: 'data.data.taxonomy.fields.non_current_name', 
+                data: 'data.data.communitytaxonomy.fields.previous_name', 
                 defaultContent: '',
                 orderable: false,
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.taxonomy !== undefined) {
+                    if (full.data.communitytaxonomy !== undefined) {
                         //list not dict
-                        if (full.data.taxonomy.fields === undefined) {
-                            var current_name_pk = '';
-                            //get the crossreference old_tax and compare to pk
-                            if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
-                                current_name_pk = full.data.crossreference.fields.old_taxonomy
-                            } else if (full.data.crossreference.length > 0) {
-                                current_name_pk = full.data.crossreference[0].fields.old_taxonomy
-                            }
-                            for (var i = 0; i < full.data.taxonomy.length; i++) {
-                                if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    //return full.data.taxonomy[i].fields.scientific_name
-                                    let value = full.data.taxonomy[i].fields.scientific_name;
+                        var fallback_name = ""; //if none of the names are current somehow, use this
+                        if (full.data.communitytaxonomy.fields === undefined) {
+                            for (var i = 0; i < full.data.communitytaxonomy.length; i++) {
+                                if (full.data.communitytaxonomy[i].name_currency) { 
+                                    //return full.data.communitytaxonomy[i].fields.previous_name
+                                    let value = full.data.communitytaxonomy[i].fields.previous_name;
                                     let result = helpers.dtPopover(value, 30, 'hover');
                                     return type=='export' ? value : result;
-                                }
-                            }                               
-                            return '';
-                        }
-                        return '';
-                    } else {
-                        return ''
-                    }
-                },
-                name: 'non_current_name', //_name',
-            };
-        },
-        column_common_name: function () {
-            return {
-                data: 'data.data.taxonvernacular.fields.vernacular_name', 
-                defaultContent: '',
-                orderable: false,
-                searchable: false,
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.taxonvernacular !== undefined) {
-                        //list not dict
-                        if (full.data.taxonvernacular.fields === undefined) {
-                            var combined_name = ""
-                            for (var i = 0; i < full.data.taxonvernacular.length; i++) {
-                                if (i==0) {
-                                    combined_name = full.data.taxonvernacular[i].fields.vernacular_name;
                                 } else {
-                                    combined_name += ","+full.data.taxonvernacular[i].fields.vernacular_name
+                                    let value = full.data.communitytaxonomy[i].fields.previous_name;
+                                    let result = helpers.dtPopover(value, 30, 'hover');
+                                    fallback_name = type=='export' ? value : result;
                                 }
                             }                               
-                            //return combined_name;
-                            let value = combined_name;
-                            let result = helpers.dtPopover(value, 30, 'hover');
-                            return type=='export' ? value : result;
+                            return fallback_name;
                         }
-                        //return full.data.taxonvernacular.fields.vernacular_name;
-                        let value = full.data.taxonvernacular.fields.vernacular_name;
+
+                        //return full.data.communitytaxonomy.fields.previous_name;
+                        let value = full.data.communitytaxonomy.fields.previous_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         return type=='export' ? value : result;
                     } else {
                         return ''
                     }
                 },
-                name: 'non_current_name', //_name',
+                name: 'previous_name', //_name',
             };
         },
         column_processing_status: function () {
             return {
                 
-                data: 'data.data.species.fields.processing_status',
+                data: 'data.data.community.fields.processing_status',
                 defaultContent: '',
                 orderable: true,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.species.fields.processing_status;
+                    return full.data.community.fields.processing_status;
                 },
                 name: 'processing_status',
             };
@@ -299,14 +264,14 @@ export default {
         column_comment: function () {
             return {
 
-                data: 'data.data.species.fields.comment',
+                data: 'data.data.community.fields.comment',
                 defaultContent: '',
                 orderable: false,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    //return full.data.species.fields.comment;
-                    let value = full.data.species.fields.comment;
+                    //return full.data.community.fields.comment;
+                    let value = full.data.community.fields.comment;
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
@@ -331,9 +296,8 @@ export default {
             let columns = [
                 vm.column_sequence,
                 vm.column_revision_date,
-                vm.column_scientific_name,
-                vm.column_common_name,
-                vm.column_non_current_name,
+                vm.column_community_name,
+                vm.column_previous_name,
                 vm.column_processing_status,
                 vm.column_comment,
                 vm.column_action,
@@ -349,7 +313,7 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_species(this.speciesId)+"?format=datatables",
+                    url: api_endpoints.lookup_history_community(this.communityId)+"?format=datatables",
                     dataSrc: 'data',
                 },
                 buttons: [

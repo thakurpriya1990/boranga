@@ -200,6 +200,9 @@ module.exports = {
     lookup_history_species:function (id) {
       return `/api/history/versions/boranga/species_communities/Species/${id}/`;
     },
+    lookup_history_community:function (id) {
+      return `/api/history/versions/boranga/species_communities/Community/${id}/`;
+    },
 
     lookup_revision_versions:function (model,id) {
       return `/api/history/${model}/${id}/`;
