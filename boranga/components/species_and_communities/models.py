@@ -1915,6 +1915,9 @@ reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)
 reversion.register(TaxonVernacular)
 
+#Community Document
+reversion.register(CommunityDocument)
+
 #Community History
 reversion.register(Community, follow=["taxonomy","community_distribution","community_conservation_attributes"])
 reversion.register(CommunityTaxonomy)
