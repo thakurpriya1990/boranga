@@ -714,7 +714,6 @@ import {
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
 import shp, { combine, parseShp, parseDbf } from 'shpjs';
-import proj4 from 'proj4';
 
 export default {
     name: 'MapComponent',
