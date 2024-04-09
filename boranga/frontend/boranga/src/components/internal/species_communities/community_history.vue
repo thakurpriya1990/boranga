@@ -2,7 +2,7 @@
     <div id="communityHistory">
         <modal
             transition="modal fade"
-            :title="'Community '+ communityId +' - History'"
+            :title="'Community C'+ communityId +' - History'"
             :large="true"
             :full="true"
             :showOK="false"

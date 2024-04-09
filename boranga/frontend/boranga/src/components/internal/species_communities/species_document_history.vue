@@ -2,7 +2,7 @@
     <div id="speciesDocumentHistory">
         <modal
             transition="modal fade"
-            :title="'Species '+ speciesId +' - Document ' + documentId + ' - History ' "
+            :title="'Species S'+ speciesId +' - Document D' + documentId + ' - History ' "
             :large="true"
             :full="true"
             :showOK="false"

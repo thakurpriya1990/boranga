@@ -911,7 +911,7 @@ class SpeciesDistribution(models.Model):
         return str(self.id)  # TODO: is the most appropriate?
 
 
-class Community(models.Model):
+class Community(RevisionedMixin):
     """
     A collection of 2 or more Species within a specific location.
 
@@ -1405,7 +1405,7 @@ class CommunityDistribution(models.Model):
         return str(self.id)  # TODO: is the most appropriate?
 
 
-class DocumentCategory(RevisionedMixin):
+class DocumentCategory(models.Model):
     """
     This is particularly useful for organisation of documents e.g. preventing inappropriate documents being added
     to certain tables.

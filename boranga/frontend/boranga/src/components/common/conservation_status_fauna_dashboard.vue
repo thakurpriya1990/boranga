@@ -129,6 +129,15 @@
                         :dtHeaders="datatable_headers"
                 />
             </div>
+            <div v-if="speciesConservationStatusHistoryId">
+            <SpeciesConservationStatusHistory
+                ref="species_conservation_status_history"
+                :key="speciesConservationStatusHistoryId"
+                :conservation-status-id="speciesConservationStatusHistoryId"
+                :species-id="speciesHistoryId"
+                :conservation-list-id="listHistoryId"
+            />
+            </div>
         </div>
     </div>
 </template>
@@ -141,6 +150,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+import SpeciesConservationStatusHistory from '../internal/conservation_status/species_conservation_status_history.vue';
 import Vue from 'vue'
 //require("select2/dist/css/select2.min.css");
 //require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
@@ -248,7 +258,9 @@ export default {
         let vm = this;
         return {
             datatable_id: 'species_fauna_cs-datatable-'+vm._uid,
-     
+            speciesConservationStatusHistoryId: null,
+            speciesHistoryId: null,
+            listHistoryId: null,
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
@@ -333,6 +345,7 @@ export default {
         datatable,
         CollapsibleFilters,
         FormSection,
+        SpeciesConservationStatusHistory,
     },
     watch:{
         filterCSFaunaScientificName: function(){
@@ -668,16 +681,25 @@ export default {
                             {
                                 links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
                                 links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
+                                links += `<a href='#' data-history-conservation-status-species='${full.id}'
+                                data-history-species='${full.species_number}'
+                                data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                             }
                             else{
                                 if(full.assessor_process){
                                         links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`; 
+                                        links += `<a href='#' data-history-conservation-status-species='${full.id}'
+                                        data-history-species='${full.species_number}'
+                                        data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                                 }
                                 else{
                                     if(full.assessor_edit){
                                         links +=  `<a href='/internal/conservation_status/${full.id}?action=edit'>Edit</a><br/>`;
                                     }
                                     links +=  `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
+                                    links += `<a href='#' data-history-conservation-status-species='${full.id}'
+                                    data-history-species='${full.species_number}'
+                                    data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                                 }
                             }
                         }
@@ -810,6 +832,15 @@ export default {
     
     },
     methods:{
+        historyDocument: function(id,list,species){
+                this.speciesConservationStatusHistoryId = parseInt(id);
+                this.listHistoryId = list ? list : "List not specified";
+                this.speciesHistoryId = species ? species : "not specified";
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.species_conservation_status_history.isModalOpen = true;
+                });
+            },
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
@@ -1148,6 +1179,13 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-add-to-agenda');
                 vm.addToMeetingAgenda(id);
+            });
+            vm.$refs.fauna_cs_datatable.vmDataTable.on('click', 'a[data-history-conservation-status-species]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-conservation-status-species');
+                var list = $(this).attr('data-history-conservation-list');
+                var species = $(this).attr('data-history-species');
+                vm.historyDocument(id,list,species);
             });
         },
         initialiseSearch:function(){

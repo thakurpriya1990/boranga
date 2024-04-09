@@ -230,7 +230,7 @@ class IUCNVersion(models.Model):
         return str(self.code)
 
 
-class ConservationStatus(models.Model):
+class ConservationStatus(RevisionedMixin):
     """
     Several lists with different attributes
 
@@ -1758,3 +1758,10 @@ class ConservationStatusAmendmentRequestDocument(Document):
     def delete(self):
         if self.can_delete:
             return super(ConservationStatusAmendmentRequestDocument, self).delete()
+
+import reversion
+
+#Conservation Status History
+reversion.register(ConservationStatus, follow=["species","community","conservation_list","conservation_category"])
+reversion.register(ConservationList)
+reversion.register(ConservationCategory)  #TODO consider changing category to non-historical lookup (will require history API addition)
