@@ -99,6 +99,15 @@
                         :dtHeaders="datatable_headers"
                     />
             </div>
+            <div v-if="communityConservationStatusHistoryId">
+            <CommunityConservationStatusHistory
+                ref="community_conservation_status_history"
+                :key="communityConservationStatusHistoryId"
+                :conservation-status-id="communityConservationStatusHistoryId"
+                :community-id="communityHistoryId"
+                :conservation-list-id="listHistoryId"
+            />
+            </div>
         </div>
     </div>
 </template>
@@ -107,6 +116,8 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+import CommunityConservationStatusHistory from '../internal/conservation_status/community_conservation_status_history.vue';
+
 import Vue from 'vue'
 import {
     api_endpoints,
@@ -197,7 +208,9 @@ export default {
         let vm = this;
         return {
             datatable_id: 'cs-communities-datatable-'+vm._uid,
-     
+            communityConservationStatusHistoryId: null,
+            communityHistoryId: null,
+            listHistoryId: null,
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
@@ -269,6 +282,7 @@ export default {
         datatable,
         CollapsibleFilters,
         FormSection,
+        CommunityConservationStatusHistory,
     },
     watch:{
         filterCSCommunityMigratedId: function(){
@@ -552,16 +566,25 @@ export default {
                             {
                                 links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
                                 links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
+                                links += `<a href='#' data-history-conservation-status-community='${full.id}'
+                                data-history-community='${full.community_number}'
+                                data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                             }
                             else{
                                 if(full.assessor_process){
                                         links +=  `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
+                                        links += `<a href='#' data-history-conservation-status-community='${full.id}'
+                                        data-history-community='${full.community_number}'
+                                        data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                                 }
                                 else{
                                     if(full.assessor_edit){
                                         links +=  `<a href='/internal/conservation_status/${full.id}?action=edit'>Edit</a><br/>`;
                                     }
                                     links +=  `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
+                                    links += `<a href='#' data-history-conservation-status-community='${full.id}'
+                                    data-history-community='${full.community_number}'
+                                    data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                                 }
                             }
                         }
@@ -687,6 +710,15 @@ export default {
     
     },
     methods:{
+        historyDocument: function(id,list,community){
+                this.communityConservationStatusHistoryId = parseInt(id);
+                this.listHistoryId = list ? list : "List not specified";
+                this.communityHistoryId = community ? community : "not specified";
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.community_conservation_status_history.isModalOpen = true;
+                });
+            },
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
@@ -899,6 +931,13 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-add-to-agenda');
                 vm.addToMeetingAgenda(id);
+            });
+            vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-history-conservation-status-community]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-conservation-status-community');
+                var list = $(this).attr('data-history-conservation-list');
+                var community = $(this).attr('data-history-community');
+                vm.historyDocument(id,list,community);
             });
         },
         initialiseSearch:function(){

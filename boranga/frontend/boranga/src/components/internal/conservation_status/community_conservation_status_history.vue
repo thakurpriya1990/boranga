@@ -1,8 +1,10 @@
 <template lang="html">
-    <div id="communityHistory">
+    <div id="communityConservationStatusHistory">
         <modal
             transition="modal fade"
-            :title="'Community C'+ communityId +' - History'"
+            :title="'Conservation Status CS'
+            + conservationStatusId + ' - ' 
+            + conservationListId + ' - Community '+ communityId +' - History'"
             :large="true"
             :full="true"
             :showOK="false"
@@ -16,7 +18,7 @@
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
-                                <div v-if="communityId" class="col-lg-12">
+                                <div v-if="conservationStatusId" class="col-lg-12">
                                     <datatable
                                         :id="datatable_id"
                                         ref="history_datatable"
@@ -29,7 +31,7 @@
                                         :key="historyId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
-                                        :primary_model="'Community'"
+                                        :primary_model="'ConservationStatus'"
                                     />
                                     </div>
                                 </div>
@@ -50,7 +52,7 @@ import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
-    name: 'communityHistory',
+    name: 'communityConservationStatusHistory',
     components: {
         modal,
         alert,
@@ -59,13 +61,20 @@ export default {
     },
     props: {
         communityId: {
+            type: String,
+            required: false,
+        },
+        conservationStatusId: {
             type: Number,
             required: true,
+        },
+        conservationListId: {
+            type: String,
+            required: false,
         },
     },
     data: function () {
         return {
-            scientificName: '',
             historyId: null,
             historySequence: null,
             datatable_id: 'history-datatable-' + uuid(),
@@ -87,7 +96,9 @@ export default {
                 'Date Modified',
                 'Community Name',
                 'Previous Name',
-                'Processing Status',
+                'Conservation List',
+                'Conservation Category', //level?
+                'Status',
                 'Comment',
                 'Action',
             ];
@@ -100,7 +111,7 @@ export default {
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.data.community;
+                    return full.data.data.conservationstatus;
                 },
                 name: 'data',
             };
@@ -113,7 +124,7 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.community.fields.community_number+'-'+full.revision_sequence;
+                    return full.data.conservationstatus.fields.conservation_status_number+'-'+full.revision_sequence;
                 },
                 name: 'revision_sequence',
             };
@@ -121,12 +132,12 @@ export default {
         column_id: function () {
             return {
                 // 1. ID
-                data: 'data.data.community.pk',
+                data: 'data.data.conservationstatus.pk',
                 orderable: false,
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.community.pk;
+                    return full.data.conservationstatus.pk;
                 },
                 name: 'id',
             };
@@ -134,14 +145,14 @@ export default {
         column_number: function () {
             return {
                 // 2. Number
-                data: 'data.data.community.fields.community_number',
+                data: 'data.data.conservationstatus.fields.conservation_status_number',
                 orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.community.fields.community_number;
+                    return full.data.conservationstatus.fields.conservation_status_number;
                 },
-                name: 'community_number',
+                name: 'conservation_status_number',
             };
         },
         column_revision_id: function () {
@@ -247,16 +258,52 @@ export default {
                 name: 'previous_name', //_name',
             };
         },
+        column_category: function () {
+            return {
+                
+                data: 'data.data.conservationcategory.fields.code',
+                defaultContent: '',
+                orderable: false,
+                searchable: true, 
+                visible: true,
+                render: function (row, type, full) {
+                    if (full.data.conservationcategory !== undefined) {
+                        return full.data.conservationcategory.fields.code;
+                    } else {
+                        return '';
+                    }
+                },
+                name: 'code',
+            };
+        },
+        column_list: function () {
+            return {
+                
+                data: 'data.data.conservationlist.fields.code',
+                defaultContent: '',
+                orderable: false,
+                searchable: true, 
+                visible: true,
+                render: function (row, type, full) {
+                    if (full.data.conservationlist !== undefined) {
+                        return full.data.conservationlist.fields.code;
+                    } else {
+                        return '';
+                    }
+                },
+                name: 'code',
+            };
+        },
         column_processing_status: function () {
             return {
                 
-                data: 'data.data.community.fields.processing_status',
+                data: 'data.data.conservationstatus.fields.processing_status',
                 defaultContent: '',
                 orderable: true,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.community.fields.processing_status;
+                    return full.data.conservationstatus.fields.processing_status;
                 },
                 name: 'processing_status',
             };
@@ -264,14 +311,14 @@ export default {
         column_comment: function () {
             return {
 
-                data: 'data.data.community.fields.comment',
+                data: 'data.data.conservationstatus.fields.comment',
                 defaultContent: '',
                 orderable: false,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    //return full.data.community.fields.comment;
-                    let value = full.data.community.fields.comment;
+                    //return full.data.conservationstatus.fields.comment;
+                    let value = full.data.conservationstatus.fields.comment;
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
@@ -298,6 +345,8 @@ export default {
                 vm.column_revision_date,
                 vm.column_community_name,
                 vm.column_previous_name,
+                vm.column_list,
+                vm.column_category,
                 vm.column_processing_status,
                 vm.column_comment,
                 vm.column_action,
@@ -313,7 +362,7 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_community(this.communityId)+"?format=datatables",
+                    url: api_endpoints.lookup_history_conservation_status(this.conservationStatusId)+"?format=datatables",
                     dataSrc: 'data',
                 },
                 buttons: [
