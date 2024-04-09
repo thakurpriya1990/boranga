@@ -207,6 +207,9 @@ module.exports = {
       return `/api/history/versions/boranga/species_communities/Community/${id}/`;
     },
 
+    lookup_history_conservation_status_document:function (id) {
+      return `/api/history/versions/boranga/conservation_status/ConservationStatusDocument/${id}/`;
+    },
     lookup_history_conservation_status:function (id) {
       return `/api/history/versions/boranga/conservation_status/ConservationStatus/${id}/`;
     },

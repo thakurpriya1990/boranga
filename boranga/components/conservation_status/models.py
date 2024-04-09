@@ -1761,6 +1761,9 @@ class ConservationStatusAmendmentRequestDocument(Document):
 
 import reversion
 
+#Species Document History
+reversion.register(ConservationStatusDocument)
+
 #Conservation Status History
 reversion.register(ConservationStatus, follow=["species","community","conservation_list","conservation_category"])
 reversion.register(ConservationList)
