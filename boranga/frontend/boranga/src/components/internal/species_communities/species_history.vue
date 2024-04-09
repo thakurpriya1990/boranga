@@ -28,6 +28,7 @@
                                         ref="display_history"
                                         :key="historyId"
                                         :revision_id="historyId"
+                                        :revision_sequence="historySequence"
                                         :primary_model="'Species'"
                                     />
                                     </div>
@@ -66,6 +67,7 @@ export default {
         return {
             scientificName: '',
             historyId: null,
+            historySequence: null,
             datatable_id: 'history-datatable-' + uuid(),
             documentDetails: {
             },
@@ -385,9 +387,10 @@ export default {
             this.isModalOpen = false;
             $('.has-error').removeClass('has-error');
         },
-        viewHistory: function(id){
+        viewHistory: function(id,seq){
                 console.log("viewHistory");
                 this.historyId = parseInt(id);
+                this.historySequence = parseInt(seq);
                 this.uuid++;
                 this.$nextTick(() => {
                     this.$refs.display_history.isModalOpen = true;
@@ -398,7 +401,8 @@ export default {
             vm.$refs.history_datatable.vmDataTable.on('click', 'a[data-view-history]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-view-history');
-                vm.viewHistory(id);
+                var seq = $(this).attr('data-view-history-seq');
+                vm.viewHistory(id,seq);
             });
         }
     },
