@@ -1299,16 +1299,25 @@ export default {
             width = 2
         ) {
             let vm = this;
-            if (!fill || !vm.isColor(fill)) {
+            if (!fill) {
                 fill = vm.defaultColor;
             }
-            if (!stroke || !vm.isColor(stroke)) {
+            if (!stroke) {
                 stroke = vm.defaultColor;
             }
+
             if (!(fill instanceof Fill)) {
+                if (!vm.isColor(fill)) {
+                    // Check for fill being a color string first
+                    fill = vm.defaultColor;
+                }
                 fill = new Fill({ color: fill });
             }
             if (!(stroke instanceof Stroke)) {
+                if (!vm.isColor(stroke)) {
+                    // Check for stroke being a color string first
+                    stroke = vm.defaultColor;
+                }
                 stroke = new Stroke({
                     color: stroke,
                     width: width,
