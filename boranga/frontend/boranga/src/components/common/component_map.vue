@@ -696,7 +696,7 @@ import Transform from 'ol-ext/interaction/Transform';
 import Feature from 'ol/Feature';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import { FullScreen as FullScreenControl } from 'ol/control';
 import { LineString, Point, MultiPoint, Polygon } from 'ol/geom';
 import { getArea } from 'ol/sphere.js';
@@ -783,7 +783,7 @@ export default {
             },
         },
         /**
-         * Color definitions for the features to be used when styling by `assessor`
+         * General color definitions for the features to be used when styling by `assessor`
          * @values unknown, draw, applicant, assessor
          */
         featureColors: {
@@ -795,6 +795,41 @@ export default {
                     draw: '#00FFFF', // cyan
                     applicant: '#00FF0077',
                     assessor: '#0000FF77',
+                };
+            },
+            validator: function (val) {
+                let options = ['unknown', 'draw', 'applicant', 'assessor'];
+                Object.keys(val).forEach((key) => {
+                    if (!options.includes(key.toLowerCase())) {
+                        console.error('Invalid feature color key: ' + key);
+                        return false;
+                    }
+                    // Invalid color values will evaluate to an empty string
+                    let test = new Option().style;
+                    test.color = val[key];
+                    if (test.color === '') {
+                        console.error(
+                            `Invalid ${key} color value: ${val[key]}`
+                        );
+                        return false;
+                    }
+                });
+                return true;
+            },
+        },
+        /**
+         * Point color definitions for the features to be used when styling by `assessor`
+         * @values unknown, draw, applicant, assessor
+         */
+        pointFeatureColors: {
+            type: Object,
+            required: false,
+            default: () => {
+                return {
+                    unknown: '#9999', // greyish
+                    draw: '#00FFFFAA', // cyan
+                    applicant: '#00FF00',
+                    assessor: '#0000FF',
                 };
             },
             validator: function (val) {
@@ -1272,15 +1307,18 @@ export default {
                     featureData.properties.geometry_source?.toLowerCase() ||
                     'draw';
             }
+            const type = featureData.geometry.type;
+            const featureColors =
+                type === 'Point' ? vm.pointFeatureColors : vm.featureColors;
 
             if (vm.styleBy === 'assessor') {
                 // Assume the object is a feature containing a geometry_source property
-                return vm.featureColors[geometry_source];
+                return featureColors[geometry_source];
             } else if (vm.styleBy === 'model') {
                 // Assume the object is a model containing a color field
                 return model.color;
             } else {
-                return vm.featureColors['unknown'] || vm.defaultColor;
+                return featureColors['unknown'] || vm.defaultColor;
             }
         },
         /**
@@ -1290,13 +1328,16 @@ export default {
          * @param {string=} type The feature type
          * @param {number=} radius The radius of the point circle, defaults to 7
          * @param {number=} width The stroke width, defaults to 2
+         * @param {string=} svg The path to an svg icon for a map marker to use instead of a circle for a point feature
          */
         createStyle: function (
             fill,
             stroke = null,
             type = null,
             radius = 7,
-            width = 2
+            width = 2,
+            svg = null,
+            transparency = 0
         ) {
             let vm = this;
             if (!fill) {
@@ -1334,13 +1375,24 @@ export default {
                     stroke: stroke,
                 });
             } else if (type === 'Point') {
-                return new Style({
-                    image: new CircleStyle({
-                        radius: radius,
-                        stroke: stroke,
-                        fill: fill,
-                    }),
-                });
+                if (svg) {
+                    return new Style({
+                        image: new Icon({
+                            anchor: [0.5, 1.0],
+                            src: svg,
+                            opacity: 1 - transparency,
+                            color: fill.getColor(),
+                        }),
+                    });
+                } else {
+                    return new Style({
+                        image: new CircleStyle({
+                            radius: radius,
+                            stroke: stroke,
+                            fill: fill,
+                        }),
+                    });
+                }
             } else {
                 console.error('Unknown feature type: ' + type);
             }
@@ -1663,7 +1715,6 @@ export default {
 
             vm.modelQuerySource = new VectorSource({});
             const polygonStyle = vm.createStyle(null, null, 'Polygon');
-            const pointStyle = vm.createStyle(null, null, 'Point');
 
             vm.modelQueryLayer = new VectorLayer({
                 title: 'Model Occurrence Report',
@@ -1675,9 +1726,16 @@ export default {
                     if (feature.getGeometry().getType() === 'Polygon') {
                         style.getFill().setColor(color);
                     } else if (feature.getGeometry().getType() === 'Point') {
-                        style = pointStyle;
-                        style.getImage().getFill().setColor(color);
-                        style.getImage().getStroke().setColor(color);
+                        const rgba = vm.colorHexToRgbaValues(color);
+                        style = vm.createStyle(
+                            color,
+                            null,
+                            'Point',
+                            null,
+                            null,
+                            require('../../assets/map-marker.svg'),
+                            rgba[3]
+                        );
                     }
                     return style;
                 },
@@ -1955,12 +2013,6 @@ export default {
                 'Polygon'
             );
 
-            const hoverStylePoint = vm.createStyle(
-                vm.hoverFill,
-                vm.hoverStrokePoint,
-                'Point'
-            );
-
             // Cache the hover fill so we don't have to create a new one every time
             // Also prevent overwriting property `hoverFill` color
             let _hoverFill = null;
@@ -1968,7 +2020,16 @@ export default {
                 const color = feature.get('color') || vm.defaultColor;
                 let hoverStyle = hoverStylePolygon;
                 if (feature.getGeometry().getType() === 'Point') {
-                    hoverStyle = hoverStylePoint;
+                    const rgba = vm.colorHexToRgbaValues(color);
+                    hoverStyle = vm.createStyle(
+                        vm.hoverFill,
+                        vm.hoverStrokePoint,
+                        'Point',
+                        null,
+                        null,
+                        require('../../assets/map-marker.svg'),
+                        rgba[3]
+                    );
                 }
                 _hoverFill = new Fill({ color: color });
 
@@ -1983,8 +2044,16 @@ export default {
                         hoverStyle.setFill(vm.hoverFill);
                         hoverStyle.setStroke(vm.hoverStrokePolygon);
                     } else if (feature.getGeometry().getType() === 'Point') {
-                        hoverStyle.getImage().setFill(vm.hoverFill);
-                        hoverStyle.getImage().setStroke(vm.hoverStrokePoint);
+                        const image = hoverStyle.getImage();
+                        // Marker icons don't have a fill or stroke property
+                        if (Object.hasOwn(image, 'setFill')) {
+                            hoverStyle.getImage().setFill(vm.hoverFill);
+                        }
+                        if (Object.hasOwn(image, 'setStroke')) {
+                            hoverStyle
+                                .getImage()
+                                .setStroke(vm.hoverStrokePoint);
+                        }
                     }
                 }
                 return hoverStyle;
@@ -2013,15 +2082,22 @@ export default {
                             vm.modifySetActive(false);
                         }
                     } else {
+                        selected.setStyle(undefined);
                         if (!(vm.measuring || vm.drawing)) {
                             // Don't highlight features when measuring or drawing
-                            selected.setStyle(undefined);
                             const type = selected.getGeometry().getType();
+                            const rgba = vm.colorHexToRgbaValues(
+                                selected.values_.color
+                            );
                             selected.setStyle(
                                 vm.createStyle(
                                     selected.values_.color,
                                     null,
-                                    type
+                                    type,
+                                    null,
+                                    null,
+                                    require('../../assets/map-marker.svg'),
+                                    rgba[3]
                                 )
                             );
                         }
@@ -2046,7 +2122,6 @@ export default {
                                 })
                             );
                         }
-                        vm.selectedModel = null;
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
                             selected.setStyle(hoverSelect);
@@ -2546,6 +2621,16 @@ export default {
             if (type === 'Polygon') {
                 geometry = new Polygon(featureData.geometry.coordinates);
             } else if (type === 'Point') {
+                const rgba = vm.colorHexToRgbaValues(color);
+                style = vm.createStyle(
+                    color,
+                    vm.defaultColor,
+                    type,
+                    null,
+                    null,
+                    require('../../assets/map-marker.svg'),
+                    rgba[3]
+                );
                 geometry = new Point(featureData.geometry.coordinates);
             } else if (type === 'LineString') {
                 alert('LineString not yet supported');
@@ -2976,10 +3061,38 @@ export default {
                 });
             }
         },
-        isColor: function (colorStr) {
+        colorStrToStyle: function (colorStr) {
             let s = new Option().style;
             s.color = colorStr;
-            return s.color !== '';
+            return s;
+        },
+        isColor: function (colorStr) {
+            return this.colorStrToStyle(colorStr).color !== '';
+        },
+        colorHexToRgbaValues: function (color) {
+            let _, rgb, r, g, b, a;
+
+            // Get the rgb hex and alpha values with considering shortcut color hex values
+            // eslint-disable-next-line no-unused-vars
+            [_, rgb, a] = new RegExp(
+                '^[#]?((?:[A-Fa-f0-9]{3}){1,2})([A-Fa-f0-9]{1,2})?$'
+            ).exec(color);
+            // Convert 3-digit hex shortcuts to 6-digit hex
+            rgb =
+                rgb.length == 3
+                    ? rgb[0] + rgb[0] + rgb[1] + rgb[1] + rgb[2] + rgb[2]
+                    : rgb;
+            a = a || '00';
+            a = a.length == 1 ? a + a : a;
+
+            // Convert hex to r, g, b, a float values
+            const rgba = `0x${rgb}${a}`;
+            r = (rgba >> 24) & 255;
+            g = (rgba >> 16) & 255;
+            b = (rgba >> 8) & 255;
+            a = (rgba & 255) / 255;
+
+            return [r, g, b, a];
         },
     },
 };
