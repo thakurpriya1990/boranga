@@ -1685,7 +1685,7 @@ class ThreatAgent(models.Model):
         return str(self.name)
 
 
-class ConservationThreat(models.Model):
+class ConservationThreat(RevisionedMixin):
     """
     Threat for a species and community in a particular location.
 
@@ -1906,7 +1906,7 @@ import reversion
 #Species Document History
 reversion.register(SpeciesDocument)
 #reversion.register(DocumentCategory)
- 
+
 #Species History
 reversion.register(Species, follow=["taxonomy","species_distribution","species_conservation_attributes"])
 reversion.register(Taxonomy, follow=["taxon_previous_queryset","vernaculars"])
@@ -1923,3 +1923,6 @@ reversion.register(Community, follow=["taxonomy","community_distribution","commu
 reversion.register(CommunityTaxonomy)
 reversion.register(CommunityDistribution)
 reversion.register(CommunityConservationAttributes)
+
+#Conservation Threat
+reversion.register(ConservationThreat)

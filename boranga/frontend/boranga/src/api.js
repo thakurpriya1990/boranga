@@ -214,6 +214,10 @@ module.exports = {
       return `/api/history/boranga/conservation_status/ConservationStatus/${id}/`;
     },
 
+    lookup_history_conservation_threat:function (id) {
+      return `/api/history/boranga/species_communities/ConservationThreat/${id}/`;
+    },
+
     lookup_revision_versions:function (model,id) {
       return `/api/history/boranga/${model}/${id}/`;
     },
