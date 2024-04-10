@@ -25,6 +25,7 @@ from boranga.components.conservation_status import api as conservation_status_ap
 from boranga.components.conservation_plan import api as conservation_plans_api
 from boranga.components.meetings import api as meeting_api
 from boranga.components.occurrence import api as occurrence_api
+from boranga.components.history import api as history_api
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 from django import urls
 from django.contrib.auth import views as auth_views
@@ -142,6 +143,10 @@ api_patterns = [
     url(r'^api/document_categories_dict$', species_communities_api.GetDocumentCategoriesDict.as_view(), name='get-document-categories-dict'),
     #url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
 
+    url(r'^api/history/versions/(?P<app_label>[\w-]+)/(?P<component_name>[\w-]+)/(?P<model_name>[\w-]+)/(?P<pk>\d+)/$',
+            history_api.GetPaginatedVersionsView.as_view(), name='get-versions'),
+    url(r'^api/history/(?P<model_name>[\w-]+)/(?P<revision_id>\d+)/$',
+            history_api.GetRevisionVersionsView.as_view(), name='get-revision'),
 
     #url(r'^api/reports/booking_settlements$', main_api.BookingSettlementReportView.as_view(),name='booking-settlements-report'),
 ]

@@ -155,6 +155,13 @@
                 />
             </div>
         </div>
+        <div v-if="speciesHistoryId">
+            <SpeciesHistory
+                ref="species_history"
+                :key="speciesHistoryId"
+                :species-id="speciesHistoryId"
+            />
+        </div>
     </div>
 </template>
 <script>
@@ -166,6 +173,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+import SpeciesHistory from '../internal/species_communities/species_history.vue';
 import Vue from 'vue'
 //require("select2/dist/css/select2.min.css");
 //require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
@@ -257,6 +265,8 @@ export default {
     data() {
         let vm = this;
         return {
+            uuid:0,
+            speciesHistoryId: null,
             datatable_id: 'species_flora-datatable-'+vm._uid,
      
             //Profile to check if user has access to process Proposal
@@ -334,6 +344,7 @@ export default {
         datatable,
         CollapsibleFilters,
         FormSection,
+        SpeciesHistory,
     },
     watch:{
         filterFloraScientificName: function(){
@@ -653,12 +664,14 @@ export default {
                         if (full.can_user_edit) {
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
                             links +=  `<a href='#${full.id}' data-discard-species-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
+                            links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
                         else{
                             if(full.user_process){   
 
-                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;    
+                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;         
                             }
+                            links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                         }
                     }
@@ -792,6 +805,13 @@ export default {
     
     },
     methods:{
+        historyDocument: function(id){
+                this.speciesHistoryId = parseInt(id);
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.species_history.isModalOpen = true;
+                });
+            },
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
@@ -1339,6 +1359,11 @@ export default {
                 var id = $(this).attr('data-discard-species-proposal');
                 vm.discardSpeciesProposal(id);
             });
+            vm.$refs.flora_datatable.vmDataTable.on('click', 'a[data-history-species]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-species');
+                    vm.historyDocument(id);
+                });
         },
         initialiseSearch:function(){
             this.submitterSearch();

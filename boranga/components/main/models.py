@@ -12,6 +12,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser, BaseAddres
 from django.db.models import JSONField
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from reversion.models import Version
 private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
 ## TODO: remove ledger models
@@ -224,7 +225,7 @@ class CommunicationsLogEntry(models.Model):
 
 
 #@python_2_unicode_compatible
-class Document(models.Model):
+class Document(RevisionedMixin):
     name = models.CharField(max_length=255, blank=True,
                             verbose_name='name', help_text='')
     description = models.TextField(blank=True,

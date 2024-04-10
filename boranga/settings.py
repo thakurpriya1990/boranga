@@ -111,6 +111,8 @@ INSTALLED_APPS += [
     "import_export",
     "ledger_api_client",
     "appmonitor_client",
+    "reversion",
+    "reversion_compare",
 ]
 
 ADD_REVERSION_ADMIN = True
@@ -140,7 +142,7 @@ REST_FRAMEWORK = {
     #    'rest_framework_datatables.filters.DatatablesFilterBackend',
     # ),
     #'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
-    #'PAGE_SIZE': 20,
+    #'PAGE_SIZE': 1,
 }
 
 

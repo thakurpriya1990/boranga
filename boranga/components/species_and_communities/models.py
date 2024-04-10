@@ -6,9 +6,11 @@ from django.db.models import Q
 from boranga.components.main.models import (
     CommunicationsLogEntry, 
     UserAction,
-    Document
+    Document,
+    RevisionedMixin,
     )
 import json
+from reversion.models import Version
 from django.core.cache import cache
 import subprocess
 from django.db import models,transaction
@@ -279,6 +281,14 @@ class Taxonomy(models.Model):
             # commented the above as gives None scientific_name if there is no old_taxon instance in Taxonomy api data
             previous_names_list = CrossReference.objects.filter(~Q(old_taxonomy__scientific_name=None), new_taxonomy=self.id).values_list('old_taxonomy__scientific_name', flat=True)
             return ','.join(previous_names_list)
+        
+    @property
+    def taxon_previous_queryset(self):
+        if self.new_taxon.all():
+            previous_queryset = CrossReference.objects.filter(~Q(old_taxonomy__scientific_name=None), new_taxonomy=self.id).order_by('-cross_reference_id')
+            return previous_queryset
+        else:
+            return CrossReference.objects.none()
 
 
 class TaxonVernacular(models.Model):
@@ -357,7 +367,7 @@ class InformalGroup(models.Model):
         return str(self.informal_group_id)  # TODO: is the most appropriate?
 
 
-class Species(models.Model):
+class Species(RevisionedMixin):
     """
     Forms the basis for a Species and Communities record.
 
@@ -1395,7 +1405,7 @@ class CommunityDistribution(models.Model):
         return str(self.id)  # TODO: is the most appropriate?
 
 
-class DocumentCategory(models.Model):
+class DocumentCategory(RevisionedMixin):
     """
     This is particularly useful for organisation of documents e.g. preventing inappropriate documents being added
     to certain tables.
@@ -1512,6 +1522,13 @@ class SpeciesDocument(Document):
                 raise
         return
 
+    #TODO: review - may not need this (?)
+    @property
+    def reversion_ids(self):
+        current_revision_id = Version.objects.get_for_object(self).first().revision_id
+        versions = Version.objects.get_for_object(self).select_related("revision__user").filter(Q(revision__comment__icontains='status') | Q(revision_id=current_revision_id))
+        version_ids = [[i.id,i.revision.date_created] for i in versions]
+        return [dict(cur_version_id=version_ids[0][0], prev_version_id=version_ids[i+1][0], created=version_ids[i][1]) for i in range(len(version_ids)-1)]
 
 class CommunityDocument(Document):
     """
@@ -1883,3 +1900,13 @@ class CommunityConservationAttributes(models.Model):
 
     def __str__(self):
         return str(self.community)  # TODO: is the most appropriate?
+
+import reversion
+reversion.register(SpeciesDocument)
+#reversion.register(DocumentCategory) 
+reversion.register(Species, follow=["taxonomy","species_distribution","species_conservation_attributes"])
+reversion.register(Taxonomy, follow=["taxon_previous_queryset","vernaculars"])
+reversion.register(CrossReference, follow=["old_taxonomy"])
+reversion.register(SpeciesDistribution)
+reversion.register(SpeciesConservationAttributes)
+reversion.register(TaxonVernacular)
