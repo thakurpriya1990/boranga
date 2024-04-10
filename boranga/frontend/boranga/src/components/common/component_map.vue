@@ -147,7 +147,14 @@
                         class="map-menu-submenu moved-menu-vertical"
                     >
                         <div class="scaled-button">
-                            <div class="submenu-button-wrapper">
+                            <div
+                                class="submenu-button-wrapper"
+                                :title="
+                                    polygonFeaturesSupported
+                                        ? ''
+                                        : 'The map does not support polygon features'
+                                "
+                            >
                                 <div
                                     :title="
                                         mode == 'draw' && subMode == 'Polygon'
@@ -159,6 +166,9 @@
                                         mode == 'draw' && subMode == 'Polygon'
                                             ? 'optional-layers-button-active'
                                             : 'optional-layers-button',
+                                        polygonFeaturesSupported
+                                            ? ''
+                                            : 'disabled',
                                     ]"
                                     @click="set_mode('draw', 'Polygon')"
                                 >
@@ -168,7 +178,14 @@
                                     />
                                 </div>
                             </div>
-                            <div class="submenu-button-wrapper">
+                            <div
+                                class="submenu-button-wrapper"
+                                :title="
+                                    pointFeaturesSupported
+                                        ? ''
+                                        : 'The map does not support point features'
+                                "
+                            >
                                 <div
                                     :title="
                                         mode == 'draw' && subMode == 'Point'
@@ -180,6 +197,9 @@
                                         mode == 'draw' && subMode == 'Point'
                                             ? 'optional-layers-button-active'
                                             : 'optional-layers-button',
+                                        pointFeaturesSupported
+                                            ? ''
+                                            : 'disabled',
                                     ]"
                                     @click="set_mode('draw', 'Point')"
                                 >
@@ -871,6 +891,22 @@ export default {
         //         };
         //     },
         // },
+        /**
+         * Whether the map supports drawing of polygons
+         */
+        polygonFeaturesSupported: {
+            type: Boolean,
+            required: false,
+            default: true,
+        },
+        /**
+         * Whether the map supports drawing of points
+         */
+        pointFeaturesSupported: {
+            type: Boolean,
+            required: false,
+            default: true,
+        },
         /**
          * Whether to enable drawing of new features
          */
