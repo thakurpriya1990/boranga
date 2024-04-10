@@ -303,7 +303,7 @@ export default {
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.conservationstatus.fields.conservation_category !== undefined) {
+                    if (full.data.conservationstatus.fields.conservation_category) {
                         return full.data.conservationstatus.fields.conservation_category.code;
                     } else {
                         return '';

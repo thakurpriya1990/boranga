@@ -215,7 +215,7 @@ module.exports = {
     },
 
     lookup_revision_versions:function (model,id) {
-      return `/api/history/${model}/${id}/`;
+      return `/api/history/boranga/${model}/${id}/`;
     },
 
     site_url: site_url,

@@ -17,10 +17,16 @@
                 <FormSection :formCollapse="false" :label="data.model_display_name+' - '+data.pk" :Index="itemObjKey+data.pk">
                     <div class="card-body card-collapse">
                         <div v-for="(value,index) in data.fields">
-                            <div v-if="value" class="row mb-3">
-                                <label class="col-sm-3 control-label"><strong>{{index}}:</strong></label>
-                                <div class="col-sm-9">
-                                <input :disabled="true" type="text" class="form-control" :value=value>
+                            <div v-if="value" class="row-sm-12">  
+                                <div v-if="typeof value == 'object'" class="col-sm-12">
+                                    <div v-for="(o_value,o_index) in value">
+                                        <label class="col-sm-6 control-label"><strong>{{index}}.{{o_index}}:</strong></label>
+                                        <input :disabled="true" type="text" class="form-control col-sm-6" :value=o_value>
+                                    </div>
+                                </div>
+                                <div v-else class="col-sm-12">
+                                    <label class="col-sm-6 control-label"><strong>{{index}}:</strong></label>
+                                    <input :disabled="true" type="text" class="form-control col-sm-6" :value=value>
                                 </div>
                             </div>
                         </div>  
@@ -32,10 +38,16 @@
                     <FormSection :formCollapse="false" :label="sub_data.model_display_name+' - '+sub_data.pk" :Index="itemObjKey+sub_data.pk">
                         <div class="card-body card-collapse">
                             <div v-for="(value,index) in sub_data.fields">
-                                <div v-if="value" class="row mb-3">
-                                    <label class="col-sm-3 control-label"><strong>{{index}}:</strong></label>
-                                    <div class="col-sm-9">
-                                    <input :disabled="true" type="text" class="form-control" :value=value>
+                                <div v-if="value" class="row-sm-12">  
+                                    <div v-if="typeof value == 'object'" class="col-sm-12">
+                                        <div v-for="(o_value,o_index) in value">
+                                            <label class="col-sm-6 control-label"><strong>{{index}}.{{o_index}}:</strong></label>
+                                            <input :disabled="true" type="text" class="form-control col-sm-6" :value=o_value>
+                                        </div>
+                                    </div>
+                                    <div v-else class="col-sm-12">
+                                        <label class="col-sm-6 control-label"><strong>{{index}}:</strong></label>
+                                        <input :disabled="true" type="text" class="form-control col-sm-6" :value=value>
                                     </div>
                                 </div>
                             </div>  

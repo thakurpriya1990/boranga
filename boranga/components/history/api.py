@@ -215,7 +215,6 @@ class GetLookUpValues():
 
         best suited for lookup fields such as category, that are not expected to change often and/or retain their meaning even after some change
         """
-
         self.lookup_fields = self.getModelLookupFields(model)
         for i in self.lookup_fields:
             self.lookup_values[i] = self.getLookUpFieldValues(versions,model,i)
@@ -289,7 +288,9 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
     
 class GetRevisionVersionsView(InternalAuthorizationView):
 
-    def get(self, request, model_name, revision_id):
+    lookup_getter = GetLookUpValues()
+
+    def get(self, request, app_label, model_name, revision_id):
         """ Returns all versions for a revision id, oriented by a primary model
 
             api/history/model_name/revision_id/
@@ -307,6 +308,11 @@ class GetRevisionVersionsView(InternalAuthorizationView):
         if primary_version.count() < 1:
             return Response()
 
+        model = apps.get_model(app_label=app_label,model_name=model_name)
+        self.lookup_getter.getVersionModelLookUpFieldValues(primary_version,model)
+        print(self.lookup_getter.lookup_fields)
+        print(self.lookup_getter.lookup_values)
+
         revision_dict = {
             'revision_id': primary_version[0].revision_id,
             'date_created': primary_version[0].revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
@@ -318,11 +324,18 @@ class GetRevisionVersionsView(InternalAuthorizationView):
             for primary_version_sub in primary_version:
                 if primary_version_sub.data:
                     data = primary_version_sub.data[0]
+                    for i in self.lookup_getter.lookup_fields:
+                        if i in data["fields"] and data["fields"][i] != None:
+                            data["fields"][i] = self.lookup_getter.lookup_values[i][data["fields"][i]]
                     data["model_display_name"] = primary_version_sub.content_type.name
                     version_data[primary_version[0].content_type.model.lower()].append(data)
         else:
             if primary_version[0].data:
-                version_data[primary_version[0].content_type.model.lower()] = primary_version[0].data[0]
+                data = primary_version[0].data[0]
+                for i in self.lookup_getter.lookup_fields:
+                    if i in data["fields"] and data["fields"][i] != None:
+                        data["fields"][i] = self.lookup_getter.lookup_values[i][data["fields"][i]]
+                version_data[primary_version[0].content_type.model.lower()] = data
                 version_data[primary_version[0].content_type.model.lower()]["model_display_name"] = primary_version[0].content_type.name
 
         for version in queryset:
