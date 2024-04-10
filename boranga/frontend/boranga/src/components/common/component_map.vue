@@ -1,5 +1,7 @@
 <template>
     <div>
+        <!-- {{modelQuerySource.getFeatures()[0]}} -->
+
         <div class="justify-content-end align-items-center mb-2">
             <div v-if="mapInfoText.length > 0" class="row">
                 <div class="col-md-6">
@@ -119,6 +121,77 @@
                             </div>
                         </transition>
                     </div> -->
+                    <div style="position: relative">
+                        <transition>
+                            <div
+                                class="optional-layers-button-wrapper"
+                                :title="`There are ${optionalLayers.length} optional layers available}`"
+                            >
+                                <div
+                                    class="optional-layers-button btn"
+                                    :class="polygonCount ? '' : 'disabled'"
+                                    @mouseover="hover = true"
+                                >
+                                    <img src="../../assets/layers.svg" />
+                                </div>
+                            </div>
+                        </transition>
+                        <transition v-if="modelQuerySource">
+                            <form
+                                v-show="hover"
+                                class="layer_options form-horizontal"
+                                @mouseleave="hover = false"
+                            >
+                                <div
+                                    v-for="feature in modelQuerySource.getFeatures()"
+                                    :key="feature.ol_uid"
+                                    class="input-group input-group-sm mb-1"
+                                >
+                                    <div class="input-group-text">
+                                        <input
+                                            :id="`feature-${feature.ol_uid}-checkbox`"
+                                            type="checkbox"
+                                            :checked="
+                                                selectedFeatureIds.includes(
+                                                    feature.getProperties().id
+                                                )
+                                            "
+                                            class="form-check-input"
+                                            @change="selectFeature(feature)"
+                                        />
+                                    </div>
+                                    <label
+                                        :for="`feature-${feature.ol_uid}-checkbox`"
+                                        class="input-group-text me-1"
+                                    >
+                                        {{ feature.getGeometry().getType() }}
+                                    </label>
+                                    <!-- Latitude -->
+                                    <label
+                                        :for="`feature-${feature.ol_uid}-latitude`"
+                                        class="input-group-text"
+                                        >Lat</label
+                                    >
+                                    <input
+                                        :id="`feature-${feature.ol_uid}-latitude`"
+                                        class="form-control col-sm-3"
+                                        type="number"
+                                    />
+                                    <!-- Longitude -->
+                                    <label
+                                        :for="`feature-${feature.ol_uid}-longitude`"
+                                        class="input-group-text"
+                                        >Lon</label
+                                    >
+                                    <input
+                                        :id="`feature-${feature.ol_uid}-longitude`"
+                                        class="form-control col-sm-3"
+                                        type="number"
+                                    />
+                                </div>
+                            </form>
+                        </transition>
+                    </div>
                     <!-- Toggle measure tool between active and not active -->
                     <div class="optional-layers-button-wrapper">
                         <div
@@ -2208,26 +2281,7 @@ export default {
                     }
                 );
                 if (feature) {
-                    vm.map.getInteractions().forEach((interaction) => {
-                        if (interaction instanceof Select) {
-                            let selected = [];
-                            let deselected = [];
-                            let feature_id = feature.get('id');
-                            if (vm.selectedFeatureIds.includes(feature_id)) {
-                                // already selected, so deselect
-                                deselected.push(feature);
-                            } else {
-                                // not selected, so select
-                                // Priya commented the below to avoid the duplication count of 2 on delete button
-                                selected.push(feature);
-                            }
-                            interaction.dispatchEvent({
-                                type: 'select',
-                                selected: selected,
-                                deselected: deselected,
-                            });
-                        }
-                    });
+                    vm.selectFeature(feature);
                 }
             });
         },
@@ -3096,6 +3150,28 @@ export default {
                     );
                 });
             }
+        },
+        selectFeature: function (feature) {
+            this.map.getInteractions().forEach((interaction) => {
+                if (interaction instanceof Select) {
+                    let selected = [];
+                    let deselected = [];
+                    let feature_id = feature.get('id');
+                    if (this.selectedFeatureIds.includes(feature_id)) {
+                        // already selected, so deselect
+                        deselected.push(feature);
+                    } else {
+                        // not selected, so select
+                        // Priya commented the below to avoid the duplication count of 2 on delete button
+                        selected.push(feature);
+                    }
+                    interaction.dispatchEvent({
+                        type: 'select',
+                        selected: selected,
+                        deselected: deselected,
+                    });
+                }
+            });
         },
         colorStrToStyle: function (colorStr) {
             let s = new Option().style;
