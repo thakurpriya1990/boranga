@@ -1765,6 +1765,6 @@ import reversion
 reversion.register(ConservationStatusDocument)
 
 #Conservation Status History
-reversion.register(ConservationStatus, follow=["species","community","conservation_list","conservation_category"])
+reversion.register(ConservationStatus, follow=["species","community","conservation_list"])
 reversion.register(ConservationList)
-reversion.register(ConservationCategory)  #TODO consider changing category to non-historical lookup (will require history API addition)
+#reversion.register(ConservationCategory)

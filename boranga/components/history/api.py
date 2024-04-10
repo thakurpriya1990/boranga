@@ -1,11 +1,11 @@
 from django.apps import apps
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.mixins import ListModelMixin
 from rest_framework import views
+from django.db import models
 from reversion.models import Version
-from rest_framework_datatables.pagination import PageNumberPagination, DatatablesPageNumberPagination
-import json
+from reversion import is_registered
+from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from django.db.models import JSONField
 from django.db.models.functions import Cast
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -15,8 +15,7 @@ from boranga.helpers import (is_internal, is_customer,
 is_boranga_admin, is_django_admin, is_assessor, is_approver,
 is_species_processor, is_community_processor,
 is_conservation_status_editor)
-from django.db.models.expressions import Window
-from django.db.models.functions import RowNumber
+from django.db.models.fields.json import KeyTransform
 
 #keeping it as an APIView to control how its handled
 class InternalAuthorizationView(views.APIView):
@@ -159,10 +158,73 @@ class VersionsFilterBackend(DatatablesFilterBackend):
 
         return queryset
 
+class GetLookUpValues():
+
+    lookup_fields = []
+    lookup_values = {}
+
+    def getModelLookupFields(self,model):
+        """
+        Get look up fields for a model
+
+        Returns all one to many fields that are not reversion registered
+        """
+        #get all foreign fields of model
+        #model = apps.get_model(app_label=app_label, model_name=model_name)
+        lookup_fields = []
+        #reversion_fields = ContentType.objects.values_list(,flat=True)
+        for i in model._meta.get_fields():
+            #check if field foreign
+            #print(i,i.__class__)
+            if isinstance(i,models.ForeignKey) and not is_registered(i.related_model):
+                #check if reversion has been applied
+                #if not, treat it as a lookup field
+                #print(i.name)
+                lookup_fields.append(i.name)
+        return lookup_fields
+
+    def getLookUpFieldValues(self,versions,model,lookup_field):
+        """
+        Get a set of look up field values for a given set of model instance versions
+
+        Requires a versions queryset, the model the versions queryset pertains to, and a lookup field
+
+        """
+        field = model._meta.get_field(lookup_field)
+        lookup_model = field.related_model
+
+        instance_field_occurrences = list(set(list(versions \
+        .annotate(data=Cast('serialized_data', JSONField()))\
+        .annotate(lookup=KeyTransform(lookup_field, "data__0__fields")) \
+        .values_list("lookup",flat=True))))
+
+        #get queryset of the lookup_field values where the id is among the found unique instances
+        lookup_values = list(lookup_model.objects.filter(pk__in=instance_field_occurrences).values())
+        lookup_dict = {}
+        primary_key = lookup_model._meta.pk.name
+        for i in lookup_values:
+            lookup_dict[i[primary_key]] = dict(i)
+
+        return lookup_dict
+    
+    def getVersionModelLookUpFieldValues(self,versions,model):
+        """ 
+        returns a list of lookup fields, and a dictionary of fields values
+
+        this can be used to track fields not registered by reversion to provide appropriate context
+
+        best suited for lookup fields such as category, that are not expected to change often and/or retain their meaning even after some change
+        """
+
+        self.lookup_fields = self.getModelLookupFields(model)
+        for i in self.lookup_fields:
+            self.lookup_values[i] = self.getLookUpFieldValues(versions,model,i)
+
 class GetPaginatedVersionsView(InternalAuthorizationView):
     filter_backend = VersionsFilterBackend
     paginator = DatatablesPageNumberPagination()
     #paginator.page_size = 2
+    lookup_getter = GetLookUpValues()
 
     def get(self, request, app_label, component_name, model_name, pk):
         """ Returns all versions for any model object
@@ -187,13 +249,16 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
         if not self.paginator.page_size:
             self.paginator.page_size = 10
 
-        queryset = self.paginator.paginate_queryset(queryset, request, view=self)
+        queryset_list = self.paginator.paginate_queryset(queryset, request, view=self)
 
         # Build the list of versions
         versions_list = []
         related_versions = Version.objects.annotate(data=Cast('serialized_data', JSONField()))
 
-        for version in queryset:
+        paginated_queryset = Version.objects.filter(id__in=list(map(lambda i:i.pk,queryset_list)))
+        self.lookup_getter.getVersionModelLookUpFieldValues(paginated_queryset,model)
+
+        for version in queryset_list:
             #add other versioned models in the same revision
             revision_versions = related_versions.filter(revision_id=version.revision_id)
             data = {}
@@ -205,6 +270,12 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
                     data[related_version.content_type.model].append(related_version.data[0])
                 else:
                     data[related_version.content_type.model] = related_version.data[0]
+
+            #get lookup fields (for main model only)
+            if model._meta.model_name in data:       
+                for i in self.lookup_getter.lookup_fields:
+                    if i in data[model._meta.model_name]["fields"] and data[model._meta.model_name]["fields"][i] != None:
+                        data[model._meta.model_name]["fields"][i] = self.lookup_getter.lookup_values[i][data[model._meta.model_name]["fields"][i]]
 
             versions_list.append({
                'revision_id': version.revision_id,
@@ -268,3 +339,5 @@ class GetRevisionVersionsView(InternalAuthorizationView):
         revision_dict["version_data"] = version_data
         
         return Response(revision_dict)
+
+

@@ -297,14 +297,14 @@ export default {
         column_category: function () {
             return {
                 
-                data: 'data.data.conservationcategory.fields.code',
+                data: 'data.data.conservationstatus.fields.conservation_category',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.conservationcategory !== undefined) {
-                        return full.data.conservationcategory.fields.code;
+                    if (full.data.conservationstatus.fields.conservation_category !== undefined) {
+                        return full.data.conservationstatus.fields.conservation_category.code;
                     } else {
                         return '';
                     }
@@ -318,7 +318,7 @@ export default {
                 data: 'data.data.conservationlist.fields.code',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.conservationlist !== undefined) {
