@@ -5,7 +5,6 @@ from django.utils.encoding import smart_text
 from django.urls import reverse
 from django.conf import settings
 from django.core.files.base import ContentFile
-from boranga.components.occurrence.models import private_storage
 from boranga.components.emails.emails import TemplateEmailBase
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
@@ -122,9 +121,7 @@ def send_external_submit_email_notification(request, ocr_proposal):
     return msg
 
 
-def _log_occurrence_report_email(
-    email_message, ocr_proposal, sender=None, file_bytes=None, filename=None
-):
+def _log_occurrence_report_email(email_message, ocr_proposal, sender=None):
     from boranga.components.occurrence.models import OccurrenceReportLogEntry
 
     if isinstance(
@@ -174,15 +171,6 @@ def _log_occurrence_report_email(
     }
 
     email_entry = OccurrenceReportLogEntry.objects.create(**kwargs)
-
-    if file_bytes and filename:
-        # attach the file to the comms_log also
-        path_to_file = "{}/occurrence_report/{}/communications/{}".format(
-            settings.MEDIA_APP_DIR, ocr_proposal.id, filename
-        )
-        # path = default_storage.save(path_to_file, ContentFile(file_bytes))
-        path = private_storage.save(path_to_file, ContentFile(file_bytes))
-        email_entry.documents.get_or_create(_file=path_to_file, name=filename)
 
     return email_entry
 
