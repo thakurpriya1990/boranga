@@ -1,12 +1,12 @@
 import logging
 
-from django.core.mail import EmailMultiAlternatives, EmailMessage
-from django.utils.encoding import smart_text
-from django.urls import reverse
 from django.conf import settings
-from django.core.files.base import ContentFile
-from boranga.components.emails.emails import TemplateEmailBase
+from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.urls import reverse
+from django.utils.encoding import smart_text
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+
+from boranga.components.emails.emails import TemplateEmailBase
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ def get_sender_user():
     sender = settings.DEFAULT_FROM_EMAIL
     try:
         sender_user = EmailUser.objects.get(email__icontains=sender)
-    except:
+    except EmailUser.DoesNotExist:
         EmailUser.objects.create(email=sender, password="")
         sender_user = EmailUser.objects.get(email__icontains=sender)
     return sender_user
@@ -69,38 +69,38 @@ class OccurrenceReportAmendmentRequestSendNotificationEmail(TemplateEmailBase):
     txt_template = "boranga/emails/ocr_proposals/send_amendment_notification.txt"
 
 
-def send_submit_email_notification(request, ocr_proposal):
+def send_submit_email_notification(request, occurrence_report):
     email = SubmitSendNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
             "internal-occurrence-report-detail",
-            kwargs={"ocr_proposal_pk": ocr_proposal.id},
+            kwargs={"occurrence_report_pk": occurrence_report.id},
         )
     )
     if "-internal" not in url:
         # add it. This email is for internal staff (assessors)
-        url = "-internal.{}".format(settings.SITE_DOMAIN).join(
+        url = f"-internal.{settings.SITE_DOMAIN}".join(
             url.split("." + settings.SITE_DOMAIN)
         )
 
-    context = {"ocr_proposal": ocr_proposal, "url": url}
+    context = {"occurrence_report": occurrence_report, "url": url}
 
-    msg = email.send(ocr_proposal.assessor_recipients, context=context)
+    msg = email.send(occurrence_report.assessor_recipients, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
-    _log_occurrence_report_email(msg, ocr_proposal, sender=sender)
-    # if ocr_proposal.org_applicant:
-    #     _log_org_email(msg, ocr_proposal.org_applicant, ocr_proposal.submitter, sender=sender)
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+    # if occurrence_report.org_applicant:
+    #     _log_org_email(msg, occurrence_report.org_applicant, occurrence_report.submitter, sender=sender)
     # else:
-    #     _log_user_email(msg, ocr_proposal.submitter, ocr_proposal.submitter, sender=sender)
+    #     _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
     return msg
 
 
-def send_external_submit_email_notification(request, ocr_proposal):
+def send_external_submit_email_notification(request, occurrence_report):
     email = ExternalSubmitSendNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
             "external-occurrence-report-detail",
-            kwargs={"ocr_proposal_pk": ocr_proposal.id},
+            kwargs={"occurrence_report_pk": occurrence_report.id},
         )
     )
 
@@ -109,25 +109,29 @@ def send_external_submit_email_notification(request, ocr_proposal):
         url = "".join(url.split("-internal"))
 
     context = {
-        "ocr_proposal": ocr_proposal,
-        "submitter": EmailUser.objects.get(id=ocr_proposal.submitter).get_full_name(),
+        "occurrence_report": occurrence_report,
+        "submitter": EmailUser.objects.get(
+            id=occurrence_report.submitter
+        ).get_full_name(),
         "url": url,
     }
 
     msg = email.send(
-        EmailUser.objects.get(id=ocr_proposal.submitter).email, cc=None, context=context
+        EmailUser.objects.get(id=occurrence_report.submitter).email,
+        cc=None,
+        context=context,
     )
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
-    _log_occurrence_report_email(msg, ocr_proposal, sender=sender)
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
     # if proposal.org_applicant:
-    #     _log_org_email(msg, ocr_proposal.org_applicant, ocr_proposal.submitter, sender=sender)
+    #     _log_org_email(msg, occurrence_report.org_applicant, occurrence_report.submitter, sender=sender)
     # else:
-    #     _log_user_email(msg, ocr_proposal.submitter, ocr_proposal.submitter, sender=sender)
-    # _log_user_email(msg, ocr_proposal.submitter, ocr_proposal.submitter, sender=sender)
+    #     _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
+    # _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
     return msg
 
 
-def _log_occurrence_report_email(email_message, ocr_proposal, sender=None):
+def _log_occurrence_report_email(email_message, occurrence_report, sender=None):
     from boranga.components.occurrence.models import OccurrenceReportLogEntry
 
     if isinstance(
@@ -157,18 +161,18 @@ def _log_occurrence_report_email(email_message, ocr_proposal, sender=None):
     else:
         text = smart_text(email_message)
         subject = ""
-        to = EmailUser.objects.get(id=ocr_proposal.submitter).email
+        to = EmailUser.objects.get(id=occurrence_report.submitter).email
         fromm = smart_text(sender) if sender else SYSTEM_NAME
         all_ccs = ""
 
-    customer = ocr_proposal.submitter
+    customer = occurrence_report.submitter
 
     staff = sender.id
 
     kwargs = {
         "subject": subject,
         "text": text,
-        "occurrence_report": ocr_proposal,
+        "occurrence_report": occurrence_report,
         "customer": customer,
         "staff": staff,
         "to": to,
@@ -189,7 +193,7 @@ def send_occurrence_report_referral_email_notification(
         reverse(
             "internal-occurrence-report-referral-detail",
             kwargs={
-                "ocr_proposal_pk": referral.occurrence_report.id,
+                "occurrence_report_pk": referral.occurrence_report.id,
                 "referral_pk": referral.id,
             },
         )
@@ -215,7 +219,7 @@ def send_occurrence_report_referral_recall_email_notification(referral, request)
         reverse(
             "internal-occurrence-report-referral-detail",
             kwargs={
-                "ocr_proposal_pk": referral.occurrence_report.id,
+                "occurrence_report_pk": referral.occurrence_report.id,
                 "referral_pk": referral.id,
             },
         )
@@ -239,7 +243,7 @@ def send_occurrence_report_referral_complete_email_notification(referral, reques
     url = request.build_absolute_uri(
         reverse(
             "internal-occurrence-report-detail",
-            kwargs={"ocr_proposal_pk": referral.occurrence_report.id},
+            kwargs={"occurrence_report_pk": referral.occurrence_report.id},
         )
     )
 
@@ -265,7 +269,7 @@ def send_occurrence_report_amendment_email_notification(
     url = request.build_absolute_uri(
         reverse(
             "external-occurrence-report-detail",
-            kwargs={"cs_proposal_pk": occurrence_report.id},
+            kwargs={"occurrence_report_pk": occurrence_report.id},
         )
     )
 
@@ -274,21 +278,19 @@ def send_occurrence_report_amendment_email_notification(
         url = "".join(url.split("-internal"))
 
     attachments = []
-    if amendment_request.cs_amendment_request_documents:
-        for doc in amendment_request.cs_amendment_request_documents.all():
+    if amendment_request.amendment_request_documents:
+        for doc in amendment_request.amendment_request_documents.all():
             # file_name = doc._file.name
             file_name = doc.name
             attachment = (file_name, doc._file.file.read())
             attachments.append(attachment)
 
     context = {
-        "cs_proposal": occurrence_report,
+        "occurrence_report": occurrence_report,
         "reason": reason,
         "amendment_request_text": amendment_request.text,
         "url": url,
     }
-
-    all_ccs = []
 
     msg = email.send(
         EmailUser.objects.get(id=occurrence_report.submitter).email,
