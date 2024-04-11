@@ -6,7 +6,7 @@
                     <form class="form-horizontal" name="amendForm">
                         <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="row">
+                            <div class="row mb-3">
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label pull-left" for="Name">Reason</label>
@@ -17,7 +17,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row mb-3">
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label pull-left" for="Name">Details</label>
@@ -31,7 +31,7 @@
                                     <div class="form-group">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
                                             <FileField2 ref="filefield"
-                                                :uploaded_documents="amendment.ocr_amendment_request_documents"
+                                                :uploaded_documents="amendment.amendment_request_documents"
                                                 :delete_url="delete_url" :proposal_id="occurrence_report_id"
                                                 :isRepeatable="true" name="amendment_request_file" />
                                         </div>
@@ -78,7 +78,7 @@ export default {
                 occurrence_report: vm.occurrence_report_id,
                 num_files: 0,
                 input_name: 'amendment_request_doc',
-                ocr_amendment_request_documents: [],
+                amendment_request_documents: [],
             },
             reason_choices: {},
             errors: false,
@@ -157,7 +157,7 @@ export default {
                 });
                 vm.amendingProposal = true;
                 vm.close();
-                //vm.$emit('refreshFromResponse',response);
+
                 Vue.http.get(`/api/occurrence_report/${vm.occurrence_report_id}/internal_occurrence_report.json`).then((response) => {
                     vm.$emit('refreshFromResponse', response);
 
@@ -171,7 +171,6 @@ export default {
                 vm.errors = true;
                 vm.errorString = helpers.apiVueResourceError(error);
                 vm.amendingProposal = true;
-
             });
         },
         addFormValidations: function () {
@@ -179,12 +178,9 @@ export default {
             vm.validation_form = $(vm.form).validate({
                 rules: {
                     reason: "required"
-
-
                 },
                 messages: {
                     reason: "field is required",
-
                 },
                 showErrors: function (errorMap, errorList) {
                     $.each(this.validElements(), function (index, element) {
