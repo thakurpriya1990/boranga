@@ -10,9 +10,23 @@
             @cancel="close()">
 
             <div>
+            <div>
                 <strong>Date Modified:</strong> {{ revision_date }}
-            </div></br>
-            <div v-for="(data, itemObjKey) in version_data">
+            </div>
+            <!--<div v-for="(data, itemObjKey) in version_data">
+                <strong>{{itemObjKey}}:</strong> <textarea class="form-control">{{ JSON.stringify(data, null, '\t') }}</textarea>
+            </div>-->
+            <div>
+                <label for="checkbox" class="control-label"><strong>Show Null Fields:&nbsp;</strong></label>
+                <input type="checkbox" class="form-check-input" id="checkbox" v-model="showNullFields" v-on:change="formatHistoryData()"/>
+            </div>
+            <div>
+            <strong>Data:</strong> 
+            </div>
+            <textarea disabled class="form-control" rows="25">{{ JSON.stringify(version_data_formatted, null, '\t') }}</textarea>
+            </div>
+
+            <!--<div v-for="(data, itemObjKey) in version_data">
                 <div v-if="data.fields">
                 <FormSection :formCollapse="false" :label="data.model_display_name+' - '+data.pk" :Index="itemObjKey+data.pk">
                     <div class="card-body card-collapse">
@@ -55,7 +69,7 @@
                     </FormSection>
                     </div>
                 </div>
-            </div>
+            </div>-->
         </modal>
     </div>
 </template>
@@ -96,7 +110,9 @@ export default {
             isModalOpen: false,
             errorString: '',
             version_data: [],
+            version_data_formatted: [],
             revision_date: '',
+            showNullFields: false,
         };
     },
 
@@ -106,12 +122,37 @@ export default {
             this.isModalOpen = false;
             $('.has-error').removeClass('has-error');
         },
+        removeNullValues: function (values) {
+            let vm = this;
+            const result = {};
+            for (const key in values) {
+                if (values[key] !== null && values[key] !== undefined && (typeof values[key]!=='string' && typeof values[key]==='object')) {
+                    result[key] = vm.removeNullValues(values[key]);
+                }
+                else if (values[key] !== null && values[key] !== undefined) {
+                    result[key] = values[key];
+                }
+            }
+            return result;
+        },
+        formatHistoryData: function() {
+            let vm = this;
+            if (this.showNullFields)
+            {
+                vm.version_data_formatted = vm.version_data;
+            }
+            else
+            {
+                vm.version_data_formatted = vm.removeNullValues(vm.version_data);
+            }
+        },
         fetchHistoryData: function(){
             let vm = this;
             vm.$http.get(api_endpoints.lookup_revision_versions(vm.primary_model,vm.revision_id))
             .then((response) => {
                 vm.revision_date = response.body['date_created'];
                 vm.version_data = response.body['version_data'];
+                vm.formatHistoryData();                
             },(error) => {
                 console.log(error);
             })
