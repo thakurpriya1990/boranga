@@ -18,6 +18,14 @@
             </form>
         </FormSection>
         <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="minutes_url"></DocumentDetail>
+        <div v-if="minutesHistoryId">
+            <MinutesHistory
+                ref="minutes_history"
+                :key="minutesHistoryId"
+                :minutes-id="minutesHistoryId"
+                :meeting-id="meeting_obj.id"
+            />
+        </div>
     </div>
 </template>
 <script>
@@ -25,6 +33,7 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '@/components/common/add_document.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
+import MinutesHistory from '../../internal/meetings/minutes_history.vue';
 import {
   api_endpoints,
   helpers,
@@ -44,6 +53,7 @@ export default {
             let vm = this;
             return{
                 uuid:0,
+                minutesHistoryId: null,
                 minutesBody: "minutesBody"+vm._uid,
                 panelBody: "meeting-minutes"+vm._uid,
                 values:null,
@@ -176,9 +186,11 @@ export default {
                                 if(full.visible){
                                     links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
                                     links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                    links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                                 }
                                 else{
                                     links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                    links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                                 }
                                 return links;
                             }
@@ -195,6 +207,7 @@ export default {
             FormSection,
             datatable,
             DocumentDetail,
+            MinutesHistory,
         },
         computed: {
         },
@@ -237,6 +250,13 @@ export default {
                             console.log(err);
                       });
                 this.$refs.document_detail.isModalOpen = true;
+            },
+            historyDocument: function(id){
+                this.minutesHistoryId = parseInt(id);
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.minutes_history.isModalOpen = true;
+                });
             },
             discardDocument:function (id) {
                 let vm = this;
@@ -303,6 +323,11 @@ export default {
                     e.preventDefault();
                     var id = $(this).attr('data-edit-document');
                     vm.editDocument(id);
+                });
+                vm.$refs.minutes_datatable.vmDataTable.on('click', 'a[data-history-document]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-document');
+                    vm.historyDocument(id);
                 });
                 // External Discard listener
                 vm.$refs.minutes_datatable.vmDataTable.on('click', 'a[data-discard-document]', function(e) {

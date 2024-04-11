@@ -230,6 +230,10 @@ module.exports = {
       return `/api/history/boranga/occurrence/OcrConservationThreat/${id}/`;
     },
 
+    lookup_history_minutes:function (id) {
+      return `/api/history/boranga/meeting/Minutes/${id}/`;
+    },
+
     lookup_revision_versions:function (model,id) {
       return `/api/history/boranga/${model}/${id}/`;
     },
