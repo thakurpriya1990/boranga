@@ -63,6 +63,12 @@ class OccurrenceReportReferralCompleteNotificationEmail(TemplateEmailBase):
     )
 
 
+class OccurrenceReportAmendmentRequestSendNotificationEmail(TemplateEmailBase):
+    subject = "An amendment to your occurrence report is required."
+    html_template = "boranga/emails/ocr_proposals/send_amendment_notification.html"
+    txt_template = "boranga/emails/ocr_proposals/send_amendment_notification.txt"
+
+
 def send_submit_email_notification(request, ocr_proposal):
     email = SubmitSendNotificationEmail()
     url = request.build_absolute_uri(
@@ -249,6 +255,53 @@ def send_occurrence_report_referral_complete_email_notification(referral, reques
     _log_occurrence_report_referral_email(msg, referral, sender=sender)
     # if referral.proposal.applicant:
     #     _log_org_email(msg, referral.proposal.applicant, referral.referral, sender=sender)
+
+
+def send_occurrence_report_amendment_email_notification(
+    amendment_request, request, occurrence_report
+):
+    email = OccurrenceReportAmendmentRequestSendNotificationEmail()
+    reason = amendment_request.reason.reason
+    url = request.build_absolute_uri(
+        reverse(
+            "external-occurrence-report-detail",
+            kwargs={"cs_proposal_pk": occurrence_report.id},
+        )
+    )
+
+    if "-internal" in url:
+        # remove '-internal'. This email is for external submitters
+        url = "".join(url.split("-internal"))
+
+    attachments = []
+    if amendment_request.cs_amendment_request_documents:
+        for doc in amendment_request.cs_amendment_request_documents.all():
+            # file_name = doc._file.name
+            file_name = doc.name
+            attachment = (file_name, doc._file.file.read())
+            attachments.append(attachment)
+
+    context = {
+        "cs_proposal": occurrence_report,
+        "reason": reason,
+        "amendment_request_text": amendment_request.text,
+        "url": url,
+    }
+
+    all_ccs = []
+
+    msg = email.send(
+        EmailUser.objects.get(id=occurrence_report.submitter).email,
+        cc=[],
+        context=context,
+        attachments=attachments,
+    )
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+    # if occurrence_report.applicant:
+    #     _log_org_email(msg, occurrence_report.applicant, occurrence_report.submitter, sender=sender)
 
 
 def _log_occurrence_report_referral_email(email_message, referral, sender=None):
