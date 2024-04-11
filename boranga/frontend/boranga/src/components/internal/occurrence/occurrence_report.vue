@@ -137,7 +137,7 @@
             </div>
         </div>
 
-        <AmendmentRequest ref="amendment_request" :conservation_status_id="occurrence_report.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
+        <AmendmentRequest ref="amendment_request" :occurrence_report_id="occurrence_report.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
@@ -314,7 +314,7 @@ export default {
         },
         amendmentRequest: function(){
             this.$refs.amendment_request.isModalOpen = true;
-        },        
+        },
         save: async function () {
             let vm = this;
             var missing_data = vm.can_submit("");
@@ -462,7 +462,7 @@ export default {
                             //     name: 'submit_cs_proposal',
                             //     params: { occurrence_report: vm.occurrence_report}
                             // });
-                            // TODO router should push to submit_cs_proposal for internal side 
+                            // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
                                 name: 'internal-species-communities-dash'
                             });
