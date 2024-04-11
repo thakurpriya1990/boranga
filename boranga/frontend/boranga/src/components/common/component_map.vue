@@ -145,7 +145,7 @@
                                 <div
                                     v-for="feature in modelQuerySource.getFeatures()"
                                     :key="feature.ol_uid"
-                                    class="input-group input-group-sm mb-1"
+                                    class="input-group input-group-sm mb-1 text-nowrap"
                                 >
                                     <div class="input-group-text">
                                         <input
@@ -162,7 +162,7 @@
                                     </div>
                                     <button
                                         type="button"
-                                        class="btn btn-outline-secondary btn-min-width-90 me-1 col-sm-3 text-nowrap"
+                                        class="btn btn-outline-secondary me-1"
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="top"
                                         data-bs-title="Zoom to feature"
@@ -197,7 +197,7 @@
                                     >
                                     <input
                                         :id="`feature-${feature.ol_uid}-latitude-input`"
-                                        class="form-control"
+                                        class="form-control min-width-120"
                                         placeholder="Latitude"
                                         type="number"
                                         min="-90"
@@ -212,12 +212,23 @@
                                     >
                                     <input
                                         :id="`feature-${feature.ol_uid}-longitude-input`"
-                                        class="form-control"
+                                        class="form-control min-width-120"
                                         placeholder="Longitude"
                                         type="number"
                                         min="-180"
                                         max="180"
                                     />
+                                    <div class="form-control input-group-text min-width-150">
+                                        <SelectFilter
+                                            :id="`feature-${feature.ol_uid}-select`"
+                                            :title="`Feature ${feature.getProperties().id}`"
+                                            :show-title="false"
+                                            :placeholder="`Select a CRS`"
+                                            :options="coordinateReferenceSystems"
+                                            :pre-selected-filter-item="4326"
+                                            classes="min-width-120"
+                                        />
+                                    </div>
                                 </div>
                             </form>
                         </transition>
@@ -837,13 +848,14 @@ import {
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
 import shp, { combine, parseShp, parseDbf } from 'shpjs';
+import SelectFilter from '@/components/common/SelectFilter.vue';
 
 export default {
     name: 'MapComponent',
     components: {
         FileField,
         alert,
-        //RangeSlider,
+        SelectFilter
     },
     props: {
         level: {
@@ -1074,6 +1086,13 @@ export default {
             type: Boolean,
             required: false,
             default: false,
+        },
+        coordinateReferenceSystems: {
+            type: Array,
+            required: false,
+            default: () => {
+                return [{ key: 4326, value: 'WGS 84' }];
+            },
         },
     },
     // emits: ['filter-appied', 'validate-feature', 'refreshFromResponse'],
@@ -3300,7 +3319,21 @@ export default {
 #submenu-draw {
     display: none;
 }
-.btn-min-width-90 {
-    min-width: 90px;
+</style>
+<style>
+.min-width-90 {
+    min-width: 90px !important;
+}
+.min-width-120 {
+    min-width: 120px !important;
+}
+.min-width-150 {
+    min-width: 150px !important;
+}
+.xxx {
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>
