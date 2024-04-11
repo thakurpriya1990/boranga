@@ -1,133 +1,113 @@
-import traceback
-import pytz
 import json
-from django.db.models import Q
-from django.db import transaction
-from django.core.exceptions import ValidationError
-from rest_framework import viewsets, serializers, status, views
-from rest_framework.decorators import action as detail_route, renderer_classes
-from rest_framework.decorators import action as list_route
-from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
+import logging
+import traceback
 from datetime import datetime, time
-from ledger_api_client.settings_base import TIME_ZONE
-from boranga import settings
-from boranga import exceptions
-from django.core.cache import cache
+from io import BytesIO
+
+import pandas as pd
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponse
-from django.urls import reverse
-from django.shortcuts import redirect
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from openpyxl.utils.dataframe import dataframe_to_rows
+from rest_framework import serializers, status, viewsets
+from rest_framework.decorators import action as detail_route
+from rest_framework.decorators import action as list_route
+from rest_framework.decorators import renderer_classes
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
+from rest_framework_datatables.filters import DatatablesFilterBackend
+from rest_framework_datatables.pagination import DatatablesPageNumberPagination
+
 from boranga.components.main.api import (
     DatumSearchMixing,
     UserActionLoggingViewset,
     search_datums,
 )
-from boranga.helpers import is_customer, is_internal
-from rest_framework_datatables.pagination import DatatablesPageNumberPagination
-from rest_framework_datatables.filters import DatatablesFilterBackend
-from rest_framework_datatables.renderers import DatatablesRenderer
-from copy import deepcopy
-from django.shortcuts import render, redirect, get_object_or_404
-
-from boranga.components.species_and_communities.models import GroupType
-from boranga.components.occurrence.utils import ocr_proposal_submit, validate_map_files
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from boranga.components.main.decorators import basic_exception_handler
-
-from boranga.components.main.related_item import RelatedItemsSerializer
-
-import pandas as pd
-from openpyxl import Workbook
-from openpyxl.styles import Font
-from openpyxl.utils.dataframe import dataframe_to_rows
-from io import BytesIO
-from django.db.models.query import QuerySet
-from django.contrib.gis.geos import GEOSGeometry
-
+from boranga.components.main.utils import handle_validation_error
 from boranga.components.occurrence.models import (
+    AnimalHealth,
+    AnimalObservation,
+    AssociatedSpecies,
+    CoordinationSource,
+    CountedSubject,
+    DeathReason,
+    Drainage,
+    FireHistory,
+    HabitatComposition,
+    HabitatCondition,
+    Identification,
+    IdentificationCertainty,
+    Intensity,
+    LandForm,
+    Location,
+    LocationAccuracy,
+    ObservationDetail,
+    ObservationMethod,
+    ObserverDetail,
     Occurrence,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
-    RockType,
-    SoilType,
-    SoilColour,
-    SoilCondition,
-    Drainage,
-    HabitatComposition,
-    HabitatCondition,
-    LandForm,
-    FireHistory,
-    Intensity,
-    AssociatedSpecies,
-    ObservationMethod,
-    ObservationDetail,
-    PlantCountMethod,
-    PlantCountAccuracy,
-    PlantCondition,
-    CountedSubject,
-    PlantCount,
-    AnimalObservation,
-    PrimaryDetectionMethod,
-    SecondarySign,
-    ReproductiveMaturity,
-    DeathReason,
-    AnimalHealth,
-    Identification,
+    OccurrenceReportDocument,
+    OccurrenceReportUserAction,
+    OCRConservationThreat,
     PermitType,
-    IdentificationCertainty,
+    PlantCondition,
+    PlantCount,
+    PlantCountAccuracy,
+    PlantCountMethod,
+    PrimaryDetectionMethod,
+    ReproductiveMaturity,
+    RockType,
     SampleDestination,
     SampleType,
-    Datum,
-    CoordinationSource,
-    LocationAccuracy,
-    Location,
-    ObserverDetail,
-    OccurrenceReportDocument,
-    OCRConservationThreat,
-    OccurrenceReportUserAction,
+    SecondarySign,
+    SoilColour,
+    SoilCondition,
+    SoilType,
 )
 from boranga.components.occurrence.serializers import (
     InternalOccurrenceReportSerializer,
+    ListInternalOccurrenceReportSerializer,
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
+    ListOCRReportMinimalSerializer,
+    ObserverDetailSerializer,
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
+    OccurrenceReportDocumentSerializer,
+    OccurrenceReportLogEntrySerializer,
     OccurrenceReportSerializer,
+    OccurrenceReportUserActionSerializer,
     OccurrenceSerializer,
     OccurrenceUserActionSerializer,
+    OCRConservationThreatSerializer,
+    SaveAnimalObservationSerializer,
+    SaveAssociatedSpeciesSerializer,
+    SaveFireHistorySerializer,
     SaveHabitatCompositionSerializer,
     SaveHabitatConditionSerializer,
-    SaveFireHistorySerializer,
-    SaveAssociatedSpeciesSerializer,
-    SaveObservationDetailSerializer,
-    SavePlantCountSerializer,
-    SaveAnimalObservationSerializer,
     SaveIdentificationSerializer,
     SaveLocationSerializer,
-    ObserverDetailSerializer,
-    ListOCRReportMinimalSerializer,
-    SaveOccurrenceReportSerializer,
-    ListInternalOccurrenceReportSerializer,
-    OccurrenceReportUserActionSerializer,
-    OccurrenceReportLogEntrySerializer,
-    OccurrenceReportDocumentSerializer,
+    SaveObservationDetailSerializer,
     SaveOccurrenceReportDocumentSerializer,
-    OCRConservationThreatSerializer,
+    SaveOccurrenceReportSerializer,
     SaveOCRConservationThreatSerializer,
+    SavePlantCountSerializer,
 )
-
 from boranga.components.occurrence.utils import (
-    save_geometry,
+    ocr_proposal_submit,
     process_shapefile_document,
+    save_geometry,
+    validate_map_files,
 )
-
-from boranga.components.main.utils import (
-    check_db_connection,
-    handle_validation_error,
-)
-
-import logging
+from boranga.components.species_and_communities.models import GroupType
+from boranga.helpers import is_customer, is_internal
 
 logger = logging.getLogger(__name__)
 
@@ -186,10 +166,6 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         if "external" in view.name:
             total_count = queryset.count()
 
-            flora = GroupType.GROUP_TYPE_FLORA
-            fauna = GroupType.GROUP_TYPE_FAUNA
-            community = GroupType.GROUP_TYPE_COMMUNITY
-
             filter_group_type = request.GET.get("filter_group_type")
             if filter_group_type and not filter_group_type.lower() == "all":
                 queryset = queryset.filter(group_type__name=filter_group_type)
@@ -218,9 +194,7 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
             queryset = queryset.order_by(*ordering)
 
         try:
-            queryset = super(OccurrenceReportFilterBackend, self).filter_queryset(
-                request, queryset, view
-            )
+            queryset = super().filter_queryset(request, queryset, view)
         except Exception as e:
             print(e)
         setattr(view, "_datatables_total_count", total_count)
@@ -312,81 +286,78 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         )
         serialized_data = serializer.data
 
-        try:
-            filtered_data = []
-            for obj in serialized_data:
-                filtered_obj = {
-                    key: value for key, value in obj.items() if key in allowed_fields
-                }
-                filtered_data.append(filtered_obj)
+        filtered_data = []
+        for obj in serialized_data:
+            filtered_obj = {
+                key: value for key, value in obj.items() if key in allowed_fields
+            }
+            filtered_data.append(filtered_obj)
 
-            def flatten_dict(d, parent_key="", sep="_"):
-                flattened_dict = {}
-                for k, v in d.items():
-                    new_key = parent_key + sep + k if parent_key else k
-                    if isinstance(v, dict):
-                        flattened_dict.update(flatten_dict(v, new_key, sep))
-                    else:
-                        flattened_dict[new_key] = v
-                return flattened_dict
-
-            flattened_data = [flatten_dict(item) for item in filtered_data]
-            df = pd.DataFrame(flattened_data)
-            new_headings = [
-                "Number",
-                "Type",
-                "Scientific Name",
-                "Community Name",
-                "Status",
-            ]
-            df.columns = new_headings
-            column_order = [
-                "Number",
-                "Type",
-                "Scientific Name",
-                "Community Name",
-                "Status",
-            ]
-            df = df[column_order]
-
-            if export_format is not None:
-                if export_format == "excel":
-                    buffer = BytesIO()
-                    workbook = Workbook()
-                    sheet_name = "Sheet1"
-                    sheet = workbook.active
-                    sheet.title = sheet_name
-
-                    for row in dataframe_to_rows(df, index=False, header=True):
-                        sheet.append(row)
-                    for cell in sheet[1]:
-                        cell.font = Font(bold=True)
-
-                    workbook.save(buffer)
-                    buffer.seek(0)
-                    response = HttpResponse(
-                        buffer.read(), content_type="application/vnd.ms-excel"
-                    )
-                    response["Content-Disposition"] = (
-                        "attachment; filename=DBCA_ExternalOccurrenceReports.xlsx"
-                    )
-                    final_response = response
-                    buffer.close()
-                    return final_response
-
-                elif export_format == "csv":
-                    csv_data = df.to_csv(index=False)
-                    response = HttpResponse(content_type="text/csv")
-                    response["Content-Disposition"] = (
-                        "attachment; filename=DBCA_ExternalOccurrenceReports.csv"
-                    )
-                    response.write(csv_data)
-                    return response
-
+        def flatten_dict(d, parent_key="", sep="_"):
+            flattened_dict = {}
+            for k, v in d.items():
+                new_key = parent_key + sep + k if parent_key else k
+                if isinstance(v, dict):
+                    flattened_dict.update(flatten_dict(v, new_key, sep))
                 else:
-                    return Response(status=400, data="Format not valid")
-        except:
-            return Response(status=500, data="Internal Server Error")
+                    flattened_dict[new_key] = v
+            return flattened_dict
+
+        flattened_data = [flatten_dict(item) for item in filtered_data]
+        df = pd.DataFrame(flattened_data)
+        new_headings = [
+            "Number",
+            "Type",
+            "Scientific Name",
+            "Community Name",
+            "Status",
+        ]
+        df.columns = new_headings
+        column_order = [
+            "Number",
+            "Type",
+            "Scientific Name",
+            "Community Name",
+            "Status",
+        ]
+        df = df[column_order]
+
+        if export_format is not None:
+            if export_format == "excel":
+                buffer = BytesIO()
+                workbook = Workbook()
+                sheet_name = "Sheet1"
+                sheet = workbook.active
+                sheet.title = sheet_name
+
+                for row in dataframe_to_rows(df, index=False, header=True):
+                    sheet.append(row)
+                for cell in sheet[1]:
+                    cell.font = Font(bold=True)
+
+                workbook.save(buffer)
+                buffer.seek(0)
+                response = HttpResponse(
+                    buffer.read(), content_type="application/vnd.ms-excel"
+                )
+                response["Content-Disposition"] = (
+                    "attachment; filename=DBCA_ExternalOccurrenceReports.xlsx"
+                )
+                final_response = response
+                buffer.close()
+                return final_response
+
+            elif export_format == "csv":
+                csv_data = df.to_csv(index=False)
+                response = HttpResponse(content_type="text/csv")
+                response["Content-Disposition"] = (
+                    "attachment; filename=DBCA_ExternalOccurrenceReports.csv"
+                )
+                response.write(csv_data)
+                return response
+
+            else:
+                return Response(status=400, data="Format not valid")
 
     @list_route(
         methods=[
@@ -413,83 +384,80 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         )
         serialized_data = serializer.data
 
-        try:
-            filtered_data = []
-            for obj in serialized_data:
-                filtered_obj = {
-                    key: value for key, value in obj.items() if key in allowed_fields
-                }
-                filtered_data.append(filtered_obj)
+        filtered_data = []
+        for obj in serialized_data:
+            filtered_obj = {
+                key: value for key, value in obj.items() if key in allowed_fields
+            }
+            filtered_data.append(filtered_obj)
 
-            def flatten_dict(d, parent_key="", sep="_"):
-                flattened_dict = {}
-                for k, v in d.items():
-                    new_key = parent_key + sep + k if parent_key else k
-                    if isinstance(v, dict):
-                        flattened_dict.update(flatten_dict(v, new_key, sep))
-                    else:
-                        flattened_dict[new_key] = v
-                return flattened_dict
-
-            flattened_data = [flatten_dict(item) for item in filtered_data]
-            df = pd.DataFrame(flattened_data)
-            new_headings = [
-                "Number",
-                "Occurrence",
-                "Scientific Name",
-                "Submission date/time",
-                "Submitter",
-                "Processing Status",
-            ]
-            df.columns = new_headings
-            column_order = [
-                "Number",
-                "Occurrence",
-                "Scientific Name",
-                "Submission date/time",
-                "Submitter",
-                "Processing Status",
-            ]
-            df = df[column_order]
-
-            if export_format is not None:
-                if export_format == "excel":
-                    buffer = BytesIO()
-                    workbook = Workbook()
-                    sheet_name = "Sheet1"
-                    sheet = workbook.active
-                    sheet.title = sheet_name
-
-                    for row in dataframe_to_rows(df, index=False, header=True):
-                        sheet.append(row)
-                    for cell in sheet[1]:
-                        cell.font = Font(bold=True)
-
-                    workbook.save(buffer)
-                    buffer.seek(0)
-                    response = HttpResponse(
-                        buffer.read(), content_type="application/vnd.ms-excel"
-                    )
-                    response["Content-Disposition"] = (
-                        "attachment; filename=DBCA_OccurrenceReport_Species.xlsx"
-                    )
-                    final_response = response
-                    buffer.close()
-                    return final_response
-
-                elif export_format == "csv":
-                    csv_data = df.to_csv(index=False)
-                    response = HttpResponse(content_type="text/csv")
-                    response["Content-Disposition"] = (
-                        "attachment; filename=DBCA_OccurrenceReport_Species.csv"
-                    )
-                    response.write(csv_data)
-                    return response
-
+        def flatten_dict(d, parent_key="", sep="_"):
+            flattened_dict = {}
+            for k, v in d.items():
+                new_key = parent_key + sep + k if parent_key else k
+                if isinstance(v, dict):
+                    flattened_dict.update(flatten_dict(v, new_key, sep))
                 else:
-                    return Response(status=400, data="Format not valid")
-        except:
-            return Response(status=500, data="Internal Server Error")
+                    flattened_dict[new_key] = v
+            return flattened_dict
+
+        flattened_data = [flatten_dict(item) for item in filtered_data]
+        df = pd.DataFrame(flattened_data)
+        new_headings = [
+            "Number",
+            "Occurrence",
+            "Scientific Name",
+            "Submission date/time",
+            "Submitter",
+            "Processing Status",
+        ]
+        df.columns = new_headings
+        column_order = [
+            "Number",
+            "Occurrence",
+            "Scientific Name",
+            "Submission date/time",
+            "Submitter",
+            "Processing Status",
+        ]
+        df = df[column_order]
+
+        if export_format is not None:
+            if export_format == "excel":
+                buffer = BytesIO()
+                workbook = Workbook()
+                sheet_name = "Sheet1"
+                sheet = workbook.active
+                sheet.title = sheet_name
+
+                for row in dataframe_to_rows(df, index=False, header=True):
+                    sheet.append(row)
+                for cell in sheet[1]:
+                    cell.font = Font(bold=True)
+
+                workbook.save(buffer)
+                buffer.seek(0)
+                response = HttpResponse(
+                    buffer.read(), content_type="application/vnd.ms-excel"
+                )
+                response["Content-Disposition"] = (
+                    "attachment; filename=DBCA_OccurrenceReport_Species.xlsx"
+                )
+                final_response = response
+                buffer.close()
+                return final_response
+
+            elif export_format == "csv":
+                csv_data = df.to_csv(index=False)
+                response = HttpResponse(content_type="text/csv")
+                response["Content-Disposition"] = (
+                    "attachment; filename=DBCA_OccurrenceReport_Species.csv"
+                )
+                response.write(csv_data)
+                return response
+
+            else:
+                return Response(status=400, data="Format not valid")
 
 
 class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
@@ -652,7 +620,6 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
-        qs = self.get_queryset()
         land_form_list = []
         types = LandForm.objects.all()
         if types:
@@ -744,7 +711,6 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
-        qs = self.get_queryset()
         observation_method_list = []
         values = ObservationMethod.objects.all()
         if values:
@@ -936,7 +902,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             # if polygon:
             #     coords_list = [list(map(float, coord.split(' '))) for coord in polygon.split(',')]
             #     coords_list.append(coords_list[0])
-            #     request.data['geojson_polygon'] = GEOSGeometry(f'POLYGON(({", ".join(map(lambda x: " ".join(map(str, x)), coords_list))}))')
+            #     request.data['geojson_polygon'] = GEOSGeometry(f'POLYGON(({", ".join(map(lambda
+            # x: " ".join(map(str, x)), coords_list))}))')
 
             # the request.data is only the habitat composition data thats been sent from front end
             location_data = request.data.get("location")
@@ -1488,8 +1455,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
                 instance = self.get_object()
                 mutable = request.data._mutable
                 request.data._mutable = True
-                request.data["occurrence_report"] = "{}".format(instance.id)
-                request.data["staff"] = "{}".format(request.user.id)
+                request.data["occurrence_report"] = f"{instance.id}"
+                request.data["staff"] = f"{request.user.id}"
                 request.data._mutable = mutable
                 serializer = OccurrenceReportLogEntrySerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
@@ -1527,7 +1494,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
                 qs = instance.documents.all()
             elif is_customer(self.request):
                 qs = instance.documents.filter(Q(uploaded_by=request.user.id))
-            # qs = qs.exclude(input_name='occurrence_report_approval_doc') # TODO do we need/not to show approval doc in cs documents tab
+            # qs = qs.exclude(input_name='occurrence_report_approval_doc')
+            # TODO do we need/not to show approval doc in cs documents tab
             qs = qs.order_by("-uploaded_date")
             serializer = OccurrenceReportDocumentSerializer(
                 qs, many=True, context={"request": request}
@@ -1679,14 +1647,35 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def amendment_request(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.amendment_requests
+            qs = qs.filter(status="requested")
+            serializer = OccurrenceReportAmendmentRequestSerializer(qs, many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
-    # queryset = ObserverDetail.objects.all().order_by('id')
     queryset = ObserverDetail.objects.none()
     serializer_class = ObserverDetailSerializer
 
     def get_queryset(self):
-        request_user = self.request.user
         qs = ObserverDetail.objects.none()
 
         if is_internal(self.request):
@@ -1717,8 +1706,7 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
                 data=json.loads(request.data.get("data"))
             )
             serializer.is_valid(raise_exception=True)
-            instance = serializer.save()
-            # instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
+            serializer.save()
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1739,7 +1727,6 @@ class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
     serializer_class = OccurrenceReportAmendmentRequestSerializer
 
     def get_queryset(self):
-        user = self.request.user
         if is_internal(self.request):  # user.is_authenticated():
             qs = OccurrenceReportAmendmentRequest.objects.all().order_by("id")
             return qs
@@ -1902,7 +1889,6 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
     serializer_class = OCRConservationThreatSerializer
 
     def get_queryset(self):
-        request_user = self.request.user
         qs = OCRConservationThreat.objects.none()
 
         if is_internal(self.request):
@@ -2195,83 +2181,80 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         )
         serialized_data = serializer.data
 
-        try:
-            filtered_data = []
-            for obj in serialized_data:
-                filtered_obj = {
-                    key: value for key, value in obj.items() if key in allowed_fields
-                }
-                filtered_data.append(filtered_obj)
+        filtered_data = []
+        for obj in serialized_data:
+            filtered_obj = {
+                key: value for key, value in obj.items() if key in allowed_fields
+            }
+            filtered_data.append(filtered_obj)
 
-            def flatten_dict(d, parent_key="", sep="_"):
-                flattened_dict = {}
-                for k, v in d.items():
-                    new_key = parent_key + sep + k if parent_key else k
-                    if isinstance(v, dict):
-                        flattened_dict.update(flatten_dict(v, new_key, sep))
-                    else:
-                        flattened_dict[new_key] = v
-                return flattened_dict
-
-            flattened_data = [flatten_dict(item) for item in filtered_data]
-            df = pd.DataFrame(flattened_data)
-            new_headings = [
-                "Number",
-                "Occurrence",
-                "Scientific Name",
-                "Submission date/time",
-                "Submitter",
-                "Processing Status",
-            ]
-            df.columns = new_headings
-            column_order = [
-                "Number",
-                "Occurrence",
-                "Scientific Name",
-                "Submission date/time",
-                "Submitter",
-                "Processing Status",
-            ]
-            df = df[column_order]
-
-            if export_format is not None:
-                if export_format == "excel":
-                    buffer = BytesIO()
-                    workbook = Workbook()
-                    sheet_name = "Sheet1"
-                    sheet = workbook.active
-                    sheet.title = sheet_name
-
-                    for row in dataframe_to_rows(df, index=False, header=True):
-                        sheet.append(row)
-                    for cell in sheet[1]:
-                        cell.font = Font(bold=True)
-
-                    workbook.save(buffer)
-                    buffer.seek(0)
-                    response = HttpResponse(
-                        buffer.read(), content_type="application/vnd.ms-excel"
-                    )
-                    response["Content-Disposition"] = (
-                        "attachment; filename=DBCA_OccurrenceReport_Species.xlsx"
-                    )
-                    final_response = response
-                    buffer.close()
-                    return final_response
-
-                elif export_format == "csv":
-                    csv_data = df.to_csv(index=False)
-                    response = HttpResponse(content_type="text/csv")
-                    response["Content-Disposition"] = (
-                        "attachment; filename=DBCA_OccurrenceReport_Species.csv"
-                    )
-                    response.write(csv_data)
-                    return response
-
+        def flatten_dict(d, parent_key="", sep="_"):
+            flattened_dict = {}
+            for k, v in d.items():
+                new_key = parent_key + sep + k if parent_key else k
+                if isinstance(v, dict):
+                    flattened_dict.update(flatten_dict(v, new_key, sep))
                 else:
-                    return Response(status=400, data="Format not valid")
-        except:
-            return Response(status=500, data="Internal Server Error")
+                    flattened_dict[new_key] = v
+            return flattened_dict
+
+        flattened_data = [flatten_dict(item) for item in filtered_data]
+        df = pd.DataFrame(flattened_data)
+        new_headings = [
+            "Number",
+            "Occurrence",
+            "Scientific Name",
+            "Submission date/time",
+            "Submitter",
+            "Processing Status",
+        ]
+        df.columns = new_headings
+        column_order = [
+            "Number",
+            "Occurrence",
+            "Scientific Name",
+            "Submission date/time",
+            "Submitter",
+            "Processing Status",
+        ]
+        df = df[column_order]
+
+        if export_format is not None:
+            if export_format == "excel":
+                buffer = BytesIO()
+                workbook = Workbook()
+                sheet_name = "Sheet1"
+                sheet = workbook.active
+                sheet.title = sheet_name
+
+                for row in dataframe_to_rows(df, index=False, header=True):
+                    sheet.append(row)
+                for cell in sheet[1]:
+                    cell.font = Font(bold=True)
+
+                workbook.save(buffer)
+                buffer.seek(0)
+                response = HttpResponse(
+                    buffer.read(), content_type="application/vnd.ms-excel"
+                )
+                response["Content-Disposition"] = (
+                    "attachment; filename=DBCA_OccurrenceReport_Species.xlsx"
+                )
+                final_response = response
+                buffer.close()
+                return final_response
+
+            elif export_format == "csv":
+                csv_data = df.to_csv(index=False)
+                response = HttpResponse(content_type="text/csv")
+                response["Content-Disposition"] = (
+                    "attachment; filename=DBCA_OccurrenceReport_Species.csv"
+                )
+                response.write(csv_data)
+                return response
+
+            else:
+                return Response(status=400, data="Format not valid")
 
     @detail_route(
         methods=[
@@ -2330,8 +2313,8 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
                 instance = self.get_object()
                 mutable = request.data._mutable
                 request.data._mutable = True
-                request.data["occurrence"] = "{}".format(instance.id)
-                request.data["staff"] = "{}".format(request.user.id)
+                request.data["occurrence"] = f"{instance.id}"
+                request.data["staff"] = f"{request.user.id}"
                 request.data._mutable = mutable
                 serializer = OccurrenceLogEntrySerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
