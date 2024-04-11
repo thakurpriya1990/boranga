@@ -137,6 +137,7 @@
                             </div>
                         </transition>
                         <transition v-if="modelQuerySource">
+                            <!-- @mouseenter.once="enableTooltips" -->
                             <form
                                 v-show="hover"
                                 class="layer_options form-horizontal"
@@ -160,33 +161,63 @@
                                             @change="selectFeature(feature)"
                                         />
                                     </div>
-                                    <label
-                                        :for="`feature-${feature.ol_uid}-checkbox`"
-                                        class="input-group-text me-1"
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary btn-min-width-90 me-1 col-sm-3 text-nowrap"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        data-bs-title="Zoom to feature"
+                                        @mouseenter="
+                                            changeLabel(
+                                                $event.target,
+                                                'Center map'
+                                            )
+                                        "
+                                        @mouseleave="
+                                            changeLabel(
+                                                $event.target,
+                                                feature.getGeometry().getType()
+                                            )
+                                        "
+                                        @click="centerOnFeature(feature)"
                                     >
                                         {{ feature.getGeometry().getType() }}
-                                    </label>
+                                    </button>
+                                    <!-- <label
+                                        :for="`feature-${feature.ol_uid}-checkbox`"
+                                        class="input-group-text me-1 col-sm-3"
+                                    >
+                                        {{ feature.getGeometry().getType() }}
+                                    </label> -->
+                                    <!-- TODO: N-S Extents of WA -->
                                     <!-- Latitude -->
                                     <label
-                                        :for="`feature-${feature.ol_uid}-latitude`"
+                                        :for="`feature-${feature.ol_uid}-latitude-input`"
                                         class="input-group-text"
                                         >Lat</label
                                     >
                                     <input
-                                        :id="`feature-${feature.ol_uid}-latitude`"
-                                        class="form-control col-sm-3"
+                                        :id="`feature-${feature.ol_uid}-latitude-input`"
+                                        class="form-control"
+                                        placeholder="Latitude"
                                         type="number"
+                                        min="-90"
+                                        max="90"
                                     />
+                                    <!-- TODO: W-E Extents of WA -->
                                     <!-- Longitude -->
                                     <label
-                                        :for="`feature-${feature.ol_uid}-longitude`"
+                                        :for="`feature-${feature.ol_uid}-longitude-input`"
                                         class="input-group-text"
                                         >Lon</label
                                     >
                                     <input
-                                        :id="`feature-${feature.ol_uid}-longitude`"
-                                        class="form-control col-sm-3"
+                                        :id="`feature-${feature.ol_uid}-longitude-input`"
+                                        class="form-control"
+                                        placeholder="Longitude"
                                         type="number"
+                                        min="-180"
+                                        max="180"
                                     />
                                 </div>
                             </form>
@@ -1362,6 +1393,14 @@ export default {
                     view.animate({ zoom: z, center: centre });
                 }
             }
+        },
+        centerOnFeature: function (feature) {
+            const ext = feature.getGeometry().getExtent();
+            this.map.getView().fit(ext, {
+                duration: 1000,
+                size: this.map.getSize(),
+                maxZoom: 17,
+            });
         },
         setBaseLayer: function (selected_layer_name) {
             let vm = this;
@@ -3206,6 +3245,21 @@ export default {
 
             return [r, g, b, a];
         },
+        changeLabel: function (target, label) {
+            target.innerHTML = label;
+        },
+        /**
+         * TODO: Consider using for tooltips
+         */
+        enableTooltips: function () {
+            console.log('Enabling tooltips');
+            let tooltipTriggerList = [].slice.call(
+                document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            );
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        },
     },
 };
 </script>
@@ -3258,5 +3312,8 @@ export default {
 
 #submenu-draw {
     display: none;
+}
+.btn-min-width-90 {
+    min-width: 90px;
 }
 </style>
