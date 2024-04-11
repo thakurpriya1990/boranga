@@ -83,10 +83,12 @@ router.register(
 router.register(
     r"cs_amendment_request",
     conservation_status_api.ConservationStatusAmendmentRequestViewSet,
+    "cs_amendment_request",
 )
 router.register(
     r"ocr_amendment_request",
     occurrence_api.OccurrenceReportAmendmentRequestViewSet,
+    "ocr_amendment_request",
 )
 router.register(r"meeting", meeting_api.MeetingViewSet, "meeting")
 router.register(
