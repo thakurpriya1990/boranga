@@ -1,25 +1,22 @@
+from django import conf, urls
 from django.conf import settings
-from boranga.admin import admin
-from django.conf.urls import url, include
-from django.urls import path
-
+from django.conf.urls import include, url
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
+from django.urls import path
+from ledger_api_client.urls import urlpatterns as ledger_patterns
 from rest_framework import routers
-from boranga import views
 
-from boranga.components.users import api as users_api
-from boranga.components.main import api as main_api
-from boranga.components.proposals import api as proposal_api
-from boranga.components.species_and_communities import api as species_communities_api
+from boranga import views
+from boranga.admin import admin
 from boranga.components.conservation_status import api as conservation_status_api
+from boranga.components.history import api as history_api
+from boranga.components.main import api as main_api
 from boranga.components.meetings import api as meeting_api
 from boranga.components.occurrence import api as occurrence_api
-from boranga.components.history import api as history_api
-from ledger_api_client.urls import urlpatterns as ledger_patterns
-from django import urls
-from django.contrib.auth import views as auth_views
-from django import conf
-
+from boranga.components.proposals import api as proposal_api
+from boranga.components.species_and_communities import api as species_communities_api
+from boranga.components.users import api as users_api
 from boranga.management.default_data_manager import DefaultDataManager
 from boranga.utils import are_migrations_running
 
@@ -323,12 +320,12 @@ urlpatterns = [
         name="internal-meeting-dashboard",
     ),
     url(
-        r"^external/occurrence-report/(?P<ocr_proposal_pk>\d+)/$",
+        r"^external/occurrence-report/(?P<occurrence_report_pk>\d+)/$",
         views.ExternalOccurrenceReportView.as_view(),
         name="external-occurrence-report-detail",
     ),
     url(
-        r"^internal/occurrence_report/(?P<ocr_proposal_pk>\d+)/$",
+        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/$",
         views.InternalOccurrenceReportView.as_view(),
         name="internal-occurrence-report-detail",
     ),
