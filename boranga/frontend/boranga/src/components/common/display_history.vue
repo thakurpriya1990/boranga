@@ -126,10 +126,13 @@ export default {
             let vm = this;
             const result = {};
             for (const key in values) {
-                if (values[key] !== null && values[key] !== undefined && (typeof values[key]!=='string' && typeof values[key]==='object')) {
-                    result[key] = vm.removeNullValues(values[key]);
+                if (values[key] !== null && values[key] !== undefined && (typeof values[key]!=='string' && (values[key].isArray || typeof values[key]==='object'))) {
+                    let subResult = vm.removeNullValues(values[key]);
+                    if (Object.keys(subResult).length > 0) {
+                        result[key] = subResult;
+                    }
                 }
-                else if (values[key] !== null && values[key] !== undefined) {
+                else if (values[key] !== null && values[key] !== undefined && values[key] !== "") {
                     result[key] = values[key];
                 }
             }
