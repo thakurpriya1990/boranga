@@ -14,6 +14,7 @@ from boranga.components.main.models import (
     CommunicationsLogEntry,
     UserAction,
     Document,
+    RevisionedMixin,
 )
 
 
@@ -2066,5 +2067,5 @@ reversion.register(OCRConservationThreat)
 #Occurrence Report
 reversion.register(OccurrenceReport, follow=["species","community","occurrence"])
 
-#Occurence
+#Occurrence
 reversion.register(Occurrence)
