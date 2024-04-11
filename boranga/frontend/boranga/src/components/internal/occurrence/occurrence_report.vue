@@ -71,7 +71,7 @@
                         <div class="text-center">
                             <button style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="">Approve</button><br />
-                            <button style="width:80%;" class="btn btn-primary mb-2" @click.prevent="">Request
+                            <button style="width:80%;" class="btn btn-primary mb-2" @click.prevent="amendmentRequest()">Request
                                 Amendment</button><br />
                             <button style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="splitSpecies()">Split</button><br />
@@ -136,6 +136,8 @@
                 </template>
             </div>
         </div>
+
+        <AmendmentRequest ref="amendment_request" :conservation_status_id="occurrence_report.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
@@ -152,6 +154,7 @@ import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
+import AmendmentRequest from './amendment_request.vue'
 
 // import SpeciesSplit from './species_split.vue'
 // import SpeciesCombine from './species_combine.vue'
@@ -186,6 +189,7 @@ export default {
         Submission,
         Workflow,
         ProposalOccurrenceReport,
+        AmendmentRequest,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,
@@ -308,6 +312,9 @@ export default {
 
             });
         },
+        amendmentRequest: function(){
+            this.$refs.amendment_request.isModalOpen = true;
+        },        
         save: async function () {
             let vm = this;
             var missing_data = vm.can_submit("");
