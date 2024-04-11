@@ -210,8 +210,8 @@ class OccurrenceReport(models.Model):
         blank=True, null=True
     )  # TODO confirm if proposed date is the same or different
 
-    assigned_officer = models.IntegerField(null=True, blank=True)  # EmailUserRO
-    assigned_approver = models.IntegerField(null=True, blank=True)  # EmailUserRO
+    assigned_officer = models.IntegerField(null=True)  # EmailUserRO
+    assigned_approver = models.IntegerField(null=True)  # EmailUserRO
     approved_by = models.IntegerField(null=True)  # EmailUserRO
     # internal user who edits the approved conservation status(only specific fields)
     # modified_by = models.IntegerField(null=True) #EmailUserRO
@@ -490,6 +490,10 @@ class OccurrenceReport(models.Model):
                     ),
                     request,
                 )
+
+    @property
+    def amendment_requests(self):
+        return OccurrenceReportAmendmentRequest.objects.filter(occurrence_report=self)
 
 
 class OccurrenceReportLogEntry(CommunicationsLogEntry):
