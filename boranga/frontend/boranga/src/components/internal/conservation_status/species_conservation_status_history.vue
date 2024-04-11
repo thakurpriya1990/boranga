@@ -126,7 +126,11 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.conservationstatus.fields.conservation_status_number+'-'+full.revision_sequence;
+                    if (full.data.conservationstatus.fields.conservation_status_number) {
+                        return full.data.conservationstatus.fields.conservation_status_number+'-'+full.revision_sequence;
+                    } else {
+                        return "CS"+full.data.conservationstatus.pk+'-'+full.revision_sequence;
+                    }
                 },
                 name: 'revision_sequence',
             };

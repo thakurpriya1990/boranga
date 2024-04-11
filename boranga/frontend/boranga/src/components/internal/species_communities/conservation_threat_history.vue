@@ -108,7 +108,11 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.conservationthreat.fields.threat_number+'-'+full.revision_sequence;
+                    if (full.data.conservationthreat.fields.threat_number) {
+                        return full.data.conservationthreat.fields.threat_number+'-'+full.revision_sequence;
+                    } else {
+                        return "T"+full.data.conservationthreat.pk+'-'+full.revision_sequence;
+                    }
                 },
                 name: 'revision_sequence',
             };

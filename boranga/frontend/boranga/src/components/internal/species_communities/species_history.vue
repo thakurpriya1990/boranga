@@ -114,7 +114,11 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.species.fields.species_number+'-'+full.revision_sequence;
+                    if (full.data.species.fields.species_number) {
+                        return full.data.species.fields.species_number+'-'+full.revision_sequence;
+                    } else {
+                        return "S"+full.data.species.pk+'-'+full.revision_sequence;
+                    }
                 },
                 name: 'revision_sequence',
             };

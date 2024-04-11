@@ -116,7 +116,11 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.conservationstatusdocument.fields.document_number+'-'+full.revision_sequence;
+                    if (full.data.conservationstatusdocument.fields.document_number) {
+                        return full.data.conservationstatusdocument.fields.document_number+'-'+full.revision_sequence;
+                    } else {
+                        return "D"+full.data.conservationstatusdocument.pk+'-'+full.revision_sequence;
+                    }
                 },
                 name: 'revision_sequence',
             };

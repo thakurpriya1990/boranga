@@ -113,7 +113,11 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.community.fields.community_number+'-'+full.revision_sequence;
+                    if (full.data.community.fields.community_number) {
+                        return full.data.community.fields.community_number+'-'+full.revision_sequence;
+                    } else {
+                        return "C"+full.data.community.pk+'-'+full.revision_sequence;
+                    }
                 },
                 name: 'revision_sequence',
             };

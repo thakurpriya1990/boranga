@@ -112,7 +112,11 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.occurrencereport.fields.occurrence_report_number+'-'+full.revision_sequence;
+                    if (full.data.occurrencereport.fields.occurrence_report_number) {
+                        return full.data.occurrencereport.fields.occurrence_report_number+'-'+full.revision_sequence;
+                    } else {
+                        return "OCR"+full.data.occurrencereport.pk+'-'+full.revision_sequence;
+                    }
                 },
                 name: 'revision_sequence',
             };
