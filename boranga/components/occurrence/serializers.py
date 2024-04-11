@@ -16,6 +16,8 @@ from boranga.components.occurrence.models import (
     FireHistory,
     AssociatedSpecies,
     ObservationDetail,
+    OccurrenceReportAmendmentRequest,
+    OccurrenceReportAmendmentRequestDocument,
     OccurrenceUserAction,
     PlantCount,
     PrimaryDetectionMethod,
@@ -1203,3 +1205,19 @@ class SaveOCRConservationThreatSerializer(serializers.ModelSerializer):
 			'potential_threat_onset',
 			'date_observed',
 			)
+
+
+class OccurrenceReportAmendmentRequestDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportAmendmentRequestDocument
+        fields = ("id", "name", "_file")
+
+
+class OccurrenceReportAmendmentRequestSerializer(serializers.ModelSerializer):
+    amendment_request_documents = OccurrenceReportAmendmentRequestDocumentSerializer(
+        many=True, read_only=True
+    )
+
+    class Meta:
+        model = OccurrenceReportAmendmentRequest
+        fields = "__all__"

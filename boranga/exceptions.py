@@ -25,3 +25,13 @@ class ProposalMissingFields(APIException):
     status_code = 400
     default_detail = 'The proposal has missing required fields'
     default_code = 'proposal_missing_fields'
+
+
+class OccurrenceReportNotAuthorized(PermissionDenied):
+    default_detail = "You are not authorised to work on this occurrence report"
+    default_code = "occurrence_report_not_authorized"
+
+
+class OccurrenceReportReferralCannotBeSent(PermissionDenied):
+    default_detail = "Referrals can only be sent if the occurrence report has the right processing status"
+    default_code = "occurrence_report_referral_cannot_be_sent"
