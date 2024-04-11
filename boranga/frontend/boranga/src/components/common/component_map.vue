@@ -162,25 +162,30 @@
                                     </div>
                                     <button
                                         type="button"
-                                        class="btn btn-outline-secondary me-1"
+                                        class="btn btn-secondary me-1 min-width-60"
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="top"
                                         data-bs-title="Zoom to feature"
                                         @mouseenter="
-                                            changeLabel(
-                                                $event.target,
-                                                'Center map'
-                                            )
+                                            toggleHidden($event.target)
                                         "
                                         @mouseleave="
-                                            changeLabel(
-                                                $event.target,
-                                                feature.getGeometry().getType()
-                                            )
+                                            toggleHidden($event.target)
                                         "
                                         @click="centerOnFeature(feature)"
                                     >
-                                        {{ feature.getGeometry().getType() }}
+                                        <img v-if="feature.getGeometry().getType() == 'Point'"
+                                            class="svg-icon"
+                                            src="../../assets/draw-points.svg"
+                                        />
+                                        <img v-else
+                                            class="svg-icon"
+                                            src="../../assets/draw-polygon.svg"
+                                        />
+                                        <img
+                                            class="svg-icon hidden"
+                                            src="../../assets/map-zoom.svg"
+                                        />
                                     </button>
                                     <!-- <label
                                         :for="`feature-${feature.ol_uid}-checkbox`"
@@ -212,7 +217,7 @@
                                     >
                                     <input
                                         :id="`feature-${feature.ol_uid}-longitude-input`"
-                                        class="form-control min-width-120"
+                                        class="form-control min-width-120 me-1"
                                         placeholder="Longitude"
                                         type="number"
                                         min="-180"
@@ -3263,8 +3268,12 @@ export default {
 
             return [r, g, b, a];
         },
-        changeLabel: function (target, label) {
-            target.innerHTML = label;
+        toggleHidden: function (target, label) {
+            // target.innerHTML = label;
+            const hidden = $(target).find('img.svg-icon.hidden');
+            const notHidden = $(target).find('img.svg-icon').not('.hidden');
+            hidden.removeClass('hidden');
+            notHidden.addClass('hidden');
         },
     },
 };
@@ -3319,8 +3328,15 @@ export default {
 #submenu-draw {
     display: none;
 }
+.hidden {
+    display: none;
+
+}
 </style>
 <style>
+.min-width-60 {
+    min-width: 60px !important;
+}
 .min-width-90 {
     min-width: 90px !important;
 }
