@@ -213,9 +213,7 @@ module.exports = {
     lookup_history_conservation_status:function (id) {
       return `/api/history/boranga/conservation_status/ConservationStatus/${id}/`;
     },
-    lookup_history_conservation_threat:function (id) {
-      return `/api/history/boranga/species_communities/ConservationThreat/${id}/`;
-    },
+
 
     lookup_history_occurrence_report_document:function (id) {
       return `/api/history/boranga/occurrence/OccurrenceReportDocument/${id}/`;
@@ -223,8 +221,13 @@ module.exports = {
     lookup_history_occurrence_report:function (id) {
       return `/api/history/boranga/occurrence/OccurrenceReport/${id}/`;
     },
-    lookup_history_occurrence_report_threat:function (id) {
-      return `/api/history/boranga/occurrence/OccurrenceReportThreat/${id}/`;
+
+    lookup_history_conservation_threat:function (id) {
+      return `/api/history/boranga/species_communities/ConservationThreat/${id}/`;
+    },
+
+    lookup_history_ocr_conservation_threat:function (id) {
+      return `/api/history/boranga/occurrence/OcrConservationThreat/${id}/`;
     },
 
     lookup_revision_versions:function (model,id) {
