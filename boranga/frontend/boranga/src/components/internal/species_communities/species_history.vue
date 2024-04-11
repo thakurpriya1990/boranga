@@ -187,7 +187,15 @@ export default {
                             if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
                                 current_name_pk = full.data.crossreference.fields.new_taxonomy
                             } else if (full.data.crossreference.length > 0) {
-                                current_name_pk = full.data.crossreference[0].fields.new_taxonomy
+                                //get new taxon of highest pk
+                                var highest_pk_index = 0;
+                                for (var i = 0; i < full.data.crossreference.length; i++) {
+                                    if (full.data.crossreference[i].pk > full.data.crossreference[highest_pk_index].pk)
+                                    {
+                                        highest_pk_index = i;
+                                    }
+                                }
+                                current_name_pk = full.data.crossreference[highest_pk_index].fields.new_taxonomy
                             }
                             for (var i = 0; i < full.data.taxonomy.length; i++) {
                                 if (full.data.taxonomy[i].pk == current_name_pk) {
@@ -227,7 +235,15 @@ export default {
                             if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
                                 current_name_pk = full.data.crossreference.fields.old_taxonomy
                             } else if (full.data.crossreference.length > 0) {
-                                current_name_pk = full.data.crossreference[0].fields.old_taxonomy
+                                //get new taxon of highest pk
+                                var highest_pk_index = 0;
+                                for (var i = 0; i < full.data.crossreference.length; i++) {
+                                    if (full.data.crossreference[i].pk > full.data.crossreference[highest_pk_index].pk)
+                                    {
+                                        highest_pk_index = i;
+                                    }
+                                }
+                                current_name_pk = full.data.crossreference[highest_pk_index].fields.old_taxonomy
                             }
                             for (var i = 0; i < full.data.taxonomy.length; i++) {
                                 if (full.data.taxonomy[i].pk == current_name_pk) {

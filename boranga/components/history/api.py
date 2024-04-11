@@ -310,8 +310,6 @@ class GetRevisionVersionsView(InternalAuthorizationView):
 
         model = apps.get_model(app_label=app_label,model_name=model_name)
         self.lookup_getter.getVersionModelLookUpFieldValues(primary_version,model)
-        print(self.lookup_getter.lookup_fields)
-        print(self.lookup_getter.lookup_values)
 
         revision_dict = {
             'revision_id': primary_version[0].revision_id,

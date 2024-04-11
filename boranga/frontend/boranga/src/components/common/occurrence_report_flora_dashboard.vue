@@ -59,6 +59,13 @@
                         :dtHeaders="datatable_headers"
                 />
             </div>
+            <div v-if="occurrenceReportHistoryId">
+                <OccurrenceReportHistory
+                    ref="occurrence_report_history"
+                    :key="occurrenceReportHistoryId"
+                    :occurrence-report-id="occurrenceReportHistoryId"
+                />
+            </div>
         </div>
     </div>
 </template>
@@ -71,6 +78,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+import OccurrenceReportHistory from '../internal/occurrence/species_occurrence_report_history.vue';
 import Vue from 'vue'
 // var select2 = require('select2');
 // require("select2/dist/css/select2.min.css");
@@ -139,6 +147,8 @@ export default {
     data() {
         let vm = this;
         return {
+            uuid:0,
+            occurrenceReportHistoryId: null,
             datatable_id: 'species_flora_or-datatable-'+vm._uid,
      
             //Profile to check if user has access to process Proposal
@@ -185,6 +195,7 @@ export default {
         datatable,
         CollapsibleFilters,
         FormSection,
+        OccurrenceReportHistory,
     },
     watch:{
         filterOCRFloraOccurrence: function(){
@@ -362,12 +373,14 @@ export default {
                             {
                                 links +=  `<a href='/internal/occurrence-report/${full.id}'>Continue</a><br/>`;
                                 links +=  `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
+                                links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                             }
                             else{
                                 links +=  `<a href='/internal/occurrence-report/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                                 if(full.can_user_assess){
                                     links +=  `<a href='/internal/occurrence-report/${full.id}?group_type_name=${vm.group_type_name}&action=process'>Process</a><br/>`;
-                                }                                    
+                                }
+                                links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;                                    
                             }
                         }
                     return links;
@@ -457,6 +470,13 @@ export default {
     
     },
     methods:{
+        historyDocument: function(id){
+                this.occurrenceReportHistoryId = parseInt(id);
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.occurrence_report_history.isModalOpen = true;
+                });
+            },
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
@@ -612,6 +632,11 @@ export default {
                 var id = $(this).attr('data-discard-ocr-proposal');
                 vm.discardOCRProposal(id);
             });
+            vm.$refs.flora_ocr_datatable.vmDataTable.on('click', 'a[data-history-occurrence-report]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-occurrence-report');
+                    vm.historyDocument(id);
+                });
         },
         initialiseSearch:function(){
             this.submitterSearch();
@@ -870,4 +895,4 @@ export default {
     margin: 5px;
 }
 
-</style>
+</style>../internal/occurrence/species_occurrence_report_history.vue

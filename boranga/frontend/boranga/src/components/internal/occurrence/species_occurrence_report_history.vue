@@ -1,10 +1,8 @@
 <template lang="html">
-    <div id="speciesConservationStatusHistory">
+    <div id="speciesOccurrenceReportHistory">
         <modal
             transition="modal fade"
-            :title="'Conservation Status CS'
-            + conservationStatusId + ' - ' 
-            + conservationListId + ' - Species '+ speciesId +' - History'"
+            :title="'Occurrence Report OCR'+ occurrenceReportId +' - History'"
             :large="true"
             :full="true"
             :showOK="false"
@@ -18,7 +16,7 @@
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
-                                <div v-if="conservationStatusId" class="col-lg-12">
+                                <div v-if="occurrenceReportId" class="col-lg-12">
                                     <datatable
                                         :id="datatable_id"
                                         ref="history_datatable"
@@ -31,7 +29,7 @@
                                         :key="historyId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
-                                        :primary_model="'ConservationStatus'"
+                                        :primary_model="'OccurrenceReport'"
                                     />
                                     </div>
                                 </div>
@@ -52,7 +50,7 @@ import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
-    name: 'speciesConservationStatusHistory',
+    name: 'SpeciesOccurrenceReportHistory',
     components: {
         modal,
         alert,
@@ -60,17 +58,9 @@ export default {
         DisplayHistory,
     },
     props: {
-        speciesId: {
-            type: String,
-            required: false,
-        },
-        conservationStatusId: {
+        occurrenceReportId: {
             type: Number,
             required: true,
-        },
-        conservationListId: {
-            type: String,
-            required: false,
         },
     },
     data: function () {
@@ -98,10 +88,7 @@ export default {
                 'Scientific Name',
                 'Common Name',
                 'Previous Name',
-                'Conservation List',
-                'Conservation Category', //level?
-                'Status',
-                'Comment',
+                'Processing Status',
                 'Action',
             ];
         },
@@ -113,7 +100,7 @@ export default {
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.data.conservationstatus;
+                    return full.data.data.occurrencereport;
                 },
                 name: 'data',
             };
@@ -126,7 +113,7 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.conservationstatus.fields.conservation_status_number+'-'+full.revision_sequence;
+                    return full.data.occurrencereport.fields.occurrence_report_number+'-'+full.revision_sequence;
                 },
                 name: 'revision_sequence',
             };
@@ -134,12 +121,12 @@ export default {
         column_id: function () {
             return {
                 // 1. ID
-                data: 'data.data.conservationstatus.pk',
+                data: 'data.data.occurrencereport.pk',
                 orderable: false,
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.conservationstatus.pk;
+                    return full.data.occurrencereport.pk;
                 },
                 name: 'id',
             };
@@ -147,14 +134,14 @@ export default {
         column_number: function () {
             return {
                 // 2. Number
-                data: 'data.data.conservationstatus.fields.conservation_status_number',
+                data: 'data.data.occurrencereport.fields.occurrence_report_number',
                 orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.conservationstatus.fields.conservation_status_number;
+                    return full.data.occurrencereport.fields.occurrence_report_number;
                 },
-                name: 'conservation_status_number',
+                name: 'occurrence_report_number',
             };
         },
         column_revision_id: function () {
@@ -228,7 +215,7 @@ export default {
                         return ''
                     }
                 },
-                name: 'scientific_name',
+                name: 'scientific_name', //_name',
             };
         },
         column_non_current_name: function () {
@@ -236,7 +223,7 @@ export default {
                 data: 'data.data.taxonomy.fields.non_current_name', 
                 defaultContent: '',
                 orderable: false,
-                searchable: false,
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.taxonomy !== undefined) {
@@ -272,7 +259,7 @@ export default {
                         return ''
                     }
                 },
-                name: 'non_current_name',
+                name: 'non_current_name', //_name',
             };
         },
         column_common_name: function () {
@@ -307,74 +294,21 @@ export default {
                         return ''
                     }
                 },
-                name: 'vernacular_name',
-            };
-        },
-        column_category: function () {
-            return {
-                
-                data: 'data.data.conservationstatus.fields.conservation_category',
-                defaultContent: '',
-                orderable: false,
-                searchable: false, 
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.conservationstatus.fields.conservation_category) {
-                        return full.data.conservationstatus.fields.conservation_category.code;
-                    } else {
-                        return '';
-                    }
-                },
-                name: 'code',
-            };
-        },
-        column_list: function () {
-            return {
-                
-                data: 'data.data.conservationlist.fields.code',
-                defaultContent: '',
-                orderable: false,
-                searchable: false, 
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.conservationlist !== undefined) {
-                        return full.data.conservationlist.fields.code;
-                    } else {
-                        return '';
-                    }
-                },
-                name: 'code',
+                name: 'vernacular_name', //_name',
             };
         },
         column_processing_status: function () {
             return {
                 
-                data: 'data.data.conservationstatus.fields.processing_status',
+                data: 'data.data.occurrencereport.fields.processing_status',
                 defaultContent: '',
                 orderable: true,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.conservationstatus.fields.processing_status;
+                    return full.data.occurrencereport.fields.processing_status;
                 },
                 name: 'processing_status',
-            };
-        },
-        column_comment: function () {
-            return {
-
-                data: 'data.data.conservationstatus.fields.comment',
-                defaultContent: '',
-                orderable: false,
-                searchable: true, 
-                visible: true,
-                render: function (row, type, full) {
-                    //return full.data.conservationstatus.fields.comment;
-                    let value = full.data.conservationstatus.fields.comment;
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                name: 'comment',
             };
         },
         column_action: function () {
@@ -398,10 +332,7 @@ export default {
                 vm.column_scientific_name,
                 vm.column_common_name,
                 vm.column_non_current_name,
-                vm.column_list,
-                vm.column_category,
                 vm.column_processing_status,
-                vm.column_comment,
                 vm.column_action,
             ];
             return {
@@ -415,7 +346,7 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_conservation_status(this.conservationStatusId)+"?format=datatables",
+                    url: api_endpoints.lookup_history_occurrence_report(this.occurrenceReportId)+"?format=datatables",
                     dataSrc: 'data',
                 },
                 buttons: [
