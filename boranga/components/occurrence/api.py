@@ -47,6 +47,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from boranga.components.occurrence.models import (
     Occurrence,
     OccurrenceReport,
+    OccurrenceReportAmendmentRequest,
+    OccurrenceReportAmendmentRequestDocument,
     RockType,
     SoilType,
     SoilColour,
@@ -90,6 +92,7 @@ from boranga.components.occurrence.serializers import (
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
     OccurrenceLogEntrySerializer,
+    OccurrenceReportAmendmentRequestSerializer,
     OccurrenceReportSerializer,
     OccurrenceSerializer,
     OccurrenceUserActionSerializer,
@@ -1726,6 +1729,65 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
             else:
                 if hasattr(e, "message"):
                     raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
+    queryset = OccurrenceReportAmendmentRequest.objects.none()
+    serializer_class = OccurrenceReportAmendmentRequestSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request):  # user.is_authenticated():
+            qs = OccurrenceReportAmendmentRequest.objects.all().order_by("id")
+            return qs
+        return OccurrenceReportAmendmentRequest.objects.none()
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=json.loads(request.data.get("data")))
+            serializer.is_valid(raise_exception=True)
+            instance = serializer.save()
+            instance.add_documents(request)
+            instance.generate_amendment(request)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    @renderer_classes((JSONRenderer,))
+    def delete_document(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            OccurrenceReportAmendmentRequestDocument.objects.get(
+                id=request.data.get("id")
+            ).delete()
+            return Response(
+                [
+                    dict(id=i.id, name=i.name, _file=i._file.url)
+                    for i in instance.cs_amendment_request_documents.all()
+                ]
+            )
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

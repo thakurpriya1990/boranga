@@ -1,24 +1,28 @@
 import logging
 import datetime
-import random
-from django.utils import timezone
+
 from django.db import models
 from django.db.models import Count
-from django.db.models.functions import Cast, Coalesce
+from django.db.models.functions import Cast
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.contrib.postgres.fields.jsonb import JSONField
 from boranga import exceptions
+from boranga.components.conservation_status.models import ProposalAmendmentReason
 from boranga.components.main.models import (
-    CommunicationsLogEntry, 
+    CommunicationsLogEntry,
     UserAction,
     Document,
-    RevisionedMixin,
 )
 
 
+from boranga.components.occurrence.email import (
+    send_occurrence_report_amendment_email_notification,
+    send_occurrence_report_referral_complete_email_notification,
+    send_occurrence_report_referral_email_notification,
+    send_occurrence_report_referral_recall_email_notification,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -30,10 +34,8 @@ from django.core.files.storage import FileSystemStorage
 from boranga.settings import (
     GROUP_NAME_ASSESSOR,
     GROUP_NAME_APPROVER,
-    GROUP_NAME_EDITOR,
 )
 from boranga.components.main.utils import get_department_user
-from boranga.components.main.related_item import RelatedItem
 from boranga.components.species_and_communities.models import (
     DocumentCategory,
     DocumentSubCategory,
@@ -46,8 +48,6 @@ from boranga.components.species_and_communities.models import (
     PotentialThreatOnset,
     CurrentImpact,
 )
-from boranga.components.conservation_status.models import ConservationStatus
-from boranga.ordered_model import OrderedModel
 
 logger = logging.getLogger(__name__)
 
@@ -90,12 +90,12 @@ class OccurrenceReport(RevisionedMixin):
                                (CUSTOMER_STATUS_PARTIALLY_DECLINED, 'Partially Declined'),
                                )
 
-    # List of statuses from above that allow a customer to edit an application.
+    # List of statuses from above that allow a customer to edit an occurrence report.
     CUSTOMER_EDITABLE_STATE = ['draft',
                                 'amendment_required',
                             ]
 
-    # List of statuses from above that allow a customer to view an application (read-only)
+    # List of statuses from above that allow a customer to view an occurrence report (read-only)
     CUSTOMER_VIEWABLE_STATE = ['with_assessor','with_approver','under_review', 'approved', 'declined','closed','partially_approved', 'partially_declined']
 
     PROCESSING_STATUS_TEMP = 'temp'
@@ -261,23 +261,23 @@ class OccurrenceReport(RevisionedMixin):
     @property
     def can_user_edit(self):
         """
-        :return: True if the application is in one of the editable status.
+        :return: True if the occurrence report is in one of the editable status.
         """
         return self.customer_status in self.CUSTOMER_EDITABLE_STATE
 
     @property
     def can_user_view(self):
         """
-        :return: True if the application is in one of the approved status.
+        :return: True if the occurrence report is in one of the approved status.
         """
         return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
 
     @property
     def is_discardable(self):
         """
-        An application can be discarded by a customer if:
+        An occurrence report can be discarded by a customer if:
         1 - It is a draft
-        2- or if the application has been pushed back to the user
+        2- or if the occurrence report has been pushed back to the user
         """
         return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
 
@@ -379,7 +379,7 @@ class OccurrenceReport(RevisionedMixin):
     @transaction.atomic
     def assign_officer(self, request, officer):
         if not self.can_assess(request.user):
-            raise exceptions.ProposalNotAuthorized()
+            raise exceptions.OccurrenceReportNotAuthorized()
 
         if not self.can_assess(officer):
             raise ValidationError(
@@ -415,7 +415,7 @@ class OccurrenceReport(RevisionedMixin):
 
     def unassign(self, request):
         if not self.can_assess(request.user):
-            raise exceptions.ProposalNotAuthorized()
+            raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status == "with_approver":
             if self.assigned_approver:
@@ -468,7 +468,7 @@ class OccurrenceReportLogDocument(Document):
 
 
 class OccurrenceReportUserAction(UserAction):
-    #OccurrenceReport Proposal
+    # OccurrenceReport Proposal
     ACTION_EDIT_OCCURRENCE_REPORT= "Edit occurrence report {}"
     ACTION_LODGE_PROPOSAL = "Lodge proposal for occurrence report {}"
     ACTION_SAVE_APPLICATION = "Save proposal {}"
@@ -479,13 +479,13 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_UNASSIGN_APPROVER = "Unassign approver from occurrence report proposal {}"
     ACTION_DECLINE = "Decline occurrence report application {}"
     ACTION_APPROVE_PROPOSAL_ = "Approve occurrence report  proposal {}"
-    ACTION_CLOSE_CONSERVATIONSTATUS = "De list occurrence report {}"
+    ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
 
-    #Amendment
+    # Amendment
     ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
-    
+
     # Assessors
     ACTION_SAVE_ASSESSMENT_ = "Save assessment {}"
     ACTION_CONCLUDE_ASSESSMENT_ = "Conclude assessment {}"
@@ -502,7 +502,7 @@ class OccurrenceReportUserAction(UserAction):
     COMMENT_REFERRAL = "Referral {} for occurrence report proposal {} has been commented by {}"
     CONCLUDE_REFERRAL = "Referral {} for occurrence report proposal {} has been concluded by {}"
 
-     # Document
+    # Document
     ACTION_ADD_DOCUMENT= "Document {} added for occurrence report {}"
     ACTION_UPDATE_DOCUMENT= "Document {} updated for occurrence report {}"
     ACTION_DISCARD_DOCUMENT= "Document {} discarded for occurrence report {}"
@@ -513,7 +513,6 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_UPDATE_THREAT= "Threat {} updated for occurrence report {}"
     ACTION_DISCARD_THREAT= "Threat {} discarded for occurrence report {}"
     ACTION_REINSTATE_THREAT= "Threat {} reinstated for occurrence report {}"
-
 
     class Meta:
         app_label = 'boranga'
@@ -528,6 +527,448 @@ class OccurrenceReportUserAction(UserAction):
         )
 
     occurrence_report= models.ForeignKey(OccurrenceReport, related_name='action_logs', on_delete=models.CASCADE)
+
+
+def update_occurrence_report_referral_doc_filename(instance, filename):
+    return "{}/occurrence_report/{}/referral/{}".format(
+        settings.MEDIA_APP_DIR, instance.referral.occurrence_report.id, filename
+    )
+
+
+class OccurrenceReportProposalRequest(models.Model):
+    occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200, blank=True)
+    text = models.TextField(blank=True)
+    officer = models.IntegerField(null=True)  # EmailUserRO
+
+    class Meta:
+        app_label = "boranga"
+
+
+class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
+    STATUS_CHOICES = (("requested", "Requested"), ("amended", "Amended"))
+
+    status = models.CharField(
+        "Status", max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
+    )
+    reason = models.ForeignKey(
+        ProposalAmendmentReason, blank=True, null=True, on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        app_label = "boranga"
+
+    @transaction.atomic
+    def generate_amendment(self, request):
+        if not self.occurrence_report.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
+
+        if self.status == "requested":
+            occurrence_report = self.occurrence_report
+            if occurrence_report.processing_status != "draft":
+                occurrence_report.processing_status = "draft"
+                occurrence_report.customer_status = "draft"
+                occurrence_report.save()
+                # TODO at the moment occurrence_report is not having it's document model
+                # occurrence_report.documents.all().update(can_hide=True)
+
+            # Create a log entry for the occurrence report
+            occurrence_report.log_user_action(
+                OccurrenceReportUserAction.ACTION_ID_REQUEST_AMENDMENTS, request
+            )
+
+            # Create a log entry for the organisation
+            # if occurrence_report.applicant:
+            #     occurrence_report.applicant.log_user_action(OccurrenceReportUserAction.ACTION_ID_REQUEST_AMENDMENTS, request)
+
+            # send email
+            send_occurrence_report_amendment_email_notification(
+                self, request, occurrence_report
+            )
+
+        self.save()
+
+    @transaction.atomic
+    def add_documents(self, request):
+        # save the files
+        data = json.loads(request.data.get("data"))
+
+        if not data.get("update"):
+            documents_qs = self.cs_amendment_request_documents.filter(
+                input_name="amendment_request_doc", visible=True
+            )
+            documents_qs.delete()
+
+        for idx in range(data["num_files"]):
+            _file = request.data.get("file-" + str(idx))
+            document = self.cs_amendment_request_documents.create(
+                _file=_file, name=_file.name
+            )
+            document.input_name = data["input_name"]
+            document.can_delete = True
+            document.save()
+
+        # end save documents
+        self.save()
+
+
+def update_occurrence_report_amendment_request_doc_filename(instance, filename):
+    return "occurrence_report/{}/amendment_request_documents/{}".format(
+        instance.coccurrence_report_amendment_request.occurrence_report.id, filename
+    )
+
+
+class OccurrenceReportAmendmentRequestDocument(Document):
+    occurrence_report_amendment_request = models.ForeignKey(
+        "OccurrenceReportAmendmentRequest",
+        related_name="amendment_request_documents",
+        on_delete=models.CASCADE,
+    )
+    _file = models.FileField(
+        upload_to=update_occurrence_report_amendment_request_doc_filename,
+        max_length=500,
+        storage=private_storage,
+    )
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    can_delete = models.BooleanField(
+        default=True
+    )  # after initial submit prevent document from being deleted
+    visible = models.BooleanField(
+        default=True
+    )  # to prevent deletion on file system, hidden and still be available in history
+
+    def delete(self):
+        if self.can_delete:
+            return super(OccurrenceReportAmendmentRequestDocument, self).delete()
+
+
+class OccurrenceReportReferralDocument(Document):
+    referral = models.ForeignKey(
+        "OccurrenceReportReferral",
+        related_name="referral_documents",
+        on_delete=models.CASCADE,
+    )
+    _file = models.FileField(
+        upload_to=update_occurrence_report_referral_doc_filename,
+        max_length=512,
+        storage=private_storage,
+    )
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    can_delete = models.BooleanField(
+        default=True
+    )  # after initial submit prevent document from being deleted
+
+    def delete(self):
+        if self.can_delete:
+            if self._file:
+                self._file.delete()
+            return super().delete()
+        logger.info(
+            "Cannot delete existing document object after occurrence report referral has been submitted: {}".format(
+                self.name
+            )
+        )
+
+    class Meta:
+        app_label = "boranga"
+
+
+class OccurrenceReportReferral(models.Model):
+    SENT_CHOICES = ((1, "Sent From Assessor"), (2, "Sent From Referral"))
+    PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
+    PROCESSING_STATUS_RECALLED = "recalled"
+    PROCESSING_STATUS_COMPLETED = "completed"
+    PROCESSING_STATUS_CHOICES = (
+        (PROCESSING_STATUS_WITH_REFERRAL, "Awaiting"),
+        (PROCESSING_STATUS_RECALLED, "Recalled"),
+        (PROCESSING_STATUS_COMPLETED, "Completed"),
+    )
+    lodged_on = models.DateTimeField(auto_now_add=True)
+    ocurrence_report = models.ForeignKey(
+        OccurrenceReport, related_name="referrals", on_delete=models.CASCADE
+    )
+    sent_by = models.IntegerField()  # EmailUserRO
+    referral = models.IntegerField()  # EmailUserRO
+    linked = models.BooleanField(default=False)
+    sent_from = models.SmallIntegerField(
+        choices=SENT_CHOICES, default=SENT_CHOICES[0][0]
+    )
+    processing_status = models.CharField(
+        "Processing Status",
+        max_length=30,
+        choices=PROCESSING_STATUS_CHOICES,
+        default=PROCESSING_STATUS_CHOICES[0][0],
+    )
+    text = models.TextField(blank=True)  # Assessor text when send_referral
+    referral_text = models.TextField(
+        blank=True
+    )  # used in other projects for complete referral comment but not used in boranga
+    referral_comment = models.TextField(blank=True, null=True)  # Referral Comment
+    document = models.ForeignKey(
+        OccurrenceReportReferralDocument,
+        blank=True,
+        null=True,
+        related_name="referral_document",
+        on_delete=models.SET_NULL,
+    )
+    assigned_officer = models.IntegerField(null=True)  # EmailUserRO
+
+    class Meta:
+        app_label = "boranga"
+        ordering = ("-lodged_on",)
+
+    def __str__(self):
+        return "Occurrence Report {} - Referral {}".format(
+            self.occurrence_report.id, self.id
+        )
+
+    # Methods
+    @property
+    def latest_referrals(self):
+        return OccurrenceReportReferral.objects.filter(
+            sent_by=self.referral, occurrence_report=self.occurrence_report
+        )[:2]
+
+    @property
+    def can_be_completed(self):
+        # Referral cannot be completed until second level referral sent by referral has been completed/recalled
+        return not OccurrenceReportReferral.objects.filter(
+            sent_by=self.referral,
+            occurrence_report=self.occurrence_report,
+            processing_status=OccurrenceReportReferral.PROCESSING_STATUS_WITH_REFERRAL,
+        ).exists()
+
+    def can_process(self, user):
+        return True  # TODO: implement
+
+    @property
+    def referral_as_email_user(self):
+        return retrieve_email_user(self.referral)
+
+    @transaction.atomic
+    def remind(self, request):
+        if not self.occurrence_report.can_assess(request.user):
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        # Create a log entry for the proposal
+        self.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
+                self.id,
+                self.occurrence_report.occurrence_report_number,
+                "{}".format(self.referral_as_email_user.get_full_name()),
+            ),
+            request,
+        )
+        # Create a log entry for the organisation
+        applicant_field = getattr(
+            self.occurrence_report, self.occurrence_report.applicant_field
+        )
+        applicant_field = retrieve_email_user(applicant_field)
+
+        # Create a log entry for the applicant
+        applicant_field.log_user_action(
+            OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
+                self.id,
+                self.occurrence_report.occurrence_report_number,
+                "{}".format(self.referral_as_email_user.get_full_name()),
+            ),
+            request,
+        )
+
+        # send email
+        send_occurrence_report_referral_email_notification(
+            self,
+            request,
+            reminder=True,
+        )
+
+    @transaction.atomic
+    def recall(self, request):
+        if not self.occurrence_report.can_assess(request.user):
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        self.processing_status = "recalled"
+        self.save()
+        send_occurrence_report_referral_recall_email_notification(self, request)
+
+        # TODO Log OccurrenceReport proposal action
+        self.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.RECALL_REFERRAL.format(
+                self.id,
+                self.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+
+        # TODO log organisation action
+        self.proposal.applicant.log_user_action(
+            OccurrenceReportUserAction.RECALL_REFERRAL.format(
+                self.id, self.proposal.lodgement_number
+            ),
+            request,
+        )
+
+    @transaction.atomic
+    def resend(self, request):
+        if not self.occurrence_report.can_assess(request.user):
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        self.processing_status = "with_referral"
+        self.occurrence_report.processing_status = "with_referral"
+        self.occurrence_report.save()
+        self.sent_from = 1
+        self.save()
+
+        # Create a log entry for the proposal
+        self.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_RESEND_REFERRAL_TO.format(
+                self.id,
+                self.occurrence_report.occurrence_report_number,
+                "{}({})".format(
+                    self.referral_as_email_user.get_full_name(),
+                    self.referral_as_email_user.email,
+                ),
+            ),
+            request,
+        )
+
+        # Create a log entry for the organisation
+        # self.proposal.applicant.log_user_action(OccurrenceReportUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+
+        # send email
+        send_occurrence_report_referral_email_notification(self, request)
+
+    @transaction.atomic
+    def send_referral(self, request, referral_email, referral_text):
+        referral_email = referral_email.lower()
+        if (
+            self.occurrence_report.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+        ):
+            if request.user.id != self.referral:
+                raise exceptions.ReferralNotAuthorized()
+
+            if self.sent_from != 1:
+                raise exceptions.ReferralCanNotSend()
+
+            self.occurrence_report.processing_status = (
+                OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+            )
+
+            self.occurrence_report.save()
+            referral = None
+
+            # Check if the user is in ledger
+            try:
+                user = EmailUser.objects.get(email__icontains=referral_email)
+            except EmailUser.DoesNotExist:
+                # Validate if it is a deparment user
+                department_user = get_department_user(referral_email)
+                if not department_user:
+                    raise ValidationError(
+                        "The user you want to send the referral to is not a member of the department"
+                    )
+                # Check if the user is in ledger or create
+                user, created = EmailUser.objects.get_or_create(
+                    email=department_user["email"].lower()
+                )
+                if created:
+                    user.first_name = department_user["given_name"]
+                    user.last_name = department_user["surname"]
+                    user.save()
+            qs = OccurrenceReportReferral.objects.filter(
+                sent_by=user.id, occurrence_report=self.occurrence_report
+            )
+            if qs:
+                raise ValidationError("You cannot send referral to this user")
+            try:
+                OccurrenceReportReferral.objects.get(
+                    referral=user.id,
+                    occurrence_report=self.occurrence_report,
+                )
+                raise ValidationError("A referral has already been sent to this user")
+
+            except OccurrenceReportReferral.DoesNotExist:
+                # Create Referral
+                referral = OccurrenceReportReferral.objects.create(
+                    occurrence_report=self.occurrence_report,
+                    referral=user.id,
+                    sent_by=request.user.id,
+                    sent_from=2,
+                    text=referral_text,
+                )
+
+            # Create a log entry for the proposal
+            self.occurrence_report.log_user_action(
+                OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
+                    referral.id,
+                    self.occurrence_report.occurrence_report_number,
+                    "{}({})".format(user.get_full_name(), user.email),
+                ),
+                request,
+            )
+
+            # Create a log entry for the applicant
+            self.proposal.applicant.log_user_action(
+                OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
+                    referral.id,
+                    self.proposal.lodgement_number,
+                    "{}({})".format(user.get_full_name(), user.email),
+                ),
+                request,
+            )
+
+            # send email
+            send_occurrence_report_referral_email_notification(referral, request)
+        else:
+            raise exceptions.OccurrenceReportReferralCannotBeSent()
+
+    @transaction.atomic
+    def complete(self, request):
+        if request.user.id != self.referral:
+            raise exceptions.ReferralNotAuthorized()
+
+        self.processing_status = "completed"
+        self.save()
+
+        outstanding = self.occurrence_report.referrals.filter(
+            processing_status="with_referral"
+        )
+        if len(outstanding) == 0:
+            self.occurrence_report.processing_status = "with_assessor"
+            self.occurrence_report.save()
+
+        # Create a log entry for the occurrence report
+        self.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.CONCLUDE_REFERRAL.format(
+                self.id,
+                self.occurrence_report.occurrence_report_number,
+                "{}({})".format(
+                    self.referral_as_email_user.get_full_name(),
+                    self.referral_as_email_user.email,
+                ),
+            ),
+            request,
+        )
+
+        # TODO log organisation action
+        self.proposal.applicant.log_user_action(
+            OccurrenceReportUserAction.CONCLUDE_REFERRAL.format(
+                self.id,
+                self.proposal.lodgement_number,
+                "{}({})".format(self.referral.get_full_name(), self.referral.email),
+            ),
+            request,
+        )
+
+        send_occurrence_report_referral_complete_email_notification(self, request)
+
+    def can_assess_referral(self, user):
+        return self.processing_status == "with_referral"
+
+    @property
+    def can_be_processed(self):
+        return self.processing_status == "with_referral"
 
 
 class Datum(models.Model):
@@ -1571,7 +2012,7 @@ class OccurrenceLogEntry(CommunicationsLogEntry):
         app_label = "boranga"
 
     def save(self, **kwargs):
-        # save the application reference if the reference not provided
+        # save the occurrence number as the reference if the reference not provided
         if not self.reference:
             self.reference = self.occurrence.occurrence_number
         super(OccurrenceLogEntry, self).save(**kwargs)
@@ -1599,8 +2040,8 @@ class OccurrenceLogDocument(Document):
 
 class OccurrenceUserAction(UserAction):
     ACTION_VIEW_OCCURRENCE = "View occurrence {}"
-    ACTION_SAVE_APPLICATION = "Save occurrence {}"
-    ACTION_EDIT_APPLICATION = "Edit occurrence {}"
+    ACTION_SAVE_OCCURRENCE = "Save occurrence {}"
+    ACTION_EDIT_OCCURRENCE = "Edit occurrence {}"
 
     class Meta:
         app_label = "boranga"
