@@ -271,7 +271,6 @@ urlpatterns = [
     ),
     url(r"^internal/", views.InternalView.as_view(), name="internal"),
     url(r"^external/", views.ExternalView.as_view(), name="external"),
-    url(r"^firsttime/$", views.first_time, name="first_time"),
     url(r"^account/$", views.ExternalView.as_view(), name="manage-account"),
     url(r"^profiles/", views.ExternalView.as_view(), name="manage-profiles"),
     url(
