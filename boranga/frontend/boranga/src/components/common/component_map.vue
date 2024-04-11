@@ -137,7 +137,6 @@
                             </div>
                         </transition>
                         <transition v-if="modelQuerySource">
-                            <!-- @mouseenter.once="enableTooltips" -->
                             <form
                                 v-show="hover"
                                 class="layer_options form-horizontal"
@@ -3247,18 +3246,6 @@ export default {
         },
         changeLabel: function (target, label) {
             target.innerHTML = label;
-        },
-        /**
-         * TODO: Consider using for tooltips
-         */
-        enableTooltips: function () {
-            console.log('Enabling tooltips');
-            let tooltipTriggerList = [].slice.call(
-                document.querySelectorAll('[data-bs-toggle="tooltip"]')
-            );
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
         },
     },
 };
