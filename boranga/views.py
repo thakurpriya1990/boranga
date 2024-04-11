@@ -123,11 +123,6 @@ class InternalMeetingDashboardView(DetailView):
     template_name = "boranga/dash/index.html"
 
 
-# class ReferralView(ReferralOwnerMixin, DetailView):
-#     model = Referral
-#     template_name = 'boranga/dash/index.html'
-
-
 class ExternalOccurrenceReportView(DetailView):
     model = OccurrenceReport
     template_name = "boranga/dash/index.html"
@@ -140,24 +135,10 @@ class InternalOccurrenceReportView(DetailView):
     def get(self, *args, **kwargs):
         if self.request.user.is_authenticated():
             if is_internal(self.request):
-                # return redirect('internal-proposal-detail')
                 return super().get(*args, **kwargs)
             return redirect("external-occurrence-report-detail")
         kwargs["form"] = LoginForm
         return super(BorangaRoutingView, self).get(*args, **kwargs)
-
-
-# class ExternalProposalView(DetailView):
-#     model = Proposal
-#     template_name = 'boranga/dash/index.html'
-
-# class ExternalComplianceView(DetailView):
-#     model = Compliance
-#     template_name = 'boranga/dash/index.html'
-
-# class InternalComplianceView(DetailView):
-#     model = Compliance
-#     template_name = 'boranga/dash/index.html'
 
 
 class BorangaRoutingView(TemplateView):
@@ -167,15 +148,6 @@ class BorangaRoutingView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["settings"] = settings
         return context
-
-    # def get(self, *args, **kwargs):
-    #     if self.request.user.is_authenticated:
-    #        if is_internal(self.request):
-    #            return redirect('internal')
-    #        return redirect('external')
-    #     kwargs['form'] = LoginForm
-    #     return super(BorangaRoutingView, self).get(*args, **kwargs)
-    #     return redirect('/accounts/login')
 
 
 class BorangaContactView(TemplateView):
@@ -201,9 +173,6 @@ class HelpView(LoginRequiredMixin, TemplateView):
                         help_type=HelpPage.HELP_TEXT_INTERNAL,
                     ).order_by("-version")
                     context["help"] = qs.first()
-            #                else:
-            #                    return TemplateResponse(self.request, 'boranga/not-permitted.html', context)
-            #                    context['permitted'] = False
             else:
                 qs = HelpPage.objects.filter(
                     application_type__name__icontains=application_type,
@@ -334,7 +303,6 @@ def get_file_path_id(check_str, file_path):
 
 
 def is_authorised_to_access_document(request):
-
     # occurrence reports
     o_document_id = get_file_path_id("occurrence_report", request.path)
     if o_document_id:
@@ -368,7 +336,6 @@ def is_authorised_to_access_document(request):
 
 
 def getPrivateFile(request):
-
     if is_authorised_to_access_document(request):
         file_name_path = request.path
         # norm path will convert any traversal or repeat / in to its normalised form
