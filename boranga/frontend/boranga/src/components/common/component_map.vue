@@ -2758,6 +2758,12 @@ export default {
             vm.modelQuerySource.clear();
             proposals.forEach(function (proposal) {
                 proposal.ocr_geometry.features.forEach(function (featureData) {
+                    if (!featureData.geometry) {
+                        console.warn(
+                            `Feature ${featureData.id} has no geometry. Skipping...`
+                        );
+                        return;
+                    }
                     let feature = vm.featureFromDict(featureData, proposal);
                     if (vm.modelQuerySource.getFeatureById(feature.getId())) {
                         console.warn(
@@ -2825,6 +2831,7 @@ export default {
                 locked: featureData.properties.locked || false,
                 copied_from: featureData.properties.report_copied_from || null,
                 area_sqm: featureData.properties.area_sqm || null,
+                srid: featureData.properties.srid || null,
             });
             if (featureData.id) {
                 // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
