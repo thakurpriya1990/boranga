@@ -1193,11 +1193,19 @@ class OccurrenceReportGeometry(models.Model):
             models.CheckConstraint(
                 check=~models.Q(polygon__isnull=False, point__isnull=False),
                 name="point_and_polygon_mutually_exclusive",
-            )
+            ),
         ]
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        if (
+            self.occurrence_report.group_type.name == GroupType.GROUP_TYPE_FAUNA
+            and self.polygon
+        ):
+            raise ValidationError("Fauna occurrence reports cannot have polygons")
+        super().save(*args, **kwargs)
 
     @property
     def area_sqm(self):
