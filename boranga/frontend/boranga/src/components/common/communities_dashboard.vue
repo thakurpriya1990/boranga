@@ -102,6 +102,13 @@
                     />
             </div>
         </div>
+        <div v-if="communityHistoryId">
+            <CommunityHistory
+                ref="community_history"
+                :key="communityHistoryId"
+                :community-id="communityHistoryId"
+            />
+        </div>
     </div>
 </template>
 <script>
@@ -109,6 +116,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+import CommunityHistory from '../internal/species_communities/community_history.vue';
 import Vue from 'vue'
 import {
     api_endpoints,
@@ -179,7 +187,7 @@ export default {
         let vm = this;
         return {
             datatable_id: 'communities-datatable-'+vm._uid,
-
+            communityHistoryId: null,
             // selected values for filtering
             filterCommunityMigratedId: sessionStorage.getItem(this.filterCommunityMigratedId_cache) ?
                                 sessionStorage.getItem(this.filterCommunityMigratedId_cache) : 'all',
@@ -235,6 +243,7 @@ export default {
         datatable,
         CollapsibleFilters,
         FormSection,
+        CommunityHistory,
     },
     watch:{
         filterCommunityMigratedId: function(){
@@ -459,6 +468,7 @@ export default {
                         if (full.can_user_edit) {
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
                             links +=  `<a href='#${full.id}' data-discard-community-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
+                            links += `<a href='#' data-history-community='${full.id}'>History</a><br>`;
                         }
                         else{
                             if(full.user_process){
@@ -466,6 +476,7 @@ export default {
                                 links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;
                             }
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
+                            links += `<a href='#' data-history-community='${full.id}'>History</a><br>`;
                         }
                     }
                     return links;
@@ -575,6 +586,13 @@ export default {
 
     },
     methods:{
+        historyDocument: function(id){
+                this.communityHistoryId = parseInt(id);
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.community_history.isModalOpen = true;
+                });
+            },
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
@@ -764,6 +782,11 @@ export default {
                 var id = $(this).attr('data-discard-community-proposal');
                 vm.discardCommunityProposal(id);
             });
+            vm.$refs.communities_datatable.vmDataTable.on('click', 'a[data-history-community]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-community');
+                    vm.historyDocument(id);
+                });
         },
         initialiseSearch:function(){
             this.submitterSearch();

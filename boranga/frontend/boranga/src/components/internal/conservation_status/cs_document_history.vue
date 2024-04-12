@@ -1,8 +1,8 @@
 <template lang="html">
-    <div id="speciesHistory">
+    <div id="conservationStatusDocumentHistory">
         <modal
             transition="modal fade"
-            :title="'Species S'+ speciesId +' - History'"
+            :title="'Conservation Status CS'+ conservationStatusId +' - Document D' + documentId + ' - History ' "
             :large="true"
             :full="true"
             :showOK="false"
@@ -16,7 +16,7 @@
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
-                                <div v-if="speciesId" class="col-lg-12">
+                                <div v-if="documentId" class="col-lg-12">
                                     <datatable
                                         :id="datatable_id"
                                         ref="history_datatable"
@@ -29,7 +29,7 @@
                                         :key="historyId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
-                                        :primary_model="'Species'"
+                                        :primary_model="'ConservationStatusDocument'"
                                     />
                                     </div>
                                 </div>
@@ -50,7 +50,7 @@ import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
-    name: 'speciesHistory',
+    name: 'ConservationStatusDocumentHistory',
     components: {
         modal,
         alert,
@@ -58,14 +58,17 @@ export default {
         DisplayHistory,
     },
     props: {
-        speciesId: {
+        documentId: {
+            type: Number,
+            required: true,
+        },
+        conservationStatusId: {
             type: Number,
             required: true,
         },
     },
     data: function () {
         return {
-            scientificName: '',
             historyId: null,
             historySequence: null,
             datatable_id: 'history-datatable-' + uuid(),
@@ -85,11 +88,10 @@ export default {
             return [
                 'Number',
                 'Date Modified',
-                'Scientific Name',
-                'Common Name',
-                'Previous Name',
-                'Processing Status',
-                'Comment',
+                'Category',
+                'Sub Category',
+                'Document',
+                'Description',
                 'Action',
             ];
         },
@@ -101,7 +103,7 @@ export default {
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.data.species;
+                    return full.data.data.conservationstatusdocument;
                 },
                 name: 'data',
             };
@@ -114,10 +116,10 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.species.fields.species_number) {
-                        return full.data.species.fields.species_number+'-'+full.revision_sequence;
+                    if (full.data.conservationstatusdocument.fields.document_number) {
+                        return full.data.conservationstatusdocument.fields.document_number+'-'+full.revision_sequence;
                     } else {
-                        return "S"+full.data.species.pk+'-'+full.revision_sequence;
+                        return "D"+full.data.conservationstatusdocument.pk+'-'+full.revision_sequence;
                     }
                 },
                 name: 'revision_sequence',
@@ -126,12 +128,12 @@ export default {
         column_id: function () {
             return {
                 // 1. ID
-                data: 'data.data.species.pk',
+                data: 'data.data.conservationstatusdocument.pk',
                 orderable: false,
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.species.pk;
+                    return full.data.conservationstatusdocument.pk;
                 },
                 name: 'id',
             };
@@ -139,14 +141,15 @@ export default {
         column_number: function () {
             return {
                 // 2. Number
-                data: 'data.data.species.fields.species_number',
+                data: 'data.data.conservationstatusdocument.fields.document_number',
+                defaultContent: '',
                 orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.species.fields.species_number;
+                    return full.data.conservationstatusdocument.fields.document_number+'-'+full.revision_sequence;
                 },
-                name: 'species_number',
+                name: 'document_number',
             };
         },
         column_revision_id: function () {
@@ -175,162 +178,83 @@ export default {
                 name: 'revision_date',
             };
         },
-        column_scientific_name: function () {
+        column_category: function () {
             return {
-                data: 'data.data.taxonomy.fields.scientific_name', 
+                data: 'data.data.conservationstatusdocument.fields.document_category', 
+                //data: 'data.data.documentcategory.fields.document_category_name', //used for testing
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.taxonomy !== undefined) {
-                        //list not dict
-                        if (full.data.taxonomy.fields === undefined) {
-                            var current_name_pk = '';
-                            //get the crossreference new_tax and compare to pk
-                            if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
-                                current_name_pk = full.data.crossreference.fields.new_taxonomy
-                            } else if (full.data.crossreference.length > 0) {
-                                //get new taxon of highest pk
-                                var highest_pk_index = 0;
-                                for (var i = 0; i < full.data.crossreference.length; i++) {
-                                    if (full.data.crossreference[i].pk > full.data.crossreference[highest_pk_index].pk)
-                                    {
-                                        highest_pk_index = i;
-                                    }
-                                }
-                                current_name_pk = full.data.crossreference[highest_pk_index].fields.new_taxonomy
-                            }
-                            for (var i = 0; i < full.data.taxonomy.length; i++) {
-                                if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    //return full.data.taxonomy[i].fields.scientific_name
-                                    let value = full.data.taxonomy[i].fields.scientific_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                }
-                            }                               
-                            return '';
-                        }
-
-                        //return full.data.taxonomy.fields.scientific_name;
-                        let value = full.data.taxonomy.fields.scientific_name;
-                        let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
-                    } else {
-                        return ''
-                    }
-                },
-                name: 'scientific_name', //_name',
-            };
-        },
-        column_non_current_name: function () {
-            return {
-                data: 'data.data.taxonomy.fields.non_current_name', 
-                defaultContent: '',
-                orderable: false,
-                searchable: true,
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.taxonomy !== undefined) {
-                        //list not dict
-                        if (full.data.taxonomy.fields === undefined) {
-                            var current_name_pk = '';
-                            //get the crossreference old_tax and compare to pk
-                            if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
-                                current_name_pk = full.data.crossreference.fields.old_taxonomy
-                            } else if (full.data.crossreference.length > 0) {
-                                //get new taxon of highest pk
-                                var highest_pk_index = 0;
-                                for (var i = 0; i < full.data.crossreference.length; i++) {
-                                    if (full.data.crossreference[i].pk > full.data.crossreference[highest_pk_index].pk)
-                                    {
-                                        highest_pk_index = i;
-                                    }
-                                }
-                                current_name_pk = full.data.crossreference[highest_pk_index].fields.old_taxonomy
-                            }
-                            for (var i = 0; i < full.data.taxonomy.length; i++) {
-                                if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    //return full.data.taxonomy[i].fields.scientific_name
-                                    let value = full.data.taxonomy[i].fields.scientific_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                }
-                            }                               
-                            return '';
-                        }
-                        return '';
-                    } else {
-                        return ''
-                    }
-                },
-                name: 'non_current_name', //_name',
-            };
-        },
-        column_common_name: function () {
-            return {
-                data: 'data.data.taxonvernacular.fields.vernacular_name', 
-                defaultContent: '',
-                orderable: false,
-                searchable: true,
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.taxonvernacular !== undefined) {
-                        //list not dict
-                        if (full.data.taxonvernacular.fields === undefined) {
-                            var combined_name = ""
-                            for (var i = 0; i < full.data.taxonvernacular.length; i++) {
-                                if (i==0) {
-                                    combined_name = full.data.taxonvernacular[i].fields.vernacular_name;
-                                } else {
-                                    combined_name += ","+full.data.taxonvernacular[i].fields.vernacular_name
-                                }
-                            }                               
-                            //return combined_name;
-                            let value = combined_name;
-                            let result = helpers.dtPopover(value, 30, 'hover');
-                            return type=='export' ? value : result;
-                        }
-                        //return full.data.taxonvernacular.fields.vernacular_name;
-                        let value = full.data.taxonvernacular.fields.vernacular_name;
-                        let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
-                    } else {
-                        return ''
-                    }
-                },
-                name: 'vernacular_name', //_name',
-            };
-        },
-        column_processing_status: function () {
-            return {
-                
-                data: 'data.data.species.fields.processing_status',
-                defaultContent: '',
-                orderable: true,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.species.fields.processing_status;
+                    if(full.data.conservationstatusdocument.fields.document_category) {
+                        return full.data.conservationstatusdocument.fields.document_category.document_category_name;
+                    } else {
+                        return ''
+                    }
                 },
-                name: 'processing_status',
+                name: 'document_category', //_name',
             };
         },
-        column_comment: function () {
+        column_sub_category: function () {
             return {
-
-                data: 'data.data.species.fields.comment',
+                
+                data: 'data.data.conservationstatusdocument.fields.document_sub_category',
+                defaultContent: '',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if(full.data.conservationstatusdocument.fields.document_sub_category) {
+                        return full.data.conservationstatusdocument.fields.document_sub_category.document_sub_category_name;
+                    } else {
+                        return ''
+                    }
+                },
+                name: 'document_sub_category',
+            };
+        },
+        column_file: function () {
+            return {
+                // 3. File
+                data: 'data.data.conservationstatusdocument.fields.name',
+                defaultContent: '',
+                orderable: false,
+                searchable: true, 
+                visible: true,
+                mRender: function (row, type, full) {
+                    let links='';
+                    if(full.data.conservationstatusdocument.fields.visible){
+                        let name = full.data.conservationstatusdocument.fields.name;
+                        if (name.length > 30)
+                        {
+                            name = name.substring(0, 27) + "...";
+                        }
+                        links+='<a href="/private-media/'+ full.data.conservationstatusdocument.fields._file+'" target="_blank"><p>' + name + '</p></a>' ;
+                    }else{
+                        let value = full.data.conservationstatusdocument.fields.name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        links+='<s>'+ type=='export' ? value : result +'</s>';
+                    }
+                    return links;
+                },
+                name: 'name',
+            };
+        },
+        column_description: function () {
+            return {
+                // 4. Description
+                data: 'data.data.conservationstatusdocument.fields.description',
                 defaultContent: '',
                 orderable: false,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    //return full.data.species.fields.comment;
-                    let value = full.data.species.fields.comment;
+                    let value = full.data.conservationstatusdocument.fields.description;
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type=='export' ? value : result;
                 },
-                name: 'comment',
+                name: 'description',
             };
         },
         column_action: function () {
@@ -350,12 +274,12 @@ export default {
             let vm = this;
             let columns = [
                 vm.column_sequence,
+                //vm.column_number,
                 vm.column_revision_date,
-                vm.column_scientific_name,
-                vm.column_common_name,
-                vm.column_non_current_name,
-                vm.column_processing_status,
-                vm.column_comment,
+                vm.column_category,
+                vm.column_sub_category,
+                vm.column_file,
+                vm.column_description,
                 vm.column_action,
             ];
             return {
@@ -369,7 +293,7 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_species(this.speciesId)+"?format=datatables",
+                    url: api_endpoints.lookup_history_conservation_status_document(this.documentId)+"?format=datatables",
                     dataSrc: 'data',
                 },
                 buttons: [
@@ -395,9 +319,6 @@ export default {
                          "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
                 processing: true,
-                initComplete: function() {
-                    helpers.enablePopovers();
-                },
             };
         },
     },
@@ -434,3 +355,22 @@ export default {
         },
 };
 </script>
+
+<style lang="css" scoped>
+    /*ul, li {
+        zoom:1;
+        display: inline;
+    }*/
+    fieldset.scheduler-border {
+    border: 1px groove #ddd !important;
+    padding: 0 1.4em 1.4em 1.4em !important;
+    margin: 0 0 1.5em 0 !important;
+    -webkit-box-shadow:  0px 0px 0px 0px #000;
+            box-shadow:  0px 0px 0px 0px #000;
+    }
+    legend.scheduler-border {
+    width:inherit; /* Or auto */
+    padding:0 10px; /* To give a bit of padding on the left and right */
+    border-bottom:none;
+    }
+</style>

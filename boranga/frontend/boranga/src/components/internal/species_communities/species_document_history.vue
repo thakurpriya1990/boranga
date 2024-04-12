@@ -2,7 +2,7 @@
     <div id="speciesDocumentHistory">
         <modal
             transition="modal fade"
-            :title="'Species '+ speciesId +' - Document ' + documentId + ' - History ' "
+            :title="'Species S'+ speciesId +' - Document D' + documentId + ' - History ' "
             :large="true"
             :full="true"
             :showOK="false"
@@ -116,7 +116,11 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.speciesdocument.fields.document_number+'-'+full.revision_sequence;
+                    if (full.data.speciesdocument.fields.document_number) {
+                        return full.data.speciesdocument.fields.document_number+'-'+full.revision_sequence;
+                    } else {
+                        return "D"+full.data.speciesdocument.pk+'-'+full.revision_sequence;
+                    }
                 },
                 name: 'revision_sequence',
             };
@@ -179,16 +183,15 @@ export default {
                 data: 'data.data.speciesdocument.fields.document_category', 
                 //data: 'data.data.documentcategory.fields.document_category_name', //used for testing
                 defaultContent: '',
-                orderable: true,
-                searchable: true, 
+                orderable: false,
+                searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.speciesdocument.fields.document_category;
-                    //if (full.data.documentcategory !== undefined) {
-                    //    return full.data.documentcategory.fields.document_category_name;
-                    //} else {
-                    //    return ''
-                    //}
+                    if(full.data.speciesdocument.fields.document_category) {
+                        return full.data.speciesdocument.fields.document_category.document_category_name;
+                    } else {
+                        return ''
+                    }
                 },
                 name: 'document_category', //_name',
             };
@@ -198,11 +201,15 @@ export default {
                 
                 data: 'data.data.speciesdocument.fields.document_sub_category',
                 defaultContent: '',
-                orderable: true,
+                orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.speciesdocument.fields.document_sub_category;
+                    if(full.data.speciesdocument.fields.document_sub_category) {
+                        return full.data.speciesdocument.fields.document_sub_category.document_sub_category_name;
+                    } else {
+                        return ''
+                    }
                 },
                 name: 'document_sub_category',
             };

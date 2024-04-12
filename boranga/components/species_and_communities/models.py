@@ -911,7 +911,7 @@ class SpeciesDistribution(models.Model):
         return str(self.id)  # TODO: is the most appropriate?
 
 
-class Community(models.Model):
+class Community(RevisionedMixin):
     """
     A collection of 2 or more Species within a specific location.
 
@@ -1405,7 +1405,7 @@ class CommunityDistribution(models.Model):
         return str(self.id)  # TODO: is the most appropriate?
 
 
-class DocumentCategory(RevisionedMixin):
+class DocumentCategory(models.Model):
     """
     This is particularly useful for organisation of documents e.g. preventing inappropriate documents being added
     to certain tables.
@@ -1685,7 +1685,7 @@ class ThreatAgent(models.Model):
         return str(self.name)
 
 
-class ConservationThreat(models.Model):
+class ConservationThreat(RevisionedMixin):
     """
     Threat for a species and community in a particular location.
 
@@ -1902,11 +1902,27 @@ class CommunityConservationAttributes(models.Model):
         return str(self.community)  # TODO: is the most appropriate?
 
 import reversion
+
+#Species Document History
 reversion.register(SpeciesDocument)
-#reversion.register(DocumentCategory) 
+#reversion.register(DocumentCategory)
+
+#Species History
 reversion.register(Species, follow=["taxonomy","species_distribution","species_conservation_attributes"])
 reversion.register(Taxonomy, follow=["taxon_previous_queryset","vernaculars"])
 reversion.register(CrossReference, follow=["old_taxonomy"])
 reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)
 reversion.register(TaxonVernacular)
+
+#Community Document
+reversion.register(CommunityDocument)
+
+#Community History
+reversion.register(Community, follow=["taxonomy","community_distribution","community_conservation_attributes"])
+reversion.register(CommunityTaxonomy)
+reversion.register(CommunityDistribution)
+reversion.register(CommunityConservationAttributes)
+
+#Conservation Threat
+reversion.register(ConservationThreat)

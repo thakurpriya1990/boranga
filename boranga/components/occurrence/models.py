@@ -17,7 +17,7 @@ from multiselectfield import MultiSelectField
 
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
-from boranga.components.main.models import CommunicationsLogEntry, Document, UserAction
+from boranga.components.main.models import CommunicationsLogEntry, Document, UserAction, RevisionedMixin
 from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
     send_occurrence_report_amendment_email_notification,
@@ -58,7 +58,7 @@ def update_occurrence_report_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/occurrence_report/{instance.occurrence_report.id}/documents/{filename}"
 
 
-class OccurrenceReport(models.Model):
+class OccurrenceReport(RevisionedMixin):
     """
     Occurrence Report for any particular species or community
 
@@ -2151,7 +2151,7 @@ class OccurrenceReportShapefileDocument(Document):
         app_label = "boranga"
 
 
-class OCRConservationThreat(models.Model):
+class OCRConservationThreat(RevisionedMixin):
     """
     Threat for a occurrence_report in a particular location.
 
@@ -2226,7 +2226,7 @@ class OccurrenceManager(models.Manager):
         )
 
 
-class Occurrence(models.Model):
+class Occurrence(RevisionedMixin):
     objects = OccurrenceManager()
     occurrence_number = models.CharField(max_length=9, blank=True, default="")
     group_type = models.ForeignKey(
@@ -2363,3 +2363,17 @@ class OccurrenceUserAction(UserAction):
     occurrence = models.ForeignKey(
         Occurrence, related_name="action_logs", on_delete=models.CASCADE
     )
+
+import reversion
+
+#Occurrence Report Document
+reversion.register(OccurrenceReportDocument)
+
+#Occurrence Report Threat
+reversion.register(OCRConservationThreat)
+
+#Occurrence Report
+reversion.register(OccurrenceReport, follow=["species","community"])
+
+#Occurrence
+reversion.register(Occurrence, follow=["species","community"])
