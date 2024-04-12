@@ -222,6 +222,10 @@ module.exports = {
       return `/api/history/boranga/occurrence/OccurrenceReport/${id}/`;
     },
 
+    lookup_history_occurrence:function (id) {
+      return `/api/history/boranga/occurrence/Occurrence/${id}/`;
+    },
+
     lookup_history_conservation_threat:function (id) {
       return `/api/history/boranga/species_communities/ConservationThreat/${id}/`;
     },

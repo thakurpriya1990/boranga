@@ -895,4 +895,4 @@ export default {
     margin: 5px;
 }
 
-</style>../internal/occurrence/species_occurrence_report_history.vue
+</style>

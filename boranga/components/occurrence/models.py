@@ -2347,7 +2347,7 @@ reversion.register(OccurrenceReportDocument)
 reversion.register(OCRConservationThreat)
 
 #Occurrence Report
-reversion.register(OccurrenceReport, follow=["species","community","occurrence"])
+reversion.register(OccurrenceReport, follow=["species","community"])
 
 #Occurrence
-reversion.register(Occurrence)
+reversion.register(Occurrence, follow=["species","community"])
