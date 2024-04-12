@@ -162,7 +162,7 @@
                                     </div>
                                     <button
                                         type="button"
-                                        class="btn btn-secondary me-1 min-width-60"
+                                        class="btn btn-secondary me-1"
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="top"
                                         data-bs-title="Zoom to feature"
@@ -193,20 +193,22 @@
                                             src="../../assets/map-zoom.svg"
                                         />
                                     </button>
-                                    <!-- <label
-                                        :for="`feature-${feature.ol_uid}-checkbox`"
-                                        class="input-group-text me-1 col-sm-3"
-                                    >
-                                        {{ feature.getGeometry().getType() }}
-                                    </label> -->
                                     <!-- TODO: N-S Extents of WA -->
                                     <!-- Latitude -->
                                     <label
+                                        v-if="
+                                            feature.getGeometry().getType() ===
+                                            'Point'
+                                        "
                                         :for="`feature-${feature.ol_uid}-latitude-input`"
                                         class="input-group-text"
                                         >Lat</label
                                     >
                                     <input
+                                        v-if="
+                                            feature.getGeometry().getType() ===
+                                            'Point'
+                                        "
                                         :id="`feature-${feature.ol_uid}-latitude-input`"
                                         class="form-control min-width-120"
                                         placeholder="Latitude"
@@ -217,11 +219,19 @@
                                     <!-- TODO: W-E Extents of WA -->
                                     <!-- Longitude -->
                                     <label
+                                        v-if="
+                                            feature.getGeometry().getType() ===
+                                            'Point'
+                                        "
                                         :for="`feature-${feature.ol_uid}-longitude-input`"
                                         class="input-group-text"
                                         >Lon</label
                                     >
                                     <input
+                                        v-if="
+                                            feature.getGeometry().getType() ===
+                                            'Point'
+                                        "
                                         :id="`feature-${feature.ol_uid}-longitude-input`"
                                         class="form-control min-width-120 me-1"
                                         placeholder="Longitude"
@@ -230,7 +240,7 @@
                                         max="180"
                                     />
                                     <div
-                                        class="form-control input-group-text min-width-150"
+                                        class="form-control input-group-text min-width-150 justify-content-end"
                                     >
                                         <SelectFilter
                                             :id="`feature-${feature.ol_uid}-select`"
@@ -3346,7 +3356,7 @@ export default {
 </style>
 <style>
 .min-width-60 {
-    min-width: 30px !important;
+    min-width: 60px !important;
 }
 .min-width-90 {
     min-width: 90px !important;
