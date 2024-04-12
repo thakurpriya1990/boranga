@@ -104,6 +104,7 @@ module.exports = {
     species_agenda_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/agenda_cs_internal/?format=datatables",
     community_agenda_conservation_status_paginated_internal: "/api/community_conservation_status_paginated/agenda_cs_internal/?format=datatables",
     meetings_paginated:   "/api/meeting_paginated/?format=datatables",
+    meeting_export: "/api/meeting_paginated/meeting_export",
     meeting_agenda_items:"/api/meeting_agenda_items.json",
     filter_lists_species:"/api/filter_lists_species",
     group_types_dict:"/api/group_types_dict",

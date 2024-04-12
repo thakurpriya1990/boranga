@@ -254,9 +254,6 @@ export default {
 
             let columns = []
             let search = null
-            let buttons = []
-            
-            
             columns = [
                 vm.column_id,
                 vm.column_title,
@@ -267,27 +264,22 @@ export default {
                 vm.column_action,
             ]
             search = true
-            buttons = [ 
-                { 
-                    extend: 'excel', 
-                    text: '<i class="fa-solid fa-download"></i> Excel', 
-                    className: 'btn btn-primary me-2 rounded', 
-                    exportOptions: { 
-                        orthogonal: 'export'
-                    } 
-                }, 
-                { 
-                    extend: 'csv', 
-                    text: '<i class="fa-solid fa-download"></i> CSV', 
-                    className: 'btn btn-primary rounded', 
-                    exportOptions: { 
-                        orthogonal: 'export',
-                    } 
-                }, 
+            let buttons = [
+                {
+                    text: '<i class="fa-solid fa-download"></i> Excel',
+                    className: 'btn btn-primary me-2 rounded',
+                    action: function (e, dt, node, config) {
+                        vm.exportData("excel");
+                    }
+                },
+                {
+                    text: '<i class="fa-solid fa-download"></i> CSV',
+                    className: 'btn btn-primary rounded',
+                    action: function (e, dt, node, config) {
+                        vm.exportData("csv");
+                    }
+                }
             ]
-
-            
-
             return {
                 autoWidth: false,
                 language: {
@@ -403,6 +395,160 @@ export default {
                 var id = $(this).attr('data-discard-meeting');
                 vm.discardMeeting(id);
             });
+        },
+        exportData: function (format) {
+            let vm = this;
+            const columns_new = {
+                "0": {
+                    "data": "meeting",
+                    "name": "meeting__id, meeting__meeting_number",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "false"
+                },
+                "1": {
+                    "data": "meeting",
+                    "name": "meeting__title",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "2": {
+                    "data": "meeting_room",
+                    "name": "meeting__meeting_room__room_name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "3": {
+                    "data": "meeting",
+                    "name": "meeting__start_date",
+                    "searchable": "true",
+                    "orderable": "true",
+                    "search": {
+                        "value": "",
+                        "regex": "false"
+                    }
+                },
+                "4": {
+                    "data": "meeting",
+                    "name": "meeting__end_date",
+                    "searchable": "true",
+                    "orderable": "true",
+                    "search": {
+                        "value": "",
+                        "regex": "false"
+                    }
+                },
+                "5": {
+                    "data": "processing_status",
+                    "name": "meeting__processing_status",
+                    "searchable": "true",
+                    "orderable": "true",
+                    "search": {
+                        "value": "",
+                        "regex": "false"
+                    }
+                },
+            };
+
+            const object_load = {
+                columns: columns_new,
+                filter_start_date: vm.filterMeetingStartDate,
+                filter_end_date: vm.filterMeetingEndDate,
+                filter_meeting_status: vm.filterMeetingStatus,
+                is_internal: vm.is_internal,
+                export_format: format
+            };
+
+            const url = api_endpoints.meeting_export;
+            const keyValuePairs = [];
+
+            for (const key in object_load) {
+                if (object_load.hasOwnProperty(key)) {
+                    const encodedKey = encodeURIComponent(key);
+                    let encodedValue = '';
+
+                    if (typeof object_load[key] === 'object') {
+                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
+                    }
+                    else {
+                        encodedValue = encodeURIComponent(object_load[key]);
+                    }
+                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
+                }
+            }
+            const params = keyValuePairs.join('&');
+            const fullUrl = `${url}?${params}`;
+            try {
+                if (format === "excel") {
+                    $.ajax({
+                        type: "GET",
+                        url: fullUrl,
+                        contentType: "application/vnd.ms-excel",
+                        dataType: "binary",
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+
+                        success: function (response, status, request) {
+                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
+                            var filename = contentDispositionHeader.split('filename=')[1];
+                            window.URL = window.URL || window.webkitURL;
+                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
+
+                            var downloadUrl = window.URL.createObjectURL(blob);
+                            var a = document.createElement("a");
+                            a.href = downloadUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(error);
+                        },
+                    });
+                }
+                else if (format === "csv") {
+                    $.ajax({
+                        type: "GET",
+                        url: fullUrl,
+                        success: function (response, status, request) {
+                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
+                            var filename = contentDispositionHeader.split('filename=')[1];
+                            window.URL = window.URL || window.webkitURL;
+                            var blob = new Blob([response], { type: "text/csv" });
+
+                            var downloadUrl = window.URL.createObjectURL(blob);
+                            var a = document.createElement("a");
+                            a.href = downloadUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(error);
+                        },
+                    });
+                }
+            }
+            catch (err) {
+                console.log(err);
+                if (vm.is_internal) {
+                    return err;
+                }
+            }
         },
     },
     mounted: function() {
