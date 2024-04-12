@@ -211,6 +211,11 @@
                                         "
                                         :id="`feature-${feature.ol_uid}-latitude-input`"
                                         class="form-control min-width-120"
+                                        :value="
+                                            feature
+                                                .getGeometry()
+                                                .getCoordinates()[1]
+                                        "
                                         placeholder="Latitude"
                                         type="number"
                                         min="-90"
@@ -234,6 +239,11 @@
                                         "
                                         :id="`feature-${feature.ol_uid}-longitude-input`"
                                         class="form-control min-width-120 me-1"
+                                        :value="
+                                            feature
+                                                .getGeometry()
+                                                .getCoordinates()[0]
+                                        "
                                         placeholder="Longitude"
                                         type="number"
                                         min="-180"
@@ -252,7 +262,9 @@
                                             :options="
                                                 coordinateReferenceSystems
                                             "
-                                            :pre-selected-filter-item="4326"
+                                            :pre-selected-filter-item="
+                                                feature.getProperties().srid
+                                            "
                                             classes="min-width-120"
                                         />
                                     </div>
