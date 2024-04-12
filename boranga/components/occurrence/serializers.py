@@ -38,10 +38,24 @@ from boranga.components.occurrence.models import (
     SecondarySign,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
-from boranga.helpers import is_assessor, is_internal
+from boranga.helpers import is_approver, is_assessor, is_internal
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
+
+
+class OccurrenceSerializer(serializers.ModelSerializer):
+    processing_status_display = serializers.CharField(
+        source="get_processing_status_display"
+    )
+    scientific_name = serializers.CharField(
+        source="species.taxonomy.scientific_name", allow_null=True
+    )
+    group_type = serializers.CharField(source="group_type.name", allow_null=True)
+
+    class Meta:
+        model = Occurrence
+        fields = "__all__"
 
 
 class ListOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -103,8 +117,20 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         source="get_processing_status_display"
     )
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    effective_from = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
+    effective_to = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
+    review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
+    reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     internal_user_edit = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
+    occurrence = serializers.IntegerField(source="occurrence.id", allow_null=True)
+    occurrence_name = serializers.CharField(
+        source="occurrence.occurrence_number", allow_null=True
+    )
 
     class Meta:
         model = OccurrenceReport
@@ -122,6 +148,11 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "can_user_view",
             "can_user_assess",
             "internal_user_edit",
+            "occurrence",
+            "occurrence_name",
+            "effective_from",
+            "effective_to",
+            "review_due_date",
         )
         datatables_always_serialize = (
             "id",
@@ -522,20 +553,6 @@ class OccurrenceLogEntrySerializer(CommunicationLogEntrySerializer):
         return [[d.name, d._file.url] for d in obj.documents.all()]
 
 
-class OccurrenceSerializer(serializers.ModelSerializer):
-    processing_status_display = serializers.CharField(
-        source="get_processing_status_display"
-    )
-    scientific_name = serializers.CharField(
-        source="species.taxonomy.scientific_name", allow_null=True
-    )
-    group_type = serializers.CharField(source="group_type.name", allow_null=True)
-
-    class Meta:
-        model = Occurrence
-        fields = "__all__"
-
-
 class ListOccurrenceSerializer(OccurrenceSerializer):
     can_user_assess = serializers.SerializerMethodField()
 
@@ -749,7 +766,9 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
 
 
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
+    can_user_approve = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
+    can_user_action = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -775,6 +794,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "can_user_edit",
             "can_user_view",
             "can_user_assess",
+            "can_user_approve",
+            "can_user_action",
             "reference",
             "applicant_details",
             "allowed_assessors",
@@ -803,7 +824,19 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             is_assessor(request.user)
             and obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            and obj.assigned_officer == request.user.id
         )
+
+    def get_can_user_approve(self, obj):
+        request = self.context["request"]
+        return (
+            is_approver(request.user)
+            and obj.processing_status == OccurrenceReport.CUSTOMER_STATUS_WITH_APPROVER
+            and obj.assigned_approver == request.user.id
+        )
+
+    def get_can_user_action(self, obj):
+        return self.get_can_user_assess(obj) or self.get_can_user_approve(obj)
 
     def get_current_assessor(self, obj):
         user = self.context["request"].user
