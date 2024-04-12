@@ -189,7 +189,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": 'data',
@@ -326,7 +326,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": 'data',
@@ -390,8 +390,8 @@ export default {
                             let links = '';
                             if (!vm.is_external){
                                 /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                                if(full.assessor_process){   
-                                        links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;    
+                                if(full.assessor_process){
+                                        links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;
                                 }
                                 else{
                                     links +=  `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
@@ -513,7 +513,7 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
-        
+
     },
     methods:{
         make_payment: function(fee_invoice_reference){
@@ -614,7 +614,7 @@ export default {
             vm.$refs.proposal_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -648,7 +648,7 @@ export default {
                         else{
                             return false;
                         }
-                    } 
+                    }
                     else{
                         return false;
                     }
@@ -662,10 +662,10 @@ export default {
             Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
-                              
+
             },(error) => {
                 console.log(error);
-                
+
             })
         },
 
@@ -683,14 +683,14 @@ export default {
                  var assessor = proposal.allowed_assessors.filter(function(elem){
                     return(elem.id=vm.profile.id)
                 });
-                
+
                 if (assessor.length > 0)
                     return true;
                 else
                     return false;
-              
+
             }
-            
+
         },
     },
 

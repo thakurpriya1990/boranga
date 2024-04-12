@@ -5,57 +5,57 @@
                 <div class="col-md-3">
                     <div class="form-group" id="select_scientific_name">
                         <label for="cs_scientific_name_lookup">Scientific Name:</label>
-                        <select 
-                            id="cs_scientific_name_lookup"  
-                            name="cs_scientific_name_lookup"  
-                            ref="cs_scientific_name_lookup" 
+                        <select
+                            id="cs_scientific_name_lookup"
+                            name="cs_scientific_name_lookup"
+                            ref="cs_scientific_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group" id="select_common_name">
                         <label for="cs_common_name_lookup">Common Name:</label>
-                        <select 
-                            id="cs_common_name_lookup"  
-                            name="cs_common_name_lookup"  
-                            ref="cs_common_name_lookup" 
+                        <select
+                            id="cs_common_name_lookup"
+                            name="cs_common_name_lookup"
+                            ref="cs_common_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group" id="select_phylo_group">
                         <label for="cs_phylo_group_lookup">Phylo Group:</label>
-                        <select 
-                            id="cs_phylo_group_lookup"  
-                            name="cs_phylo_group_lookup"  
-                            ref="cs_phylo_group_lookup" 
+                        <select
+                            id="cs_phylo_group_lookup"
+                            name="cs_phylo_group_lookup"
+                            ref="cs_phylo_group_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group" id="select_family">
                         <label for="cs_family_lookup">Family:</label>
-                        <select 
-                            id="cs_family_lookup"  
-                            name="cs_family_lookup"  
-                            ref="cs_family_lookup" 
+                        <select
+                            id="cs_family_lookup"
+                            name="cs_family_lookup"
+                            ref="cs_family_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group" id="select_genera">
                         <label for="cs_genera_lookup">Genera:</label>
-                        <select 
-                            id="cs_genera_lookup"  
-                            name="cs_genera_lookup"  
-                            ref="cs_genera_lookup" 
+                        <select
+                            id="cs_genera_lookup"
+                            name="cs_genera_lookup"
+                            ref="cs_genera_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSFaunaConservationList" 
+                        <select class="form-select" v-model="filterCSFaunaConservationList"
                         @change="filterConservationCategory($event)">
                             <option value="all">All</option>
                             <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
@@ -113,7 +113,7 @@
                 </div>
             </div>
         </CollapsibleFilters>
-        
+
         <div v-if="addFaunaCSVisibility && is_for_agenda==false" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
@@ -264,33 +264,33 @@ export default {
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
-            
+
             // selected values for filtering
-            filterCSFaunaScientificName: sessionStorage.getItem(this.filterCSFaunaScientificName_cache) ? 
+            filterCSFaunaScientificName: sessionStorage.getItem(this.filterCSFaunaScientificName_cache) ?
                                     sessionStorage.getItem(this.filterCSFaunaScientificName_cache) : 'all',
 
-            filterCSFaunaCommonName: sessionStorage.getItem(this.filterCSFaunaCommonName_cache) ? 
+            filterCSFaunaCommonName: sessionStorage.getItem(this.filterCSFaunaCommonName_cache) ?
                                     sessionStorage.getItem(this.filterCSFaunaCommonName_cache) : 'all',
 
-            filterCSFaunaPhylogeneticGroup: sessionStorage.getItem(this.filterCSFaunaPhylogeneticGroup_cache) ? 
+            filterCSFaunaPhylogeneticGroup: sessionStorage.getItem(this.filterCSFaunaPhylogeneticGroup_cache) ?
                                             sessionStorage.getItem(this.filterCSFaunaPhylogeneticGroup_cache) : 'all',
 
-            filterCSFaunaFamily: sessionStorage.getItem(this.filterCSFaunaFamily_cache) ? 
+            filterCSFaunaFamily: sessionStorage.getItem(this.filterCSFaunaFamily_cache) ?
                                 sessionStorage.getItem(this.filterCSFaunaFamily_cache) : 'all',
 
-            filterCSFaunaGenus: sessionStorage.getItem(this.filterCSFaunaGenus_cache) ? 
+            filterCSFaunaGenus: sessionStorage.getItem(this.filterCSFaunaGenus_cache) ?
                                 sessionStorage.getItem(this.filterCSFaunaGenus_cache) : 'all',
 
-            filterCSFaunaConservationList: sessionStorage.getItem(this.filterCSFaunaConservationList_cache) ? 
+            filterCSFaunaConservationList: sessionStorage.getItem(this.filterCSFaunaConservationList_cache) ?
                                     sessionStorage.getItem(this.filterCSFaunaConservationList_cache) : 'all',
 
-            filterCSFaunaConservationCategory: sessionStorage.getItem(this.filterCSFaunaConservationCategory_cache) ? 
+            filterCSFaunaConservationCategory: sessionStorage.getItem(this.filterCSFaunaConservationCategory_cache) ?
                                     sessionStorage.getItem(this.filterCSFaunaConservationCategory_cache) : 'all',
 
-            filterCSFaunaRegion: sessionStorage.getItem(this.filterCSFaunaRegion_cache) ? 
+            filterCSFaunaRegion: sessionStorage.getItem(this.filterCSFaunaRegion_cache) ?
                                     sessionStorage.getItem(this.filterCSFaunaRegion_cache) : 'all',
 
-            filterCSFaunaDistrict: sessionStorage.getItem(this.filterCSFaunaDistrict_cache) ? 
+            filterCSFaunaDistrict: sessionStorage.getItem(this.filterCSFaunaDistrict_cache) ?
                                     sessionStorage.getItem(this.filterCSFaunaDistrict_cache) : 'all',
 
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
@@ -316,7 +316,7 @@ export default {
             region_list: [],
             district_list: [],
             filtered_district_list: [],
-            
+
             // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
@@ -337,7 +337,7 @@ export default {
                 {value: 'discarded', name: 'Discarded'},
                 {value: 'closed', name: 'Closed'},
             ],
-            
+
             proposal_status: [],
         }
     },
@@ -351,36 +351,36 @@ export default {
         filterCSFaunaScientificName: function(){
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaScientificName_cache, vm.filterCSFaunaScientificName);  
+            sessionStorage.setItem(vm.filterCSFaunaScientificName_cache, vm.filterCSFaunaScientificName);
         },
         filterCSFaunaCommonName: function() {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaCommonName_cache, vm.filterCSFaunaCommonName);  
+            sessionStorage.setItem(vm.filterCSFaunaCommonName_cache, vm.filterCSFaunaCommonName);
         },
         filterCSFaunaPhylogeneticGroup: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call. 
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaPhylogeneticGroup_cache, vm.filterCSFaunaPhylogeneticGroup);
         },
         filterCSFaunaFamily: function() {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaFamily_cache, vm.filterCSFaunaFamily);  
+            sessionStorage.setItem(vm.filterCSFaunaFamily_cache, vm.filterCSFaunaFamily);
         },
         filterCSFaunaGenus: function() {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaGenus_cache, vm.filterCSFaunaGenus);  
+            sessionStorage.setItem(vm.filterCSFaunaGenus_cache, vm.filterCSFaunaGenus);
         },
         filterCSFaunaConservationList: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaConservationList_cache, vm.filterCSFaunaConservationList);
         },
         filterCSFaunaConservationCategory: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaConservationCategory_cache, vm.filterCSFaunaConservationCategory);
         },
         filterCSFaunaRegion: function(){
@@ -405,7 +405,7 @@ export default {
         },
         filterCSFaunaApplicationStatus: function() {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaApplicationStatus_cache, vm.filterCSFaunaApplicationStatus);
         },
         filterApplied: function(){
@@ -417,15 +417,15 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCSFaunaScientificName === 'all' && 
-                this.filterCSFaunaCommonName === 'all' && 
-                this.filterCSFaunaPhylogeneticGroup === 'all' && 
-                this.filterCSFaunaFamily === 'all' && 
-                this.filterCSFaunaGenus === 'all' && 
-                this.filterCSFaunaConservationList === 'all' && 
-                this.filterCSFaunaConservationCategory === 'all' && 
-                this.filterCSFaunaRegion === 'all' && 
-                this.filterCSFaunaDistrict === 'all' && 
+            if(this.filterCSFaunaScientificName === 'all' &&
+                this.filterCSFaunaCommonName === 'all' &&
+                this.filterCSFaunaPhylogeneticGroup === 'all' &&
+                this.filterCSFaunaFamily === 'all' &&
+                this.filterCSFaunaGenus === 'all' &&
+                this.filterCSFaunaConservationList === 'all' &&
+                this.filterCSFaunaConservationCategory === 'all' &&
+                this.filterCSFaunaRegion === 'all' &&
+                this.filterCSFaunaDistrict === 'all' &&
                 this.filterCSFaunaApplicationStatus === 'all' &&
                 this.filterCSFaunaEffectiveFromDate === '' &&
                 this.filterCSFaunaEffectiveToDate === ''){
@@ -452,11 +452,11 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
+                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List',
                     'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
             if (this.is_internal){
-                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
+                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List',
                     'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
         },
@@ -784,7 +784,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: search,
@@ -829,7 +829,7 @@ export default {
                 },
             }
         }
-    
+
     },
     methods:{
         historyDocument: function(id,list,species){
@@ -1099,7 +1099,7 @@ export default {
                         {
                           this.filtered_district_list.push(choice);
                         }
-                        
+
                     }
                 });
         },
@@ -1196,7 +1196,7 @@ export default {
             vm.$refs.fauna_cs_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -1206,10 +1206,10 @@ export default {
             /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
-                              
+
             },(error) => {
                 console.log(error);
-                
+
             })*/
         },
 
@@ -1227,12 +1227,12 @@ export default {
                  var assessor = proposal.allowed_assessors.filter(function(elem){
                     return(elem.id=vm.profile.id)
                 });
-                
+
                 if (assessor.length > 0)
                     return true;
                 else
                     return false;
-              
+
             }
 
         },
@@ -1348,7 +1348,7 @@ export default {
                         "value": ""
                     },
                     "searchable": "false"
-                }, 
+                },
                 "11": {
                     "data": "region",
                     "name": "region__name",

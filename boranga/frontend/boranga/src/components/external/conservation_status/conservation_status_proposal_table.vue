@@ -15,27 +15,27 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="cs_scientific_name_lookup">Scientific Name:</label>
-                        <select 
-                            id="cs_scientific_name_lookup"  
-                            name="cs_scientific_name_lookup"  
-                            ref="cs_scientific_name_lookup" 
+                        <select
+                            id="cs_scientific_name_lookup"
+                            name="cs_scientific_name_lookup"
+                            ref="cs_scientific_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="cs_community_name_lookup">Community Name:</label>
-                        <select 
-                            id="cs_community_name_lookup"  
-                            name="cs_community_name_lookup"  
-                            ref="cs_community_name_lookup" 
+                        <select
+                            id="cs_community_name_lookup"
+                            name="cs_community_name_lookup"
+                            ref="cs_community_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSConservationList" 
+                        <select class="form-select" v-model="filterCSConservationList"
                         @change="filterConservationCategory($event)">
                             <option value="all">All</option>
                             <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
@@ -75,7 +75,7 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="cs_proposal_type">
                     <li v-for="group in group_types">
-                        <a class="dropdown-item" 
+                        <a class="dropdown-item"
                             @click.prevent="createConservationStatus(group.id)">{{ group.display }}
                         </a>
                     </li>
@@ -161,27 +161,27 @@ export default {
         let vm = this;
         return {
             datatable_id: 'conservation_status-datatable-'+vm._uid,
-     
+
             //Profile to check if user has access to process Proposal
             profile: {},
-            
-            
+
+
 
             // selected values for filtering
-            
-            filterCSGroupType: sessionStorage.getItem(this.filterCSGroupType_cache) ? 
+
+            filterCSGroupType: sessionStorage.getItem(this.filterCSGroupType_cache) ?
                                    sessionStorage.getItem(this.filterCSGroupType_cache) : 'all',
 
-            filterCSScientificName: sessionStorage.getItem(this.filterCSScientificName_cache) ? 
+            filterCSScientificName: sessionStorage.getItem(this.filterCSScientificName_cache) ?
                                    sessionStorage.getItem(this.filterCSScientificName_cache) : 'all',
 
-            filterCSExCommunityName: sessionStorage.getItem(this.filterCSExCommunityName_cache) ? 
+            filterCSExCommunityName: sessionStorage.getItem(this.filterCSExCommunityName_cache) ?
                                    sessionStorage.getItem(this.filterCSExCommunityName_cache) : 'all',
 
-            filterCSConservationList: sessionStorage.getItem(this.filterCSConservationList_cache) ? 
+            filterCSConservationList: sessionStorage.getItem(this.filterCSConservationList_cache) ?
                                     sessionStorage.getItem(this.filterCSConservationList_cache) : 'all',
 
-            filterCSConservationCategory: sessionStorage.getItem(this.filterCSConservationCategory_cache) ? 
+            filterCSConservationCategory: sessionStorage.getItem(this.filterCSConservationCategory_cache) ?
                                     sessionStorage.getItem(this.filterCSConservationCategory_cache) : 'all',
 
             filterCSApplicationStatus: sessionStorage.getItem(this.filterCSApplicationStatus_cache) ?
@@ -193,7 +193,7 @@ export default {
             conservation_list_dict: [],
             conservation_category_list: [],
             filtered_conservation_category_list: [],
-            
+
             // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
@@ -215,36 +215,36 @@ export default {
         filterCSGroupType: function(){
             let vm = this;
             vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSGroupType_cache, vm.filterCSGroupType);  
+            sessionStorage.setItem(vm.filterCSGroupType_cache, vm.filterCSGroupType);
         },
         filterCSScientificName: function(){
             let vm = this;
             vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSScientificName_cache, vm.filterCSScientificName);  
+            sessionStorage.setItem(vm.filterCSScientificName_cache, vm.filterCSScientificName);
         },
         filterCSExCommunityName: function(){
             let vm = this;
             vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSExCommunityName_cache, vm.filterCSExCommunityName);  
+            sessionStorage.setItem(vm.filterCSExCommunityName_cache, vm.filterCSExCommunityName);
         },
         filterCSScientificName: function(){
             let vm = this;
             vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSScientificName_cache, vm.filterCSScientificName);  
+            sessionStorage.setItem(vm.filterCSScientificName_cache, vm.filterCSScientificName);
         },
         filterCSConservationList: function() {
             let vm = this;
-            vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSConservationList_cache, vm.filterCSConservationList);
         },
         filterCSConservationCategory: function() {
             let vm = this;
-            vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSConservationCategory_cache, vm.filterCSConservationCategory);
         },
         filterCSApplicationStatus: function() {
             let vm = this;
-            vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSApplicationStatus_cache, vm.filterCSApplicationStatus);
         },
         filterApplied: function(){
@@ -256,12 +256,12 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCSGroupType === 'all' && 
-                this.filterCSScientificName === 'all' && 
+            if(this.filterCSGroupType === 'all' &&
+                this.filterCSScientificName === 'all' &&
                 this.filterCSExCommunityName === 'all' &&
-                this.filterCSConservationList === 'all' && 
-                this.filterCSConservationCategory === 'all' && 
-                this.filterCSApplicationStatus === 'all'){ 
+                this.filterCSConservationList === 'all' &&
+                this.filterCSConservationCategory === 'all' &&
+                this.filterCSApplicationStatus === 'all'){
                 return false
             } else {
                 return true
@@ -277,7 +277,7 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Number','Type','Scientific Name','Community Name','Conservation List', 
+                return ['Number','Type','Scientific Name','Community Name','Conservation List',
                     'Conservation Category','Status', 'Action']
             }
         },
@@ -434,7 +434,7 @@ export default {
                 search = false
                 buttons = []
             }
-            
+
             return {
                 autoWidth: false,
                 language: {
@@ -443,7 +443,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                  //  to show the "workflow Status","Action" columns always in the last position
@@ -480,7 +480,7 @@ export default {
                 },
             }
         }
-    
+
     },
     methods:{
         collapsible_component_mounted: function(){
@@ -660,7 +660,7 @@ export default {
             vm.$refs.conservation_status_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -669,10 +669,10 @@ export default {
             let vm = this;
             /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
-            
+
             },(error) => {
                 console.log(error);
-                
+
             })*/
         },
 
@@ -690,14 +690,14 @@ export default {
                  var assessor = proposal.allowed_assessors.filter(function(elem){
                     return(elem.id=vm.profile.id)
                 });
-                
+
                 if (assessor.length > 0)
                     return true;
                 else
                     return false;
-              
+
             }
-            
+
         },
     },
 

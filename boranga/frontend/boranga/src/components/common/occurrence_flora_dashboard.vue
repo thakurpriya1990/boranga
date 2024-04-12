@@ -20,20 +20,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="">Submitted From Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date"
-                            v-model="filterOCCFloraSubmittedFromDate">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="">Submitted To Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date"
-                            v-model="filterOCCFloraSubmittedToDate">
-                    </div>
-                </div>
             </div>
         </CollapsibleFilters>
         <div class="row">
@@ -109,17 +95,6 @@ export default {
             required: false,
             default: 'filterOCCFloraStatus',
         },
-        filterOCCFloraSubmittedFromDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCCFloraSubmittedFromDate',
-        },
-        filterOCCFloraSubmittedToDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCCFloraSubmittedToDate',
-        },
-
     },
     data() {
         let vm = this;
@@ -141,12 +116,6 @@ export default {
 
             filterOCCFloraStatus: sessionStorage.getItem(this.filterOCCFloraStatus_cache) ?
                 sessionStorage.getItem(this.filterOCCFloraStatus_cache) : 'all',
-
-            filterOCCFloraSubmittedFromDate: sessionStorage.getItem(this.filterOCCFloraSubmittedFromDate_cache) ?
-                sessionStorage.getItem(this.filterOCCFloraSubmittedFromDate_cache) : '',
-
-            filterOCCFloraSubmittedToDate: sessionStorage.getItem(this.filterOCCFloraSubmittedToDate_cache) ?
-                sessionStorage.getItem(this.filterOCCFloraSubmittedToDate_cache) : '',
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -186,18 +155,8 @@ export default {
         },
         filterOCCFloraStatus: function () {
             let vm = this;
-            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call. 
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCCFloraStatus_cache, vm.filterOCCFloraStatus);
-        },
-        filterOCCFloraSubmittedFromDate: function () {
-            let vm = this;
-            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCFloraSubmittedFromDate_cache, vm.filterOCCFloraSubmittedFromDate);
-        },
-        filterOCCFloraSubmittedToDate: function () {
-            let vm = this;
-            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCFloraSubmittedToDate_cache, vm.filterOCCFloraSubmittedToDate);
         },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
@@ -210,9 +169,7 @@ export default {
         filterApplied: function () {
             if (this.filterOCCFloraOccurrence === 'all' &&
                 this.filterOCCFloraScientificName === 'all' &&
-                this.filterOCCFloraStatus === 'all' &&
-                this.filterOCCFloraSubmittedFromDate === '' &&
-                this.filterOCCFloraSubmittedToDate === '') {
+                this.filterOCCFloraStatus === 'all') {
                 return false
             } else {
                 return true
@@ -233,7 +190,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_internal) {
-                return ['Number', 'Scientific Name', 'Number of Reports', 'Status', 'Action']
+                return ['Number', 'Scientific Name', 'Number of Reports', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -266,6 +223,33 @@ export default {
                 data: "number_of_reports",
                 orderable: false,
                 searchable: false,
+            }
+        },
+        column_effective_from: function(){
+            return {
+                data: "effective_from",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "effective_from",
+            }
+        },
+        column_effective_to: function(){
+            return {
+                data: "effective_to",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "effective_to",
+            }
+        },
+        column_review_due_date: function(){
+            return {
+                data: "review_due_date",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "review_due_date",
             }
         },
         column_status: function () {
@@ -311,18 +295,14 @@ export default {
         let search = null
         let buttons = [
             {
+                extend: 'excel',
                 text: '<i class="fa-solid fa-download"></i> Excel',
                 className: 'btn btn-primary me-2 rounded',
-                action: function (e, dt, node, config) {
-                    vm.exportData("excel");
-                }
             },
             {
+                extend: 'csv',
                 text: '<i class="fa-solid fa-download"></i> CSV',
                 className: 'btn btn-primary rounded',
-                action: function (e, dt, node, config) {
-                    vm.exportData("csv");
-                }
             }
         ]
         if (vm.is_internal) {
@@ -330,6 +310,9 @@ export default {
                 vm.column_number,
                 vm.column_scientific_name,
                 vm.column_number_of_reports,
+                vm.column_effective_from,
+                vm.column_effective_to,
+                vm.column_review_due_date,
                 vm.column_status,
                 vm.column_action,
             ]
@@ -344,7 +327,7 @@ export default {
             order: [
                 [0, 'desc']
             ],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            lengthMenu: [[10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"]],
             responsive: true,
             serverSide: true,
             searching: search,
@@ -364,8 +347,6 @@ export default {
                     d.filter_occurrence = vm.filterOCCFloraOccurrence;
                     d.filter_scientific_name = vm.filterOCCFloraScientificName;
                     d.filter_status = vm.filterOCCFloraStatus;
-                    d.filter_submitted_from_date = vm.filterOCCFloraSubmittedFromDate;
-                    d.filter_submitted_to_date = vm.filterOCCFloraSubmittedToDate;
                     d.is_internal = vm.is_internal;
                 }
             },
@@ -636,8 +617,6 @@ methods: {
             filter_occurrence: vm.filterOCCFloraOccurrence,
             filter_scientific_name: vm.filterOCCFloraScientificName,
             filter_status: vm.filterOCCFloraStatus,
-            filter_submitted_from_date: vm.filterOCCFloraSubmittedFromDate,
-            filter_submitted_to_date: vm.filterOCCFloraSubmittedToDate,
             is_internal: vm.is_internal,
             export_format: format
         };

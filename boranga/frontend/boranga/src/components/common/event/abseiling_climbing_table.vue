@@ -1,6 +1,6 @@
 <template id="abseiling_climbing_table">
     <div class="row">
-        <div class="col-sm-12"> 
+        <div class="col-sm-12">
             <div class="row" >
                 <div class="col-md-3" v-if="!proposal.readonly">
                             <!-- <button style="margin-top:25px;" class="btn btn-primary pull-right">New Application</button> -->
@@ -76,7 +76,7 @@ export default {
                 },
                 responsive: true,
                 //serverSide: true,
-                //lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                //lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": '',
@@ -93,7 +93,7 @@ export default {
                 buttons:[
                 'excel', 'csv', ],
                 columns: [
-                    
+
                     {
                         data: "leader",
                         mRender:function (data,type,full) {
@@ -121,13 +121,13 @@ export default {
                         }
                             return links;
                         },
-                         
+
                     },
-                    
+
 
                 ],
                 processing: true,
-                
+
             }
         }
     },
@@ -150,7 +150,7 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-            
+
         },
         newRecord: function(){
             let vm=this;
@@ -216,8 +216,8 @@ export default {
             this.$refs.abseiling_climbing_datatable.vmDataTable.ajax.reload();
         },
         initialiseSearch:function(){
-            
-        }, 
+
+        },
     },
     mounted: function(){
         let vm = this;
@@ -230,7 +230,7 @@ export default {
             var column = vm.$refs.abseiling_climbing_datatable.vmDataTable.columns(8); //Hide 'Assigned To column for external'
             column.visible(false);
         }
-        
+
     }
 }
 </script>
