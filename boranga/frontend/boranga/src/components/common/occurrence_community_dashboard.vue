@@ -5,20 +5,20 @@
                 <div class="col-md-3">
                     <div class="form-group" id="select_community_id">
                         <label for="cs_community_id_lookup">Community ID:</label>
-                        <select 
-                            id="cs_community_id_lookup"  
-                            name="cs_community_id_lookup"  
-                            ref="cs_community_id_lookup" 
+                        <select
+                            id="cs_community_id_lookup"
+                            name="cs_community_id_lookup"
+                            ref="cs_community_id_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group" id="select_community_name">
                         <label for="cs_community_name_lookup">Community Name:</label>
-                        <select 
-                            id="cs_community_name_lookup"  
-                            name="cs_community_name_lookup"  
-                            ref="cs_community_name_lookup" 
+                        <select
+                            id="cs_community_name_lookup"
+                            name="cs_community_name_lookup"
+                            ref="cs_community_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -94,6 +94,13 @@
                     />
             </div>
         </div>
+        <div v-if="occurrenceHistoryId">
+            <OccurrenceHistory
+                ref="occurrence_history"
+                :key="occurrenceHistoryId"
+                :occurrence-id="occurrenceHistoryId"
+            />
+        </div>
     </div>
 </template>
 <script>
@@ -101,6 +108,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+import OccurrenceHistory from '../internal/occurrence/community_occurrence_history.vue';
 import Vue from 'vue'
 import {
     api_endpoints,
@@ -190,29 +198,31 @@ export default {
     data() {
         let vm = this;
         return {
+            uuid:0,
+            occurrenceHistoryId: null,
             datatable_id: 'cs-communities-datatable-'+vm._uid,
-     
+
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
-            
+
             // selected values for filtering
-            filterCSCommunityMigratedId: sessionStorage.getItem(this.filterCSCommunityMigratedId_cache) ? 
+            filterCSCommunityMigratedId: sessionStorage.getItem(this.filterCSCommunityMigratedId_cache) ?
                                 sessionStorage.getItem(this.filterCSCommunityMigratedId_cache) : 'all',
 
-            filterCSCommunityName: sessionStorage.getItem(this.filterCSCommunityName_cache) ? 
+            filterCSCommunityName: sessionStorage.getItem(this.filterCSCommunityName_cache) ?
                                     sessionStorage.getItem(this.filterCSCommunityName_cache) : 'all',
 
-            filterCSCommunityConservationList: sessionStorage.getItem(this.filterCSCommunityConservationList_cache) ? 
+            filterCSCommunityConservationList: sessionStorage.getItem(this.filterCSCommunityConservationList_cache) ?
                                     sessionStorage.getItem(this.filterCSCommunityConservationList_cache) : 'all',
 
-            filterCSCommunityConservationCategory: sessionStorage.getItem(this.filterCSCommunityConservationCategory_cache) ? 
+            filterCSCommunityConservationCategory: sessionStorage.getItem(this.filterCSCommunityConservationCategory_cache) ?
                                     sessionStorage.getItem(this.filterCSCommunityConservationCategory_cache) : 'all',
 
-            filterCSCommunityRegion: sessionStorage.getItem(this.filterCSCommunityRegion_cache) ? 
+            filterCSCommunityRegion: sessionStorage.getItem(this.filterCSCommunityRegion_cache) ?
                                     sessionStorage.getItem(this.filterCSCommunityRegion_cache) : 'all',
 
-            filterCSCommunityDistrict: sessionStorage.getItem(this.filterCSCommunityDistrict_cache) ? 
+            filterCSCommunityDistrict: sessionStorage.getItem(this.filterCSCommunityDistrict_cache) ?
                                         sessionStorage.getItem(this.filterCSCommunityDistrict_cache) : 'all',
 
             filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
@@ -234,7 +244,7 @@ export default {
             region_list: [],
             district_list: [],
             filtered_district_list: [],
-            
+
             // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
@@ -254,7 +264,7 @@ export default {
                 {value: 'declined', name: 'Declined'},
                 {value: 'closed', name: 'Closed'},
             ],
-            
+
             proposal_status: [],
 
         }
@@ -263,27 +273,28 @@ export default {
         datatable,
         CollapsibleFilters,
         FormSection,
+        OccurrenceHistory,
     },
     watch:{
         filterCSCommunityMigratedId: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityMigratedId_cache, vm.filterCSCommunityMigratedId);
         },
         filterCSCommunityName: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityName_cache, vm.filterCSCommunityName);
         },
         filterCSCommunityConservationList: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityConservationList_cache, vm.filterCSCommunityConservationList);
         },
         filterCSCommunityConservationCategory: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
-            sessionStorage.setItem(vm.filterCSCommunityConservationCategory_cache, 
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSCommunityConservationCategory_cache,
                 vm.filterCSCommunityConservationCategory);
         },
         filterCSCommunityRegion: function(){
@@ -308,7 +319,7 @@ export default {
         },
         filterCSCommunityApplicationStatus: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityApplicationStatus_cache, vm.filterCSCommunityApplicationStatus);
         },
         filterApplied: function(){
@@ -320,12 +331,12 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCSCommunityMigratedId === 'all' && 
-                this.filterCSCommunityName === 'all' && 
-                this.filterCSCommunityConservationList === 'all' && 
-                this.filterCSCommunityConservationCategory === 'all' && 
-                this.filterCSCommunityRegion === 'all' && 
-                this.filterCSCommunityDistrict === 'all' && 
+            if(this.filterCSCommunityMigratedId === 'all' &&
+                this.filterCSCommunityName === 'all' &&
+                this.filterCSCommunityConservationList === 'all' &&
+                this.filterCSCommunityConservationCategory === 'all' &&
+                this.filterCSCommunityRegion === 'all' &&
+                this.filterCSCommunityDistrict === 'all' &&
                 this.filterCSCommunityApplicationStatus === 'all' &&
                 this.filterCSCommunityEffectiveFromDate === '' &&
                 this.filterCSCommunityEffectiveToDate === ''){
@@ -546,6 +557,7 @@ export default {
                             {
                                 links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
                                 links +=  `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
+                                links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
                             }
                             else{
                                 if(full.assessor_process){
@@ -557,6 +569,7 @@ export default {
                                     }
                                     links +=  `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
                                 }
+                                links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
                             }
                         }
                     }
@@ -636,7 +649,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: search,
@@ -678,9 +691,16 @@ export default {
                 },
             }
         }
-    
+
     },
     methods:{
+        historyDocument: function(id){
+            this.occurrenceHistoryId = parseInt(id);
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.occurrence_history.isModalOpen = true;
+            });
+        },
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
@@ -813,7 +833,7 @@ export default {
                         {
                           this.filtered_district_list.push(choice);
                         }
-                        
+
                     }
                 });
         },
@@ -894,6 +914,11 @@ export default {
                 var id = $(this).attr('data-add-to-agenda');
                 vm.addToMeetingAgenda(id);
             });
+            vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-history-occurrence]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-occurrence');
+                vm.historyDocument(id);
+        });
         },
         initialiseSearch:function(){
             this.submitterSearch();
@@ -903,7 +928,7 @@ export default {
             vm.$refs.cs_communities_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -913,10 +938,10 @@ export default {
             /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
-                              
+
             },(error) => {
                 console.log(error);
-                
+
             })*/
         },
 
@@ -934,14 +959,14 @@ export default {
                  var assessor = proposal.allowed_assessors.filter(function(elem){
                     return(elem.id=vm.profile.id)
                 });
-                
+
                 if (assessor.length > 0)
                     return true;
                 else
                     return false;
-              
+
             }
-            
+
         },
         exportData: function (format) {
             let vm = this;

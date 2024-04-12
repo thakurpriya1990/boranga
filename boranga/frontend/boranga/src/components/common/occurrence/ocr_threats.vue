@@ -17,6 +17,13 @@
             </form>
         </FormSection>
         <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="ocr_threat_url"></ThreatDetail>
+        <div v-if="ocrConservationThreatHistoryId">
+            <ConservationThreatHistory
+                ref="ocr_conservation_threat_history"
+                :key="ocrConservationThreatHistoryId"
+                :threat-id="ocrConservationThreatHistoryId"
+            />
+        </div>
     </div>
 </template>
 <script>
@@ -24,6 +31,7 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from '@/components/common/species_communities/add_threat.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
+import ConservationThreatHistory from '../../internal/occurrence/ocr_conservation_threat_history.vue';
 import {
   api_endpoints,
   helpers,
@@ -48,6 +56,7 @@ export default {
             let vm = this;
             return{
                 uuid:0,
+                ocrConservationThreatHistoryId: null,
                 threatBody: "threatBody"+ vm._uid,
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
@@ -209,9 +218,11 @@ export default {
                                     links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
                                     links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
                                     links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                                 }
                                 else{
                                     links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                                 }
                                 return links;
                             }
@@ -233,6 +244,7 @@ export default {
             FormSection,
             datatable,
             ThreatDetail,
+            ConservationThreatHistory,
         },
         computed: {
             isReadOnly: function(){
@@ -290,6 +302,13 @@ export default {
                             console.log(err);
                       });
                 this.$refs.threat_detail.isModalOpen = true;
+            },
+            historyThreat: function(id){
+                this.ocrConservationThreatHistoryId = parseInt(id);
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.ocr_conservation_threat_history.isModalOpen = true;
+                });
             },
             discardThreat:function (id) {
                 let vm = this;
@@ -361,6 +380,11 @@ export default {
                     e.preventDefault();
                     var id = $(this).attr('data-view-threat');
                     vm.viewThreat(id);
+                });
+                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-history-threat]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-threat');
+                    vm.historyThreat(id);
                 });
                 // External Discard listener
                 vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-discard-threat]', function(e) {

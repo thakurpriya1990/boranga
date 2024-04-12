@@ -15,20 +15,20 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="ocr_scientific_name_lookup">Scientific Name:</label>
-                        <select 
-                            id="ocr_scientific_name_lookup"  
-                            name="ocr_scientific_name_lookup"  
-                            ref="ocr_scientific_name_lookup" 
+                        <select
+                            id="ocr_scientific_name_lookup"
+                            name="ocr_scientific_name_lookup"
+                            ref="ocr_scientific_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="ocr_community_name_lookup">Community Name:</label>
-                        <select 
-                            id="ocr_community_name_lookup"  
-                            name="ocr_community_name_lookup"  
-                            ref="ocr_community_name_lookup" 
+                        <select
+                            id="ocr_community_name_lookup"
+                            name="ocr_community_name_lookup"
+                            ref="ocr_community_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -50,7 +50,7 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="ocr_type">
                     <li v-for="group in group_types">
-                        <a class="dropdown-item" 
+                        <a class="dropdown-item"
                             @click.prevent="createOccurrenceReport(group.id)">{{ group.display }}
                         </a>
                     </li>
@@ -126,21 +126,21 @@ export default {
         let vm = this;
         return {
             datatable_id: 'ocuurrence-report-datatable-'+vm._uid,
-     
+
             //Profile to check if user has access to process Proposal
             profile: {},
-            
-            
+
+
 
             // selected values for filtering
-            
-            filterOCRGroupType: sessionStorage.getItem(this.filterOCRGroupType_cache) ? 
+
+            filterOCRGroupType: sessionStorage.getItem(this.filterOCRGroupType_cache) ?
                                    sessionStorage.getItem(this.filterOCRGroupType_cache) : 'all',
 
-            filterOCRScientificName: sessionStorage.getItem(this.filterOCRScientificName_cache) ? 
+            filterOCRScientificName: sessionStorage.getItem(this.filterOCRScientificName_cache) ?
                                    sessionStorage.getItem(this.filterOCRScientificName_cache) : 'all',
 
-            filterOCRExCommunityName: sessionStorage.getItem(this.filterOCRExCommunityName_cache) ? 
+            filterOCRExCommunityName: sessionStorage.getItem(this.filterOCRExCommunityName_cache) ?
                                    sessionStorage.getItem(this.filterOCRExCommunityName_cache) : 'all',
 
             filterOCRApplicationStatus: sessionStorage.getItem(this.filterOCRApplicationStatus_cache) ?
@@ -148,7 +148,7 @@ export default {
 
             //Filter list for scientific name and common name
             group_types: [],
-            
+
             // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
@@ -170,21 +170,21 @@ export default {
         filterOCRGroupType: function(){
             let vm = this;
             vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRGroupType_cache, vm.filterOCRGroupType);  
+            sessionStorage.setItem(vm.filterOCRGroupType_cache, vm.filterOCRGroupType);
         },
         filterOCRScientificName: function(){
             let vm = this;
             vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRScientificName_cache, vm.filterOCRScientificName);  
+            sessionStorage.setItem(vm.filterOCRScientificName_cache, vm.filterOCRScientificName);
         },
         filterOCRExCommunityName: function(){
             let vm = this;
             vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRExCommunityName_cache, vm.filterOCRExCommunityName);  
+            sessionStorage.setItem(vm.filterOCRExCommunityName_cache, vm.filterOCRExCommunityName);
         },
         filterOCRApplicationStatus: function() {
             let vm = this;
-            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRApplicationStatus_cache, vm.filterOCRApplicationStatus);
         },
         filterApplied: function(){
@@ -196,10 +196,10 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterOCRGroupType === 'all' && 
-                this.filterOCRScientificName === 'all' && 
+            if(this.filterOCRGroupType === 'all' &&
+                this.filterOCRScientificName === 'all' &&
                 this.filterOCRExCommunityName === 'all' &&
-                this.filterOCRApplicationStatus === 'all'){ 
+                this.filterOCRApplicationStatus === 'all'){
                 return false
             } else {
                 return true
@@ -352,7 +352,7 @@ export default {
                 search = false
                 buttons = buttons
             }
-            
+
             return {
                 autoWidth: false,
                 language: {
@@ -361,7 +361,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                  //  to show the "workflow Status","Action" columns always in the last position
@@ -396,7 +396,7 @@ export default {
                 },
             }
         }
-    
+
     },
     methods:{
         collapsible_component_mounted: function(){
@@ -550,7 +550,7 @@ export default {
         //     vm.$refs.occurrence_report_datatable.table.dataTableExt.afnFiltering.push(
         //         function(settings,data,dataIndex,original){
         //             let filtered_submitter = vm.filterProposalSubmitter;
-        //             if (filtered_submitter == 'All'){ return true; } 
+        //             if (filtered_submitter == 'All'){ return true; }
         //             return filtered_submitter == original.submitter.email;
         //         }
         //     );
@@ -559,10 +559,10 @@ export default {
             let vm = this;
             /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
-            
+
             },(error) => {
                 console.log(error);
-                
+
             })*/
         },
 
@@ -580,14 +580,14 @@ export default {
                  var assessor = proposal.allowed_assessors.filter(function(elem){
                     return(elem.id=vm.profile.id)
                 });
-                
+
                 if (assessor.length > 0)
                     return true;
                 else
                     return false;
-              
+
             }
-            
+
         },
         exportData: function (format) {
             let vm = this;

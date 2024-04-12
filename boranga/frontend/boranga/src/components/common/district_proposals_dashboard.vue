@@ -128,7 +128,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": 'data',
@@ -144,7 +144,7 @@ export default {
                     {
                         data: "proposal",
                         mRender:function(data,type,full){
-                            
+
                             return full.proposal_lodgement_number;
                         },
                         name: "proposal__id, proposal__lodgement_number",
@@ -308,7 +308,7 @@ export default {
             vm.$refs.proposal_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -342,7 +342,7 @@ export default {
                         else{
                             return false;
                         }
-                    } 
+                    }
                     else{
                         return false;
                     }

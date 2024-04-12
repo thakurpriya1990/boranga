@@ -34,7 +34,7 @@
                         <strong>Status</strong><br />
                         {{ occurrence_report.processing_status }}
                     </div>
-                    <div class="card-body" :class="isAssignedOfficer ? 'border-bottom' : ''">
+                    <div class="card-body" :class="canAssess && isAssignedOfficer ? 'border-bottom' : ''">
                         <div class="mb-2"><strong>Currently assigned to</strong></div>
                         <template v-if="occurrence_report.processing_status == 'With Approver'">
                             <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
@@ -56,7 +56,7 @@
                                 me</a>
                         </template>
                     </div>
-                    <div v-if="isAssignedOfficer" class="card-body" :class="canAction ? 'border-bottom' : ''">
+                    <div v-if="canAssess && isAssignedOfficer" class="card-body" :class="canAction ? 'border-bottom' : ''">
                         <div class="mb-2"><strong>Referrals</strong></div>
                         <select class="form-select mb-2" placeholder="Select a referee">
                             <option value="">Unassigned</option>
@@ -252,7 +252,7 @@ export default {
         },
         hasUserEditMode: function () {
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (['edit', 'process'].includes(this.$route.query.action)) {
+            if (['process'].includes(this.$route.query.action)) {
                 return this.occurrence_report && this.occurrence_report.can_user_edit;
             }
             else {
@@ -266,7 +266,7 @@ export default {
             return this.occurrence_report && this.occurrence_report.assigned_approver == this.occurrence_report.current_assessor.id;
         },
         canAction: function () {
-            return this.occurrence_report && this.isAssignedOfficer || this.isAssignedApprover;
+            return this.occurrence_report && this.occurrence_report.can_user_action;
         },
         canDiscard: function () {
             return this.occurrence_report && this.occurrence_report.processing_status === "Draft" ? true : false;

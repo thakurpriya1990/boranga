@@ -86,6 +86,8 @@
                     :context="occurrence_report_obj"
                     :proposal-ids="[occurrence_report_obj.id]"
                     :is_external="is_external"
+                    :point-features-supported="true"
+                    :polygon-features-supported="isFauna == false"
                     :drawable="true"
                     :editable="true"
                     level="external"

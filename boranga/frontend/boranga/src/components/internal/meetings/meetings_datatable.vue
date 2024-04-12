@@ -32,10 +32,10 @@
         </div>
         <div class="row">
             <div class="col-lg-12">
-                <datatable 
-                ref="meetings_datatable" 
-                :id="datatable_id" 
-                :dtOptions="datatable_options" 
+                <datatable
+                ref="meetings_datatable"
+                :id="datatable_id"
+                :dtOptions="datatable_options"
                 :dtHeaders="datatable_headers"/>
             </div>
         </div>
@@ -82,7 +82,7 @@ export default {
         return {
 
             datatable_id: 'meetings-datatable-'+vm._uid,
-            
+
             filterMeetingStartDate: sessionStorage.getItem(this.filterMeetingStartDate_cache) ?sessionStorage.getItem(this.filterMeetingStartDate_cache) : '',
 
             filterMeetingEndDate: sessionStorage.getItem(this.filterMeetingEndDate_cache) ?sessionStorage.getItem(this.filterMeetingEndDate_cache) : '',
@@ -93,9 +93,9 @@ export default {
                 {value: 'draft', name: 'Draft'},
                 {value: 'scheduled', name: 'Scheduled'},
             ],
-            
+
             meeting_status: [],
-            
+
         }
     },
     components:{
@@ -115,7 +115,7 @@ export default {
         },
         filterMeetingStatus: function() {
             let vm = this;
-            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterMeetingStatus_cache, vm.filterMeetingStatus);
         },
         filterApplied: function(){
@@ -126,8 +126,8 @@ export default {
     },
     computed:{
         filterApplied: function(){
-            if(this.filterMeetingStartDate === '' && 
-                this.filterMeetingEndDate === '' && 
+            if(this.filterMeetingStartDate === '' &&
+                this.filterMeetingEndDate === '' &&
                 this.filterMeetingStatus === 'all'){
                 return false
             } else {
@@ -136,7 +136,7 @@ export default {
         },
         datatable_headers: function(){
             return ['Number', 'Title', 'Location', 'Start Date', 'End date', 'Status' , 'Action']
-            
+
         },
         column_id: function(){
             return {
@@ -240,7 +240,7 @@ export default {
                             links +=  `<a href='#${full.id}' data-discard-meeting='${full.id}'>Discard</a><br/>`;
                         }
                     else{
-                            if(full.is_meeting_editable){   
+                            if(full.is_meeting_editable){
                                 links +=  `<a href='/internal/meetings/${full.id}?action=edit'>Edit</a><br/>`;
                             }
                             links +=  `<a href='/internal/meetings/${full.id}?action=view'>View</a><br/>`;
@@ -288,7 +288,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: search,
