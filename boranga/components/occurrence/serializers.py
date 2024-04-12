@@ -554,6 +554,13 @@ class OccurrenceLogEntrySerializer(CommunicationLogEntrySerializer):
 
 
 class ListOccurrenceSerializer(OccurrenceSerializer):
+    effective_from = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
+    effective_to = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
+    review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     can_user_assess = serializers.SerializerMethodField()
 
     class Meta:
@@ -566,6 +573,9 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "number_of_reports",
             "processing_status",
             "processing_status_display",
+            "effective_from",
+            "effective_to",
+            "review_due_date",
             "can_user_assess",
         )
         datatables_always_serialize = (
