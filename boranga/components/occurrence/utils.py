@@ -84,6 +84,7 @@ def save_geometry(request, instance, geometry_data):
                 "occurrence_report_id": instance.id,
                 "polygon": pp if pp.geom_type == "Polygon" else None,
                 "point": pp if pp.geom_type == "Point" else None,
+                "geometry": pp,
                 # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
             }
             if feature.get("id"):

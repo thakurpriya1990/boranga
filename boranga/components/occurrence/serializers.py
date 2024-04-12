@@ -484,6 +484,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             "occurrence_report_id",
             "polygon",
             "point",
+            "geometry",
             "srid",
             "area_sqm",
             "area_sqhm",
@@ -1244,12 +1245,13 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
 
     class Meta:
         model = OccurrenceReportGeometry
-        geo_field = "polygon"
+        geo_field = "geometry"
         fields = (
             "id",
             "occurrence_report_id",
             "polygon",
             "point",
+            "geometry",
             "intersects",
             "drawn_by",
             "locked",
