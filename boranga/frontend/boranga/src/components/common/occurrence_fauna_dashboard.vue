@@ -28,6 +28,13 @@
                     :dtHeaders="datatable_headers" />
             </div>
         </div>
+        <div v-if="occurrenceHistoryId">
+            <OccurrenceHistory
+                ref="occurrence_history"
+                :key="occurrenceHistoryId"
+                :occurrence-id="occurrenceHistoryId"
+            />
+        </div>
     </div>
 </template>
 <script>
@@ -36,6 +43,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+import OccurrenceHistory from '../internal/occurrence/species_occurrence_history.vue';
 import Vue from 'vue'
 
 import {
@@ -91,6 +99,8 @@ export default {
     data() {
         let vm = this;
         return {
+            uuid:0,
+            occurrenceHistoryId: null,
             datatable_id: 'occurrence-fauna-datatable-' + vm._uid,
 
             //Profile to check if user has access to process Proposal
@@ -130,6 +140,7 @@ export default {
         datatable,
         CollapsibleFilters,
         FormSection,
+        OccurrenceHistory,
     },
     watch: {
         filterOCCFaunaOccurrence: function () {
@@ -263,6 +274,7 @@ export default {
                         if (full.internal_user_edit) {
                             links += `<a href='/internal/occurrence/${full.id}'>Continue</a><br/>`;
                             links += `<a href='#${full.id}' data-discard-occ-proposal='${full.id}'>Discard</a><br/>`;
+                            links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
                         }
                         else {
                             if (full.assessor_process) {
@@ -274,6 +286,7 @@ export default {
                                 }
                                 links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                             }
+                            links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
                         }
                     }
                     return links;
@@ -362,6 +375,13 @@ export default {
 
     },
     methods: {
+        historyDocument: function(id){
+            this.occurrenceHistoryId = parseInt(id);
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.occurrence_history.isModalOpen = true;
+            });
+        },
         collapsible_component_mounted: function () {
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
@@ -516,6 +536,11 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-occ-proposal');
                 vm.discardOCRProposal(id);
+            });
+            vm.$refs.fauna_occ_datatable.vmDataTable.on('click', 'a[data-history-occurrence]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-occurrence');
+                vm.historyDocument(id);
             });
         },
         initialiseSearch: function () {

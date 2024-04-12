@@ -72,12 +72,12 @@ class RevisionedMixin(models.Model):
                 super(RevisionedMixin, self).save(**kwargs)
 
     @property
-    def created_date(self):
+    def revision_created_date(self):
         #return revisions.get_for_object(self).last().revision.date_created
         return Version.objects.get_for_object(self).last().revision.date_created
 
     @property
-    def modified_date(self):
+    def revision_modified_date(self):
         #return revisions.get_for_object(self).first().revision.date_created
         return Version.objects.get_for_object(self).first().revision.date_created
 
