@@ -59,21 +59,22 @@ def save_geometry(request, instance, geometry_data):
             )
             continue
 
+        srid = feature.get("properties", {}).get("srid", None)
         # Create a Polygon object from the open layers feature
         polygons = (
-            [Polygon(feature.get("geometry").get("coordinates")[0])]
+            [Polygon(feature.get("geometry").get("coordinates")[0], srid=srid)]
             if geometry_type == "Polygon"
             else (
-                [Polygon(p) for p in feature.get("geometry").get("coordinates")[0]]
+                [Polygon(p, srid=srid) for p in feature.get("geometry").get("coordinates")[0]]
                 if geometry_type == "MultiPolygon"
                 else []
             )
         )
         points = (
-            [Point(feature.get("geometry").get("coordinates"))]
+            [Point(feature.get("geometry").get("coordinates"), srid=srid)]
             if geometry_type == "Point"
             else (
-                [Point(p) for p in feature.get("geometry").get("coordinates")]
+                [Point(p, srid=srid) for p in feature.get("geometry").get("coordinates")]
                 if geometry_type == "MultiPoint"
                 else []
             )
@@ -82,8 +83,6 @@ def save_geometry(request, instance, geometry_data):
         for pp in polygons + points:
             geometry_data = {
                 "occurrence_report_id": instance.id,
-                "polygon": pp if pp.geom_type == "Polygon" else None,
-                "point": pp if pp.geom_type == "Point" else None,
                 "geometry": pp,
                 # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
             }

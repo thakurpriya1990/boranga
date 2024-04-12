@@ -450,22 +450,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
     geometry_source = serializers.SerializerMethodField()
     report_copied_from = serializers.SerializerMethodField(read_only=True)
-    geo_field = serializers.SerializerMethodField(read_only=True)
     srid = serializers.SerializerMethodField(read_only=True)
-
-    def get_point_as_geo_field(self, obj):
-        return json.loads(obj.point.json)
-
-    def get_polygon_as_geo_field(self, obj):
-        return json.loads(obj.polygon.json)
-
-    def get_geo_field(self, obj):
-        if obj.polygon:
-            return self.get_polygon_as_geo_field(obj)
-        elif obj.point:
-            return self.get_point_as_geo_field(obj)
-        else:
-            return None
 
     def get_srid(self, obj):
         if obj.polygon:
@@ -477,13 +462,10 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
 
     class Meta:
         model = OccurrenceReportGeometry
-        geo_field = "geo_field"
+        geo_field = "geometry"
         fields = (
             "id",
-            "geo_field",
             "occurrence_report_id",
-            "polygon",
-            "point",
             "geometry",
             "srid",
             "area_sqm",
@@ -1249,8 +1231,6 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            "polygon",
-            "point",
             "geometry",
             "intersects",
             "drawn_by",
