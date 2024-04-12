@@ -1189,6 +1189,7 @@ class OccurrenceReportGeometry(models.Model):
     )
     polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
     point = gis_models.PointField(srid=4326, blank=True, null=True)
+    geometry = gis_models.GeometryField(blank=True, null=True)
     intersects = models.BooleanField(default=False)
     copied_from = models.ForeignKey(
         "self", on_delete=models.SET_NULL, blank=True, null=True
