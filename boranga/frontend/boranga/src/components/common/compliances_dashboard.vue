@@ -150,7 +150,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": 'data',
@@ -213,7 +213,7 @@ export default {
                             if (!vm.is_external){
                                 if (full.can_process) {
                                     links +=  `<a href='/internal/compliance/${full.id}'>Process</a><br/>`;
-                                    
+
                                 }
                                 else {
                                     links +=  `<a href='/internal/compliance/${full.id}'>View</a><br/>`;
@@ -227,7 +227,7 @@ export default {
                             else{
                                 if (full.can_user_view) {
                                     links +=  `<a href='/external/compliance/${full.id}'>View</a><br/>`;
-                                    
+
                                 }
                                 else {
                                     links +=  `<a href='/external/compliance/${full.id}'>Submit</a><br/>`;
@@ -305,20 +305,20 @@ export default {
         is_external: function(){
             return this.level == 'external';
         },
-        
+
     },
     methods:{
         fetchFilterLists: function(){
             let vm = this;
 
             vm.status = vm.level == 'external' ? vm.external_status: vm.internal_status;
-            
+
             vm.$http.get(api_endpoints.filter_list_compliances).then((response) => {
                 vm.application_types= response.body.application_types;
             },(error) => {
                 console.log(error);
             })
-            
+
             //console.log(vm.regions);
         },
 
@@ -345,7 +345,7 @@ export default {
                     vm.filterComplianceDueFrom = "";
                 }
             });
-            // End Proposal Date Filters          
+            // End Proposal Date Filters
 
         },
         initialiseSearch:function(){
@@ -356,7 +356,7 @@ export default {
             vm.$refs.proposal_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -390,7 +390,7 @@ export default {
                         else{
                             return false;
                         }
-                    } 
+                    }
                     else{
                         return false;
                     }
@@ -403,7 +403,7 @@ export default {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
             },(error) => {
-                
+
             })
         },
 
@@ -427,7 +427,7 @@ export default {
             var column = vm.$refs.proposal_datatable.vmDataTable.columns(6); //Hide 'Assigned To column for external'
             column.visible(false);
         }
-        
+
     }
 }
 </script>

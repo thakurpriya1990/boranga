@@ -156,7 +156,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": 'data',
@@ -219,8 +219,8 @@ export default {
                             let links = '';
                             if (!vm.is_external){
                                 /*if(vm.check_assessor(full) && full.can_officer_process)*/
-                                if(full.processing_status=="With QA Officer"){   
-                                        links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;    
+                                if(full.processing_status=="With QA Officer"){
+                                        links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;
                             }
                                 else{
                                     links +=  `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
@@ -312,7 +312,7 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
-        
+
     },
     methods:{
         fetchFilterLists: function(){
@@ -391,7 +391,7 @@ export default {
             vm.$refs.proposal_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -425,7 +425,7 @@ export default {
                         else{
                             return false;
                         }
-                    } 
+                    }
                     else{
                         return false;
                     }

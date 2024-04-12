@@ -5,10 +5,10 @@
                 <!-- <div class="col-md-3">
                     <div class="form-group">
                         <label for="cp_non_current_name_lookup">Non-current Name:</label>
-                        <select 
-                            id="cp_non_current_name_lookup"  
-                            name="cp_non_current_name_lookup"  
-                            ref="cp_non_current_name_lookup" 
+                        <select
+                            id="cp_non_current_name_lookup"
+                            name="cp_non_current_name_lookup"
+                            ref="cp_non_current_name_lookup"
                             class="form-control" />
                     </div>
                 </div> -->
@@ -24,10 +24,10 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="cp_type">Type:</label>
-                        <select 
-                            id="cp_type"  
-                            name="cp_type"  
-                            ref="cp_type" 
+                        <select
+                            id="cp_type"
+                            name="cp_type"
+                            ref="cp_type"
                             class="form-control" />
                     </div>
                 </div>
@@ -53,30 +53,30 @@
                 <!-- <div class="col-md-3">
                     <div class="form-group">
                         <label for="cp_approval_status">Approval Status:</label>
-                        <select 
-                            id="cp_approval_status"  
-                            name="cp_approval_status"  
-                            ref="cp_approval_status" 
+                        <select
+                            id="cp_approval_status"
+                            name="cp_approval_status"
+                            ref="cp_approval_status"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="cp_commonwealth_status">Commonwealth Status:</label>
-                        <select 
-                            id="cp_commonwealth_status"  
-                            name="cp_commonwealth_status"  
-                            ref="cp_commonwealth_status" 
+                        <select
+                            id="cp_commonwealth_status"
+                            name="cp_commonwealth_status"
+                            ref="cp_commonwealth_status"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="cp_wa_status">Western Australia Status:</label>
-                        <select 
-                            id="cp_wa_status"  
-                            name="cp_wa_status"  
-                            ref="cp_wa_status" 
+                        <select
+                            id="cp_wa_status"
+                            name="cp_wa_status"
+                            ref="cp_wa_status"
                             class="form-control" />
                     </div>
                 </div> -->
@@ -203,19 +203,19 @@ export default {
         let vm = this;
         return {
             datatable_id: 'species_fauna_cp-datatable-'+vm._uid,
-     
+
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
-            
-            // selected values for filtering
-            filterCPFaunaType: sessionStorage.getItem(this.filterCPFaunaType_cache) ? 
-                                    sessionStorage.getItem(this.filterCPFaunaType_cache) : 'all',            
 
-            filterCPFaunaRegion: sessionStorage.getItem(this.filterCPFaunaRegion_cache) ? 
+            // selected values for filtering
+            filterCPFaunaType: sessionStorage.getItem(this.filterCPFaunaType_cache) ?
+                                    sessionStorage.getItem(this.filterCPFaunaType_cache) : 'all',
+
+            filterCPFaunaRegion: sessionStorage.getItem(this.filterCPFaunaRegion_cache) ?
                                     sessionStorage.getItem(this.filterCPFaunaRegion_cache) : 'all',
 
-            filterCPFaunaDistrict: sessionStorage.getItem(this.filterCPFaunaDistrict_cache) ? 
+            filterCPFaunaDistrict: sessionStorage.getItem(this.filterCPFaunaDistrict_cache) ?
                                     sessionStorage.getItem(this.filterCPFaunaDistrict_cache) : 'all',
 
             filterCPFaunaApplicationStatus: sessionStorage.getItem(this.filterCPFaunaApplicationStatus_cache) ?
@@ -235,7 +235,7 @@ export default {
             region_list: [],
             district_list: [],
             filtered_district_list: [],
-            
+
             // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
@@ -255,7 +255,7 @@ export default {
                 {value: 'discarded', name: 'Discarded'},
                 {value: 'closed', name: 'Closed'},
             ],
-            
+
             proposal_status: [],
         }
     },
@@ -292,7 +292,7 @@ export default {
         },
         filterCPFaunaApplicationStatus: function() {
             let vm = this;
-            vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.  
+            vm.$refs.fauna_cp_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCPFaunaApplicationStatus_cache, vm.filterCPFaunaApplicationStatus);
         },
         filterCPFaunaReviewDate: function(){
@@ -309,9 +309,9 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCPFaunaType === 'all' && 
-                this.filterCPFaunaRegion === 'all' && 
-                this.filterCPFaunaDistrict === 'all' && 
+            if(this.filterCPFaunaType === 'all' &&
+                this.filterCPFaunaRegion === 'all' &&
+                this.filterCPFaunaDistrict === 'all' &&
                 this.filterCPFaunaApplicationStatus === 'all' &&
                 this.filterCPFaunaEffectiveFromDate === '' &&
                 this.filterCPFaunaEffectiveToDate === '' &&
@@ -340,12 +340,12 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                // return ['Number', 'Type', 'WA Plan number', 
+                // return ['Number', 'Type', 'WA Plan number',
                 //    'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due', 'Approval Status', 'Commonwealth Status', 'Western Australia Status',  'Status', 'Action']
                 return ['Number', 'Type', 'WA Plan number', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due', 'Status', 'Action']
             }
             if (this.is_internal){
-                // return ['Number', 'Type', 'WA Plan number', 
+                // return ['Number', 'Type', 'WA Plan number',
                 //    'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due', 'Approval Status', 'Commonwealth Status', 'Western Australia Status', 'Status', 'Action']
                 return ['Number', 'Type', 'WA Plan number', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due', 'Status', 'Action']
             }
@@ -602,7 +602,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: search,
@@ -642,13 +642,13 @@ export default {
                 },
             }
         }
-    
+
     },
     methods:{
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
-        
+
         fetchFilterLists: function(){
             let vm = this;
             //large FilterList of Species Values object
@@ -689,7 +689,7 @@ export default {
                         {
                           this.filtered_district_list.push(choice);
                         }
-                        
+
                     }
                 });
         },
@@ -758,7 +758,7 @@ export default {
             vm.$refs.fauna_cp_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -768,10 +768,10 @@ export default {
             /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
-                              
+
             },(error) => {
                 console.log(error);
-                
+
             })*/
         },
 
@@ -789,14 +789,14 @@ export default {
                  var assessor = proposal.allowed_assessors.filter(function(elem){
                     return(elem.id=vm.profile.id)
                 });
-                
+
                 if (assessor.length > 0)
                     return true;
                 else
                     return false;
-              
+
             }
-            
+
         },
         exportData: function (format) {
             let vm = this;
@@ -910,7 +910,7 @@ export default {
                         "value": ""
                     },
                     "searchable": "false"
-                }, 
+                },
                 "11": {
                     "data": "region",
                     "name": "region__name",
@@ -1033,7 +1033,7 @@ export default {
         this.$nextTick(() => {
             vm.initialiseSearch();
             vm.addEventListeners();
-            
+
             // -- to set the select2 field with the session value if exists onload()
             // if(sessionStorage.getItem("filterCSFaunaScientificName")!='all' && sessionStorage.getItem("filterCSFaunaScientificName")!=null)
             // {

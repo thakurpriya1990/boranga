@@ -5,57 +5,57 @@
                 <div class="col-md-3">
                     <div class="form-group" id="select_scientific_name">
                         <label for="cs_scientific_name_lookup">Scientific Name:</label>
-                        <select 
-                            id="cs_scientific_name_lookup"  
-                            name="cs_scientific_name_lookup"  
-                            ref="cs_scientific_name_lookup" 
+                        <select
+                            id="cs_scientific_name_lookup"
+                            name="cs_scientific_name_lookup"
+                            ref="cs_scientific_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group" id="select_common_name">
                         <label for="cs_common_name_lookup">Common Name:</label>
-                        <select 
-                            id="cs_common_name_lookup"  
-                            name="cs_common_name_lookup"  
-                            ref="cs_common_name_lookup" 
+                        <select
+                            id="cs_common_name_lookup"
+                            name="cs_common_name_lookup"
+                            ref="cs_common_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group" id="select_phylo_group">
                         <label for="cs_phylo_group_lookup">Phylo Group:</label>
-                        <select 
-                            id="cs_phylo_group_lookup"  
-                            name="cs_phylo_group_lookup"  
-                            ref="cs_phylo_group_lookup" 
+                        <select
+                            id="cs_phylo_group_lookup"
+                            name="cs_phylo_group_lookup"
+                            ref="cs_phylo_group_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group" id="select_family">
                         <label for="cs_family_lookup">Family:</label>
-                        <select 
-                            id="cs_family_lookup"  
-                            name="cs_family_lookup"  
-                            ref="cs_family_lookup" 
+                        <select
+                            id="cs_family_lookup"
+                            name="cs_family_lookup"
+                            ref="cs_family_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group" id="select_genera">
                         <label for="cs_genera_lookup">Genera:</label>
-                        <select 
-                            id="cs_genera_lookup"  
-                            name="cs_genera_lookup"  
-                            ref="cs_genera_lookup" 
+                        <select
+                            id="cs_genera_lookup"
+                            name="cs_genera_lookup"
+                            ref="cs_genera_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSFloraConservationList" 
+                        <select class="form-select" v-model="filterCSFloraConservationList"
                         @change="filterConservationCategory($event)">
                             <option value="all">All</option>
                             <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
@@ -251,37 +251,37 @@ export default {
         let vm = this;
         return {
             datatable_id: 'species_flora_cs-datatable-'+vm._uid,
-     
+
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
-            
+
             // selected values for filtering
-            filterCSFloraScientificName: sessionStorage.getItem(this.filterCSFloraScientificName_cache) ? 
+            filterCSFloraScientificName: sessionStorage.getItem(this.filterCSFloraScientificName_cache) ?
                                     sessionStorage.getItem(this.filterCSFloraScientificName_cache) : 'all',
-            
-            filterCSFloraCommonName: sessionStorage.getItem(this.filterCSFloraCommonName_cache) ? 
+
+            filterCSFloraCommonName: sessionStorage.getItem(this.filterCSFloraCommonName_cache) ?
                                 sessionStorage.getItem(this.filterCSFloraCommonName_cache) : 'all',
-            
-            filterCSFloraPhylogeneticGroup: sessionStorage.getItem(this.filterCSFloraPhylogeneticGroup_cache) ? 
+
+            filterCSFloraPhylogeneticGroup: sessionStorage.getItem(this.filterCSFloraPhylogeneticGroup_cache) ?
                         sessionStorage.getItem(this.filterCSFloraPhylogeneticGroup_cache) : 'all',
 
-            filterCSFloraFamily: sessionStorage.getItem(this.filterCSFloraFamily_cache) ? 
+            filterCSFloraFamily: sessionStorage.getItem(this.filterCSFloraFamily_cache) ?
                                 sessionStorage.getItem(this.filterCSFloraFamily_cache) : 'all',
 
-            filterCSFloraGenus: sessionStorage.getItem(this.filterCSFloraGenus_cache) ? 
+            filterCSFloraGenus: sessionStorage.getItem(this.filterCSFloraGenus_cache) ?
                                 sessionStorage.getItem(this.filterCSFloraGenus_cache) : 'all',
 
-            filterCSFloraConservationList: sessionStorage.getItem(this.filterCSFloraConservationList_cache) ? 
+            filterCSFloraConservationList: sessionStorage.getItem(this.filterCSFloraConservationList_cache) ?
                                     sessionStorage.getItem(this.filterCSFloraConservationList_cache) : 'all',
 
-            filterCSFloraConservationCategory: sessionStorage.getItem(this.filterCSFloraConservationCategory_cache) ? 
+            filterCSFloraConservationCategory: sessionStorage.getItem(this.filterCSFloraConservationCategory_cache) ?
                                     sessionStorage.getItem(this.filterCSFloraConservationCategory_cache) : 'all',
 
-            filterCSFloraRegion: sessionStorage.getItem(this.filterCSFloraRegion_cache) ? 
+            filterCSFloraRegion: sessionStorage.getItem(this.filterCSFloraRegion_cache) ?
                                     sessionStorage.getItem(this.filterCSFloraRegion_cache) : 'all',
 
-            filterCSFloraDistrict: sessionStorage.getItem(this.filterCSFloraDistrict_cache) ? 
+            filterCSFloraDistrict: sessionStorage.getItem(this.filterCSFloraDistrict_cache) ?
                                     sessionStorage.getItem(this.filterCSFloraDistrict_cache) : 'all',
 
             filterCSFloraApplicationStatus: sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) ?
@@ -306,7 +306,7 @@ export default {
             region_list: [],
             district_list: [],
             filtered_district_list: [],
-            
+
             // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
@@ -327,7 +327,7 @@ export default {
                 {value: 'discarded', name: 'Discarded'},
                 {value: 'closed', name: 'Closed'},
             ],
-            
+
             proposal_status: [],
         }
     },
@@ -340,36 +340,36 @@ export default {
         filterCSFloraScientificName: function(){
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFloraScientificName_cache, vm.filterCSFloraScientificName);  
+            sessionStorage.setItem(vm.filterCSFloraScientificName_cache, vm.filterCSFloraScientificName);
         },
         filterCSFloraCommonName: function() {
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFloraCommonName_cache, vm.filterCSFloraCommonName);  
+            sessionStorage.setItem(vm.filterCSFloraCommonName_cache, vm.filterCSFloraCommonName);
         },
         filterCSFloraPhylogeneticGroup: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call. 
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraPhylogeneticGroup_cache, vm.filterCSFloraPhylogeneticGroup);
         },
         filterCSFloraFamily: function() {
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFloraFamily_cache, vm.filterCSFloraFamily);  
+            sessionStorage.setItem(vm.filterCSFloraFamily_cache, vm.filterCSFloraFamily);
         },
         filterCSFloraGenus: function() {
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFloraGenus_cache, vm.filterCSFloraGenus);  
+            sessionStorage.setItem(vm.filterCSFloraGenus_cache, vm.filterCSFloraGenus);
         },
         filterCSFloraConservationList: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraConservationList_cache, vm.filterCSFloraConservationList);
         },
         filterCSFloraConservationCategory: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraConservationCategory_cache, vm.filterCSFloraConservationCategory);
         },
         filterCSFloraRegion: function(){
@@ -394,7 +394,7 @@ export default {
         },
         filterCSFloraApplicationStatus: function() {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraApplicationStatus_cache, vm.filterCSFloraApplicationStatus);
         },
         filterApplied: function(){
@@ -406,15 +406,15 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCSFloraScientificName === 'all' && 
-                this.filterCSFloraCommonName === 'all' && 
-                this.filterCSFloraPhylogeneticGroup === 'all' &&  
-                this.filterCSFloraFamily === 'all' && 
-                this.filterCSFloraGenus === 'all' && 
-                this.filterCSFloraConservationList === 'all' && 
-                this.filterCSFloraConservationCategory === 'all' && 
-                this.filterCSFloraRegion === 'all' && 
-                this.filterCSFloraDistrict === 'all' && 
+            if(this.filterCSFloraScientificName === 'all' &&
+                this.filterCSFloraCommonName === 'all' &&
+                this.filterCSFloraPhylogeneticGroup === 'all' &&
+                this.filterCSFloraFamily === 'all' &&
+                this.filterCSFloraGenus === 'all' &&
+                this.filterCSFloraConservationList === 'all' &&
+                this.filterCSFloraConservationCategory === 'all' &&
+                this.filterCSFloraRegion === 'all' &&
+                this.filterCSFloraDistrict === 'all' &&
                 this.filterCSFloraApplicationStatus === 'all' &&
                 this.filterCSFloraEffectiveFromDate === '' &&
                 this.filterCSFloraEffectiveToDate === ''){
@@ -442,11 +442,11 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
+                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List',
                     'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
             if (this.is_internal){
-                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List', 
+                return ['Number','Species','Scientific Name', 'Common Name', 'Conservation List',
                     'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
         },
@@ -742,7 +742,7 @@ export default {
                     vm.column_number,
                     vm.column_species_number,
                     vm.column_scientific_name,
-                    vm.column_common_name, 
+                    vm.column_common_name,
                     vm.column_conservation_list,
                     vm.column_conservation_category,
                     vm.column_region,
@@ -765,7 +765,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: search,
@@ -810,7 +810,7 @@ export default {
                 },
             }
         }
-    
+
     },
     methods:{
         collapsible_component_mounted: function(){
@@ -1070,7 +1070,7 @@ export default {
                         {
                           this.filtered_district_list.push(choice);
                         }
-                        
+
                     }
                 });
         },
@@ -1161,7 +1161,7 @@ export default {
             vm.$refs.flora_cs_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -1171,10 +1171,10 @@ export default {
             /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
-                              
+
             },(error) => {
                 console.log(error);
-                
+
             })*/
         },
 
@@ -1192,14 +1192,14 @@ export default {
                  var assessor = proposal.allowed_assessors.filter(function(elem){
                     return(elem.id=vm.profile.id)
                 });
-                
+
                 if (assessor.length > 0)
                     return true;
                 else
                     return false;
-              
+
             }
-            
+
         },
         exportData: function (format) {
             let vm = this;
@@ -1313,7 +1313,7 @@ export default {
                         "value": ""
                     },
                     "searchable": "false"
-                }, 
+                },
                 "11": {
                     "data": "region",
                     "name": "region__name",
@@ -1445,7 +1445,7 @@ export default {
             vm.initialiseGeneraLookup();
             //vm.initialiseSearch();
             vm.addEventListeners();
-            
+
             // -- to set the select2 field with the session value if exists onload()
             if(sessionStorage.getItem("filterCSFloraScientificName")!='all' && sessionStorage.getItem("filterCSFloraScientificName")!=null)
             {
