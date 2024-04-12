@@ -452,11 +452,26 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
     report_copied_from = serializers.SerializerMethodField(read_only=True)
     geo_field = serializers.SerializerMethodField(read_only=True)
 
+    def geometry_to_geojson(self, geometry):
+        geojson = {
+            "type": "Feature",
+            "geometry": json.loads(geometry.json),
+            "properties": {},
+        }
+        # Geojson crs specification
+        # See: https://www.ogc.org/about-ogc/policies/ogc-urn-policy/#:~:text=The%20purpose%20of%20the%20%E2%80%9Cdef,various%20object%20types%20and%20definitions.
+        geojson["crs"] = {
+            "type": "name",
+            "properties": {"name": f"urn:ogc:def:crs:EPSG:{geometry.crs.srid}"},
+        }
+
+        return geojson
+
     def get_point_as_geo_field(self, obj):
-        return json.loads(obj.point.json)
+        return self.geometry_to_geojson(obj.point)
 
     def get_polygon_as_geo_field(self, obj):
-        return json.loads(obj.polygon.json)
+        return self.geometry_to_geojson(obj.polygon)
 
     def get_geo_field(self, obj):
         if obj.polygon:
