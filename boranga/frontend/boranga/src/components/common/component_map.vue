@@ -174,11 +174,17 @@
                                         "
                                         @click="centerOnFeature(feature)"
                                     >
-                                        <img v-if="feature.getGeometry().getType() == 'Point'"
+                                        <img
+                                            v-if="
+                                                feature
+                                                    .getGeometry()
+                                                    .getType() == 'Point'
+                                            "
                                             class="svg-icon"
                                             src="../../assets/draw-points.svg"
                                         />
-                                        <img v-else
+                                        <img
+                                            v-else
                                             class="svg-icon"
                                             src="../../assets/draw-polygon.svg"
                                         />
@@ -223,13 +229,19 @@
                                         min="-180"
                                         max="180"
                                     />
-                                    <div class="form-control input-group-text min-width-150">
+                                    <div
+                                        class="form-control input-group-text min-width-150"
+                                    >
                                         <SelectFilter
                                             :id="`feature-${feature.ol_uid}-select`"
-                                            :title="`Feature ${feature.getProperties().id}`"
+                                            :title="`Feature ${
+                                                feature.getProperties().id
+                                            }`"
                                             :show-title="false"
                                             :placeholder="`Select a CRS`"
-                                            :options="coordinateReferenceSystems"
+                                            :options="
+                                                coordinateReferenceSystems
+                                            "
                                             :pre-selected-filter-item="4326"
                                             classes="min-width-120"
                                         />
@@ -860,7 +872,7 @@ export default {
     components: {
         FileField,
         alert,
-        SelectFilter
+        SelectFilter,
     },
     props: {
         level: {
@@ -3268,7 +3280,7 @@ export default {
 
             return [r, g, b, a];
         },
-        toggleHidden: function (target, label) {
+        toggleHidden: function (target) {
             // target.innerHTML = label;
             const hidden = $(target).find('img.svg-icon.hidden');
             const notHidden = $(target).find('img.svg-icon').not('.hidden');
@@ -3330,12 +3342,11 @@ export default {
 }
 .hidden {
     display: none;
-
 }
 </style>
 <style>
 .min-width-60 {
-    min-width: 60px !important;
+    min-width: 30px !important;
 }
 .min-width-90 {
     min-width: 90px !important;
