@@ -121,10 +121,9 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
             if filter_group_type and not filter_group_type.lower() == "all":
                 queryset = queryset.filter(group_type__name=filter_group_type)
 
-            # To do - change group_type__name based on the relevant model
-            # filter_occurrence = request.GET.get('filter_occurrence')
-            # if filter_occurrence and not filter_occurrence.lower() == 'all':
-            #     queryset = queryset.filter(group_type__name=filter_occurrence)
+            filter_occurrence = request.GET.get("filter_occurrence")
+            if filter_occurrence and not filter_occurrence.lower() == "all":
+                queryset = queryset.filter(occurrence_id=filter_occurrence)
 
             filter_scientific_name = request.GET.get("filter_scientific_name")
             if filter_scientific_name and not filter_scientific_name.lower() == "all":
@@ -2337,3 +2336,24 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_lookup(self, request, *args, **kwargs):
+        search_term = request.GET.get("term", "")
+        if search_term:
+            queryset = self.get_queryset().values_list("occurrence_number", flat=True)
+            queryset = (
+                queryset.filter(occurrence_number__icontains=search_term)
+                .distinct()
+                .values("id", "occurrence_number")[:10]
+            )
+            queryset = [
+                {"id": occurrence["id"], "text": occurrence["occurrence_number"]}
+                for occurrence in queryset
+            ]
+        return Response({"results": queryset})

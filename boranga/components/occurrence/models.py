@@ -222,12 +222,17 @@ class OccurrenceReport(models.Model):
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
+
+    review_due_date = models.DateField(null=True, blank=True)
+    review_date = models.DateField(null=True, blank=True)
+    reviewed_by = models.IntegerField(null=True)  # EmailUserRO
     review_status = models.CharField(
         "Review Status",
         max_length=30,
         choices=REVIEW_STATUS_CHOICES,
         default=REVIEW_STATUS_CHOICES[0][0],
     )
+
     proposed_decline_status = models.BooleanField(default=False)
     deficiency_data = models.TextField(null=True, blank=True)  # deficiency comment
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
@@ -2233,7 +2238,20 @@ class Occurrence(models.Model):
         blank=True,
         related_name="occurrences",
     )
+    effective_from = models.DateTimeField(null=True, blank=True)
+    effective_to = models.DateTimeField(null=True, blank=True)
     submitter = models.IntegerField(null=True)  # EmailUserRO
+
+    review_due_date = models.DateField(null=True, blank=True)
+    review_date = models.DateField(null=True, blank=True)
+    reviewed_by = models.IntegerField(null=True)  # EmailUserRO
+    review_status = models.CharField(
+        "Review Status",
+        max_length=30,
+        choices=OccurrenceReport.REVIEW_STATUS_CHOICES,
+        default=OccurrenceReport.REVIEW_STATUS_CHOICES[0][0],
+    )
+
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
 

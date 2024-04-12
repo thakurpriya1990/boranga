@@ -94,7 +94,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div v-if="is_internal" class="col-md-3">
                             <div class="form-group">
                                 <label/>
@@ -195,7 +195,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": 'data',
@@ -396,7 +396,7 @@ export default {
                                     links +=  `<a href='/internal/approval/${full.id}'>View</a><br/>`;
                                 }
                                 if(full.renewal_document && full.renewal_sent){
-                                  links +=  `<a href='${full.renewal_document}' target='_blank'>Renewal Notice</a><br/>`;  
+                                  links +=  `<a href='${full.renewal_document}' target='_blank'>Renewal Notice</a><br/>`;
 
                                 }
                             }
@@ -416,12 +416,12 @@ export default {
                                         // links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
 
                                         if(full.can_amend){
-                                           links +=  `<a href='#${full.id}' data-amend-approval='${full.current_proposal}'>Amend</a><br/>`; 
-                                       }                                        
+                                           links +=  `<a href='#${full.id}' data-amend-approval='${full.current_proposal}'>Amend</a><br/>`;
+                                       }
                                     }
                                     if(full.renewal_document && full.renewal_sent && full.can_renew) {
                                     links +=  `<a href='#${full.id}' data-renew-approval='${full.current_proposal}'>Renew</a><br/>`;
-                                    }                                    
+                                    }
                                 }
                                 else {
                                     links +=  `<a href='/external/approval/${full.id}'>View</a><br/>`;
@@ -435,7 +435,7 @@ export default {
                         name: ''
                     },
                     {data: "migrated", visible: false},
-                    
+
                 ],
                 processing: true,
                 /*
@@ -614,7 +614,7 @@ export default {
             vm.$refs.proposal_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -648,7 +648,7 @@ export default {
                         else{
                             return false;
                         }
-                    } 
+                    }
                     else{
                         return false;
                     }
@@ -806,7 +806,7 @@ export default {
                     }
                 })
                 vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/renew_approval')),{
-                
+
                 })
                 .then((response) => {
                     swal.hideLoading();
@@ -817,13 +817,13 @@ export default {
                     name:"draft_proposal",
                     params:{proposal_id: proposal.id}
                    });
-                    
+
                 }, (error) => {
                     console.log(error);
                     swal({
                     title: "Renew Licence",
                     text: error.body,
-                    type: "error",                   
+                    type: "error",
                     })
                 });
             },(error) => {
@@ -851,7 +851,7 @@ export default {
                     }
                 })
                 vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/amend_approval')),{
-                
+
                 })
                 .then((response) => {
                     swal.hideLoading();
@@ -867,7 +867,7 @@ export default {
                     swal({
                     title: "Amend Licence",
                     text: error.body,
-                    type: "error",                   
+                    type: "error",
                     })
                 });
             },(error) => {

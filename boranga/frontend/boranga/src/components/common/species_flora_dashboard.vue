@@ -11,10 +11,10 @@
                             </option>
                         </select> -->
                         <label for="scientific_name_lookup">Scientific Name:</label>
-                        <select 
-                            id="scientific_name_lookup"  
-                            name="scientific_name_lookup"  
-                            ref="scientific_name_lookup" 
+                        <select
+                            id="scientific_name_lookup"
+                            name="scientific_name_lookup"
+                            ref="scientific_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -26,10 +26,10 @@
                             <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
                         </select> -->
                         <label for="common_name_lookup">Common Name:</label>
-                        <select 
-                            id="common_name_lookup"  
-                            name="common_name_lookup"  
-                            ref="common_name_lookup" 
+                        <select
+                            id="common_name_lookup"
+                            name="common_name_lookup"
+                            ref="common_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -42,10 +42,10 @@
                                 {{option.name}}</option>
                         </select> -->
                         <label for="phylo_group_lookup">Phylo Group:</label>
-                        <select 
-                            id="phylo_group_lookup"  
-                            name="phylo_group_lookup"  
-                            ref="phylo_group_lookup" 
+                        <select
+                            id="phylo_group_lookup"
+                            name="phylo_group_lookup"
+                            ref="phylo_group_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -57,10 +57,10 @@
                             <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
                         </select> -->
                         <label for="family_lookup">Family:</label>
-                        <select 
-                            id="family_lookup"  
-                            name="family_lookup"  
-                            ref="family_lookup" 
+                        <select
+                            id="family_lookup"
+                            name="family_lookup"
+                            ref="family_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -72,10 +72,10 @@
                             <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
                         </select> -->
                         <label for="genera_lookup">Genera:</label>
-                        <select 
-                            id="genera_lookup"  
-                            name="genera_lookup"  
-                            ref="genera_lookup" 
+                        <select
+                            id="genera_lookup"
+                            name="genera_lookup"
+                            ref="genera_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -92,7 +92,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterFloraConservationList" 
+                        <select class="form-select" v-model="filterFloraConservationList"
                         @change="filterConservationCategory($event)">
                             <option value="all">All</option>
                             <option v-for="list in conservation_list_dict" :value="list.id" v-bind:key="list.id">{{list.code}}</option>
@@ -268,43 +268,43 @@ export default {
             uuid:0,
             speciesHistoryId: null,
             datatable_id: 'species_flora-datatable-'+vm._uid,
-     
+
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
-            
+
             // selected values for filtering
-            filterFloraScientificName: sessionStorage.getItem(this.filterFloraScientificName_cache) ? 
+            filterFloraScientificName: sessionStorage.getItem(this.filterFloraScientificName_cache) ?
                                     sessionStorage.getItem(this.filterFloraScientificName_cache) : 'all',
 
-            filterFloraCommonName: sessionStorage.getItem(this.filterFloraCommonName_cache) ? 
+            filterFloraCommonName: sessionStorage.getItem(this.filterFloraCommonName_cache) ?
                                     sessionStorage.getItem(this.filterFloraCommonName_cache) : 'all',
 
-            filterFloraFamily: sessionStorage.getItem(this.filterFloraFamily_cache) ? 
+            filterFloraFamily: sessionStorage.getItem(this.filterFloraFamily_cache) ?
                                 sessionStorage.getItem(this.filterFloraFamily_cache) : 'all',
 
-            filterFloraPhylogeneticGroup: sessionStorage.getItem(this.filterFloraPhylogeneticGroup_cache) ? 
+            filterFloraPhylogeneticGroup: sessionStorage.getItem(this.filterFloraPhylogeneticGroup_cache) ?
                                             sessionStorage.getItem(this.filterFloraPhylogeneticGroup_cache) : 'all',
 
-            filterFloraGenus: sessionStorage.getItem(this.filterFloraGenus_cache) ? 
+            filterFloraGenus: sessionStorage.getItem(this.filterFloraGenus_cache) ?
                                 sessionStorage.getItem(this.filterFloraGenus_cache) : 'all',
-            
+
             filterFloraNameStatus: sessionStorage.getItem(this.filterFloraNameStatus_cache) ?
                         sessionStorage.getItem(this.filterFloraNameStatus_cache) : 'all',
 
-            filterFloraConservationList: sessionStorage.getItem(this.filterFloraConservationList_cache) ? 
+            filterFloraConservationList: sessionStorage.getItem(this.filterFloraConservationList_cache) ?
                                     sessionStorage.getItem(this.filterFloraConservationList_cache) : 'all',
 
-            filterFloraConservationCategory: sessionStorage.getItem(this.filterFloraConservationCategory_cache) ? 
+            filterFloraConservationCategory: sessionStorage.getItem(this.filterFloraConservationCategory_cache) ?
                                     sessionStorage.getItem(this.filterFloraConservationCategory_cache) : 'all',
-            
+
             filterFloraApplicationStatus: sessionStorage.getItem(this.filterFloraApplicationStatus_cache) ?
             sessionStorage.getItem(this.filterFloraApplicationStatus_cache) : 'all',
 
-            filterFloraRegion: sessionStorage.getItem(this.filterFloraRegion_cache) ? 
+            filterFloraRegion: sessionStorage.getItem(this.filterFloraRegion_cache) ?
                                     sessionStorage.getItem(this.filterFloraRegion_cache) : 'all',
 
-            filterFloraDistrict: sessionStorage.getItem(this.filterFloraDistrict_cache) ? 
+            filterFloraDistrict: sessionStorage.getItem(this.filterFloraDistrict_cache) ?
                                     sessionStorage.getItem(this.filterFloraDistrict_cache) : 'all',
 
             //Filter list for scientific name and common name
@@ -321,7 +321,7 @@ export default {
             region_list: [],
             district_list: [],
             filtered_district_list: [],
-            
+
             // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
@@ -336,7 +336,7 @@ export default {
                 {value: 'active', name: 'Active'},
                 {value: 'historical', name: 'Historical'},
             ],
-            
+
             species_status: [],
         }
     },
@@ -350,46 +350,46 @@ export default {
         filterFloraScientificName: function(){
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterFloraScientificName_cache, vm.filterFloraScientificName);  
+            sessionStorage.setItem(vm.filterFloraScientificName_cache, vm.filterFloraScientificName);
         },
         filterFloraCommonName: function() {
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterFloraCommonName_cache, vm.filterFloraCommonName);  
+            sessionStorage.setItem(vm.filterFloraCommonName_cache, vm.filterFloraCommonName);
         },
         filterFloraFamily: function() {
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterFloraFamily_cache, vm.filterFloraFamily);  
+            sessionStorage.setItem(vm.filterFloraFamily_cache, vm.filterFloraFamily);
         },
         filterFloraPhylogeneticGroup: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call. 
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraPhylogeneticGroup_cache, vm.filterFloraPhylogeneticGroup);
         },
         filterFloraGenus: function() {
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterFloraGenus_cache, vm.filterFloraGenus);  
+            sessionStorage.setItem(vm.filterFloraGenus_cache, vm.filterFloraGenus);
         },
         filterFloraNameStatus: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraNameStatus_cache, vm.filterFloraNameStatus);
         },
         filterFloraConservationList: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraConservationList_cache, vm.filterFloraConservationList);
         },
         filterFloraConservationCategory: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraConservationCategory_cache, vm.filterFloraConservationCategory);
         },
         filterFloraApplicationStatus: function() {
             let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraApplicationStatus_cache, vm.filterFloraApplicationStatus);
         },
         filterFloraRegion: function(){
@@ -411,16 +411,16 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterFloraScientificName === 'all' && 
-                this.filterFloraCommonName === 'all' && 
-                this.filterFloraFamily === 'all' && 
-                this.filterFloraPhylogeneticGroup === 'all' && 
-                this.filterFloraGenus === 'all' && 
+            if(this.filterFloraScientificName === 'all' &&
+                this.filterFloraCommonName === 'all' &&
+                this.filterFloraFamily === 'all' &&
+                this.filterFloraPhylogeneticGroup === 'all' &&
+                this.filterFloraGenus === 'all' &&
                 this.filterFloraNameStatus === 'all' &&
-                this.filterFloraConservationList === 'all' && 
-                this.filterFloraConservationCategory === 'all' && 
+                this.filterFloraConservationList === 'all' &&
+                this.filterFloraConservationCategory === 'all' &&
                 this.filterFloraApplicationStatus === 'all' &&
-                this.filterFloraRegion === 'all' && 
+                this.filterFloraRegion === 'all' &&
                 this.filterFloraDistrict === 'all'){
                 return false
             } else {
@@ -667,9 +667,9 @@ export default {
                             links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
                         else{
-                            if(full.user_process){   
+                            if(full.user_process){
 
-                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;         
+                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;
                             }
                             links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
@@ -745,7 +745,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: search,
@@ -802,7 +802,7 @@ export default {
                 },
             }
         }
-    
+
     },
     methods:{
         historyDocument: function(id){
@@ -1063,7 +1063,7 @@ export default {
                         {
                           this.filtered_district_list.push(choice);
                         }
-                        
+
                     }
                 });
         },
@@ -1373,7 +1373,7 @@ export default {
             vm.$refs.flora_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -1383,10 +1383,10 @@ export default {
             /*Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
                 vm.is_payment_admin=response.body.is_payment_admin;
-                              
+
             },(error) => {
                 console.log(error);
-                
+
             })*/
         },
         delay(callback, ms) {
