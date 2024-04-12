@@ -621,7 +621,6 @@ export default {
                 ]
                 search = true
             }
-
             return {
                 autoWidth: false,
                 language: {
@@ -664,7 +663,6 @@ export default {
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: buttons,
-
                 columns: columns,
                 processing: true,
                 initComplete: function () {
@@ -672,7 +670,6 @@ export default {
                 },
             }
         }
-
     },
     methods: {
         collapsible_component_mounted: function () {
