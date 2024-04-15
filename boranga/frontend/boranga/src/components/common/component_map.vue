@@ -195,77 +195,90 @@
                                     </button>
                                     <!-- TODO: N-S Extents of WA -->
                                     <!-- Latitude -->
-                                    <label
-                                        v-if="
-                                            feature.getGeometry().getType() ===
-                                            'Point'
-                                        "
-                                        :for="`feature-${feature.ol_uid}-latitude-input`"
-                                        class="input-group-text"
-                                        >Lat</label
+                                    <div
+                                        class="form-floating flex-grow-1 input-group-text"
                                     >
-                                    <input
-                                        v-if="
-                                            feature.getGeometry().getType() ===
-                                            'Point'
-                                        "
-                                        :id="`feature-${feature.ol_uid}-latitude-input`"
-                                        class="form-control min-width-120"
-                                        :value="
-                                            feature
-                                                .getGeometry()
-                                                .getCoordinates()[1]
-                                        "
-                                        placeholder="Latitude"
-                                        type="number"
-                                        min="-90"
-                                        max="90"
-                                    />
+                                        <input
+                                            v-if="
+                                                feature
+                                                    .getGeometry()
+                                                    .getType() === 'Point'
+                                            "
+                                            :id="`feature-${feature.ol_uid}-latitude-input`"
+                                            class="form-control min-width-90"
+                                            :value="
+                                                feature
+                                                    .getGeometry()
+                                                    .getCoordinates()[1]
+                                            "
+                                            placeholder="Latitude"
+                                            type="number"
+                                            min="-90"
+                                            max="90"
+                                        />
+                                        <label
+                                            v-if="
+                                                feature
+                                                    .getGeometry()
+                                                    .getType() === 'Point'
+                                            "
+                                            :for="`feature-${feature.ol_uid}-latitude-input`"
+                                            >Latitude</label
+                                        >
+                                    </div>
                                     <!-- TODO: W-E Extents of WA -->
                                     <!-- Longitude -->
-                                    <label
-                                        v-if="
-                                            feature.getGeometry().getType() ===
-                                            'Point'
-                                        "
-                                        :for="`feature-${feature.ol_uid}-longitude-input`"
-                                        class="input-group-text"
-                                        >Lon</label
-                                    >
-                                    <input
-                                        v-if="
-                                            feature.getGeometry().getType() ===
-                                            'Point'
-                                        "
-                                        :id="`feature-${feature.ol_uid}-longitude-input`"
-                                        class="form-control min-width-120 me-1"
-                                        :value="
-                                            feature
-                                                .getGeometry()
-                                                .getCoordinates()[0]
-                                        "
-                                        placeholder="Longitude"
-                                        type="number"
-                                        min="-180"
-                                        max="180"
-                                    />
                                     <div
-                                        class="form-control input-group-text min-width-150 justify-content-end"
+                                        class="form-floating flex-grow-1 input-group-text"
                                     >
+                                        <input
+                                            v-if="
+                                                feature
+                                                    .getGeometry()
+                                                    .getType() === 'Point'
+                                            "
+                                            :id="`feature-${feature.ol_uid}-longitude-input`"
+                                            class="form-control min-width-90 me-1"
+                                            :value="
+                                                feature
+                                                    .getGeometry()
+                                                    .getCoordinates()[0]
+                                            "
+                                            placeholder="Longitude"
+                                            type="number"
+                                            min="-180"
+                                            max="180"
+                                        />
+                                        <label
+                                            v-if="
+                                                feature
+                                                    .getGeometry()
+                                                    .getType() === 'Point'
+                                            "
+                                            :for="`feature-${feature.ol_uid}-longitude-input`"
+                                            >Longitude</label
+                                        >
+                                    </div>
+                                    <!-- CRS Dropdown -->
+                                    <div
+                                        class="form-floating flex-grow-1 input-group-text min-width-150 justify-content-end"
+                                    >
+                                        <!-- name="id"
+                                        label="name" -->
                                         <SelectFilter
-                                            :id="`feature-${feature.ol_uid}-select`"
+                                            :id="`feature-${feature.ol_uid}-crs-select`"
                                             :title="`Feature ${
                                                 feature.getProperties().id
                                             }`"
                                             :show-title="false"
-                                            :placeholder="`Select a CRS`"
+                                            placeholder="Coordinate Reference System"
                                             :options="
                                                 coordinateReferenceSystems
                                             "
                                             :pre-selected-filter-item="
                                                 feature.getProperties().srid
                                             "
-                                            classes="min-width-120"
+                                            classes="input-group input-group-sm text-nowrap"
                                         />
                                     </div>
                                 </div>
