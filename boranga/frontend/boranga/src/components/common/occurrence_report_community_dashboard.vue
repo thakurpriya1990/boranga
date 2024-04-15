@@ -1,90 +1,52 @@
-<template id="cs_communities_dashboard">
+<template id="communities_ocr_dashboard">
     <div>
         <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
             <div class="row">
-                <div class="col-md-3">
-                    <div class="form-group" id="select_community_id">
-                        <label for="cs_community_id_lookup">Community ID:</label>
-                        <select
-                            id="cs_community_id_lookup"
-                            name="cs_community_id_lookup"
-                            ref="cs_community_id_lookup"
-                            class="form-control" />
+                <div class="col-md-4">
+                    <div class="form-group" id="select_occurrence">
+                        <label for="ocr_occurrence_lookup">Occurrence:</label>
+                            <select
+                                id="ocr_occurrence_lookup"
+                                name="ocr_occurrence_lookup"
+                                ref="ocr_occurrence_lookup"
+                                class="form-control" />
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group" id="select_community_name">
-                        <label for="cs_community_name_lookup">Community Name:</label>
-                        <select
-                            id="cs_community_name_lookup"
-                            name="cs_community_name_lookup"
-                            ref="cs_community_name_lookup"
-                            class="form-control" />
+                <div class="col-md-4">
+                    <div class="form-group" id="select_community_name_by_groupname">
+                        <label for="ocr_community_name_lookup_by_groupname">Community Name:</label>
+                            <select
+                                id="ocr_community_name_lookup_by_groupname"
+                                name="ocr_community_name_lookup_by_groupname"
+                                ref="ocr_community_name_lookup_by_groupname"
+                                class="form-control" />
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
+                    <div class="form-group" id="select_status">
+                        <label for="ocr_status_lookup">Status:</label>
+                        <select class="form-select" v-model="filterOCRCommunityStatus">
+                                <option value="all">All</option>
+                                <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="form-group">
-                        <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSCommunityConservationList"
-                        @change="filterConservationCategory($event)">
-                            <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
-                        </select>
+                        <label for="">Submitted From Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterOCRCommunitySubmittedFromDate">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="form-group">
-                        <label for="">Conservation Category:</label>
-                        <select class="form-select" v-model="filterCSCommunityConservationCategory">
-                            <option value="all">All</option>
-                            <option v-for="list in filtered_conservation_category_list" :value="list.id">{{list.code}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3" v-show="!is_for_agenda">
-                    <div class="form-group">
-                        <label for="">Status:</label>
-                        <select class="form-select" v-model="filterCSCommunityApplicationStatus">
-                            <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSCommunityRegion"
-                        @change="filterDistrict($event)">
-                            <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">{{region.name}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">District:</label>
-                        <select class="form-select" v-model="filterCSCommunityDistrict">
-                            <option value="all">All</option>
-                            <option v-for="district in filtered_district_list" :value="district.id">{{district.name}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3" v-show="!is_for_agenda">
-                    <div class="form-group">
-                        <label for="">Effective From Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveFromDate">
-                    </div>
-                </div>
-                <div class="col-md-3" v-show="!is_for_agenda">
-                    <div class="form-group">
-                        <label for="">Effective To Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveToDate">
+                        <label for="">Submitted To Date:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterOCRCommunitySubmittedToDate">
                     </div>
                 </div>
             </div>
         </CollapsibleFilters>
 
-        <div v-if="addCommunityOCRVisibility && is_for_agenda==false" class="col-md-12">
+        <div v-if="addCommunityOCRVisibility" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrenceReport"><i class="fa-solid fa-circle-plus"></i> Add Occurrence Report</button>
             </div>
@@ -93,7 +55,7 @@
         <div class="row">
             <div class="col-lg-12">
                 <datatable
-                        ref="cs_communities_datatable"
+                        ref="community_ocr_datatable"
                         :id="datatable_id"
                         :dtOptions="datatable_options"
                         :dtHeaders="datatable_headers"
@@ -122,7 +84,7 @@ import {
     helpers
 }from '@/utils/hooks'
 export default {
-    name: 'ConservationStatusCommunityTable',
+    name: 'OccurrenceReportCommunityTable',
     props: {
         level:{
             type: String,
@@ -145,60 +107,30 @@ export default {
             type: String,
             required: true
         },
-        // when the datable need to be shown for agenda_items in meeting check this variable is true
-        is_for_agenda:{
-            type: Boolean,
-            default:false
-        },
-        // for adding agendaitems for the meeting_obj.id
-        meeting_obj:{
-            type: Object,
-            required:false
-        },
-        filterCSCommunityMigratedId_cache: {
+        filterOCRCommunityOccurrence_cache: {
             type: String,
             required: false,
-            default: 'filterCSCommunityMigratedId',
+            default: 'filterOCRCommunityOccurrence',
         },
-        filterCSCommunityName_cache: {
+        filterOCRCommunityName_cache: {
             type: String,
             required: false,
-            default: 'filterCSCommunityName',
+            default: 'filterOCRCommunityCommunityName',
         },
-        filterCSCommunityConservationList_cache: {
+        filterOCRCommunityStatus_cache: {
             type: String,
             required: false,
-            default: 'filterCSCommunityConservationList',
+            default: 'filterOCRCommunityStatus',
         },
-        filterCSCommunityConservationCategory_cache: {
+        filterOCRCommunitySubmittedFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSCommunityConservationCategory',
+            default: 'filterOCRCommunitySubmittedFromDate',
         },
-        filterCSCommunityRegion_cache: {
+        filterOCRCommunitySubmittedToDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSCommunityRegion',
-        },
-        filterCSCommunityDistrict_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSCommunityDistrict',
-        },
-        filterCSCommunityApplicationStatus_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSCommunityApplicationStatus',
-        },
-        filterCSCommunityEffectiveFromDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSCommunityEffectiveFromDate',
-        },
-        filterCSCommunityEffectiveToDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSCommunityEffectiveToDate',
+            default: 'filterOCRCommunitySubmittedToDate',
         },
     },
     data() {
@@ -206,70 +138,48 @@ export default {
         return {
             uuid:0,
             occurrenceReportHistoryId: null,
-            datatable_id: 'cs-communities-datatable-'+vm._uid,
+            datatable_id: 'community_ocr-datatable-'+vm._uid,
 
             //Profile to check if user has access to process Proposal
             profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
-            filterCSCommunityMigratedId: sessionStorage.getItem(this.filterCSCommunityMigratedId_cache) ?
-                                sessionStorage.getItem(this.filterCSCommunityMigratedId_cache) : 'all',
+            filterOCRCommunityOccurrence: sessionStorage.getItem(this.filterOCRCommunityOccurrence_cache) ?
+                                    sessionStorage.getItem(this.filterOCRCommunityOccurrence_cache) : 'all',
 
-            filterCSCommunityName: sessionStorage.getItem(this.filterCSCommunityName_cache) ?
-                                    sessionStorage.getItem(this.filterCSCommunityName_cache) : 'all',
+            filterOCRCommunityName: sessionStorage.getItem(this.filterOCRCommunityName_cache) ?
+                                sessionStorage.getItem(this.filterOCRCommunityName_cache) : 'all',
 
-            filterCSCommunityConservationList: sessionStorage.getItem(this.filterCSCommunityConservationList_cache) ?
-                                    sessionStorage.getItem(this.filterCSCommunityConservationList_cache) : 'all',
+            filterOCRCommunityStatus: sessionStorage.getItem(this.filterOCRCommunityStatus_cache) ?
+                        sessionStorage.getItem(this.filterOCRCommunityStatus_cache) : 'all',
 
-            filterCSCommunityConservationCategory: sessionStorage.getItem(this.filterCSCommunityConservationCategory_cache) ?
-                                    sessionStorage.getItem(this.filterCSCommunityConservationCategory_cache) : 'all',
+            filterOCRCommunitySubmittedFromDate: sessionStorage.getItem(this.filterOCRCommunitySubmittedFromDate_cache) ?
+                                sessionStorage.getItem(this.filterOCRCommunitySubmittedFromDate_cache) : '',
 
-            filterCSCommunityRegion: sessionStorage.getItem(this.filterCSCommunityRegion_cache) ?
-                                    sessionStorage.getItem(this.filterCSCommunityRegion_cache) : 'all',
+            filterOCRCommunitySubmittedToDate: sessionStorage.getItem(this.filterOCRCommunitySubmittedToDate_cache) ?
+                                sessionStorage.getItem(this.filterOCRCommunitySubmittedToDate_cache) : '',
 
-            filterCSCommunityDistrict: sessionStorage.getItem(this.filterCSCommunityDistrict_cache) ?
-                                        sessionStorage.getItem(this.filterCSCommunityDistrict_cache) : 'all',
-
-            filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
-                                    sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'all',
-
-            filterCSCommunityEffectiveFromDate: sessionStorage.getItem(this.filterCSCommunityEffectiveFromDate_cache) ?
-                                    sessionStorage.getItem(this.filterCSCommunityEffectiveFromDate_cache) : '',
-
-            filterCSCommunityEffectiveToDate: sessionStorage.getItem(this.filterCSCommunityEffectiveToDate_cache) ?
-                                    sessionStorage.getItem(this.filterCSCommunityEffectiveToDate_cache) : '',
-
-            //Filter list for Community select box
-            filterListsCommunities: {},
-            communities_data_list: [],
-            conservation_list_dict: [],
-            conservation_category_list: [],
-            filtered_conservation_category_list: [],
-            filterRegionDistrict: {},
-            region_list: [],
-            district_list: [],
-            filtered_district_list: [],
+            filterListsCommunity: {},
+            occurrence_list: [],
+            community_name_list: [],
+            status_list: [],
+            submissions_from_list: [],
+            submissions_to_list: [],
 
             // filtering options
-            external_status:[
-                {value: 'draft', name: 'Draft'},
-                {value: 'with_assessor', name: 'Under Review'},
-                {value: 'approved', name: 'Approved'},
-                {value: 'declined', name: 'Declined'},
-                {value: 'discarded', name: 'Discarded'},
-                {value: 'awaiting_payment', name: 'Awaiting Payment'},
-            ],
+            // external_status refers to CUSTOMER_STATUS_CHOICES
+            // internal_status referes to PROCESSING_STATUS_CHOICES
             internal_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'ready_for_agenda', name: 'Ready For Agenda'},
-                // {value: 'with_approver', name: 'With Approver'},
                 {value: 'with_referral', name: 'With Referral'},
+                {value: 'with_approver', name: 'With Approver'},
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
-                {value: 'closed', name: 'Closed'},
             ],
+
+            proposal_status: [],
 
             proposal_status: [],
 
@@ -282,51 +192,30 @@ export default {
         OccurrenceReportHistory,
     },
     watch:{
-        filterCSCommunityMigratedId: function(){
+        filterOCRCommunityOccurrence: function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityMigratedId_cache, vm.filterCSCommunityMigratedId);
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRCommunityOccurrence_cache, vm.filterOCRCommunityOccurrence);
         },
-        filterCSCommunityName: function() {
+        filterOCRCommunityName: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityName_cache, vm.filterCSCommunityName);
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRCommunityName_cache, vm.filterOCRCommunityName);
         },
-        filterCSCommunityConservationList: function() {
+        filterOCRCommunityStatus: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityConservationList_cache, vm.filterCSCommunityConservationList);
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRCommunityStatus_cache, vm.filterOCRCommunityStatus);
         },
-        filterCSCommunityConservationCategory: function() {
+        filterOCRCommunitySubmittedFromDate: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityConservationCategory_cache,
-                vm.filterCSCommunityConservationCategory);
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRCommunitySubmittedFromDate_cache, vm.filterOCRCommunitySubmittedFromDate);
         },
-        filterCSCommunityRegion: function(){
+        filterOCRCommunitySubmittedToDate: function() {
             let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityRegion_cache, vm.filterCSCommunityRegion);
-        },
-        filterCSCommunityDistrict: function(){
-            let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityDistrict_cache, vm.filterCSCommunityDistrict);
-        },
-        filterCSCommunityEffectiveFromDate: function(){
-            let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityEffectiveFromDate_cache, vm.filterCSCommunityEffectiveFromDate);
-        },
-        filterCSCommunityEffectiveToDate: function(){
-            let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityEffectiveToDate_cache, vm.filterCSCommunityEffectiveToDate);
-        },
-        filterCSCommunityApplicationStatus: function() {
-            let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityApplicationStatus_cache, vm.filterCSCommunityApplicationStatus);
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRCommunitySubmittedToDate_cache, vm.filterOCRCommunitySubmittedToDate);
         },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
@@ -337,15 +226,11 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCSCommunityMigratedId === 'all' &&
-                this.filterCSCommunityName === 'all' &&
-                this.filterCSCommunityConservationList === 'all' &&
-                this.filterCSCommunityConservationCategory === 'all' &&
-                this.filterCSCommunityRegion === 'all' &&
-                this.filterCSCommunityDistrict === 'all' &&
-                this.filterCSCommunityApplicationStatus === 'all' &&
-                this.filterCSCommunityEffectiveFromDate === '' &&
-                this.filterCSCommunityEffectiveToDate === ''){
+            if(this.filterOCRCommunityOccurrence === 'all' &&
+                this.filterOCRCommunityName === 'all' &&
+                this.filterOCRCommunityStatus === 'all' &&
+                this.filterOCRCommunitySubmittedFromDate === '' &&
+                this.filterOCRCommunitySubmittedToDate === ''){
                 return false
             } else {
                 return true
@@ -368,11 +253,8 @@ export default {
             return visibility;
         },
         datatable_headers: function(){
-            if (this.is_external){
-                return ['Number', 'Community','Community Id' ,'Community Name', 'Conservation List' , 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
-            }
             if (this.is_internal){
-                return ['Number', 'Community','Community Id' ,'Community Name', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
+                return ['Number','Occurrence','Community Name', 'Submission date/time', 'Submitter', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -389,39 +271,29 @@ export default {
         },
         column_number: function(){
             return {
-                data: "conservation_status_number",
+                data: "occurrence_report_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    return full.conservation_status_number
+                    return full.occurrence_report_number
                 },
                 name: "id",
             }
         },
-        column_community_number: function(){
+        column_occurrence: function(){
             return {
-                data: "community_number",
+                data: "community",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    return full.community_number
+                    if (full.community){
+                        return full.community;
+                    }
+                    return ''
                 },
-                name: "community__community_number",
-            }
-        },
-        column_community_id: function(){
-            return {
-                data: "community_migrated_id",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                name: "community__taxonomy__community_migrated_id",
+                name: "community",
             }
         },
         column_community_name: function(){
@@ -430,135 +302,71 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
+                'render': function(data, type, full){
+                    if (full.community_name){
+                        return full.community_name;
+                    }
+                    return ''
                 },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "community__taxonomy__community_name",
+                name: "taxonomy__community_name",
             }
         },
-        column_conservation_list: function(){
+        column_submission_date_time: function(){
             return {
-                data: "conservation_list",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_list__code",
-            }
-        },
-        column_conservation_category: function(){
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_category__code",
-            }
-        },
-        column_status: function(){
-            return {
-                data: "processing_status",
+                data: "reported_date",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function(data, type, full){
-                    if (full.processing_status){
-                        return full.processing_status;
+                    if (full.reported_date){
+                        return full.reported_date;
                     }
-                    // Should not reach here
+                    return ''
+                },
+                name: "reported_date",
+            }
+        },
+        column_submitter: function(){
+            return {
+                data: "submitter",
+                orderable: false,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.submitter){
+                        return full.submitter;
+                    }
+                    return ''
+                },
+                name: "submitter__first_name, submitter__last_name",
+            }
+        },
+        column_status: function(){
+            return {
+                data: "processing_status_display",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.processing_status_display){
+                        return full.processing_status_display;
+                    }
                     return ''
                 },
                 name: "processing_status",
             }
         },
-        column_region: function(){
-            return {
-                data: "region",
-                orderable: true,
-                searchable: false,
-                visible: true,
-                'render': function(data, type, full){
-                    if(full.region){
-                        return full.region;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "community__region__name",
-            }
-        },
-        column_district: function(){
-            return {
-                data: "district",
-                orderable: true,
-                searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.district){
-                        return full.district
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "community__district__name",
-            }
-        },
-        column_effective_from_date: function(){
-            return {
-                data: "effective_from_date",
-                orderable: true,
-                searchable: true, // handles by filter_queryset override method
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.effective_from_date){
-                        return full.effective_from_date
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservationstatusissuanceapprovaldetails__effective_from_date",
-            }
-        },
-        column_effective_to_date: function(){
-            return {
-                data: "effective_to_date",
-                orderable: true,
-                searchable: true, // handles by filter_queryset override method
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.effective_to_date){
-                        return full.effective_to_date
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservationstatusissuanceapprovaldetails__effective_to_date",
-            }
-        },
+        // TODO update this to suit the design
         column_action: function(){
             let vm = this
             return {
-                // 9. Action
                 data: "id",
                 orderable: false,
                 searchable: false,
                 visible: true,
                 'render': function(data, type, full){
                     let links = "";
-                    if(vm.is_for_agenda==false){
-                        if (!vm.is_external){
-                            /*if(vm.check_assessor(full) && full.can_officer_process)*/
+                    if (!vm.is_external){
                             if(full.internal_user_edit)
                             {
                                 links +=  `<a href='/internal/occurrence_report/${full.id}'>Continue</a><br/>`;
@@ -578,15 +386,6 @@ export default {
                                 }
                             }
                         }
-                    }
-                    else{
-                        if(vm.meeting_obj.agenda_items_arr.includes(full.id)){
-                            links +=  `<a>Added</a><br/>`;
-                        }
-                        else{
-                            links +=  `<a href='#${full.id}' data-add-to-agenda='${full.id}'>Add</a><br/>`;
-                        }
-                    }
                     return links;
                 }
             }
@@ -612,35 +411,13 @@ export default {
                     }
                 }
             ]
-            if(vm.is_external){
-                columns = [
-                    vm.column_number,
-                    vm.column_community_number,
-                    vm.column_community_id,
-                    vm.column_community_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
-                    vm.column_region,
-                    vm.column_district,
-                    vm.column_effective_from_date,
-                    vm.column_effective_to_date,
-                    vm.column_status,
-                    vm.column_action,
-                ]
-                search = false
-            }
             if(vm.is_internal){
                 columns = [
-                    vm.column_number,
-                    vm.column_community_number,
-                    vm.column_community_id,
+                vm.column_number,
+                    vm.column_occurrence,
                     vm.column_community_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
-                    vm.column_region,
-                    vm.column_district,
-                    vm.column_effective_from_date,
-                    vm.column_effective_to_date,
+                    vm.column_submission_date_time,
+                    vm.column_submitter,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -671,16 +448,12 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
-                        d.filter_community_migrated_id = vm.filterCSCommunityMigratedId;
-                        d.filter_community_name = vm.filterCSCommunityName;
-                        d.filter_conservation_list = vm.filterCSCommunityConservationList;
-                        d.filter_conservation_category = vm.filterCSCommunityConservationCategory;
                         d.filter_group_type = vm.group_type_name;
-                        d.filter_region = vm.filterCSCommunityRegion;
-                        d.filter_district = vm.filterCSCommunityDistrict;
-                        d.filter_application_status = vm.filterCSCommunityApplicationStatus;
-                        d.filter_effective_from_date = vm.filterCSCommunityEffectiveFromDate;
-                        d.filter_effective_to_date = vm.filterCSCommunityEffectiveToDate;
+                        d.filter_occurrence = vm.filterOCRCommunityOccurrence;
+                        d.filter_community_name = vm.filterOCRCommunityName;
+                        d.filter_status = vm.filterOCRCommunityStatus;
+                        d.filter_submitted_from_date = vm.filterOCRCommunitySubmittedFromDate;
+                        d.filter_submitted_to_date = vm.filterOCRCommunitySubmittedToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -710,21 +483,22 @@ export default {
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
-        initialiseCommunityNameLookup: function(){
+        initialiseOccurrenceLookup: function(){
                 let vm = this;
-                $(vm.$refs.cs_community_name_lookup).select2({
+                $(vm.$refs.ocr_occurrence_lookup).select2({
                     minimumInputLength: 2,
-                    dropdownParent: $("#select_community_name"),
+                    dropdownParent: $("#select_occurrence"),
                     "theme": "bootstrap-5",
                     allowClear: true,
-                    placeholder:"Select Community Name",
+                    placeholder:"Select Occurrence",
                     ajax: {
-                        url: api_endpoints.community_name_lookup,
+                        url: api_endpoints.community_lookup,
                         dataType: 'json',
                         data: function(params) {
                             var query = {
                                 term: params.term,
                                 type: 'public',
+                                group_type_id: vm.group_type_id,
                             }
                             return query;
                         },
@@ -733,35 +507,35 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.filterCSCommunityName = data;
-                    sessionStorage.setItem("filterCSCommunityNameText", e.params.data.text);
+                    vm.filterOCRCommunityOccurrence = data;
+                    sessionStorage.setItem("filterOCRCommunityOccurrenceText", e.params.data.text);
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.filterCSCommunityName = 'all';
-                    sessionStorage.setItem("filterCSCommunityNameText",'');
+                    vm.filterOCRCommunityOccurrence = 'all';
+                    sessionStorage.setItem("filterOCRCommunityOccurrenceText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-cs_community_name_lookup-results"]')
-                    // move focus to select2 field
+                    const searchField = $('[aria-controls="select2-ocr_occurrence_lookup-results"]')
                     searchField[0].focus();
                 });
         },
-        initialiseCommunityIdLookup: function(){
+        initialiseCommunityNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.cs_community_id_lookup).select2({
-                    minimumInputLength: 1,
-                    dropdownParent: $("#select_community_id"),
-                    "theme": "bootstrap-5",
+                $(vm.$refs.ocr_community_name_lookup_by_groupname).select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $("#select_community_name_by_groupname"),
+                    theme: 'bootstrap-5',
                     allowClear: true,
-                    placeholder:"Select Community ID",
+                    placeholder:"Select Community Name",
                     ajax: {
-                        url: api_endpoints.community_id_lookup,
+                        url: api_endpoints.community_name_lookup_by_groupname,
                         dataType: 'json',
                         data: function(params) {
                             var query = {
                                 term: params.term,
                                 type: 'public',
+                                group_type_id: vm.group_type_id,
                             }
                             return query;
                         },
@@ -770,78 +544,37 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.filterCSCommunityMigratedId = data;
-                    sessionStorage.setItem("filterCSCommunityMigratedIdText", e.params.data.text);
+                    vm.filterOCRCommunityName = data;
+                    sessionStorage.setItem("filterOCRCommunityNameText", e.params.data.text);
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.filterCSCommunityMigratedId = 'all';
-                    sessionStorage.setItem("filterCSCommunityMigratedIdText",'');
+                    vm.filterOCRCommunityName = 'all';
+                    sessionStorage.setItem("filterOCRCommunityNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-cs_community_id_lookup-results"]')
-                    // move focus to select2 field
+                    const searchField = $('[aria-controls="select2-ocr_community_name_lookup_by_groupname-results"]')
                     searchField[0].focus();
                 });
         },
         fetchFilterLists: function(){
             let vm = this;
-
-            vm.$http.get(api_endpoints.community_filter_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
-                vm.filterListsCommunities= response.body;
-                vm.communities_data_list= vm.filterListsCommunities.community_data_list;
-                vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
-                vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
-                vm.filterConservationCategory();
-                vm.filterDistrict();
+            //large FilterList of Community Values object
+            vm.$http.get(api_endpoints.filter_lists_community+ '?group_type_name=' + vm.group_type_name).then((response) => {
+                vm.filterListsCommunity = response.body;
+                vm.occurrence_list = vm.filterListsCommunity.occurrence_list;
+                vm.community_name_list = vm.filterListsCommunity.community_name_list;
+                vm.status_list = vm.filterListsCommunity.status_list;
+                vm.submissions_from_list = vm.filterListsCommunity.submissions_from_list;
+                vm.submissions_to_list = vm.filterListsCommunity.submissions_to_list;
                 vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
-                    return a.name.trim().localeCompare(b.name.trim());
-                });
+                        return a.name.trim().localeCompare(b.name.trim());
+                    });
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
                 console.log(error);
             })
-            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
-                vm.filterRegionDistrict= response.body;
-                vm.region_list= vm.filterRegionDistrict.region_list;
-                vm.district_list= vm.filterRegionDistrict.district_list;
-            },(error) => {
-                console.log(error);
-            })
-        },
-        //-------filter category dropdown dependent on conservation_list selected
-        filterConservationCategory: function(event) {
-                this.$nextTick(() => {
-                    if(event){
-                      this.filterCSCommunityConservationCategory='all'; //-----to remove the previous selection
-                    }
-                    this.filtered_conservation_category_list=[];
-                    //---filter conservation_categories as per cons_list selected
-                    for(let choice of this.conservation_category_list){
-                        if(choice.conservation_list_id.toString() === this.filterCSCommunityConservationList.toString())
-                        {
-                          this.filtered_conservation_category_list.push(choice);
-                        }
-                    }
-                });
-        },
-         //-------filter district dropdown dependent on region selected
-         filterDistrict: function(event) {
-                this.$nextTick(() => {
-                    if(event){
-                      this.filterCSCommunityDistrict='all'; //-----to remove the previous selection
-                    }
-                    this.filtered_district_list=[];
-                    //---filter districts as per region selected
-                    for(let choice of this.district_list){
-                        if(choice.region_id.toString() === this.filterCSCommunityRegion.toString())
-                        {
-                          this.filtered_district_list.push(choice);
-                        }
-
-                    }
-                });
         },
         createCommunityOccurrenceReport: async function () {
             let newCommunityOCRId = null
@@ -866,26 +599,26 @@ export default {
                 params: {occurrence_report_id: newCommunityOCRId},
                 });
         },
-        discardCSProposal:function (conservation_status_id) {
+        discardOCRProposal:function (occurrence_report_id) {
             let vm = this;
             swal.fire({
-                title: "Discard Application",
-                text: "Are you sure you want to discard this proposal?",
+                title: "Discard Report",
+                text: "Are you sure you want to discard this report?",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Application',
+                confirmButtonText: 'Discard Report',
                 confirmButtonColor:'#d9534f'
             }).then((swalresult) => {
                 if(swalresult.isConfirmed){
-                    vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
+                    vm.$http.delete(api_endpoints.discard_ocr_proposal(occurrence_report_id))
                     .then((response) => {
                         swal.fire({
                             title: 'Discarded',
-                            text: 'Your proposal has been discarded',
+                            text: 'Your report has been discarded',
                             icon: 'success',
                             confirmButtonColor:'#226fbb',
                         });
-                        vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
+                        vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
                     }, (error) => {
                         console.log(error);
                     });
@@ -894,33 +627,15 @@ export default {
 
             });
         },
-        addToMeetingAgenda:function (conservation_status_id) {
-            let vm=this;
-            let payload = new Object();
-            payload.conservation_status_id = conservation_status_id;
-            Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/add_agenda_item.json`,payload).then(res => {
-                vm.meeting_obj.agenda_items_arr=res.body;
-                vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
-                this.$emit('updateAgendaItems');
-            },
-            err => {
-              console.log(err);
-            });
-        },
         addEventListeners: function(){
             let vm = this;
             // internal Discard listener
-            vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-discard-cs-proposal]', function(e) {
+            vm.$refs.community_ocr_datatable.vmDataTable.on('click', 'a[data-discard-ocr-proposal]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-cs-proposal');
+                var id = $(this).attr('data-discard-ocr-proposal');
                 vm.discardCSProposal(id);
             });
-            vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-add-to-agenda]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-add-to-agenda');
-                vm.addToMeetingAgenda(id);
-            });
-            vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-history-occurrence-report]', function(e) {
+            vm.$refs.community_ocr_datatable.vmDataTable.on('click', 'a[data-history-occurrence-report]', function(e) {
                     e.preventDefault();
                     var id = $(this).attr('data-history-occurrence-report');
                     vm.historyDocument(id);
@@ -931,7 +646,7 @@ export default {
         },
         submitterSearch:function(){
             let vm = this;
-            vm.$refs.cs_communities_datatable.table.dataTableExt.afnFiltering.push(
+            vm.$refs.community_ocr_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
                     if (filtered_submitter == 'All'){ return true; }
@@ -939,173 +654,84 @@ export default {
                 }
             );
         },
-        fetchProfile: function(){
-            let vm = this;
-            /*Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-                vm.is_payment_admin=response.body.is_payment_admin;
-
-            },(error) => {
-                console.log(error);
-
-            })*/
-        },
-
-        check_assessor: function(proposal){
-            let vm = this;
-            if (proposal.assigned_officer)
-                {
-                    { if(proposal.assigned_officer== vm.profile.full_name)
-                        return true;
-                    else
-                        return false;
-                }
-            }
-            else{
-                 var assessor = proposal.allowed_assessors.filter(function(elem){
-                    return(elem.id=vm.profile.id)
-                });
-
-                if (assessor.length > 0)
-                    return true;
-                else
-                    return false;
-
-            }
-
-        },
         exportData: function (format) {
             let vm = this;
             const columns_new = {
-                "0":{
-                    "data":"conservation_status_number",
-                    "name":"conservation_status__id, conservation_status__conservation_status_number",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
+                "0": {
+                    "data": "occurrence",
+                    "name": "occurrence_report__id, occurrence_report__occurrence_report_number",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "false"
+                },
+                "1": {
+                    "data": "community",
+                    "name": "occurrence_report__community",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "2": {
+                    "data": "community_name",
+                    "name": "occurrence_report__community__taxonomy__community_name",
+                    "orderable": "true",
+                    "search": {
+                        "regex": "false",
+                        "value": ""
+                    },
+                    "searchable": "true"
+                },
+                "3": {
+                    "data": "reported_date",
+                    "name": "occurrence_report__reported_date",
+                    "searchable": "true",
+                    "orderable": "true",
+                    "search": {
+                        "value": "",
+                        "regex": "false"
                     }
                 },
-                "1":{
-                    "data":"community_number",
-                    "name":"conservation_status__community__community_number",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
+                "4": {
+                    "data": "submitter",
+                    // "name": "occurrence_report__submitter",
+                    "searchable": "true",
+                    "orderable": "true",
+                    "search": {
+                        "value": "",
+                        "regex": "false"
                     }
                 },
-                "2":{
-                    "data":"community_migrated_id",
-                    "name":"conservation_status__community__community_migrated_id",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "3":{
-                    "data":"community_name",
-                    "name":"conservation_status__community__community_name__name",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "4":{
-                    "data":"conservation_list",
-                    "name":"conservation_status__conservation_list__code",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "5":{
-                    "data":"conservation_category",
-                    "name":"conservation_status__conservation_category__code",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "6":{
-                    "data":"family",
-                    "name":"species__taxonomy__family__name",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "7":{
-                    "data":"genus",
-                    "name":"species__taxonomy__genus__name",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "8":{
-                    "data":"processing_status",
-                    "name":"conservation_status__processing_status",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "9":{
-                    "data":"id",
-                    "name":"",
-                    "searchable":"false",
-                    "orderable":"false",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "10":{
-                    "data":"conservation_status",
-                    "name":"",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
+                "5": {
+                    "data": "processing_status",
+                    "name": "occurrence_report__processing_status",
+                    "searchable": "true",
+                    "orderable": "true",
+                    "search": {
+                        "value": "",
+                        "regex": "false"
                     }
                 },
             };
 
             const object_load = {
                 columns: columns_new,
-                filter_community_migrated_id: vm.filterCSCommunityMigratedId,
                 filter_group_type: vm.group_type_name,
-                filter_community_name: vm.filterCSCommunityName,
-                filter_conservation_list: vm.filterCSCommunityConservationList,
-                filter_conservation_category: vm.filterCSCommunityConservationCategory,
-                filter_application_status: vm.filterCSCommunityApplicationStatus,
-                filter_region: vm.filterCSCommunityRegion,
-                filter_district: vm.filterCSCommunityDistrict,
-                filter_effective_from_date: vm.filterCSCommunityEffectiveFromDate,
-                filter_effective_to_date: vm.filterCSCommunityEffectiveToDate,
+                filter_occurrence: vm.filterOCRCommunityOccurrence,
+                filter_community_name: vm.filterOCRCommunityName,
+                filter_status: vm.filterOCRCommunityStatus,
+                filter_submitted_from_date: vm.filterOCRCommunitySubmittedFromDate,
+                filter_submitted_to_date: vm.filterOCRCommunitySubmittedToDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };
 
-            const url = api_endpoints.community_cs_internal_export;
+            const url = api_endpoints.community_ocr_internal_export;
             const keyValuePairs = [];
 
             for (const key in object_load) {
@@ -1190,7 +816,6 @@ export default {
 
     mounted: function(){
         this.fetchFilterLists();
-        this.fetchProfile();
         let vm = this;
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
@@ -1199,22 +824,24 @@ export default {
             }, 100 );
         });
         this.$nextTick(() => {
+            vm.initialiseOccurrenceLookup();
             vm.initialiseCommunityNameLookup();
-            vm.initialiseCommunityIdLookup();
             //vm.initialiseSearch();
             vm.addEventListeners();
+
             // -- to set the select2 field with the session value if exists onload()
-            if(sessionStorage.getItem("filterCSCommunityName")!='all' && sessionStorage.getItem("filterCSCommunityName")!=null)
+            if(sessionStorage.getItem("filterOCRCommunityOccurrence")!='all' && sessionStorage.getItem("filterOCRCommunityOccurrence")!=null)
             {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterCSCommunityNameText"), vm.filterCSCommunityName, false, true);
-                $('#cs_community_name_lookup').append(newOption);
+                var newOption = new Option(sessionStorage.getItem("filterOCRCommunityOccurrenceText"), vm.filterOCRCommunityOccurrence, false, true);
+                $('#ocr_occurrence_lookup').append(newOption);
+                //$('#scientific_name_lookup').append(newOption).trigger('change');
             }
-            if(sessionStorage.getItem("filterCSCommunityMigratedId")!='all' && sessionStorage.getItem("filterCSCommunityMigratedId")!=null)
+            if(sessionStorage.getItem("filterOCRCommunityName")!='all' && sessionStorage.getItem("filterOCRCommunityName")!=null)
             {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(sessionStorage.getItem("filterCSCommunityMigratedIdText"), vm.filterCSCommunityMigratedId, false, true);
-                $('#cs_community_id_lookup').append(newOption);
+                var newOption = new Option(sessionStorage.getItem("filterOCRCommunityNameText"), vm.filterOCRCommunityName, false, true);
+                $('#ocr_community_name_lookup_by_groupname').append(newOption);
             }
         });
     }
