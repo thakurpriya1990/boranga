@@ -433,12 +433,12 @@ export default {
             let blank_fields = []
             if (vm.occurrence_report_obj.group_type == 'flora' || vm.occurrence_report_obj.group_type == 'fauna') {
                 if (vm.occurrence_report_obj.species_id == null || vm.occurrence_report_obj.species_id == '') {
-                    blank_fields.push(' Species is missing')
+                    blank_fields.push(' Scientific Name is missing')
                 }
             }
             else {
                 if (vm.occurrence_report_obj.community_id == null || vm.occurrence_report_obj.community_id == '') {
-                    blank_fields.push(' Community is missing')
+                    blank_fields.push(' Community Name is missing')
                 }
             }
             if (check_action == "submit") {
