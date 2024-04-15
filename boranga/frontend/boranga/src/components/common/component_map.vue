@@ -261,10 +261,8 @@
                                     </div>
                                     <!-- CRS Dropdown -->
                                     <div
-                                        class="form-floating flex-grow-1 input-group-text min-width-150 justify-content-end"
+                                        class="input-group-text form-floating flex-grow-1 min-width-210 justify-content-end"
                                     >
-                                        <!-- name="id"
-                                        label="name" -->
                                         <SelectFilter
                                             :id="`feature-${feature.ol_uid}-crs-select`"
                                             :title="`Feature ${
@@ -278,7 +276,7 @@
                                             :pre-selected-filter-item="
                                                 feature.getProperties().srid
                                             "
-                                            classes="input-group input-group-sm text-nowrap"
+                                            classes="min-width-210"
                                         />
                                     </div>
                                 </div>
@@ -3398,6 +3396,12 @@ export default {
 }
 .min-width-150 {
     min-width: 150px !important;
+}
+.min-width-180 {
+    min-width: 180px !important;
+}
+.min-width-210 {
+    min-width: 210px !important;
 }
 .xxx {
     width: 200px;
