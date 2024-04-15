@@ -694,8 +694,12 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         except OccurrenceReport.DoesNotExist:
             logger.error(f"Occurrence Report with id {id} not found")
         else:
-            epsg_code = qs.location.epsg_code
-            datum_list = search_datums(epsg_code)
+            epsg_codes = [
+                str(g.srid)
+                for g in qs.ocr_geometry.all().values_list("geometry", flat=True)
+            ]
+            epsg_codes = list(set(epsg_codes))
+            datum_list = search_datums("", codes=epsg_codes)
 
         coordination_source_list = []
         values = CoordinationSource.objects.all()

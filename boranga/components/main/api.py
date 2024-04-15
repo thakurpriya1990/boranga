@@ -97,10 +97,15 @@ def get_cached_epsg_codes(auth_name="EPSG", pj_type="GEODETIC_CRS"):
     return codes
 
 
-def search_datums(search):
+def search_datums(search, codes = None):
+    """Searches search-term in CRS names and returns those that match
+    Can provide codes list to control which epsg codes to search in
+    """
+
     import pyproj
 
-    codes = get_cached_epsg_codes()
+    if not codes:
+        codes = get_cached_epsg_codes()
 
     geodetic_crs = [
         {"id": int(c), "name": f"EPSG:{c} - {pyproj.CRS.from_string(c).name}"}
