@@ -1236,7 +1236,7 @@ class ObserverDetail(models.Model):
         null=True,
         related_name="observer_detail",
     )
-    observer_name = models.CharField(max_length=250, blank=True, null=True, unique=True)
+    observer_name = models.CharField(max_length=250, blank=True, null=True)
     role = models.CharField(max_length=250, blank=True, null=True)
     contact = models.CharField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
@@ -1244,6 +1244,7 @@ class ObserverDetail(models.Model):
 
     class Meta:
         app_label = "boranga"
+        unique_together = ('observer_name', 'occurrence_report',)
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
