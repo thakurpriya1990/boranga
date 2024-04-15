@@ -395,19 +395,24 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     let links = "";
-                    if (vm.is_internal){
+                    if (!vm.is_external){
                             if(full.internal_user_edit)
                             {
-                                links +=  `<a href='/internal/occurrence-report/${full.id}'>Continue</a><br/>`;
+                                links +=  `<a href='/internal/occurrence_report/${full.id}'>Continue</a><br/>`;
                                 links +=  `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                                 links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                             }
                             else{
-                                links +=  `<a href='/internal/occurrence-report/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
-                                if(full.can_user_assess){
-                                    links +=  `<a href='/internal/occurrence-report/${full.id}?group_type_name=${vm.group_type_name}&action=process'>Process</a><br/>`;
+                                if(full.assessor_process){
+                                        links +=  `<a href='/internal/occurrence_report/${full.id}'>Process</a><br/>`;
                                 }
-                                links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;                                    
+                                else{
+                                    if(full.assessor_edit){
+                                        links +=  `<a href='/internal/occurrence_report/${full.id}?action=edit'>Edit</a><br/>`;
+                                    }
+                                    links +=  `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
+                                    links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
+                                }
                             }
                         }
                     return links;
@@ -622,7 +627,7 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-occurrence',
+                name: 'internal-occurrence-report-detail',
                 params: {occurrence_report_id: newFloraOCRId},
                 });
         },

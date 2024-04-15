@@ -84,9 +84,9 @@
             </div>
         </CollapsibleFilters>
 
-        <div v-if="addCommunityCSVisibility && is_for_agenda==false" class="col-md-12">
+        <div v-if="addCommunityOCRVisibility && is_for_agenda==false" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrenceReport"><i class="fa-solid fa-circle-plus"></i> Add Occurrence Report</button>
             </div>
         </div>
 
@@ -360,7 +360,7 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
-        addCommunityCSVisibility: function() {
+        addCommunityOCRVisibility: function() {
             let visibility = false;
             if (this.is_internal) {
                 visibility = true;
@@ -843,16 +843,16 @@ export default {
                     }
                 });
         },
-        createCommunityConservationStatus: async function () {
-            let newCommunityCSId = null
+        createCommunityOccurrenceReport: async function () {
+            let newCommunityOCRId = null
             try {
-                    const createUrl = api_endpoints.conservation_status+"/";
+                    const createUrl = api_endpoints.occurrence_report+"/";
                     let payload = new Object();
-                    payload.application_type_id = this.group_type_id
+                    payload.group_type_id  = this.group_type_id
                     payload.internal_application = true
-                    let savedCommunityCS = await Vue.http.post(createUrl, payload);
-                    if (savedCommunityCS) {
-                        newCommunityCSId = savedCommunityCS.body.id;
+                    let savedCommunityOCR = await Vue.http.post(createUrl, payload);
+                    if (savedCommunityOCR) {
+                        newCommunityOCRId = savedCommunityOCR.body.id;
                     }
                 }
             catch (err) {
@@ -862,8 +862,8 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-conservation_status',
-                params: {conservation_status_id: newCommunityCSId},
+                name: 'internal-occurrence-report-detail',
+                params: {occurrence_report_id: newCommunityOCRId},
                 });
         },
         discardCSProposal:function (conservation_status_id) {

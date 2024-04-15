@@ -99,6 +99,7 @@ from boranga.components.occurrence.serializers import (
     SaveOccurrenceReportSerializer,
     SaveOCRConservationThreatSerializer,
     SavePlantCountSerializer,
+    CreateOccurrenceReportSerializer,
 )
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
@@ -546,10 +547,12 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
-                headers = self.get_success_headers(serializer.data)
-                return Response(
-                    new_instance.id, status=status.HTTP_201_CREATED, headers=headers
-                )
+                #headers = self.get_success_headers(serializer.data)
+                #return Response(
+                #    new_instance.id, status=status.HTTP_201_CREATED, headers=headers
+                #)
+                serialized_obj = CreateOccurrenceReportSerializer(new_instance)
+                return Response(serialized_obj.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
