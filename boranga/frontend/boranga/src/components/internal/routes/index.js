@@ -83,7 +83,7 @@ export default
                 name: "internal-occurrence-detail"
             },
             {
-                path: 'occurrence-report/:occurrence_report_id',
+                path: 'occurrence_report/:occurrence_report_id',
                 component: OccurrenceReport,
                 name: "internal-occurrence-report-detail"
             },            
