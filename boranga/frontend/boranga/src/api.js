@@ -96,6 +96,7 @@ module.exports = {
     occurrence_paginated_internal: "/api/occurrence_paginated/occurrence_internal?format=datatables",
     occurrence_report_external_export: "/api/occurrence_report_paginated/occurrence_report_external_export",
     occurrence_report_internal_export: "/api/occurrence_report_paginated/occurrence_report_internal_export",
+    community_occurrence_report_internal_export: "/api/occurrence_report_paginated/community_occurrence_report_internal_export",
     occurrence_report_paginated_external: "/api/occurrence_report_paginated/occurrence_report_external?format=datatables",
     occurrence_report_paginated_internal: "/api/occurrence_report_paginated/occurrence_report_internal?format=datatables",
     occurrence: "/api/occurrence_paginated/",

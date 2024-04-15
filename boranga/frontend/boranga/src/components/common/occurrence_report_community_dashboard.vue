@@ -730,7 +730,7 @@ export default {
                 export_format: format
             };
 
-            const url = api_endpoints.community_ocr_internal_export;
+            const url = api_endpoints.community_occurrence_report_internal_export;
             const keyValuePairs = [];
 
             for (const key in object_load) {
