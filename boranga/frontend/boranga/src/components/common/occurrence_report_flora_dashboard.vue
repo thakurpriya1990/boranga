@@ -622,7 +622,7 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-occurrence',
+                name: 'internal-occurrence-report-detail',
                 params: {occurrence_report_id: newFloraOCRId},
                 });
         },

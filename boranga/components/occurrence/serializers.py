@@ -774,6 +774,17 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         else:
             return None
 
+class CreateOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
+    class Meta:
+        model = OccurrenceReport
+        fields = (
+            'id',
+            'submitter',
+            )
+        read_only_fields = (
+            'id',
+            'submitter',
+            )
 
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_approve = serializers.SerializerMethodField()

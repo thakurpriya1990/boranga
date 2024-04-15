@@ -577,15 +577,15 @@ export default {
             })
         },
         createFaunaOccurrenceReport: async function () {
-            let newFaunaCSId = null
+            let newFaunaOCRId = null
             try {
-                    const createUrl = api_endpoints.conservation_status+"/";
+                    const createUrl = api_endpoints.occurrence_report+"/";
                     let payload = new Object();
-                    payload.application_type_id = this.group_type_id
+                    payload.group_type_id = this.group_type_id
                     payload.internal_application = true
-                    let savedFaunaCS = await Vue.http.post(createUrl, payload);
-                    if (savedFaunaCS) {
-                        newFaunaCSId = savedFaunaCS.body.id;
+                    let savedFaunaOCR = await Vue.http.post(createUrl, payload);
+                    if (savedFaunaOCR) {
+                        newFaunaOCRId = savedFaunaOCR.body.id;
                     }
                 }
             catch (err) {
@@ -595,8 +595,8 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-conservation_status',
-                params: {conservation_status_id: newFaunaCSId},
+                name: 'internal-occurrence-report-detail',
+                params: {occurrence_report_id: newFaunaOCRId},
                 });
         },
         discardOCRProposal:function (occurrence_report_id) {
