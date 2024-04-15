@@ -13,12 +13,12 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="form-group" id="select_community_name_by_groupname">
-                        <label for="ocr_community_name_lookup_by_groupname">Community Name:</label>
+                    <div class="form-group" id="select_community_name">
+                        <label for="ocr_community_name_lookup">Community Name:</label>
                             <select
-                                id="ocr_community_name_lookup_by_groupname"
-                                name="ocr_community_name_lookup_by_groupname"
-                                ref="ocr_community_name_lookup_by_groupname"
+                                id="ocr_community_name_lookup"
+                                name="ocr_community_name_lookup"
+                                ref="ocr_community_name_lookup"
                                 class="form-control" />
                     </div>
                 </div>
@@ -115,7 +115,7 @@ export default {
         filterOCRCommunityName_cache: {
             type: String,
             required: false,
-            default: 'filterOCRCommunityCommunityName',
+            default: 'filterOCRCommunityName',
         },
         filterOCRCommunityStatus_cache: {
             type: String,
@@ -522,20 +522,19 @@ export default {
         },
         initialiseCommunityNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.ocr_community_name_lookup_by_groupname).select2({
+                $(vm.$refs.ocr_community_name_lookup).select2({
                     minimumInputLength: 2,
-                    dropdownParent: $("#select_community_name_by_groupname"),
+                    dropdownParent: $("#select_community_name"),
                     theme: 'bootstrap-5',
                     allowClear: true,
                     placeholder:"Select Community Name",
                     ajax: {
-                        url: api_endpoints.community_name_lookup_by_groupname,
+                        url: api_endpoints.community_name_lookup,
                         dataType: 'json',
                         data: function(params) {
                             var query = {
                                 term: params.term,
                                 type: 'public',
-                                group_type_id: vm.group_type_id,
                             }
                             return query;
                         },
@@ -553,14 +552,14 @@ export default {
                     sessionStorage.setItem("filterOCRCommunityNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-ocr_community_name_lookup_by_groupname-results"]')
+                    const searchField = $('[aria-controls="select2-ocr_community_name_lookup-results"]')
                     searchField[0].focus();
                 });
         },
         fetchFilterLists: function(){
             let vm = this;
             //large FilterList of Community Values object
-            vm.$http.get(api_endpoints.filter_lists_community+ '?group_type_name=' + vm.group_type_name).then((response) => {
+            vm.$http.get(api_endpoints.community_filter_dict).then((response) => {
                 vm.filterListsCommunity = response.body;
                 vm.occurrence_list = vm.filterListsCommunity.occurrence_list;
                 vm.community_name_list = vm.filterListsCommunity.community_name_list;
@@ -841,7 +840,7 @@ export default {
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterOCRCommunityNameText"), vm.filterOCRCommunityName, false, true);
-                $('#ocr_community_name_lookup_by_groupname').append(newOption);
+                $('#ocr_community_name_lookup').append(newOption);
             }
         });
     }
