@@ -1,16 +1,20 @@
+import hashlib
+import logging
+import os
+import sys
+
+import confy
 from django.core.exceptions import ImproperlyConfigured
 
-import os
-import hashlib
-import confy
-import sys
+logger = logging.getLogger(__name__)
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if os.path.exists(BASE_DIR + "/.env"):
     confy.read_environment_file(BASE_DIR + "/.env")
 os.environ.setdefault("BASE_DIR", BASE_DIR)
 
-from ledger_api_client.settings_base import *
+from ledger_api_client.settings_base import *  # noqa: F403
 
 ROOT_URLCONF = "boranga.urls"
 SITE_ID = 1
@@ -87,7 +91,7 @@ STATIC_URL = "/static/"
 
 
 INSTALLED_APPS += [
-    #'reversion_compare',
+    # 'reversion_compare',
     "webtemplate_dbca",
     "boranga",
     "boranga.components.main",
@@ -138,18 +142,18 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.BrowsableAPIRenderer",
         "rest_framework_datatables.renderers.DatatablesRenderer",
     ),
-    #'DEFAULT_FILTER_BACKENDS': (
+    # 'DEFAULT_FILTER_BACKENDS': (
     #    'rest_framework_datatables.filters.DatatablesFilterBackend',
     # ),
-    #'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
-    #'PAGE_SIZE': 1,
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
+    # 'PAGE_SIZE': 1,
 }
 
 
 MIDDLEWARE_CLASSES += [
-    #'boranga.middleware.BookingTimerMiddleware',
-    #'boranga.middleware.FirstTimeNagScreenMiddleware',
-    #'boranga.middleware.RevisionOverrideMiddleware',
+    # 'boranga.middleware.BookingTimerMiddleware',
+    # 'boranga.middleware.FirstTimeNagScreenMiddleware',
+    # 'boranga.middleware.RevisionOverrideMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 MIDDLEWARE = MIDDLEWARE_CLASSES
@@ -249,7 +253,7 @@ CKEDITOR_CONFIGS = {
     "default": {
         "toolbar": "full",
         "height": 300,
-        #'width': 300,
+        # 'width': 300,
         "width": "100%",
     },
     "awesome_ckeditor": {
@@ -280,15 +284,16 @@ DEV_APP_BUILD_URL = env(
 
 
 # Use git commit hash for purging cache in browser for deployment changes
-GIT_COMMIT_HASH = ""
-GIT_COMMIT_DATE = ""
-if os.path.isdir(BASE_DIR + "/.git/") is True:
-    GIT_COMMIT_DATE = os.popen("cd " + BASE_DIR + " ; git log -1 --format=%cd").read()
-    GIT_COMMIT_HASH = os.popen("cd  " + BASE_DIR + " ; git log -1 --format=%H").read()
+GIT_COMMIT_HASH = os.popen(
+    f"cd {BASE_DIR}; git log -1 --format=%H"
+).read()  # noqa: S605
+GIT_COMMIT_DATE = os.popen(
+    f"cd {BASE_DIR}; git log -1 --format=%cd"
+).read()  # noqa: S605
 if len(GIT_COMMIT_HASH) == 0:
     GIT_COMMIT_HASH = os.popen("cat /app/git_hash").read()
     if len(GIT_COMMIT_HASH) == 0:
-        print("ERROR: No git hash provided")
+        logger.error("No git hash available to tag urls for pinned caching")
 
 APPLICATION_VERSION = env("APPLICATION_VERSION", "1.0.0") + "-" + GIT_COMMIT_HASH[:7]
 

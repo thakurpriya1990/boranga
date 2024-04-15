@@ -127,6 +127,8 @@ RUN cd /app/boranga/frontend/boranga; npm ci --omit=dev && \
 
 FROM build_vue_boranga as launch_boranga
 
+RUN python manage.py collectstatic --noinput
+
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
 CMD ["/pre_startup.sh"]
