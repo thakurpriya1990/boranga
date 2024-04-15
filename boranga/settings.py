@@ -152,7 +152,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE_CLASSES += [
     # 'boranga.middleware.BookingTimerMiddleware',
-    # 'boranga.middleware.FirstTimeNagScreenMiddleware',
+    "boranga.middleware.FirstTimeNagScreenMiddleware",
     # 'boranga.middleware.RevisionOverrideMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
