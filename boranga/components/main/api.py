@@ -80,11 +80,12 @@ class UserActionLoggingViewset(viewsets.ModelViewSet):
 
 def get_cached_epsg_codes(auth_name="EPSG", pj_type="GEODETIC_CRS"):
     # TODO: This is a temporary solution to get the geodetic datums for australia
-    cool_codes = ["4203", "4202", "7844", "9309", "4283", "4326"]
+    cool_codes = ["4203", "4202", "7844", "4283", "4326"]
 
     cache_key = settings.CACHE_KEY_EPSG_CODES.format(
         **{"auth_name": auth_name, "pj_type": pj_type}
     )
+
     if cache.get(cache_key):
         return cache.get(cache_key)
 

@@ -18,6 +18,14 @@
             </form>
         </FormSection>
         <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="ocr_document_url"></DocumentDetail>
+        <div v-if="occurenceReportDocumentHistoryId">
+            <OccurenceReportDocumentHistory
+                ref="ocr_document_history"
+                :key="occurenceReportDocumentHistoryId"
+                :document-id="occurenceReportDocumentHistoryId"
+                :occurence-report-id="occurrence_report_obj.id"
+            />
+        </div>
     </div>
 </template>
 <script>
@@ -25,6 +33,7 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '@/components/common/add_document.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
+import OccurenceReportDocumentHistory from '../../internal/occurrence/ocr_document_history.vue';
 import {
   api_endpoints,
   helpers,
@@ -52,6 +61,7 @@ export default {
             let vm = this;
             return{
                 uuid:0,
+                occurenceReportDocumentHistoryId: null,
                 panelBody: "ocr-documents-"+vm._uid,
                 values:null,
                 ocr_document_url: api_endpoints.occurrence_report_documents,
@@ -189,6 +199,7 @@ export default {
                                     else{
                                         links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
                                     }
+                                    links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                                 }
                                 else{
                                     if(full.visible){
@@ -198,6 +209,7 @@ export default {
                                     else{
                                         links += `<a href='#'>Reinstate</a><br>`;
                                     }
+                                    links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                                 }
                                 return links;
                             }
@@ -219,6 +231,7 @@ export default {
             FormSection,
             datatable,
             DocumentDetail,
+            OccurenceReportDocumentHistory,
         },
         computed: {
             // to restrict submitter to add doc when the report is in workflow
@@ -266,6 +279,13 @@ export default {
                       });
                 //this.$refs.document_detail.fetchSpeciesDocument(id);
                 this.$refs.document_detail.isModalOpen = true;
+            },
+            historyDocument: function(id){
+                this.occurenceReportDocumentHistoryId = parseInt(id);
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.ocr_document_history.isModalOpen = true;
+                });
             },
             discardDocument:function (id) {
                 let vm = this;
@@ -332,6 +352,11 @@ export default {
                     e.preventDefault();
                     var id = $(this).attr('data-edit-document');
                     vm.editDocument(id);
+                });
+                vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-history-document]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-document');
+                    vm.historyDocument(id);
                 });
                 // External Discard listener
                 vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-discard-document]', function(e) {

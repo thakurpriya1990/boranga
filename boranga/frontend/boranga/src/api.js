@@ -109,6 +109,7 @@ module.exports = {
     species_agenda_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/agenda_cs_internal/?format=datatables",
     species_conservation_plans_paginated_internal: "/api/species_conservation_plans_paginated/species_cp_internal/?format=datatables",
     species_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/species_cs_internal/?format=datatables",
+    meeting_export: "/api/meeting_paginated/meeting_export",
     species_conservation_status_referrals_paginated_internal: "/api/species_conservation_status_paginated/species_cs_referrals_internal/?format=datatables",
     species_cs_internal_export: "/api/species_conservation_status_paginated/species_cs_internal_export",
     species_cs_referrals_internal_export: "/api/species_conservation_status_paginated/species_cs_referrals_internal_export",
@@ -183,14 +184,52 @@ module.exports = {
     discard_filming_park: function (id) {
         return `/api/proposal_filming_parks/${id}.json`;
     },
+
     lookup_history_species_document: function (id) {
-        return `/api/history/versions/boranga/species_communities/SpeciesDocument/${id}/`;
+      return `/api/history/boranga/species_communities/SpeciesDocument/${id}/`;
     },
     lookup_history_species: function (id) {
-        return `/api/history/versions/boranga/species_communities/Species/${id}/`;
+      return `/api/history/boranga/species_communities/Species/${id}/`;
     },
-    lookup_revision_versions: function (model, id) {
-        return `/api/history/${model}/${id}/`;
+    lookup_history_community_document: function (id) {
+      return `/api/history/boranga/species_communities/CommunityDocument/${id}/`;
+    },
+    lookup_history_community: function (id) {
+      return `/api/history/boranga/species_communities/Community/${id}/`;
+    },
+
+    lookup_history_conservation_status_document: function (id) {
+      return `/api/history/boranga/conservation_status/ConservationStatusDocument/${id}/`;
+    },
+    lookup_history_conservation_status: function (id) {
+      return `/api/history/boranga/conservation_status/ConservationStatus/${id}/`;
+    },
+
+    lookup_history_occurrence_report_document: function (id) {
+      return `/api/history/boranga/occurrence/OccurrenceReportDocument/${id}/`;
+    },
+    lookup_history_occurrence_report: function (id) {
+      return `/api/history/boranga/occurrence/OccurrenceReport/${id}/`;
+    },
+
+    lookup_history_occurrence: function (id) {
+      return `/api/history/boranga/occurrence/Occurrence/${id}/`;
+    },
+
+    lookup_history_conservation_threat: function (id) {
+      return `/api/history/boranga/species_communities/ConservationThreat/${id}/`;
+    },
+
+    lookup_history_ocr_conservation_threat: function (id) {
+      return `/api/history/boranga/occurrence/OcrConservationThreat/${id}/`;
+    },
+
+    lookup_history_minutes: function (id) {
+      return `/api/history/boranga/meeting/Minutes/${id}/`;
+    },
+
+    lookup_revision_versions: function (model,id) {
+      return `/api/history/boranga/${model}/${id}/`;
     },
 
     event: event,

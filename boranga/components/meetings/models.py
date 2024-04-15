@@ -405,3 +405,7 @@ class AgendaItem(OrderedModel):
     def related_item_status(self):
         return self.meeting.get_processing_status_display
 
+import reversion
+
+#Minutes
+reversion.register(Minutes)
