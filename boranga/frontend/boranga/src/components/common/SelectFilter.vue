@@ -64,7 +64,8 @@ export default {
                     if (keys.length != 2) return false;
                     return (
                         (keys.includes('key') && keys.includes('value')) ||
-                        (keys.includes('value') && keys.includes('text'))
+                        (keys.includes('value') && keys.includes('text')) ||
+                        (keys.includes('id') && keys.includes('name'))
                     );
                 });
             },
@@ -134,9 +135,13 @@ export default {
                 return {
                     value: Object.hasOwn(option, 'key')
                         ? option.key.toString() // Casting to string to avoid potential type mismatch
+                        : Object.hasOwn(option, 'id')
+                        ? option.id.toString()
                         : option.value.toString(),
                     text: Object.hasOwn(option, 'key')
                         ? option.value.toString()
+                        : Object.hasOwn(option, 'name')
+                        ? option.name.toString()
                         : option.text.toString(),
                 };
             });
