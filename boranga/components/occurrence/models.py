@@ -57,6 +57,9 @@ def update_occurrence_report_comms_log_filename(instance, filename):
 def update_occurrence_report_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/occurrence_report/{instance.occurrence_report.id}/documents/{filename}"
 
+def update_occurrence_doc_filename(instance, filename):
+    return f"{settings.MEDIA_APP_DIR}/occurrence/{instance.occurrence.id}/documents/{filename}"
+
 
 class OccurrenceReport(RevisionedMixin):
     """
@@ -2364,6 +2367,66 @@ class OccurrenceUserAction(UserAction):
     occurrence = models.ForeignKey(
         Occurrence, related_name="action_logs", on_delete=models.CASCADE
     )
+
+class OccurrenceDocument(Document):
+    document_number = models.CharField(max_length=9, blank=True, default="")
+    occurrence = models.ForeignKey(
+        "Occurrence", related_name="documents", on_delete=models.CASCADE
+    )
+    _file = models.FileField(
+        upload_to=update_occurrence_doc_filename,
+        max_length=512,
+        storage=private_storage,
+    )
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    can_delete = models.BooleanField(
+        default=True
+    )  # after initial submit prevent document from being deleted
+    can_hide = models.BooleanField(
+        default=False
+    )  # after initial submit, document cannot be deleted but can be hidden
+    hidden = models.BooleanField(default=False)
+    # after initial submit prevent document from being deleted
+    # Priya alternatively used below visible field in boranga
+    visible = models.BooleanField(
+        default=True
+    )  # to prevent deletion on file system, hidden and still be available in history
+    document_category = models.ForeignKey(
+        DocumentCategory, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    document_sub_category = models.ForeignKey(
+        DocumentSubCategory, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    uploaded_by = models.IntegerField(null=True)  # EmailUserRO
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Document"
+
+    def save(self, *args, **kwargs):
+        # Prefix "D" char to document_number.
+        super().save(*args, **kwargs)
+        if self.document_number == "":
+            new_document_id = f"D{str(self.pk)}"
+            self.document_number = new_document_id
+            self.save()
+
+    @transaction.atomic
+    def add_documents(self, request):
+        # save the files
+        data = json.loads(request.data.get("data"))
+        # if not data.get('update'):
+        #     documents_qs = self.filter(input_name='species_doc', visible=True)
+        #     documents_qs.delete()
+        for idx in range(data["num_files"]):
+            _file = request.data.get("file-" + str(idx))
+            self._file = _file
+            self.name = _file.name
+            self.input_name = data["input_name"]
+            self.can_delete = True
+            self.save()
+        # end save documents
+        self.save()
 
 import reversion
 
