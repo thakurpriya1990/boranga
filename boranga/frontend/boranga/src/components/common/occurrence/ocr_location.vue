@@ -101,7 +101,7 @@
                     :coordinate-reference-systems="coordinateReferenceSystems"
                     @validate-feature="validateFeature.bind(this)()"
                     @refreshFromResponse="refreshFromResponse"
-                    @crs-select-search="searchDatum"
+                    @crs-select-search="searchForCRS"
                 ></MapComponent>
             </div>
 
@@ -325,7 +325,7 @@
                         :reduce="(option) => option.id"
                         label="name"
                         :disabled="isReadOnly"
-                        @search="searchDatum"
+                        @search="searchForCRS"
                     >
                     </VueSelect>
                 </div>
@@ -885,7 +885,7 @@ export default {
         refreshFromResponse: function (data) {
             //this.proposal = Object.assign({}, data);
         },
-        searchDatum: function (search, loading) {
+        searchForCRS: function (search, loading) {
             const vm = this;
             if (search.length < 2) {
                 loading(false);
