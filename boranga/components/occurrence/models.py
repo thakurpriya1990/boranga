@@ -2225,6 +2225,19 @@ class OCRConservationThreat(RevisionedMixin):
         return self.occurrence_report.id
 
 
+class WildStatus(models.Model):
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Wild Status"
+        verbose_name_plural = "Wild Statuses"
+        ordering = ["name"]
+
+    def __str__(self):
+        return str(self.name)
+
+
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
         return (
@@ -2258,6 +2271,9 @@ class Occurrence(RevisionedMixin):
     effective_from = models.DateTimeField(null=True, blank=True)
     effective_to = models.DateTimeField(null=True, blank=True)
     submitter = models.IntegerField(null=True)  # EmailUserRO
+    wild_status = models.ForeignKey(
+        WildStatus, on_delete=models.PROTECT, null=True, blank=True
+    )
 
     review_due_date = models.DateField(null=True, blank=True)
     review_date = models.DateField(null=True, blank=True)
@@ -2374,19 +2390,6 @@ class OccurrenceUserAction(UserAction):
     occurrence = models.ForeignKey(
         Occurrence, related_name="action_logs", on_delete=models.CASCADE
     )
-
-
-class WildStatus(models.Model):
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
-
-    class Meta:
-        app_label = "boranga"
-        verbose_name = "Wild Status"
-        verbose_name_plural = "Wild Statuses"
-        ordering = ["name"]
-
-    def __str__(self):
-        return str(self.name)
 
 
 # Occurrence Report Document
