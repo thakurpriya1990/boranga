@@ -562,6 +562,12 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
     )
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     can_user_assess = serializers.SerializerMethodField()
+    community_number = serializers.CharField(
+        source="community.community_number", allow_null=True
+    )
+    community_name = serializers.CharField(
+        source="community.taxonomy.community_name", allow_null=True
+    )
 
     class Meta:
         model = Occurrence
@@ -569,6 +575,8 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "id",
             "occurrence_number",
             "scientific_name",
+            "community_number",
+            "community_name",
             "group_type",
             "number_of_reports",
             "processing_status",
