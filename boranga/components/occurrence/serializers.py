@@ -563,16 +563,11 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
     )
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     can_user_assess = serializers.SerializerMethodField()
-    community_number = serializers.CharField(
-        source="community.community_number", allow_null=True
-    )
-    community_name = serializers.CharField(
-        source="community.taxonomy.community_name", allow_null=True
-    )
-    community_migrated_id = serializers.CharField(
-        source="community.taxonomy.community_migrated_id", allow_null=True
-    )
+    community_number = serializers.SerializerMethodField()
+    community_name = serializers.SerializerMethodField()
+    community_migrated_id = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
+    conservation_category = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
@@ -584,6 +579,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "community_name",
             "community_migrated_id",
             "conservation_list",
+            "conservation_category",
             "group_type",
             "number_of_reports",
             "processing_status",
@@ -604,16 +600,65 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "can_user_assess",
         )
 
-    def get_conservation_list(self, obj):
+    def get_community_number(self, obj):
+        if not obj.community:
+            return ""
+
+        return obj.community.community_number
+
+    def get_community_name(self, obj):
+        if not obj.community:
+            return ""
+
+        if not obj.community.taxonomy:
+            return ""
+
+        return obj.community.taxonomy.community_name
+
+    def get_community_migrated_id(self, obj):
+        if not obj.community:
+            return ""
+
+        if not obj.community.taxonomy:
+            return ""
+
+        return obj.community.taxonomy.community_migrated_id
+
+    def get_conservation_status(self, obj):
+        if not obj.community:
+            return None
+
         try:
             conservation_status = ConservationStatus.objects.get(
-                community=obj,
+                community=obj.community,
                 conservation_list__applies_to_wa=True,
                 processing_status="approved",
-            )  # need to show only WA_list species
-            return conservation_status.conservation_list.code
+            )
+            return conservation_status
         except ConservationStatus.DoesNotExist:
+            return None
+
+    def get_conservation_list(self, obj):
+        if not obj.community:
             return ""
+
+        conservation_status = self.get_conservation_status(obj)
+
+        if not conservation_status:
+            return ""
+
+        return conservation_status.conservation_list.code
+
+    def get_conservation_category(self, obj):
+        if not obj.community:
+            return ""
+
+        conservation_status = self.get_conservation_status(obj)
+
+        if not conservation_status:
+            return ""
+
+        return conservation_status.conservation_category.code
 
     def get_can_user_assess(self, obj):
         request = self.context["request"]
