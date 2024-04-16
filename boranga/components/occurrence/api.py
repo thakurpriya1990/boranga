@@ -193,12 +193,6 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        datatables_query = self.parse_datatables_query(request, view)
-        for f in datatables_query['fields']:
-            if not f['searchable']:
-                continue
-            print(f)
-
         try:
             queryset = super().filter_queryset(request, queryset, view)
         except Exception as e:

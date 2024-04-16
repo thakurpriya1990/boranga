@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="form-group" id="select_community_name">
+                    <div class="form-group" id="select_ocr_community_name">
                         <label for="ocr_community_name_lookup">Community Name:</label>
                             <select
                                 id="ocr_community_name_lookup"
@@ -93,15 +93,6 @@ export default {
                 let options = ['internal','referral','external'];
                 return options.indexOf(val) != -1 ? true: false;
             }
-        },
-        group_type_name:{
-            type: String,
-            required: true
-        },
-        group_type_id:{
-            type: Number,
-            required: true,
-            default: 0
         },
         url:{
             type: String,
@@ -478,7 +469,6 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
-                        d.filter_group_type = vm.group_type_name;
                         d.filter_occurrence = vm.filterOCRCommunityOccurrence;
                         d.filter_community_name = vm.filterOCRCommunityName;
                         d.filter_status = vm.filterOCRCommunityStatus;
@@ -528,7 +518,6 @@ export default {
                             var query = {
                                 term: params.term,
                                 type: 'public',
-                                group_type_id: vm.group_type_id,
                             }
                             return query;
                         },
@@ -554,7 +543,7 @@ export default {
                 let vm = this;
                 $(vm.$refs.ocr_community_name_lookup).select2({
                     minimumInputLength: 2,
-                    dropdownParent: $("#select_community_name"),
+                    dropdownParent: $("#select_ocr_community_name"),
                     theme: 'bootstrap-5',
                     allowClear: true,
                     placeholder:"Select Community Name",
@@ -610,7 +599,6 @@ export default {
             try {
                     const createUrl = api_endpoints.occurrence_report+"/";
                     let payload = new Object();
-                    payload.group_type_id  = this.group_type_id
                     payload.internal_application = true
                     let savedCommunityOCR = await Vue.http.post(createUrl, payload);
                     if (savedCommunityOCR) {
@@ -750,7 +738,6 @@ export default {
 
             const object_load = {
                 columns: columns_new,
-                filter_group_type: vm.group_type_name,
                 filter_occurrence: vm.filterOCRCommunityOccurrence,
                 filter_community_name: vm.filterOCRCommunityName,
                 filter_status: vm.filterOCRCommunityStatus,
