@@ -440,12 +440,12 @@ export default {
       let blank_fields=[]
       if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
         if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
-            blank_fields.push(' Species is missing')
+            blank_fields.push(' Scientific Name is missing')
         }
       }
       else{
         if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == ''){
-            blank_fields.push(' Community is missing')
+            blank_fields.push(' Community Name is missing')
         }
       }
       if(check_action == "submit"){

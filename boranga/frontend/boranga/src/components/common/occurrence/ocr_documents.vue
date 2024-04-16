@@ -23,7 +23,7 @@
                 ref="ocr_document_history"
                 :key="occurenceReportDocumentHistoryId"
                 :document-id="occurenceReportDocumentHistoryId"
-                :occurence-report-id="occurrence_report_obj.id"
+                :occurrence-report-id="occurrence_report_obj.id"
             />
         </div>
     </div>
