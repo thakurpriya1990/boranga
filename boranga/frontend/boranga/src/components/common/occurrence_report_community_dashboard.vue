@@ -685,8 +685,8 @@ export default {
                     "searchable": "false"
                 },
                 "1": {
-                    "data": "community",
-                    "name": "occurrence_report__community",
+                    "data": "occurrence",
+                    "name": "occurrence_report__occurence",
                     "orderable": "true",
                     "search": {
                         "regex": "false",

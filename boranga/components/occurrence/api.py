@@ -371,12 +371,12 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         qs = self.filter_queryset(qs)
         export_format = request.GET.get("export_format")
         allowed_fields = [
-            "species",
             "scientific_name",
             "reported_date",
             "submitter",
             "processing_status",
             "occurrence_report_number",
+            "occurrence_name",
         ]
 
         serializer = ListInternalOccurrenceReportSerializer(
@@ -405,11 +405,11 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         df = pd.DataFrame(flattened_data)
         new_headings = [
             "Number",
-            "Occurrence",
             "Scientific Name",
             "Submission date/time",
             "Submitter",
             "Processing Status",
+            "Occurrence",
         ]
         df.columns = new_headings
         column_order = [
@@ -471,12 +471,12 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         qs = self.filter_queryset(qs)
         export_format = request.GET.get("export_format")
         allowed_fields = [
-            "community",
             "community_name",
             "reported_date",
             "submitter",
             "processing_status",
             "occurrence_report_number",
+            "occurrence_name",
         ]
 
         serializer = ListInternalOccurrenceReportSerializer(
@@ -505,11 +505,11 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
         df = pd.DataFrame(flattened_data)
         new_headings = [
             "Number",
-            "Occurrence",
             "Community Name",
             "Submission date/time",
             "Submitter",
             "Processing Status",
+            "Occurrence",
         ]
         df.columns = new_headings
         column_order = [
