@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
+from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
@@ -568,6 +569,10 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
     community_name = serializers.CharField(
         source="community.taxonomy.community_name", allow_null=True
     )
+    community_migrated_id = serializers.CharField(
+        source="community.taxonomy.community_migrated_id", allow_null=True
+    )
+    conservation_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
@@ -577,6 +582,8 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "scientific_name",
             "community_number",
             "community_name",
+            "community_migrated_id",
+            "conservation_list",
             "group_type",
             "number_of_reports",
             "processing_status",
@@ -596,6 +603,17 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "processing_status_display",
             "can_user_assess",
         )
+
+    def get_conservation_list(self, obj):
+        try:
+            conservation_status = ConservationStatus.objects.get(
+                community=obj,
+                conservation_list__applies_to_wa=True,
+                processing_status="approved",
+            )  # need to show only WA_list species
+            return conservation_status.conservation_list.code
+        except ConservationStatus.DoesNotExist:
+            return ""
 
     def get_can_user_assess(self, obj):
         request = self.context["request"]
@@ -782,17 +800,19 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         else:
             return None
 
+
 class CreateOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     class Meta:
         model = OccurrenceReport
         fields = (
-            'id',
-            'submitter',
-            )
+            "id",
+            "submitter",
+        )
         read_only_fields = (
-            'id',
-            'submitter',
-            )
+            "id",
+            "submitter",
+        )
+
 
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_approve = serializers.SerializerMethodField()
