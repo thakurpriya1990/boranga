@@ -1,7 +1,7 @@
-import datetime
 import json
 import logging
 
+import reversion
 from django.conf import settings
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
@@ -17,7 +17,12 @@ from multiselectfield import MultiSelectField
 
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
-from boranga.components.main.models import CommunicationsLogEntry, Document, UserAction, RevisionedMixin
+from boranga.components.main.models import (
+    CommunicationsLogEntry,
+    Document,
+    RevisionedMixin,
+    UserAction,
+)
 from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
     send_occurrence_report_amendment_email_notification,
@@ -1244,7 +1249,10 @@ class ObserverDetail(models.Model):
 
     class Meta:
         app_label = "boranga"
-        unique_together = ('observer_name', 'occurrence_report',)
+        unique_together = (
+            "observer_name",
+            "occurrence_report",
+        )
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
@@ -2297,10 +2305,12 @@ class Occurrence(RevisionedMixin):
             self.save()
 
     def __str__(self):
-        return (
-            f"{self.occurrence_number} - {self.species} ({self.group_type}) "
-            f"[Created: {datetime.datetime.strftime(self.created_date, format='%Y-%m-%d %H:%M:%S')}]"
-        )
+        if self.species:
+            return f"{self.occurrence_number} - {self.species} ({self.group_type})"
+        elif self.community:
+            return f"{self.occurrence_number} - {self.community} ({self.group_type})"
+        else:
+            return f"{self.occurrence_number} - {self.group_type}"
 
     @property
     def number_of_reports(self):
@@ -2365,16 +2375,28 @@ class OccurrenceUserAction(UserAction):
         Occurrence, related_name="action_logs", on_delete=models.CASCADE
     )
 
-import reversion
 
-#Occurrence Report Document
+class WildStatus(models.Model):
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Wild Status"
+        verbose_name_plural = "Wild Statuses"
+        ordering = ["name"]
+
+    def __str__(self):
+        return str(self.name)
+
+
+# Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
 
-#Occurrence Report Threat
+# Occurrence Report Threat
 reversion.register(OCRConservationThreat)
 
-#Occurrence Report
-reversion.register(OccurrenceReport, follow=["species","community"])
+# Occurrence Report
+reversion.register(OccurrenceReport, follow=["species", "community"])
 
-#Occurrence
-reversion.register(Occurrence, follow=["species","community"])
+# Occurrence
+reversion.register(Occurrence, follow=["species", "community"])
