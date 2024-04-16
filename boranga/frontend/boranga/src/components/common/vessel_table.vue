@@ -1,6 +1,6 @@
 <template id="vessel_table">
     <div class="row">
-        <div class="col-sm-12"> 
+        <div class="col-sm-12">
             <div class="row" >
                 <div class="col-md-3" v-if="!proposal.readonly">
                             <input type="button" style="margin-top:25px;" @click.prevent="newVessel" class="btn btn-primary" value="Add new vessel"/>
@@ -57,7 +57,7 @@ export default {
             pBody: 'pBody' + vm._uid,
             datatable_id: 'vessel-datatable-'+vm._uid,
             // Filters for Vessels
-            
+
             vessel_headers:["Nominated Vessel", "SPV no./ reg. no.","Hire and Drive reg.","No.of craft","Vessel Size (m)","Action"],
             vessel_options:{
                 language: {
@@ -65,7 +65,7 @@ export default {
                 },
                 responsive: true,
                 //serverSide: true,
-                //lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                //lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": '',
@@ -83,10 +83,10 @@ export default {
                         //name: "id, lodgement_number",
                     },
                     {
-                        data: "spv_no",   
+                        data: "spv_no",
                     },
                     {
-                        data: "hire_rego",   
+                        data: "hire_rego",
                     },
                     {
                         data: "craft_no",
@@ -109,7 +109,7 @@ export default {
                         //     if (!vm.is_external){
                         //         if (full.can_user_view) {
                         //             links +=  `<a href='/internal/compliance/${full.id}'>Process</a><br/>`;
-                                    
+
                         //         }
                         //         else {
                         //             links +=  `<a href='/internal/compliance/${full.id}'>View</a><br/>`;
@@ -118,7 +118,7 @@ export default {
                         //     else{
                         //         if (full.can_user_view) {
                         //             links +=  `<a href='/external/compliance/${full.id}'>View</a><br/>`;
-                                    
+
                         //         }
                         //         else {
                         //             links +=  `<a href='/external/compliance/${full.id}'>Submit</a><br/>`;
@@ -126,11 +126,11 @@ export default {
                         //     }
                             return links;
                         },
-                        // name: ''  
+                        // name: ''
                     },
                 ],
                 processing: true,
-                
+
             }
         }
     },
@@ -139,7 +139,7 @@ export default {
         editVessel
     },
     watch:{
-        
+
     },
     computed: {
        /* status: function(){
@@ -149,7 +149,7 @@ export default {
         is_external: function(){
             return this.level == 'external';
         },
-        
+
     },
     methods:{
         fetchFilterLists: function(){
@@ -220,8 +220,8 @@ export default {
             this.$refs.vessel_datatable.vmDataTable.ajax.reload();
         },
         initialiseSearch:function(){
-            
-        }, 
+
+        },
     },
     mounted: function(){
         let vm = this;
@@ -234,7 +234,7 @@ export default {
             var column = vm.$refs.vessel_datatable.vmDataTable.columns(8); //Hide 'Assigned To column for external'
             column.visible(false);
         }
-        
+
     }
 }
 </script>

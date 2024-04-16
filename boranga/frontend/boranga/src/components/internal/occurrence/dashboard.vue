@@ -77,8 +77,6 @@
                 </FormSection>                
                 <FormSection :formCollapse="false" label="Occurrence Report - Community" Index="community">
                     <OccurrenceReportCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
-                    :group_type_name="group_name"
-                    :group_type_id="getGroupId"
                     :url="community_ocr_url"/>
                 </FormSection>
             </div>

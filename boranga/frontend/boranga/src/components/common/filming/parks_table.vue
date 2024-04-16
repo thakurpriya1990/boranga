@@ -1,6 +1,6 @@
 <template id="park_table">
     <div class="row">
-        <div class="col-sm-12"> 
+        <div class="col-sm-12">
             <div class="row" >
                 <div class="col-md-3" v-if="canEditActivities">
                             <!-- <button style="margin-top:25px;" class="btn btn-primary pull-right">New Application</button> -->
@@ -16,7 +16,7 @@
         </div>
         <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse" :district_proposal="district_proposal" :is_external="is_external"></editPark>
     </div>
-</template> 
+</template>
 <script>
 import datatable from '@/utils/vue/datatable.vue'
 import editPark from './edit_park.vue'
@@ -80,7 +80,7 @@ export default {
                 },
                 responsive: true,
                 //serverSide: true,
-                //lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                //lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": '',
@@ -158,7 +158,7 @@ export default {
                         //     if (!vm.is_external){
                         //         if (full.can_user_view) {
                         //             links +=  `<a href='/internal/compliance/${full.id}'>Process</a><br/>`;
-                                    
+
                         //         }
                         //         else {
                         //             links +=  `<a href='/internal/compliance/${full.id}'>View</a><br/>`;
@@ -167,7 +167,7 @@ export default {
                         //     else{
                         //         if (full.can_user_view) {
                         //             links +=  `<a href='/external/compliance/${full.id}'>View</a><br/>`;
-                                    
+
                         //         }
                         //         else {
                         //             links +=  `<a href='/external/compliance/${full.id}'>Submit</a><br/>`;
@@ -175,7 +175,7 @@ export default {
                         //     }
                             return links;
                         },
-                        // name: ''  
+                        // name: ''
                     },
                     // {data: "reference", visible: false},
                     // {data: "customer_status", visible: false},
@@ -315,8 +315,8 @@ export default {
             this.$refs.park_datatable.vmDataTable.ajax.reload();
         },
         initialiseSearch:function(){
-            
-        }, 
+
+        },
     },
     mounted: function(){
         let vm = this;
@@ -329,7 +329,7 @@ export default {
         //     var column = vm.$refs.park_datatable.vmDataTable.columns(8); //Hide 'Assigned To column for external'
         //     column.visible(false);
         // }
-        
+
     }
 }
 </script>

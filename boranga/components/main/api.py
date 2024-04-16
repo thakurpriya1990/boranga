@@ -1,7 +1,10 @@
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from boranga.components.main.models import GlobalSettings
 from boranga.components.main.serializers import (
@@ -73,3 +76,45 @@ class UserActionLoggingViewset(viewsets.ModelViewSet):
             request,
         )
         return super().destroy(request, *args, **kwargs)
+
+
+def get_cached_epsg_codes(auth_name="EPSG", pj_type="GEODETIC_CRS"):
+    # TODO: This is a temporary solution to get the geodetic datums for australia
+    cool_codes = ["4203", "4202", "7844", "4283", "4326"]
+
+    cache_key = settings.CACHE_KEY_EPSG_CODES.format(
+        **{"auth_name": auth_name, "pj_type": pj_type}
+    )
+
+    if cache.get(cache_key):
+        return cache.get(cache_key)
+
+    import pyproj
+
+    codes = [c for c in pyproj.get_codes(auth_name, pj_type) if c in cool_codes]
+    cache.set(cache_key, codes, timeout=60 * 60 * 24)
+
+    return codes
+
+
+def search_datums(search):
+    import pyproj
+
+    codes = get_cached_epsg_codes()
+
+    geodetic_crs = [
+        {"id": int(c), "name": f"EPSG:{c} - {pyproj.CRS.from_string(c).name}"}
+        for c in codes
+    ]
+
+    datums = [c for c in geodetic_crs if f"{search}".lower() in c["name"].lower()]
+
+    return datums
+
+
+class DatumSearchMixing:
+    @action(detail=False, methods=["get"], url_path="epsg-code-datums")
+    def get_epsg_code_datums(self, request):
+        search = request.GET.get("search", None)
+
+        return Response(search_datums(search))

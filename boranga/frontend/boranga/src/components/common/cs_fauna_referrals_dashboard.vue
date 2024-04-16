@@ -11,11 +11,11 @@
                             </option>
                         </select> -->
                         <label for="cs_ref_scientific_name_lookup">Scientific Name:</label>
-                        <select 
-                            id="cs_ref_scientific_name_lookup"  
-                            name="cs_ref_scientific_name_lookup"  
-                            ref="cs_ref_scientific_name_lookup" 
-                            class="form-control" /> 
+                        <select
+                            id="cs_ref_scientific_name_lookup"
+                            name="cs_ref_scientific_name_lookup"
+                            ref="cs_ref_scientific_name_lookup"
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -26,10 +26,10 @@
                             <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
                         </select> -->
                         <label for="cs_ref_common_name_lookup">Common Name:</label>
-                        <select 
-                            id="cs_ref_common_name_lookup"  
-                            name="cs_ref_common_name_lookup"  
-                            ref="cs_ref_common_name_lookup" 
+                        <select
+                            id="cs_ref_common_name_lookup"
+                            name="cs_ref_common_name_lookup"
+                            ref="cs_ref_common_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -42,10 +42,10 @@
                                 {{option.name}}</option>
                         </select> -->
                         <label for="cs_ref_phylo_group_lookup">Phylo Group:</label>
-                        <select 
-                            id="cs_ref_phylo_group_lookup"  
-                            name="cs_ref_phylo_group_lookup"  
-                            ref="cs_ref_phylo_group_lookup" 
+                        <select
+                            id="cs_ref_phylo_group_lookup"
+                            name="cs_ref_phylo_group_lookup"
+                            ref="cs_ref_phylo_group_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -57,10 +57,10 @@
                             <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
                         </select> -->
                         <label for="cs_ref_family_lookup">Family:</label>
-                        <select 
-                            id="cs_ref_family_lookup"  
-                            name="cs_ref_family_lookup"  
-                            ref="cs_ref_family_lookup" 
+                        <select
+                            id="cs_ref_family_lookup"
+                            name="cs_ref_family_lookup"
+                            ref="cs_ref_family_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -72,17 +72,17 @@
                             <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
                         </select> -->
                         <label for="cs_ref_genera_lookup">Genera:</label>
-                        <select 
-                            id="cs_ref_genera_lookup"  
-                            name="cs_ref_genera_lookup"  
-                            ref="cs_ref_genera_lookup" 
+                        <select
+                            id="cs_ref_genera_lookup"
+                            name="cs_ref_genera_lookup"
+                            ref="cs_ref_genera_lookup"
                             class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaConservationList" 
+                        <select class="form-select" v-model="filterCSRefFaunaConservationList"
                         @change="filterConservationCategory($event)">
                             <option value="all">All</option>
                             <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
@@ -231,31 +231,31 @@ export default {
             datatable_id: 'species_fauna_cs_ref-datatable-'+vm._uid,
 
             // selected values for filtering
-            filterCSRefFaunaScientificName: sessionStorage.getItem(this.filterCSRefFaunaScientificName_cache) ? 
+            filterCSRefFaunaScientificName: sessionStorage.getItem(this.filterCSRefFaunaScientificName_cache) ?
                                    sessionStorage.getItem(this.filterCSRefFaunaScientificName_cache) : 'all',
 
-            filterCSRefFaunaCommonName: sessionStorage.getItem(this.filterCSRefFaunaCommonName_cache) ? 
+            filterCSRefFaunaCommonName: sessionStorage.getItem(this.filterCSRefFaunaCommonName_cache) ?
                                     sessionStorage.getItem(this.filterCSRefFaunaCommonName_cache) : 'all',
 
-            filterCSRefFaunaPhylogeneticGroup: sessionStorage.getItem(this.filterCSRefFaunaPhylogeneticGroup_cache) ? 
+            filterCSRefFaunaPhylogeneticGroup: sessionStorage.getItem(this.filterCSRefFaunaPhylogeneticGroup_cache) ?
             sessionStorage.getItem(this.filterCSRefFaunaPhylogeneticGroup_cache) : 'all',
 
-            filterCSRefFaunaFamily: sessionStorage.getItem(this.filterCSRefFaunaFamily_cache) ? 
+            filterCSRefFaunaFamily: sessionStorage.getItem(this.filterCSRefFaunaFamily_cache) ?
                                 sessionStorage.getItem(this.filterCSRefFaunaFamily_cache) : 'all',
 
-            filterCSRefFaunaGenus: sessionStorage.getItem(this.filterCSRefFaunaGenus_cache) ? 
+            filterCSRefFaunaGenus: sessionStorage.getItem(this.filterCSRefFaunaGenus_cache) ?
                                 sessionStorage.getItem(this.filterCSRefFaunaGenus_cache) : 'all',
 
-            filterCSRefFaunaConservationList: sessionStorage.getItem(this.filterCSRefFaunaConservationList_cache) ? 
+            filterCSRefFaunaConservationList: sessionStorage.getItem(this.filterCSRefFaunaConservationList_cache) ?
                                     sessionStorage.getItem(this.filterCSRefFaunaConservationList_cache) : 'all',
 
-            filterCSRefFaunaConservationCategory: sessionStorage.getItem(this.filterCSRefFaunaConservationCategory_cache) ? 
+            filterCSRefFaunaConservationCategory: sessionStorage.getItem(this.filterCSRefFaunaConservationCategory_cache) ?
                                     sessionStorage.getItem(this.filterCSRefFaunaConservationCategory_cache) : 'all',
 
-            filterCSRefFaunaRegion: sessionStorage.getItem(this.filterCSRefFaunaRegion_cache) ? 
+            filterCSRefFaunaRegion: sessionStorage.getItem(this.filterCSRefFaunaRegion_cache) ?
                                     sessionStorage.getItem(this.filterCSRefFaunaRegion_cache) : 'all',
 
-            filterCSRefFaunaDistrict: sessionStorage.getItem(this.filterCSRefFaunaDistrict_cache) ? 
+            filterCSRefFaunaDistrict: sessionStorage.getItem(this.filterCSRefFaunaDistrict_cache) ?
                                     sessionStorage.getItem(this.filterCSRefFaunaDistrict_cache) : 'all',
 
             filterCSRefFaunaApplicationStatus: sessionStorage.getItem(this.filterCSRefFaunaApplicationStatus_cache) ?
@@ -286,36 +286,36 @@ export default {
         filterCSRefFaunaScientificName: function(){
             let vm = this;
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFaunaScientificName_cache, vm.filterCSRefFaunaScientificName);  
+            sessionStorage.setItem(vm.filterCSRefFaunaScientificName_cache, vm.filterCSRefFaunaScientificName);
         },
         filterCSRefFaunaCommonName: function() {
             let vm = this;
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFaunaCommonName_cache, vm.filterCSRefFaunaCommonName);  
+            sessionStorage.setItem(vm.filterCSRefFaunaCommonName_cache, vm.filterCSRefFaunaCommonName);
         },
         filterCSRefFaunaPhylogeneticGroup: function() {
             let vm = this;
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFaunaPhylogeneticGroup_cache, vm.filterCSRefFaunaPhylogeneticGroup);  
+            sessionStorage.setItem(vm.filterCSRefFaunaPhylogeneticGroup_cache, vm.filterCSRefFaunaPhylogeneticGroup);
         },
         filterCSRefFaunaFamily: function() {
             let vm = this;
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFaunaFamily_cache, vm.filterCSRefFaunaFamily);  
+            sessionStorage.setItem(vm.filterCSRefFaunaFamily_cache, vm.filterCSRefFaunaFamily);
         },
         filterCSRefFaunaGenus: function() {
             let vm = this;
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFaunaGenus_cache, vm.filterCSRefFaunaGenus);  
+            sessionStorage.setItem(vm.filterCSRefFaunaGenus_cache, vm.filterCSRefFaunaGenus);
         },
         filterCSRefFaunaConservationList: function() {
             let vm = this;
-            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSRefFaunaConservationList_cache, vm.filterCSRefFaunaConservationList);
         },
         filterCSRefFaunaConservationCategory: function() {
             let vm = this;
-            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSRefFaunaConservationCategory_cache, vm.filterCSRefFaunaConservationCategory);
         },
         filterCSRefFaunaRegion: function(){
@@ -330,7 +330,7 @@ export default {
         },
         filterCSRefFaunaApplicationStatus: function() {
             let vm = this;
-            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSRefFaunaApplicationStatus_cache, vm.filterCSRefFaunaApplicationStatus);
         },
         filterApplied: function(){
@@ -342,15 +342,15 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCSRefFaunaScientificName === 'all' && 
-                this.filterCSRefFaunaCommonName === 'all' && 
-                this.filterCSRefFaunaPhylogeneticGroup === 'all' && 
-                this.filterCSRefFaunaFamily === 'all' && 
-                this.filterCSRefFaunaGenus === 'all' && 
-                this.filterCSRefFaunaConservationList === 'all' && 
-                this.filterCSRefFaunaConservationCategory === 'all' && 
-                this.filterCSRefFaunaRegion === 'all' && 
-                this.filterCSRefFaunaDistrict === 'all' && 
+            if(this.filterCSRefFaunaScientificName === 'all' &&
+                this.filterCSRefFaunaCommonName === 'all' &&
+                this.filterCSRefFaunaPhylogeneticGroup === 'all' &&
+                this.filterCSRefFaunaFamily === 'all' &&
+                this.filterCSRefFaunaGenus === 'all' &&
+                this.filterCSRefFaunaConservationList === 'all' &&
+                this.filterCSRefFaunaConservationCategory === 'all' &&
+                this.filterCSRefFaunaRegion === 'all' &&
+                this.filterCSRefFaunaDistrict === 'all' &&
                 this.filterCSRefFaunaApplicationStatus === 'all'){
                 return false
             } else {
@@ -358,7 +358,7 @@ export default {
             }
         },
         datatable_headers: function(){
-            return ['Number','Species','Scientific Name','Common Name','Conservation List', 
+            return ['Number','Species','Scientific Name','Common Name','Conservation List',
                     'Conservation Category', /*'Family', 'Genera' , 'Region', 'District',*/'Status', 'Action']
         },
         column_number: function(){
@@ -544,24 +544,24 @@ export default {
                 },
             }
         },
-       column_conservation_status: function(){  
+       column_conservation_status: function(){
             let vm = this
             return{
-                data: "conservation_status", 
+                data: "conservation_status",
                 visible: false,
             }
         },
-        column_can_be_processed: function(){  
+        column_can_be_processed: function(){
             let vm = this
             return{
-                data: "can_be_processed", 
+                data: "can_be_processed",
                 visible: false,
             }
         },
-        column_can_user_process: function(){  
+        column_can_user_process: function(){
             let vm = this
             return{
-                data: "can_user_process", 
+                data: "can_user_process",
                 visible: false,
             }
         },
@@ -599,7 +599,7 @@ export default {
                     }
                 }
             ]
-            
+
             return {
                 autoWidth: false,
                 language: {
@@ -608,7 +608,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: true,
@@ -651,7 +651,7 @@ export default {
                 },
             }
         }
-    
+
     },
     methods:{
         collapsible_component_mounted: function(){
@@ -904,7 +904,7 @@ export default {
                         {
                           this.filtered_district_list.push(choice);
                         }
-                        
+
                     }
                 });
         },
@@ -919,7 +919,7 @@ export default {
             vm.$refs.fauna_cs_ref_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );

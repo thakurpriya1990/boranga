@@ -12,10 +12,10 @@
                             </option>
                         </select> -->
                         <label for="community_id_lookup">Community ID:</label>
-                        <select 
-                            id="community_id_lookup"  
-                            name="community_id_lookup"  
-                            ref="community_id_lookup" 
+                        <select
+                            id="community_id_lookup"
+                            name="community_id_lookup"
+                            ref="community_id_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -29,10 +29,10 @@
                             </option>
                         </select> -->
                         <label for="community_name_lookup">Community Name:</label>
-                        <select 
-                            id="community_name_lookup"  
-                            name="community_name_lookup"  
-                            ref="community_name_lookup" 
+                        <select
+                            id="community_name_lookup"
+                            name="community_name_lookup"
+                            ref="community_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -102,6 +102,13 @@
                     />
             </div>
         </div>
+        <div v-if="communityHistoryId">
+            <CommunityHistory
+                ref="community_history"
+                :key="communityHistoryId"
+                :community-id="communityHistoryId"
+            />
+        </div>
     </div>
 </template>
 <script>
@@ -109,6 +116,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
+import CommunityHistory from '../internal/species_communities/community_history.vue';
 import Vue from 'vue'
 import {
     api_endpoints,
@@ -179,27 +187,27 @@ export default {
         let vm = this;
         return {
             datatable_id: 'communities-datatable-'+vm._uid,
-     
+            communityHistoryId: null,
             // selected values for filtering
-            filterCommunityMigratedId: sessionStorage.getItem(this.filterCommunityMigratedId_cache) ? 
+            filterCommunityMigratedId: sessionStorage.getItem(this.filterCommunityMigratedId_cache) ?
                                 sessionStorage.getItem(this.filterCommunityMigratedId_cache) : 'all',
 
-            filterCommunityName: sessionStorage.getItem(this.filterCommunityName_cache) ? 
+            filterCommunityName: sessionStorage.getItem(this.filterCommunityName_cache) ?
                                     sessionStorage.getItem(this.filterCommunityName_cache) : 'all',
 
-            filterCommunityConservationList: sessionStorage.getItem(this.filterCommunityConservationList_cache) ? 
+            filterCommunityConservationList: sessionStorage.getItem(this.filterCommunityConservationList_cache) ?
                                     sessionStorage.getItem(this.filterCommunityConservationList_cache) : 'all',
 
-            filterCommunityConservationCategory: sessionStorage.getItem(this.filterCommunityConservationCategory_cache) ? 
+            filterCommunityConservationCategory: sessionStorage.getItem(this.filterCommunityConservationCategory_cache) ?
                                     sessionStorage.getItem(this.filterCommunityConservationCategory_cache) : 'all',
-            
+
             filterCommunityApplicationStatus: sessionStorage.getItem(this.filterCommunityApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCommunityApplicationStatus_cache) : 'all',
 
-            filterCommunityRegion: sessionStorage.getItem(this.filterCommunityRegion_cache) ? 
+            filterCommunityRegion: sessionStorage.getItem(this.filterCommunityRegion_cache) ?
                                     sessionStorage.getItem(this.filterCommunityRegion_cache) : 'all',
 
-            filterCommunityDistrict: sessionStorage.getItem(this.filterCommunityDistrict_cache) ? 
+            filterCommunityDistrict: sessionStorage.getItem(this.filterCommunityDistrict_cache) ?
                                         sessionStorage.getItem(this.filterCommunityDistrict_cache) : 'all',
 
             //Filter list for Community select box
@@ -211,7 +219,7 @@ export default {
             region_list: [],
             district_list: [],
             filtered_district_list: [],
-            
+
             // filtering options
             external_status:[
                 {value: 'draft', name: 'Draft'},
@@ -226,7 +234,7 @@ export default {
                 {value: 'active', name: 'Active'},
                 {value: 'historical', name: 'Historical'},
             ],
-            
+
             community_status: [],
 
         }
@@ -235,31 +243,32 @@ export default {
         datatable,
         CollapsibleFilters,
         FormSection,
+        CommunityHistory,
     },
     watch:{
         filterCommunityMigratedId: function(){
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCommunityMigratedId_cache, vm.filterCommunityMigratedId);
         },
         filterCommunityName: function() {
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCommunityName_cache, vm.filterCommunityName);
         },
         filterCommunityConservationList: function() {
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCommunityConservationList_cache, vm.filterCommunityConservationList);
         },
         filterCommunityConservationCategory: function() {
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCommunityConservationCategory_cache, vm.filterCommunityConservationCategory);
         },
         filterCommunityApplicationStatus: function() {
             let vm = this;
-            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.  
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCommunityApplicationStatus_cache, vm.filterCommunityApplicationStatus);
         },
         filterCommunityRegion: function(){
@@ -281,12 +290,12 @@ export default {
     },
     computed: {
         filterApplied: function(){
-            if(this.filterCommunityMigratedId === 'all' && 
-                this.filterCommunityName === 'all' && 
-                this.filterCommunityConservationList === 'all' && 
-                this.filterCommunityConservationCategory === 'all' && 
-                this.filterCommunityApplicationStatus === 'all' && 
-                this.filterCommunityRegion === 'all' && 
+            if(this.filterCommunityMigratedId === 'all' &&
+                this.filterCommunityName === 'all' &&
+                this.filterCommunityConservationList === 'all' &&
+                this.filterCommunityConservationCategory === 'all' &&
+                this.filterCommunityApplicationStatus === 'all' &&
+                this.filterCommunityRegion === 'all' &&
                 this.filterCommunityDistrict === 'all'){
                 return false
             } else {
@@ -311,11 +320,11 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Id','Number', 'Community Id' ,'Community Name', 'Conservation List' ,  
+                return ['Id','Number', 'Community Id' ,'Community Name', 'Conservation List' ,
                             'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
             if (this.is_internal){
-                return ['Id','Number', 'Community Id' ,'Community Name', 'Conservation List',  
+                return ['Id','Number', 'Community Id' ,'Community Name', 'Conservation List',
                             'Conservation Category', 'Region', 'District', 'Status', 'Action']
             }
         },
@@ -459,6 +468,7 @@ export default {
                         if (full.can_user_edit) {
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
                             links +=  `<a href='#${full.id}' data-discard-community-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
+                            links += `<a href='#' data-history-community='${full.id}'>History</a><br>`;
                         }
                         else{
                             if(full.user_process){
@@ -466,6 +476,7 @@ export default {
                                 links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;
                             }
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
+                            links += `<a href='#' data-history-community='${full.id}'>History</a><br>`;
                         }
                     }
                     return links;
@@ -532,7 +543,7 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 responsive: true,
                 serverSide: true,
                 searching: search,
@@ -572,9 +583,16 @@ export default {
                 },
             }
         }
-    
+
     },
     methods:{
+        historyDocument: function(id){
+                this.communityHistoryId = parseInt(id);
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.community_history.isModalOpen = true;
+                });
+            },
         collapsible_component_mounted: function(){
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
@@ -701,7 +719,7 @@ export default {
                         {
                           this.filtered_district_list.push(choice);
                         }
-                        
+
                     }
                 });
         },
@@ -764,6 +782,11 @@ export default {
                 var id = $(this).attr('data-discard-community-proposal');
                 vm.discardCommunityProposal(id);
             });
+            vm.$refs.communities_datatable.vmDataTable.on('click', 'a[data-history-community]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-community');
+                    vm.historyDocument(id);
+                });
         },
         initialiseSearch:function(){
             this.submitterSearch();
@@ -773,7 +796,7 @@ export default {
             vm.$refs.communities_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );

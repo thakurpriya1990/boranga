@@ -90,7 +90,7 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     mkdir /app && \
     chown -R oim.oim /app && \
     mkdir /container-config/ && \
-    chown -R oim.oim /container-config/ && \    
+    chown -R oim.oim /container-config/ && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     ln -s /usr/bin/python3 /usr/bin/python  && \
     pip install --upgrade pip && \
@@ -115,18 +115,23 @@ RUN pip install --no-cache-dir -r requirements.txt && \
 # RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
 # RUN rm /app/libgeos.py.patch
 
-FROM python_dependencies_boranga as build_vue_boranga
-
-RUN cd /app/boranga/frontend/boranga; npm ci --omit=dev && \
-    cd /app/boranga/frontend/boranga; npm run build
-
-FROM build_vue_boranga as collectstatic_boranga
+FROM python_dependencies_boranga as collectstatic_boranga
 
 RUN touch /app/.env && \
     python manage.py collectstatic --noinput
 
-FROM collectstatic_boranga as launch_boranga
+FROM collectstatic_boranga as build_vue_boranga
+
+RUN cd /app/boranga/frontend/boranga; npm ci --omit=dev && \
+    cd /app/boranga/frontend/boranga; npm run build
+
+FROM build_vue_boranga as launch_boranga
+
+RUN python manage.py collectstatic --noinput
 
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
 CMD ["/pre_startup.sh"]
+
+# When first deploying to a new environment (e.g. prod)
+# patch /home/container/.local/lib/python3.10/site-packages/reversion/migrations/0001_squashed_0004_auto_20160611_1202.py 0001_squashed_0004_auto_20160611_1202.patch

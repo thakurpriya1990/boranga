@@ -172,7 +172,7 @@ export default {
                 },
                 responsive: true,
                 serverSide: true,
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     //"url": vm.url,
                     //"url": '/api/booking_paginated/bookings_external/?format=datatables',
@@ -256,7 +256,7 @@ export default {
                             } else if (full.payment_method.toLowerCase()=='monthly invoicing' && full.invoice_reference == null){
                                 // running aggregated monthly booking - not yet invoiced
                                 links +=  `<a href='/cols/payments/monthly-confirmation-pdf/park-booking/${full.id}.pdf' target='_blank' style='padding-left: 52px;'><i style='color:red;' class='fa fa-file-pdf-o'></i></a><br/>`;
-                            } 
+                            }
                             return links;
                         },
                         name: '',
@@ -382,7 +382,7 @@ export default {
             },(error) => {
                 console.log(error);
             })
-            
+
             vm.$http.get(api_endpoints.filter_list_parks).then((response) => {
                 vm.proposal_parks = response.body;
             },(error) => {
@@ -445,7 +445,7 @@ export default {
             vm.$refs.proposal_datatable.table.dataTableExt.afnFiltering.push(
                 function(settings,data,dataIndex,original){
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; } 
+                    if (filtered_submitter == 'All'){ return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -479,7 +479,7 @@ export default {
                         else{
                             return false;
                         }
-                    } 
+                    }
                     else{
                         return false;
                     }
