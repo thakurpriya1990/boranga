@@ -2251,6 +2251,9 @@ class OccurrenceManager(models.Manager):
 class Occurrence(RevisionedMixin):
     objects = OccurrenceManager()
     occurrence_number = models.CharField(max_length=9, blank=True, default="")
+    occurrence_name = models.CharField(
+        max_length=250, blank=True, null=True, unique=True
+    )
     group_type = models.ForeignKey(
         GroupType, on_delete=models.PROTECT, null=True, blank=True
     )
