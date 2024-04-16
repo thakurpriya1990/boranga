@@ -113,6 +113,7 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
 
 class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     scientific_name = serializers.SerializerMethodField()
+    community_name = serializers.SerializerMethodField()
     submitter = serializers.SerializerMethodField()
     processing_status_display = serializers.CharField(
         source="get_processing_status_display"
@@ -139,8 +140,10 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_number",
             "species",
+            "community",
             # 'group_type',
             "scientific_name",
+            "community_name",
             "reported_date",
             "submitter",
             "processing_status",
@@ -160,6 +163,8 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "occurrence_report_number",
             "species",
             "scientific_name",
+            "community",
+            "community_name",
             "reported_date",
             "submitter",
             "processing_status",
@@ -174,6 +179,12 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         if obj.species:
             if obj.species.taxonomy:
                 return obj.species.taxonomy.scientific_name
+        return ""
+
+    def get_community_name(self, obj):
+        if obj.community:
+            if obj.community.taxonomy:
+                return obj.community.taxonomy.community_name
         return ""
 
     def get_submitter(self, obj):
