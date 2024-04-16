@@ -277,6 +277,13 @@
                                                 feature.getProperties().srid
                                             "
                                             classes="min-width-210"
+                                            @search="
+                                                (...args) =>
+                                                    $emit(
+                                                        'crs-select-search',
+                                                        ...args
+                                                    )
+                                            "
                                         />
                                     </div>
                                 </div>
@@ -3326,6 +3333,9 @@ export default {
             const notHidden = $(target).find('img.svg-icon').not('.hidden');
             hidden.removeClass('hidden');
             notHidden.addClass('hidden');
+        },
+        search: function (search, loading) {
+            console.log('search', search, loading);
         },
     },
 };

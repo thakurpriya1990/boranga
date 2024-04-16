@@ -18,6 +18,7 @@
             :track-by="name"
             :placeholder="placeholder"
             :class="classes"
+            @search="(...args) => $emit('search', ...args)"
             @select="
                 $emit('selection-changed-select', {
                     id: id,

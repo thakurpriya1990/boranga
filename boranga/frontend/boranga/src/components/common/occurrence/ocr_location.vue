@@ -101,6 +101,7 @@
                     :coordinate-reference-systems="coordinateReferenceSystems"
                     @validate-feature="validateFeature.bind(this)()"
                     @refreshFromResponse="refreshFromResponse"
+                    @crs-select-search="searchDatum"
                 ></MapComponent>
             </div>
 
