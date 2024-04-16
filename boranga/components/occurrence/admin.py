@@ -1,35 +1,34 @@
 from django.contrib.gis import admin
-from import_export.admin import ImportExportMixin
-from django.db.models import Q
+
 from boranga.components.occurrence.models import (
+    AnimalHealth,
+    CoordinationSource,
+    CountedSubject,
+    Datum,
+    DeathReason,
+    Drainage,
+    IdentificationCertainty,
+    Intensity,
     LandForm,
+    LocationAccuracy,
+    ObservationMethod,
+    Occurrence,
+    OccurrenceReport,
+    PermitType,
+    PlantCondition,
+    PlantCountAccuracy,
+    PlantCountMethod,
+    PrimaryDetectionMethod,
+    ReproductiveMaturity,
     RockType,
-    SoilType,
+    SampleDestination,
+    SampleType,
+    SecondarySign,
     SoilColour,
     SoilCondition,
-    Drainage,
-    Intensity,
-    ObservationMethod,
-    PlantCountMethod,
-    PlantCountAccuracy,
-    CountedSubject,
-    PlantCondition,
-    PrimaryDetectionMethod,
-    SecondarySign,
-    ReproductiveMaturity,
-    DeathReason,
-    AnimalHealth,
-    IdentificationCertainty,
-    SampleType,
-    SampleDestination,
-    PermitType,
-    Datum,
-    CoordinationSource,
-    LocationAccuracy,
-    OccurrenceReport,
-    Occurrence,
+    SoilType,
+    WildStatus,
 )
-
 
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm)
@@ -58,3 +57,4 @@ admin.site.register(CoordinationSource)
 admin.site.register(LocationAccuracy)
 admin.site.register(OccurrenceReport)
 admin.site.register(Occurrence)
+admin.site.register(WildStatus)
