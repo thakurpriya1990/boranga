@@ -378,12 +378,12 @@ export default {
         },
         column_number: function () {
             return {
-                data: "conservation_status_number",
+                data: "occurrence_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function (data, type, full) {
-                    return full.conservation_status_number
+                    return full.occurrence_number
                 },
                 name: "id",
             }
