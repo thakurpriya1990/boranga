@@ -181,7 +181,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         return ""
 
     def get_community_name(self, obj):
-        if obj.species:
+        if obj.community:
             if obj.community.taxonomy:
                 return obj.community.taxonomy.community_name
         return ""

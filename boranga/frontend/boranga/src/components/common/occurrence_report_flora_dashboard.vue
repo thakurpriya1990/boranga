@@ -281,7 +281,7 @@ export default {
                 'render': function(data, type, full){
                     return full.occurrence_report_number
                 },
-                name: "id",
+                name: "occurrence_report_number",
             }
         },
         column_occurrence: function(){
@@ -296,7 +296,7 @@ export default {
                     }
                     return 'NOT SET'
                 },
-                name: "occurrence",
+                name: "occurrence__occurrence_number",
             }
         },
         column_scientific_name: function(){
@@ -333,7 +333,7 @@ export default {
             return {
                 data: "submitter",
                 orderable: false,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 'render': function(data, type, full){
                     if (full.submitter){
