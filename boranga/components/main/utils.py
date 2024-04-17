@@ -113,4 +113,14 @@ def get_geometry_source(geometry_obj):
 
     return source
 
+def wkb_to_geojson(wkb):
+    from django.contrib.gis.geos import GEOSGeometry
+    from shapely.wkt import loads
+    from shapely.geometry import mapping
 
+    geos_geometry = GEOSGeometry(wkb)
+    shapely_geometry = loads(geos_geometry.wkt)
+    geo_json = mapping(shapely_geometry)
+    geo_json["properties"] = {"srid": geos_geometry.srid}
+
+    return geo_json
