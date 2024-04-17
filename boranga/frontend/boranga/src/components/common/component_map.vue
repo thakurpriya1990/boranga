@@ -144,7 +144,10 @@
                             >
                                 <div
                                     v-for="feature in modelQuerySource.getFeatures()"
-                                    :key="feature.ol_uid + feature.getProperties().srid"
+                                    :key="
+                                        feature.ol_uid +
+                                        feature.getProperties().srid
+                                    "
                                     class="input-group input-group-sm mb-1 text-nowrap"
                                 >
                                     <div class="input-group-text">
@@ -262,7 +265,7 @@
                                     <!-- CRS Dropdown -->
                                     <div
                                         class="input-group-text form-floating flex-grow-1 min-width-210 justify-content-end"
-                                    >   {{ feature.getProperties().srid }}
+                                    >
                                         <SelectFilter
                                             :id="`feature-${feature.ol_uid}-crs-select`"
                                             :title="`Feature ${
@@ -274,7 +277,9 @@
                                                 coordinateReferenceSystems
                                             "
                                             :pre-selected-filter-item="
-                                                feature.getProperties().srid
+                                                feature.getProperties()
+                                                    .original_geometry
+                                                    ?.properties.srid || mapSrid
                                             "
                                             classes="min-width-210"
                                             @option:selected="
@@ -913,6 +918,7 @@ import {
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
 import shp, { combine, parseShp, parseDbf } from 'shpjs';
+import proj4 from 'proj4';
 import SelectFilter from '@/components/common/SelectFilter.vue';
 
 export default {
@@ -1158,6 +1164,11 @@ export default {
             default: () => {
                 return [{ key: 4326, value: 'WGS 84' }];
             },
+        },
+        mapSrid: {
+            type: Number,
+            required: false,
+            default: 4326,
         },
     },
     // emits: ['filter-appied', 'validate-feature', 'refreshFromResponse'],
@@ -1753,7 +1764,7 @@ export default {
                 view: new View({
                     center: [115.95, -31.95],
                     zoom: 7,
-                    projection: 'EPSG:4326',
+                    projection: `EPSG:${vm.mapSrid}`,
                 }),
             });
 
@@ -1847,7 +1858,7 @@ export default {
             vm.initialisePointerMoveEvent();
             vm.snap = new Snap({ source: vm.modelQuerySource });
             vm.dragAndDrop = new DragAndDrop({
-                projection: 'EPSG:4326',
+                projection: `EPSG:${vm.mapSrid}`,
                 formatConstructors: [GeoJSON],
             });
             vm.dragAndDrop.on('addfeatures', function (event) {
@@ -2200,6 +2211,7 @@ export default {
                         'Draw',
                     color: color,
                     locked: false,
+                    srid: vm.mapSrid,
                 });
                 vm.newFeatureId++;
                 console.log('newFeatureId = ' + vm.newFeatureId);
@@ -2225,6 +2237,7 @@ export default {
                         model.occurrence_report_number || model.label || 'Draw',
                     color: color,
                     locked: false,
+                    srid: vm.mapSrid,
                 });
                 vm.newFeatureId++;
                 console.log('newFeatureId = ' + vm.newFeatureId);
@@ -2349,7 +2362,7 @@ export default {
                                 selected.getProperties().copied_from;
                             model.area_sqm = Math.round(
                                 getArea(selected.getGeometry(), {
-                                    projection: 'EPSG:4326',
+                                    projection: `EPSG:${vm.mapSrid}`,
                                 })
                             );
                         }
@@ -2859,6 +2872,7 @@ export default {
             let feature = new Feature({
                 id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
                 geometry: geometry,
+                original_geometry: featureData.properties.original_geometry,
                 name: model.id,
                 // label: model.label || model.application_type_name_display,
                 label: model.label,
@@ -2942,7 +2956,7 @@ export default {
                 request: vm.owsQuery[layerStr].request || 'GetFeature',
                 typeName: vm.owsQuery[layerStr].typeName,
                 maxFeatures: vm.owsQuery[layerStr].maxFeatures || '5000',
-                srsName: vm.owsQuery[layerStr].srsName || 'EPSG:4326',
+                srsName: vm.owsQuery[layerStr].srsName || `EPSG:${vm.mapSrid}`,
                 outputFormat:
                     vm.owsQuery[layerStr].outputFormat || 'application/json',
                 propertyName:
@@ -3176,7 +3190,10 @@ export default {
                     return doc.name.slice(doc.name.lastIndexOf('.'));
                 }, []);
         },
-        featureArea: function (feature, projection = 'EPSG:4326') {
+        featureArea: function (feature, projection = null) {
+            if (!projection) {
+                projection = `EPSG:${this.mapSrid}`;
+            }
             return Math.round(
                 getArea(feature.getGeometry(), {
                     projection: projection,
@@ -3352,8 +3369,16 @@ export default {
                 return;
             }
             const oldSrid = feature.getProperties().srid;
+            const mapFeature = this.modelQuerySource.getFeatureById(feature.getId())
             // TODO: transformation to map crs?
-            this.modelQuerySource.getFeatureById(feature.getId()).set('srid', newSrid);
+            
+            console.log('proj4', proj4.defs(`EPSG:${this.mapSrid}`))
+            console.log('proj4', proj4.defs(`EPSG:${newSrid}`))
+            mapFeature.getGeometry()
+            // mapFeature.getGeometry().transform(`EPSG:${this.mapSrid}`, `EPSG:3857`);
+            // mapFeature.getGeometry().transform(`EPSG:${this.mapSrid}`, `EPSG:3857`);
+            // mapFeature.getGeometry().transform(`EPSG:${newSrid}`, `EPSG:${this.mapSrid}`);
+            // mapFeature.set('srid', newSrid);
         },
     },
 };
