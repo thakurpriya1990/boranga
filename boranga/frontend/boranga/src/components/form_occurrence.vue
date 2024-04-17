@@ -180,14 +180,14 @@
                     role="tabpanel"
                     aria-labelledby="pills-threats-tab"
                 >
-                    <!--<OCCThreats
+                    <OCCThreats
                         id="occThreats"
                         :key="reloadcount"
                         ref="occ_threats"
                         :is_internal="is_internal"
                         :occurrence_obj="occurrence_obj"
                     >
-                    </OCCThreats>-->
+                    </OCCThreats>
                 </div>
                 <!-- <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems
@@ -241,7 +241,7 @@
 // import OCCHabitat from '@/components/common/conservation_status/cs_documents.vue'
 // import RelatedItems from '@/components/common/table_related_items.vue'
 import OCCDocuments from '@/components/common/occurrence/occ_documents.vue';
-//import OCCThreats from '@/components/common/occurrence/occ_threats.vue';
+import OCCThreats from '@/components/common/occurrence/occ_threats.vue';
 
 export default {
     components: {
@@ -249,7 +249,7 @@ export default {
         //OCCHabitat,
         //OCCObservation,
         OCCDocuments,
-        //OCCThreats,
+        OCCThreats,
         // CommunityStatus,
         // CSDocuments,
         // RelatedItems,

@@ -146,6 +146,7 @@ module.exports = {
     occurrence_report_documents: "/api/occurrence_report_documents.json",
     occurrence_documents: "/api/occurrence_documents.json",
     ocr_threat: "/api/ocr_threat.json",
+    occ_threat: "/api/occ_threat.json",
 
     discard_cs_proposal: function (id) {
         return `/api/conservation_status/${id}.json`;
@@ -227,6 +228,10 @@ module.exports = {
 
     lookup_history_ocr_conservation_threat: function (id) {
       return `/api/history/boranga/occurrence/OcrConservationThreat/${id}/`;
+    },
+
+    lookup_history_occ_conservation_threat: function (id) {
+      return `/api/history/boranga/occurrence/OccConservationThreat/${id}/`;
     },
 
     lookup_history_minutes: function (id) {

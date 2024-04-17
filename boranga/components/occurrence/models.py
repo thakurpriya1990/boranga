@@ -2356,6 +2356,18 @@ class OccurrenceUserAction(UserAction):
     ACTION_SAVE_OCCURRENCE = "Save occurrence {}"
     ACTION_EDIT_OCCURRENCE = "Edit occurrence {}"
 
+    # Document
+    ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"
+    ACTION_UPDATE_DOCUMENT = "Document {} updated for occurrence {}"
+    ACTION_DISCARD_DOCUMENT = "Document {} discarded for occurrence {}"
+    ACTION_REINSTATE_DOCUMENT = "Document {} reinstated for occurrence {}"
+
+    # Threat
+    ACTION_ADD_THREAT = "Threat {} added for occurrence {}"
+    ACTION_UPDATE_THREAT = "Threat {} updated for occurrence {}"
+    ACTION_DISCARD_THREAT = "Threat {} discarded for occurrence {}"
+    ACTION_REINSTATE_THREAT = "Threat {} reinstated for occurrence {}"
+
     class Meta:
         app_label = "boranga"
         ordering = ("-when",)

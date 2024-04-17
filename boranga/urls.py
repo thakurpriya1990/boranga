@@ -118,6 +118,7 @@ router.register(
     r"occurrence_report_documents", occurrence_api.OccurrenceReportDocumentViewSet
 )
 router.register(r"ocr_threat", occurrence_api.OCRConservationThreatViewSet)
+router.register(r"occ_threat", occurrence_api.OCCConservationThreatViewSet)
 
 router.register(r"users", users_api.UserViewSet)
 router.register(r"global_settings", main_api.GlobalSettingsViewSet)
