@@ -13,7 +13,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import serializers, status, viewsets
+from rest_framework import serializers, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -72,6 +72,7 @@ from boranga.components.occurrence.models import (
     SoilType,
 )
 from boranga.components.occurrence.serializers import (
+    CreateOccurrenceReportSerializer,
     InternalOccurrenceReportSerializer,
     ListInternalOccurrenceReportSerializer,
     ListOccurrenceReportSerializer,
@@ -99,7 +100,6 @@ from boranga.components.occurrence.serializers import (
     SaveOccurrenceReportSerializer,
     SaveOCRConservationThreatSerializer,
     SavePlantCountSerializer,
-    CreateOccurrenceReportSerializer,
 )
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
@@ -458,7 +458,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
 
             else:
                 return Response(status=400, data="Format not valid")
-            
+
     @list_route(
         methods=[
             "GET",
@@ -647,10 +647,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
-                #headers = self.get_success_headers(serializer.data)
-                #return Response(
+                # headers = self.get_success_headers(serializer.data)
+                # return Response(
                 #    new_instance.id, status=status.HTTP_201_CREATED, headers=headers
-                #)
+                # )
                 serialized_obj = CreateOccurrenceReportSerializer(new_instance)
                 return Response(serialized_obj.data)
         except serializers.ValidationError:
@@ -2130,6 +2130,10 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
             if filter_group_type and not filter_group_type.lower() == "all":
                 queryset = queryset.filter(group_type__name=filter_group_type)
 
+            filter_occurrence_name = request.GET.get("filter_occurrence_name")
+            if filter_occurrence_name and not filter_occurrence_name.lower() == "all":
+                queryset = queryset.filter(occurrence_name=filter_occurrence_name)
+
             filter_scientific_name = request.GET.get("filter_scientific_name")
             if filter_scientific_name and not filter_scientific_name.lower() == "all":
                 queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
@@ -2457,6 +2461,31 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
             )
             queryset = [
                 {"id": occurrence["id"], "text": occurrence["occurrence_number"]}
+                for occurrence in queryset
+            ]
+        return Response({"results": queryset})
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_name_lookup(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        group_type_id = request.GET.get("group_type_id", None)
+        if group_type_id:
+            queryset = self.get_queryset().filter(group_type_id=group_type_id)
+        search_term = request.GET.get("term", None)
+        if search_term:
+            queryset = queryset.values_list("occurrence_name", flat=True)
+            queryset = (
+                queryset.filter(occurrence_name__icontains=search_term)
+                .distinct()
+                .values("id", "occurrence_name")[:10]
+            )
+            queryset = [
+                {"id": occurrence["id"], "text": occurrence["occurrence_name"]}
                 for occurrence in queryset
             ]
         return Response({"results": queryset})

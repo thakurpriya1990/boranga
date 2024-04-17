@@ -316,13 +316,15 @@ if not RUNNING_DEVSERVER and SENTRY_DSN and EMAIL_INSTANCE:
         release=APPLICATION_VERSION,
     )
 
-# LEDGER_UI_ACCOUNTS_MANAGEMENT = [
-#            {'first_name': {'options' : {'view': True, 'edit': True}}},
-#            {'last_name': {'options' : {'view': True, 'edit': True}}},
-#            {'residential_address': {'options' : {'view': True, 'edit': True}}},
-#            {'phone_number' : {'options' : {'view': True, 'edit': True}}},
-#            {'mobile_number' : {'options' : {'view': True, 'edit': True}}},
-# ]
+LEDGER_UI_ACCOUNTS_MANAGEMENT = [
+    {"first_name": {"options": {"view": True, "edit": True}}},
+    {"last_name": {"options": {"view": True, "edit": True}}},
+    {"residential_address": {"options": {"view": True, "edit": True}}},
+    {"postal_same_as_residential": {"options": {"view": True, "edit": True}}},
+    {"postal_address": {"options": {"view": True, "edit": True}}},
+    {"phone_number": {"options": {"view": True, "edit": True}}},
+    {"mobile_number": {"options": {"view": True, "edit": True}}},
+]
 
 # NOMOS login details
 NOMOS_URL = env("NOMOS_URL")
