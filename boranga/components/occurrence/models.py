@@ -250,12 +250,14 @@ class OccurrenceReport(RevisionedMixin):
     def __str__(self):
         return str(self.occurrence_report_number)  # TODO: is the most appropriate?
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):  
         if self.occurrence_report_number == "":
+            super().save(*args, **kwargs, no_revision=True)
             new_occurrence_report_id = f"OCR{str(self.pk)}"
             self.occurrence_report_number = new_occurrence_report_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def reference(self):
@@ -2088,12 +2090,14 @@ class OccurrenceReportDocument(Document):
         verbose_name = "Occurrence Report Document"
 
     def save(self, *args, **kwargs):
-        # Prefix "D" char to document_number.
-        super().save(*args, **kwargs)
+        # Prefix "D" char to document_number. 
         if self.document_number == "":
+            super().save(*args, **kwargs, no_revision=True)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @transaction.atomic
     def add_documents(self, request):
@@ -2214,11 +2218,13 @@ class OCRConservationThreat(RevisionedMixin):
         return str(self.id)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if self.threat_number == "":
+            super().save(*args, **kwargs, no_revision=True)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def source(self):
@@ -2318,10 +2324,12 @@ class Occurrence(RevisionedMixin):
         app_label = "boranga"
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if self.occurrence_number == "":
+            super().save(*args, **kwargs, no_revision=True)
             self.occurrence_number = f"OCC{str(self.pk)}"
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         if self.species:

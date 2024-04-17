@@ -394,12 +394,14 @@ class ConservationStatus(RevisionedMixin):
     def __str__(self):
         return str(self.conservation_status_number)  # TODO: is the most appropriate?
 
-    def save(self, *args, **kwargs):
-        super(ConservationStatus, self).save(*args,**kwargs)
+    def save(self, *args, **kwargs):  
         if self.conservation_status_number == '':
+            super(ConservationStatus, self).save(*args,**kwargs,no_revision=True)
             new_conservation_status_id = 'CS{}'.format(str(self.pk))
             self.conservation_status_number = new_conservation_status_id
-            self.save()
+            self.save(*args,**kwargs)
+        else:
+            super(ConservationStatus, self).save(*args,**kwargs)
 
     @property
     def reference(self):
@@ -1328,12 +1330,14 @@ class ConservationStatusDocument(Document):
         verbose_name = "Conservation Status Document"
 
     def save(self, *args, **kwargs):
-        # Prefix "D" char to document_number.
-        super(ConservationStatusDocument, self).save(*args,**kwargs)
+        # Prefix "D" char to document_number.        
         if self.document_number == '':
+            super(ConservationStatusDocument, self).save(*args,**kwargs,no_revision=True)
             new_document_id = 'D{}'.format(str(self.pk))
             self.document_number = new_document_id
-            self.save()
+            self.save(*args,**kwargs)
+        else:
+            super(ConservationStatusDocument, self).save(*args,**kwargs)
 
     def add_documents(self, request):
         with transaction.atomic():

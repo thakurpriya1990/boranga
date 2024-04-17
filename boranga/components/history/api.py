@@ -276,9 +276,14 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
                     if i in data[model._meta.model_name]["fields"] and data[model._meta.model_name]["fields"][i] != None:
                         data[model._meta.model_name]["fields"][i] = self.lookup_getter.lookup_values[i][data[model._meta.model_name]["fields"][i]]
 
+            user_email = ""
+            if version.revision.user:
+                user_email = version.revision.user.email
+
             versions_list.append({
                'revision_id': version.revision_id,
                'revision_sequence': id_sequence_index.index(version.revision_id),
+               'revision_user_email': user_email,
                'date_created': version.revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
                'data': data,
                }

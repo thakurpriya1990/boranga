@@ -156,12 +156,14 @@ class Meeting(models.Model):
         return str(self.title)
     
     def save(self, *args, **kwargs):
-        # Prefix "M" char to meeting_number.
-        super(Meeting, self).save(*args,**kwargs)
+        # Prefix "M" char to meeting_number.       
         if self.meeting_number == '':
+            super(Meeting, self).save(*args,**kwargs)
             new_meeting_id = 'M{}'.format(str(self.pk))
             self.meeting_number = new_meeting_id
-            self.save()
+            self.save(*args,**kwargs)
+        else:
+            super(Meeting, self).save(*args,**kwargs)
 
     @property
     def reference(self):
@@ -332,12 +334,14 @@ class Minutes(Document):
         verbose_name = "Meeting Minutes"
 
     def save(self, *args, **kwargs):
-        # Prefix "MN" char to minutes_number.
-        super(Minutes, self).save(*args,**kwargs)
+        # Prefix "MN" char to minutes_number.        
         if self.minutes_number == '':
+            super(Minutes, self).save(*args,**kwargs,no_revision=True)
             new_minute_id = 'MN{}'.format(str(self.pk))
             self.minutes_number = new_minute_id
-            self.save()
+            self.save(*args,**kwargs)
+        else:
+            super(Minutes, self).save(*args,**kwargs)
     
     def add_minutes_documents(self, request):
         with transaction.atomic():

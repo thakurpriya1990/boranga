@@ -1034,7 +1034,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 serializer = SaveSpeciesSerializer(instance, data = request_data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    saved_instance = serializer.save()
+                    saved_instance = serializer.save(version_user=request.user)
 
                     instance.log_user_action(SpeciesUserAction.ACTION_SAVE_SPECIES.format(instance.species_number), request)
 
@@ -1075,7 +1075,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 serializer = SaveSpeciesSerializer(instance, data = request_data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    saved_instance = serializer.save()
+                    saved_instance = serializer.save(version_user=request.user)
 
                     instance.log_user_action(SpeciesUserAction.ACTION_SAVE_SPECIES.format(instance.species_number), request)
 
@@ -1097,7 +1097,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             #instance.submit(request,self)
             species_form_submit(instance, request)
-            instance.save()
+            instance.save(version_user=request.user)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
             # return redirect(reverse('internal'))
@@ -1131,7 +1131,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 # copy/clone the original species document and create new for new split species
                 instance.clone_documents(request)
                 instance.clone_threats(request)
-                instance.save()
+                instance.save(version_user=request.user)
 
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
@@ -1162,7 +1162,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 # copy/clone the original species document and create new for new split species
                 instance.clone_documents(request)
                 instance.clone_threats(request)
-                instance.save()
+                instance.save(version_user=request.user)
                 # add parent ids to new species instance
                 parent_species_arr= request.data.get('parent_species')
                 for species in parent_species_arr:
@@ -1200,7 +1200,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
 
             ret1 = send_species_split_email_notification(request, species_instance)
             if ret1:
-                species_instance.save()
+                species_instance.save(version_user=request.user)
                  # change current active conservation status of the original species to inactive
                 try:
                     if species_instance.processing_status == 'historical':
@@ -1249,7 +1249,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 new_rename_instance.taxonomy_id = None
                 new_rename_instance.species_number = ''
                 new_rename_instance.processing_status = 'draft'
-                new_rename_instance.save()
+                new_rename_instance.save(version_user=request.user)
 
                 for new_document in instance_documents:
                     new_doc_instance= new_document
@@ -1258,7 +1258,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                     new_doc_instance.document_number = ''
                     new_doc_instance._file.name = u'boranga/species/{}/species_documents/{}'.format(new_rename_instance.id, new_doc_instance.name)
                     new_doc_instance.can_delete = True
-                    new_doc_instance.save()
+                    new_doc_instance.save(version_user=request.user)
                     new_doc_instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(new_doc_instance.document_number,new_doc_instance.species.species_number),request)
 
                     check_path = os.path.exists('private-media/boranga/species/{}/species_documents/'.format(new_rename_instance.id))
@@ -1276,7 +1276,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                     new_threat_instance.species = new_rename_instance
                     new_threat_instance.id = None
                     new_threat_instance.threat_number = ''
-                    new_threat_instance.save()
+                    new_threat_instance.save(version_user=request.user)
                     new_threat_instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(new_threat_instance.threat_number,new_threat_instance.species.species_number),request)
                 
                 for new_cons_attr in instance_conservation_attributes:
@@ -1348,7 +1348,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 serializer = CreateSpeciesSerializer(data=request_data)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    new_instance = serializer.save()
+                    new_instance = serializer.save(version_user=request.user)
                     new_returned = serializer.data
 
                     data={
@@ -1499,7 +1499,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.upload_image(request)
             with transaction.atomic():
-                instance.save()
+                instance.save(version_user=request.user)
                 instance.log_user_action(SpeciesUserAction.ACTION_IMAGE_UPDATE.format(
                 '{} '.format(instance.id)), request)
             serializer = InternalSpeciesSerializer(instance, context={'request':request}, partial=True)
@@ -1521,7 +1521,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             #instance.upload_image(request)
             with transaction.atomic():
                 instance.image_doc=None
-                instance.save()
+                instance.save(version_user=request.user)
                 instance.log_user_action(SpeciesUserAction.ACTION_IMAGE_DELETE.format(
                 '{} '.format(instance.id)), request)
             serializer = InternalSpeciesSerializer(instance, context={'request':request}, partial=True)
@@ -1626,7 +1626,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
                 serializer = SaveCommunitySerializer(instance, data = request_data)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    saved_instance = serializer.save()
+                    saved_instance = serializer.save(version_user=request.user)
                     
                     instance.log_user_action(CommunityUserAction.ACTION_SAVE_COMMUNITY.format(instance.community_number), request)
             return redirect(reverse('internal'))
@@ -1647,7 +1647,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             #instance.submit(request,self)
             community_form_submit(instance, request)
-            instance.save()
+            instance.save(version_user=request.user)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
             # return redirect(reverse('internal'))
@@ -1671,7 +1671,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
                 serializer = CreateCommunitySerializer(data=request_data)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    new_instance = serializer.save()
+                    new_instance = serializer.save(version_user=request.user)
                     new_returned = serializer.data
 
                     data={
@@ -1827,7 +1827,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
             #import ipdb; ipdb.set_trace()
             instance.upload_image(request)
             with transaction.atomic():
-                instance.save()
+                instance.save(version_user=request.user)
                 instance.log_user_action(CommunityUserAction.ACTION_IMAGE_UPDATE.format(
                 '{} '.format(instance.id)), request)
             serializer = InternalCommunitySerializer(instance, context={'request':request}, partial=True)
@@ -1850,7 +1850,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
             #instance.upload_image(request)
             with transaction.atomic():
                 instance.image_doc=None
-                instance.save()
+                instance.save(version_user=request.user)
                 instance.log_user_action(CommunityUserAction.ACTION_IMAGE_DELETE.format(
                 '{} '.format(instance.id)), request)
             serializer = InternalCommunitySerializer(instance, context={'request':request}, partial=True)
@@ -1913,7 +1913,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             instance.species.log_user_action(SpeciesUserAction.ACTION_DISCARD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
@@ -1932,7 +1932,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             serializer = self.get_serializer(instance)
             instance.species.log_user_action(SpeciesUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
             return Response(serializer.data)
@@ -1969,7 +1969,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 serializer = SaveSpeciesDocumentSerializer(instance, data=json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
+                serializer.save(version_user=request.user)
                 instance.add_documents(request)
                 instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
                 return Response(serializer.data)
@@ -1983,7 +1983,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 serializer = SaveSpeciesDocumentSerializer(data= json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception = True)
-                instance = serializer.save()
+                instance = serializer.save(version_user=request.user)
                 instance.add_documents(request)
                 instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
                 return Response(serializer.data)
@@ -2017,7 +2017,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             instance.community.log_user_action(CommunityUserAction.ACTION_DISCARD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
@@ -2036,7 +2036,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             instance.community.log_user_action(CommunityUserAction.ACTION_REINSTATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
@@ -2073,7 +2073,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 serializer = SaveCommunityDocumentSerializer(instance, data=json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
+                serializer.save(version_user=request.user)
                 instance.add_documents(request)
                 instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
                 return Response(serializer.data)
@@ -2087,7 +2087,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 serializer = SaveCommunityDocumentSerializer(data= json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception = True)
-                instance = serializer.save()
+                instance = serializer.save(version_user=request.user)
                 instance.add_documents(request)
                 instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
                 return Response(serializer.data)
@@ -2172,7 +2172,7 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.species:
                 instance.species.log_user_action(SpeciesUserAction.ACTION_DISCARD_THREAT.format(instance.threat_number,instance.species.species_number),request)
             elif instance.community:
@@ -2194,7 +2194,7 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.species:
                 instance.species.log_user_action(SpeciesUserAction.ACTION_REINSTATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
             elif instance.community:
@@ -2217,7 +2217,7 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 serializer = SaveConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
+                serializer.save(version_user=request.user)
                 if instance.species:
                     instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_THREAT.format(instance.threat_number,instance.species.species_number),request)
                 elif instance.community:
@@ -2234,7 +2234,7 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 serializer = SaveConservationThreatSerializer(data= json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception = True)
-                instance = serializer.save()
+                instance = serializer.save(version_user=request.user)
                 if instance.species:
                     instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.species.species_number),request)
                 elif instance.community:

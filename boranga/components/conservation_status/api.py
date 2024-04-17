@@ -1022,7 +1022,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
 
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    saved_instance = serializer.save()
+                    saved_instance = serializer.save(version_user=request.user)
 
                     # add the updated Current conservation criteria list [1,2] to the cs instance,
                     # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
@@ -1063,7 +1063,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
 
                     serializer.is_valid(raise_exception=True)
                     if serializer.is_valid():
-                        saved_instance = serializer.save()
+                        saved_instance = serializer.save(version_user=request.user)
 
                         # add the updated Current conservation criteria list [1,2] to the cs instance,
                         # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
@@ -1101,7 +1101,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
 
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    saved_instance = serializer.save()
+                    saved_instance = serializer.save(version_user=request.user)
 
                     # add the updated Current conservation criteria list [1,2] to the cs instance,
                     # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
@@ -1127,7 +1127,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             #instance.submit(request,self)
             cs_proposal_submit(instance, request)
-            instance.save()
+            instance.save(version_user=request.user)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
             #return redirect(reverse('external'))
@@ -1935,7 +1935,7 @@ class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1953,7 +1953,7 @@ class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1988,7 +1988,7 @@ class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             serializer = SaveConservationStatusDocumentSerializer(instance, data=json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(version_user=request.user)
             instance.add_documents(request)
             return Response(serializer.data)
         except Exception as e:
@@ -2000,7 +2000,7 @@ class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
         try:
             serializer = SaveConservationStatusDocumentSerializer(data= json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception = True)
-            instance = serializer.save()
+            instance = serializer.save(version_user=request.user)
             instance.add_documents(request)
             return Response(serializer.data)
         except serializers.ValidationError:

@@ -62,11 +62,17 @@ class RevisionedMixin(models.Model):
     def save(self, **kwargs):
         from reversion import revisions
         if kwargs.pop('no_revision', False):
+            if 'version_user' in kwargs:
+                kwargs.pop('version_user', None)
+            if 'version_comment' in kwargs:
+                kwargs.pop('version_comment', '')
             super(RevisionedMixin, self).save(**kwargs)
         else:
             with revisions.create_revision():
                 if 'version_user' in kwargs:
                     revisions.set_user(kwargs.pop('version_user', None))
+                elif hasattr(self,'version_user'):
+                    revisions.set_user(self.version_user)
                 if 'version_comment' in kwargs:
                     revisions.set_comment(kwargs.pop('version_comment', ''))
                 super(RevisionedMixin, self).save(**kwargs)
