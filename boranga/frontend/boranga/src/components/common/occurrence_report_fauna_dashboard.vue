@@ -552,9 +552,9 @@ export default {
         },
         initialiseScientificNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.ocr_scientific_name_lookup).select2({
+                $(vm.$refs.ocr_scientific_name_lookup_by_groupname).select2({
                     minimumInputLength: 2,
-                    dropdownParent: $("#select_scientific_name"),
+                    dropdownParent: $("#select_scientific_name_by_groupname"),
                     theme: 'bootstrap-5',
                     allowClear: true,
                     placeholder:"Select Scientific Name",
@@ -583,7 +583,7 @@ export default {
                     sessionStorage.setItem("filterOCRFaunaScientificNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-ocr_scientific_name_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-ocr_scientific_name_lookup_by_groupname-results"]')
                     searchField[0].focus();
                 });
         },

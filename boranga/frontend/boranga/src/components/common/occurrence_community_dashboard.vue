@@ -228,9 +228,6 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    return full.occurrence_number
-                },
                 name: "occurrence_number",
             }
         },
@@ -240,13 +237,7 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if (full.occurrence_name){
-                        return full.occurrence_name;
-                    }
-                    return 'NOT SET'
-                },
-                name: "occurrence__occurrence_number",
+                name: "occurrence_name",
             }
         },
         column_community_name: function(){
@@ -255,12 +246,6 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if (full.community_name){
-                        return full.community_name;
-                    }
-                    return ''
-                },
                 name: "community__taxonomy__community_name",
             }
         },
@@ -268,7 +253,7 @@ export default {
             return {
                 data: "number_of_reports",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
             }
         },
