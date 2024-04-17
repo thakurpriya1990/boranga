@@ -528,6 +528,7 @@ export default {
                             var query = {
                                 term: params.term,
                                 type: 'public',
+                                group_type_id: vm.group_type_id,
                             }
                             return query;
                         },
@@ -609,6 +610,7 @@ export default {
             try {
                     const createUrl = api_endpoints.occurrence_report+"/";
                     let payload = new Object();
+                    payload.group_type_id = this.group_type_id
                     payload.internal_application = true
                     let savedCommunityOCR = await Vue.http.post(createUrl, payload);
                     if (savedCommunityOCR) {
@@ -748,6 +750,7 @@ export default {
 
             const object_load = {
                 columns: columns_new,
+                filter_group_type: vm.group_type_name,
                 filter_occurrence: vm.filterOCRCommunityOccurrence,
                 filter_community_name: vm.filterOCRCommunityName,
                 filter_status: vm.filterOCRCommunityStatus,
