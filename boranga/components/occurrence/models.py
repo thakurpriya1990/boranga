@@ -1167,11 +1167,16 @@ class Location(models.Model):
 class OccurrenceReportGeometryManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
+        polygon_ids = qs.extra(
+            where=["geometrytype(geometry) LIKE 'POLYGON'"]
+        ).values_list("id", flat=True)
         return qs.annotate(
             area=models.Case(
                 models.When(
-                    polygon__isnull=False,
-                    then=Area(Cast("polygon", gis_models.PolygonField(geography=True))),
+                    models.Q(geometry__isnull=False) & models.Q(id__in=polygon_ids),
+                    then=Area(
+                        Cast("geometry", gis_models.PolygonField(geography=True))
+                    ),
                 ),
                 default=None,
             )

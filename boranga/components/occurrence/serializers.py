@@ -453,10 +453,8 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
     srid = serializers.SerializerMethodField(read_only=True)
 
     def get_srid(self, obj):
-        if obj.polygon:
-            return obj.polygon.srid
-        elif obj.point:
-            return obj.point.srid
+        if obj.geometry:
+            return obj.geometry.srid
         else:
             return None
 
