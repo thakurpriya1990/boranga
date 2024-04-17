@@ -2453,12 +2453,14 @@ class OccurrenceDocument(Document):
         verbose_name = "Occurrence Document"
 
     def save(self, *args, **kwargs):
-        # Prefix "D" char to document_number.
-        super().save(*args, **kwargs)
+        # Prefix "D" char to document_number.        
         if self.document_number == "":
+            super().save(*args, **kwargs, no_revision=True)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @transaction.atomic
     def add_documents(self, request):
@@ -2530,12 +2532,14 @@ class OCCConservationThreat(RevisionedMixin):
     def __str__(self):
         return str(self.id)  # TODO: is the most appropriate?
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):    
         if self.threat_number == "":
+            super().save(*args, **kwargs, no_revision=True)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def source(self):
