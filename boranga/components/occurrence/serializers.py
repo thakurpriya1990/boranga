@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
+from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
@@ -575,13 +576,26 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
     )
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     can_user_assess = serializers.SerializerMethodField()
+    community_number = serializers.SerializerMethodField()
+    community_name = serializers.SerializerMethodField()
+    community_migrated_id = serializers.SerializerMethodField()
+    conservation_list = serializers.SerializerMethodField()
+    conservation_category = serializers.SerializerMethodField()
+    wild_status = serializers.CharField(source="wild_status.name", allow_null=True)
 
     class Meta:
         model = Occurrence
         fields = (
             "id",
             "occurrence_number",
+            "occurrence_name",
             "scientific_name",
+            "community_number",
+            "community_name",
+            "community_migrated_id",
+            "conservation_list",
+            "conservation_category",
+            "wild_status",
             "group_type",
             "number_of_reports",
             "processing_status",
@@ -601,6 +615,66 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "processing_status_display",
             "can_user_assess",
         )
+
+    def get_community_number(self, obj):
+        if not obj.community:
+            return ""
+
+        return obj.community.community_number
+
+    def get_community_name(self, obj):
+        if not obj.community:
+            return ""
+
+        if not obj.community.taxonomy:
+            return ""
+
+        return obj.community.taxonomy.community_name
+
+    def get_community_migrated_id(self, obj):
+        if not obj.community:
+            return ""
+
+        if not obj.community.taxonomy:
+            return ""
+
+        return obj.community.taxonomy.community_migrated_id
+
+    def get_conservation_status(self, obj):
+        if not obj.community:
+            return None
+
+        try:
+            conservation_status = ConservationStatus.objects.get(
+                community=obj.community,
+                conservation_list__applies_to_wa=True,
+                processing_status="approved",
+            )
+            return conservation_status
+        except ConservationStatus.DoesNotExist:
+            return None
+
+    def get_conservation_list(self, obj):
+        if not obj.community:
+            return ""
+
+        conservation_status = self.get_conservation_status(obj)
+
+        if not conservation_status:
+            return ""
+
+        return conservation_status.conservation_list.code
+
+    def get_conservation_category(self, obj):
+        if not obj.community:
+            return ""
+
+        conservation_status = self.get_conservation_status(obj)
+
+        if not conservation_status:
+            return ""
+
+        return conservation_status.conservation_category.code
 
     def get_can_user_assess(self, obj):
         request = self.context["request"]
@@ -787,17 +861,19 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         else:
             return None
 
+
 class CreateOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     class Meta:
         model = OccurrenceReport
         fields = (
-            'id',
-            'submitter',
-            )
+            "id",
+            "submitter",
+        )
         read_only_fields = (
-            'id',
-            'submitter',
-            )
+            "id",
+            "submitter",
+        )
+
 
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_approve = serializers.SerializerMethodField()

@@ -2,9 +2,11 @@ import re
 
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.http import urlquote_plus
 from reversion.middleware import RevisionMiddleware
 from reversion.views import _request_creates_revision
-from django.utils.http import urlquote_plus
+
+from boranga.helpers import is_internal
 
 CHECKOUT_PATH = re.compile("^/ledger/checkout/checkout")
 
@@ -32,7 +34,9 @@ class FirstTimeNagScreenMiddleware:
                 request.user.postal_same_as_residential
                 or self.postal_address_fully_filled(request.user)
             )
-            and (request.user.phone_number or request.user.mobile_number)
+            # Don't require internal users to fill in phone numbers
+            and is_internal(request)
+            or (request.user.phone_number or request.user.mobile_number)
         ):
             return self.get_response(request)
 
@@ -41,7 +45,7 @@ class FirstTimeNagScreenMiddleware:
             return self.get_response(request)
 
         return redirect(path_ft + "?next=" + urlquote_plus(request.get_full_path()))
-    
+
     def postal_address_fully_filled(self, user):
         return (
             user.postal_address_id

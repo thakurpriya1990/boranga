@@ -4,6 +4,14 @@
             class="mb-2">
             <div class="row">
                 <div class="col-md-4">
+                    <div class="form-group" id="occurrence_name_lookup_form_group_id">
+                        <label for="occurrence_name_lookup">Name of Occurrence:</label>
+                        <select id="occurrence_name_lookup"
+                            name="occurrence_name_lookup" ref="occurrence_name_lookup"
+                            class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="form-group" id="select_scientific_name_by_groupname_occ">
                         <label for="occ_scientific_name_lookup_by_groupname">Scientific Name:</label>
                         <select id="occ_scientific_name_lookup_by_groupname"
@@ -69,7 +77,7 @@ export default {
         group_type_id: {
             type: Number,
             required: true,
-            default: 0
+            default:0
         },
         url: {
             type: String,
@@ -80,10 +88,10 @@ export default {
             type: Object,
             required: false
         },
-        filterOCCFaunaOccurrence_cache: {
+        filterOCCFaunaOccurrenceName_cache: {
             type: String,
             required: false,
-            default: 'filterOCCFaunaOccurrence',
+            default: 'filterOCCFaunaOccurrenceName',
         },
         filterOCCFaunaScientificName_cache: {
             type: String,
@@ -108,8 +116,8 @@ export default {
             is_payment_admin: false,
 
             // selected values for filtering
-            filterOCCFaunaOccurrence: sessionStorage.getItem(this.filterOCCFaunaOccurrence_cache) ?
-                sessionStorage.getItem(this.filterOCCFaunaOccurrence_cache) : 'all',
+            filterOCCFaunaOccurrenceName: sessionStorage.getItem(this.filterOCCFaunaOccurrenceName_cache) ?
+                sessionStorage.getItem(this.filterOCCFaunaOccurrenceName_cache) : 'all',
 
             filterOCCFaunaScientificName: sessionStorage.getItem(this.filterOCCFaunaScientificName_cache) ?
                 sessionStorage.getItem(this.filterOCCFaunaScientificName_cache) : 'all',
@@ -143,10 +151,10 @@ export default {
         OccurrenceHistory,
     },
     watch: {
-        filterOCCFaunaOccurrence: function () {
+        filterOCCFaunaOccurrenceName: function () {
             let vm = this;
             vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCFaunaOccurrence_cache, vm.filterOCCFaunaOccurrence);
+            sessionStorage.setItem(vm.filterOCCFaunaOccurrenceName_cache, vm.filterOCCFaunaOccurrenceName);
         },
         filterOCCFaunaScientificName: function () {
             let vm = this;
@@ -167,7 +175,7 @@ export default {
     },
     computed: {
         filterApplied: function () {
-            if (this.filterOCCFaunaOccurrence === 'all' &&
+            if (this.filterOCCFaunaOccurrenceName === 'all' &&
                 this.filterOCCFaunaScientificName === 'all' &&
                 this.filterOCCFaunaStatus === 'all') {
                 return false
@@ -190,7 +198,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_internal) {
-                return ['Number', 'Scientific Name', 'Number of Reports', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+                return ['Number', 'Name of Occurrence', 'Scientific Name', 'Number of Reports', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -207,6 +215,15 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
+            }
+        },
+        column_occurrence_name: function(){
+            return {
+                data: "occurrence_name",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "occurrence__occurrence_number",
             }
         },
         column_scientific_name: function () {
@@ -300,23 +317,20 @@ export default {
             let search = null
             let buttons = [
                 {
+                    extend: 'excel',
                     text: '<i class="fa-solid fa-download"></i> Excel',
                     className: 'btn btn-primary me-2 rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("excel");
-                    }
                 },
                 {
+                    extend: 'csv',
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("csv");
-                    }
                 }
             ]
             if (vm.is_internal) {
                 columns = [
                     vm.column_number,
+                    vm.column_occurrence_name,
                     vm.column_scientific_name,
                     vm.column_number_of_reports,
                     vm.column_effective_from,
@@ -353,18 +367,16 @@ export default {
                     // adding extra GET params for Custom filtering
                     "data": function (d) {
                         d.filter_group_type = vm.group_type_name;
-                        d.filter_occurrence = vm.filterOCCFaunaOccurrence;
+                        d.filter_occurrence_name = vm.filterOCCFaunaOccurrenceName;
                         d.filter_scientific_name = vm.filterOCCFaunaScientificName;
                         d.filter_status = vm.filterOCCFaunaStatus;
                         d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: buttons,
-
                 columns: columns,
                 processing: true,
                 initComplete: function () {
@@ -385,16 +397,16 @@ export default {
         collapsible_component_mounted: function () {
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
-        initialiseOccurrenceLookup: function () {
+        initialiseOccurrenceLookupName: function () {
             let vm = this;
-            $(vm.$refs.occ_occurrence_lookup).select2({
+            $(vm.$refs.occurrence_name_lookup).select2({
                 minimumInputLength: 2,
-                dropdownParent: $("#select_occurrence"),
+                dropdownParent: $("#occurrence_name_lookup_form_group_id"),
                 "theme": "bootstrap-5",
                 allowClear: true,
-                placeholder: "Select Occurrence",
+                placeholder: "Select Occurrence Name",
                 ajax: {
-                    url: api_endpoints.species_lookup,
+                    url: api_endpoints.occurrence_name_lookup,
                     dataType: 'json',
                     data: function (params) {
                         var query = {
@@ -408,17 +420,17 @@ export default {
             }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.filterOCCFaunaOccurrence = data;
-                    sessionStorage.setItem("filterOCCFaunaOccurrenceText", e.params.data.text);
+                    let data = e.params.data.text;
+                    vm.filterOCCFaunaOccurrenceName = data;
+                    sessionStorage.setItem("filterOCCFaunaOccurrenceNameText", e.params.data.text);
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    vm.filterOCCFaunaOccurrence = 'all';
-                    sessionStorage.setItem("filterOCCFaunaOccurrenceText", '');
+                    vm.filterOCCFaunaOccurrenceName = 'all';
+                    sessionStorage.setItem("filterOCCFaunaOccurrenceNameText", '');
                 }).
                 on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-occ_occurrence_lookup-results"]')
+                    const searchField = $('[aria-controls="select2-occurrence_name_lookup-results"]')
                     searchField[0].focus();
                 });
         },
@@ -623,7 +635,7 @@ export default {
             const object_load = {
                 columns: columns_new,
                 filter_group_type: vm.group_type_name,
-                filter_occurrence: vm.filterOCCFaunaOccurrence,
+                filter_occurrence_name: vm.filterOCCFaunaOccurrenceName,
                 filter_scientific_name: vm.filterOCCFaunaScientificName,
                 filter_status: vm.filterOCCFaunaStatus,
                 is_internal: vm.is_internal,
@@ -722,12 +734,12 @@ export default {
             }, 100);
         });
         this.$nextTick(() => {
-            vm.initialiseOccurrenceLookup();
+            vm.initialiseOccurrenceLookupName();
             vm.initialiseScientificNameLookup();
             vm.addEventListeners();
 
-            if (sessionStorage.getItem("filterOCCFaunaOccurrence") != 'all' && sessionStorage.getItem("filterOCCFaunaOccurrence") != null) {
-                var newOption = new Option(sessionStorage.getItem("filterOCCFaunaOccurrenceText"), vm.filterOCCFaunaOccurrence, false, true);
+            if (sessionStorage.getItem("filterOCCFaunaOccurrenceName") != 'all' && sessionStorage.getItem("filterOCCFaunaOccurrenceName") != null) {
+                var newOption = new Option(sessionStorage.getItem("filterOCCFaunaOccurrenceNameText"), vm.filterOCCFaunaOccurrenceName, false, true);
                 $('#occ_occurrence_lookup').append(newOption);
             }
             if (sessionStorage.getItem("filterOCCFaunaScientificName") != 'all' && sessionStorage.getItem("filterOCCFaunaScientificName") != null) {
