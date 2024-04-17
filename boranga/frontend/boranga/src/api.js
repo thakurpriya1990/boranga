@@ -145,7 +145,9 @@ module.exports = {
     occurrence_report: "/api/occurrence_report",
     observer_detail: "/api/observer_detail.json",
     occurrence_report_documents: "/api/occurrence_report_documents.json",
+    occurrence_documents: "/api/occurrence_documents.json",
     ocr_threat: "/api/ocr_threat.json",
+    occ_threat: "/api/occ_threat.json",
 
     discard_cs_proposal: function (id) {
         return `/api/conservation_status/${id}.json`;
@@ -214,6 +216,9 @@ module.exports = {
       return `/api/history/boranga/occurrence/OccurrenceReport/${id}/`;
     },
 
+    lookup_history_occurrence_document: function (id) {
+      return `/api/history/boranga/occurrence/OccurrenceDocument/${id}/`;
+    },
     lookup_history_occurrence: function (id) {
       return `/api/history/boranga/occurrence/Occurrence/${id}/`;
     },
@@ -224,6 +229,10 @@ module.exports = {
 
     lookup_history_ocr_conservation_threat: function (id) {
       return `/api/history/boranga/occurrence/OcrConservationThreat/${id}/`;
+    },
+
+    lookup_history_occ_conservation_threat: function (id) {
+      return `/api/history/boranga/occurrence/OccConservationThreat/${id}/`;
     },
 
     lookup_history_minutes: function (id) {

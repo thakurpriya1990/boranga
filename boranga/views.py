@@ -213,6 +213,8 @@ def is_authorised_to_access_community_document(request, document_id):
             or is_approver(request.user)
             or is_community_processor(request.user)
         )
+    else:
+        return False
 
 
 def is_authorised_to_access_species_document(request, document_id):
@@ -226,6 +228,8 @@ def is_authorised_to_access_species_document(request, document_id):
             or is_approver(request.user)
             or is_species_processor(request.user)
         )
+    else:
+        return False
 
 
 def is_authorised_to_access_meeting_document(request, document_id):
@@ -242,6 +246,8 @@ def is_authorised_to_access_meeting_document(request, document_id):
             or is_conservation_status_editor(request.user)
             or is_conservation_status_referee(request)
         )
+    else:
+        return False
 
 
 def is_authorised_to_access_occurrence_report_document(request, document_id):
@@ -261,6 +267,21 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             .filter(submitter=user.id)
             .exists()
         )
+    else:
+        return False
+
+def is_authorised_to_access_occurrence_document(request, document_id):
+    if is_internal(request):
+        # check auth
+        return (
+            request.user.is_superuser
+            or is_boranga_admin(request)
+            or is_django_admin(request)
+            or is_assessor(request.user)
+            or is_approver(request.user)
+        )
+    else:
+        return False
 
 
 def is_authorised_to_access_conservation_status_document(request, document_id):
@@ -273,7 +294,6 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             or is_assessor(request.user)
             or is_approver(request.user)
             or is_conservation_status_editor(request.user)
-            or is_conservation_status_referee(request)
         )
     elif is_customer(request):
         user = request.user
@@ -284,6 +304,8 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             .filter(submitter=user.id)
             .exists()
         )
+    else:
+        return False
 
 
 def get_file_path_id(check_str, file_path):
@@ -304,9 +326,16 @@ def get_file_path_id(check_str, file_path):
 
 def is_authorised_to_access_document(request):
     # occurrence reports
-    o_document_id = get_file_path_id("occurrence_report", request.path)
-    if o_document_id:
+    or_document_id = get_file_path_id("occurrence_report", request.path)
+    if or_document_id:
         return is_authorised_to_access_occurrence_report_document(
+            request, or_document_id
+        )
+
+    # occurrence 
+    o_document_id = get_file_path_id("occurrence", request.path)
+    if o_document_id:
+        return is_authorised_to_access_occurrence_document(
             request, o_document_id
         )
 
