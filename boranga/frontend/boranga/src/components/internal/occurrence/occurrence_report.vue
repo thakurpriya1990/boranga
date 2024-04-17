@@ -7,7 +7,7 @@
                     Occurrence:
                     <template v-if="occurrence_report.occurrence">
                         {{ occurrence_report.occurrence.occurrence_number }} <small><a
-                                :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${$route.query.group_type_name}&action=view`"
+                                :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${occurrence_report.group_type}&action=view`"
                                 target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
                     </template>
                     <template v-else>
