@@ -34,7 +34,7 @@
                         <strong>Status</strong><br />
                         {{ occurrence_report.processing_status }}
                     </div>
-                    <div class="card-body" :class="canAssess && isAssignedOfficer ? 'border-bottom' : ''">
+                    <div class="card-body">
                         <div class="mb-2"><strong>Currently assigned to</strong></div>
                         <template v-if="occurrence_report.processing_status == 'With Approver'">
                             <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
@@ -42,7 +42,7 @@
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="occurrence_report.can_user_edit && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
+                            <a v-if="occurrence_report.processing_status == 'With Approver' && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
                                 @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign to me</a>
                         </template>
                         <template v-else>
@@ -51,12 +51,12 @@
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="occurrence_report.can_user_edit && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
+                            <a v-if="occurrence_report.processing_status == 'With Assessor' && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
                                 @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
                                 me</a>
                         </template>
                     </div>
-                    <div v-if="canAssess && isAssignedOfficer" class="card-body" :class="canAction ? 'border-bottom' : ''">
+                    <div v-if="isAssignedOfficer" class="card-body border-top">
                         <div class="mb-2"><strong>Referrals</strong></div>
                         <select class="form-select mb-2" placeholder="Select a referee">
                             <option value="">Unassigned</option>
@@ -64,7 +64,7 @@
                         </select>
                         <a href="">Show referrals</a>
                     </div>
-                    <div v-if="canAction" class="card-body">
+                    <div v-if="canAction" class="card-body border-top">
                         <div class="mb-3">
                             <strong>Actions</strong>
                         </div>
@@ -625,7 +625,7 @@ export default {
             $(vm.$refs.assigned_officer).select2({
                 "theme": "bootstrap-5",
                 allowClear: true,
-                placeholder: "Select Officer"
+                placeholder: "Unassigned"
             }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
@@ -739,7 +739,6 @@ export default {
         });
     },
     beforeRouteEnter: function (to, from, next) {
-        //if (to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna") {
             Vue.http.get(`/api/occurrence_report/${to.params.occurrence_report_id}/`).then(res => {
                 next(vm => {
                     vm.occurrence_report = res.body;
@@ -748,17 +747,6 @@ export default {
                 err => {
                     console.log(err);
                 });
-        /*}
-        else {
-            Vue.http.get(`/api/community/${to.params.occurrence_report_id}/internal_community.json`).then(res => {
-                next(vm => {
-                    vm.occurrence_report = res.body;
-                });
-            },
-                err => {
-                    console.log(err);
-                });
-        }*/
     },
 }
 </script>
