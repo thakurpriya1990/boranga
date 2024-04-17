@@ -1,5 +1,6 @@
 <template>
     <div>
+        {{ coordinateReferenceSystems }}
         <!-- {{modelQuerySource.getFeatures()[0]}} -->
 
         <div class="justify-content-end align-items-center mb-2">
@@ -274,7 +275,7 @@
                                             :show-title="false"
                                             placeholder="Coordinate Reference System"
                                             :options="
-                                                coordinateReferenceSystems
+                                                coordinateReferenceSystemsForSelectFilter
                                             "
                                             :pre-selected-filter-item="
                                                 feature.getProperties()
@@ -907,6 +908,7 @@ import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
 import DragAndDrop from 'ol/interaction/DragAndDrop.js';
+import { register } from 'ol/proj/proj4';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
@@ -1401,6 +1403,14 @@ export default {
                 (archiveTypesComplete && !containsShapefileTypes) ||
                 (shapefileTypesComplete && !containsArchiveTypes)
             );
+        },
+        coordinateReferenceSystemsForSelectFilter: function () {
+            return this.coordinateReferenceSystems.map((crs) => {
+                return {
+                    id: crs.id,
+                    name: crs.name,
+                };
+            });
         },
     },
     watch: {
@@ -3368,17 +3378,32 @@ export default {
                 console.warn(`Invalid SRID. ${srid} is not a number.`);
                 return;
             }
-            const oldSrid = feature.getProperties().srid;
+
             const mapFeature = this.modelQuerySource.getFeatureById(feature.getId())
             // TODO: transformation to map crs?
-            
+            const proj4Defs = this.coordinateReferenceSystems
+                .filter((crs) => crs.id === newSrid)
+                .map((crs) => {
+                    return [`EPSG:${newSrid}`, crs.proj4];
+                }, []);
+            proj4.defs(proj4Defs);
+
+            register(proj4);
+
+
             console.log('proj4', proj4.defs(`EPSG:${this.mapSrid}`))
             console.log('proj4', proj4.defs(`EPSG:${newSrid}`))
-            mapFeature.getGeometry()
+
+            // proj4.transform(
+            //     proj4.Proj(`EPSG:${this.mapSrid}`),
+            //     proj4.Proj(`EPSG:${newSrid}`),
+            //     new proj4.toPoint(feature.getGeometry().getCoordinates())
+            // );
+
             // mapFeature.getGeometry().transform(`EPSG:${this.mapSrid}`, `EPSG:3857`);
             // mapFeature.getGeometry().transform(`EPSG:${this.mapSrid}`, `EPSG:3857`);
-            // mapFeature.getGeometry().transform(`EPSG:${newSrid}`, `EPSG:${this.mapSrid}`);
-            // mapFeature.set('srid', newSrid);
+            mapFeature.getGeometry().transform(`EPSG:${newSrid}`, `EPSG:${this.mapSrid}`);
+            mapFeature.set('srid', newSrid);
         },
     },
 };
