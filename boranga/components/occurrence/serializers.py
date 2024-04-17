@@ -22,6 +22,7 @@ from boranga.components.occurrence.models import (
     ObservationDetail,
     ObserverDetail,
     Occurrence,
+    OccurrenceDocument,
     OccurrenceLogEntry,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
@@ -1262,6 +1263,53 @@ class SaveOccurrenceReportDocumentSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report",
+            "name",
+            "description",
+            "input_name",
+            "uploaded_date",
+            "document_category",
+            "document_sub_category",
+        )
+
+
+class OccurrenceDocumentSerializer(serializers.ModelSerializer):
+    document_category_name = serializers.SerializerMethodField()
+    document_sub_category_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceDocument
+        fields = (
+            "id",
+            "document_number",
+            "occurrence",
+            "name",
+            "_file",
+            "description",
+            "input_name",
+            "uploaded_date",
+            "document_category",
+            "document_category_name",
+            "document_sub_category",
+            "document_sub_category_name",
+            "visible",
+        )
+        read_only_fields = ("id", "document_number")
+
+    def get_document_category_name(self, obj):
+        if obj.document_category:
+            return obj.document_category.document_category_name
+
+    def get_document_sub_category_name(self, obj):
+        if obj.document_sub_category:
+            return obj.document_sub_category.document_sub_category_name
+
+
+class SaveOccurrenceDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceDocument
+        fields = (
+            "id",
+            "occurrence",
             "name",
             "description",
             "input_name",

@@ -164,7 +164,7 @@
                     role="tabpanel"
                     aria-labelledby="pills-documents-tab"
                 >
-                    <!--<OCCDocuments
+                    <OCCDocuments
                         id="occDocuments"
                         :key="reloadcount"
                         ref="occ_documents"
@@ -172,7 +172,7 @@
                         :is_external="is_external"
                         :occurrence_obj="occurrence_obj"
                     >
-                    </OCCDocuments>-->
+                    </OCCDocuments>
                 </div>
                 <div
                     :id="threatBody"
@@ -240,7 +240,7 @@
 //import OCCObservation from '@/components/common/occurrence/occ_observation.vue';
 // import OCCHabitat from '@/components/common/conservation_status/cs_documents.vue'
 // import RelatedItems from '@/components/common/table_related_items.vue'
-//import OCCDocuments from '@/components/common/occurrence/occ_documents.vue';
+import OCCDocuments from '@/components/common/occurrence/occ_documents.vue';
 //import OCCThreats from '@/components/common/occurrence/occ_threats.vue';
 
 export default {
@@ -248,7 +248,7 @@ export default {
         //OCCLocation,
         //OCCHabitat,
         //OCCObservation,
-        //OCCDocuments,
+        OCCDocuments,
         //OCCThreats,
         // CommunityStatus,
         // CSDocuments,
@@ -288,6 +288,8 @@ export default {
             threatBody: 'threatBody' + vm._uid,
             documentBody: 'documentBody' + vm._uid,
             relatedItemBody: 'relatedItemBody' + vm._uid,
+            reportBody: 'reportBody' + vm._uid,
+            sitesBody: 'sitesBody' + vm._uid,
         };
     },
     computed: {
