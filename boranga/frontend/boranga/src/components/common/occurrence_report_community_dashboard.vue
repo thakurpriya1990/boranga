@@ -94,6 +94,15 @@ export default {
                 return options.indexOf(val) != -1 ? true: false;
             }
         },
+        group_type_name:{
+            type: String,
+            required: true
+        },
+        group_type_id:{
+            type: Number,
+            required: true,
+            default:0
+        },
         url:{
             type: String,
             required: true
@@ -469,6 +478,7 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
+                        d.filter_group_type = vm.group_type_name;
                         d.filter_occurrence = vm.filterOCRCommunityOccurrence;
                         d.filter_community_name = vm.filterOCRCommunityName;
                         d.filter_status = vm.filterOCRCommunityStatus;
