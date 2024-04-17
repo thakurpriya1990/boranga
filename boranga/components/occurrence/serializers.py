@@ -10,7 +10,7 @@ from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
 )
-from boranga.components.main.utils import get_geometry_source
+from boranga.components.main.utils import get_geometry_source, wkb_to_geojson
 from boranga.components.occurrence.models import (
     AnimalObservation,
     AssociatedSpecies,
@@ -451,18 +451,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
     geometry_source = serializers.SerializerMethodField()
     report_copied_from = serializers.SerializerMethodField(read_only=True)
     srid = serializers.SerializerMethodField(read_only=True)
-
-    def get_srid(self, obj):
-        if obj.geometry:
-            return obj.geometry.srid
-        else:
-            return None
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        # if instance.geometry:
-        #     ret["geometry"] = json.loads(instance.geometry.geojson)
-        return ret
+    original_geometry = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReportGeometry
@@ -471,6 +460,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             "id",
             "occurrence_report_id",
             "geometry",
+            "original_geometry",
             "srid",
             "area_sqm",
             "area_sqhm",
@@ -480,6 +470,12 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             "report_copied_from",
         )
         read_only_fields = ("id",)
+
+    def get_srid(self, obj):
+        if obj.geometry:
+            return obj.geometry.srid
+        else:
+            return None
 
     def get_geometry_source(self, obj):
         return get_geometry_source(obj)
@@ -491,6 +487,12 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             ).data
 
         return None
+
+    def get_original_geometry(self, obj):
+        if obj.original_geometry_ewkb:
+            return wkb_to_geojson(obj.original_geometry_ewkb)
+        else:
+            return None
 
 
 class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
@@ -1236,6 +1238,7 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "id",
             "occurrence_report_id",
             "geometry",
+            "original_geometry_ewkb",
             "intersects",
             "drawn_by",
             "locked",

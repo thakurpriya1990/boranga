@@ -81,13 +81,14 @@ def save_geometry(request, instance, geometry_data):
         )
 
         for pp in polygons + points:
+            ewkb = pp.ewkb
             if pp.srid != 4326:
                 pp.transform(4326)
 
             geometry_data = {
                 "occurrence_report_id": instance.id,
                 "geometry": pp,
-                "original_geometry_ewkt": pp.ewkt,
+                "original_geometry_ewkb": ewkb,
                 # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
             }
             if feature.get("id"):
