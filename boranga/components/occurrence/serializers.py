@@ -579,18 +579,21 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
     community_migrated_id = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
+    wild_status = serializers.CharField(source="wild_status.name", allow_null=True)
 
     class Meta:
         model = Occurrence
         fields = (
             "id",
             "occurrence_number",
+            "occurrence_name",
             "scientific_name",
             "community_number",
             "community_name",
             "community_migrated_id",
             "conservation_list",
             "conservation_category",
+            "wild_status",
             "group_type",
             "number_of_reports",
             "processing_status",
