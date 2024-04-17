@@ -552,14 +552,14 @@ export default {
         },
         initialiseScientificNameLookup: function(){
                 let vm = this;
-                $(vm.$refs.ocr_scientific_name_lookup_by_groupname).select2({
+                $(vm.$refs.ocr_scientific_name_lookup).select2({
                     minimumInputLength: 2,
-                    dropdownParent: $("#select_scientific_name_by_groupname"),
+                    dropdownParent: $("#select_scientific_name"),
                     theme: 'bootstrap-5',
                     allowClear: true,
                     placeholder:"Select Scientific Name",
                     ajax: {
-                        url: api_endpoints.scientific_name_lookup_by_groupname,
+                        url: api_endpoints.scientific_name_lookup,
                         dataType: 'json',
                         data: function(params) {
                             var query = {
@@ -583,7 +583,7 @@ export default {
                     sessionStorage.setItem("filterOCRFaunaScientificNameText",'');
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-ocr_scientific_name_lookup_by_groupname-results"]')
+                    const searchField = $('[aria-controls="select2-ocr_scientific_name_lookup-results"]')
                     searchField[0].focus();
                 });
         },
@@ -871,7 +871,7 @@ export default {
             {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterOCRFaunaScientificNameText"), vm.filterOCRFaunaScientificName, false, true);
-                $('#ocr_scientific_name_lookup_by_groupname').append(newOption);
+                $('#ocr_scientific_name_lookup').append(newOption);
             }
         });
     }

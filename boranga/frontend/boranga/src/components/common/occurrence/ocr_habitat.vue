@@ -93,7 +93,7 @@
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingHabitatCompositionDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
-                    <button v-if="!updatingHabitatCompositionDetails" class="btn btn-primary btn-sm float-end" @click.prevent="updateHabitatCompositionDetails()">Update</button>
+                    <button v-if="!updatingHabitatCompositionDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateHabitatCompositionDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
@@ -150,7 +150,7 @@
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
-                    <button v-if="!updatingHabitatConditionDetails" class="btn btn-primary btn-sm float-end" @click.prevent="updateHabitatConditionDetails()">Update</button>
+                    <button v-if="!updatingHabitatConditionDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateHabitatConditionDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
@@ -183,7 +183,7 @@
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
-                    <button v-if="!updatingFireHistoryDetails" class="btn btn-primary btn-sm float-end" @click.prevent="updateFireHistoryDetails()">Update</button>
+                    <button v-if="!updatingFireHistoryDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateFireHistoryDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
@@ -208,7 +208,7 @@
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
-                    <button v-if="!updatingFireHistoryDetails" class="btn btn-primary btn-sm float-end" @click.prevent="updateAssociatedSpeciesDetails()">Update</button>
+                    <button v-if="!updatingFireHistoryDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateAssociatedSpeciesDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>

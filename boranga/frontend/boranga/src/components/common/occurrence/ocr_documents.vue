@@ -239,9 +239,7 @@ export default {
                 return this.is_external && this.occurrence_report_obj.customer_status=="Draft";
             }
         },
-        watch:{
-            
-        },
+        watch:{},
         methods:{
             newDocument: function(){
                 let vm=this;
