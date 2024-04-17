@@ -108,7 +108,11 @@ def search_datums(search, codes = None):
         codes = get_cached_epsg_codes()
 
     geodetic_crs = [
-        {"id": int(c), "name": f"EPSG:{c} - {pyproj.CRS.from_string(c).name}"}
+        {
+            "id": int(c),
+            "name": f"EPSG:{c} - {pyproj.CRS.from_string(c).name}",
+            "proj4": pyproj.CRS.from_string(c).to_proj4(),
+        }
         for c in codes
     ]
 
