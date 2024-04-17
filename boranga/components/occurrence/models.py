@@ -2428,6 +2428,70 @@ class OccurrenceDocument(Document):
         # end save documents
         self.save()
 
+class OCCConservationThreat(RevisionedMixin):
+    """
+    Threat for an occurrence in a particular location.
+
+    NB: Maybe make many to many
+
+    Has a:
+    - occurrence
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.ForeignKey(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="occ_threats",
+    )
+    threat_number = models.CharField(max_length=9, blank=True, default="")
+    threat_category = models.ForeignKey(
+        ThreatCategory, on_delete=models.CASCADE, default=None, null=True, blank=True
+    )
+    threat_agent = models.ForeignKey(
+        ThreatAgent, on_delete=models.SET_NULL, default=None, null=True, blank=True
+    )
+    current_impact = models.ForeignKey(
+        CurrentImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True
+    )
+    potential_impact = models.ForeignKey(
+        PotentialImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True
+    )
+    potential_threat_onset = models.ForeignKey(
+        PotentialThreatOnset,
+        on_delete=models.SET_NULL,
+        default=None,
+        null=True,
+        blank=True,
+    )
+    comment = models.CharField(max_length=512, default="None")
+    date_observed = models.DateField(blank=True, null=True)
+    visible = models.BooleanField(
+        default=True
+    )  # to prevent deletion, hidden and still be available in history
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.id)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.threat_number == "":
+            new_threat_id = f"T{str(self.pk)}"
+            self.threat_number = new_threat_id
+            self.save()
+
+    @property
+    def source(self):
+        return self.occurrence.id
+
 import reversion
 
 #Occurrence Report Document
@@ -2441,6 +2505,9 @@ reversion.register(OccurrenceReport, follow=["species","community"])
 
 #Occurrence Document
 reversion.register(OccurrenceDocument)
+
+#Occurrence Threat
+reversion.register(OCCConservationThreat)
 
 #Occurrence
 reversion.register(Occurrence, follow=["species","community"])
