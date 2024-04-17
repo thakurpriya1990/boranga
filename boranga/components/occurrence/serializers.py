@@ -23,6 +23,8 @@ from boranga.components.occurrence.models import (
     ObservationDetail,
     ObserverDetail,
     Occurrence,
+    OccurrenceDocument,
+    OCCConservationThreat,
     OccurrenceLogEntry,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
@@ -1347,6 +1349,53 @@ class SaveOccurrenceReportDocumentSerializer(serializers.ModelSerializer):
         )
 
 
+class OccurrenceDocumentSerializer(serializers.ModelSerializer):
+    document_category_name = serializers.SerializerMethodField()
+    document_sub_category_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceDocument
+        fields = (
+            "id",
+            "document_number",
+            "occurrence",
+            "name",
+            "_file",
+            "description",
+            "input_name",
+            "uploaded_date",
+            "document_category",
+            "document_category_name",
+            "document_sub_category",
+            "document_sub_category_name",
+            "visible",
+        )
+        read_only_fields = ("id", "document_number")
+
+    def get_document_category_name(self, obj):
+        if obj.document_category:
+            return obj.document_category.document_category_name
+
+    def get_document_sub_category_name(self, obj):
+        if obj.document_sub_category:
+            return obj.document_sub_category.document_sub_category_name
+
+
+class SaveOccurrenceDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceDocument
+        fields = (
+            "id",
+            "occurrence",
+            "name",
+            "description",
+            "input_name",
+            "uploaded_date",
+            "document_category",
+            "document_sub_category",
+        )
+
+
 class OCRConservationThreatSerializer(serializers.ModelSerializer):
     threat_category = serializers.SerializerMethodField()
     threat_agent = serializers.SerializerMethodField()
@@ -1442,3 +1491,84 @@ class OccurrenceReportAmendmentRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceReportAmendmentRequest
         fields = "__all__"
+
+class OCCConservationThreatSerializer(serializers.ModelSerializer):
+    threat_category = serializers.SerializerMethodField()
+    threat_agent = serializers.SerializerMethodField()
+    current_impact_name = serializers.SerializerMethodField()
+    potential_impact_name = serializers.SerializerMethodField()
+    potential_threat_onset_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OCCConservationThreat
+        fields = (
+            "id",
+            "threat_number",
+            "threat_category_id",
+            "threat_category",
+            "threat_agent",
+            "threat_agent_id",
+            "current_impact",
+            "current_impact_name",
+            "potential_impact",
+            "potential_impact_name",
+            "potential_threat_onset",
+            "potential_threat_onset_name",
+            "comment",
+            "date_observed",
+            "source",
+            "occurrence",
+            "visible",
+        )
+        read_only_fields = (
+            "id",
+            "threat_number",
+        )
+
+    def get_threat_category(self, obj):
+        if obj.threat_category:
+            return obj.threat_category.name
+
+    def get_threat_agent(self, obj):
+        if obj.threat_agent:
+            return obj.threat_agent.name
+
+    def get_current_impact_name(self, obj):
+        if obj.current_impact:
+            return obj.current_impact.name
+
+    def get_potential_impact_name(self, obj):
+        if obj.potential_impact:
+            return obj.potential_impact.name
+
+    def get_potential_threat_onset_name(self, obj):
+        if obj.potential_threat_onset:
+            return obj.potential_threat_onset.name
+
+
+class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
+
+    threat_category_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    threat_agent_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    date_observed = serializers.DateField(
+        format="%Y-%m-%d", required=False, allow_null=True
+    )
+
+    class Meta:
+        model = OCCConservationThreat
+        fields = (
+            "id",
+            "occurrence",
+            "threat_category_id",
+            "threat_agent_id",
+            "comment",
+            "current_impact",
+            "potential_impact",
+            "potential_threat_onset",
+            "date_observed",
+        )
+
