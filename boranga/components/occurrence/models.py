@@ -1192,8 +1192,8 @@ class OccurrenceReportGeometry(models.Model):
         null=True,
         related_name="ocr_geometry",
     )
-    geometry = gis_models.GeometryField(blank=False, null=False)
-    original_geometry_ewkb = models.BinaryField(blank=False, null=False) # original geometry as uploaded by the user in EWKB format
+    geometry = gis_models.GeometryField(blank=True, null=True)
+    original_geometry_ewkb = models.BinaryField(blank=True, null=True) # original geometry as uploaded by the user in EWKB format (keeps the srid)
     intersects = models.BooleanField(default=False)
     copied_from = models.ForeignKey(
         "self", on_delete=models.SET_NULL, blank=True, null=True
