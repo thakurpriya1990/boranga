@@ -1915,6 +1915,14 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
+            if instance.occurrence_report:
+                instance.occurrence_report.log_user_action(
+                    OccurrenceReportUserAction.ACTION_DISCARD_DOCUMENT.format(
+                        instance.document_number,
+                        instance.occurrence_report.occurrence_report_number,
+                    ),
+                    request,
+                )
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1938,6 +1946,14 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = True
             instance.save()
+            if instance.occurrence_report:
+                instance.occurrence_report.log_user_action(
+                    OccurrenceReportUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                        instance.document_number,
+                        instance.occurrence_report.occurrence_report_number,
+                    ),
+                    request,
+                )
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1962,6 +1978,14 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 instance.add_documents(request)
                 instance.uploaded_by = request.user.id
                 instance.save()
+                if instance.occurrence_report:
+                    instance.occurrence_report.log_user_action(
+                        OccurrenceReportUserAction.ACTION_UPDATE_DOCUMENT.format(
+                            instance.document_number,
+                            instance.occurrence_report.occurrence_report_number,
+                        ),
+                        request,
+                    )
                 return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1978,6 +2002,14 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 instance.add_documents(request)
                 instance.uploaded_by = request.user.id
                 instance.save()
+                if instance.occurrence_report:
+                    instance.occurrence_report.log_user_action(
+                        OccurrenceReportUserAction.ACTION_ADD_DOCUMENT.format(
+                            instance.document_number,
+                            instance.occurrence_report.occurrence_report_number,
+                        ),
+                        request,
+                    )
                 return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -2552,6 +2584,14 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save()
+            if instance.occurrence:
+                instance.occurrence.log_user_action(
+                    OccurrenceUserAction.ACTION_DISCARD_DOCUMENT.format(
+                        instance.document_number,
+                        instance.occurrence.occurrence_number,
+                    ),
+                    request,
+                )
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -2575,6 +2615,14 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = True
             instance.save()
+            if instance.occurrence:
+                instance.occurrence.log_user_action(
+                    OccurrenceUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                        instance.document_number,
+                        instance.occurrence.occurrence_number,
+                    ),
+                    request,
+                )
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -2596,6 +2644,14 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+                if instance.occurrence:
+                    instance.occurrence.log_user_action(
+                        OccurrenceUserAction.ACTION_UPDATE_DOCUMENT.format(
+                            instance.document_number,
+                            instance.occurrence.occurrence_number,
+                        ),
+                        request,
+                    )
                 instance.add_documents(request)
                 instance.uploaded_by = request.user.id
                 instance.save()
@@ -2615,6 +2671,14 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                 instance.add_documents(request)
                 instance.uploaded_by = request.user.id
                 instance.save()
+                if instance.occurrence:
+                    instance.occurrence.log_user_action(
+                        OccurrenceUserAction.ACTION_ADD_DOCUMENT.format(
+                            instance.document_number,
+                            instance.occurrence.occurrence_number,
+                        ),
+                        request,
+                    )
                 return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
