@@ -1238,6 +1238,12 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
         )
         read_only_fields = ("id",)
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.geometry:
+            ret["geometry"] = instance.geometry.geojson
+        return ret
+
 
 class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     species_id = serializers.IntegerField(
