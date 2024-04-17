@@ -84,6 +84,7 @@ def save_geometry(request, instance, geometry_data):
             geometry_data = {
                 "occurrence_report_id": instance.id,
                 "geometry": pp,
+                "original_geometry_ewkt": pp.ewkt,
                 # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
             }
             if feature.get("id"):
