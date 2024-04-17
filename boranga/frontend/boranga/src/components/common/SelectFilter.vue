@@ -18,6 +18,7 @@
             :track-by="name"
             :placeholder="placeholder"
             :class="classes"
+            @option:selected="(selected) => $emit('option:selected', selected)"
             @search="(...args) => $emit('search', ...args)"
             @select="
                 $emit('selection-changed-select', {
