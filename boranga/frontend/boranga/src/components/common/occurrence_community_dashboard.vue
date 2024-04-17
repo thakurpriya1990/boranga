@@ -207,7 +207,7 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_internal){
-                return ['Number','Name of Occurrence','Community Name', 'Wild Status', 'Number of Occurrence Reports',  'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+                return ['Number','Name of Occurrence','Community Name', 'Wild Status', 'Number of Reports',  'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -363,18 +363,14 @@ export default {
             let search = null
             let buttons = [
                 {
+                    extend: 'excel',
                     text: '<i class="fa-solid fa-download"></i> Excel',
                     className: 'btn btn-primary me-2 rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("excel");
-                    }
                 },
                 {
+                    extend: 'csv',
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("csv");
-                    }
                 }
             ]
             if(vm.is_internal){
@@ -424,12 +420,10 @@ export default {
                         d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: buttons,
-
                 columns: columns,
                 processing: true,
                 initComplete: function() {
