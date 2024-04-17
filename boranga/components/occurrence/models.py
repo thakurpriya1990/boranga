@@ -62,6 +62,9 @@ def update_occurrence_report_comms_log_filename(instance, filename):
 def update_occurrence_report_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/occurrence_report/{instance.occurrence_report.id}/documents/{filename}"
 
+def update_occurrence_doc_filename(instance, filename):
+    return f"{settings.MEDIA_APP_DIR}/occurrence/{instance.occurrence.id}/documents/{filename}"
+
 
 class OccurrenceReport(RevisionedMixin):
     """
@@ -2390,6 +2393,18 @@ class OccurrenceUserAction(UserAction):
     ACTION_SAVE_OCCURRENCE = "Save occurrence {}"
     ACTION_EDIT_OCCURRENCE = "Edit occurrence {}"
 
+    # Document
+    ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"
+    ACTION_UPDATE_DOCUMENT = "Document {} updated for occurrence {}"
+    ACTION_DISCARD_DOCUMENT = "Document {} discarded for occurrence {}"
+    ACTION_REINSTATE_DOCUMENT = "Document {} reinstated for occurrence {}"
+
+    # Threat
+    ACTION_ADD_THREAT = "Threat {} added for occurrence {}"
+    ACTION_UPDATE_THREAT = "Threat {} updated for occurrence {}"
+    ACTION_DISCARD_THREAT = "Threat {} discarded for occurrence {}"
+    ACTION_REINSTATE_THREAT = "Threat {} reinstated for occurrence {}"
+
     class Meta:
         app_label = "boranga"
         ordering = ("-when",)
@@ -2402,6 +2417,131 @@ class OccurrenceUserAction(UserAction):
         Occurrence, related_name="action_logs", on_delete=models.CASCADE
     )
 
+class OccurrenceDocument(Document):
+    document_number = models.CharField(max_length=9, blank=True, default="")
+    occurrence = models.ForeignKey(
+        "Occurrence", related_name="documents", on_delete=models.CASCADE
+    )
+    _file = models.FileField(
+        upload_to=update_occurrence_doc_filename,
+        max_length=512,
+        storage=private_storage,
+    )
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    can_delete = models.BooleanField(
+        default=True
+    )  # after initial submit prevent document from being deleted
+    can_hide = models.BooleanField(
+        default=False
+    )  # after initial submit, document cannot be deleted but can be hidden
+    hidden = models.BooleanField(default=False)
+    # after initial submit prevent document from being deleted
+    # Priya alternatively used below visible field in boranga
+    visible = models.BooleanField(
+        default=True
+    )  # to prevent deletion on file system, hidden and still be available in history
+    document_category = models.ForeignKey(
+        DocumentCategory, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    document_sub_category = models.ForeignKey(
+        DocumentSubCategory, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    uploaded_by = models.IntegerField(null=True)  # EmailUserRO
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Document"
+
+    def save(self, *args, **kwargs):
+        # Prefix "D" char to document_number.
+        super().save(*args, **kwargs)
+        if self.document_number == "":
+            new_document_id = f"D{str(self.pk)}"
+            self.document_number = new_document_id
+            self.save()
+
+    @transaction.atomic
+    def add_documents(self, request):
+        # save the files
+        data = json.loads(request.data.get("data"))
+        # if not data.get('update'):
+        #     documents_qs = self.filter(input_name='species_doc', visible=True)
+        #     documents_qs.delete()
+        for idx in range(data["num_files"]):
+            _file = request.data.get("file-" + str(idx))
+            self._file = _file
+            self.name = _file.name
+            self.input_name = data["input_name"]
+            self.can_delete = True
+            self.save()
+        # end save documents
+        self.save()
+
+class OCCConservationThreat(RevisionedMixin):
+    """
+    Threat for an occurrence in a particular location.
+
+    NB: Maybe make many to many
+
+    Has a:
+    - occurrence
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.ForeignKey(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="occ_threats",
+    )
+    threat_number = models.CharField(max_length=9, blank=True, default="")
+    threat_category = models.ForeignKey(
+        ThreatCategory, on_delete=models.CASCADE, default=None, null=True, blank=True
+    )
+    threat_agent = models.ForeignKey(
+        ThreatAgent, on_delete=models.SET_NULL, default=None, null=True, blank=True
+    )
+    current_impact = models.ForeignKey(
+        CurrentImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True
+    )
+    potential_impact = models.ForeignKey(
+        PotentialImpact, on_delete=models.SET_NULL, default=None, null=True, blank=True
+    )
+    potential_threat_onset = models.ForeignKey(
+        PotentialThreatOnset,
+        on_delete=models.SET_NULL,
+        default=None,
+        null=True,
+        blank=True,
+    )
+    comment = models.CharField(max_length=512, default="None")
+    date_observed = models.DateField(blank=True, null=True)
+    visible = models.BooleanField(
+        default=True
+    )  # to prevent deletion, hidden and still be available in history
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.id)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.threat_number == "":
+            new_threat_id = f"T{str(self.pk)}"
+            self.threat_number = new_threat_id
+            self.save()
+
+    @property
+    def source(self):
+        return self.occurrence.id
+
+import reversion
 
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
@@ -2409,8 +2549,14 @@ reversion.register(OccurrenceReportDocument)
 # Occurrence Report Threat
 reversion.register(OCRConservationThreat)
 
-# Occurrence Report
-reversion.register(OccurrenceReport, follow=["species", "community"])
+#Occurrence Report
+reversion.register(OccurrenceReport, follow=["species","community"])
+
+#Occurrence Document
+reversion.register(OccurrenceDocument)
+
+#Occurrence Threat
+reversion.register(OCCConservationThreat)
 
 # Occurrence
 reversion.register(Occurrence, follow=["species", "community"])

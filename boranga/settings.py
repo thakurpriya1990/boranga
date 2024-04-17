@@ -56,20 +56,10 @@ GROUP_NAME_CHOICES = (
 )
 
 if env("CONSOLE_EMAIL_BACKEND", False):
-    #    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     EMAIL_BACKEND = "wagov_utils.components.utils.email_backend.EmailBackend"
 
 
 if SHOW_DEBUG_TOOLBAR:
-    #    def get_ip():
-    #        import subprocess
-    #        route = subprocess.Popen(('ip', 'route'), stdout=subprocess.PIPE)
-    #        network = subprocess.check_output(
-    #            ('grep', '-Po', 'src \K[\d.]+\.'), stdin=route.stdout
-    #        ).decode().rstrip()
-    #        route.wait()
-    #        network_gateway = network + '1'
-    #        return network_gateway
 
     def show_toolbar(request):
         return True
@@ -78,7 +68,6 @@ if SHOW_DEBUG_TOOLBAR:
         "debug_toolbar.middleware.DebugToolbarMiddleware",
     ]
     INSTALLED_APPS += ("debug_toolbar",)
-    # INTERNAL_IPS = ('127.0.0.1', 'localhost', get_ip())
     INTERNAL_IPS = ("127.0.0.1", "localhost")
 
     # this dict removes check to dtermine if toolbar should display --> works for rks docker container
@@ -91,7 +80,6 @@ STATIC_URL = "/static/"
 
 
 INSTALLED_APPS += [
-    # 'reversion_compare',
     "webtemplate_dbca",
     "boranga",
     "boranga.components.main",
@@ -124,36 +112,16 @@ ADD_REVERSION_ADMIN = True
 # maximum number of days allowed for a booking
 WSGI_APPLICATION = "boranga.wsgi.application"
 
-"""REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'boranga.perms.OfficerPermission',
-    )
-}"""
-
-# REST_FRAMEWORK = {
-#    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-#    #'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-#        'PAGE_SIZE': 5
-# }
-
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
         "rest_framework_datatables.renderers.DatatablesRenderer",
     ),
-    # 'DEFAULT_FILTER_BACKENDS': (
-    #    'rest_framework_datatables.filters.DatatablesFilterBackend',
-    # ),
-    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
-    # 'PAGE_SIZE': 1,
 }
 
-
 MIDDLEWARE_CLASSES += [
-    # 'boranga.middleware.BookingTimerMiddleware',
     "boranga.middleware.FirstTimeNagScreenMiddleware",
-    # 'boranga.middleware.RevisionOverrideMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 MIDDLEWARE = MIDDLEWARE_CLASSES
@@ -172,17 +140,6 @@ TEMPLATES[0]["OPTIONS"]["context_processors"].append(
 )
 
 del BOOTSTRAP3["css_url"]
-# BOOTSTRAP3 = {
-#    'jquery_url': '//static.dpaw.wa.gov.au/static/libs/jquery/2.2.1/jquery.min.js',
-#    'base_url': '//static.dpaw.wa.gov.au/static/libs/twitter-bootstrap/3.3.6/',
-#    'css_url': None,
-#    'theme_url': None,
-#    'javascript_url': None,
-#    'javascript_in_head': False,
-#    'include_jquery': False,
-#    'required_css_class': 'required-form-field',
-#    'set_placeholder': False,
-# }
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
@@ -253,7 +210,6 @@ CKEDITOR_CONFIGS = {
     "default": {
         "toolbar": "full",
         "height": 300,
-        # 'width': 300,
         "width": "100%",
     },
     "awesome_ckeditor": {

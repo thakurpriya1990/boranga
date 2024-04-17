@@ -223,7 +223,7 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "occurrence__occurrence_number",
+                name: "occurrence_name",
             }
         },
         column_scientific_name: function () {

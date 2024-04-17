@@ -3,6 +3,7 @@
         <div class="row" style="padding-bottom: 50px;">
             <div v-if="occurrence" class="col">
                 <h3>Occurrence: {{ occurrence.occurrence_number }}</h3>
+                <div class="row pb-4">
                 <div v-if="!comparing" class="col-md-3">
 
                     <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
@@ -68,66 +69,65 @@
                         </div>
                     </div>
                 </div>
-                <div>
-                    <div class="row">
-                        <template>
-                            <div class="">
-                                <div class="row">
-                                    <form :action="occurrence_form_url" method="post" name="occurrence"
-                                        enctype="multipart/form-data">
+                <div class="col-md-9">
+                    <template>
+                        <form :action="occurrence_form_url" method="post" name="occurrence"
+                            enctype="multipart/form-data">
 
+                            <ProposalOccurrence v-if="occurrence" :occurrence_obj="occurrence"
+                                id="OccurrenceStart" :canEditStatus="false"
+                                ref="occurrence" @refreshFromResponse="refreshFromResponse">
+                            </ProposalOccurrence>
 
-                                        <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                        <input type='hidden' name="occurrence_id" :value="1" />
-                                        <div class="row" style="margin-bottom: 50px">
-                                            <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                                <div v-if="occurrence.can_user_edit" class="container">
-                                                    <div class="col-md-12 text-end">
-                                                        <button v-if="savingOccurrence"
-                                                            class="btn btn-primary me-2 pull-right"
-                                                            style="margin-top:5px;" disabled>Save and Continue&nbsp;
-                                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                        <button v-else class="btn btn-primary me-2 ull-right"
-                                                            style="margin-top:5px;" @click.prevent="save()"
-                                                            :disabled="saveExitOccurrence || submitOccurrence">Save
-                                                            and Continue</button>
+                            <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                            <input type='hidden' name="occurrence_id" :value="1" />
+                            <div class="row" style="margin-bottom: 50px">
+                                <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                    <div v-if="occurrence.can_user_edit" class="container">
+                                        <div class="col-md-12 text-end">
+                                            <button v-if="savingOccurrence"
+                                                class="btn btn-primary me-2 pull-right"
+                                                style="margin-top:5px;" disabled>Save and Continue&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <button v-else class="btn btn-primary me-2 ull-right"
+                                                style="margin-top:5px;" @click.prevent="save()"
+                                                :disabled="saveExitOccurrence || submitOccurrence">Save
+                                                and Continue</button>
 
-                                                        <button v-if="saveExitOccurrence"
-                                                            class="btn btn-primary me-2 pull-right"
-                                                            style="margin-top:5px;" disabled>Save and Exit&nbsp;
-                                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                        <button v-else class="btn btn-primary me-2 pull-right"
-                                                            style="margin-top:5px;" @click.prevent="save_exit()"
-                                                            :disabled="savingOccurrence || submitOccurrence">Save
-                                                            and Exit</button>
+                                            <button v-if="saveExitOccurrence"
+                                                class="btn btn-primary me-2 pull-right"
+                                                style="margin-top:5px;" disabled>Save and Exit&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <button v-else class="btn btn-primary me-2 pull-right"
+                                                style="margin-top:5px;" @click.prevent="save_exit()"
+                                                :disabled="savingOccurrence || submitOccurrence">Save
+                                                and Exit</button>
 
-                                                        <button v-if="submitOccurrence"
-                                                            class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                            disabled>Submit&nbsp;
-                                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                        <button v-else class="btn btn-primary pull-right"
-                                                            style="margin-top:5px;" @click.prevent="submit()"
-                                                            :disbaled="saveExitOccurrence || savingOccurrence">Submit</button>
-                                                    </div>
-                                                </div>
-                                                <div v-else-if="hasUserEditMode" class="container">
-                                                    <div class="col-md-12 text-end">
-                                                        <button v-if="savingOccurrence"
-                                                            class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                            disabled>Save Changes&nbsp;
-                                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                        <button v-else class="btn btn-primary pull-right"
-                                                            style="margin-top:5px;" @click.prevent="save()">Save
-                                                            Changes</button>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <button v-if="submitOccurrence"
+                                                class="btn btn-primary pull-right" style="margin-top:5px;"
+                                                disabled>Submit&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <button v-else class="btn btn-primary pull-right"
+                                                style="margin-top:5px;" @click.prevent="submit()"
+                                                :disbaled="saveExitOccurrence || savingOccurrence">Submit</button>
                                         </div>
-                                    </form>
+                                    </div>
+                                    <div v-else-if="hasUserEditMode" class="container">
+                                        <div class="col-md-12 text-end">
+                                            <button v-if="savingOccurrence"
+                                                class="btn btn-primary pull-right" style="margin-top:5px;"
+                                                disabled>Save Changes&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <button v-else class="btn btn-primary pull-right"
+                                                style="margin-top:5px;" @click.prevent="save()">Save
+                                                Changes</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </template>
-                    </div>
+                        </form>
+                    </template>
+                </div>
                 </div>
             </div>
         </div>
@@ -146,7 +146,7 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
-import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
+import ProposalOccurrence from '@/components/form_occurrence.vue'
 
 // import SpeciesSplit from './species_split.vue'
 // import SpeciesCombine from './species_combine.vue'
@@ -180,7 +180,7 @@ export default {
         CommsLogs,
         Submission,
         Workflow,
-        ProposalSpeciesCommunities,
+        ProposalOccurrence,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,

@@ -50,6 +50,9 @@ from boranga.components.occurrence.models import (
     ObservationMethod,
     ObserverDetail,
     Occurrence,
+    OccurrenceUserAction,
+    OccurrenceDocument,
+    OCCConservationThreat,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
@@ -82,6 +85,8 @@ from boranga.components.occurrence.serializers import (
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
     OccurrenceReportDocumentSerializer,
+    OccurrenceDocumentSerializer,
+    OCCConservationThreatSerializer,
     OccurrenceReportLogEntrySerializer,
     OccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
@@ -97,7 +102,9 @@ from boranga.components.occurrence.serializers import (
     SaveLocationSerializer,
     SaveObservationDetailSerializer,
     SaveOccurrenceReportDocumentSerializer,
+    SaveOccurrenceDocumentSerializer,
     SaveOccurrenceReportSerializer,
+    SaveOCCConservationThreatSerializer,
     SaveOCRConservationThreatSerializer,
     SavePlantCountSerializer,
 )
@@ -1910,6 +1917,14 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = False
             instance.save(version_user=request.user)
+            if instance.occurrence_report:
+                instance.occurrence_report.log_user_action(
+                    OccurrenceReportUserAction.ACTION_DISCARD_DOCUMENT.format(
+                        instance.document_number,
+                        instance.occurrence_report.occurrence_report_number,
+                    ),
+                    request,
+                )
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1933,6 +1948,14 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.visible = True
             instance.save(version_user=request.user)
+            if instance.occurrence_report:
+                instance.occurrence_report.log_user_action(
+                    OccurrenceReportUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                        instance.document_number,
+                        instance.occurrence_report.occurrence_report_number,
+                    ),
+                    request,
+                )
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -1957,6 +1980,14 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 instance.add_documents(request)
                 instance.uploaded_by = request.user.id
                 instance.save(version_user=request.user)
+                if instance.occurrence_report:
+                    instance.occurrence_report.log_user_action(
+                        OccurrenceReportUserAction.ACTION_UPDATE_DOCUMENT.format(
+                            instance.document_number,
+                            instance.occurrence_report.occurrence_report_number,
+                        ),
+                        request,
+                    )
                 return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1973,6 +2004,14 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 instance.add_documents(request)
                 instance.uploaded_by = request.user.id
                 instance.save(version_user=request.user)
+                if instance.occurrence_report:
+                    instance.occurrence_report.log_user_action(
+                        OccurrenceReportUserAction.ACTION_ADD_DOCUMENT.format(
+                            instance.document_number,
+                            instance.occurrence_report.occurrence_report_number,
+                        ),
+                        request,
+                    )
                 return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -2126,85 +2165,31 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
 
         total_count = queryset.count()
 
-        if view.name and "internal" in view.name:
+        filter_group_type = request.GET.get("filter_group_type")
+        if filter_group_type and not filter_group_type.lower() == "all":
+            queryset = queryset.filter(group_type__name=filter_group_type)
 
-            filter_group_type = request.GET.get("filter_group_type")
-            if filter_group_type and not filter_group_type.lower() == "all":
-                queryset = queryset.filter(group_type__name=filter_group_type)
+        filter_occurrence_name = request.GET.get("filter_occurrence_name")
+        if filter_occurrence_name and not filter_occurrence_name.lower() == "all":
+            queryset = queryset.filter(occurrence_name=filter_occurrence_name)
 
-            filter_occurrence_name = request.GET.get("filter_occurrence_name")
-            if filter_occurrence_name and not filter_occurrence_name.lower() == "all":
-                queryset = queryset.filter(occurrence_name=filter_occurrence_name)
+        filter_scientific_name = request.GET.get("filter_scientific_name")
+        if filter_scientific_name and not filter_scientific_name.lower() == "all":
+            queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
 
-            filter_scientific_name = request.GET.get("filter_scientific_name")
-            if filter_scientific_name and not filter_scientific_name.lower() == "all":
-                queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
-
-            filter_status = request.GET.get("filter_status")
-            if filter_status and not filter_status.lower() == "all":
-                queryset = queryset.filter(processing_status=filter_status)
-
-            def get_date(filter_date):
-                date = request.GET.get(filter_date)
-                if date:
-                    date = datetime.strptime(date, "%Y-%m-%d")
-                return date
-
-            filter_submitted_from_date = get_date("filter_submitted_from_date")
-            filter_submitted_to_date = get_date("filter_submitted_to_date")
-            if filter_submitted_to_date:
-                filter_submitted_to_date = datetime.combine(
-                    filter_submitted_to_date, time.max
-                )
-
-            if filter_submitted_from_date and not filter_submitted_to_date:
-                queryset = queryset.filter(
-                    reported_date__gte=filter_submitted_from_date
-                )
-
-            if filter_submitted_from_date and filter_submitted_to_date:
-                queryset = queryset.filter(
-                    reported_date__range=[
-                        filter_submitted_from_date,
-                        filter_submitted_to_date,
-                    ]
-                )
-
-            if filter_submitted_to_date and not filter_submitted_from_date:
-                queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
-
-        if view.name and "external" in view.name:
-            filter_group_type = request.GET.get("filter_group_type")
-            if filter_group_type and not filter_group_type.lower() == "all":
-                queryset = queryset.filter(group_type__name=filter_group_type)
-
-            # filter_scientific_name is the species_id
-            filter_scientific_name = request.GET.get("filter_scientific_name")
-            if filter_scientific_name and not filter_scientific_name.lower() == "all":
-                queryset = queryset.filter(species=filter_scientific_name)
-
-            # filter_community_name is the community_id
-            filter_community_name = request.GET.get("filter_community_name")
-            if filter_community_name and not filter_community_name.lower() == "all":
-                queryset = queryset.filter(community=filter_community_name)
-
-            filter_application_status = request.GET.get("filter_application_status")
-            if (
-                filter_application_status
-                and not filter_application_status.lower() == "all"
-            ):
-                queryset = queryset.filter(customer_status=filter_application_status)
+        filter_status = request.GET.get("filter_status")
+        if filter_status and not filter_status.lower() == "all":
+            queryset = queryset.filter(processing_status=filter_status)
 
         fields = self.get_fields(request)
+
         ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
         try:
-            queryset = super(OccurrenceReportFilterBackend, self).filter_queryset(
-                request, queryset, view
-            )
+            queryset = super().filter_queryset(request, queryset, view)
         except Exception as e:
             print(e)
         setattr(view, "_datatables_total_count", total_count)
@@ -2235,24 +2220,6 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         ],
         detail=False,
     )
-    def occurrence_external(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        qs = qs.filter(Q(internal_application=False))
-        qs = self.filter_queryset(qs)
-
-        self.paginator.page_size = qs.count()
-        result_page = self.paginator.paginate_queryset(qs, request)
-        serializer = ListOccurrenceSerializer(
-            result_page, context={"request": request}, many=True
-        )
-        return self.paginator.get_paginated_response(serializer.data)
-
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
     def occurrence_internal(self, request, *args, **kwargs):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
@@ -2262,6 +2229,7 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         serializer = ListOccurrenceSerializer(
             result_page, context={"request": request}, many=True
         )
+
         return self.paginator.get_paginated_response(serializer.data)
 
     @list_route(
@@ -2271,7 +2239,6 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         detail=False,
     )
     def occurrence_internal_export(self, request, *args, **kwargs):
-
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get("export_format")
@@ -2491,3 +2458,325 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
                 for occurrence in queryset
             ]
         return Response({"results": queryset})
+
+    #TODO move to instance viewset?
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def documents(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            # qs = instance.documents.all()
+            if is_internal(self.request):
+                qs = instance.documents.all()
+            else:
+                qs = instance.documents.none()
+            qs = qs.order_by("-uploaded_date")
+            serializer = OccurrenceDocumentSerializer(
+                qs, many=True, context={"request": request}
+            )
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+        
+    #TODO move to instance viewset?
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def threats(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            if is_internal(self.request):
+                qs = instance.occ_threats.all()
+            else:
+                qs = instance.occ_threats.none()
+            qs = qs.order_by("-date_observed")
+            serializer = OCCConservationThreatSerializer(
+                qs, many=True, context={"request": request}
+            )
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+        
+class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
+    queryset = OccurrenceDocument.objects.none()
+    serializer_class = OccurrenceDocumentSerializer
+
+    def get_queryset(self):
+        request_user = self.request.user
+        qs = OccurrenceDocument.objects.none()
+
+        if is_internal(self.request):
+            qs = OccurrenceDocument.objects.all().order_by("id")
+
+        return qs
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = False
+            instance.save()
+            if instance.occurrence:
+                instance.occurrence.log_user_action(
+                    OccurrenceUserAction.ACTION_DISCARD_DOCUMENT.format(
+                        instance.document_number,
+                        instance.occurrence.occurrence_number,
+                    ),
+                    request,
+                )
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
+            instance.save()
+            if instance.occurrence:
+                instance.occurrence.log_user_action(
+                    OccurrenceUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                        instance.document_number,
+                        instance.occurrence.occurrence_number,
+                    ),
+                    request,
+                )
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def update(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveOccurrenceDocumentSerializer(
+                    instance, data=json.loads(request.data.get("data"))
+                )
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                if instance.occurrence:
+                    instance.occurrence.log_user_action(
+                        OccurrenceUserAction.ACTION_UPDATE_DOCUMENT.format(
+                            instance.document_number,
+                            instance.occurrence.occurrence_number,
+                        ),
+                        request,
+                    )
+                instance.add_documents(request)
+                instance.uploaded_by = request.user.id
+                instance.save()
+                return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                serializer = SaveOccurrenceDocumentSerializer(
+                    data=json.loads(request.data.get("data"))
+                )
+                serializer.is_valid(raise_exception=True)
+                instance = serializer.save()
+                instance.add_documents(request)
+                instance.uploaded_by = request.user.id
+                instance.save()
+                if instance.occurrence:
+                    instance.occurrence.log_user_action(
+                        OccurrenceUserAction.ACTION_ADD_DOCUMENT.format(
+                            instance.document_number,
+                            instance.occurrence.occurrence_number,
+                        ),
+                        request,
+                    )
+                return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e, "message"):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+class OCCConservationThreatViewSet(viewsets.ModelViewSet):
+    queryset = OCCConservationThreat.objects.none()
+    serializer_class = OCCConservationThreatSerializer
+
+    def get_queryset(self):
+        qs = OCCConservationThreat.objects.none()
+
+        if is_internal(self.request):
+            qs = OCCConservationThreat.objects.all().order_by("id")
+
+        return qs
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = False
+            instance.save()
+            if instance.occurrence:
+                instance.occurrence.log_user_action(
+                    OccurrenceUserAction.ACTION_DISCARD_THREAT.format(
+                        instance.threat_number,
+                        instance.occurrence.occurrence_number,
+                    ),
+                    request,
+                )
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.visible = True
+            instance.save()
+            if instance.occurrence:
+                instance.occurrence.log_user_action(
+                    OccurrenceUserAction.ACTION_REINSTATE_THREAT.format(
+                        instance.threat_number,
+                        instance.occurrence.occurrence_number,
+                    ),
+                    request,
+                )
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def update(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                serializer = SaveOCCConservationThreatSerializer(
+                    instance, data=json.loads(request.data.get("data"))
+                )
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                if instance.occurrence:
+                    instance.occurrence.log_user_action(
+                        OccurrenceUserAction.ACTION_UPDATE_THREAT.format(
+                            instance.threat_number,
+                            instance.occurrence.occurrence_number,
+                        ),
+                        request,
+                    )
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                serializer = SaveOCCConservationThreatSerializer(
+                    data=json.loads(request.data.get("data"))
+                )
+                serializer.is_valid(raise_exception=True)
+                instance = serializer.save()
+                if instance.occurrence:
+                    instance.occurrence.log_user_action(
+                        OccurrenceUserAction.ACTION_ADD_THREAT.format(
+                            instance.threat_number,
+                            instance.occurrence.occurrence_number,
+                        ),
+                        request,
+                    )
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e, "message"):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
