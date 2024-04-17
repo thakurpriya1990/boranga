@@ -698,6 +698,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
                 str(g.srid)
                 for g in qs.ocr_geometry.all().values_list("geometry", flat=True)
             ]
+            # Add the srids of the original geometries to epsg_codes
+            epsg_codes += [str(g.original_geometry_srid) for g in qs.ocr_geometry.all()]
             epsg_codes = list(set(epsg_codes))
             datum_list = search_datums("", codes=epsg_codes)
 
