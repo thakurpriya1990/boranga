@@ -215,6 +215,7 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
+                name: "occurrence_number"
             }
         },
         column_name: function () {
@@ -223,6 +224,7 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
+                name: "occurrence_name"
             }
         },
         column_scientific_name: function () {
