@@ -2124,85 +2124,31 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
 
         total_count = queryset.count()
 
-        if view.name and "internal" in view.name:
+        filter_group_type = request.GET.get("filter_group_type")
+        if filter_group_type and not filter_group_type.lower() == "all":
+            queryset = queryset.filter(group_type__name=filter_group_type)
 
-            filter_group_type = request.GET.get("filter_group_type")
-            if filter_group_type and not filter_group_type.lower() == "all":
-                queryset = queryset.filter(group_type__name=filter_group_type)
+        filter_occurrence_name = request.GET.get("filter_occurrence_name")
+        if filter_occurrence_name and not filter_occurrence_name.lower() == "all":
+            queryset = queryset.filter(occurrence_name=filter_occurrence_name)
 
-            filter_occurrence_name = request.GET.get("filter_occurrence_name")
-            if filter_occurrence_name and not filter_occurrence_name.lower() == "all":
-                queryset = queryset.filter(occurrence_name=filter_occurrence_name)
+        filter_scientific_name = request.GET.get("filter_scientific_name")
+        if filter_scientific_name and not filter_scientific_name.lower() == "all":
+            queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
 
-            filter_scientific_name = request.GET.get("filter_scientific_name")
-            if filter_scientific_name and not filter_scientific_name.lower() == "all":
-                queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
-
-            filter_status = request.GET.get("filter_status")
-            if filter_status and not filter_status.lower() == "all":
-                queryset = queryset.filter(processing_status=filter_status)
-
-            def get_date(filter_date):
-                date = request.GET.get(filter_date)
-                if date:
-                    date = datetime.strptime(date, "%Y-%m-%d")
-                return date
-
-            filter_submitted_from_date = get_date("filter_submitted_from_date")
-            filter_submitted_to_date = get_date("filter_submitted_to_date")
-            if filter_submitted_to_date:
-                filter_submitted_to_date = datetime.combine(
-                    filter_submitted_to_date, time.max
-                )
-
-            if filter_submitted_from_date and not filter_submitted_to_date:
-                queryset = queryset.filter(
-                    reported_date__gte=filter_submitted_from_date
-                )
-
-            if filter_submitted_from_date and filter_submitted_to_date:
-                queryset = queryset.filter(
-                    reported_date__range=[
-                        filter_submitted_from_date,
-                        filter_submitted_to_date,
-                    ]
-                )
-
-            if filter_submitted_to_date and not filter_submitted_from_date:
-                queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
-
-        if view.name and "external" in view.name:
-            filter_group_type = request.GET.get("filter_group_type")
-            if filter_group_type and not filter_group_type.lower() == "all":
-                queryset = queryset.filter(group_type__name=filter_group_type)
-
-            # filter_scientific_name is the species_id
-            filter_scientific_name = request.GET.get("filter_scientific_name")
-            if filter_scientific_name and not filter_scientific_name.lower() == "all":
-                queryset = queryset.filter(species=filter_scientific_name)
-
-            # filter_community_name is the community_id
-            filter_community_name = request.GET.get("filter_community_name")
-            if filter_community_name and not filter_community_name.lower() == "all":
-                queryset = queryset.filter(community=filter_community_name)
-
-            filter_application_status = request.GET.get("filter_application_status")
-            if (
-                filter_application_status
-                and not filter_application_status.lower() == "all"
-            ):
-                queryset = queryset.filter(customer_status=filter_application_status)
+        filter_status = request.GET.get("filter_status")
+        if filter_status and not filter_status.lower() == "all":
+            queryset = queryset.filter(processing_status=filter_status)
 
         fields = self.get_fields(request)
+
         ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
         try:
-            queryset = super(OccurrenceReportFilterBackend, self).filter_queryset(
-                request, queryset, view
-            )
+            queryset = super().filter_queryset(request, queryset, view)
         except Exception as e:
             print(e)
         setattr(view, "_datatables_total_count", total_count)
@@ -2233,24 +2179,6 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         ],
         detail=False,
     )
-    def occurrence_external(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        qs = qs.filter(Q(internal_application=False))
-        qs = self.filter_queryset(qs)
-
-        self.paginator.page_size = qs.count()
-        result_page = self.paginator.paginate_queryset(qs, request)
-        serializer = ListOccurrenceSerializer(
-            result_page, context={"request": request}, many=True
-        )
-        return self.paginator.get_paginated_response(serializer.data)
-
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
     def occurrence_internal(self, request, *args, **kwargs):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
@@ -2260,6 +2188,7 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         serializer = ListOccurrenceSerializer(
             result_page, context={"request": request}, many=True
         )
+
         return self.paginator.get_paginated_response(serializer.data)
 
     @list_route(
@@ -2269,7 +2198,6 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         detail=False,
     )
     def occurrence_internal_export(self, request, *args, **kwargs):
-
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.GET.get("export_format")
