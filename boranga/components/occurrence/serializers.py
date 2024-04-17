@@ -458,6 +458,12 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
         else:
             return None
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # if instance.geometry:
+        #     ret["geometry"] = json.loads(instance.geometry.geojson)
+        return ret
+
     class Meta:
         model = OccurrenceReportGeometry
         geo_field = "geometry"
@@ -1235,12 +1241,6 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "locked",
         )
         read_only_fields = ("id",)
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        if instance.geometry:
-            ret["geometry"] = instance.geometry.geojson
-        return ret
 
 
 class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):

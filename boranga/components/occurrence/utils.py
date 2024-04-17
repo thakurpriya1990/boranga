@@ -81,6 +81,9 @@ def save_geometry(request, instance, geometry_data):
         )
 
         for pp in polygons + points:
+            if pp.srid != 4326:
+                pp.transform(4326)
+
             geometry_data = {
                 "occurrence_report_id": instance.id,
                 "geometry": pp,
