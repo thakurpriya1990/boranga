@@ -144,7 +144,7 @@
                             >
                                 <div
                                     v-for="feature in modelQuerySource.getFeatures()"
-                                    :key="feature.ol_uid"
+                                    :key="feature.ol_uid + feature.getProperties().srid"
                                     class="input-group input-group-sm mb-1 text-nowrap"
                                 >
                                     <div class="input-group-text">
@@ -262,7 +262,7 @@
                                     <!-- CRS Dropdown -->
                                     <div
                                         class="input-group-text form-floating flex-grow-1 min-width-210 justify-content-end"
-                                    >
+                                    >   {{ feature.getProperties().srid }}
                                         <SelectFilter
                                             :id="`feature-${feature.ol_uid}-crs-select`"
                                             :title="`Feature ${
@@ -277,6 +277,14 @@
                                                 feature.getProperties().srid
                                             "
                                             classes="min-width-210"
+                                            @option:selected="
+                                                (selected) => {
+                                                    setFeatureCRS(
+                                                        feature,
+                                                        selected.value
+                                                    );
+                                                }
+                                            "
                                             @search="
                                                 (...args) =>
                                                     $emit(
@@ -3337,6 +3345,16 @@ export default {
         search: function (search, loading) {
             console.log('search', search, loading);
         },
+        setFeatureCRS: function (feature, srid) {
+            const newSrid = Number(srid);
+            if (!newSrid) {
+                console.warn(`Invalid SRID. ${srid} is not a number.`);
+                return;
+            }
+            const oldSrid = feature.getProperties().srid;
+            // TODO: transformation to map crs?
+            this.modelQuerySource.getFeatureById(feature.getId()).set('srid', newSrid);
+        },
     },
 };
 </script>
@@ -3412,11 +3430,5 @@ export default {
 }
 .min-width-210 {
     min-width: 210px !important;
-}
-.xxx {
-    width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 </style>
