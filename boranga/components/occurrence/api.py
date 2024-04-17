@@ -49,15 +49,15 @@ from boranga.components.occurrence.models import (
     ObservationDetail,
     ObservationMethod,
     ObserverDetail,
-    Occurrence,
-    OccurrenceUserAction,
-    OccurrenceDocument,
     OCCConservationThreat,
+    Occurrence,
+    OccurrenceDocument,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportDocument,
     OccurrenceReportUserAction,
+    OccurrenceUserAction,
     OCRConservationThreat,
     PermitType,
     PlantCondition,
@@ -82,11 +82,11 @@ from boranga.components.occurrence.serializers import (
     ListOccurrenceSerializer,
     ListOCRReportMinimalSerializer,
     ObserverDetailSerializer,
+    OCCConservationThreatSerializer,
+    OccurrenceDocumentSerializer,
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
     OccurrenceReportDocumentSerializer,
-    OccurrenceDocumentSerializer,
-    OCCConservationThreatSerializer,
     OccurrenceReportLogEntrySerializer,
     OccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
@@ -101,10 +101,10 @@ from boranga.components.occurrence.serializers import (
     SaveIdentificationSerializer,
     SaveLocationSerializer,
     SaveObservationDetailSerializer,
-    SaveOccurrenceReportDocumentSerializer,
-    SaveOccurrenceDocumentSerializer,
-    SaveOccurrenceReportSerializer,
     SaveOCCConservationThreatSerializer,
+    SaveOccurrenceDocumentSerializer,
+    SaveOccurrenceReportDocumentSerializer,
+    SaveOccurrenceReportSerializer,
     SaveOCRConservationThreatSerializer,
     SavePlantCountSerializer,
 )
@@ -2418,9 +2418,13 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         detail=False,
     )
     def occurrence_lookup(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        group_type_id = request.GET.get("group_type_id", None)
+        if group_type_id:
+            queryset = queryset.filter(group_type_id=group_type_id)
         search_term = request.GET.get("term", "")
         if search_term:
-            queryset = self.get_queryset().values_list("occurrence_number", flat=True)
+            queryset = queryset.values_list("occurrence_number", flat=True)
             queryset = (
                 queryset.filter(occurrence_number__icontains=search_term)
                 .distinct()
@@ -2442,7 +2446,7 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         queryset = self.get_queryset()
         group_type_id = request.GET.get("group_type_id", None)
         if group_type_id:
-            queryset = self.get_queryset().filter(group_type_id=group_type_id)
+            queryset = queryset.filter(group_type_id=group_type_id)
         search_term = request.GET.get("term", None)
         if search_term:
             queryset = queryset.values_list("occurrence_name", flat=True)
@@ -2457,7 +2461,7 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
             ]
         return Response({"results": queryset})
 
-    #TODO move to instance viewset?
+    # TODO move to instance viewset?
     @detail_route(
         methods=[
             "GET",
@@ -2486,8 +2490,8 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-        
-    #TODO move to instance viewset?
+
+    # TODO move to instance viewset?
     @detail_route(
         methods=[
             "GET",
@@ -2516,13 +2520,12 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-        
+
 class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
     queryset = OccurrenceDocument.objects.none()
     serializer_class = OccurrenceDocumentSerializer
 
     def get_queryset(self):
-        request_user = self.request.user
         qs = OccurrenceDocument.objects.none()
 
         if is_internal(self.request):
@@ -2649,6 +2652,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
 
 class OCCConservationThreatViewSet(viewsets.ModelViewSet):
     queryset = OCCConservationThreat.objects.none()
@@ -2777,4 +2781,3 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-
