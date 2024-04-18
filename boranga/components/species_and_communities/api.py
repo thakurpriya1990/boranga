@@ -1348,8 +1348,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 serializer = CreateSpeciesSerializer(data=request_data)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    new_instance = serializer.save(version_user=request.user)
-                    new_returned = serializer.data
+                    new_instance,new_returned = serializer.save(version_user=request.user)
 
                     data={
                         'species_id': new_instance.id
@@ -1671,8 +1670,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
                 serializer = CreateCommunitySerializer(data=request_data)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    new_instance = serializer.save(version_user=request.user)
-                    new_returned = serializer.data
+                    new_instance,new_returned = serializer.save(version_user=request.user)
 
                     data={
                         'community_id': new_instance.id
@@ -1969,8 +1967,8 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 serializer = SaveSpeciesDocumentSerializer(instance, data=json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception=True)
-                serializer.save(version_user=request.user)
-                instance.add_documents(request)
+                serializer.save(no_revision=True)
+                instance.add_documents(request,version_user=request.user)
                 instance.species.log_user_action(SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
                 return Response(serializer.data)
         except Exception as e:
@@ -1983,8 +1981,8 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 serializer = SaveSpeciesDocumentSerializer(data= json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception = True)
-                instance = serializer.save(version_user=request.user)
-                instance.add_documents(request)
+                instance = serializer.save(no_revision=True)
+                instance.add_documents(request,version_user=request.user)
                 instance.species.log_user_action(SpeciesUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.species.species_number),request)
                 return Response(serializer.data)
         except serializers.ValidationError:
@@ -2073,8 +2071,8 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 serializer = SaveCommunityDocumentSerializer(instance, data=json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception=True)
-                serializer.save(version_user=request.user)
-                instance.add_documents(request)
+                serializer.save(no_revision=True)
+                instance.add_documents(request,version_user=request.user)
                 instance.community.log_user_action(CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
                 return Response(serializer.data)
         except Exception as e:
@@ -2085,10 +2083,10 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                serializer = SaveCommunityDocumentSerializer(data= json.loads(request.data.get('data')))
+                serializer = CreateCommunityDocumentSerializer(data= json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception = True)
-                instance = serializer.save(version_user=request.user)
-                instance.add_documents(request)
+                instance = serializer.save(no_revision=True) #only conduct revisions when documents have been added
+                instance.add_documents(request, version_user=request.user)
                 instance.community.log_user_action(CommunityUserAction.ACTION_ADD_DOCUMENT.format(instance.document_number,instance.community.community_number),request)
                 return Response(serializer.data)
         except serializers.ValidationError:

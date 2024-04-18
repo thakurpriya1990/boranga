@@ -658,8 +658,8 @@ class MinutesViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             serializer = SaveMinutesSerializer(instance, data=json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception=True)
-            serializer.save(version_user=request.user)
-            instance.add_minutes_documents(request)
+            serializer.save(no_revision=True)
+            instance.add_minutes_documents(request, version_user=request.user)
             instance.meeting.log_user_action(MeetingUserAction.ACTION_UPDATE_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
             return Response(serializer.data)
         except Exception as e:
@@ -671,8 +671,8 @@ class MinutesViewSet(viewsets.ModelViewSet):
         try:
             serializer = SaveMinutesSerializer(data= json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception = True)
-            instance = serializer.save(version_user=request.user)
-            instance.add_minutes_documents(request)
+            instance = serializer.save(no_revision=True)
+            instance.add_minutes_documents(request,version_user=request.user)
             instance.meeting.log_user_action(MeetingUserAction.ACTION_ADD_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:

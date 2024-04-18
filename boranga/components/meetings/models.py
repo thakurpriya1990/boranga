@@ -336,14 +336,14 @@ class Minutes(Document):
     def save(self, *args, **kwargs):
         # Prefix "MN" char to minutes_number.        
         if self.minutes_number == '':
-            super(Minutes, self).save(*args,**kwargs,no_revision=True)
+            super(Minutes, self).save(no_revision=True)
             new_minute_id = 'MN{}'.format(str(self.pk))
             self.minutes_number = new_minute_id
             self.save(*args,**kwargs)
         else:
             super(Minutes, self).save(*args,**kwargs)
     
-    def add_minutes_documents(self, request):
+    def add_minutes_documents(self, request, *args,**kwargs):
         with transaction.atomic():
             try:
                 # save the files
@@ -357,9 +357,9 @@ class Minutes(Document):
                     self.name=_file.name
                     self.input_name = data['input_name']
                     self.can_delete = True
-                    self.save()
+                    self.save(no_revision=True)
                 # end save documents
-                self.save()
+                self.save(*args,**kwargs)
             except:
                 raise
         return

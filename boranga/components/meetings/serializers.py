@@ -284,18 +284,33 @@ class MinutesSerializer(serializers.ModelSerializer):
 
 
 class SaveMinutesSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = Minutes
-		fields = (
-			'id',
-			'meeting',
+    class Meta:
+        model = Minutes
+        fields = (
+		    'id',
+		    'meeting',
 			'name',
 			'description',
 			'input_name',
 			'uploaded_date',
 			'document_category',
 			'document_sub_category',
-			)
+            )
+        read_only_fields = ("id",)
+     
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        #if the instance already exists, carry on as normal
+        if self.instance:
+            return super(SaveMinutesSerializer,self).save(*args, **kwargs)
+        else:
+            instance = Minutes()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
+                    setattr(instance,field_name,validated_data[field_name])            
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class CommitteeMembersSerializer(serializers.ModelSerializer):

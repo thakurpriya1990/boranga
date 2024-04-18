@@ -1976,8 +1976,8 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                     instance, data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
-                instance.add_documents(request)
+                serializer.save(no_revision=True)
+                instance.add_documents(request,no_revision=True)
                 instance.uploaded_by = request.user.id
                 instance.save(version_user=request.user)
                 if instance.occurrence_report:
@@ -2000,8 +2000,8 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                     data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
-                instance.add_documents(request)
+                instance = serializer.save(no_revision=True)
+                instance.add_documents(request,no_revision=True)
                 instance.uploaded_by = request.user.id
                 instance.save(version_user=request.user)
                 if instance.occurrence_report:
@@ -2542,7 +2542,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence:
                 instance.occurrence.log_user_action(
                     OccurrenceUserAction.ACTION_DISCARD_DOCUMENT.format(
@@ -2573,7 +2573,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence:
                 instance.occurrence.log_user_action(
                     OccurrenceUserAction.ACTION_REINSTATE_DOCUMENT.format(
@@ -2602,7 +2602,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                     instance, data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
+                serializer.save(no_revision=True)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
                         OccurrenceUserAction.ACTION_UPDATE_DOCUMENT.format(
@@ -2611,9 +2611,9 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                         ),
                         request,
                     )
-                instance.add_documents(request)
+                instance.add_documents(request,no_revision=True)
                 instance.uploaded_by = request.user.id
-                instance.save()
+                instance.save(version_user=request.user)
                 return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -2626,10 +2626,10 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                     data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
-                instance.add_documents(request)
+                instance = serializer.save(no_revision=True)
+                instance.add_documents(request,no_revision=True)
                 instance.uploaded_by = request.user.id
-                instance.save()
+                instance.save(version_user=request.user)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
                         OccurrenceUserAction.ACTION_ADD_DOCUMENT.format(
@@ -2674,7 +2674,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence:
                 instance.occurrence.log_user_action(
                     OccurrenceUserAction.ACTION_DISCARD_THREAT.format(
@@ -2705,7 +2705,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence:
                 instance.occurrence.log_user_action(
                     OccurrenceUserAction.ACTION_REINSTATE_THREAT.format(
@@ -2734,7 +2734,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
                     instance, data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
+                serializer.save(version_user=request.user)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
                         OccurrenceUserAction.ACTION_UPDATE_THREAT.format(
@@ -2756,7 +2756,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
                     data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
+                instance = serializer.save(version_user=request.user)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
                         OccurrenceUserAction.ACTION_ADD_THREAT.format(

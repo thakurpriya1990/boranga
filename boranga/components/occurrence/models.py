@@ -255,7 +255,7 @@ class OccurrenceReport(RevisionedMixin):
 
     def save(self, *args, **kwargs):  
         if self.occurrence_report_number == "":
-            super().save(*args, **kwargs, no_revision=True)
+            super().save(no_revision=True)
             new_occurrence_report_id = f"OCR{str(self.pk)}"
             self.occurrence_report_number = new_occurrence_report_id
             self.save(*args, **kwargs)
@@ -2095,7 +2095,7 @@ class OccurrenceReportDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number. 
         if self.document_number == "":
-            super().save(*args, **kwargs, no_revision=True)
+            super().save(no_revision=True)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
             self.save(*args, **kwargs)
@@ -2103,7 +2103,7 @@ class OccurrenceReportDocument(Document):
             super().save(*args, **kwargs)
 
     @transaction.atomic
-    def add_documents(self, request):
+    def add_documents(self, request, *args, **kwargs):
         # save the files
         data = json.loads(request.data.get("data"))
         # if not data.get('update'):
@@ -2115,9 +2115,9 @@ class OccurrenceReportDocument(Document):
             self.name = _file.name
             self.input_name = data["input_name"]
             self.can_delete = True
-            self.save()
+            self.save(no_revision=True)
         # end save documents
-        self.save()
+        self.save(*args, **kwargs)
 
 
 class ShapefileDocumentQueryset(models.QuerySet):
@@ -2222,7 +2222,7 @@ class OCRConservationThreat(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
-            super().save(*args, **kwargs, no_revision=True)
+            super().save(no_revision=True)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
             self.save(*args, **kwargs)
@@ -2328,7 +2328,7 @@ class Occurrence(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.occurrence_number == "":
-            super().save(*args, **kwargs, no_revision=True)
+            super().save(no_revision=True)
             self.occurrence_number = f"OCC{str(self.pk)}"
             self.save(*args, **kwargs)
         else:
@@ -2455,7 +2455,7 @@ class OccurrenceDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.        
         if self.document_number == "":
-            super().save(*args, **kwargs, no_revision=True)
+            super().save(no_revision=True)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
             self.save(*args, **kwargs)
@@ -2463,7 +2463,7 @@ class OccurrenceDocument(Document):
             super().save(*args, **kwargs)
 
     @transaction.atomic
-    def add_documents(self, request):
+    def add_documents(self, request, *args, **kwargs):
         # save the files
         data = json.loads(request.data.get("data"))
         # if not data.get('update'):
@@ -2475,9 +2475,9 @@ class OccurrenceDocument(Document):
             self.name = _file.name
             self.input_name = data["input_name"]
             self.can_delete = True
-            self.save()
+            self.save(no_revision=True)
         # end save documents
-        self.save()
+        self.save(*args, **kwargs)
 
 class OCCConservationThreat(RevisionedMixin):
     """
@@ -2534,7 +2534,7 @@ class OCCConservationThreat(RevisionedMixin):
 
     def save(self, *args, **kwargs):    
         if self.threat_number == "":
-            super().save(*args, **kwargs, no_revision=True)
+            super().save(no_revision=True)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
             self.save(*args, **kwargs)

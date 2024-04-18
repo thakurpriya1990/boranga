@@ -396,7 +396,7 @@ class ConservationStatus(RevisionedMixin):
 
     def save(self, *args, **kwargs):  
         if self.conservation_status_number == '':
-            super(ConservationStatus, self).save(*args,**kwargs,no_revision=True)
+            super(ConservationStatus, self).save(no_revision=True)
             new_conservation_status_id = 'CS{}'.format(str(self.pk))
             self.conservation_status_number = new_conservation_status_id
             self.save(*args,**kwargs)
@@ -1332,14 +1332,14 @@ class ConservationStatusDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.        
         if self.document_number == '':
-            super(ConservationStatusDocument, self).save(*args,**kwargs,no_revision=True)
+            super(ConservationStatusDocument, self).save(no_revision=True)
             new_document_id = 'D{}'.format(str(self.pk))
             self.document_number = new_document_id
             self.save(*args,**kwargs)
         else:
             super(ConservationStatusDocument, self).save(*args,**kwargs)
 
-    def add_documents(self, request):
+    def add_documents(self, request, *args,**kwargs):
         with transaction.atomic():
             try:
                 # save the files
@@ -1353,9 +1353,9 @@ class ConservationStatusDocument(Document):
                     self.name=_file.name
                     self.input_name = data['input_name']
                     self.can_delete = True
-                    self.save()
+                    self.save(no_revision=True)
                 # end save documents
-                self.save()
+                self.save(*args,**kwargs)
             except:
                 raise
         return

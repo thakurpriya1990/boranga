@@ -1151,11 +1151,12 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
                 internal_application = False
                 if request.data.get('internal_application'):
                         internal_application = request.data.get('internal_application')
-                obj = ConservationStatus.objects.create(
+                obj = ConservationStatus(
                         submitter=request.user.id,
                         application_type=group_type_id,
                         internal_application=internal_application
                         )
+                obj.save(version_user=request.user)
                 serialized_obj = CreateConservationStatusSerializer(obj)
                 return Response(serialized_obj.data)
         except serializers.ValidationError:
@@ -1988,8 +1989,8 @@ class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             serializer = SaveConservationStatusDocumentSerializer(instance, data=json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception=True)
-            serializer.save(version_user=request.user)
-            instance.add_documents(request)
+            serializer.save(no_revision=True)
+            instance.add_documents(request,version_user=request.user)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -2000,8 +2001,8 @@ class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
         try:
             serializer = SaveConservationStatusDocumentSerializer(data= json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception = True)
-            instance = serializer.save(version_user=request.user)
-            instance.add_documents(request)
+            instance = serializer.save(no_revision=True)
+            instance.add_documents(request,version_user=request.user)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
