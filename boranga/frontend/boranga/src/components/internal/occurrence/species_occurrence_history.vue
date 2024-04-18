@@ -85,6 +85,7 @@ export default {
             return [
                 'Number',
                 'Date Modified',
+                'Modified By',
                 'Scientific Name',
                 'Common Name',
                 'Previous Name',
@@ -172,6 +173,19 @@ export default {
                     return full.date_created;
                 },
                 name: 'revision_date',
+            };
+        },
+        column_revision_user: function () {
+            return {
+                
+                data: 'revision_user',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    return full.revision_user;
+                },
+                name: 'revision_user',
             };
         },
         column_scientific_name: function () {
@@ -333,6 +347,7 @@ export default {
             let columns = [
                 vm.column_sequence,
                 vm.column_revision_date,
+                vm.column_revision_user,
                 vm.column_scientific_name,
                 vm.column_common_name,
                 vm.column_non_current_name,

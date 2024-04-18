@@ -620,7 +620,7 @@ class MinutesViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             instance.meeting.log_user_action(MeetingUserAction.ACTION_DISCARD_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
@@ -639,7 +639,7 @@ class MinutesViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             serializer = self.get_serializer(instance)
             instance.meeting.log_user_action(MeetingUserAction.ACTION_REINSTATE_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
             return Response(serializer.data)
@@ -658,8 +658,8 @@ class MinutesViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             serializer = SaveMinutesSerializer(instance, data=json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception=True)
-            serializer.save()
-            instance.add_minutes_documents(request)
+            serializer.save(no_revision=True)
+            instance.add_minutes_documents(request, version_user=request.user)
             instance.meeting.log_user_action(MeetingUserAction.ACTION_UPDATE_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
             return Response(serializer.data)
         except Exception as e:
@@ -671,8 +671,8 @@ class MinutesViewSet(viewsets.ModelViewSet):
         try:
             serializer = SaveMinutesSerializer(data= json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception = True)
-            instance = serializer.save()
-            instance.add_minutes_documents(request)
+            instance = serializer.save(no_revision=True)
+            instance.add_minutes_documents(request,version_user=request.user)
             instance.meeting.log_user_action(MeetingUserAction.ACTION_ADD_MINUTE.format(instance.minutes_number,instance.meeting.meeting_number),request)
             return Response(serializer.data)
         except serializers.ValidationError:

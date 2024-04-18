@@ -1347,7 +1347,21 @@ class SaveOccurrenceReportDocumentSerializer(serializers.ModelSerializer):
             "document_category",
             "document_sub_category",
         )
+        read_only_fields = ("id",)
 
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        #if the instance already exists, carry on as normal
+        if self.instance:
+            return super(SaveOccurrenceReportDocumentSerializer,self).save(*args, **kwargs)
+        else:
+            instance = OccurrenceReportDocument()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
+                    setattr(instance,field_name,validated_data[field_name])            
+            instance.save(*args, **kwargs)
+            return instance
 
 class OccurrenceDocumentSerializer(serializers.ModelSerializer):
     document_category_name = serializers.SerializerMethodField()
@@ -1394,6 +1408,21 @@ class SaveOccurrenceDocumentSerializer(serializers.ModelSerializer):
             "document_category",
             "document_sub_category",
         )
+        read_only_fields = ("id",)
+
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        #if the instance already exists, carry on as normal
+        if self.instance:
+            return super(SaveOccurrenceDocumentSerializer,self).save(*args, **kwargs)
+        else:
+            instance = OccurrenceDocument()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
+                    setattr(instance,field_name,validated_data[field_name])            
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class OCRConservationThreatSerializer(serializers.ModelSerializer):
@@ -1475,7 +1504,21 @@ class SaveOCRConservationThreatSerializer(serializers.ModelSerializer):
             "potential_threat_onset",
             "date_observed",
         )
+        read_only_fields = ("id",)
 
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        #if the instance already exists, carry on as normal
+        if self.instance:
+            return super(SaveOCRConservationThreatSerializer,self).save(*args, **kwargs)
+        else:
+            instance = OCRConservationThreat()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
+                    setattr(instance,field_name,validated_data[field_name])            
+            instance.save(*args, **kwargs)
+            return instance
 
 class OccurrenceReportAmendmentRequestDocumentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1571,4 +1614,19 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
             "potential_threat_onset",
             "date_observed",
         )
+        read_only_fields = ("id",)
+
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        #if the instance already exists, carry on as normal
+        if self.instance:
+            return super(SaveOCCConservationThreatSerializer,self).save(*args, **kwargs)
+        else:
+            instance = OCCConservationThreat()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
+                    setattr(instance,field_name,validated_data[field_name])            
+            instance.save(*args, **kwargs)
+            return instance
 

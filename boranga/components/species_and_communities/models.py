@@ -431,12 +431,14 @@ class Species(RevisionedMixin):
     def save(self, *args, **kwargs):
         cache.delete('get_species_data')
         self.full_clean()
-        # Prefix "S" char to species_number.
-        super(Species, self).save(*args,**kwargs)
+        # Prefix "S" char to species_number.        
         if self.species_number == '':
+            super(Species, self).save(no_revision=True)
             new_species_id = 'S{}'.format(str(self.pk))
             self.species_number = new_species_id
-            self.save()
+            self.save(*args,**kwargs)
+        else:
+            super(Species, self).save(*args,**kwargs)
 
     @property
     def reference(self):
@@ -967,12 +969,14 @@ class Community(RevisionedMixin):
         return '{}'.format(self.community_number)
 
     def save(self, *args, **kwargs):
-        # Prefix "C" char to community_number.
-        super(Community, self).save(*args,**kwargs)
+        # Prefix "C" char to community_number.    
         if self.community_number == '':
+            super(Community, self).save(no_revision=True)
             new_community_id = 'C{}'.format(str(self.pk))
             self.community_number = new_community_id
-            self.save()
+            self.save(*args,**kwargs)
+        else:
+            super(Community, self).save(*args,**kwargs)
     
     @property
     def applicant(self):
@@ -1494,14 +1498,16 @@ class SpeciesDocument(Document):
         verbose_name = "Species Document"
 
     def save(self, *args, **kwargs):
-        # Prefix "D" char to document_number.
-        super(SpeciesDocument, self).save(*args,**kwargs)
+        # Prefix "D" char to document_number.      
         if self.document_number == '':
+            super(SpeciesDocument, self).save(no_revision=True)
             new_document_id = 'D{}'.format(str(self.pk))
             self.document_number = new_document_id
-            self.save()
+            self.save(*args,**kwargs)
+        else:
+            super(SpeciesDocument, self).save(*args,**kwargs)
 
-    def add_documents(self, request):
+    def add_documents(self, request, *args,**kwargs):
         with transaction.atomic():
             try:
                 # save the files
@@ -1515,9 +1521,9 @@ class SpeciesDocument(Document):
                     self.name=_file.name
                     self.input_name = data['input_name']
                     self.can_delete = True
-                    self.save()
+                    self.save(no_revision=True) #no need to have multiple revisions
                 # end save documents
-                self.save()
+                self.save(*args,**kwargs)
             except:
                 raise
         return
@@ -1567,14 +1573,16 @@ class CommunityDocument(Document):
         verbose_name = "Community Document"
 
     def save(self, *args, **kwargs):
-        # Prefix "D" char to document_number.
-        super(CommunityDocument, self).save(*args,**kwargs)
+        # Prefix "D" char to document_number.        
         if self.document_number == '':
+            super(CommunityDocument, self).save(no_revision=True)
             new_document_id = 'D{}'.format(str(self.pk))
             self.document_number = new_document_id
-            self.save()
+            self.save(*args,**kwargs)
+        else:
+            super(CommunityDocument, self).save(*args,**kwargs)
     
-    def add_documents(self, request):
+    def add_documents(self, request, *args,**kwargs):
         with transaction.atomic():
             try:
                 # save the files
@@ -1588,9 +1596,9 @@ class CommunityDocument(Document):
                     self.name=_file.name
                     self.input_name = data['input_name']
                     self.can_delete = True
-                    self.save()
+                    self.save(no_revision=True)
                 # end save documents
-                self.save()
+                self.save(*args,**kwargs)
             except:
                 raise
         return
@@ -1721,11 +1729,13 @@ class ConservationThreat(RevisionedMixin):
         return str(self.id)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
-        super(ConservationThreat, self).save(*args,**kwargs)
         if self.threat_number == '':
+            super(ConservationThreat, self).save(no_revision=True)
             new_threat_id = 'T{}'.format(str(self.pk))
             self.threat_number = new_threat_id
-            self.save()
+            self.save(*args,**kwargs)
+        else:
+            super(ConservationThreat, self).save(*args,**kwargs)
 
     @property
     def source(self):

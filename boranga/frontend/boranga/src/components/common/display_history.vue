@@ -10,8 +10,17 @@
             @cancel="close()">
 
             <div>
-            <div>
+            <div v-if="revision_sequence > 0">
+                <strong>Modified By:</strong> {{ revision_user }}
+            </div>
+            <div v-else="revision_sequence > 0">
+                <strong>Created By:</strong> {{ revision_user }}
+            </div>
+            <div v-if="revision_sequence > 0">
                 <strong>Date Modified:</strong> {{ revision_date }}
+            </div>
+            <div v-else="revision_sequence > 0">
+                <strong>Date Created:</strong> {{ revision_date }}
             </div>
             <!--<div v-for="(data, itemObjKey) in version_data">
                 <strong>{{itemObjKey}}:</strong> <textarea class="form-control">{{ JSON.stringify(data, null, '\t') }}</textarea>
@@ -112,6 +121,7 @@ export default {
             version_data: [],
             version_data_formatted: [],
             revision_date: '',
+            revision_user: '',
             showNullFields: false,
         };
     },
@@ -154,6 +164,7 @@ export default {
             vm.$http.get(api_endpoints.lookup_revision_versions(vm.primary_model,vm.revision_id))
             .then((response) => {
                 vm.revision_date = response.body['date_created'];
+                vm.revision_user = response.body['revision_user'];
                 vm.version_data = response.body['version_data'];
                 vm.formatHistoryData();                
             },(error) => {

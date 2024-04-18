@@ -1,7 +1,7 @@
 import logging
 
 from rest_framework import serializers
-
+from django.db import models
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.conservation_status.serializers import (
     CommunityConservationStatusSerializer,
@@ -1149,6 +1149,18 @@ class CreateSpeciesSerializer(BaseSpeciesSerializer):
         )
         read_only_fields = ("id",)
 
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        instance = Species()
+        validated_data = self.run_validation(self.initial_data)
+        for field_name in self.Meta.fields:
+            if not field_name in self.Meta.read_only_fields:
+                setattr(instance,field_name,validated_data[field_name])            
+        instance.save(*args, **kwargs)
+        data = {} #here we also return the instance data
+        for field_name in self.Meta.fields:
+            data[field_name] = getattr(instance,field_name)
+        return instance, data
 
 class SaveCommunitySerializer(BaseCommunitySerializer):
     region_id = serializers.IntegerField(
@@ -1186,6 +1198,18 @@ class CreateCommunitySerializer(BaseCommunitySerializer):
         )
         read_only_fields = ("id",)
 
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        instance = Community()
+        validated_data = self.run_validation(self.initial_data)
+        for field_name in self.Meta.fields:
+            if not field_name in self.Meta.read_only_fields:
+                setattr(instance,field_name,validated_data[field_name])            
+        instance.save(*args, **kwargs)
+        data = {}
+        for field_name in self.Meta.fields:
+            data[field_name] = getattr(instance,field_name)
+        return instance, data
 
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1238,6 +1262,21 @@ class SaveSpeciesDocumentSerializer(serializers.ModelSerializer):
             "document_category",
             "document_sub_category",
         )
+        read_only_fields = ("id",)
+
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        #if the instance already exists, carry on as normal
+        if self.instance:
+            return super(SaveSpeciesDocumentSerializer,self).save(*args, **kwargs)
+        else:
+            instance = SpeciesDocument()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
+                    setattr(instance,field_name,validated_data[field_name])            
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class CommunityDocumentSerializer(serializers.ModelSerializer):
@@ -1285,6 +1324,21 @@ class SaveCommunityDocumentSerializer(serializers.ModelSerializer):
             "document_category",
             "document_sub_category",
         )
+        read_only_fields = ("id",)
+
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        #if the instance already exists, carry on as normal
+        if self.instance:
+            return super(SaveCommunityDocumentSerializer,self).save(*args, **kwargs)
+        else:
+            instance = CommunityDocument()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
+                    setattr(instance,field_name,validated_data[field_name])            
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class SpeciesLogEntrySerializer(CommunicationLogEntrySerializer):
@@ -1389,6 +1443,21 @@ class SaveConservationThreatSerializer(serializers.ModelSerializer):
             "potential_threat_onset",
             "date_observed",
         )
+        read_only_fields = ("id",)
+
+    #override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        #if the instance already exists, carry on as normal
+        if self.instance:
+            return super(SaveConservationThreatSerializer,self).save(*args, **kwargs)
+        else:
+            instance = ConservationThreat()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
+                    setattr(instance,field_name,validated_data[field_name])            
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class CommunityLogEntrySerializer(CommunicationLogEntrySerializer):
