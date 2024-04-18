@@ -36,8 +36,7 @@
 <script>
 import AddCommLog from './add_comm_log.vue'
 import {
-    api_endpoints,
-    helpers
+    constants,
 }from '@/utils/hooks'
 import { v4 as uuid } from 'uuid';
 export default {
@@ -69,7 +68,7 @@ export default {
             popoversInitialised: false,
             actionsDtOptions:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 deferRender: true,
@@ -114,7 +113,7 @@ export default {
             },
             commsDtOptions:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 deferRender: true,
@@ -208,7 +207,7 @@ export default {
                             }
                             return result;
                         },
-                        
+
                         'createdCell': function (cell) {
                             console.log('in createdCell of CC')
                             //TODO why this is not working?
@@ -343,7 +342,7 @@ export default {
             // let popover_name = 'popover-'+ vm._uid+'-comms';
             let commsLogId = 'comms-log-table' + vm.uuid;
             let popover_name = 'popover-' + vm.uuid + '-comms';
-            let popover_elem = $(vm.$refs.showCommsBtn)[0] 
+            let popover_elem = $(vm.$refs.showCommsBtn)[0]
             let my_content = '<table id="' + commsLogId + '" class="hover table table-striped table-bordered dt-responsive" cellspacing="0" width="100%"></table>'
             let my_template = '<div class="popover ' + popover_name +'" role="tooltip"><div class="popover-arrow" style="top:110px;"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
             //let my_template = `<div class="popover ${popover_name}" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>`
@@ -357,7 +356,7 @@ export default {
                 placement: 'right',
                 // trigger: "click focus",
                 trigger: "click",
-            }) 
+            })
             popover_elem.addEventListener('inserted.bs.popover', () => {
                 // when the popover template has been added to the DOM
                 vm.commsTable = $('#' + commsLogId).DataTable(vm.commsDtOptions);
@@ -450,7 +449,7 @@ export default {
                 placement: 'right',
                 // trigger: "click focus",
                 trigger: "click",
-            }) 
+            })
             popover_elem.addEventListener('inserted.bs.popover', () => {
                 // when the popover template has been added to the DOM
                 vm.actionsTable = $('#' + actionLogId).DataTable(this.actionsDtOptions);

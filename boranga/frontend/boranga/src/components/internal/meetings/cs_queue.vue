@@ -9,10 +9,10 @@
                         </button>
                     </div>
                 </div>
-            <datatable 
-            ref="cs_queue_datatable" 
-            :id="datatable_id" 
-            :dtOptions="cs_queue_options" 
+            <datatable
+            ref="cs_queue_datatable"
+            :id="datatable_id"
+            :dtOptions="cs_queue_options"
             :dtHeaders="cs_queue_headers"/>
         </FormSection>
         <AgendaModal ref="agenda_modal" :meeting_obj="meeting_obj" :is_internal="true"></AgendaModal>
@@ -21,6 +21,7 @@
 <script>
 import {
     api_endpoints,
+    constants,
     helpers
 }
 from '@/utils/hooks'
@@ -55,7 +56,7 @@ export default {
                 autoWidth: false,
                 lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 ajax: {
@@ -179,7 +180,7 @@ export default {
         AgendaModal,
     },
     watch:{
-        
+
     },
     computed:{
         isReadOnly: function(){
@@ -299,7 +300,7 @@ export default {
             // this.$http.get(helpers.add_endpoint_json(api_endpoints.meeting_agenda_items,req+'/'+movement)).then((response) => {
             // },(error) => {
             //     console.log(error);
-                
+
             // })
             try {
                 const res = await fetch(helpers.add_endpoint_json(api_endpoints.meeting_agenda_items,req+'/'+movement))
@@ -350,7 +351,7 @@ export default {
         },
         exportData: function (format) {
             let vm = this;
-           
+
             const url = api_endpoints.meeting+'/'+vm.meeting_obj.id+'/export_agenda_items?export_format='+format;
             try {
                 if (format === "excel") {

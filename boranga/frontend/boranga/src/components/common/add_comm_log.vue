@@ -4,12 +4,12 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="commsForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">To</label>
+                                        <label class="control-label pull-left" for="Name">To</label>
                                     </div>
                                     <div class="col-sm-4">
                                         <input type="text" class="form-control" name="to" v-model="comms.to">
@@ -19,7 +19,7 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">From</label>
+                                        <label class="control-label pull-left" for="Name">From</label>
                                     </div>
                                     <div class="col-sm-4">
                                         <input type="text" class="form-control" name="fromm" v-model="comms.fromm">
@@ -29,7 +29,7 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Type</label>
+                                        <label class="control-label pull-left" for="Name">Type</label>
                                     </div>
                                     <div class="col-sm-4">
                                         <select class="form-select" name="type" v-model="comms.type">
@@ -44,48 +44,57 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Subject/Description</label>
+                                        <label class="control-label pull-left" for="Name">Subject/Description</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" name="subject" style="width:70%;" v-model="comms.subject">
+                                        <input type="text" class="form-control" name="subject" style="width:70%;"
+                                            v-model="comms.subject">
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Text</label>
+                                        <label class="control-label pull-left" for="Name">Text</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <textarea name="text" class="form-control" style="width:70%;" v-model="comms.text"></textarea>
+                                        <textarea name="text" class="form-control" style="width:70%;"
+                                            v-model="comms.text"></textarea>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Attachments</label>
+                                        <label class="control-label pull-left" for="Name">Attachments</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <template v-for="(f,i) in files">
-                                            <div :class="'row top-buffer file-row-'+i">
+                                        <template v-for="(f, i) in files">
+                                            <div :class="'row top-buffer file-row-' + i">
                                                 <div class="col-sm-3">
-                                                    <span v-if="f.file == null" class="btn btn-primary btn-file pull-left">
-                                                        Attach File <input type="file" :name="'file-upload-'+i" :class="'file-upload-'+i" @change="uploadFile('file-upload-'+i,f)"/>
+                                                    <span v-if="f.file == null"
+                                                        class="btn btn-primary btn-file pull-left">
+                                                        Attach File <input type="file" :name="'file-upload-' + i"
+                                                            :class="'file-upload-' + i"
+                                                            @change="uploadFile('file-upload-' + i, f)" />
                                                     </span>
                                                     <span v-else class="btn btn-primary btn-file pull-left">
-                                                        Update File <input type="file" :name="'file-upload-'+i" :class="'file-upload-'+i" @change="uploadFile('file-upload-'+i,f)"/>
+                                                        Update File <input type="file" :name="'file-upload-' + i"
+                                                            :class="'file-upload-' + i"
+                                                            @change="uploadFile('file-upload-' + i, f)" />
                                                     </span>
                                                 </div>
                                                 <div class="col-sm-6 truncate-text">
-                                                    <span>{{f.name}}</span>
+                                                    <span>{{ f.name }}</span>
                                                 </div>
                                                 <div class="col-sm-3">
-                                                    <a href="" @click.prevent="removeFile(i)" style="color: red;">Remove</a>
+                                                    <a href="" @click.prevent="removeFile(i)"
+                                                        style="color: red;">Remove</a>
                                                 </div>
                                             </div>
                                         </template>
-                                        <a href="" @click.prevent="attachAnother"><i class="fa fa-lg fa-plus top-buffer-2x"></i></a>
+                                        <a href="" @click.prevent="attachAnother"><i
+                                                class="fa fa-lg fa-plus top-buffer-2x"></i></a>
                                     </div>
                                 </div>
                             </div>
@@ -93,37 +102,31 @@
                     </form>
                 </div>
             </div>
-            <!-- <div slot="footer">
-                <button type="button" v-if="addingComms" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
-                <button type="button" v-else class="btn btn-default" @click="ok">Add</button>
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
-            </div> -->
         </modal>
     </div>
 </template>
 
 <script>
-//import $ from 'jquery'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
-import {helpers,api_endpoints} from "@/utils/hooks.js"
+import { helpers } from "@/utils/hooks.js"
 export default {
-    name:'Add-Comms',
-    components:{
+    name: 'Add-Comms',
+    components: {
         modal,
         alert
     },
-    props:{
+    props: {
         url: {
             type: String,
             required: true
         }
     },
-    data:function () {
+    data: function () {
         let vm = this;
         return {
-            isModalOpen:false,
-            form:null,
+            isModalOpen: false,
+            form: null,
             comms: {},
             state: 'proposed_approval',
             addingComms: false,
@@ -131,13 +134,13 @@ export default {
             errors: false,
             errorString: '',
             successString: '',
-            success:false,
-            datepickerOptions:{
+            success: false,
+            datepickerOptions: {
                 format: 'DD/MM/YYYY',
-                showClear:true,
-                useCurrent:false,
-                keepInvalid:true,
-                allowInputToggle:true
+                showClear: true,
+                useCurrent: false,
+                keepInvalid: true,
+                allowInputToggle: true
             },
             files: [
                 {
@@ -148,29 +151,29 @@ export default {
         }
     },
     computed: {
-        showError: function() {
+        showError: function () {
             var vm = this;
             return vm.errors;
         },
-        title: function(){
+        title: function () {
             return this.processing_status == 'With Approver' ? 'Issue Comms' : 'Propose to issue approval';
         }
     },
-    methods:{
-        ok:function () {
-            let vm =this;
-            if($(vm.form).valid()){
+    methods: {
+        ok: function () {
+            let vm = this;
+            if ($(vm.form).valid()) {
                 vm.sendData();
             }
         },
-        uploadFile(target,file_obj){
+        uploadFile(target, file_obj) {
             let vm = this;
             let _file = null;
-            var input = $('.'+target)[0];
+            var input = $('.' + target)[0];
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
-                reader.readAsDataURL(input.files[0]); 
-                reader.onload = function(e) {
+                reader.readAsDataURL(input.files[0]);
+                reader.onload = function (e) {
                     _file = e.target.result;
                 };
                 _file = input.files[0];
@@ -178,70 +181,68 @@ export default {
             file_obj.file = _file;
             file_obj.name = _file.name;
         },
-        removeFile(index){
+        removeFile(index) {
             let length = this.files.length;
-            $('.file-row-'+index).remove();
-            this.files.splice(index,1);
+            $('.file-row-' + index).remove();
+            this.files.splice(index, 1);
             this.$nextTick(() => {
                 length == 1 ? this.attachAnother() : '';
             });
         },
-        attachAnother(){
+        attachAnother() {
             this.files.push({
                 'file': null,
                 'name': ''
             })
         },
-        cancel:function () {
+        cancel: function () {
             this.close()
         },
-        close:function () {
+        close: function () {
             let vm = this;
             this.isModalOpen = false;
             this.comms = {};
             this.errors = false;
             $('.has-error').removeClass('has-error');
-            //this.validation_form.resetForm();
             let file_length = vm.files.length;
             this.files = [];
-            for (var i = 0; i < file_length;i++){
+            for (var i = 0; i < file_length; i++) {
                 vm.$nextTick(() => {
-                    $('.file-row-'+i).remove();
+                    $('.file-row-' + i).remove();
                 });
             }
             this.attachAnother();
         },
-        sendData:function(){
+        sendData: function () {
             let vm = this;
             vm.errors = false;
-            let comms = new FormData(vm.form); 
+            let comms = new FormData(vm.form);
             vm.addingComms = true;
-            vm.$http.post(vm.url,comms,{
-                }).then((response)=>{
-                    vm.addingComms = false;
-                    vm.close();
-                    //vm.$emit('refreshFromResponse',response);
-                },(error)=>{
-                    vm.errors = true;
-                    vm.addingComms = false;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                });
-            
+            vm.$http.post(vm.url, comms, {
+            }).then((response) => {
+                vm.addingComms = false;
+                vm.close();
+            }, (error) => {
+                vm.errors = true;
+                vm.addingComms = false;
+                vm.errorString = helpers.apiVueResourceError(error);
+            });
+
         },
-        addFormValidations: function() {
+        addFormValidations: function () {
             let vm = this;
             vm.validation_form = $(vm.form).validate({
                 rules: {
-                    to:"required",
-                    fromm:"required",
-                    type:"required",
-                    subject:"required",
-                    text:"required",
+                    to: "required",
+                    fromm: "required",
+                    type: "required",
+                    subject: "required",
+                    text: "required",
                 },
                 messages: {
                 },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
+                showErrors: function (errorMap, errorList) {
+                    $.each(this.validElements(), function (index, element) {
                         var $element = $(element);
                         $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
                     });
@@ -259,13 +260,12 @@ export default {
                     }
                 }
             });
-       },
-   },
-   mounted:function () {
-        let vm =this;
+        },
+    },
+    mounted: function () {
+        let vm = this;
         vm.form = document.forms.commsForm;
-        //vm.addFormValidations();
-   }
+    }
 }
 </script>
 
@@ -274,6 +274,7 @@ export default {
     position: relative;
     overflow: hidden;
 }
+
 .btn-file input[type=file] {
     position: absolute;
     top: 0;
@@ -289,21 +290,30 @@ export default {
     cursor: inherit;
     display: block;
 }
-.top-buffer{margin-top: 5px;}
-.top-buffer-2x{margin-top: 10px;}
 
-input[type=text], select {
-        padding: 0.375rem 2.25rem 0.375rem 0.75rem;
-    }
+.top-buffer {
+    margin-top: 5px;
+}
 
-.truncate-text{
+.top-buffer-2x {
+    margin-top: 10px;
+}
+
+input[type=text],
+select {
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+}
+
+.truncate-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: block;
 }
-input[type=text], select {
-        width: 100%;
-        padding: 0.375rem 2.25rem 0.375rem 0.75rem;
-    }
+
+input[type=text],
+select {
+    width: 100%;
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+}
 </style>

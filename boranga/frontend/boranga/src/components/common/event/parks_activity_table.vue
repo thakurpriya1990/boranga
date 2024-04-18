@@ -1,6 +1,6 @@
 <template id="event_parks_activity_table">
     <div class="">
-        <div class="col-sm-12"> 
+        <div class="col-sm-12">
             <div class="row" >
                 <div class="col-md-3" v-if="canEditActivities">
                             <!-- <button style="margin-top:25px;" class="btn btn-primary pull-right">New Application</button> -->
@@ -15,7 +15,7 @@
             </div>
             <div class="row">
                 <div class="col-sm-12">
-                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_park_maps" :id="'proposal'+proposal.id" :readonly="proposal.readonly" ref="event_park_maps"></FileField>    
+                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_park_maps" :id="'proposal'+proposal.id" :readonly="proposal.readonly" ref="event_park_maps"></FileField>
                 </div>
             </div>
 
@@ -28,14 +28,14 @@
         <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse" :is_internal="is_internal" :is_external="is_external"></editPark>
         <!-- v-bind:key="editParkBindId" -->
     </div>
-</template> 
+</template>
 <script>
 import datatable from '@/utils/vue/datatable.vue'
 import editPark from './edit_park_activity.vue'
 import FileField from '@/components/forms/filefield.vue'
 import {
+    constants,
     api_endpoints,
-    helpers
 }from '@/utils/hooks'
 export default {
     name: 'EventParkTableDash',
@@ -85,7 +85,7 @@ export default {
             park_headers:["Park or Reserve","Activities (application)","Activities (assessor)","Action"],
             park_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 ajax: {
@@ -97,14 +97,14 @@ export default {
                 buttons:[
                 'excel', 'csv', ],
                 columns: [
-                    
+
                     {
                         data: "park",
                         mRender:function (data,type,full) {
                             //return `C${data}`;
                             return data.name;
                         },
-                        
+
                     },
                     {
                         //data: "activities_names",
@@ -146,7 +146,7 @@ export default {
                             links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit</a><br/>`;
                             links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
                             }
-                        
+
                         }
                             return links;
                         },
@@ -262,8 +262,8 @@ export default {
             this.$refs.park_datatable.vmDataTable.ajax.reload();
         },
         initialiseSearch:function(){
-            
-        }, 
+
+        },
     },
     mounted: function(){
         let vm = this;
@@ -273,10 +273,10 @@ export default {
             vm.initialiseSearch();
         });
         if(vm.is_external){
-            var column = vm.$refs.park_datatable.vmDataTable.columns(2); 
+            var column = vm.$refs.park_datatable.vmDataTable.columns(2);
             column.visible(false);
         }
-        
+
     }
 }
 </script>

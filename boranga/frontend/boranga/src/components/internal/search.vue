@@ -46,7 +46,7 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label class="control-label" for="User">Search User</label>
-                                    
+
                                     <TextFilteredField :url="filtered_url" name="User" id="id_holder"/>
                                 </div>
                             </div>
@@ -55,7 +55,7 @@
                                 <div >
                                   <input type="button" @click.prevent="viewUserDetails" class="btn btn-primary" style="margin-bottom: 5px" value="View Details"/>
                                 </div>
-                              </div> 
+                              </div>
                             </div>
                           </div>
                         </form>
@@ -80,36 +80,36 @@
                             <div class="form-group">
                               <label for="" class="control-label col-lg-12">Filter</label>
                               <div class="form-check form-check-inline col-md-3">
-                                  <input  class="form-check-input" ref="searchProposal" id="searchProposal" name="searchProposal" type="checkbox" v-model="searchProposal" /> 
+                                  <input  class="form-check-input" ref="searchProposal" id="searchProposal" name="searchProposal" type="checkbox" v-model="searchProposal" />
                                   <label class="form-check-label" for="searchProposal">Application</label>
-                                  
-                              </div> 
+
+                              </div>
                               <div class="form-check form-check-inline col-md-3">
-                                  <input  class="form-check-input" ref="searchApproval" id="searchApproval" name="searchApproval" type="checkbox" v-model="searchApproval" /> 
+                                  <input  class="form-check-input" ref="searchApproval" id="searchApproval" name="searchApproval" type="checkbox" v-model="searchApproval" />
                                   <label class="form-check-label" for="searchApproval">Licence</label>
-                              </div> 
+                              </div>
                               <div class="form-check form-check-inline col-md-3">
-                                  <input  class="form-check-input" ref="searchCompliance" id="searchCompliance" name="searchCompliance" type="checkbox" v-model="searchCompliance" /> 
+                                  <input  class="form-check-input" ref="searchCompliance" id="searchCompliance" name="searchCompliance" type="checkbox" v-model="searchCompliance" />
                                   <label class="form-check-label" for="searchCompliance">Compliance with requirements</label>
-                              </div> 
-                              <label for="" class="control-label col-lg-12">Keyword</label>                              
+                              </div>
+                              <label for="" class="control-label col-lg-12">Keyword</label>
                                 <div class="col-md-8">
                                   <input type="search"  class="form-control input-sm" name="details" placeholder="" v-model="keyWord"></input>
-                                </div> 
-                                <div class="col-md-1">                                  
+                                </div>
+                                <div class="col-md-1">
                                 </div>
                                 <div class="col-md-3">
                                   <input type="button" @click.prevent="add" class="btn btn-primary" value="Add"/>
-                                </div>                                                                               
+                                </div>
                             </div>
-                                                     
+
                       </div>
-                                   
+
                     </div>
 
                     <div class="row">
                       <div class="col-lg-12">
-                          <ul class="list-inline" style="display: inline; width: auto;">                          
+                          <ul class="list-inline" style="display: inline; width: auto;">
                               <li class="list-inline-item" v-for="(item,i) in searchKeywords">
                                 <button @click.prevent="" class="btn btn-light" style="margin-top:5px; margin-bottom: 5px">{{item}}</button><a href="" @click.prevent="removeKeyword(i)"><span class="glyphicon glyphicon-remove "></span></a>
                               </li>
@@ -124,7 +124,7 @@
                           <input type="reset" @click.prevent="reset" class="btn btn-primary" style="margin-bottom: 5px"value="Clear"/>
 
                         </div>
-                      </div> 
+                      </div>
                     </div>
                     <div class="row">
                     <div class="col-lg-12">
@@ -153,10 +153,10 @@
                 </div>
                 <div class="panel-body collapse in" :id="rBody">
                     <div class="row">
-                       <label for="" class="control-label col-lg-12">Reference</label>                              
+                       <label for="" class="control-label col-lg-12">Reference</label>
                           <div class="col-md-8">
                               <input type="search"  class="form-control input-sm" name="referenceWord" placeholder="" v-model="referenceWord"></input>
-                          </div> 
+                          </div>
                           <div >
                             <input type="button" @click.prevent="search_reference" class="btn btn-primary" style="margin-bottom: 5px" value="Search"/>
                         </div>
@@ -175,6 +175,7 @@ import TextFilteredField from '@/components/forms/text-filtered.vue'
 import TextFilteredOrgField from '@/components/forms/text-filtered-org.vue'
 import {
   api_endpoints,
+  constants,
   helpers
 }
 from '@/utils/hooks'
@@ -182,7 +183,7 @@ import utils from './utils'
 export default {
   name: 'ExternalDashboard',
   props: {
-    
+
   },
   data() {
     let vm = this;
@@ -212,7 +213,7 @@ export default {
       proposal_headers:["Number","Type","Proponent","Text found","Action"],
       proposal_options:{
           language: {
-              processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+              processing: constants.DATATABLE_PROCESSING_HTML
           },
           responsive: true,
           /*ajax: {
@@ -256,10 +257,10 @@ export default {
           processing: true,
       }
     }
-    
+
   },
     watch: {
-      
+
     },
     components: {
         datatable,
@@ -321,7 +322,7 @@ export default {
                     html: 'Please select the organisation to view the details',
                     type: 'error'
                 }).then(() => {
-                    
+
                 });
                 return;
           }
@@ -343,7 +344,7 @@ export default {
                     html: 'Please select the user to view the details',
                     type: 'error'
                 }).then(() => {
-                    
+
                 });
                 return;
           }
@@ -372,12 +373,12 @@ export default {
           /*vm.searchProposal = false;
           vm.searchApproval = false;
           vm.searchCompliance = false; */
-          vm.keyWord = null; 
+          vm.keyWord = null;
           vm.results = [];
           vm.messages=false;
           vm.messageString='';
           vm.$refs.proposal_datatable.vmDataTable.clear()
-          vm.$refs.proposal_datatable.vmDataTable.draw();      
+          vm.$refs.proposal_datatable.vmDataTable.draw();
         },
 
         search: function() {
@@ -405,7 +406,7 @@ export default {
           }
 
         },
-   
+
 
     search_reference: function() {
           let vm = this;
@@ -413,10 +414,10 @@ export default {
           {
             vm.$http.post('/api/search_reference.json',{
               reference_number: vm.referenceWord,
-              
+
             }).then(res => {
               console.log(res)
-              vm.errors = false; 
+              vm.errors = false;
               vm.errorString = '';
               vm.$router.push({ path: '/internal/'+res.body.type+'/'+res.body.id });
               },
@@ -446,7 +447,7 @@ export default {
         this.$nextTick(() => {
             vm.addListeners();
         });
-        
+
     }
 }
 </script>

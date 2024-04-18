@@ -19,12 +19,13 @@
     </div>
 </template>
 <script>
-import Vue from 'vue' 
+import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
-  api_endpoints,
-  helpers,
+    constants,
+    api_endpoints,
+    helpers,
 }
 from '@/utils/hooks'
 
@@ -55,7 +56,7 @@ export default {
                 documents_options:{
                     autowidth: true,
                     language:{
-                        processing: "<i class='fa fa-4x fa-spinner'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML
                     },
                     responsive: true,
                     searching: true,
@@ -78,7 +79,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> Excel',
                             className: 'btn btn-primary me-2 rounded',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                         {
@@ -86,7 +87,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> CSV',
                             className: 'btn btn-primary rounded',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                     ],
@@ -176,12 +177,12 @@ export default {
                             data: "id",
                             mRender:function (data,type,full){
                                 // to store the original species documents for the use of radio btn options on first load so that no need to call api to get the documents ids
-                                if(!vm.original_species_documents.includes(full.id)){ 
-                                    vm.original_species_documents.push(full.id) 
+                                if(!vm.original_species_documents.includes(full.id)){
+                                    vm.original_species_documents.push(full.id)
                                 };
 
                                 if(vm.species_community.documents.includes(full.id)){
-                                    return `<input class='form-check-input' type="checkbox" id="document_chkbox-${vm.species_community.id}-${full.id}" data-add-document="${full.id}"  checked>`;    
+                                    return `<input class='form-check-input' type="checkbox" id="document_chkbox-${vm.species_community.id}-${full.id}" data-add-document="${full.id}"  checked>`;
                                 }
                                 else{
                                     return `<input class='form-check-input' type="checkbox" id="document_chkbox-${vm.species_community.id}-${full.id}" data-add-document="${full.id}">`;
@@ -196,7 +197,7 @@ export default {
                         setTimeout(function (){
                             vm.adjust_table_width();
                         },100);
-                    }, 
+                    },
                 }
             }
         },
@@ -232,7 +233,7 @@ export default {
                     let id = $(this).attr('data-add-document');
                     let chkbox = $(this).attr('id');
                     if($("#"+chkbox).is(':checked')== true){
-                        if(!vm.species_community.documents.includes(id)){ 
+                        if(!vm.species_community.documents.includes(id)){
                             vm.species_community.documents.push(parseInt(id));
                         }
                     }
@@ -290,4 +291,3 @@ export default {
     border-bottom:none;
     }
 </style>
-

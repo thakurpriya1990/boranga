@@ -102,6 +102,7 @@ import datatable from '@/utils/vue/datatable.vue'
 import Vue from 'vue'
 
 import {
+    constants,
     api_endpoints,
     helpers
 }from '@/utils/hooks'
@@ -168,7 +169,7 @@ export default {
             ],
             proposal_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 serverSide: true,

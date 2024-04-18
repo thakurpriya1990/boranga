@@ -29,7 +29,7 @@
 
 <script>
 import { v4 as uuid } from 'uuid'
-import { api_endpoints, helpers } from '@/utils/hooks'
+import { constants, helpers } from '@/utils/hooks'
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
@@ -122,7 +122,7 @@ export default {
             return {
                 autoWidth: false,
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 //serverSide: true,

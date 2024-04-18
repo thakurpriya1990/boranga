@@ -7,7 +7,7 @@
                         <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="row mb-3">
-                                <div class="col-sm-offset-2 col-sm-8">
+                                <div class="col-sm-6">
                                     <div class="form-group">
                                         <label class="control-label pull-left" for="Name">Reason</label>
                                         <select class="form-select" name="reason" ref="reason"
@@ -18,7 +18,7 @@
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <div class="col-sm-offset-2 col-sm-8">
+                                <div class="col">
                                     <div class="form-group">
                                         <label class="control-label pull-left" for="Name">Details</label>
                                         <textarea class="form-control" name="name" v-model="amendment.text"
@@ -27,15 +27,12 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-sm-offset-2 col-sm-8">
-                                    <div class="form-group">
-                                        <div class="input-group date" ref="add_attachments" style="width: 70%;">
-                                            <FileField2 ref="filefield"
-                                                :uploaded_documents="amendment.amendment_request_documents"
-                                                :delete_url="delete_url" :proposal_id="occurrence_report_id"
-                                                :isRepeatable="true" name="amendment_request_file" />
-                                        </div>
-                                    </div>
+                                <div class="col">
+                                    <label class="control-label pull-left" for="amendment_request_file">Documents</label>
+                                    <FileField2 ref="filefield"
+                                        :uploaded_documents="amendment.amendment_request_documents"
+                                        :delete_url="delete_url" :proposal_id="occurrence_report_id"
+                                        :isRepeatable="true" name="amendment_request_file" />
                                 </div>
                             </div>
                         </div>
@@ -96,7 +93,6 @@ export default {
         }
     },
     methods: {
-
         ok: function () {
             let vm = this;
             if ($(vm.form).valid()) {

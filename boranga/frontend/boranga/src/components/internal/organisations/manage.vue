@@ -102,7 +102,7 @@
                                                             <label class="control-label pull-left"  for="Name">Waiver</label>
                                                         </div>
                                                         <div class="col-sm-6 input-group">
-                                                            <label class="input-group-addon" for="number">$</label> 
+                                                            <label class="input-group-addon" for="number">$</label>
                                                             <input type="number" class="form-control" min="0" name="application_discount" v-model.number="org.application_discount" @input="handleApplicationCurrencyInput">
                                                         </div>
                                                         <div v-show="!validateApplicationDiscount()">
@@ -135,7 +135,7 @@
                                                             <label class="control-label pull-left"  for="Name">Waiver</label>
                                                         </div>
                                                         <div class="col-sm-6 input-group">
-                                                            <label class="input-group-addon" for="number">$</label> 
+                                                            <label class="input-group-addon" for="number">$</label>
                                                             <input type="number" class="form-control" min="0" name="licence_discount" v-model.number="org.licence_discount" @input="handleLicenceCurrencyInput">
                                                         </div>
                                                         <div v-show="!validateLicenceDiscount()">
@@ -154,12 +154,12 @@
                                                 <div class="col-sm-4">
                                                     <label>
                                                         <!--
-                                                        <input id="id_dt_clr" type="date" :value="null" v-model="org.charge_once_per_year" ref="charge_once_per_year" 
+                                                        <input id="id_dt_clr" type="date" :value="null" v-model="org.charge_once_per_year" ref="charge_once_per_year"
                                                                :title="charge_once_title() + '.\n(Current year is assumed - Only Day and Month is used in this field for current year)'"
                                                         />
                                                         -->
                                                         <!--<button onclick="javascript:id_dt_clr.value=''">X</button>-->
-                                                        <input id="id_dt_clr" type="text" class="form-control" placeholder="DD/MM" v-model="org.charge_once_per_year" ref="charge_once_per_year" 
+                                                        <input id="id_dt_clr" type="text" class="form-control" placeholder="DD/MM" v-model="org.charge_once_per_year" ref="charge_once_per_year"
                                                                :title="charge_once_title()"
                                                         />
                                                     </label>
@@ -297,8 +297,8 @@
                                                 <div class="col-sm-12 top-buffer-s">
                                                     <strong>Persons linked to the organisation are controlled by the organisation. The Department cannot manage this list of people.</strong>
                                                 </div>
-                                            </div> 
-                                        </div><!-- 
+                                            </div>
+                                        </div><!--
                                         <div class="col-sm-4" v-if="org.pins">
                                           <form class="form-horizontal" action="index.html" method="post">
                                               <div class="form-group">
@@ -354,7 +354,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div> 
+                    </div>
                     <div :id="oTab" class="tab-pane fade">
                         <ProposalDashTable ref="proposals_table" level='internal' :url='proposals_url'/>
                         <ApprovalDashTable ref="approvals_table" level='internal' :url='approvals_url'/>
@@ -372,7 +372,7 @@
 <script>
 //import $ from 'jquery'
 import Vue from 'vue'
-import { api_endpoints, helpers } from '@/utils/hooks'
+import { api_endpoints, constants, helpers } from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
 import AddContact from '@common-utils/add_contact.vue'
 import ProposalDashTable from '@common-utils/proposals_dashboard.vue'
@@ -427,7 +427,7 @@ export default {
 
             contacts_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 ajax: {
@@ -639,7 +639,7 @@ export default {
                     }
                 }
                 swal(
-                    'Error', 
+                    'Error',
                     'Organisation details have cannot be saved because of the following error: '+text,
                     'error'
                 )
@@ -657,12 +657,12 @@ export default {
         },
         deleteContact: function(id){
             let vm = this;
-            
+
             vm.$http.delete(helpers.add_endpoint_json(api_endpoints.organisation_contacts,id),{
                 emulateJSON:true
             }).then((response) => {
                 swal(
-                    'Contact Deleted', 
+                    'Contact Deleted',
                     'The contact was successfully deleted',
                     'success'
                 )
@@ -670,7 +670,7 @@ export default {
             }, (error) => {
                 console.log(error);
                 swal(
-                    'Contact Deleted', 
+                    'Contact Deleted',
                     'The contact could not be deleted because of the following error : [' + error.body + ']',
                     'error'
                 )

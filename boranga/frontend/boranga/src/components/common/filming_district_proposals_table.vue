@@ -1,6 +1,6 @@
 <template id="district_proposal_table">
     <div class="row">
-        <div class="col-sm-12"> 
+        <div class="col-sm-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">District Applications
@@ -25,8 +25,7 @@
 <script>
 import datatable from '@/utils/vue/datatable.vue'
 import {
-    api_endpoints,
-    helpers
+    constants,
 }from '@/utils/hooks'
 export default {
     name: 'FilmingDistrictProposalTableDash',
@@ -45,11 +44,11 @@ export default {
         return {
             pBody: 'pBody' + vm._uid,
             datatable_id: 'district-proposal-datatable-'+vm._uid,
-            
+
             district_proposal_headers:["District","Status","Assigned Officer","Action"],
             district_proposal_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 ajax: {
@@ -64,7 +63,7 @@ export default {
                 columns: [
                     {
                         data: "district_name",
-                       
+
                     },
                     {
                         data: "processing_status",
@@ -77,17 +76,17 @@ export default {
                         data: '',
                         mRender:function (data,type,full) {
                             let links = '';
-                            
+
                            links +=  full.district_assessor_can_assess ? `<a href='/internal/proposal/${full.proposal}/district_proposal/${full.id}'>Process</a><br/>`: `<a href='/internal/proposal/${full.proposal}/district_proposal/${full.id}'>View</a><br/>`;
-                        
-                        
+
+
                             return links;
                         },
-                        // name: ''  
+                        // name: ''
                     },
                 ],
                 processing: true,
-                
+
             }
         }
     },
@@ -116,14 +115,14 @@ export default {
             //console.log(vm.regions);
         },
         addEventListeners: function(){
-            
+
         },
         refreshFromResponse: function(){
             this.$refs.district_proposal_datatable.vmDataTable.ajax.reload();
         },
         initialiseSearch:function(){
-            
-        }, 
+
+        },
     },
     mounted: function(){
         let vm = this;
@@ -132,7 +131,7 @@ export default {
             vm.addEventListeners();
             vm.initialiseSearch();
         });
-       
+
     }
 }
 </script>

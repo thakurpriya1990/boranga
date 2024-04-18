@@ -1,18 +1,34 @@
 <template lang="html">
     <div class="container">
         <form :action="ocr_proposal_form_url" method="post" name="new_ocr_proposal" enctype="multipart/form-data">
+
             <div v-if="!ocr_proposal_readonly">
                 <div v-if="hasAmendmentRequest" class="row">
                     <div class="col-lg-12 pull-right">
                         <FormSection :formCollapse="false"
-                            label="An amendment has been requested for this Occurrence Report" Index="amendment_request"
-                            customColor="red">
-                            <div v-for="a in amendment_request">
-                                <p>Reason: {{ a.reason }}</p>
-                                <p>Details:
-                                <p v-for="t in splitText(a.text)">{{ t }}</p>
-                                </p>
-                            </div>
+                            label="One or more amendments have been requested for this Occurrence Report"
+                            Index="amendment_request" customColor="red">
+                            <ul class="list-group list-group-numbered ps-2">
+                                <li v-for="a in amendment_request"
+                                    class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-4 me-auto">
+                                        <div><span class="fw-bold">Reason:</span> {{ a.reason }}</div>
+                                        <p v-for="t in splitText(a.text)">{{ t }}</p>
+                                        <template
+                                            v-if="a.amendment_request_documents && a.amendment_request_documents.length > 0">
+                                            <div class="fw-bold mb-1">Documents:</div>
+                                            <ul class="list-group list-group-numbered mb-2">
+                                                <li v-for="document in a.amendment_request_documents"
+                                                    class="list-group-item">
+                                                    <i class="bi bi-file-earmark-text-fill text-secondary"></i> <a
+                                                        :href="document._file" target="_blank">{{
+                                                            document.name }}</a>
+                                                </li>
+                                            </ul>
+                                        </template>
+                                    </div>
+                                </li>
+                            </ul>
                         </FormSection>
                     </div>
                 </div>
@@ -35,42 +51,40 @@
                     <div class="container">
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div class="navbar-inner-right">
-                                    <div v-if="occurrence_report_obj && !occurrence_report_obj.readonly"
-                                        class="container">
-                                        <p class="pull-right" style="margin-top:5px">
-                                            <button v-if="savingOCRProposal" type="button" class="btn btn-primary me-2"
-                                                disabled>Save and Continue&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <input v-else type="button" @click.prevent="save"
-                                                class="btn btn-primary me-2" value="Save and Continue"
-                                                :disabled="saveExitOCRProposal || submitting" />
+                                <div v-if="occurrence_report_obj && !occurrence_report_obj.readonly" class="container">
+                                    <div class="col-md-12 text-end" style="margin-top:5px">
+                                        <button v-if="savingOCRProposal" type="button" class="btn btn-primary me-2"
+                                            disabled>Save
+                                            and Continue&nbsp;
+                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2"
+                                            value="Save and Continue" :disabled="saveExitOCRProposal || submitting" />
 
-                                            <button v-if="saveExitOCRProposal" type="button"
-                                                class="btn btn-primary me-2" disabled>Save and Exit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <input v-else type="button" @click.prevent="save_exit"
-                                                class="btn btn-primary me-2" value="Save and Exit"
-                                                :disabled="savingOCRProposal || submitting" />
+                                        <button v-if="saveExitOCRProposal" type="button" class="btn btn-primary me-2"
+                                            disabled>Save
+                                            and Exit&nbsp;
+                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <input v-else type="button" @click.prevent="save_exit"
+                                            class="btn btn-primary me-2" value="Save and Exit"
+                                            :disabled="savingOCRProposal || submitting" />
 
-                                            <button v-if="submitting" type="button" class="btn btn-primary" disabled>{{
-                                                submit_text() }}&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <input v-else type="button" @click.prevent="submit" class="btn btn-primary"
-                                                :value="submit_text()"
-                                                :disabled="saveExitOCRProposal || savingOCRProposal" />
-                                            <input id="save_and_continue_btn" type="hidden"
-                                                @click.prevent="save_wo_confirm" class="btn btn-primary"
-                                                value="Save Without Confirmation" />
-                                        </p>
+                                        <button v-if="submitting" type="button" class="btn btn-primary" disabled>{{
+                                            submit_text() }}&nbsp;
+                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                        <input v-else type="button" @click.prevent="submit" class="btn btn-primary"
+                                            :value="submit_text()"
+                                            :disabled="saveExitOCRProposal || savingOCRProposal" />
+                                        <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm"
+                                            class="btn btn-primary" value="Save Without Confirmation" />
                                     </div>
-                                    <div v-else class="container">
-                                        <p class="pull-right" style="margin-top:5px;">
-                                            <router-link class="btn btn-primary"
-                                                :to="{ name: 'external-occurrence_report-dash' }">Back to
-                                                Dashboard</router-link>
-                                        </p>
-                                    </div>
+                                </div>
+                                <div v-else class="container">
+                                    <p class="pull-right" style="margin-top:5px;">
+                                        <router-link class="btn btn-primary"
+                                            :to="{ name: 'external-occurrence_report-dash' }">Back
+                                            to
+                                            Dashboard</router-link>
+                                    </p>
                                 </div>
                             </div>
                         </div>

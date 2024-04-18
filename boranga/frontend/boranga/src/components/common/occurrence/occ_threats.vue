@@ -27,14 +27,15 @@
     </div>
 </template>
 <script>
-import Vue from 'vue' 
+import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from '@/components/common/species_communities/add_threat.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import ConservationThreatHistory from '../../internal/occurrence/occ_conservation_threat_history.vue';
 import {
-  api_endpoints,
-  helpers,
+    constants,
+    api_endpoints,
+    helpers,
 }
 from '@/utils/hooks'
 
@@ -66,7 +67,7 @@ export default {
                 threats_options:{
                     autowidth: false,
                     language:{
-                        processing: "<i class='fa fa-4x fa-spinner'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML
                     },
                     responsive: true,
                     searching: true,
@@ -89,7 +90,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> Excel',
                             className: 'btn btn-primary me-2 rounded',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                         {
@@ -97,7 +98,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> CSV',
                             className: 'btn btn-primary rounded',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                     ],
@@ -236,7 +237,7 @@ export default {
                         setTimeout(function (){
                             vm.adjust_table_width();
                         },100);
-                    }, 
+                    },
                 }
             }
         },
@@ -255,7 +256,7 @@ export default {
             },
         },
         watch:{
-            
+
         },
         methods:{
             newThreat: function(){
@@ -282,10 +283,10 @@ export default {
                 this.$refs.threat_detail.threat_id = id;
                 this.$refs.threat_detail.threat_action='edit';
                 Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_threat,id)).then((response) => {
-                      this.$refs.threat_detail.threatObj=response.body; 
+                      this.$refs.threat_detail.threatObj=response.body;
                       this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
                     },
-                  err => { 
+                  err => {
                             console.log(err);
                       });
                 this.$refs.threat_detail.isModalOpen = true;
@@ -295,10 +296,10 @@ export default {
                 this.$refs.threat_detail.threat_id = id;
                 this.$refs.threat_detail.threat_action='view';
                 Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_threat,id)).then((response) => {
-                      this.$refs.threat_detail.threatObj=response.body; 
+                      this.$refs.threat_detail.threatObj=response.body;
                       this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
                     },
-                  err => { 
+                  err => {
                             console.log(err);
                       });
                 this.$refs.threat_detail.isModalOpen = true;
@@ -433,4 +434,3 @@ export default {
     border-bottom:none;
     }
 </style>
-

@@ -29,14 +29,15 @@
     </div>
 </template>
 <script>
-import Vue from 'vue' 
+import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '@/components/common/add_document.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import ConservationStatusDocumentHistory from '../../internal/conservation_status/cs_document_history.vue';
 import {
-  api_endpoints,
-  helpers,
+    constants,
+    api_endpoints,
+    helpers,
 }
 from '@/utils/hooks'
 
@@ -63,7 +64,7 @@ export default {
                 documents_options:{
                     autowidth: true,
                     language:{
-                        processing: "<i class='fa fa-4x fa-spinner'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML
                     },
                     responsive: true,
                     searching: true,
@@ -86,7 +87,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> Excel',
                             className: 'btn btn-primary me-2 rounded',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                         {
@@ -94,7 +95,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> CSV',
                             className: 'btn btn-primary rounded',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                     ],
@@ -205,7 +206,7 @@ export default {
                         setTimeout(function (){
                             vm.adjust_table_width();
                         },100);
-                    }, 
+                    },
                 }
             }
         },
@@ -218,7 +219,7 @@ export default {
         computed: {
         },
         watch:{
-            
+
         },
         methods:{
             newDocument: function(){
@@ -245,14 +246,14 @@ export default {
                 this.$refs.document_detail.document_action='edit';
                 this.$refs.document_detail.title='Edit a Document';
                 Vue.http.get(helpers.add_endpoint_json(api_endpoints.conservation_status_documents,id)).then((response) => {
-                      this.$refs.document_detail.documentObj=response.body; 
+                      this.$refs.document_detail.documentObj=response.body;
                       this.$refs.document_detail.documentObj.uploaded_date =  response.body.uploaded_date != null && response.body.uploaded_date != undefined ? moment(response.body.uploaded_date).format('yyyy-MM-DDTHH:mm'): '';
                       this.$refs.document_detail.uploaded_document = [response.body];
                       //-----this method is called as it wasn't fetching subcategory
                       this.$refs.document_detail.fetchSubCategory(response.body.document_category);
-                          
+
                     },
-                  err => { 
+                  err => {
                             console.log(err);
                       });
                 //this.$refs.document_detail.fetchConservationStatusDocument(id);
@@ -385,4 +386,3 @@ export default {
     border-bottom:none;
     }
 </style>
-

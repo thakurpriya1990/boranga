@@ -82,6 +82,7 @@
 <script>
 import datatable from '@/utils/vue/datatable.vue'
 import {
+    constants,
     api_endpoints,
     helpers
 }from '@/utils/hooks'
@@ -121,7 +122,7 @@ export default {
                 customProposalSearch: true,
                 tableID: 'proposal-datatable-'+vm._uid,
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 serverSide: true,

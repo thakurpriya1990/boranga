@@ -400,10 +400,9 @@ export default {
                             {
                                 links +=  `<a href='/internal/occurrence_report/${full.id}'>Continue</a><br/>`;
                                 links +=  `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
-                                links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                             }
                             else{
-                                if(full.assessor_process){
+                                if(full.can_user_assess){
                                         links +=  `<a href='/internal/occurrence_report/${full.id}'>Process</a><br/>`;
                                 }
                                 else{
@@ -411,9 +410,9 @@ export default {
                                         links +=  `<a href='/internal/occurrence_report/${full.id}?action=edit'>Edit</a><br/>`;
                                     }
                                     links +=  `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
-                                    links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                                 }
                             }
+                            links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                         }
                     return links;
                 }
