@@ -287,7 +287,7 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
                'revision_sequence': id_sequence_index.index(version.revision_id),
                'revision_user_email': user_email,
                'revision_user': user_name,
-               'date_created': version.revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
+               'date_created': version.revision.date_created.astimezone().strftime("%Y-%m-%d %H:%M:%S"),
                'data': data,
                }
             )
@@ -327,7 +327,7 @@ class GetRevisionVersionsView(InternalAuthorizationView):
 
         revision_dict = {
             'revision_id': primary_version[0].revision_id,
-            'date_created': primary_version[0].revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
+            'date_created': primary_version[0].revision.date_created.astimezone().strftime("%Y-%m-%d %H:%M:%S"),
             'revision_user_email': user_email,
             'revision_user': user_name,
         }
