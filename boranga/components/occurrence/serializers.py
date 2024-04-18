@@ -22,9 +22,9 @@ from boranga.components.occurrence.models import (
     Location,
     ObservationDetail,
     ObserverDetail,
+    OCCConservationThreat,
     Occurrence,
     OccurrenceDocument,
-    OCCConservationThreat,
     OccurrenceLogEntry,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
@@ -1492,6 +1492,7 @@ class OccurrenceReportAmendmentRequestSerializer(serializers.ModelSerializer):
         model = OccurrenceReportAmendmentRequest
         fields = "__all__"
 
+
 class OCCConservationThreatSerializer(serializers.ModelSerializer):
     threat_category = serializers.SerializerMethodField()
     threat_agent = serializers.SerializerMethodField()
@@ -1572,3 +1573,7 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
             "date_observed",
         )
 
+
+class ProposeDeclineSerializer(serializers.Serializer):
+    reason = serializers.CharField()
+    cc_email = serializers.CharField(required=False, allow_null=True)
