@@ -129,7 +129,7 @@ class Region(models.Model):
 
 class District(models.Model):
     name = models.CharField(unique=True, max_length=64)
-    code = models.CharField(unique=True, max_length=3)
+    code = models.CharField(unique=True, max_length=3, null=True)
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
 
     class Meta:
