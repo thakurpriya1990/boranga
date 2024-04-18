@@ -82,6 +82,7 @@ export default {
             return [
                 'Number',
                 'Date Modified',
+                'Modified By',
                 'Category',
                 'Comment',
                 'Action',
@@ -170,6 +171,19 @@ export default {
                 name: 'revision_date',
             };
         },
+        column_revision_user: function () {
+            return {
+                
+                data: 'revision_user',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    return full.revision_user;
+                },
+                name: 'revision_user',
+            };
+        },
         column_category: function () {
             return {
                 data: 'data.data.ocrconservationthreat.fields.threat_category', 
@@ -222,6 +236,7 @@ export default {
                 vm.column_sequence,
                 //vm.column_number,
                 vm.column_revision_date,
+                vm.column_revision_user,
                 vm.column_category,
                 vm.column_comment,
                 vm.column_action,

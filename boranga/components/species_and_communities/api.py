@@ -2083,7 +2083,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                serializer = CreateCommunityDocumentSerializer(data= json.loads(request.data.get('data')))
+                serializer = SaveCommunityDocumentSerializer(data= json.loads(request.data.get('data')))
                 serializer.is_valid(raise_exception = True)
                 instance = serializer.save(no_revision=True) #only conduct revisions when documents have been added
                 instance.add_documents(request, version_user=request.user)

@@ -277,13 +277,16 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
                         data[model._meta.model_name]["fields"][i] = self.lookup_getter.lookup_values[i][data[model._meta.model_name]["fields"][i]]
 
             user_email = ""
+            user_name = ""
             if version.revision.user:
                 user_email = version.revision.user.email
+                user_name = version.revision.user.first_name + " " + version.revision.user.last_name
 
             versions_list.append({
                'revision_id': version.revision_id,
                'revision_sequence': id_sequence_index.index(version.revision_id),
                'revision_user_email': user_email,
+               'revision_user': user_name,
                'date_created': version.revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
                'data': data,
                }
@@ -316,9 +319,17 @@ class GetRevisionVersionsView(InternalAuthorizationView):
         model = apps.get_model(app_label=app_label,model_name=model_name)
         self.lookup_getter.getVersionModelLookUpFieldValues(primary_version,model)
 
+        user_email = ""
+        user_name = ""
+        if primary_version[0].revision.user:
+            user_email = primary_version[0].revision.user.email
+            user_name = primary_version[0].revision.user.first_name + " " + primary_version[0].revision.user.last_name
+
         revision_dict = {
             'revision_id': primary_version[0].revision_id,
             'date_created': primary_version[0].revision.date_created.strftime("%Y-%m-%d %H:%M:%S"),
+            'revision_user_email': user_email,
+            'revision_user': user_name,
         }
         version_data = {}
 

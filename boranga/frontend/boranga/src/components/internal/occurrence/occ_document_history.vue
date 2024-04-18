@@ -88,6 +88,7 @@ export default {
             return [
                 'Number',
                 'Date Modified',
+                'Modified By',
                 'Category',
                 'Sub Category',
                 'Document',
@@ -176,6 +177,19 @@ export default {
                     return full.date_created;
                 },
                 name: 'revision_date',
+            };
+        },
+        column_revision_user: function () {
+            return {
+                
+                data: 'revision_user',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    return full.revision_user;
+                },
+                name: 'revision_user',
             };
         },
         column_category: function () {
@@ -275,6 +289,7 @@ export default {
                 vm.column_sequence,
                 //vm.column_number,
                 vm.column_revision_date,
+                vm.column_revision_user,
                 vm.column_category,
                 vm.column_sub_category,
                 vm.column_file,
