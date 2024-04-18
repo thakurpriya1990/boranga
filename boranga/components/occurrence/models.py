@@ -662,8 +662,6 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
                 occurrence_report.processing_status = "draft"
                 occurrence_report.customer_status = "draft"
                 occurrence_report.save()
-                # TODO at the moment occurrence_report is not having it's document model
-                # occurrence_report.documents.all().update(can_hide=True)
 
             # Create a log entry for the occurrence report
             occurrence_report.log_user_action(
