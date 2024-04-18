@@ -25,6 +25,7 @@ from boranga.components.main.models import (
 )
 from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
+    send_approver_decline_email_notification,
     send_occurrence_report_amendment_email_notification,
     send_occurrence_report_referral_complete_email_notification,
     send_occurrence_report_referral_email_notification,
@@ -508,6 +509,51 @@ class OccurrenceReport(RevisionedMixin):
     @property
     def amendment_requests(self):
         return OccurrenceReportAmendmentRequest.objects.filter(occurrence_report=self)
+
+    @transaction.atomic
+    def propose_decline(self, request, details):
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
+
+        if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR:
+            raise ValidationError(
+                f"You cannot propose to decline Occurrence Report {self} as the processing status is not "
+                f"{OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR}"
+            )
+
+        reason = details.get("reason")
+        OccurrenceReportDeclinedDetails.objects.update_or_create(
+            conservation_status=self,
+            defaults={
+                "officer": request.user.id,
+                "reason": reason,
+                "cc_email": details.get("cc_email", None),
+            },
+        )
+
+        self.proposed_decline_status = True
+        approver_comment = ""
+        self.move_to_status(request, "with_approver", approver_comment)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_PROPOSED_DECLINE.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
+        send_approver_decline_email_notification(reason, request, self)
+
+
+class OccurrenceReportDeclinedDetails(models.Model):
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE)
+    officer = models.IntegerField()  # EmailUserRO
+    reason = models.TextField(blank=True)
+    cc_email = models.TextField(null=True)
+
+    class Meta:
+        app_label = "boranga"
 
 
 class OccurrenceReportLogEntry(CommunicationsLogEntry):
