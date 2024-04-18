@@ -21,8 +21,8 @@
 import datatable from '@/utils/vue/datatable.vue'
 import editRecord from './edit_abseiling_climbing.vue'
 import {
+    constants,
     api_endpoints,
-    helpers
 }from '@/utils/hooks'
 export default {
     name: 'AbseilingClimbingTableDash',
@@ -72,7 +72,7 @@ export default {
             abseiling_climbing_headers:["Leader","Expiry Date","Action"],
             abseiling_climbing_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 //serverSide: true,

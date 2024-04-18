@@ -93,7 +93,6 @@ export default {
         }
     },
     methods: {
-
         ok: function () {
             let vm = this;
             if ($(vm.form).valid()) {

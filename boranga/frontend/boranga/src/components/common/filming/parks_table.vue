@@ -21,8 +21,8 @@
 import datatable from '@/utils/vue/datatable.vue'
 import editPark from './edit_park.vue'
 import {
+    constants,
     api_endpoints,
-    helpers
 }from '@/utils/hooks'
 export default {
     name: 'ParkTableDash',
@@ -76,7 +76,7 @@ export default {
             park_headers:["Park or Reserve","Feature or site of Interest","From","To","Itinerary/ Maps","Action"],
             park_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 //serverSide: true,

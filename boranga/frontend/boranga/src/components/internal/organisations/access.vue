@@ -7,7 +7,7 @@
             <div class="row">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                       Submission 
+                       Submission
                     </div>
                     <div class="panel-body panel-collapse">
                         <div class="row">
@@ -35,7 +35,7 @@
             <div class="row">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        Workflow 
+                        Workflow
                     </div>
                     <div class="panel-body panel-collapse">
                         <div class="row">
@@ -71,7 +71,7 @@
             <div class="row">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3>Organisation Access Request</h3> 
+                        <h3>Organisation Access Request</h3>
                     </div>
                     <div class="panel-body panel-collapse">
                         <div class="row">
@@ -82,37 +82,37 @@
                                         <div class="col-sm-6">
                                             <input type="text" disabled class="form-control" name="name" placeholder="" v-model="access.name">
                                         </div>
-                                    </div>   
+                                    </div>
                                     <div class="form-group">
                                         <label for="" class="col-sm-3 control-label">ABN</label>
                                         <div class="col-sm-6">
                                             <input type="text" disabled class="form-control" name="abn" placeholder="" v-model="access.abn">
                                         </div>
-                                    </div>   
+                                    </div>
                                     <div class="form-group">
                                         <label for="" class="col-sm-3 control-label">Letter</label>
                                         <div class="col-sm-6">
                                             <a target="_blank" :href="access.identification"><i class="fa fa-file-pdf-o"></i>&nbsp;Letter</a>
                                         </div>
-                                    </div>   
+                                    </div>
                                     <div class="form-group" style="margin-top:50px;">
                                         <label for="" class="col-sm-3 control-label">Phone</label>
                                         <div class="col-sm-6">
                                             <input type="text" disabled class="form-control" name="phone" placeholder="" v-model="access.requester.phone_number">
                                         </div>
-                                    </div>   
+                                    </div>
                                     <div class="form-group">
                                         <label for="" class="col-sm-3 control-label">Mobile</label>
                                         <div class="col-sm-6">
                                             <input type="text" disabled class="form-control" name="mobile" placeholder="" v-model="access.requester.mobile_number">
                                         </div>
-                                    </div>   
+                                    </div>
                                     <div class="form-group">
                                         <label for="" class="col-sm-3 control-label">Email</label>
                                         <div class="col-sm-6">
                                             <input type="text" disabled class="form-control" name="email" placeholder="" v-model="access.requester.email">
                                         </div>
-                                    </div>   
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -130,6 +130,7 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import {
   api_endpoints,
+  constants,
   helpers
 }
 from '@/utils/hooks'
@@ -151,10 +152,10 @@ export default {
         comms_add_url: helpers.add_endpoint_json(api_endpoints.organisation_requests,vm.$route.params.access_id+'/add_comms_log'),
         actionDtOptions:{
             language: {
-                processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                processing: constants.DATATABLE_PROCESSING_HTML
             },
             responsive: true,
-            deferRender: true, 
+            deferRender: true,
             autowidth: true,
             order: [[2, 'desc']],
             dom:
@@ -185,10 +186,10 @@ export default {
         actionsTable : null,
         commsDtOptions:{
             language: {
-                processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                processing: constants.DATATABLE_PROCESSING_HTML
             },
             responsive: true,
-            deferRender: true, 
+            deferRender: true,
             autowidth: true,
             order: [[0, 'desc']],
             processing:true,
@@ -398,7 +399,7 @@ export default {
                     }
                 }
                 swal(
-                    'Error', 
+                    'Error',
                     'Organisation request cannot be accepted because of the following error: '+text,
                     'error'
                 )
@@ -434,16 +435,16 @@ export default {
         let vm = this;
         Vue.http.get(api_endpoints.profile).then((response) => {
             vm.profile = response.body
-                              
+
          },(error) => {
             console.log(error);
-                
+
         })
         },
 
     check_assessor: function(){
         let vm = this;
-        
+
         var assessor = vm.members.filter(function(elem){
                     return(elem.name==vm.profile.full_name);
                 });
@@ -457,7 +458,7 @@ export default {
     let vm = this;
     this.fetchAccessGroupMembers();
     this.fetchProfile();
-    
+
   }
 }
 </script>

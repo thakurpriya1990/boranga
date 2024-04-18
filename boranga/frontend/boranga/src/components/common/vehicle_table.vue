@@ -21,8 +21,8 @@
 import datatable from '@/utils/vue/datatable.vue'
 import editVehicle from './edit_vehicle.vue'
 import {
+    constants,
     api_endpoints,
-    helpers
 }from '@/utils/hooks'
 export default {
     name: 'VehicleTableDash',
@@ -77,7 +77,7 @@ export default {
             vehicle_headers:["Vehicle Type","Seating capacity","Registration no.","Registration Expiry","Transport license no.","Action"],
             vehicle_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 //serverSide: true,

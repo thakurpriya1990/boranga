@@ -59,6 +59,7 @@ import OnHold from './proposal_onhold.vue'
 import WithQAOfficer from './proposal_qaofficer.vue'
 import {
     api_endpoints,
+    constants,
     helpers
 }
 from '@/utils/hooks'
@@ -88,7 +89,7 @@ export default {
             contacts_table_id: vm._uid+'contacts-table',
             contacts_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 ajax: {
@@ -262,9 +263,9 @@ export default {
             let values = '';
             $('.deficiency').each((i,d) => {
                 values +=  $(d).val() != '' ? `Question - ${$(d).data('question')}\nDeficiency - ${$(d).val()}\n\n`: '';
-            }); 
+            });
             this.$refs.amendment_request.amendment.text = values;
-            
+
             this.$refs.amendment_request.isModalOpen = true;
         },
         onHold: function(){
@@ -298,7 +299,7 @@ export default {
             formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
             vm.$http.post(vm.proposal_form_url,formData).then(res=>{
 
-              
+
                 },err=>{
             });
         },
@@ -409,7 +410,7 @@ export default {
             formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
             formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
             vm.$http.post(vm.proposal_form_url,formData).then(res=>{ //save Proposal before changing status so that unsaved assessor data is saved.
-            
+
             let data = {'status': status, 'approver_comment': vm.approver_comment}
             vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/switch_status')),JSON.stringify(data),{
                 emulateJSON:true,
@@ -433,7 +434,7 @@ export default {
                     'error'
                 )
             });
-              
+
           },err=>{
           });
         }
@@ -568,7 +569,7 @@ export default {
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.selected_referral = '' 
+                    vm.selected_referral = ''
                 });
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
@@ -581,10 +582,10 @@ export default {
             formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
             formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
             formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-            
+
             vm.sendingReferral = true;
             vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-            
+
                 let data = {'email_group':vm.selected_referral, 'text': vm.referral_text};
                 //vm.sendingReferral = true;
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assesor_send_referral')),JSON.stringify(data),{
@@ -615,13 +616,13 @@ export default {
                     vm.sendingReferral = false;
                 });
 
-              
+
             },err=>{
             });
         },
         remindReferral:function(r){
             let vm = this;
-            
+
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/remind')).then(response => {
                 vm.original_proposal = helpers.copyObject(response.body);
                 vm.proposal = response.body;
@@ -642,7 +643,7 @@ export default {
         },
         resendReferral:function(r){
             let vm = this;
-            
+
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/resend')).then(response => {
                 vm.original_proposal = helpers.copyObject(response.body);
                 vm.proposal = response.body;
@@ -663,7 +664,7 @@ export default {
         },
         recallReferral:function(r){
             let vm = this;
-            
+
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/recall')).then(response => {
                 vm.original_proposal = helpers.copyObject(response.body);
                 vm.proposal = response.body;
@@ -682,13 +683,13 @@ export default {
                 )
             });
         }
-        
+
     },
     mounted: function() {
         let vm = this;
         vm.fetchDeparmentUsers();
         vm.fetchReferralRecipientGroups();
-        
+
     },
     updated: function(){
         let vm = this;
@@ -698,7 +699,7 @@ export default {
         //         window.setTimeout(function () {
         //             $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
         //         },100);
-        //     }); 
+        //     });
         //     vm.panelClickersInitialised = true;
         // }
         this.$nextTick(() => {

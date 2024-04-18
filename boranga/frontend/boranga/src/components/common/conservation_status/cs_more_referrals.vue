@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { api_endpoints, helpers } from '@/utils/hooks'
+import { constants, api_endpoints, helpers } from '@/utils/hooks'
 
 export default {
     name: 'ConservationStatusMoreReferrals',
@@ -35,7 +35,7 @@ export default {
             datatable_url: '',
             datatable_options: {
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 deferRender: true,
@@ -219,7 +219,7 @@ export default {
                 placement: 'right',
                 trigger: "click focus",
                 //offset: '0 10',
-            }) 
+            })
             popover_elem.addEventListener('inserted.bs.popover', function () {
                 console.log('in inserted.bs.popover')
 

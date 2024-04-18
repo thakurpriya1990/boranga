@@ -83,6 +83,7 @@ import Vue from 'vue'
 // require("select2/dist/css/select2.min.css");
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
 import {
+    constants,
     api_endpoints,
     helpers
 }from '@/utils/hooks'
@@ -356,7 +357,7 @@ export default {
             return {
                 autoWidth: false,
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 order: [
                     [0, 'desc']

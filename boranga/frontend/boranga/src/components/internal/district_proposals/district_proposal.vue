@@ -9,7 +9,7 @@
             <div class="row">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                       Submission 
+                       Submission
                     </div>
                     <div class="panel-body panel-collapse">
                         <div class="row">
@@ -37,7 +37,7 @@
             <div class="row">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        Workflow 
+                        Workflow
                     </div>
                     <div class="panel-body panel-collapse">
                         <div class="row">
@@ -48,8 +48,8 @@
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
-                            
-                            
+
+
                             <template v-if="district_proposal.processing_status == 'With Assessor (Requirements)' || district_proposal.processing_status == 'With Approver' || isFinalised">
                                 <div class="col-sm-12">
                                         <strong>Application</strong><br/>
@@ -91,7 +91,7 @@
                                     </template>
                                 </div>
                             </div>
-                            
+
                             <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
                                 <template v-if="district_proposal.processing_status == 'With Assessor'">
                                     <div class="row">
@@ -110,7 +110,7 @@
                                         <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="proposedDecline()">Propose to Decline</button>
                                         </div>
-                                    </div>  
+                                    </div>
                                 </template>
                                 <template v-else-if="district_proposal.processing_status == 'With Assessor (Requirements)'">
                                     <div class="row">
@@ -193,12 +193,12 @@
                                 <div class="navbar navbar-fixed-bottom" v-if="!proposal.can_user_edit && !isFinalised" style="background-color: #f5f5f5 ">
                                         <div class="navbar-inner">
                                             <div v-if="!isFinalised" class="container">
-                                            <p class="pull-right">                       
+                                            <p class="pull-right">
                                             <button class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
-                                            </p>                      
-                                            </div>                   
+                                            </p>
+                                            </div>
                                         </div>
-                                </div>      
+                                </div>
                         </form>
                     </div>
                 </div>
@@ -226,6 +226,7 @@ import ProposedApproval from './district_proposed_issuance.vue'
 
 import {
     api_endpoints,
+    constants,
     helpers
 }
 from '@/utils/hooks'
@@ -259,7 +260,7 @@ export default {
             contacts_table_id: vm._uid+'contacts-table',
             contacts_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 ajax: {
@@ -353,7 +354,7 @@ export default {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
         },
         isFinalised: function(){
-            return this.district_proposal.processing_status == 'Declined' || this.district_proposal.processing_status == 'Approved'; 
+            return this.district_proposal.processing_status == 'Declined' || this.district_proposal.processing_status == 'Approved';
         },
         canSeeSubmission: function(){
             return this.district_proposal && (this.district_proposal.processing_status != 'With Assessor (Requirements)' && this.district_proposal.processing_status != 'With Approver' && !this.isFinalised)
@@ -388,7 +389,7 @@ export default {
             let values = '';
             //$('.deficiency').each((i,d) => {
             //    values +=  $(d).val() != '' ? `Question - ${$(d).data('question')}\nDeficiency - ${$(d).val()}\n\n`: '';
-            //}); 
+            //});
             //this.$refs.amendment_request.amendment.text = values;
             this.$refs.complete_referral.isModalOpen = true;
         },
@@ -445,9 +446,9 @@ export default {
                 this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             }
             //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
-            
+
             this.$refs.proposed_approval.isModalOpen = true;
-        }, 
+        },
         issueProposal:function(){
             //this.$refs.proposed_approval.approval = helpers.copyObject(this.proposal.proposed_issuance_approval);
             this.$refs.proposed_approval.approval = this.district_proposal.proposed_issuance_approval != null ? helpers.copyObject(this.district_proposal.proposed_issuance_approval) : {};
@@ -467,7 +468,7 @@ export default {
                 'Your application has been saved',
                 'success'
               )
-          },err=>{                                  
+          },err=>{
           });
         },
         // assignTo: function(){
@@ -511,12 +512,12 @@ export default {
                 }).then((response) => {
                     vm.district_proposal = response.body;
                     vm.original_district_proposal = helpers.copyObject(response.body);
-                    
+
                     // vm.district_proposal.org_applicant.address = vm.district_proposal.org_applicant.address != null ? vm.district_proposal.org_applicant.address : {};
                     vm.updateAssignedOfficerSelect();
                 }, (error) => {
                     vm.district_proposal = helpers.copyObject(vm.original_district_proposal)
-                    
+
                     vm.updateAssignedOfficerSelect();
                     swal(
                         'Application Error',
@@ -530,13 +531,13 @@ export default {
                 .then((response) => {
                     vm.district_proposal = response.body;
                     vm.original_district_proposal = helpers.copyObject(response.body);
-                    
+
                     // vm.district_proposal.org_applicant.address = vm.district_proposal.org_applicant.address != null ? vm.district_proposal.org_applicant.address : {};
                     vm.updateAssignedOfficerSelect();
                     vm.fetchdistrict_proposalParks(vm.district_proposal.id);
                 }, (error) => {
                     vm.district_proposal = helpers.copyObject(vm.original_district_proposal)
-                    
+
                     vm.updateAssignedOfficerSelect();
                     swal(
                         'Application Error',
@@ -765,7 +766,7 @@ export default {
         },
         sendReferral: function(){
             let vm = this;
-            
+
             vm.sendingReferral = true;
             let data = {'email_group':vm.selected_referral, 'text': vm.referral_text};
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assesor_send_referral')),JSON.stringify(data),{
@@ -798,7 +799,7 @@ export default {
                 });
             //let formData = new FormData(vm.form); //save data before completing district_proposal
             // vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-                
+
             //     let data = {'email_group':vm.selected_referral, 'text': vm.referral_text};
             //     vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assesor_send_referral')),JSON.stringify(data),{
             //     emulateJSON:true
@@ -826,15 +827,15 @@ export default {
             //     vm.selected_referral = '';
             //     vm.referral_text = '';
             //     });
-            
-             
+
+
             //  },err=>{
             //  });
 
         },
         remindReferral:function(r){
             let vm = this;
-            
+
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/remind')).then(response => {
                 // vm.original_proposal = helpers.copyObject(response.body);
                 // vm.proposal = response.body;
@@ -856,7 +857,7 @@ export default {
         },
         resendReferral:function(r){
             let vm = this;
-            
+
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/resend')).then(response => {
                 // vm.original_proposal = helpers.copyObject(response.body);
                 // vm.proposal = response.body;
@@ -878,7 +879,7 @@ export default {
         },
         recallReferral:function(r){
             let vm = this;
-            
+
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/recall')).then(response => {
                 // vm.original_proposal = helpers.copyObject(response.body);
                 // vm.proposal = response.body;
@@ -902,7 +903,7 @@ export default {
             let vm = this;
 
             Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,referral_id+'/referral_list')).then(response => {
-                vm.referral_sent_list = response.body;     
+                vm.referral_sent_list = response.body;
             },
             err => {
               console.log(err);
@@ -911,12 +912,12 @@ export default {
         fetchReferral: function(){
             let vm = this;
             Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,vm.district_proposal.id)).then(res => {
-              
+
                 vm.district_proposal = res.body;
                 vm.fetchProposalParks(vm.district_proposal.proposal.id);
                 vm.district_proposal.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 //vm.fetchreferrallist(vm.district_proposal.id);
-              
+
             },
             err => {
               console.log(err);
@@ -935,14 +936,14 @@ export default {
         completeReferral:function(){
             let vm = this;
             let data = {'referral_comment': vm.referral_comment};
-            
+
             swal({
                 title: "Complete Referral",
                 text: "Are you sure you want to complete this district_proposal?",
                 type: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Submit'
-            }).then(() => { 
+            }).then(() => {
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.referrals,vm.$route.params.referral_id+'/complete'),JSON.stringify(data),{
                 emulateJSON:true
                 }).then(res => {
@@ -959,7 +960,7 @@ export default {
                 });
                 // let formData = new FormData(vm.form);
                 // vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-                    
+
                 //     vm.$http.post(helpers.add_endpoint_json(api_endpoints.referrals,vm.$route.params.referral_id+'/complete'),JSON.stringify(data),{
                 // emulateJSON:true
                 // }).then(res => {
@@ -973,7 +974,7 @@ export default {
                 //         'error'
                 //     )
                 // });
-                
+
                 //  },err=>{
                 //  });
 
@@ -1000,7 +1001,7 @@ export default {
         //vm.fetchDeparmentUsers();
         //vm.fetchReferralRecipientGroups();
         //vm.fetchreferrallist()
-        
+
     },
     updated: function(){
         let vm = this;
@@ -1010,7 +1011,7 @@ export default {
                 window.setTimeout(function () {
                     $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
                 },100);
-            }); 
+            });
             vm.panelClickersInitialised = true;
         }
         this.$nextTick(() => {

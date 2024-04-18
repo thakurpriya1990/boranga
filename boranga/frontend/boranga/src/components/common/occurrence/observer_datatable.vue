@@ -21,8 +21,9 @@ import Vue from 'vue' ;
 import datatable from '@vue-utils/datatable.vue';
 import ObserverDetail from './add_observer_detail.vue'
 import {
-  api_endpoints,
-  helpers
+    constants,
+    api_endpoints,
+    helpers,
 }
 from '@/utils/hooks'
 // require("select2/dist/css/select2.min.css");
@@ -52,7 +53,7 @@ export default {
                 observer_detail_options:{
                     autowidth: false,
                     language:{
-                        processing: "<i class='fa fa-4x fa-spinner'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML
                     },
                     responsive: true,
                     searching: true,
@@ -75,7 +76,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> Excel',
                             className: 'btn btn-primary me-2 rounded',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                         {
@@ -83,7 +84,7 @@ export default {
                             text: '<i class="fa-solid fa-download"></i> CSV',
                             className: 'btn btn-primary rounded',
                             exportOptions: {
-                                orthogonal: 'export' 
+                                orthogonal: 'export'
                             }
                         },
                     ],
@@ -149,7 +150,7 @@ export default {
                         setTimeout(function (){
                             vm.adjust_table_width();
                         },100);
-                    }, 
+                    },
                 }
             }
         },
@@ -210,9 +211,9 @@ export default {
                 this.$refs.observer_detail.observer_detail_id = id;
                 this.$refs.observer_detail.observer_detail_action='edit';
                 Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail,id)).then((response) => {
-                      this.$refs.observer_detail.observerObj=response.body; 
+                      this.$refs.observer_detail.observerObj=response.body;
                     },
-                  err => { 
+                  err => {
                             console.log(err);
                       });
                 this.$refs.observer_detail.isModalOpen = true;
@@ -222,9 +223,9 @@ export default {
                 this.$refs.observer_detail.observer_detail_id = id;
                 this.$refs.observer_detail.observer_detail_action='view';
                 Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail,id)).then((response) => {
-                      this.$refs.observer_detail.observerObj=response.body; 
+                      this.$refs.observer_detail.observerObj=response.body;
                     },
-                  err => { 
+                  err => {
                             console.log(err);
                       });
                 this.$refs.observer_detail.isModalOpen = true;
@@ -275,4 +276,3 @@ export default {
 
 <style lang="css" scoped>
 </style>
-

@@ -1,6 +1,6 @@
 <template id="pre_event_parks_table">
     <div class="">
-        <div class="col-sm-12"> 
+        <div class="col-sm-12">
             <div class="row" >
                 <div class="col-md-3" v-if="!proposal.readonly">
                             <!-- <button style="margin-top:25px;" class="btn btn-primary pull-right">New Application</button> -->
@@ -16,13 +16,13 @@
         </div>
         <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse"></editPark>
     </div>
-</template> 
+</template>
 <script>
 import datatable from '@/utils/vue/datatable.vue'
 import editPark from './edit_pre_event_park.vue'
 import {
+    constants,
     api_endpoints,
-    helpers
 }from '@/utils/hooks'
 export default {
     name: 'EventParkTableDash',
@@ -58,7 +58,7 @@ export default {
             park_headers:["Park or Reserve","Activities","Itenary/ Maps","Action"],
             park_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 ajax: {
@@ -70,14 +70,14 @@ export default {
                 buttons:[
                 'excel', 'csv', ],
                 columns: [
-                    
+
                     {
                         data: "park",
                         mRender:function (data,type,full) {
                             //return `C${data}`;
                             return data.name;
                         },
-                        
+
                     },
                     {
                         data: "activities",
@@ -188,8 +188,8 @@ export default {
             this.$refs.park_datatable.vmDataTable.ajax.reload();
         },
         initialiseSearch:function(){
-            
-        }, 
+
+        },
     },
     mounted: function(){
         let vm = this;
@@ -202,7 +202,7 @@ export default {
             var column = vm.$refs.park_datatable.vmDataTable.columns(8); //Hide 'Assigned To column for external'
             column.visible(false);
         }
-        
+
     }
 }
 </script>
