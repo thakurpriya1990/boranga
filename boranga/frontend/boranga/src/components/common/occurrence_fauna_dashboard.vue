@@ -198,7 +198,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_internal) {
-                return ['Number', 'Name of Occurrence', 'Scientific Name', 'Number of Reports', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+                return ['Number', 'Name of Occurrence', 'Scientific Name', 'Wild Status', 'Number of Reports', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -233,6 +233,15 @@ export default {
                 searchable: true,
                 visible: true,
                 name: "species__taxonomy__scientific_name",
+            }
+        },
+        column_wild_status: function () {
+            return {
+                data: "wild_status",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "wild_status",
             }
         },
         column_number_of_reports: function () {
@@ -332,6 +341,7 @@ export default {
                     vm.column_number,
                     vm.column_occurrence_name,
                     vm.column_scientific_name,
+                    vm.column_wild_status,
                     vm.column_number_of_reports,
                     vm.column_effective_from,
                     vm.column_effective_to,

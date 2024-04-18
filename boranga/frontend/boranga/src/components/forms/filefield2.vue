@@ -1,63 +1,57 @@
 <template lang="html">
-    <div>
-        <div class="col-sm-12">
-            <div v-if="has_uploaded_docs" class="form-group">
-                <div class="row">
-                    <div class="col-sm-6">
-                        <label class="control-label pull-left" for="Name">Uploaded Documents</label>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="input-group date" ref="due_date" style="width: 70%;">
-                            <div v-for="v in uploaded_documents" class="row">
-                                <span>
-                                    <a :href="v._file" target="_blank">{{ v.name }}</a> &nbsp;
-                                    <a @click="delete_document(v)" class="fa fa-trash-o" title="Remove file"
-                                        :filename="v.name" style="cursor: pointer; color:red;"></a>
-                                </span>
-                            </div>
+    <div class="border p-3">
+        <div v-if="has_uploaded_docs">
+            <div class="row">
+                <div class="col-sm-6">
+                    <label class="control-label pull-left" for="Name">Uploaded Documents</label>
+                </div>
+                <div class="col-sm-6">
+                    <div class="input-group date" ref="due_date" style="width: 70%;">
+                        <div v-for="v in uploaded_documents" class="row">
+                            <span>
+                                <a :href="v._file" target="_blank">{{ v.name }}</a> &nbsp;
+                                <a @click="delete_document(v)" class="fa fa-trash-o" title="Remove file"
+                                    :filename="v.name" style="cursor: pointer; color:red;"></a>
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="form-group">
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div v-for="n in repeat">
-                            <div v-if="isRepeatable || (!isRepeatable && num_documents() == 0)">
-                                <span class="btn btn-link btn-file">
-                                    <input :name="name" type="file" class="form-control" :data-que="n"
-                                        :accept="fileTypes" @change="handleChange($event)" :required="isRequired" />
-                                    <u>Attach Document</u>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="row">
-                    <div class="col-sm-9">
-                        <div v-if="files">
-                            <div v-for="v in files">
-                                <p>
-                                    <!--File: <a target="_blank">{{v.name}}</a> &nbsp;-->
-                                    File:{{ v.name }} &nbsp;
-                                    <a @click="pop_file(v)" class="bi bi-trash" title="Remove file" :filename="v.name"
-                                        style="cursor: pointer; color:red;"></a>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <span v-if="show_spinner"><i class='fa fa-2x fa-spinner fa-spin'></i></span>
         </div>
+        <div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div v-for="n in repeat">
+                        <div v-if="isRepeatable || (!isRepeatable && num_documents() == 0)">
+                            <span class="btn btn-primary btn-file">
+                                <i class="bi bi-file-earmark-arrow-up me-1"></i>
+                                <input :name="name" type="file" :data-que="n" :accept="fileTypes"
+                                    @change="handleChange($event)" :required="isRequired" />
+                                Attach <template v-if="files && files.length > 0">Another </template>Document
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="files && files.length > 0" class="mt-3 pt-3 border-top">
+            <label class="control-label" for="Name">Documents Uploaded Pending Confirmation</label>
+            <div class="mt-3">
+                <ul class="list-group list-group-numbered">
+                    <li v-for="v in files" class="list-group-item">
+                        <i class="bi bi-file-earmark-text-fill text-secondary"></i> {{ v.name }} &nbsp;
+                        <a @click="pop_file(v)" class="bi bi-trash" title="Remove file" :filename="v.name"
+                            style="cursor: pointer; color:red;"></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <span v-if="show_spinner"><i class='fa fa-2x fa-spinner fa-spin'></i></span>
     </div>
 </template>
 
 <script>
 import {
-    api_endpoints,
     helpers
 }
     from '@/utils/hooks'
@@ -115,10 +109,9 @@ export default {
             return helpers.getCookie('csrftoken')
         },
         has_uploaded_docs: function () {
-            return this.uploaded_documents;
+            return this.uploaded_documents && this.uploaded_documents.length > 0;
         }
     },
-
     methods: {
         reset_files() {
             this.files = [];
@@ -128,7 +121,6 @@ export default {
         },
         handleChange: function (e) {
             let vm = this;
-            //console.log(e.target.name)
             if (vm.isRepeatable) {
                 let el = $(e.target).attr('data-que');
                 let avail = $('input[name=' + e.target.name + ']');
@@ -146,12 +138,10 @@ export default {
                 }
                 $(e.target).css({ 'display': 'none' });
                 $(e.target.parentElement).css({ 'display': 'none' });//to hide <span> element btn-link
-
             } else {
                 vm.files = [];
             }
             vm.add_file(e)
-
         },
         add_file(e) {
             let vm = this;
@@ -203,7 +193,6 @@ export default {
                 confirmButtonText: 'Delete Document',
                 confirmButtonColor: '#d9534f'
             }).then(() => {
-                //vm.$http.post('/api/proposal_requirements/'+vm.requirement.id+'/delete_document/', data,{
                 vm.$http.post(vm.delete_url, data, {
                     emulateJSON: true,
                 }).then((response) => {
@@ -230,7 +219,7 @@ export default {
 
 </script>
 
-<style lang="css">
+<style scoped lang="css">
 input {
     box-shadow: none;
 }

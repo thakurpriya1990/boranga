@@ -24,8 +24,9 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
-  api_endpoints,
-  helpers,
+    constants,
+    api_endpoints,
+    helpers,
 }
 from '@/utils/hooks'
 
@@ -57,7 +58,7 @@ export default {
                 threats_options:{
                     autowidth: false,
                     language:{
-                        processing: "<i class='fa fa-4x fa-spinner'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML
                     },
                     responsive: true,
                     searching: true,
@@ -315,4 +316,3 @@ export default {
     border-bottom:none;
     }
 </style>
-

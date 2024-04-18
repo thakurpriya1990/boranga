@@ -9,7 +9,7 @@
                                         <a class="panelClicker" :href="'#'+detailsBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="detailsBody">
                                             <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                                         </a>
-                                    </h3> 
+                                    </h3>
                                 </div>
                                 <div v-if="applicantType == 'ORG'" class="panel-body panel-collapse collapse in" :id="detailsBody">
                                       <form class="form-horizontal">
@@ -61,7 +61,7 @@
                                         <a class="panelClicker" :href="'#'+addressBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="addressBody">
                                             <span class="glyphicon glyphicon-chevron-down pull-right "></span>
                                         </a>
-                                    </h3> 
+                                    </h3>
                                 </div>
                                 <div v-if="applicantType == 'ORG' && proposal.org_applicant.address" class="panel-body panel-collapse collapse" :id="addressBody">
                                       <form class="form-horizontal">
@@ -177,6 +177,7 @@
 <script>
 import Assessment from './assessment.vue'
 import {
+    constants,
     api_endpoints,
     helpers
 }
@@ -201,7 +202,7 @@ from '@/utils/hooks'
                 contacts_table_initialised: false,
                 contacts_options:{
                     language: {
-                        processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML
                     },
                     responsive: true,
                     ajax: {
@@ -270,12 +271,12 @@ from '@/utils/hooks'
                 window.setTimeout(function () {
                     $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
                 },100);
-            }); 
+            });
             vm.panelClickersInitialised = true;
             }
             this.$nextTick(() => {
                 vm.initialiseOrgContactTable();
-                
+
             });
         }
     }
@@ -283,4 +284,3 @@ from '@/utils/hooks'
 
 <style lang="css" scoped>
 </style>
-

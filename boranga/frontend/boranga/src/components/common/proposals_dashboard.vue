@@ -107,6 +107,7 @@ import datatable from '@/utils/vue/datatable.vue'
 import Vue from 'vue'
 //require("babel-polyfill"); /* only one of 'import' or 'require' is necessary */
 import {
+    constants,
     api_endpoints,
     helpers
 }from '@/utils/hooks'
@@ -182,7 +183,7 @@ export default {
             proposal_ex_options:{
                 autoWidth: false,
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 serverSide: true,
@@ -319,7 +320,7 @@ export default {
             proposal_options:{
                 autoWidth: false,
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 serverSide: true,

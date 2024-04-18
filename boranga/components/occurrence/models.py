@@ -62,6 +62,7 @@ def update_occurrence_report_comms_log_filename(instance, filename):
 def update_occurrence_report_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/occurrence_report/{instance.occurrence_report.id}/documents/{filename}"
 
+
 def update_occurrence_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/occurrence/{instance.occurrence.id}/documents/{filename}"
 
@@ -661,8 +662,6 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
                 occurrence_report.processing_status = "draft"
                 occurrence_report.customer_status = "draft"
                 occurrence_report.save()
-                # TODO at the moment occurrence_report is not having it's document model
-                # occurrence_report.documents.all().update(can_hide=True)
 
             # Create a log entry for the occurrence report
             occurrence_report.log_user_action(
@@ -687,14 +686,14 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
         data = json.loads(request.data.get("data"))
 
         if not data.get("update"):
-            documents_qs = self.cs_amendment_request_documents.filter(
+            documents_qs = self.amendment_request_documents.filter(
                 input_name="amendment_request_doc", visible=True
             )
             documents_qs.delete()
 
         for idx in range(data["num_files"]):
             _file = request.data.get("file-" + str(idx))
-            document = self.cs_amendment_request_documents.create(
+            document = self.amendment_request_documents.create(
                 _file=_file, name=_file.name
             )
             document.input_name = data["input_name"]
@@ -707,7 +706,7 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
 
 def update_occurrence_report_amendment_request_doc_filename(instance, filename):
     return "occurrence_report/{}/amendment_request_documents/{}".format(
-        instance.coccurrence_report_amendment_request.occurrence_report.id, filename
+        instance.occurrence_report_amendment_request.occurrence_report.id, filename
     )
 
 
@@ -2409,6 +2408,7 @@ class OccurrenceUserAction(UserAction):
         Occurrence, related_name="action_logs", on_delete=models.CASCADE
     )
 
+
 class OccurrenceDocument(Document):
     document_number = models.CharField(max_length=9, blank=True, default="")
     occurrence = models.ForeignKey(
@@ -2468,6 +2468,7 @@ class OccurrenceDocument(Document):
             self.save()
         # end save documents
         self.save()
+
 
 class OCCConservationThreat(RevisionedMixin):
     """
@@ -2533,7 +2534,6 @@ class OCCConservationThreat(RevisionedMixin):
     def source(self):
         return self.occurrence.id
 
-import reversion
 
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
@@ -2541,13 +2541,13 @@ reversion.register(OccurrenceReportDocument)
 # Occurrence Report Threat
 reversion.register(OCRConservationThreat)
 
-#Occurrence Report
-reversion.register(OccurrenceReport, follow=["species","community"])
+# Occurrence Report
+reversion.register(OccurrenceReport, follow=["species", "community"])
 
-#Occurrence Document
+# Occurrence Document
 reversion.register(OccurrenceDocument)
 
-#Occurrence Threat
+# Occurrence Threat
 reversion.register(OCCConservationThreat)
 
 # Occurrence

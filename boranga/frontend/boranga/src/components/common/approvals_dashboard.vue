@@ -133,9 +133,11 @@ import ApprovalSurrender from '../internal/approvals/approval_surrender.vue'
 import EClassLicence from '../internal/approvals/approval_eclass.vue'
 
 import {
+    constants,
     api_endpoints,
     helpers
 }from '@/utils/hooks'
+
 export default {
     name: 'ProposalTableDash',
     props: {
@@ -188,7 +190,7 @@ export default {
             ],
             proposal_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 serverSide: true,

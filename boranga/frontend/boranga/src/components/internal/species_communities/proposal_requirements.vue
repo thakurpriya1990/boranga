@@ -26,6 +26,7 @@
 <script>
 import {
     api_endpoints,
+    constants,
     helpers
 }
 from '@/utils/hooks'
@@ -68,7 +69,7 @@ export default {
             requirement_options:{
                 autoWidth: false,
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 ajax: {
@@ -295,7 +296,7 @@ export default {
                 let vm = this;
                 vm.$http.get('/api/global_settings.json').then((response) => {
                     vm.global_settings = response.body;
-                    
+
                 },(error) => {
                     console.log(error);
                 } );
@@ -335,7 +336,7 @@ export default {
         },
         fetchRequirements(){
             let vm = this;
-            
+
             vm.$http.get(api_endpoints.proposal_standard_requirements).then((response) => {
                 vm.requirements = response.body
             },(error) => {
@@ -378,7 +379,7 @@ export default {
             this.$http.get(helpers.add_endpoint_json(api_endpoints.proposal_requirements,req+'/'+movement)).then((response) => {
             },(error) => {
                 console.log(error);
-                
+
             })
         },
         moveUp(e) {

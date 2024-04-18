@@ -20,8 +20,8 @@
 import datatable from '@/utils/vue/datatable.vue'
 import editVessel from './edit_vessel.vue'
 import {
+    constants,
     api_endpoints,
-    helpers
 }from '@/utils/hooks'
 export default {
     name: 'VesselTableDash',
@@ -61,7 +61,7 @@ export default {
             vessel_headers:["Nominated Vessel", "SPV no./ reg. no.","Hire and Drive reg.","No.of craft","Vessel Size (m)","Action"],
             vessel_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 //serverSide: true,

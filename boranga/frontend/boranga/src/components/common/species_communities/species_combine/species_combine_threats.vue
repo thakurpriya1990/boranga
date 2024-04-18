@@ -23,8 +23,9 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
-  api_endpoints,
-  helpers,
+    constants,
+    api_endpoints,
+    helpers,
 }
 from '@/utils/hooks'
 
@@ -56,7 +57,7 @@ export default {
                 threats_options:{
                     autowidth: false,
                     language:{
-                        processing: "<i class='fa fa-4x fa-spinner'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML
                     },
                     responsive: true,
                     searching: true,
@@ -251,7 +252,7 @@ export default {
                     this.$refs.threats_datatable.vmDataTable.ajax.reload();
                 }
                 else if(selected_option == "individual"){
-                    //----empty only the current original species array from the new species array as will contain other original combine species threat_id's as well 
+                    //----empty only the current original species array from the new species array as will contain other original combine species threat_id's as well
                     vm.species_community.threats = vm.species_community.threats.filter(x => vm.original_species_threats.indexOf(x) == -1); //--"filter" used to delete one array from another
                     this.$refs.threats_datatable.vmDataTable.ajax.reload();
                 }
@@ -283,7 +284,7 @@ export default {
             let vm = this;
             this.$nextTick(() => {
                 if(vm.species_original.threat_selection!=null){
-                    
+
                     if(vm.species_original.threat_selection==="selectAll"){
                         document.getElementById('threat_select_all'+vm.species_original.id).checked=true;
                     }
@@ -311,4 +312,3 @@ export default {
     border-bottom:none;
     }
 </style>
-

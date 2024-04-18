@@ -67,6 +67,7 @@ import $ from 'jquery'
 import datatable from '@vue-utils/datatable.vue'
 import {
   api_endpoints,
+  constants,
   helpers
 }
 from '@/utils/hooks'
@@ -89,7 +90,7 @@ export default {
         profile: {},
         dtOptions:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
                 responsive: true,
                 processing:true,
@@ -132,7 +133,7 @@ export default {
                             else{
                                 if(vm.is_assessor)
                                 {
-                                   var column = "<a href='/internal/organisations/access/\__ID__\'> Process </a>"; 
+                                   var column = "<a href='/internal/organisations/access/\__ID__\'> Process </a>";
                                 }
                                 else{
                                     var column = "<a href='/internal/organisations/access/\__ID__\' >View </a>";
@@ -247,14 +248,14 @@ export default {
         let vm = this;
         Vue.http.get(api_endpoints.profile).then((response) => {
             vm.profile = response.body
-                              
+
          },(error) => {
             console.log(error);
-                
+
         })
         },
         check_assessor: function(){
-            let vm = this;            
+            let vm = this;
             var assessor = vm.members.filter(function(elem){
                         return(elem.name==vm.profile.full_name);
                     });

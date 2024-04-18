@@ -5,7 +5,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Title:</label>
                 <div class="col-sm-8">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="title" placeholder="" 
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="title" placeholder=""
                     v-model="meeting_obj.title"/>
                 </div>
             </div>
@@ -13,7 +13,7 @@
                 <label for="" class="col-sm-4 control-label">Start Date/ Time:</label>
                 <div class="col-sm-8">
                     <!-- <input :disabled="meeting_obj.readonly" type="datetime-local" class="form-control"  id="start_time" v-model="meeting_obj.start_date"> -->
-                    <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date" 
+                    <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date"
                                         ref="start_date" v-model="meeting_obj.start_date" @change="validateMeetingDate()" />
                 </div>
             </div>
@@ -27,9 +27,9 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Meeting Type:</label>
                 <div class="col-sm-8">
-                    <select :disabled="isReadOnly" 
-                        style="width:100%;" class="form-select"  
-                        v-model="meeting_obj.meeting_type" 
+                    <select :disabled="isReadOnly"
+                        style="width:100%;" class="form-select"
+                        v-model="meeting_obj.meeting_type"
                         @change="toggleAttendees(meeting_obj.meeting_type)">
                         <option v-for="option in meeting_type_list" :value="option.id" :key="option.id">
                             {{option.display_name}}
@@ -40,7 +40,7 @@
             <div v-show="!isCommitteeMeeting" class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Attendees:</label>
                 <div class="col-sm-8">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="title" placeholder="" 
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="title" placeholder=""
                     v-model="meeting_obj.attendees"/>
                 </div>
             </div>
@@ -48,8 +48,8 @@
                 <div class="row mb-3">
                     <label for="" class="col-sm-4 control-label">Committee:</label>
                     <div class="col-sm-8">
-                        <select :disabled="isReadOnly" 
-                            style="width:100%;" class="form-select"  
+                        <select :disabled="isReadOnly"
+                            style="width:100%;" class="form-select"
                             v-model="meeting_obj.committee_id" @change="renderMembersTable()">
                             <option v-for="option in committee_list" :value="option.id" :key="option.id">
                                 {{option.name}}
@@ -66,8 +66,8 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Location:</label>
                 <div class="col-sm-8">
-                    <select :disabled="isReadOnly" 
-                        style="width:100%;" class="form-select"  
+                    <select :disabled="isReadOnly"
+                        style="width:100%;" class="form-select"
                         v-model="meeting_obj.location_id" >
                         <option v-for="option in location_list" :value="option.id" :key="option.id">
                             {{option.name}}
@@ -78,8 +78,8 @@
             <div class="row mb-3" v-show="!isStatusDraft">
                 <label for="" class="col-sm-4 control-label">Meeting status:</label>
                 <div class="col-sm-8">
-                    <select :disabled="isReadOnly" 
-                        style="width:100%;" class="form-select"  
+                    <select :disabled="isReadOnly"
+                        style="width:100%;" class="form-select"
                         v-model="meeting_obj.processing_status" >
                         <option v-for="option in status_list" :value="option.id" :key="option.id">
                             {{option.display_name}}
@@ -98,8 +98,9 @@ import alert from '@vue-utils/alert.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 
 import {
-  api_endpoints,
-  helpers
+    constants,
+    api_endpoints,
+    helpers,
 }
 from '@/utils/hooks'
 // require("select2/dist/css/select2.min.css");
@@ -147,7 +148,7 @@ export default {
                 members_options:{
                     autowidth: true,
                     language:{
-                        processing: "<i class='fa fa-4x fa-spinner'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML
                     },
                     responsive: true,
                     searching: true,
@@ -170,7 +171,7 @@ export default {
                         //     text: '<i class="fa-solid fa-download"></i> Excel',
                         //     className: 'btn btn-primary ml-2',
                         //     exportOptions: {
-                        //         orthogonal: 'export' 
+                        //         orthogonal: 'export'
                         //     }
                         // },
                         // {
@@ -178,7 +179,7 @@ export default {
                         //     text: '<i class="fa-solid fa-download"></i> CSV',
                         //     className: 'btn btn-primary',
                         //     exportOptions: {
-                        //         orthogonal: 'export' 
+                        //         orthogonal: 'export'
                         //     }
                         // },
                     ],
@@ -236,7 +237,7 @@ export default {
                     processing:true,
                     initComplete: function() {
                         helpers.enablePopovers();
-                    }, 
+                    },
                 }
             }
         },
@@ -444,4 +445,3 @@ export default {
         cursor: default;
     }
 </style>
-
