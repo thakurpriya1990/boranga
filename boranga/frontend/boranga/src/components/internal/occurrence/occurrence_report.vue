@@ -36,14 +36,14 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-2"><strong>Currently assigned to</strong></div>
-                        <template v-if="occurrence_report.processing_status == 'With Approver'">
+                        <template v-if="with_approver">
                             <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
                                 v-model="occurrence_report.assigned_approver">
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="occurrence_report.processing_status == 'With Approver' && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign to me</a>
+                            <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
                         </template>
                         <template v-else>
                             <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
@@ -51,7 +51,7 @@
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="occurrence_report.processing_status == 'With Assessor' && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
+                            <a v-if="with_assessor && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
                                 @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
                                 me</a>
                         </template>
@@ -69,10 +69,20 @@
                             <strong>Actions</strong>
                         </div>
                         <div class="text-center">
-                            <button style="width:80%;" class="btn btn-primary mb-2"
-                                @click.prevent="">Approve</button><br />
-                            <button style="width:80%;" class="btn btn-primary mb-2" @click.prevent="amendmentRequest()">Request
-                                Amendment</button><br />
+                            <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="amendmentRequest()">Request
+                                Amendment</button>
+
+                            <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-2"
+                                @click.prevent="">Propose Approve</button>
+                            <button v-if="with_approver" style="width:80%;" class="btn btn-primary mb-2"
+                                @click.prevent="">Approve</button>
+
+                            <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="proposeDecline">Propose Decline</button>
+                            <button v-if="with_approver" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="">Decline</button>
+
                             <button style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="splitSpecies()">Split</button><br />
                             <button style="width:80%;" class="btn btn-primary mb-2"
@@ -137,7 +147,10 @@
             </div>
         </div>
 
-        <AmendmentRequest ref="amendment_request" :occurrence_report_id="occurrence_report.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
+        <AmendmentRequest ref="amendment_request" :occurrence_report_id="occurrence_report.id"
+            @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
+        <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
+            @refreshFromResponse="refreshFromResponse"></ProposeDecline>
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
@@ -155,6 +168,7 @@ import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import AmendmentRequest from './amendment_request.vue'
+import ProposeDecline from './ocr_propose_decline.vue'
 
 // import SpeciesSplit from './species_split.vue'
 // import SpeciesCombine from './species_combine.vue'
@@ -190,6 +204,7 @@ export default {
         Workflow,
         ProposalOccurrenceReport,
         AmendmentRequest,
+        ProposeDecline,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,
@@ -244,6 +259,12 @@ export default {
             } else {
                 return ''
             }
+        },
+        with_assessor: function () {
+            return this.occurrence_report && this.occurrence_report.processing_status === 'With Assessor'
+        },
+        with_approver: function () {
+            return this.occurrence_report && this.occurrence_report.processing_status === 'With Approver'
         },
         canSeeSubmission: function () {
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
@@ -312,7 +333,7 @@ export default {
 
             });
         },
-        amendmentRequest: function(){
+        amendmentRequest: function () {
             this.$refs.amendment_request.isModalOpen = true;
         },
         save: async function () {
@@ -629,7 +650,7 @@ export default {
             }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
-                    if (vm.occurrence_report.processing_status == 'With Approver') {
+                    if (vm.with_approver) {
                         vm.occurrence_report.assigned_approver = selected.val();
                     }
                     else {
@@ -643,7 +664,7 @@ export default {
                     }, 0);
                 }).on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    if (vm.occurrence_report.processing_status == 'With Approver') {
+                    if (vm.with_approver) {
                         vm.occurrence_report.assigned_approver = null;
                     }
                     else {
@@ -654,7 +675,7 @@ export default {
         },
         updateAssignedOfficerSelect: function () {
             let vm = this;
-            if (vm.occurrence_report.processing_status == 'With Approver') {
+            if (vm.with_approver) {
                 $(vm.$refs.assigned_officer).val(vm.occurrence_report.assigned_approver);
                 $(vm.$refs.assigned_officer).trigger('change');
             }
@@ -667,7 +688,7 @@ export default {
             let vm = this;
             let unassign = true;
             let data = {};
-            if (vm.occurrence_report.processing_status == 'With Approver') {
+            if (vm.with_approver) {
                 unassign = vm.occurrence_report.assigned_approver != null && vm.occurrence_report.assigned_approver != 'undefined' ? false : true;
                 data = { 'assessor_id': vm.occurrence_report.assigned_approver };
             }
@@ -730,6 +751,9 @@ export default {
                     });
                 });
         },
+        proposeDecline: function () {
+            this.$refs.propose_decline.isModalOpen = true;
+        }
     },
     updated: function () {
         let vm = this;
@@ -739,14 +763,14 @@ export default {
         });
     },
     beforeRouteEnter: function (to, from, next) {
-            Vue.http.get(`/api/occurrence_report/${to.params.occurrence_report_id}/`).then(res => {
-                next(vm => {
-                    vm.occurrence_report = res.body;
-                });
-            },
-                err => {
-                    console.log(err);
-                });
+        Vue.http.get(`/api/occurrence_report/${to.params.occurrence_report_id}/`).then(res => {
+            next(vm => {
+                vm.occurrence_report = res.body;
+            });
+        },
+            err => {
+                console.log(err);
+            });
     },
 }
 </script>
