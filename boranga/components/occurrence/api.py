@@ -13,7 +13,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import serializers, viewsets
+from rest_framework import serializers, viewsets, views
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -73,6 +73,8 @@ from boranga.components.occurrence.models import (
     SoilColour,
     SoilCondition,
     SoilType,
+    WildStatus,
+    OccurrenceSource,
 )
 from boranga.components.occurrence.serializers import (
     CreateOccurrenceReportSerializer,
@@ -114,7 +116,7 @@ from boranga.components.occurrence.utils import (
     save_geometry,
     validate_map_files,
 )
-from boranga.components.species_and_communities.models import GroupType
+from boranga.components.species_and_communities.models import GroupType, Species, Community, Taxonomy, CommunityTaxonomy
 from boranga.helpers import is_customer, is_internal
 
 logger = logging.getLogger(__name__)
@@ -2163,6 +2165,40 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
+class GetOCCProfileDict(views.APIView):
+    def get(self, request, format=None):
+        group_type = request.GET.get('group_type','')
+
+        species_list = []
+        if group_type:
+            exclude_status = ['draft']
+            species = Species.objects.filter(~Q(processing_status__in=exclude_status) & ~Q(taxonomy=None) & Q(group_type__name=group_type))
+            if species:
+                for specimen in species:
+                    species_list.append({
+                        'id': specimen.id,
+                        'name':specimen.taxonomy.scientific_name,
+                        'taxon_previous_name':specimen.taxonomy.taxon_previous_name,
+                        'common_name': specimen.taxonomy.taxon_vernacular_name,
+                        })
+        community_list = []
+        exculde_status = ['draft']
+        communities = CommunityTaxonomy.objects.filter(~Q(community__processing_status__in=exculde_status)) # TODO remove later as every community will have community name
+        if communities:
+            for specimen in communities:
+                community_list.append({
+                    'id': specimen.community.id,
+                    'name':specimen.community_name,
+                    })
+        
+        res_json = {
+        "species_list":species_list,
+        "community_list":community_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type='application/json')
+    
+
 class OccurrenceFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         logger.debug(f"OccurrenceFilterBackend:filter_queryset: {view.name}")
@@ -2791,3 +2827,21 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+class GetWildStatus(views.APIView):
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        if search_term:
+            data = WildStatus.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
+            data_transform = [{'id': wild_status['id'], 'text': wild_status['name']} for wild_status in data]
+            return Response({"results": data_transform})
+        return Response()
+
+class GetOccurrenceSource(views.APIView):
+    def get(self, request, format=None):
+        search_term = request.GET.get('term', '')
+        if search_term:
+            data = OccurrenceSource.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
+            data_transform = [{'id': occurrence_source['id'], 'text': occurrence_source['name']} for occurrence_source in data]
+            return Response({"results": data_transform})
+        return Response()

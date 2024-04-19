@@ -2245,6 +2245,17 @@ class WildStatus(models.Model):
     def __str__(self):
         return str(self.name)
 
+class OccurrenceSource(models.Model):
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Source"
+        verbose_name_plural = "Occurrence Sources"
+        ordering = ["name"]
+
+    def __str__(self):
+        return str(self.name)
 
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
@@ -2284,6 +2295,9 @@ class Occurrence(RevisionedMixin):
     submitter = models.IntegerField(null=True)  # EmailUserRO
     wild_status = models.ForeignKey(
         WildStatus, on_delete=models.PROTECT, null=True, blank=True
+    )
+    occurrence_source = models.ForeignKey(
+        OccurrenceSource, on_delete=models.PROTECT, null=True, blank=True
     )
 
     review_due_date = models.DateField(null=True, blank=True)

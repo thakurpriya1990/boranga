@@ -55,6 +55,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         source="species.taxonomy.scientific_name", allow_null=True
     )
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
+    group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
 
     class Meta:
         model = Occurrence
@@ -597,6 +598,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "conservation_category",
             "wild_status",
             "group_type",
+            "group_type_id",
             "number_of_reports",
             "processing_status",
             "processing_status_display",

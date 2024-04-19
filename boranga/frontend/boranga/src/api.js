@@ -118,6 +118,8 @@ module.exports = {
     species_internal_export: "/api/species_paginated/species_internal_export",
     species_lookup: "/api/species_lookup",
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
+    wild_status_lookup: "/api/wild_status_lookup",
+    occurrence_source_lookup: "/api/occurrence_source_lookup",
 
     // Pending - need to create viewsets for the below when working on search filters for OR dashboard
     or_status_lookup: "/api/or_status_lookup",
@@ -148,6 +150,7 @@ module.exports = {
     occurrence_documents: "/api/occurrence_documents.json",
     ocr_threat: "/api/ocr_threat.json",
     occ_threat: "/api/occ_threat.json",
+    occ_profile_dict: "/api/occ_profile_dict",
 
     discard_cs_proposal: function (id) {
         return `/api/conservation_status/${id}.json`;

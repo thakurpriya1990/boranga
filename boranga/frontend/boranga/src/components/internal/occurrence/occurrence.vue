@@ -2,7 +2,7 @@
     <div class="container" id="internal-occurence-detail">
         <div class="row" style="padding-bottom: 50px;">
             <div v-if="occurrence" class="col">
-                <h3>Occurrence: {{ occurrence.occurrence_number }}</h3>
+                <h3>Occurrence: {{ occurrence.occurrence_number }} - {{ display_group_type }}</h3>
                 <div class="row pb-4">
                 <div v-if="!comparing" class="col-md-3">
 

@@ -13,6 +13,7 @@ from boranga.components.occurrence.models import (
     LocationAccuracy,
     ObservationMethod,
     Occurrence,
+    OccurrenceSource,
     OccurrenceReport,
     PermitType,
     PlantCondition,
@@ -56,5 +57,6 @@ admin.site.register(Datum)
 admin.site.register(CoordinationSource)
 admin.site.register(LocationAccuracy)
 admin.site.register(OccurrenceReport)
+admin.site.register(OccurrenceSource)
 admin.site.register(Occurrence)
 admin.site.register(WildStatus)
