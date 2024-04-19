@@ -1576,4 +1576,3 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
 
 class ProposeDeclineSerializer(serializers.Serializer):
     reason = serializers.CharField()
-    cc_email = serializers.CharField(required=False, allow_null=True)
