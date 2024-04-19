@@ -9,6 +9,7 @@
         >
         <VueSelect
             :id="`select-filter-${id}`"
+            ref="vueSelectFilter"
             v-model="selectedFilterItem"
             :multiple="multiple"
             :options="optionsFormatted"
@@ -18,6 +19,8 @@
             :track-by="name"
             :placeholder="placeholder"
             :class="classes"
+            @option:selected="(selected) => $emit('option:selected', selected)"
+            @search="(...args) => $emit('search', ...args)"
             @select="
                 $emit('selection-changed-select', {
                     id: id,
@@ -64,7 +67,8 @@ export default {
                     if (keys.length != 2) return false;
                     return (
                         (keys.includes('key') && keys.includes('value')) ||
-                        (keys.includes('value') && keys.includes('text'))
+                        (keys.includes('value') && keys.includes('text')) ||
+                        (keys.includes('id') && keys.includes('name'))
                     );
                 });
             },
@@ -105,7 +109,12 @@ export default {
             default: '',
         },
     },
-    emits: ['selection-changed-select', 'selection-changed-remove'],
+    emits: [
+        'selection-changed-select',
+        'selection-changed-remove',
+        'search',
+        'option:selected',
+    ],
     data: function () {
         return {
             selectedFilterItem: [],
@@ -134,9 +143,13 @@ export default {
                 return {
                     value: Object.hasOwn(option, 'key')
                         ? option.key.toString() // Casting to string to avoid potential type mismatch
+                        : Object.hasOwn(option, 'id')
+                        ? option.id.toString()
                         : option.value.toString(),
                     text: Object.hasOwn(option, 'key')
                         ? option.value.toString()
+                        : Object.hasOwn(option, 'name')
+                        ? option.name.toString()
                         : option.text.toString(),
                 };
             });

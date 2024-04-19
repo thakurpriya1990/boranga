@@ -5,6 +5,7 @@ import reversion
 from django.conf import settings
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
+from django.contrib.gis.geos import GEOSGeometry
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -1167,11 +1168,16 @@ class Location(models.Model):
 class OccurrenceReportGeometryManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
+        polygon_ids = qs.extra(
+            where=["geometrytype(geometry) LIKE 'POLYGON'"]
+        ).values_list("id", flat=True)
         return qs.annotate(
             area=models.Case(
                 models.When(
-                    polygon__isnull=False,
-                    then=Area(Cast("polygon", gis_models.PolygonField(geography=True))),
+                    models.Q(geometry__isnull=False) & models.Q(id__in=polygon_ids),
+                    then=Area(
+                        Cast("geometry", gis_models.PolygonField(geography=True))
+                    ),
                 ),
                 default=None,
             )
@@ -1187,8 +1193,10 @@ class OccurrenceReportGeometry(models.Model):
         null=True,
         related_name="ocr_geometry",
     )
-    polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
-    point = gis_models.PointField(srid=4326, blank=True, null=True)
+    geometry = gis_models.GeometryField(blank=True, null=True)
+    original_geometry_ewkb = models.BinaryField(
+        blank=True, null=True, editable=True
+    )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
     intersects = models.BooleanField(default=False)
     copied_from = models.ForeignKey(
         "self", on_delete=models.SET_NULL, blank=True, null=True
@@ -1198,12 +1206,6 @@ class OccurrenceReportGeometry(models.Model):
 
     class Meta:
         app_label = "boranga"
-        constraints = [
-            models.CheckConstraint(
-                check=~models.Q(polygon__isnull=False, point__isnull=False),
-                name="point_and_polygon_mutually_exclusive",
-            ),
-        ]
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
@@ -1227,6 +1229,13 @@ class OccurrenceReportGeometry(models.Model):
         if not hasattr(self, "area") or not self.area:
             return None
         return self.area.sq_m / 10000
+
+
+    @property
+    def original_geometry_srid(self):
+        if self.original_geometry_ewkb:
+            return GEOSGeometry(self.original_geometry_ewkb).srid
+        return None
 
 
 class ObserverDetail(models.Model):

@@ -1,7 +1,5 @@
 <template>
     <div>
-        <!-- {{modelQuerySource.getFeatures()[0]}} -->
-
         <div class="justify-content-end align-items-center mb-2">
             <div v-if="mapInfoText.length > 0" class="row">
                 <div class="col-md-6">
@@ -125,7 +123,7 @@
                         <transition>
                             <div
                                 class="optional-layers-button-wrapper"
-                                :title="`There are ${optionalLayers.length} optional layers available}`"
+                                :title="`There are ${optionalLayers.length} geometries available}`"
                             >
                                 <div
                                     class="optional-layers-button btn"
@@ -144,7 +142,11 @@
                             >
                                 <div
                                     v-for="feature in modelQuerySource.getFeatures()"
-                                    :key="feature.ol_uid"
+                                    :key="
+                                        feature.ol_uid +
+                                        feature.getProperties()
+                                            .original_geometry.properties.srid
+                                    "
                                     class="input-group input-group-sm mb-1 text-nowrap"
                                 >
                                     <div class="input-group-text">
@@ -195,65 +197,108 @@
                                     </button>
                                     <!-- TODO: N-S Extents of WA -->
                                     <!-- Latitude -->
-                                    <label
-                                        v-if="
-                                            feature.getGeometry().getType() ===
-                                            'Point'
-                                        "
-                                        :for="`feature-${feature.ol_uid}-latitude-input`"
-                                        class="input-group-text"
-                                        >Lat</label
+                                    <div
+                                        class="form-floating flex-grow-1 input-group-text"
                                     >
-                                    <input
-                                        v-if="
-                                            feature.getGeometry().getType() ===
-                                            'Point'
-                                        "
-                                        :id="`feature-${feature.ol_uid}-latitude-input`"
-                                        class="form-control min-width-120"
-                                        placeholder="Latitude"
-                                        type="number"
-                                        min="-90"
-                                        max="90"
-                                    />
+                                        <input
+                                            v-if="
+                                                feature
+                                                    .getGeometry()
+                                                    .getType() === 'Point'
+                                            "
+                                            :id="`feature-${feature.ol_uid}-latitude-input`"
+                                            :ref="`feature-${feature.ol_uid}-latitude-input`"
+                                            class="form-control min-width-90"
+                                            :value="
+                                                feature.getProperties()
+                                                    .original_geometry
+                                                    .coordinates[1]
+                                            "
+                                            placeholder="Latitude"
+                                            type="number"
+                                            min="-90"
+                                            max="90"
+                                        />
+                                        <label
+                                            v-if="
+                                                feature
+                                                    .getGeometry()
+                                                    .getType() === 'Point'
+                                            "
+                                            :for="`feature-${feature.ol_uid}-latitude-input`"
+                                            >Latitude</label
+                                        >
+                                    </div>
                                     <!-- TODO: W-E Extents of WA -->
                                     <!-- Longitude -->
-                                    <label
-                                        v-if="
-                                            feature.getGeometry().getType() ===
-                                            'Point'
-                                        "
-                                        :for="`feature-${feature.ol_uid}-longitude-input`"
-                                        class="input-group-text"
-                                        >Lon</label
-                                    >
-                                    <input
-                                        v-if="
-                                            feature.getGeometry().getType() ===
-                                            'Point'
-                                        "
-                                        :id="`feature-${feature.ol_uid}-longitude-input`"
-                                        class="form-control min-width-120 me-1"
-                                        placeholder="Longitude"
-                                        type="number"
-                                        min="-180"
-                                        max="180"
-                                    />
                                     <div
-                                        class="form-control input-group-text min-width-150 justify-content-end"
+                                        class="form-floating flex-grow-1 input-group-text"
+                                    >
+                                        <input
+                                            v-if="
+                                                feature
+                                                    .getGeometry()
+                                                    .getType() === 'Point'
+                                            "
+                                            :id="`feature-${feature.ol_uid}-longitude-input`"
+                                            :ref="`feature-${feature.ol_uid}-longitude-input`"
+                                            class="form-control min-width-90 me-1"
+                                            :value="
+                                                feature.getProperties()
+                                                    .original_geometry
+                                                    .coordinates[0]
+                                            "
+                                            placeholder="Longitude"
+                                            type="number"
+                                            min="-180"
+                                            max="180"
+                                        />
+                                        <label
+                                            v-if="
+                                                feature
+                                                    .getGeometry()
+                                                    .getType() === 'Point'
+                                            "
+                                            :for="`feature-${feature.ol_uid}-longitude-input`"
+                                            >Longitude</label
+                                        >
+                                    </div>
+                                    <!-- CRS Dropdown -->
+                                    <div
+                                        class="input-group-text form-floating flex-grow-1 min-width-210 justify-content-end"
                                     >
                                         <SelectFilter
-                                            :id="`feature-${feature.ol_uid}-select`"
+                                            :id="`feature-${feature.ol_uid}-crs-select`"
+                                            :ref="`feature-${feature.ol_uid}-crs-select`"
                                             :title="`Feature ${
                                                 feature.getProperties().id
                                             }`"
                                             :show-title="false"
-                                            :placeholder="`Select a CRS`"
+                                            placeholder="Coordinate Reference System"
                                             :options="
-                                                coordinateReferenceSystems
+                                                coordinateReferenceSystemsForSelectFilter
                                             "
-                                            :pre-selected-filter-item="4326"
-                                            classes="min-width-120"
+                                            :pre-selected-filter-item="
+                                                feature.getProperties()
+                                                    .original_geometry
+                                                    .properties.srid || mapSrid
+                                            "
+                                            classes="min-width-210"
+                                            @option:selected="
+                                                (selected) => {
+                                                    transformToMapCrs(
+                                                        feature,
+                                                        selected.value
+                                                    );
+                                                }
+                                            "
+                                            @search="
+                                                (...args) =>
+                                                    $emit(
+                                                        'crs-select-search',
+                                                        ...args
+                                                    )
+                                            "
                                         />
                                     </div>
                                 </div>
@@ -1121,6 +1166,11 @@ export default {
                 return [{ key: 4326, value: 'WGS 84' }];
             },
         },
+        mapSrid: {
+            type: Number,
+            required: false,
+            default: 4326,
+        },
     },
     // emits: ['filter-appied', 'validate-feature', 'refreshFromResponse'],
     emits: ['validate-feature', 'refreshFromResponse'],
@@ -1353,6 +1403,14 @@ export default {
                 (shapefileTypesComplete && !containsArchiveTypes)
             );
         },
+        coordinateReferenceSystemsForSelectFilter: function () {
+            return this.coordinateReferenceSystems.map((crs) => {
+                return {
+                    id: crs.id,
+                    name: crs.name,
+                };
+            });
+        },
     },
     watch: {
         selectedFeatureIds: function () {
@@ -1500,7 +1558,11 @@ export default {
                     featureData.properties.geometry_source?.toLowerCase() ||
                     'draw';
             }
-            const type = featureData.geometry.type;
+
+            const type =
+                'getGeometry' in featureData
+                    ? featureData.getGeometry().getType()
+                    : featureData.geometry.type;
             const featureColors =
                 type === 'Point' ? vm.pointFeatureColors : vm.featureColors;
 
@@ -1715,7 +1777,7 @@ export default {
                 view: new View({
                     center: [115.95, -31.95],
                     zoom: 7,
-                    projection: 'EPSG:4326',
+                    projection: `EPSG:${vm.mapSrid}`,
                 }),
             });
 
@@ -1809,7 +1871,7 @@ export default {
             vm.initialisePointerMoveEvent();
             vm.snap = new Snap({ source: vm.modelQuerySource });
             vm.dragAndDrop = new DragAndDrop({
-                projection: 'EPSG:4326',
+                projection: `EPSG:${vm.mapSrid}`,
                 formatConstructors: [GeoJSON],
             });
             vm.dragAndDrop.on('addfeatures', function (event) {
@@ -1825,6 +1887,11 @@ export default {
                         feature.getGeometry().getType()
                     );
 
+                    const coords = feature.getGeometry().getCoordinates();
+                    const original_geometry = {
+                        coordinates: coords,
+                        properties: { srid: vm.mapSrid },
+                    };
                     const properties = {
                         id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
                         model: vm.context,
@@ -1835,6 +1902,7 @@ export default {
                         locked: false,
                         copied_from: null,
                         area_sqm: vm.featureArea(feature),
+                        original_geometry: original_geometry,
                     };
 
                     feature.setProperties(properties);
@@ -2142,6 +2210,11 @@ export default {
                 console.log(evt.feature.values_.geometry.flatCoordinates);
                 // Priya I think context is the occurrencereport_obj thats sent through prop
                 let model = vm.context || {};
+                const coords = evt.feature.getGeometry().getCoordinates();
+                const original_geometry = {
+                    coordinates: coords,
+                    properties: { srid: vm.mapSrid },
+                };
 
                 let color =
                     vm.featureColors['draw'] ||
@@ -2162,6 +2235,8 @@ export default {
                         'Draw',
                     color: color,
                     locked: false,
+                    srid: vm.mapSrid,
+                    original_geometry: original_geometry,
                 });
                 vm.newFeatureId++;
                 console.log('newFeatureId = ' + vm.newFeatureId);
@@ -2173,6 +2248,12 @@ export default {
                 console.log(evt);
                 console.log(evt.feature.values_.geometry.flatCoordinates);
                 let model = vm.context || {};
+                // Add original_geometry for list of geometries and modification of geom parameters
+                const coords = evt.feature.getGeometry().getCoordinates();
+                const original_geometry = {
+                    coordinates: coords,
+                    properties: { srid: vm.mapSrid },
+                };
 
                 let color =
                     vm.featureColors['draw'] ||
@@ -2187,6 +2268,8 @@ export default {
                         model.occurrence_report_number || model.label || 'Draw',
                     color: color,
                     locked: false,
+                    srid: vm.mapSrid,
+                    original_geometry: original_geometry,
                 });
                 vm.newFeatureId++;
                 console.log('newFeatureId = ' + vm.newFeatureId);
@@ -2311,7 +2394,7 @@ export default {
                                 selected.getProperties().copied_from;
                             model.area_sqm = Math.round(
                                 getArea(selected.getGeometry(), {
-                                    projection: 'EPSG:4326',
+                                    projection: `EPSG:${vm.mapSrid}`,
                                 })
                             );
                         }
@@ -2580,7 +2663,11 @@ export default {
 
             modify.addEventListener('modifyend', function (evt) {
                 console.log('Modify end', evt.features);
-                // let feature = evt.features[0];
+                const feature = evt.features[0];
+                const coordinates = feature.getGeometry().getCoordinates();
+                // TODO: Transform back from map srid to original srid if not already map srid
+                feature.getProperties().original_geometry.coordinates =
+                    coordinates;
                 //commented validateFeature by Priya
                 //validateFeature(feature, vm);
             });
@@ -2758,6 +2845,12 @@ export default {
             vm.modelQuerySource.clear();
             proposals.forEach(function (proposal) {
                 proposal.ocr_geometry.features.forEach(function (featureData) {
+                    if (!featureData.geometry) {
+                        console.warn(
+                            `Feature ${featureData.id} has no geometry. Skipping...`
+                        );
+                        return;
+                    }
                     let feature = vm.featureFromDict(featureData, proposal);
                     if (vm.modelQuerySource.getFeatureById(feature.getId())) {
                         console.warn(
@@ -2812,9 +2905,16 @@ export default {
                 console.error(`Unsupported geometry type ${type}`);
             }
 
+            const original_geometry = featureData.properties
+                .original_geometry || {
+                coordinates: geometry.getCoordinates(),
+                properties: { srid: vm.mapSrid },
+            };
+
             let feature = new Feature({
                 id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
                 geometry: geometry,
+                original_geometry: original_geometry,
                 name: model.id,
                 // label: model.label || model.application_type_name_display,
                 label: model.label,
@@ -2825,6 +2925,7 @@ export default {
                 locked: featureData.properties.locked || false,
                 copied_from: featureData.properties.report_copied_from || null,
                 area_sqm: featureData.properties.area_sqm || null,
+                srid: featureData.properties.srid || null,
             });
             if (featureData.id) {
                 // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
@@ -2897,7 +2998,7 @@ export default {
                 request: vm.owsQuery[layerStr].request || 'GetFeature',
                 typeName: vm.owsQuery[layerStr].typeName,
                 maxFeatures: vm.owsQuery[layerStr].maxFeatures || '5000',
-                srsName: vm.owsQuery[layerStr].srsName || 'EPSG:4326',
+                srsName: vm.owsQuery[layerStr].srsName || `EPSG:${vm.mapSrid}`,
                 outputFormat:
                     vm.owsQuery[layerStr].outputFormat || 'application/json',
                 propertyName:
@@ -3131,7 +3232,10 @@ export default {
                     return doc.name.slice(doc.name.lastIndexOf('.'));
                 }, []);
         },
-        featureArea: function (feature, projection = 'EPSG:4326') {
+        featureArea: function (feature, projection = null) {
+            if (!projection) {
+                projection = `EPSG:${this.mapSrid}`;
+            }
             return Math.round(
                 getArea(feature.getGeometry(), {
                     projection: projection,
@@ -3297,6 +3401,95 @@ export default {
             hidden.removeClass('hidden');
             notHidden.addClass('hidden');
         },
+        featureInputCoordinates: function (feature) {
+            const inputLat =
+                this.$refs[`feature-${feature.ol_uid}-latitude-input`][0].value;
+            const inputLon =
+                this.$refs[`feature-${feature.ol_uid}-longitude-input`][0]
+                    .value;
+            return [Number(inputLon), Number(inputLat)];
+        },
+        cloneFeature: function (feature, coordinates = null) {
+            const clone = feature.clone();
+            if (coordinates) {
+                clone.getGeometry().setCoordinates(coordinates);
+            }
+            return clone;
+        },
+        transformFeature: async function (feature, srid_from, srid_to) {
+            const format = new GeoJSON();
+            const geomStr = format.writeGeometry(feature.getGeometry());
+
+            const transformed = await fetch(
+                helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/transform-geometry/?geometry=${geomStr}&from=${srid_from}&to=${srid_to}`
+                )
+            )
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    return data;
+                })
+                .catch((error) => {
+                    console.error(
+                        'Error coordinate transforming geometry:',
+                        error
+                    );
+                });
+            return transformed;
+        },
+        transformToMapCrs: async function (feature, srid) {
+            const newSrid = Number(srid);
+            if (!newSrid) {
+                console.warn(`Invalid SRID. ${srid} is not a number.`);
+                return;
+            }
+
+            const featureType = feature.getGeometry().getType();
+            if (featureType != 'Point') {
+                this.errorMessageProperty(
+                    `Feature type ${featureType} is not yet supported for transformation.`
+                );
+                return;
+            }
+
+            // Point coordinates
+            const inputCoordinates = this.featureInputCoordinates(feature);
+
+            // Store the new srid in the feature for backend transformation
+            feature.set('srid', newSrid);
+            feature.getProperties().original_geometry.properties.srid = newSrid;
+            if (newSrid === this.mapSrid) {
+                console.log('No need to transform');
+                feature.getGeometry().setCoordinates(inputCoordinates);
+                return;
+            }
+
+            const selectComponent =
+                this.$refs[`feature-${feature.ol_uid}-crs-select`][0].$refs
+                    .vueSelectFilter;
+            selectComponent.toggleLoading(true);
+
+            const transformFeature = this.cloneFeature(
+                feature,
+                inputCoordinates
+            );
+
+            const transformed = await this.transformFeature(
+                transformFeature,
+                newSrid,
+                this.mapSrid
+            );
+
+            console.log('coordinates after', transformed);
+            feature.getGeometry().setCoordinates(transformed.coordinates);
+            selectComponent.toggleLoading(false);
+        },
     },
 };
 </script>
@@ -3367,10 +3560,10 @@ export default {
 .min-width-150 {
     min-width: 150px !important;
 }
-.xxx {
-    width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.min-width-180 {
+    min-width: 180px !important;
+}
+.min-width-210 {
+    min-width: 210px !important;
 }
 </style>
