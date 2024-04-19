@@ -9,7 +9,7 @@
                             <div class="row mb-3">
                                 <div class="col-sm-6">
                                     <div class="form-group">
-                                        <label class="control-label pull-left" for="Name">Reason</label>
+                                        <label class="control-label" for="Name">Reason</label>
                                         <select class="form-select" name="reason" ref="reason"
                                             v-model="amendment.reason">
                                             <option v-for="r in reason_choices" :value="r.key">{{ r.value }}</option>
@@ -20,15 +20,15 @@
                             <div class="row mb-3">
                                 <div class="col">
                                     <div class="form-group">
-                                        <label class="control-label pull-left" for="Name">Details</label>
-                                        <textarea class="form-control" name="name" v-model="amendment.text"
-                                            id="amendment_text"></textarea>
+                                        <label class="control-label" for="amendment_text">Details</label>
+                                        <textarea class="form-control" name="amendment_text" v-model="amendment.text"
+                                            id="amendment_text" ref="amendment_text"></textarea>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col">
-                                    <label class="control-label pull-left" for="amendment_request_file">Documents</label>
+                                    <label class="control-label" for="amendment_request_file">Documents</label>
                                     <FileField2 ref="filefield"
                                         :uploaded_documents="amendment.amendment_request_documents"
                                         :delete_url="delete_url" :proposal_id="occurrence_report_id"
@@ -91,6 +91,15 @@ export default {
         delete_url: function () {
             return (this.amendment.id) ? '/api/ocr_amendment_request/' + this.amendment.id + '/delete_document/' : '';
         }
+    },
+    watch: {
+        isModalOpen: function (val) {
+            if (val) {
+                this.$nextTick(() => {
+                    $(this.$refs.reason).select2('open');
+                });
+            }
+        },
     },
     methods: {
         ok: function () {
@@ -183,9 +192,6 @@ export default {
                         var $element = $(element);
                         $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
                     });
-                    // destroy tooltips on valid elements
-                    // commented below (Priya) as gives error for .tooltipz
-                    //$("." + this.settings.validClass).tooltip("destroy");
                     // add or update tooltips
                     for (var i = 0; i < errorList.length; i++) {
                         var error = errorList[i];
@@ -207,7 +213,7 @@ export default {
                 "theme": "bootstrap-5",
                 allowClear: true,
                 placeholder: "Select Reason",
-                dropdownParent: $('#myModal .modal-body'),
+                dropdownParent: $('div#internal-ocr-amendment-request .modal-body'),
             }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
