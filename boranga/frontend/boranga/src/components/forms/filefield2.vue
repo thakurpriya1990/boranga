@@ -35,7 +35,6 @@
             </div>
         </div>
         <div v-if="files && files.length > 0" class="mt-3 pt-3 border-top">
-            <label class="control-label" for="Name">Document <template v-if="isRepeatable && num_documents() > 1">s</template> Uploaded Pending Confirmation</label>
             <div class="mt-3">
                 <ul class="list-group list-group-numbered">
                     <li v-for="v in files" class="list-group-item">
