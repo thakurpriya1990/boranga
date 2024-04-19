@@ -61,6 +61,25 @@ def save_geometry(request, instance, geometry_data):
 
         srid = feature.get("properties", {}).get("srid", None)
         # Create a Polygon object from the open layers feature
+        from shapely.geometry import shape, mapping
+        import geojson
+
+        geo_json = mapping(geojson.loads(json.dumps(feature)))
+        shape_4326 = shape(geo_json.get("geometry"))
+        GEOSGeometry(shape_4326.wkt)
+
+        original_geometry = geo_json.get("properties", {}).get("original_geometry")
+        if not original_geometry.get("type", None):
+            original_geometry["type"] = geometry_type
+        shape_original = shape(original_geometry)
+        srid_original = original_geometry.get("properties", {}).get("srid", 4326)
+        GEOSGeometry(shape_original.wkt, srid=srid_original)
+
+        # TODO: Iterate over GEOSGeometries
+        # ewkb = GEOSGeometry(shape_original.wkt, srid=srid_original)
+        # pp = GEOSGeometry(shape_4326.wkt)
+        # no transformation needed because the geoms should already come in transformed
+
         polygons = (
             [Polygon(feature.get("geometry").get("coordinates")[0], srid=srid)]
             if geometry_type == "Polygon"
