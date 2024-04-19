@@ -2025,9 +2025,9 @@ class ConservationThreat(RevisionedMixin):
     @property
     def source(self):
         if self.species:
-            return self.species.id
+            return self.species.species_number
         elif self.community:
-            return self.community.id
+            return self.community.community_number
 
 
 class FloraRecruitmentType(models.Model):
