@@ -1,8 +1,5 @@
 <template>
     <div>
-        {{ coordinateReferenceSystems }}
-        <!-- {{modelQuerySource.getFeatures()[0]}} -->
-
         <div class="justify-content-end align-items-center mb-2">
             <div v-if="mapInfoText.length > 0" class="row">
                 <div class="col-md-6">
@@ -126,7 +123,7 @@
                         <transition>
                             <div
                                 class="optional-layers-button-wrapper"
-                                :title="`There are ${optionalLayers.length} optional layers available}`"
+                                :title="`There are ${optionalLayers.length} geometries available}`"
                             >
                                 <div
                                     class="optional-layers-button btn"
@@ -147,7 +144,8 @@
                                     v-for="feature in modelQuerySource.getFeatures()"
                                     :key="
                                         feature.ol_uid +
-                                        feature.getProperties().srid
+                                        feature.getProperties()
+                                            .original_geometry.properties.srid
                                     "
                                     class="input-group input-group-sm mb-1 text-nowrap"
                                 >
@@ -209,11 +207,12 @@
                                                     .getType() === 'Point'
                                             "
                                             :id="`feature-${feature.ol_uid}-latitude-input`"
+                                            :ref="`feature-${feature.ol_uid}-latitude-input`"
                                             class="form-control min-width-90"
                                             :value="
-                                                feature
-                                                    .getGeometry()
-                                                    .getCoordinates()[1]
+                                                feature.getProperties()
+                                                    .original_geometry
+                                                    .coordinates[1]
                                             "
                                             placeholder="Latitude"
                                             type="number"
@@ -242,11 +241,12 @@
                                                     .getType() === 'Point'
                                             "
                                             :id="`feature-${feature.ol_uid}-longitude-input`"
+                                            :ref="`feature-${feature.ol_uid}-longitude-input`"
                                             class="form-control min-width-90 me-1"
                                             :value="
-                                                feature
-                                                    .getGeometry()
-                                                    .getCoordinates()[0]
+                                                feature.getProperties()
+                                                    .original_geometry
+                                                    .coordinates[0]
                                             "
                                             placeholder="Longitude"
                                             type="number"
@@ -269,6 +269,7 @@
                                     >
                                         <SelectFilter
                                             :id="`feature-${feature.ol_uid}-crs-select`"
+                                            :ref="`feature-${feature.ol_uid}-crs-select`"
                                             :title="`Feature ${
                                                 feature.getProperties().id
                                             }`"
@@ -280,12 +281,12 @@
                                             :pre-selected-filter-item="
                                                 feature.getProperties()
                                                     .original_geometry
-                                                    ?.properties.srid || mapSrid
+                                                    .properties.srid || mapSrid
                                             "
                                             classes="min-width-210"
                                             @option:selected="
                                                 (selected) => {
-                                                    setFeatureCRS(
+                                                    transformFeatureCRS(
                                                         feature,
                                                         selected.value
                                                     );
@@ -3369,41 +3370,89 @@ export default {
             hidden.removeClass('hidden');
             notHidden.addClass('hidden');
         },
-        search: function (search, loading) {
-            console.log('search', search, loading);
+        featureInputCoordinates: function (feature) {
+            const inputLat =
+                this.$refs[`feature-${feature.ol_uid}-latitude-input`][0].value;
+            const inputLon =
+                this.$refs[`feature-${feature.ol_uid}-longitude-input`][0]
+                    .value;
+            return [Number(inputLon), Number(inputLat)];
         },
-        setFeatureCRS: function (feature, srid) {
+        cloneFeature: function (feature, coordinates = null) {
+            const clone = feature.clone();
+            if (coordinates) {
+                clone.getGeometry().setCoordinates(coordinates);
+            }
+            return clone;
+        },
+        transformFeatureCRS: async function (feature, srid) {
+            // eslint-disable-next-line no-unused-vars
+            const oldSrid = feature.get('srid');
             const newSrid = Number(srid);
             if (!newSrid) {
                 console.warn(`Invalid SRID. ${srid} is not a number.`);
                 return;
             }
 
-            const mapFeature = this.modelQuerySource.getFeatureById(feature.getId())
-            // TODO: transformation to map crs?
-            const proj4Defs = this.coordinateReferenceSystems
-                .filter((crs) => crs.id === newSrid)
-                .map((crs) => {
-                    return [`EPSG:${newSrid}`, crs.proj4];
-                }, []);
-            proj4.defs(proj4Defs);
+            const featureType = feature.getGeometry().getType();
+            if (featureType != 'Point') {
+                alert(
+                    `Feature type ${featureType} is not yet supported for transformation.`
+                );
+                return;
+            }
 
-            register(proj4);
+            // Point coordinates
+            const inputCoordinates = this.featureInputCoordinates(feature);
 
+            // Store the new srid in the feature for backend transformation
+            feature.set('srid', newSrid);
+            feature.getProperties().original_geometry.properties.srid = newSrid;
+            if (newSrid === this.mapSrid) {
+                console.log('No need to transform');
+                feature.getGeometry().setCoordinates(inputCoordinates);
+                return;
+            }
 
-            console.log('proj4', proj4.defs(`EPSG:${this.mapSrid}`))
-            console.log('proj4', proj4.defs(`EPSG:${newSrid}`))
+            const selectComponent =
+                this.$refs[`feature-${feature.ol_uid}-crs-select`][0].$refs
+                    .vueSelectFilter;
+            selectComponent.toggleLoading(true);
 
-            // proj4.transform(
-            //     proj4.Proj(`EPSG:${this.mapSrid}`),
-            //     proj4.Proj(`EPSG:${newSrid}`),
-            //     new proj4.toPoint(feature.getGeometry().getCoordinates())
-            // );
+            const transformFeature = this.cloneFeature(
+                feature,
+                inputCoordinates
+            );
 
-            // mapFeature.getGeometry().transform(`EPSG:${this.mapSrid}`, `EPSG:3857`);
-            // mapFeature.getGeometry().transform(`EPSG:${this.mapSrid}`, `EPSG:3857`);
-            mapFeature.getGeometry().transform(`EPSG:${newSrid}`, `EPSG:${this.mapSrid}`);
-            mapFeature.set('srid', newSrid);
+            const format = new GeoJSON();
+            const geomStr = format.writeGeometry(
+                transformFeature.getGeometry()
+            );
+
+            const transformed = await fetch(
+                helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/transform-geometry/?geometry=${geomStr}&from=${newSrid}&to=${this.mapSrid}`
+                )
+            )
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    return data;
+                })
+                .catch((error) => {
+                    console.error(
+                        'Error coordinate transforming geometry:',
+                        error
+                    );
+                });
+            console.log('coordinates after', transformed);
+            feature.getGeometry().setCoordinates(transformed.coordinates);
+            selectComponent.toggleLoading(false);
         },
     },
 };
