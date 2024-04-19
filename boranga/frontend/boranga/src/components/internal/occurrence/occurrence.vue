@@ -571,16 +571,16 @@ export default {
         });
     },
     beforeRouteEnter: function (to, from, next) {
-        if (to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna") {
-            Vue.http.get(`/api/occurrence_paginated/${to.params.occurrence_id}/`).then(res => {
-                next(vm => {
-                    vm.occurrence = res.body;
-                });
-            },
-                err => {
-                    console.log(err);
-                });
-        }
+        //if (to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna") {
+        Vue.http.get(`/api/occurrence_paginated/${to.params.occurrence_id}/`).then(res => {
+            next(vm => {
+                vm.occurrence = res.body;
+            });
+        },
+        err => {
+            console.log(err);
+        });
+        /*}
         else {
             Vue.http.get(`/api/community/${to.params.occurrence_id}/internal_community.json`).then(res => {
                 next(vm => {
@@ -590,7 +590,7 @@ export default {
                 err => {
                     console.log(err);
                 });
-        }
+        }*/
     },
 }
 </script>
