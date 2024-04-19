@@ -1780,6 +1780,37 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def propose_decline(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            logger.debug(request.data)
+            serializer = ProposeDeclineSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.propose_decline(request, serializer.validated_data)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e, "message"):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
     queryset = ObserverDetail.objects.none()
@@ -2461,34 +2492,6 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
                 for occurrence in queryset
             ]
         return Response({"results": queryset})
-
-    @detail_route(
-        methods=[
-            "POST",
-        ],
-        detail=True,
-    )
-    def propose_decline(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = ProposeDeclineSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance.propose_decline(request, serializer.validated_data)
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
 
     @detail_route(
         methods=[
