@@ -450,8 +450,8 @@ class OccurrenceReport(RevisionedMixin):
                 "The selected person is not authorised to be assigned to this proposal"
             )
 
-        if self.processing_status == "with_approver":
-            if officer != self.assigned_approver:
+        if self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
+            if officer.id != self.assigned_approver:
                 self.assigned_approver = officer.id
                 self.save()
 
@@ -464,7 +464,7 @@ class OccurrenceReport(RevisionedMixin):
                     request,
                 )
         else:
-            if officer != self.assigned_officer:
+            if officer.id != self.assigned_officer:
                 self.assigned_officer = officer.id
                 self.save()
 
@@ -481,7 +481,7 @@ class OccurrenceReport(RevisionedMixin):
         if not self.can_assess(request.user):
             raise exceptions.OccurrenceReportNotAuthorized()
 
-        if self.processing_status == "with_approver":
+        if self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
             if self.assigned_approver:
                 self.assigned_approver = None
                 self.save()
@@ -1073,7 +1073,9 @@ class OccurrenceReportReferral(models.Model):
             processing_status="with_referral"
         )
         if len(outstanding) == 0:
-            self.occurrence_report.processing_status = "with_assessor"
+            self.occurrence_report.processing_status = (
+                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            )
             self.occurrence_report.save()
 
         # Create a log entry for the occurrence report
