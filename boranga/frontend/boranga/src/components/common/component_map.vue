@@ -1558,7 +1558,11 @@ export default {
                     featureData.properties.geometry_source?.toLowerCase() ||
                     'draw';
             }
-            const type = featureData.geometry.type;
+
+            const type =
+                'getGeometry' in featureData
+                    ? featureData.getGeometry().getType()
+                    : featureData.geometry.type;
             const featureColors =
                 type === 'Point' ? vm.pointFeatureColors : vm.featureColors;
 
@@ -1883,6 +1887,11 @@ export default {
                         feature.getGeometry().getType()
                     );
 
+                    const coords = feature.getGeometry().getCoordinates();
+                    const original_geometry = {
+                        coordinates: coords,
+                        properties: { srid: vm.mapSrid },
+                    };
                     const properties = {
                         id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
                         model: vm.context,
@@ -1893,6 +1902,7 @@ export default {
                         locked: false,
                         copied_from: null,
                         area_sqm: vm.featureArea(feature),
+                        original_geometry: original_geometry,
                     };
 
                     feature.setProperties(properties);
@@ -2895,10 +2905,16 @@ export default {
                 console.error(`Unsupported geometry type ${type}`);
             }
 
+            const original_geometry = featureData.properties
+                .original_geometry || {
+                coordinates: geometry.getCoordinates(),
+                properties: { srid: vm.mapSrid },
+            };
+
             let feature = new Feature({
                 id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
                 geometry: geometry,
-                original_geometry: featureData.properties.original_geometry,
+                original_geometry: original_geometry,
                 name: model.id,
                 // label: model.label || model.application_type_name_display,
                 label: model.label,
