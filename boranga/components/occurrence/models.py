@@ -523,22 +523,22 @@ class OccurrenceReport(RevisionedMixin):
 
         reason = details.get("reason")
         OccurrenceReportDeclinedDetails.objects.update_or_create(
-            conservation_status=self,
+            occurrence_report=self,
             defaults={
                 "officer": request.user.id,
                 "reason": reason,
-                "cc_email": details.get("cc_email", None),
             },
         )
 
         self.proposed_decline_status = True
-        approver_comment = ""
-        self.move_to_status(request, "with_approver", approver_comment)
+        self.approver_comment = ""
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
+        self.save()
 
         # Log proposal action
         self.log_user_action(
             OccurrenceReportUserAction.ACTION_PROPOSED_DECLINE.format(
-                self.conservation_status_number
+                self.occurrence_report_number
             ),
             request,
         )
