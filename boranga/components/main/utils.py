@@ -124,3 +124,17 @@ def wkb_to_geojson(wkb):
     geo_json["properties"] = {"srid": geos_geometry.srid}
 
     return geo_json
+
+def transform_json_geometry(json_geom, from_srid, to_srid):
+    from django.contrib.gis.geos import Polygon, Point
+
+    if json_geom.get("type") == "Polygon":
+        geom = Polygon(json_geom.get("coordinates"), srid=from_srid)
+    elif json_geom.get("type") == "Point":
+        geom = Point(json_geom.get("coordinates"), srid=from_srid)
+    else:
+        return json_geom
+
+    geom.transform(to_srid)
+
+    return geom.json

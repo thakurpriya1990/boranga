@@ -28,7 +28,10 @@ from boranga.components.main.api import (
     search_datums,
 )
 from boranga.components.main.decorators import basic_exception_handler
-from boranga.components.main.utils import handle_validation_error
+from boranga.components.main.utils import (
+    handle_validation_error,
+    transform_json_geometry,
+)
 from boranga.components.occurrence.models import (
     AnimalHealth,
     AnimalObservation,
@@ -674,6 +677,27 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        url_path="transform-geometry",
+    )
+    def transform_geometry(self, request, *args, **kwargs):
+        geometry = request.GET.get("geometry", None)
+        from_srid = int(request.GET.get("from", 4326))
+        to_srid = int(request.GET.get("to", 4326))
+
+        if not geometry:
+            return HttpResponse({}, content_type="application/json")
+
+        json_geom = json.loads(geometry)
+
+        transformed = transform_json_geometry(json_geom, from_srid, to_srid)
+
+        return HttpResponse(transformed, content_type="application/json")
 
     # used for Location Tab of Occurrence Report external form
     @list_route(
