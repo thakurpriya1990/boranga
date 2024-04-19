@@ -44,51 +44,54 @@
                         <div class="card-header">
                             Workflow
                         </div>
-                        <div class="card-body card-collapse">
+                        <div class="card-body border-bottom">
                             <div class="row">
                                 <div class="col-sm-12">
                                     <strong>Status</strong><br />
                                     {{ species_community.processing_status }}
                                 </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
                                 <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                                <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction"> -->
-                                <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
-                                    <template v-if="hasUserEditMode">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <strong>Action</strong><br />
+                                    <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction"> -->
+                                    <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
+                                        <template v-if="hasUserEditMode">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Action</strong><br />
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="splitSpecies()">Split</button><br />
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="splitSpecies()">Split</button><br />
+                                                </div>
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="combineSpecies()">Combine</button><br />
+                                                </div>
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="renameSpecies()">Rename</button><br />
+                                                </div>
                                             </div>
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="combineSpecies()">Combine</button><br />
+                                        </template>
+                                        <template v-if="canDiscard">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Action</strong><br />
+                                                </div>
                                             </div>
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="renameSpecies()">Rename</button><br />
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="discardSpeciesProposal()">Discard</button><br />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </template>
-                                    <template v-if="canDiscard">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <strong>Action</strong><br />
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="discardSpeciesProposal()">Discard</button><br />
-                                            </div>
-                                        </div>
-                                    </template>
+                                        </template>
+                                    </div>
                                 </div>
                             </div>
                         </div>
