@@ -74,7 +74,7 @@
                                 Amendment</button>
 
                             <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-2"
-                                @click.prevent="">Propose Approve</button>
+                                @click.prevent="proposeApprove">Propose Approve</button>
                             <button v-if="with_approver" style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="">Approve</button>
 
@@ -149,6 +149,8 @@
 
         <AmendmentRequest ref="amendment_request" :occurrence_report_id="occurrence_report.id"
             @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
+        <ProposeAppprove ref="propose_approve" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
+            @refreshFromResponse="refreshFromResponse"></ProposeAppprove>
         <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
             @refreshFromResponse="refreshFromResponse"></ProposeDecline>
     </div>
@@ -169,6 +171,7 @@ import Workflow from '@common-utils/workflow.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import AmendmentRequest from './amendment_request.vue'
 import ProposeDecline from './ocr_propose_decline.vue'
+import ProposeAppprove from './ocr_propose_approve.vue'
 
 // import SpeciesSplit from './species_split.vue'
 // import SpeciesCombine from './species_combine.vue'
@@ -205,6 +208,7 @@ export default {
         ProposalOccurrenceReport,
         AmendmentRequest,
         ProposeDecline,
+        ProposeAppprove,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,
@@ -753,6 +757,9 @@ export default {
         },
         proposeDecline: function () {
             this.$refs.propose_decline.isModalOpen = true;
+        },
+        proposeApprove: function () {
+            this.$refs.propose_approve.isModalOpen = true;
         }
     },
     updated: function () {
