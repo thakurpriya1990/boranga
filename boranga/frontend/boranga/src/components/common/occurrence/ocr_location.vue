@@ -98,8 +98,10 @@
                             : 'Use the <b>draw</b> tool to draw the area of the report on the map.</br>You can <b>save</b> the report and continue at a later time.'
                     "
                     :selectable="true"
+                    :coordinate-reference-systems="coordinateReferenceSystems"
                     @validate-feature="validateFeature.bind(this)()"
                     @refreshFromResponse="refreshFromResponse"
+                    @crs-select-search="searchForCRS"
                 ></MapComponent>
             </div>
 
@@ -323,7 +325,7 @@
                         :reduce="(option) => option.id"
                         label="name"
                         :disabled="isReadOnly"
-                        @search="searchDatum"
+                        @search="searchForCRS"
                     >
                     </VueSelect>
                 </div>
@@ -565,6 +567,9 @@ export default {
         },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
+        },
+        coordinateReferenceSystems: function () {
+            return this.datum_list;
         },
     },
     watch: {},
@@ -880,7 +885,7 @@ export default {
         refreshFromResponse: function (data) {
             //this.proposal = Object.assign({}, data);
         },
-        searchDatum: function (search, loading) {
+        searchForCRS: function (search, loading) {
             const vm = this;
             if (search.length < 2) {
                 loading(false);

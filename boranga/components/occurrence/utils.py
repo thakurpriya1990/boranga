@@ -59,31 +59,55 @@ def save_geometry(request, instance, geometry_data):
             )
             continue
 
+        srid = feature.get("properties", {}).get("srid", None)
         # Create a Polygon object from the open layers feature
+        from shapely.geometry import shape, mapping
+        import geojson
+
+        geo_json = mapping(geojson.loads(json.dumps(feature)))
+        shape_4326 = shape(geo_json.get("geometry"))
+        GEOSGeometry(shape_4326.wkt)
+
+        original_geometry = geo_json.get("properties", {}).get("original_geometry")
+        if not original_geometry.get("type", None):
+            original_geometry["type"] = geometry_type
+        shape_original = shape(original_geometry)
+        srid_original = original_geometry.get("properties", {}).get("srid", 4326)
+        GEOSGeometry(shape_original.wkt, srid=srid_original)
+
+        # TODO: Iterate over GEOSGeometries
+        # ewkb = GEOSGeometry(shape_original.wkt, srid=srid_original)
+        # pp = GEOSGeometry(shape_4326.wkt)
+        # no transformation needed because the geoms should already come in transformed
+
         polygons = (
-            [Polygon(feature.get("geometry").get("coordinates")[0])]
+            [Polygon(feature.get("geometry").get("coordinates")[0], srid=srid)]
             if geometry_type == "Polygon"
             else (
-                [Polygon(p) for p in feature.get("geometry").get("coordinates")[0]]
+                [Polygon(p, srid=srid) for p in feature.get("geometry").get("coordinates")[0]]
                 if geometry_type == "MultiPolygon"
                 else []
             )
         )
         points = (
-            [Point(feature.get("geometry").get("coordinates"))]
+            [Point(feature.get("geometry").get("coordinates"), srid=srid)]
             if geometry_type == "Point"
             else (
-                [Point(p) for p in feature.get("geometry").get("coordinates")]
+                [Point(p, srid=srid) for p in feature.get("geometry").get("coordinates")]
                 if geometry_type == "MultiPoint"
                 else []
             )
         )
 
         for pp in polygons + points:
+            ewkb = pp.ewkb
+            if pp.srid != 4326:
+                pp.transform(4326)
+
             geometry_data = {
                 "occurrence_report_id": instance.id,
-                "polygon": pp if pp.geom_type == "Polygon" else None,
-                "point": pp if pp.geom_type == "Point" else None,
+                "geometry": pp,
+                "original_geometry_ewkb": ewkb,
                 # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
             }
             if feature.get("id"):

@@ -12,6 +12,9 @@ from boranga.components.main.serializers import (
 )
 from boranga import helpers
 
+import pyproj
+import re
+
 logger = logging.getLogger("payment_checkout")
 
 
@@ -77,6 +80,40 @@ class UserActionLoggingViewset(viewsets.ModelViewSet):
         )
         return super().destroy(request, *args, **kwargs)
 
+def proj4_string_from_epsg_code(code):
+    # Function meant to provide ellipsoid parameters in proj4 string for proj4.js
+    # Don't think this function will be used going forward,
+    # because frontend datum transformation doesn't seem to be easily achievable
+
+    ellipsoids = pyproj.get_ellps_map()
+    crs = pyproj.CRS.from_string(code)
+    prj = crs.to_proj4()
+    prj_split = prj.split("+")
+
+    regex = re.compile(r"(?:\+ellps=)(\w+)")
+    matched = regex.search(prj)
+    if not matched:
+        return prj
+
+    ellps = matched.group(1)
+    ellps_params = ellipsoids.get(ellps, None)
+
+    # Don't need description value
+    ellps_params = {k: v for k, v in ellps_params.items() if k not in ['description']}
+
+    prj_additional_params = []
+    for k, v in ellps_params.items():
+        if any(f'{k}=' in p for p in prj.split("+")):
+            # Ellipsoid parameter already exists in proj4 string
+            continue
+        prj_additional_params.append(f"{k}={v} ")
+
+    ellps_pos = [i for i, p in enumerate(prj_split) if 'ellps' in p][0]
+    # Insert ellps parameters after ellps name
+    prj_split = prj_split[:ellps_pos+1] + prj_additional_params + prj_split[ellps_pos+1:]
+
+    return "+".join(prj_split)
+
 
 def get_cached_epsg_codes(auth_name="EPSG", pj_type="GEODETIC_CRS"):
     # TODO: This is a temporary solution to get the geodetic datums for australia
@@ -89,21 +126,26 @@ def get_cached_epsg_codes(auth_name="EPSG", pj_type="GEODETIC_CRS"):
     if cache.get(cache_key):
         return cache.get(cache_key)
 
-    import pyproj
-
     codes = [c for c in pyproj.get_codes(auth_name, pj_type) if c in cool_codes]
     cache.set(cache_key, codes, timeout=60 * 60 * 24)
 
     return codes
 
 
-def search_datums(search):
-    import pyproj
+def search_datums(search, codes = None):
+    """Searches search-term in CRS names and returns those that match
+    Can provide codes list to control which epsg codes to search in
+    """
 
-    codes = get_cached_epsg_codes()
+    if not codes:
+        codes = get_cached_epsg_codes()
 
     geodetic_crs = [
-        {"id": int(c), "name": f"EPSG:{c} - {pyproj.CRS.from_string(c).name}"}
+        {
+            "id": int(c),
+            "name": f"EPSG:{c} - {pyproj.CRS.from_string(c).name}",
+            # "proj4": proj4_string_from_epsg_code(c),
+        }
         for c in codes
     ]
 

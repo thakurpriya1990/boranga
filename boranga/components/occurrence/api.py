@@ -28,7 +28,10 @@ from boranga.components.main.api import (
     search_datums,
 )
 from boranga.components.main.decorators import basic_exception_handler
-from boranga.components.main.utils import handle_validation_error
+from boranga.components.main.utils import (
+    handle_validation_error,
+    transform_json_geometry,
+)
 from boranga.components.occurrence.models import (
     AnimalHealth,
     AnimalObservation,
@@ -677,6 +680,27 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        url_path="transform-geometry",
+    )
+    def transform_geometry(self, request, *args, **kwargs):
+        geometry = request.GET.get("geometry", None)
+        from_srid = int(request.GET.get("from", 4326))
+        to_srid = int(request.GET.get("to", 4326))
+
+        if not geometry:
+            return HttpResponse({}, content_type="application/json")
+
+        json_geom = json.loads(geometry)
+
+        transformed = transform_json_geometry(json_geom, from_srid, to_srid)
+
+        return HttpResponse(transformed, content_type="application/json")
+
     # used for Location Tab of Occurrence Report external form
     @list_route(
         methods=[
@@ -696,8 +720,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         except OccurrenceReport.DoesNotExist:
             logger.error(f"Occurrence Report with id {id} not found")
         else:
-            epsg_code = qs.location.epsg_code
-            datum_list = search_datums(epsg_code)
+            ocr_geometries = qs.ocr_geometry.all().exclude(**{"geometry": None})
+            epsg_codes = [
+                str(g.srid)
+                for g in ocr_geometries.values_list("geometry", flat=True).distinct()
+            ]
+            # Add the srids of the original geometries to epsg_codes
+            epsg_codes += [str(g.original_geometry_srid) for g in ocr_geometries]
+            epsg_codes = list(set(epsg_codes))
+            datum_list = search_datums("", codes=epsg_codes)
 
         coordination_source_list = []
         values = CoordinationSource.objects.all()
