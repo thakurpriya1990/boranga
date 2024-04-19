@@ -286,7 +286,7 @@
                                             classes="min-width-210"
                                             @option:selected="
                                                 (selected) => {
-                                                    transformFeatureCRS(
+                                                    transformToMapCrs(
                                                         feature,
                                                         selected.value
                                                     );
@@ -909,7 +909,6 @@ import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
 import DragAndDrop from 'ol/interaction/DragAndDrop.js';
-import { register } from 'ol/proj/proj4';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
@@ -921,7 +920,6 @@ import {
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
 import shp, { combine, parseShp, parseDbf } from 'shpjs';
-import proj4 from 'proj4';
 import SelectFilter from '@/components/common/SelectFilter.vue';
 
 export default {
@@ -2655,7 +2653,11 @@ export default {
 
             modify.addEventListener('modifyend', function (evt) {
                 console.log('Modify end', evt.features);
-                // let feature = evt.features[0];
+                const feature = evt.features[0];
+                const coordinates = feature.getGeometry().getCoordinates();
+                // TODO: Transform back from map srid to original srid if not already map srid
+                feature.getProperties().original_geometry.coordinates =
+                    coordinates;
                 //commented validateFeature by Priya
                 //validateFeature(feature, vm);
             });
@@ -3398,9 +3400,34 @@ export default {
             }
             return clone;
         },
-        transformFeatureCRS: async function (feature, srid) {
-            // eslint-disable-next-line no-unused-vars
-            const oldSrid = feature.get('srid');
+        transformFeature: async function (feature, srid_from, srid_to) {
+            const format = new GeoJSON();
+            const geomStr = format.writeGeometry(feature.getGeometry());
+
+            const transformed = await fetch(
+                helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/transform-geometry/?geometry=${geomStr}&from=${srid_from}&to=${srid_to}`
+                )
+            )
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    return data;
+                })
+                .catch((error) => {
+                    console.error(
+                        'Error coordinate transforming geometry:',
+                        error
+                    );
+                });
+            return transformed;
+        },
+        transformToMapCrs: async function (feature, srid) {
             const newSrid = Number(srid);
             if (!newSrid) {
                 console.warn(`Invalid SRID. ${srid} is not a number.`);
@@ -3437,32 +3464,12 @@ export default {
                 inputCoordinates
             );
 
-            const format = new GeoJSON();
-            const geomStr = format.writeGeometry(
-                transformFeature.getGeometry()
+            const transformed = await this.transformFeature(
+                transformFeature,
+                newSrid,
+                this.mapSrid
             );
 
-            const transformed = await fetch(
-                helpers.add_endpoint_join(
-                    api_endpoints.occurrence_report,
-                    `/transform-geometry/?geometry=${geomStr}&from=${newSrid}&to=${this.mapSrid}`
-                )
-            )
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then((data) => {
-                    return data;
-                })
-                .catch((error) => {
-                    console.error(
-                        'Error coordinate transforming geometry:',
-                        error
-                    );
-                });
             console.log('coordinates after', transformed);
             feature.getGeometry().setCoordinates(transformed.coordinates);
             selectComponent.toggleLoading(false);
