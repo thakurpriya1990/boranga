@@ -925,7 +925,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "model_name",
             "occurrence",
             "current_assessor",
-            "assigned_officer",
+            "assigned_approver",
         )
 
     def get_can_user_assess(self, obj):
