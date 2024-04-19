@@ -265,7 +265,7 @@ export default {
                 //----for adding new species Threat
                 var new_species_threat_another={
                     species: vm.species_community.id,
-                    source:  vm.species_community.id,
+                    source:  vm.species_community.species_number,
                     threat_category: '',
                     threat_agent: '',
                     comment: '',
