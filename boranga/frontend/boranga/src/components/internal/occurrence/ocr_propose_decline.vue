@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="internal-ocr-propose-decline-request">
-        <modal id="myModal" transition="modal fade" @ok="ok()" ok-text="Propose Decline" @cancel="cancel()"
+        <modal id="myModal" transition="modal fade" @ok="ok()" ok-text="Propose Decline" @cancel="close()"
             :title="`Propose Decline ${occurrence_report_number}`" large>
             <div class="container-fluid">
                 <div class="row">
@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 
@@ -64,10 +63,6 @@ export default {
             } else {
                 vm.form.reportValidity();
             }
-        },
-        cancel: function () {
-            let vm = this;
-            vm.close();
         },
         close: function () {
             this.isModalOpen = false;
@@ -117,8 +112,7 @@ export default {
         },
     },
     mounted: function () {
-        let vm = this;
-        vm.form = document.forms['propose-decline-form'];
+        this.form = document.forms['propose-decline-form'];
     }
 }
 </script>
