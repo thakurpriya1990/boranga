@@ -2202,6 +2202,11 @@ export default {
                 console.log(evt.feature.values_.geometry.flatCoordinates);
                 // Priya I think context is the occurrencereport_obj thats sent through prop
                 let model = vm.context || {};
+                const coords = evt.feature.getGeometry().getCoordinates();
+                const original_geometry = {
+                    coordinates: coords,
+                    properties: { srid: vm.mapSrid },
+                };
 
                 let color =
                     vm.featureColors['draw'] ||
@@ -2223,6 +2228,7 @@ export default {
                     color: color,
                     locked: false,
                     srid: vm.mapSrid,
+                    original_geometry: original_geometry,
                 });
                 vm.newFeatureId++;
                 console.log('newFeatureId = ' + vm.newFeatureId);
@@ -2234,6 +2240,12 @@ export default {
                 console.log(evt);
                 console.log(evt.feature.values_.geometry.flatCoordinates);
                 let model = vm.context || {};
+                // Add original_geometry for list of geometries and modification of geom parameters
+                const coords = evt.feature.getGeometry().getCoordinates();
+                const original_geometry = {
+                    coordinates: coords,
+                    properties: { srid: vm.mapSrid },
+                };
 
                 let color =
                     vm.featureColors['draw'] ||
@@ -2249,6 +2261,7 @@ export default {
                     color: color,
                     locked: false,
                     srid: vm.mapSrid,
+                    original_geometry: original_geometry,
                 });
                 vm.newFeatureId++;
                 console.log('newFeatureId = ' + vm.newFeatureId);
@@ -3396,7 +3409,7 @@ export default {
 
             const featureType = feature.getGeometry().getType();
             if (featureType != 'Point') {
-                alert(
+                this.errorMessageProperty(
                     `Feature type ${featureType} is not yet supported for transformation.`
                 );
                 return;
