@@ -5,6 +5,7 @@ import reversion
 from django.conf import settings
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
+from django.contrib.gis.geos import GEOSGeometry
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -256,11 +257,13 @@ class OccurrenceReport(RevisionedMixin):
         return str(self.occurrence_report_number)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if self.occurrence_report_number == "":
+            super().save(no_revision=True)
             new_occurrence_report_id = f"OCR{str(self.pk)}"
             self.occurrence_report_number = new_occurrence_report_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def reference(self):
@@ -1213,11 +1216,16 @@ class Location(models.Model):
 class OccurrenceReportGeometryManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
+        polygon_ids = qs.extra(
+            where=["geometrytype(geometry) LIKE 'POLYGON'"]
+        ).values_list("id", flat=True)
         return qs.annotate(
             area=models.Case(
                 models.When(
-                    polygon__isnull=False,
-                    then=Area(Cast("polygon", gis_models.PolygonField(geography=True))),
+                    models.Q(geometry__isnull=False) & models.Q(id__in=polygon_ids),
+                    then=Area(
+                        Cast("geometry", gis_models.PolygonField(geography=True))
+                    ),
                 ),
                 default=None,
             )
@@ -1233,8 +1241,10 @@ class OccurrenceReportGeometry(models.Model):
         null=True,
         related_name="ocr_geometry",
     )
-    polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
-    point = gis_models.PointField(srid=4326, blank=True, null=True)
+    geometry = gis_models.GeometryField(blank=True, null=True)
+    original_geometry_ewkb = models.BinaryField(
+        blank=True, null=True, editable=True
+    )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
     intersects = models.BooleanField(default=False)
     copied_from = models.ForeignKey(
         "self", on_delete=models.SET_NULL, blank=True, null=True
@@ -1244,12 +1254,6 @@ class OccurrenceReportGeometry(models.Model):
 
     class Meta:
         app_label = "boranga"
-        constraints = [
-            models.CheckConstraint(
-                check=~models.Q(polygon__isnull=False, point__isnull=False),
-                name="point_and_polygon_mutually_exclusive",
-            ),
-        ]
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
@@ -1273,6 +1277,12 @@ class OccurrenceReportGeometry(models.Model):
         if not hasattr(self, "area") or not self.area:
             return None
         return self.area.sq_m / 10000
+
+    @property
+    def original_geometry_srid(self):
+        if self.original_geometry_ewkb:
+            return GEOSGeometry(self.original_geometry_ewkb).srid
+        return None
 
 
 class ObserverDetail(models.Model):
@@ -2139,14 +2149,16 @@ class OccurrenceReportDocument(Document):
 
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
-        super().save(*args, **kwargs)
         if self.document_number == "":
+            super().save(no_revision=True)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @transaction.atomic
-    def add_documents(self, request):
+    def add_documents(self, request, *args, **kwargs):
         # save the files
         data = json.loads(request.data.get("data"))
         # if not data.get('update'):
@@ -2158,9 +2170,9 @@ class OccurrenceReportDocument(Document):
             self.name = _file.name
             self.input_name = data["input_name"]
             self.can_delete = True
-            self.save()
+            self.save(no_revision=True)
         # end save documents
-        self.save()
+        self.save(*args, **kwargs)
 
 
 class ShapefileDocumentQueryset(models.QuerySet):
@@ -2264,11 +2276,13 @@ class OCRConservationThreat(RevisionedMixin):
         return str(self.id)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if self.threat_number == "":
+            super().save(no_revision=True)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def source(self):
@@ -2368,10 +2382,12 @@ class Occurrence(RevisionedMixin):
         app_label = "boranga"
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if self.occurrence_number == "":
+            super().save(no_revision=True)
             self.occurrence_number = f"OCC{str(self.pk)}"
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         if self.species:
@@ -2494,14 +2510,16 @@ class OccurrenceDocument(Document):
 
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
-        super().save(*args, **kwargs)
         if self.document_number == "":
+            super().save(no_revision=True)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @transaction.atomic
-    def add_documents(self, request):
+    def add_documents(self, request, *args, **kwargs):
         # save the files
         data = json.loads(request.data.get("data"))
         # if not data.get('update'):
@@ -2513,9 +2531,9 @@ class OccurrenceDocument(Document):
             self.name = _file.name
             self.input_name = data["input_name"]
             self.can_delete = True
-            self.save()
+            self.save(no_revision=True)
         # end save documents
-        self.save()
+        self.save(*args, **kwargs)
 
 
 class OCCConservationThreat(RevisionedMixin):
@@ -2572,11 +2590,13 @@ class OCCConservationThreat(RevisionedMixin):
         return str(self.id)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if self.threat_number == "":
+            super().save(no_revision=True)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def source(self):

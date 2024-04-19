@@ -515,11 +515,13 @@ class Species(RevisionedMixin):
         cache.delete("get_species_data")
         self.full_clean()
         # Prefix "S" char to species_number.
-        super().save(*args, **kwargs)
         if self.species_number == "":
+            super().save(no_revision=True)
             new_species_id = f"S{str(self.pk)}"
             self.species_number = new_species_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def reference(self):
@@ -1137,11 +1139,13 @@ class Community(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         # Prefix "C" char to community_number.
-        super().save(*args, **kwargs)
         if self.community_number == "":
+            super().save(no_revision=True)
             new_community_id = f"C{str(self.pk)}"
             self.community_number = new_community_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def applicant(self):
@@ -1737,30 +1741,30 @@ class SpeciesDocument(Document):
 
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
-        super().save(*args, **kwargs)
         if self.document_number == "":
+            super().save(no_revision=True)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
-    def add_documents(self, request):
-        with transaction.atomic():
-            # save the files
-            data = json.loads(request.data.get("data"))
-            # if not data.get('update'):
-            #     documents_qs = self.filter(input_name='species_doc', visible=True)
-            #     documents_qs.delete()
-            for idx in range(data["num_files"]):
-                _file = request.data.get("file-" + str(idx))
-                self._file = _file
-                self.name = _file.name
-                self.input_name = data["input_name"]
-                self.can_delete = True
-                self.save()
-            # end save documents
-            self.save()
-
-        return
+    @transaction.atomic
+    def add_documents(self, request, *args, **kwargs):
+        # save the files
+        data = json.loads(request.data.get("data"))
+        # if not data.get('update'):
+        #     documents_qs = self.filter(input_name='species_doc', visible=True)
+        #     documents_qs.delete()
+        for idx in range(data["num_files"]):
+            _file = request.data.get("file-" + str(idx))
+            self._file = _file
+            self.name = _file.name
+            self.input_name = data["input_name"]
+            self.can_delete = True
+            self.save(no_revision=True)  # no need to have multiple revisions
+        # end save documents
+        self.save(*args, **kwargs)
 
     # TODO: review - may not need this (?)
     @property
@@ -1833,30 +1837,30 @@ class CommunityDocument(Document):
 
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
-        super().save(*args, **kwargs)
         if self.document_number == "":
+            super().save(no_revision=True)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
-    def add_documents(self, request):
-        with transaction.atomic():
-            # save the files
-            data = json.loads(request.data.get("data"))
-            # if not data.get('update'):
-            #     documents_qs = self.filter(input_name='species_doc', visible=True)
-            #     documents_qs.delete()
-            for idx in range(data["num_files"]):
-                _file = request.data.get("file-" + str(idx))
-                self._file = _file
-                self.name = _file.name
-                self.input_name = data["input_name"]
-                self.can_delete = True
-                self.save()
-            # end save documents
-            self.save()
-
-        return
+    @transaction.atomic
+    def add_documents(self, request, *args, **kwargs):
+        # save the files
+        data = json.loads(request.data.get("data"))
+        # if not data.get('update'):
+        #     documents_qs = self.filter(input_name='species_doc', visible=True)
+        #     documents_qs.delete()
+        for idx in range(data["num_files"]):
+            _file = request.data.get("file-" + str(idx))
+            self._file = _file
+            self.name = _file.name
+            self.input_name = data["input_name"]
+            self.can_delete = True
+            self.save(no_revision=True)
+        # end save documents
+        self.save(*args, **kwargs)
 
 
 class ThreatCategory(models.Model):
@@ -2016,11 +2020,13 @@ class ConservationThreat(RevisionedMixin):
         return str(self.id)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if self.threat_number == "":
+            super().save(no_revision=True)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
-            self.save()
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def source(self):

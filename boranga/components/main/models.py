@@ -62,11 +62,27 @@ class RevisionedMixin(models.Model):
     def save(self, **kwargs):
         from reversion import revisions
         if kwargs.pop('no_revision', False):
+            if 'version_user' in kwargs:
+                kwargs.pop('version_user', None)
+            if 'version_comment' in kwargs:
+                kwargs.pop('version_comment', '')
             super(RevisionedMixin, self).save(**kwargs)
+        #kwargs can be set as attributes via serializers sometimes
+        elif hasattr(self,'no_revision') and self.no_revision: 
+            if 'version_user' in kwargs:
+                kwargs.pop('version_user', None)
+            if 'version_comment' in kwargs:
+                kwargs.pop('version_comment', '')
+            super(RevisionedMixin, self).save(**kwargs)
+            #set no_revision to False - if an instance is saved twice for some reason this should NOT be carried over (unless set to True again)
+            self.no_revision = False 
         else:
             with revisions.create_revision():
                 if 'version_user' in kwargs:
                     revisions.set_user(kwargs.pop('version_user', None))
+                elif hasattr(self,'version_user') and self.version_user != None:
+                    revisions.set_user(self.version_user)
+                    self.version_user = None
                 if 'version_comment' in kwargs:
                     revisions.set_comment(kwargs.pop('version_comment', ''))
                 super(RevisionedMixin, self).save(**kwargs)

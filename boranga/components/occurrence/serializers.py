@@ -1,4 +1,3 @@
-import json
 import logging
 
 from django.urls import reverse
@@ -10,7 +9,7 @@ from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
 )
-from boranga.components.main.utils import get_geometry_source
+from boranga.components.main.utils import get_geometry_source, wkb_to_geojson
 from boranga.components.occurrence.models import (
     AnimalObservation,
     AssociatedSpecies,
@@ -450,31 +449,18 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
     geometry_source = serializers.SerializerMethodField()
     report_copied_from = serializers.SerializerMethodField(read_only=True)
-    geo_field = serializers.SerializerMethodField(read_only=True)
-
-    def get_point_as_geo_field(self, obj):
-        return json.loads(obj.point.json)
-
-    def get_polygon_as_geo_field(self, obj):
-        return json.loads(obj.polygon.json)
-
-    def get_geo_field(self, obj):
-        if obj.polygon:
-            return self.get_polygon_as_geo_field(obj)
-        elif obj.point:
-            return self.get_point_as_geo_field(obj)
-        else:
-            return None
+    srid = serializers.SerializerMethodField(read_only=True)
+    original_geometry = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReportGeometry
-        geo_field = "geo_field"
+        geo_field = "geometry"
         fields = (
             "id",
-            "geo_field",
             "occurrence_report_id",
-            "polygon",
-            "point",
+            "geometry",
+            "original_geometry",
+            "srid",
             "area_sqm",
             "area_sqhm",
             "intersects",
@@ -483,6 +469,12 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             "report_copied_from",
         )
         read_only_fields = ("id",)
+
+    def get_srid(self, obj):
+        if obj.geometry:
+            return obj.geometry.srid
+        else:
+            return None
 
     def get_geometry_source(self, obj):
         return get_geometry_source(obj)
@@ -494,6 +486,12 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             ).data
 
         return None
+
+    def get_original_geometry(self, obj):
+        if obj.original_geometry_ewkb:
+            return wkb_to_geojson(obj.original_geometry_ewkb)
+        else:
+            return None
 
 
 class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
@@ -1234,12 +1232,12 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
 
     class Meta:
         model = OccurrenceReportGeometry
-        geo_field = "polygon"
+        geo_field = "geometry"
         fields = (
             "id",
             "occurrence_report_id",
-            "polygon",
-            "point",
+            "geometry",
+            "original_geometry_ewkb",
             "intersects",
             "drawn_by",
             "locked",
@@ -1347,6 +1345,24 @@ class SaveOccurrenceReportDocumentSerializer(serializers.ModelSerializer):
             "document_category",
             "document_sub_category",
         )
+        read_only_fields = ("id",)
+
+    # override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        # if the instance already exists, carry on as normal
+        if self.instance:
+            return super().save(*args, **kwargs)
+        else:
+            instance = OccurrenceReportDocument()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class OccurrenceDocumentSerializer(serializers.ModelSerializer):
@@ -1394,6 +1410,24 @@ class SaveOccurrenceDocumentSerializer(serializers.ModelSerializer):
             "document_category",
             "document_sub_category",
         )
+        read_only_fields = ("id",)
+
+    # override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        # if the instance already exists, carry on as normal
+        if self.instance:
+            return super().save(*args, **kwargs)
+        else:
+            instance = OccurrenceDocument()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class OCRConservationThreatSerializer(serializers.ModelSerializer):
@@ -1475,6 +1509,24 @@ class SaveOCRConservationThreatSerializer(serializers.ModelSerializer):
             "potential_threat_onset",
             "date_observed",
         )
+        read_only_fields = ("id",)
+
+    # override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        # if the instance already exists, carry on as normal
+        if self.instance:
+            return super().save(*args, **kwargs)
+        else:
+            instance = OCRConservationThreat()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class OccurrenceReportAmendmentRequestDocumentSerializer(serializers.ModelSerializer):
@@ -1572,6 +1624,24 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
             "potential_threat_onset",
             "date_observed",
         )
+        read_only_fields = ("id",)
+
+    # override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        # if the instance already exists, carry on as normal
+        if self.instance:
+            return super().save(*args, **kwargs)
+        else:
+            instance = OCCConservationThreat()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class ProposeDeclineSerializer(serializers.Serializer):

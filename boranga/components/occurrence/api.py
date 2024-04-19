@@ -28,7 +28,10 @@ from boranga.components.main.api import (
     search_datums,
 )
 from boranga.components.main.decorators import basic_exception_handler
-from boranga.components.main.utils import handle_validation_error
+from boranga.components.main.utils import (
+    handle_validation_error,
+    transform_json_geometry,
+)
 from boranga.components.occurrence.models import (
     AnimalHealth,
     AnimalObservation,
@@ -137,6 +140,12 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
             filter_scientific_name = request.GET.get("filter_scientific_name")
             if filter_scientific_name and not filter_scientific_name.lower() == "all":
                 queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
+
+            filter_community_name = request.GET.get("filter_community_name")
+            if filter_community_name and not filter_community_name.lower() == "all":
+                queryset = queryset.filter(
+                    community__taxonomy__id=filter_community_name
+                )
 
             filter_status = request.GET.get("filter_status")
             if filter_status and not filter_status.lower() == "all":
@@ -603,11 +612,12 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
                 # internal_application = False
                 # if request.data.get('internal_application'):
                 #         internal_application = request.data.get('internal_application')
-                new_instance = OccurrenceReport.objects.create(
+                new_instance = OccurrenceReport(
                     submitter=request.user.id,
                     group_type=group_type_id,
                     # internal_application=internal_application
                 )
+                new_instance.save(version_user=request.user)
                 data = {"occurrence_report_id": new_instance.id}
 
                 # create Locatiob for new instance
@@ -671,6 +681,27 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        url_path="transform-geometry",
+    )
+    def transform_geometry(self, request, *args, **kwargs):
+        geometry = request.GET.get("geometry", None)
+        from_srid = int(request.GET.get("from", 4326))
+        to_srid = int(request.GET.get("to", 4326))
+
+        if not geometry:
+            return HttpResponse({}, content_type="application/json")
+
+        json_geom = json.loads(geometry)
+
+        transformed = transform_json_geometry(json_geom, from_srid, to_srid)
+
+        return HttpResponse(transformed, content_type="application/json")
+
     # used for Location Tab of Occurrence Report external form
     @list_route(
         methods=[
@@ -690,8 +721,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         except OccurrenceReport.DoesNotExist:
             logger.error(f"Occurrence Report with id {id} not found")
         else:
-            epsg_code = qs.location.epsg_code
-            datum_list = search_datums(epsg_code)
+            ocr_geometries = qs.ocr_geometry.all().exclude(**{"geometry": None})
+            epsg_codes = [
+                str(g.srid)
+                for g in ocr_geometries.values_list("geometry", flat=True).distinct()
+            ]
+            # Add the srids of the original geometries to epsg_codes
+            epsg_codes += [str(g.original_geometry_srid) for g in ocr_geometries]
+            epsg_codes = list(set(epsg_codes))
+            datum_list = search_datums("", codes=epsg_codes)
 
         coordination_source_list = []
         values = CoordinationSource.objects.all()
@@ -996,11 +1034,12 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             # species_id saved seperately as its not field of Location but OCR
             species = request.data.get("species_id")
             ocr_instance.species_id = species
-            ocr_instance.save()
+            # ocr_instance.save()
             # community_id saved seperately as its not field of Location but OCR
             community = request.data.get("community_id")
             ocr_instance.community_id = community
-            ocr_instance.save()
+
+            ocr_instance.save(version_user=request.user)
 
             # ocr geometry data to save seperately
             geometry_data = request.data.get("ocr_geometry")
@@ -1466,7 +1505,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
-                    saved_instance = serializer.save()
+                    saved_instance = serializer.save(version_user=request.user)
 
             # return redirect(reverse('external'))
             serializer = self.get_serializer(saved_instance)
@@ -1491,7 +1530,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             instance = self.get_object()
             # instance.submit(request,self)
             ocr_proposal_submit(instance, request)
-            instance.save()
+            instance.save(version_user=request.user)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
             # return redirect(reverse('external'))
@@ -1946,7 +1985,7 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence_report:
                 instance.occurrence_report.log_user_action(
                     OccurrenceReportUserAction.ACTION_DISCARD_DOCUMENT.format(
@@ -1977,7 +2016,7 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence_report:
                 instance.occurrence_report.log_user_action(
                     OccurrenceReportUserAction.ACTION_REINSTATE_DOCUMENT.format(
@@ -2006,10 +2045,10 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                     instance, data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
-                instance.add_documents(request)
+                serializer.save(no_revision=True)
+                instance.add_documents(request, no_revision=True)
                 instance.uploaded_by = request.user.id
-                instance.save()
+                instance.save(version_user=request.user)
                 if instance.occurrence_report:
                     instance.occurrence_report.log_user_action(
                         OccurrenceReportUserAction.ACTION_UPDATE_DOCUMENT.format(
@@ -2030,10 +2069,10 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                     data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
-                instance.add_documents(request)
+                instance = serializer.save(no_revision=True)
+                instance.add_documents(request, no_revision=True)
                 instance.uploaded_by = request.user.id
-                instance.save()
+                instance.save(version_user=request.user)
                 if instance.occurrence_report:
                     instance.occurrence_report.log_user_action(
                         OccurrenceReportUserAction.ACTION_ADD_DOCUMENT.format(
@@ -2082,7 +2121,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence_report:
                 instance.occurrence_report.log_user_action(
                     OccurrenceReportUserAction.ACTION_DISCARD_THREAT.format(
@@ -2113,7 +2152,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence_report:
                 instance.occurrence_report.log_user_action(
                     OccurrenceReportUserAction.ACTION_REINSTATE_THREAT.format(
@@ -2142,7 +2181,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
                     instance, data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
+                serializer.save(version_user=request.user)
                 if instance.occurrence_report:
                     instance.occurrence_report.log_user_action(
                         OccurrenceReportUserAction.ACTION_UPDATE_THREAT.format(
@@ -2164,7 +2203,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
                     data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
+                instance = serializer.save(version_user=request.user)
                 if instance.occurrence_report:
                     instance.occurrence_report.log_user_action(
                         OccurrenceReportUserAction.ACTION_ADD_THREAT.format(
@@ -2206,6 +2245,10 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
         filter_scientific_name = request.GET.get("filter_scientific_name")
         if filter_scientific_name and not filter_scientific_name.lower() == "all":
             queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
+
+        filter_community_name = request.GET.get("filter_community_name")
+        if filter_community_name and not filter_community_name.lower() == "all":
+            queryset = queryset.filter(community__taxonomy__id=filter_community_name)
 
         filter_status = request.GET.get("filter_status")
         if filter_status and not filter_status.lower() == "all":
@@ -2573,7 +2616,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence:
                 instance.occurrence.log_user_action(
                     OccurrenceUserAction.ACTION_DISCARD_DOCUMENT.format(
@@ -2604,7 +2647,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence:
                 instance.occurrence.log_user_action(
                     OccurrenceUserAction.ACTION_REINSTATE_DOCUMENT.format(
@@ -2633,7 +2676,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                     instance, data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
+                serializer.save(no_revision=True)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
                         OccurrenceUserAction.ACTION_UPDATE_DOCUMENT.format(
@@ -2642,9 +2685,9 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                         ),
                         request,
                     )
-                instance.add_documents(request)
+                instance.add_documents(request, no_revision=True)
                 instance.uploaded_by = request.user.id
-                instance.save()
+                instance.save(version_user=request.user)
                 return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -2657,10 +2700,10 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                     data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
-                instance.add_documents(request)
+                instance = serializer.save(no_revision=True)
+                instance.add_documents(request, no_revision=True)
                 instance.uploaded_by = request.user.id
-                instance.save()
+                instance.save(version_user=request.user)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
                         OccurrenceUserAction.ACTION_ADD_DOCUMENT.format(
@@ -2706,7 +2749,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = False
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence:
                 instance.occurrence.log_user_action(
                     OccurrenceUserAction.ACTION_DISCARD_THREAT.format(
@@ -2737,7 +2780,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.visible = True
-            instance.save()
+            instance.save(version_user=request.user)
             if instance.occurrence:
                 instance.occurrence.log_user_action(
                     OccurrenceUserAction.ACTION_REINSTATE_THREAT.format(
@@ -2766,7 +2809,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
                     instance, data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                serializer.save()
+                serializer.save(version_user=request.user)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
                         OccurrenceUserAction.ACTION_UPDATE_THREAT.format(
@@ -2788,7 +2831,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
                     data=json.loads(request.data.get("data"))
                 )
                 serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
+                instance = serializer.save(version_user=request.user)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
                         OccurrenceUserAction.ACTION_ADD_THREAT.format(
