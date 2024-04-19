@@ -718,12 +718,13 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         except OccurrenceReport.DoesNotExist:
             logger.error(f"Occurrence Report with id {id} not found")
         else:
+            ocr_geometries = qs.ocr_geometry.all().exclude(**{"geometry": None})
             epsg_codes = [
                 str(g.srid)
-                for g in qs.ocr_geometry.all().values_list("geometry", flat=True)
+                for g in ocr_geometries.values_list("geometry", flat=True).distinct()
             ]
             # Add the srids of the original geometries to epsg_codes
-            epsg_codes += [str(g.original_geometry_srid) for g in qs.ocr_geometry.all()]
+            epsg_codes += [str(g.original_geometry_srid) for g in ocr_geometries]
             epsg_codes = list(set(epsg_codes))
             datum_list = search_datums("", codes=epsg_codes)
 
