@@ -9,6 +9,7 @@
         >
         <VueSelect
             :id="`select-filter-${id}`"
+            ref="vueSelectFilter"
             v-model="selectedFilterItem"
             :multiple="multiple"
             :options="optionsFormatted"
@@ -108,7 +109,12 @@ export default {
             default: '',
         },
     },
-    emits: ['selection-changed-select', 'selection-changed-remove'],
+    emits: [
+        'selection-changed-select',
+        'selection-changed-remove',
+        'search',
+        'option:selected',
+    ],
     data: function () {
         return {
             selectedFilterItem: [],
