@@ -21,6 +21,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
+from boranga.components.main.related_item import RelatedItemsSerializer
 from django.urls import reverse
 from django.shortcuts import redirect
 
@@ -2693,6 +2694,22 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+        
+    @detail_route(methods=["get"], detail=True)
+    @basic_exception_handler
+    def get_related_items(self, request, *args, **kwargs):
+        instance = self.get_object()
+        related_filter_type= request.GET.get('related_filter_type')
+        related_items = instance.get_related_items(related_filter_type)
+        serializer = RelatedItemsSerializer(related_items, many=True)
+        return Response(serializer.data)
+    
+    @list_route(methods=['GET',], detail=False)
+    def filter_list(self, request, *args, **kwargs):
+        """ Used by the Related Items dashboard filters """
+        related_type =  Occurrence.RELATED_ITEM_CHOICES
+        res_json = json.dumps(related_type) 
+        return HttpResponse(res_json, content_type='application/json')
         
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))

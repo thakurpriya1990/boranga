@@ -107,6 +107,19 @@
                         Sites
                     </a>
                 </li>
+                <li class="nav-item">
+                <a 
+                    class="nav-link" 
+                    id="pills-related-items-tab" 
+                    data-bs-toggle="pill" 
+                    :href="'#' + relatedItemBody" 
+                    role="tab" 
+                    :aria-controls="relatedItemBody" 
+                    aria-selected="false"
+                    @click="tabClicked()">
+                  Related Items
+                </a>
+              </li>
             </ul>
             <div id="pills-tabContent" class="tab-content">
                 <div class="tab-pane fade show active" :id="occurrenceBody" role="tabpanel" aria-labelledby="pills-occurrence-tab">
@@ -235,6 +248,20 @@
                     >
                     </OCCSites>-->
                 </div>
+                <div
+                    :id="relatedItemBody"
+                    class="tab-pane fade"
+                    role="tabpanel"
+                    aria-labelledby="pills-sites-tab"
+                >
+                    <RelatedItems 
+                        :key="reloadcount"
+                        ref="occurrence_related_items" 
+                        id="occurrenceRelatedItems" 
+                        :ajax_url="related_items_ajax_url"
+                        :filter_list_url="related_items_filter_list_url">
+                    </RelatedItems>
+                </div>
             </div>
         </div>
     </div>
@@ -246,7 +273,7 @@
 //import OCCHabitat from '@/components/common/occurrence/occ_habitat.vue';
 //import OCCObservation from '@/components/common/occurrence/occ_observation.vue';
 // import OCCHabitat from '@/components/common/conservation_status/cs_documents.vue'
-// import RelatedItems from '@/components/common/table_related_items.vue'
+import RelatedItems from '@/components/common/table_related_items.vue'
 import OCCDocuments from '@/components/common/occurrence/occ_documents.vue';
 import OCCThreats from '@/components/common/occurrence/occ_threats.vue';
 import SpeciesOccurrence from '@/components/common/occurrence/species_occurrence.vue'
@@ -261,7 +288,7 @@ export default {
         SpeciesOccurrence,
         // CommunityStatus,
         // CSDocuments,
-        // RelatedItems,
+        RelatedItems,
     },
     props: {
         occurrence_obj: {
@@ -305,6 +332,12 @@ export default {
     computed: {
         isCommunity: function(){
             return this.occurrence_obj.group_type== "community"
+        },
+        related_items_ajax_url: function(){
+            return '/api/occurrence_paginated/' + this.occurrence_obj.id + '/get_related_items/';
+        },
+        related_items_filter_list_url: function(){
+            return '/api/occurrence_paginated/filter_list.json';
         },
     },
     mounted: function () {
