@@ -571,15 +571,15 @@ class OccurrenceReport(RevisionedMixin):
                 )
 
         details = validated_data.get("details", None)
-        effective_from = validated_data.get("effective_from")
-        effective_to = validated_data.get("effective_to")
+        effective_from_date = validated_data.get("effective_from_date")
+        effective_to_date = validated_data.get("effective_to_date")
         OccurrenceReportApprovalDetails.objects.update_or_create(
             occurrence_report=self,
             defaults={
                 "officer": request.user.id,
                 "occurrence": occurrence,
-                "effective_from": effective_from,
-                "effective_to": effective_to,
+                "effective_from_date": effective_from_date,
+                "effective_to_date": effective_to_date,
                 "details": details,
             },
         )
@@ -614,7 +614,7 @@ class OccurrenceReportApprovalDetails(models.Model):
         OccurrenceReport, on_delete=models.CASCADE, related_name="approval_details"
     )
     occurrence = models.OneToOneField(
-        "Occurrence", on_delete=models.PROTECT
+        "Occurrence", on_delete=models.PROTECT, null=True, blank=True
     )  # If being added to an existing occurrence
     officer = models.IntegerField()  # EmailUserRO
     effective_from_date = models.DateField(null=True, blank=True)
