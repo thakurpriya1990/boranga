@@ -63,6 +63,10 @@
                 </div>
             </div>
 
+            <RelatedReports 
+                :occurrence_obj=occurrence_obj
+            />
+
         </FormSection>
     </div>
 </template>
@@ -70,6 +74,7 @@
 <script>
 import Vue from 'vue' ;
 import FormSection from '@/components/forms/section_toggle.vue';
+import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 import {
   api_endpoints,
   helpers
@@ -104,6 +109,7 @@ export default {
         },
         components: {
             FormSection,
+            RelatedReports,
         },
         computed: {
             

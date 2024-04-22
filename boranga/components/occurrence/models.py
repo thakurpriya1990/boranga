@@ -2371,6 +2371,9 @@ class Occurrence(RevisionedMixin):
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
 
+    def get_related_occurrence_reports(self,**kwargs):
+        
+        return OccurrenceReport.objects.filter(occurrence=self)
 
 class OccurrenceLogEntry(CommunicationsLogEntry):
     occurrence = models.ForeignKey(
