@@ -178,9 +178,9 @@
                                     >
                                         <img
                                             v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() == 'Point'
+                                                isPointLikeGeometry(
+                                                    feature.getGeometry()
+                                                )
                                             "
                                             class="svg-icon"
                                             src="../../assets/draw-points.svg"
@@ -202,9 +202,9 @@
                                     >
                                         <input
                                             v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() === 'Point'
+                                                isPointLikeGeometry(
+                                                    feature.getGeometry()
+                                                )
                                             "
                                             :id="`feature-${feature.ol_uid}-latitude-input`"
                                             :ref="`feature-${feature.ol_uid}-latitude-input`"
@@ -221,9 +221,9 @@
                                         />
                                         <label
                                             v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() === 'Point'
+                                                isPointLikeGeometry(
+                                                    feature.getGeometry()
+                                                )
                                             "
                                             :for="`feature-${feature.ol_uid}-latitude-input`"
                                             >Latitude</label
@@ -236,9 +236,9 @@
                                     >
                                         <input
                                             v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() === 'Point'
+                                                isPointLikeGeometry(
+                                                    feature.getGeometry()
+                                                )
                                             "
                                             :id="`feature-${feature.ol_uid}-longitude-input`"
                                             :ref="`feature-${feature.ol_uid}-longitude-input`"
@@ -255,9 +255,9 @@
                                         />
                                         <label
                                             v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() === 'Point'
+                                                isPointLikeGeometry(
+                                                    feature.getGeometry()
+                                                )
                                             "
                                             :for="`feature-${feature.ol_uid}-longitude-input`"
                                             >Longitude</label
@@ -1563,8 +1563,9 @@ export default {
                 'getGeometry' in featureData
                     ? featureData.getGeometry().getType()
                     : featureData.geometry.type;
-            const featureColors =
-                type === 'Point' ? vm.pointFeatureColors : vm.featureColors;
+            const featureColors = ['Point', 'MultiPoint'].includes(type)
+                ? vm.pointFeatureColors
+                : vm.featureColors;
 
             if (vm.styleBy === 'assessor') {
                 // Assume the object is a feature containing a geometry_source property
@@ -1629,7 +1630,7 @@ export default {
                 return new Style({
                     stroke: stroke,
                 });
-            } else if (type === 'Point') {
+            } else if (['MultiPoint', 'Point'].includes(type)) {
                 if (svg) {
                     return new Style({
                         image: new Icon({
@@ -1984,9 +1985,9 @@ export default {
                 style: function (feature) {
                     const color = feature.get('color') || vm.defaultColor;
                     let style = polygonStyle;
-                    if (feature.getGeometry().getType() === 'Polygon') {
+                    if (vm.isPolygonLikeGeometry(feature.getGeometry())) {
                         style.getFill().setColor(color);
-                    } else if (feature.getGeometry().getType() === 'Point') {
+                    } else if (vm.isPointLikeGeometry(feature.getGeometry())) {
                         const rgba = vm.colorHexToRgbaValues(color);
                         style = vm.createStyle(
                             color,
@@ -2295,7 +2296,7 @@ export default {
             function hoverSelect(feature) {
                 const color = feature.get('color') || vm.defaultColor;
                 let hoverStyle = hoverStylePolygon;
-                if (feature.getGeometry().getType() === 'Point') {
+                if (vm.isPointLikeGeometry(feature.getGeometry())) {
                     const rgba = vm.colorHexToRgbaValues(color);
                     hoverStyle = vm.createStyle(
                         vm.hoverFill,
@@ -2316,10 +2317,10 @@ export default {
                     hoverStyle.setFill(_hoverFill);
                     hoverStyle.setStroke(vm.clickSelectStroke);
                 } else {
-                    if (feature.getGeometry().getType() === 'Polygon') {
+                    if (vm.isPolygonLikeGeometry(feature.getGeometry())) {
                         hoverStyle.setFill(vm.hoverFill);
                         hoverStyle.setStroke(vm.hoverStrokePolygon);
-                    } else if (feature.getGeometry().getType() === 'Point') {
+                    } else if (vm.isPointLikeGeometry(feature.getGeometry())) {
                         const image = hoverStyle.getImage();
                         // Marker icons don't have a fill or stroke property
                         if (Object.hasOwn(image, 'setFill')) {
@@ -2889,7 +2890,7 @@ export default {
                 geometry = new Polygon(featureData.geometry.coordinates);
             } else if (type === 'MultiPolygon') {
                 geometry = new MultiPolygon(featureData.geometry.coordinates);
-            } else if (type === 'Point') {
+            } else if (['MultiPoint', 'Point'].includes(type)) {
                 const rgba = vm.colorHexToRgbaValues(color);
                 style = vm.createStyle(
                     color,
@@ -2900,7 +2901,11 @@ export default {
                     require('../../assets/map-marker.svg'),
                     rgba[3]
                 );
-                geometry = new Point(featureData.geometry.coordinates);
+                if (type === 'Point') {
+                    geometry = new Point(featureData.geometry.coordinates);
+                } else if (type === 'MultiPoint') {
+                    geometry = new MultiPoint(featureData.geometry.coordinates);
+                }
             } else if (type === 'LineString') {
                 alert('LineString not yet supported');
             } else {
@@ -3457,10 +3462,11 @@ export default {
                 return;
             }
 
-            const featureType = feature.getGeometry().getType();
-            if (featureType != 'Point') {
+            if (!this.isPointLikeGeometry(feature.getGeometry())) {
                 this.errorMessageProperty(
-                    `Feature type ${featureType} is not yet supported for transformation.`
+                    `Feature type ${feature
+                        .getGeometry()
+                        .getType()} is not yet supported for transformation.`
                 );
                 return;
             }
@@ -3496,6 +3502,12 @@ export default {
             console.log('coordinates after', transformed);
             feature.getGeometry().setCoordinates(transformed.coordinates);
             selectComponent.toggleLoading(false);
+        },
+        isPointLikeGeometry: function (geometry) {
+            return ['Point', 'MultiPoint'].includes(geometry.getType());
+        },
+        isPolygonLikeGeometry: function (geometry) {
+            return ['Polygon', 'MultiPolygon'].includes(geometry.getType());
         },
     },
 };

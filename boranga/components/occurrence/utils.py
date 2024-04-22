@@ -58,14 +58,16 @@ def save_geometry(request, instance, geometry_data):
 
     geometry_ids = []
     for feature in geometry.get("features"):
-        allowed_geometry_types = ["MultiPolygon", "Polygon", "MultiPoint", "Point"]
+        supported_geometry_types = ["MultiPolygon", "Polygon", "MultiPoint", "Point"]
         geometry_type = feature.get("geometry").get("type")
-        # check if feature is a polygon, continue if not
-        if geometry_type not in allowed_geometry_types:
+        # Check if feature is of a supported type, continue if not
+        if geometry_type not in supported_geometry_types:
             logger.warn(
-                f"OccurrenceReport: {instance} contains a feature that is not a {' or '.join(allowed_geometry_types)}: {feature}"
+                f"OccurrenceReport: {instance} contains a feature that is not a {' or '.join(supported_geometry_types)}: {feature}"
             )
             continue
+
+        logger.info(f"Processing OccurrenceReport {instance} geometry feature type: {geometry_type}")
 
         geom_4326 = feature_json_to_geosgeometry(feature)
 
