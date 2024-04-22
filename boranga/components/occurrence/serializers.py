@@ -1,4 +1,3 @@
-import json
 import logging
 
 from django.urls import reverse
@@ -22,9 +21,9 @@ from boranga.components.occurrence.models import (
     Location,
     ObservationDetail,
     ObserverDetail,
+    OCCConservationThreat,
     Occurrence,
     OccurrenceDocument,
-    OCCConservationThreat,
     OccurrenceLogEntry,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
@@ -924,7 +923,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "model_name",
             "occurrence",
             "current_assessor",
-            "assigned_officer",
+            "assigned_approver",
         )
 
     def get_can_user_assess(self, obj):
@@ -1348,19 +1347,23 @@ class SaveOccurrenceReportDocumentSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
-    #override save so we can include our kwargs
+    # override save so we can include our kwargs
     def save(self, *args, **kwargs):
-        #if the instance already exists, carry on as normal
+        # if the instance already exists, carry on as normal
         if self.instance:
-            return super(SaveOccurrenceReportDocumentSerializer,self).save(*args, **kwargs)
+            return super().save(*args, **kwargs)
         else:
             instance = OccurrenceReportDocument()
             validated_data = self.run_validation(self.initial_data)
             for field_name in self.Meta.fields:
-                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
-                    setattr(instance,field_name,validated_data[field_name])            
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
+
 
 class OccurrenceDocumentSerializer(serializers.ModelSerializer):
     document_category_name = serializers.SerializerMethodField()
@@ -1409,17 +1412,20 @@ class SaveOccurrenceDocumentSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
-    #override save so we can include our kwargs
+    # override save so we can include our kwargs
     def save(self, *args, **kwargs):
-        #if the instance already exists, carry on as normal
+        # if the instance already exists, carry on as normal
         if self.instance:
-            return super(SaveOccurrenceDocumentSerializer,self).save(*args, **kwargs)
+            return super().save(*args, **kwargs)
         else:
             instance = OccurrenceDocument()
             validated_data = self.run_validation(self.initial_data)
             for field_name in self.Meta.fields:
-                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
-                    setattr(instance,field_name,validated_data[field_name])            
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
 
@@ -1505,19 +1511,23 @@ class SaveOCRConservationThreatSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
-    #override save so we can include our kwargs
+    # override save so we can include our kwargs
     def save(self, *args, **kwargs):
-        #if the instance already exists, carry on as normal
+        # if the instance already exists, carry on as normal
         if self.instance:
-            return super(SaveOCRConservationThreatSerializer,self).save(*args, **kwargs)
+            return super().save(*args, **kwargs)
         else:
             instance = OCRConservationThreat()
             validated_data = self.run_validation(self.initial_data)
             for field_name in self.Meta.fields:
-                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
-                    setattr(instance,field_name,validated_data[field_name])            
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
+
 
 class OccurrenceReportAmendmentRequestDocumentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1533,6 +1543,7 @@ class OccurrenceReportAmendmentRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceReportAmendmentRequest
         fields = "__all__"
+
 
 class OCCConservationThreatSerializer(serializers.ModelSerializer):
     threat_category = serializers.SerializerMethodField()
@@ -1615,17 +1626,23 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
-    #override save so we can include our kwargs
+    # override save so we can include our kwargs
     def save(self, *args, **kwargs):
-        #if the instance already exists, carry on as normal
+        # if the instance already exists, carry on as normal
         if self.instance:
-            return super(SaveOCCConservationThreatSerializer,self).save(*args, **kwargs)
+            return super().save(*args, **kwargs)
         else:
             instance = OCCConservationThreat()
             validated_data = self.run_validation(self.initial_data)
             for field_name in self.Meta.fields:
-                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
-                    setattr(instance,field_name,validated_data[field_name])            
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
 
+
+class ProposeDeclineSerializer(serializers.Serializer):
+    reason = serializers.CharField()

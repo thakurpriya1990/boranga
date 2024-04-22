@@ -26,6 +26,7 @@ from boranga.components.main.models import (
 )
 from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
+    send_approver_decline_email_notification,
     send_occurrence_report_amendment_email_notification,
     send_occurrence_report_referral_complete_email_notification,
     send_occurrence_report_referral_email_notification,
@@ -255,7 +256,7 @@ class OccurrenceReport(RevisionedMixin):
     def __str__(self):
         return str(self.occurrence_report_number)  # TODO: is the most appropriate?
 
-    def save(self, *args, **kwargs):  
+    def save(self, *args, **kwargs):
         if self.occurrence_report_number == "":
             super().save(no_revision=True)
             new_occurrence_report_id = f"OCR{str(self.pk)}"
@@ -452,8 +453,8 @@ class OccurrenceReport(RevisionedMixin):
                 "The selected person is not authorised to be assigned to this proposal"
             )
 
-        if self.processing_status == "with_approver":
-            if officer != self.assigned_approver:
+        if self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
+            if officer.id != self.assigned_approver:
                 self.assigned_approver = officer.id
                 self.save()
 
@@ -466,7 +467,7 @@ class OccurrenceReport(RevisionedMixin):
                     request,
                 )
         else:
-            if officer != self.assigned_officer:
+            if officer.id != self.assigned_officer:
                 self.assigned_officer = officer.id
                 self.save()
 
@@ -483,7 +484,7 @@ class OccurrenceReport(RevisionedMixin):
         if not self.can_assess(request.user):
             raise exceptions.OccurrenceReportNotAuthorized()
 
-        if self.processing_status == "with_approver":
+        if self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
             if self.assigned_approver:
                 self.assigned_approver = None
                 self.save()
@@ -511,6 +512,51 @@ class OccurrenceReport(RevisionedMixin):
     @property
     def amendment_requests(self):
         return OccurrenceReportAmendmentRequest.objects.filter(occurrence_report=self)
+
+    @transaction.atomic
+    def propose_decline(self, request, details):
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
+
+        if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR:
+            raise ValidationError(
+                f"You cannot propose to decline Occurrence Report {self} as the processing status is not "
+                f"{OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR}"
+            )
+
+        reason = details.get("reason")
+        OccurrenceReportDeclinedDetails.objects.update_or_create(
+            occurrence_report=self,
+            defaults={
+                "officer": request.user.id,
+                "reason": reason,
+            },
+        )
+
+        self.proposed_decline_status = True
+        self.approver_comment = ""
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_PROPOSED_DECLINE.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
+
+        send_approver_decline_email_notification(reason, request, self)
+
+
+class OccurrenceReportDeclinedDetails(models.Model):
+    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE)
+    officer = models.IntegerField()  # EmailUserRO
+    reason = models.TextField(blank=True)
+    cc_email = models.TextField(null=True)
+
+    class Meta:
+        app_label = "boranga"
 
 
 class OccurrenceReportLogEntry(CommunicationsLogEntry):
@@ -1030,7 +1076,9 @@ class OccurrenceReportReferral(models.Model):
             processing_status="with_referral"
         )
         if len(outstanding) == 0:
-            self.occurrence_report.processing_status = "with_assessor"
+            self.occurrence_report.processing_status = (
+                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            )
             self.occurrence_report.save()
 
         # Create a log entry for the occurrence report
@@ -1229,7 +1277,6 @@ class OccurrenceReportGeometry(models.Model):
         if not hasattr(self, "area") or not self.area:
             return None
         return self.area.sq_m / 10000
-
 
     @property
     def original_geometry_srid(self):
@@ -2101,7 +2148,7 @@ class OccurrenceReportDocument(Document):
         verbose_name = "Occurrence Report Document"
 
     def save(self, *args, **kwargs):
-        # Prefix "D" char to document_number. 
+        # Prefix "D" char to document_number.
         if self.document_number == "":
             super().save(no_revision=True)
             new_document_id = f"D{str(self.pk)}"
@@ -2462,7 +2509,7 @@ class OccurrenceDocument(Document):
         verbose_name = "Occurrence Document"
 
     def save(self, *args, **kwargs):
-        # Prefix "D" char to document_number.        
+        # Prefix "D" char to document_number.
         if self.document_number == "":
             super().save(no_revision=True)
             new_document_id = f"D{str(self.pk)}"
@@ -2542,7 +2589,7 @@ class OCCConservationThreat(RevisionedMixin):
     def __str__(self):
         return str(self.id)  # TODO: is the most appropriate?
 
-    def save(self, *args, **kwargs):    
+    def save(self, *args, **kwargs):
         if self.threat_number == "":
             super().save(no_revision=True)
             new_threat_id = f"T{str(self.pk)}"

@@ -53,12 +53,11 @@
                                     </div>
                                 </div>
                                 <div class="row mb-3">
-                                    <div class="col-sm-9">
-                                        <div class="input-group date" ref="add_attachments" style="width: 70%;">
-                                            <FileField2 ref="filefield" :proposal_id="document_id"
-                                                :uploaded_documents="uploaded_document" :isRepeatable="false"
-                                                name="documents_file" @refreshFromResponse="refreshFromResponse" />
-                                        </div>
+                                    <label class="mb-3">Document</label>
+                                    <div class="col">
+                                        <FileField2 ref="filefield" :proposal_id="document_id"
+                                            :uploaded_documents="uploaded_document" :isRepeatable="false"
+                                            name="documents_file" @refreshFromResponse="refreshFromResponse" />
                                     </div>
                                 </div>
                             </div>

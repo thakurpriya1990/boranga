@@ -199,7 +199,6 @@ if not VALID_SYSTEMS:
     VALID_SYSTEMS = [PAYMENT_SYSTEM_ID]
 
 CRON_CLASSES = [
-    "boranga.cron.OracleIntegrationCronJob",
     "appmonitor_client.cron.CronJobAppMonitorClient",
 ]
 

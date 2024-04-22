@@ -69,6 +69,14 @@ class OccurrenceReportAmendmentRequestSendNotificationEmail(TemplateEmailBase):
     txt_template = "boranga/emails/ocr_proposals/send_amendment_notification.txt"
 
 
+class ApproverDeclineSendNotificationEmail(TemplateEmailBase):
+    subject = "An Assessor has proposed to decline an Occurrence Report"
+    html_template = (
+        "boranga/emails/ocr_proposals/send_approver_decline_notification.html"
+    )
+    txt_template = "boranga/emails/ocr_proposals/send_approver_decline_notification.txt"
+
+
 def send_submit_email_notification(request, occurrence_report):
     email = SubmitSendNotificationEmail()
     url = request.build_absolute_uri(
@@ -129,6 +137,24 @@ def send_external_submit_email_notification(request, occurrence_report):
     #     _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
     # _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
     return msg
+
+
+# send email when Occurrence Report is 'proposed to decline' by assessor.
+def send_approver_decline_email_notification(reason, request, occurrence_report):
+    email = ApproverDeclineSendNotificationEmail()
+    url = request.build_absolute_uri(
+        reverse(
+            "internal-occurrence-report-detail",
+            kwargs={"occurrence_report_pk": occurrence_report.id},
+        )
+    )
+    context = {"occurrence_report": occurrence_report, "reason": reason, "url": url}
+
+    msg = email.send(occurrence_report.approver_recipients, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
 
 
 def _log_occurrence_report_email(email_message, occurrence_report, sender=None):
