@@ -63,6 +63,14 @@ def handle_validation_error(e):
         else:
             raise
 
+def validate_threat_request(request):
+    data = json.loads(request.data.get('data'))
+    #data observed must not be in the future
+    if "date_observed" in data and data["date_observed"] \
+    and datetime.strptime(data["date_observed"],"%Y-%m-%d") > datetime.now():
+        raise serializers.ValidationError("Date observed value invalid - must be on or before the current date")
+    return True
+
 #def add_business_days(from_date, number_of_days):
 #    """ given from_date and number_of_days, returns the next weekday date i.e. excludes Sat/Sun """
 #    to_date = from_date
