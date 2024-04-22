@@ -30,6 +30,14 @@ from boranga.components.occurrence.serializers import (
 logger = logging.getLogger(__name__)
 
 
+def feature_json_to_geosgeometry(feature, srid = 4326):
+    from shapely.geometry import shape, mapping
+    import geojson
+
+    geo_json = mapping(geojson.loads(json.dumps(feature)))
+    geom_shape = shape(geo_json.get("geometry"))
+    return GEOSGeometry(geom_shape.wkt, srid=srid)
+
 def save_geometry(request, instance, geometry_data):
     logger.info(f"\n\n\nSaving Occurrence Report geometry")
     if not geometry_data:
@@ -59,55 +67,42 @@ def save_geometry(request, instance, geometry_data):
             )
             continue
 
-        srid = feature.get("properties", {}).get("srid", None)
-        # Create a Polygon object from the open layers feature
-        from shapely.geometry import shape, mapping
-        import geojson
+        geom_4326 = feature_json_to_geosgeometry(feature)
 
-        geo_json = mapping(geojson.loads(json.dumps(feature)))
-        shape_4326 = shape(geo_json.get("geometry"))
-        GEOSGeometry(shape_4326.wkt)
-
-        original_geometry = geo_json.get("properties", {}).get("original_geometry")
+        original_geometry = feature.get("properties", {}).get("original_geometry")
+        srid_original = original_geometry.get("properties", {}).get("srid", 4326)
         if not original_geometry.get("type", None):
             original_geometry["type"] = geometry_type
-        shape_original = shape(original_geometry)
-        srid_original = original_geometry.get("properties", {}).get("srid", 4326)
-        GEOSGeometry(shape_original.wkt, srid=srid_original)
+        feature_json = {"type": "Feature", "geometry": original_geometry}
+        geom_original = feature_json_to_geosgeometry(feature_json, srid_original)
 
-        # TODO: Iterate over GEOSGeometries
-        # ewkb = GEOSGeometry(shape_original.wkt, srid=srid_original)
-        # pp = GEOSGeometry(shape_4326.wkt)
-        # no transformation needed because the geoms should already come in transformed
+        geoms = [(geom_4326, geom_original)]
 
-        polygons = (
-            [Polygon(feature.get("geometry").get("coordinates")[0], srid=srid)]
-            if geometry_type == "Polygon"
-            else (
-                [Polygon(p, srid=srid) for p in feature.get("geometry").get("coordinates")[0]]
-                if geometry_type == "MultiPolygon"
-                else []
-            )
-        )
-        points = (
-            [Point(feature.get("geometry").get("coordinates"), srid=srid)]
-            if geometry_type == "Point"
-            else (
-                [Point(p, srid=srid) for p in feature.get("geometry").get("coordinates")]
-                if geometry_type == "MultiPoint"
-                else []
-            )
-        )
+        # polygons = (
+        #     [Polygon(feature.get("geometry").get("coordinates")[0], srid=srid)]
+        #     if geometry_type == "Polygon"
+        #     else (
+        #         [Polygon(p, srid=srid) for p in feature.get("geometry").get("coordinates")[0]]
+        #         if geometry_type == "MultiPolygon"
+        #         else []
+        #     )
+        # )
+        # points = (
+        #     [Point(feature.get("geometry").get("coordinates"), srid=srid)]
+        #     if geometry_type == "Point"
+        #     else (
+        #         [Point(p, srid=srid) for p in feature.get("geometry").get("coordinates")]
+        #         if geometry_type == "MultiPoint"
+        #         else []
+        #     )
+        # )
 
-        for pp in polygons + points:
-            ewkb = pp.ewkb
-            if pp.srid != 4326:
-                pp.transform(4326)
-
+        for geom in geoms:
             geometry_data = {
                 "occurrence_report_id": instance.id,
-                "geometry": pp,
-                "original_geometry_ewkb": ewkb,
+                "geometry": geom[0],
+                "original_geometry_ewkb": geom[1].ewkb,
+                # TODO: Add intersects condition
                 # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
             }
             if feature.get("id"):
