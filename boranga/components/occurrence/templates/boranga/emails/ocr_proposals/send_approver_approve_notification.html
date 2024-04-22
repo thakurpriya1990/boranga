@@ -1,0 +1,26 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+    <p>
+        The Occurrence Report {{ occurrence_report.occurrence_report_number }} has been assessed and has been recommended for approval.
+    </p>
+
+    <p>Recommendation: Approve</p>
+    <p>
+        Create New or Add to Existing Occurrence?:
+        {% if approval_details.occurrence %}
+            Add to Existing Occurrence: {{ approval_details.occurrence.occurrence_number }} - {{ approval_details.occurrence.occurrence_name }}
+        {% else %}
+            Create a new Occurrence
+        {% endif %}
+    </p>
+    <p>Effective from: {{ approval_details.effective_from_date }}</p>
+    <p>Effective to: {{ approval_details.effective_to_date }}</p>
+    <p>Details: {{ approval_details.details }}</p>
+
+    <p>
+        You can access this Occurrence Report using the following link:
+    </p>
+
+    <a href="{{url}}">Access Occurrence Report {{ occurrence_report.occurrence_report_number }}</a>
+{%  endblock %}
