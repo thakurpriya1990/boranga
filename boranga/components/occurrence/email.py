@@ -77,6 +77,14 @@ class ApproverDeclineSendNotificationEmail(TemplateEmailBase):
     txt_template = "boranga/emails/ocr_proposals/send_approver_decline_notification.txt"
 
 
+class ApproverApproveSendNotificationEmail(TemplateEmailBase):
+    subject = "An Occurrence Report has been recommended for approval."
+    html_template = (
+        "boranga/emails/ocr_proposals/send_approver_approve_notification.html"
+    )
+    txt_template = "boranga/emails/ocr_proposals/send_approver_approve_notification.txt"
+
+
 def send_submit_email_notification(request, occurrence_report):
     email = SubmitSendNotificationEmail()
     url = request.build_absolute_uri(
@@ -149,6 +157,30 @@ def send_approver_decline_email_notification(reason, request, occurrence_report)
         )
     )
     context = {"occurrence_report": occurrence_report, "reason": reason, "url": url}
+
+    msg = email.send(occurrence_report.approver_recipients, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+
+# send email when Occurrence Report is 'proposed to approve' by assessor.
+def send_approver_approve_email_notification(request, occurrence_report):
+    email = ApproverApproveSendNotificationEmail()
+    url = request.build_absolute_uri(
+        reverse(
+            "internal-occurrence-report-detail",
+            kwargs={"occurrence_report_pk": occurrence_report.id},
+        )
+    )
+    approval_details = occurrence_report.approval_details
+
+    context = {
+        "occurrence_report": occurrence_report,
+        "approval_details": approval_details,
+        "url": url,
+    }
 
     msg = email.send(occurrence_report.approver_recipients, context=context)
 
