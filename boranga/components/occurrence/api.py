@@ -100,6 +100,8 @@ from boranga.components.occurrence.serializers import (
     OccurrenceSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
+    ProposeApproveSerializer,
+    ProposeDeclineSerializer,
     SaveAnimalObservationSerializer,
     SaveAssociatedSpeciesSerializer,
     SaveFireHistorySerializer,
@@ -147,7 +149,9 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
 
             filter_community_name = request.GET.get("filter_community_name")
             if filter_community_name and not filter_community_name.lower() == "all":
-                queryset = queryset.filter(community__taxonomy__id=filter_community_name)
+                queryset = queryset.filter(
+                    community__taxonomy__id=filter_community_name
+                )
 
             filter_status = request.GET.get("filter_status")
             if filter_status and not filter_status.lower() == "all":
@@ -1036,11 +1040,11 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             # species_id saved seperately as its not field of Location but OCR
             species = request.data.get("species_id")
             ocr_instance.species_id = species
-            #ocr_instance.save()
+            # ocr_instance.save()
             # community_id saved seperately as its not field of Location but OCR
             community = request.data.get("community_id")
             ocr_instance.community_id = community
-            
+
             ocr_instance.save(version_user=request.user)
 
             # ocr geometry data to save seperately
@@ -1821,6 +1825,68 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def propose_decline(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            logger.debug(request.data)
+            serializer = ProposeDeclineSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.propose_decline(request, serializer.validated_data)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e, "message"):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def propose_approve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            logger.debug(request.data)
+            serializer = ProposeApproveSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.propose_approve(request, serializer.validated_data)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                if hasattr(e, "message"):
+                    raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
     queryset = ObserverDetail.objects.none()
@@ -2017,7 +2083,7 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save(no_revision=True)
-                instance.add_documents(request,no_revision=True)
+                instance.add_documents(request, no_revision=True)
                 instance.uploaded_by = request.user.id
                 instance.save(version_user=request.user)
                 if instance.occurrence_report:
@@ -2041,7 +2107,7 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 )
                 serializer.is_valid(raise_exception=True)
                 instance = serializer.save(no_revision=True)
-                instance.add_documents(request,no_revision=True)
+                instance.add_documents(request, no_revision=True)
                 instance.uploaded_by = request.user.id
                 instance.save(version_user=request.user)
                 if instance.occurrence_report:
@@ -2546,7 +2612,6 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
             ]
         return Response({"results": queryset})
 
-    # TODO move to instance viewset?
     @detail_route(
         methods=[
             "GET",
@@ -2576,7 +2641,6 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    # TODO move to instance viewset?
     @detail_route(
         methods=[
             "GET",
@@ -2746,7 +2810,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                         ),
                         request,
                     )
-                instance.add_documents(request,no_revision=True)
+                instance.add_documents(request, no_revision=True)
                 instance.uploaded_by = request.user.id
                 instance.save(version_user=request.user)
                 return Response(serializer.data)
@@ -2762,7 +2826,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
                 )
                 serializer.is_valid(raise_exception=True)
                 instance = serializer.save(no_revision=True)
-                instance.add_documents(request,no_revision=True)
+                instance.add_documents(request, no_revision=True)
                 instance.uploaded_by = request.user.id
                 instance.save(version_user=request.user)
                 if instance.occurrence:

@@ -1,0 +1,65 @@
+[
+    {
+        "model": "boranga.region",
+        "pk": 1,
+        "fields": {
+            "name": "GOLDFIELDS"
+        }
+    },
+    {
+        "model": "boranga.region",
+        "pk": 2,
+        "fields": {
+            "name": "KIMBERLEY"
+        }
+    },
+    {
+        "model": "boranga.region",
+        "pk": 3,
+        "fields": {
+            "name": "MIDWEST"
+        }
+    },
+    {
+        "model": "boranga.region",
+        "pk": 4,
+        "fields": {
+            "name": "PILBARA"
+        }
+    },
+    {
+        "model": "boranga.region",
+        "pk": 5,
+        "fields": {
+            "name": "SOUTH COAST"
+        }
+    },
+    {
+        "model": "boranga.region",
+        "pk": 6,
+        "fields": {
+            "name": "SOUTH WEST"
+        }
+    },
+    {
+        "model": "boranga.region",
+        "pk": 7,
+        "fields": {
+            "name": "SWAN"
+        }
+    },
+    {
+        "model": "boranga.region",
+        "pk": 8,
+        "fields": {
+            "name": "WARREN"
+        }
+    },
+    {
+        "model": "boranga.region",
+        "pk": 9,
+        "fields": {
+            "name": "WHEATBELT"
+        }
+    }
+]

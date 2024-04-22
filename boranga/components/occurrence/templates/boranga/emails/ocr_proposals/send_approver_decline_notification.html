@@ -1,0 +1,16 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+    An assessor has proposed to decline occurrence report {{ occurrence_report.occurrence_report_number }}
+    {% if reason %}
+    <p>
+        <span>Propose Decline Reason: {{ reason }}</span>
+    </p>
+    {% endif %}
+
+    <p>
+        You can decline this occurrence report (or send it back to the assessor) using the following link:
+    </p>
+
+    <a href="{{url}}">Access Occurrence Report {{ occurrence_report.occurrence_report_number }}</a>
+{%  endblock %}

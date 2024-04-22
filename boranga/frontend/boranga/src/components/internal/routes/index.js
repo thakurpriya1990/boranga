@@ -75,7 +75,7 @@ export default
             {
                 path: 'occurrence',
                 component: OccurrenceDash,
-                name: "occurrence-dashboard"
+                name: "internal-occurrence-dash"
             },
             {
                 path: 'occurrence/:occurrence_id',
@@ -86,7 +86,7 @@ export default
                 path: 'occurrence_report/:occurrence_report_id',
                 component: OccurrenceReport,
                 name: "internal-occurrence-report-detail"
-            },            
+            },
             {
                 path: 'approval/:approval_id',
                 component: Approval,

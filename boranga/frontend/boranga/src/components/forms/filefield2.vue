@@ -27,7 +27,7 @@
                                 <i class="bi bi-file-earmark-arrow-up me-1"></i>
                                 <input :name="name" type="file" :data-que="n" :accept="fileTypes"
                                     @change="handleChange($event)" :required="isRequired" />
-                                Attach <template v-if="files && files.length > 0">Another </template>Document
+                                Attach <template v-if="isRepeatable && files && files.length > 0">Another </template>Document
                             </span>
                         </div>
                     </div>
@@ -35,7 +35,6 @@
             </div>
         </div>
         <div v-if="files && files.length > 0" class="mt-3 pt-3 border-top">
-            <label class="control-label" for="Name">Documents Uploaded Pending Confirmation</label>
             <div class="mt-3">
                 <ul class="list-group list-group-numbered">
                     <li v-for="v in files" class="list-group-item">
