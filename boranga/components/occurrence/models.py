@@ -26,6 +26,7 @@ from boranga.components.main.models import (
 )
 from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
+    send_approver_approve_email_notification,
     send_approver_decline_email_notification,
     send_occurrence_report_amendment_email_notification,
     send_occurrence_report_referral_complete_email_notification,
@@ -516,11 +517,11 @@ class OccurrenceReport(RevisionedMixin):
     @transaction.atomic
     def propose_decline(self, request, details):
         if not self.can_assess(request.user):
-            raise exceptions.ProposalNotAuthorized()
+            raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR:
             raise ValidationError(
-                f"You cannot propose to decline Occurrence Report {self} as the processing status is not "
+                f"You cannot propose to approve Occurrence Report {self} as the processing status is not "
                 f"{OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR}"
             )
 
@@ -548,12 +549,77 @@ class OccurrenceReport(RevisionedMixin):
 
         send_approver_decline_email_notification(reason, request, self)
 
+    @transaction.atomic
+    def propose_approve(self, request, validated_data):
+        if not self.can_assess(request.user):
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR:
+            raise ValidationError(
+                f"You cannot propose to decline Occurrence Report {self} as the processing status is not "
+                f"{OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR}"
+            )
+
+        occurrence = None
+        occurrence_id = validated_data.get("occurrence_id", None)
+        if occurrence_id:
+            try:
+                occurrence = Occurrence.objects.get(id=occurrence_id)
+            except Occurrence.DoesNotExist:
+                raise ValidationError(
+                    f"Occurrence with id {occurrence_id} does not exist"
+                )
+
+        details = validated_data.get("details", None)
+        effective_from = validated_data.get("effective_from")
+        effective_to = validated_data.get("effective_to")
+        OccurrenceReportApprovalDetails.objects.update_or_create(
+            occurrence_report=self,
+            defaults={
+                "officer": request.user.id,
+                "occurrence": occurrence,
+                "effective_from": effective_from,
+                "effective_to": effective_to,
+                "details": details,
+            },
+        )
+
+        self.approver_comment = ""
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_PROPOSED_APPROVAL.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
+
+        send_approver_approve_email_notification(request, self)
+
 
 class OccurrenceReportDeclinedDetails(models.Model):
     occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE)
     officer = models.IntegerField()  # EmailUserRO
     reason = models.TextField(blank=True)
     cc_email = models.TextField(null=True)
+
+    class Meta:
+        app_label = "boranga"
+
+
+class OccurrenceReportApprovalDetails(models.Model):
+    occurrence_report = models.OneToOneField(
+        OccurrenceReport, on_delete=models.CASCADE, related_name="approval_details"
+    )
+    occurrence = models.OneToOneField(
+        "Occurrence", on_delete=models.PROTECT
+    )  # If being added to an existing occurrence
+    officer = models.IntegerField()  # EmailUserRO
+    effective_from_date = models.DateField(null=True, blank=True)
+    effective_to_date = models.DateField(null=True, blank=True)
+    details = models.TextField(blank=True)
 
     class Meta:
         app_label = "boranga"
