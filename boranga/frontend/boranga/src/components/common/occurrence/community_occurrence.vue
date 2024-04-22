@@ -1,5 +1,5 @@
 <template lang="html">
-    <div id="speciesOccurrence">
+    <div id="communityOccurrence">
         <FormSection :formCollapse="false" label="Occurrence" Index="occurrence">
 
             <div class="row mb-3">
@@ -11,21 +11,13 @@
             </div>
             
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Scientific Name:</label>
-                <div class="col-sm-8" :id="select_scientific_name">
+                <label for="" class="col-sm-4 control-label">Community Name:</label>
+                <div class="col-sm-8" :id="select_community_name">
                     <select :disabled="occurrence_obj.readonly"
-                        :id="scientific_name_lookup"  
-                        :name="scientific_name_lookup"  
-                        :ref="scientific_name_lookup" 
+                        :id="community_name_lookup"  
+                        :name="community_name_lookup"  
+                        :ref="community_name_lookup" 
                         class="form-control" />
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Common Name:</label>
-                <div class="col-sm-9">
-                    <textarea :disabled="true" class="form-control" rows="1" id="common_name" placeholder="" 
-                    v-model="common_name"/>
                 </div>
             </div>
         
@@ -84,7 +76,7 @@ from '@/utils/hooks'
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
 
 export default {
-        name: 'SpeciesOccurrence',
+        name: 'CommunityOccurrence',
         props:{
             occurrence_obj:{
                 type: Object,
@@ -94,15 +86,14 @@ export default {
         data:function () {
             let vm = this;
             return{
-                scientific_name_lookup: 'scientific_name_lookup' + vm.occurrence_obj.id,
-                select_scientific_name: "select_scientific_name"+ vm.occurrence_obj.id,
+                community_name_lookup: 'community_name_lookup' + vm.occurrence_obj.id,
+                select_community_name: "select_community_name"+ vm.occurrence_obj.id,
                 occurrence_source_lookup: 'occurrence_source_lookup' + vm.occurrence_obj.id,
                 select_occurrence_source: "select_occurrence_source"+ vm.occurrence_obj.id,
                 wild_status_lookup: 'wild_status_lookup' + vm.occurrence_obj.id,
                 select_wild_status: "select_wild_status"+ vm.occurrence_obj.id,
-                common_name: null,
                 occ_profile_dict: {},
-                species_list: [],
+                community_list: [],
                 source_list: [],
                 wild_status_list: [],
             }
@@ -114,24 +105,24 @@ export default {
         watch:{
         },
         methods:{
-            initialiseScientificNameLookup: function(){
+            initialiseCommunityNameLookup: function(){
                 let vm = this;
-                $(vm.$refs[vm.scientific_name_lookup]).select2({
+                $(vm.$refs[vm.community_name_lookup]).select2({
                     minimumInputLength: 2,
-                    dropdownParent: $("#"+vm.select_scientific_name),
+                    dropdownParent: $("#"+vm.select_community_name),
                     "theme": "bootstrap-5",
                     allowClear: true,
-                    placeholder:"Select Scientific Name",
+                    placeholder:"Select Community Name",
                     ajax: {
-                        url: api_endpoints.scientific_name_lookup,
+                        url: api_endpoints.community_name_lookup,
                         dataType: 'json',
                         data: function(params) {
                             var query = {
                                 term: params.term,
                                 type: 'public',
                                 group_type_id: vm.occurrence_obj.group_type_id,
-                                cs_species: true,
-                                cs_species_status: vm.occurrence_obj.processing_status,
+                                cs_community: true,
+                                cs_community_status: vm.occurrence_obj.processing_status,
                             }
                             return query;
                         },
@@ -144,21 +135,19 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.occurrence_obj.species = data;
-                    vm.occurrence_obj.species_id = data.id;
-                    vm.species_display = e.params.data.text;
+                    vm.occurrence_obj.community = data;
+                    vm.occurrence_obj.community_id = data.id;
+                    vm.community_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
-                    vm.common_name = e.params.data.common_name;
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_obj.species_id = null
-                    vm.species_display = '';
+                    vm.occurrence_obj.community_id = null
+                    vm.community_display = '';
                     vm.taxon_previous_name = '';
-                    vm.common_name = '';
                 }).
                 on("select2:open",function (e) {
-                    const searchField = $('[aria-controls="select2-'+vm.scientific_name_lookup+'-results"]')
+                    const searchField = $('[aria-controls="select2-'+vm.community_name_lookup+'-results"]')
                     // move focus to select2 field
                     searchField[0].focus();                   
                 });
@@ -233,16 +222,15 @@ export default {
                     searchField[0].focus();                   
                 });
             },
-            getSpeciesDisplay: function(){
+            getCommunityDisplay: function(){
                 let vm = this;
-                for(let choice of vm.species_list){
-                        if(choice.id === vm.occurrence_obj.species)
+                for(let choice of vm.community_list){
+                        if(choice.id === vm.occurrence_obj.community)
                         {
                             var newOption = new Option(choice.name, choice.id, false, true);
-                            $('#'+ vm.scientific_name_lookup).append(newOption);
-                            vm.species_display = choice.name;
+                            $('#'+ vm.community_name_lookup).append(newOption);
+                            vm.community_display = choice.name;
                             vm.taxon_previous_name = choice.taxon_previous_name;
-                            vm.common_name = choice.common_name;
                         }
                     }
             },
@@ -280,10 +268,10 @@ export default {
                                             api_endpoints.occ_profile_dict+ '?group_type=' + vm.occurrence_obj.group_type
             vm.$http.get(dict_url).then((response) => {
                 vm.occ_profile_dict = response.body;
-                vm.species_list = vm.occ_profile_dict.species_list;
+                vm.community_list = vm.occ_profile_dict.community_list;
                 vm.source_list = vm.occ_profile_dict.source_list;
                 vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
-                this.getSpeciesDisplay();
+                this.getCommunityDisplay();
                 this.getSourceDisplay();
                 this.getWildStatusDisplay();
                 
@@ -295,7 +283,7 @@ export default {
             let vm = this;
             this.$nextTick(()=>{
                 vm.eventListeners();
-                vm.initialiseScientificNameLookup();
+                vm.initialiseCommunityNameLookup();
                 vm.initialiseOccurrenceSourceLookup();
                 vm.initialiseWildStatusLookup();
             });
