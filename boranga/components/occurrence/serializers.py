@@ -54,11 +54,23 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         source="species.taxonomy.scientific_name", allow_null=True
     )
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
+    group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
+    can_user_edit = serializers.SerializerMethodField()
+    user_edit_mode = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
         fields = "__all__"
 
+    def get_can_user_edit(self, obj):
+        return obj.can_user_edit
+
+    def get_user_edit_mode(self, obj):
+        request = self.context["request"]
+        user = (
+            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+        )
+        return obj.has_user_edit_mode(user)
 
 class ListOccurrenceReportSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
@@ -595,6 +607,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "conservation_category",
             "wild_status",
             "group_type",
+            "group_type_id",
             "number_of_reports",
             "processing_status",
             "processing_status_display",
@@ -1653,3 +1666,26 @@ class ProposeApproveSerializer(serializers.Serializer):
     effective_from_date = serializers.DateField()
     effective_to_date = serializers.DateField()
     details = serializers.CharField()
+class SaveOccurrenceSerializer(serializers.ModelSerializer):
+    species_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    community_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+
+    class Meta:
+        model = Occurrence
+        fields = (
+            "occurrence_name",
+            "wild_status",
+            "occurrence_source",
+            "comment",
+            "species_id",
+            "community_id",
+            "species",
+            "community",
+            "can_user_edit",
+        )
+        read_only_fields = ("id",)
+

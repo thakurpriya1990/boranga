@@ -3,9 +3,22 @@
         <div class="col-md-12">
             <ul id="pills-tab" class="nav nav-pills" role="tablist">
                 <li class="nav-item">
+                    <a 
+                        class="nav-link active" 
+                        id="pills-occurrence-tab" 
+                        data-bs-toggle="pill" 
+                        :href="'#' + occurrenceBody"
+                        role="tab" 
+                        :aria-controls="occurrenceBody" 
+                        aria-selected="true"
+                        @click="tabClicked()">
+                    Occurrence
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a
                         id="pills-location-tab"
-                        class="nav-link active"
+                        class="nav-link"
                         data-bs-toggle="pill"
                         :href="'#' + locationBody"
                         role="tab"
@@ -94,21 +107,24 @@
                         Sites
                     </a>
                 </li>
-                <!-- <li class="nav-item">
-                <a
-                  class="nav-link"
-                  id="pills-related-items-tab"
-                  data-bs-toggle="pill"
-                  :href="'#' + relatedItemBody"
-                  role="tab"
-                  :aria-controls="relatedItemBody"
-                  aria-selected="false"
-                  @click="tabClicked()">
-                  Related Items
-                </a>
-              </li> -->
             </ul>
             <div id="pills-tabContent" class="tab-content">
+                <div class="tab-pane fade show active" :id="occurrenceBody" role="tabpanel" aria-labelledby="pills-occurrence-tab">
+                <div
+                    v-if="isCommunity"  
+                    ref="community_occurrence" 
+                    id="communityOccurrence" 
+                    :key="reloadcount"
+                    :occurrence_obj="occurrence_obj">
+                </div>
+                <SpeciesOccurrence
+                    v-else  
+                    ref="species_occurrence" 
+                    id="speciesOccurrence" 
+                    :key="reloadcount"
+                    :occurrence_obj="occurrence_obj">
+                </SpeciesOccurrence>
+                </div>
                 <div
                     :id="locationBody"
                     class="tab-pane fade show active"
@@ -189,15 +205,6 @@
                     >
                     </OCCThreats>
                 </div>
-                <!-- <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
-                <RelatedItems
-                    :key="reloadcount"
-                    ref="cs_related_items"
-                    id="csRelatedItems"
-                    :ajax_url="related_items_ajax_url"
-                    :filter_list_url="related_items_filter_list_url">
-                </RelatedItems>
-              </div> -->
               <div
                     :id="reportBody"
                     class="tab-pane fade"
@@ -242,6 +249,7 @@
 // import RelatedItems from '@/components/common/table_related_items.vue'
 import OCCDocuments from '@/components/common/occurrence/occ_documents.vue';
 import OCCThreats from '@/components/common/occurrence/occ_threats.vue';
+import SpeciesOccurrence from '@/components/common/occurrence/species_occurrence.vue'
 
 export default {
     components: {
@@ -250,6 +258,7 @@ export default {
         //OCCObservation,
         OCCDocuments,
         OCCThreats,
+        SpeciesOccurrence,
         // CommunityStatus,
         // CSDocuments,
         // RelatedItems,
@@ -290,18 +299,12 @@ export default {
             relatedItemBody: 'relatedItemBody' + vm._uid,
             reportBody: 'reportBody' + vm._uid,
             sitesBody: 'sitesBody' + vm._uid,
+            occurrenceBody: 'occurrenceBody' + vm._uid,
         };
     },
     computed: {
-        related_items_ajax_url: function () {
-            return (
-                '/api/conservation_status/' +
-                this.occurrence_obj.id +
-                '/get_related_items/'
-            );
-        },
-        related_items_filter_list_url: function () {
-            return '/api/conservation_status/filter_list.json';
+        isCommunity: function(){
+            return this.occurrence_obj.group_type== "community"
         },
     },
     mounted: function () {

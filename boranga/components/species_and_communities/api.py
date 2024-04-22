@@ -220,7 +220,7 @@ class GetScientificName(views.APIView):
                     exculde_status = ['draft']
                     data = species_data_cache.filter(~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None))
                 data = data.filter(taxonomy__scientific_name__icontains=search_term, taxonomy__kingdom_fk__grouptype=group_type_id)[:10]
-                data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name, 'taxon_previous_name': species.taxonomy.taxon_previous_name} for species in data]
+                data_transform = [{'id': species.id, 'text': species.taxonomy.scientific_name, 'taxon_previous_name': species.taxonomy.taxon_previous_name, 'common_name': species.taxonomy.taxon_vernacular_name} for species in data]
                 data_transform = sorted(data_transform, key=lambda x: x['text'])
             elif combine_species != '':
                 # TODO do we need to check the taxonomy is_current=True as well

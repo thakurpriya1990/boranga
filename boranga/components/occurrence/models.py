@@ -2367,6 +2367,17 @@ class WildStatus(models.Model):
     def __str__(self):
         return str(self.name)
 
+class OccurrenceSource(models.Model):
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Source"
+        verbose_name_plural = "Occurrence Sources"
+        ordering = ["name"]
+
+    def __str__(self):
+        return str(self.name)
 
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
@@ -2407,6 +2418,11 @@ class Occurrence(RevisionedMixin):
     wild_status = models.ForeignKey(
         WildStatus, on_delete=models.PROTECT, null=True, blank=True
     )
+    occurrence_source = models.ForeignKey(
+        OccurrenceSource, on_delete=models.PROTECT, null=True, blank=True
+    )
+
+    comment = models.TextField(null=True, blank=True)
 
     review_due_date = models.DateField(null=True, blank=True)
     review_date = models.DateField(null=True, blank=True)
@@ -2467,9 +2483,29 @@ class Occurrence(RevisionedMixin):
     def number_of_reports(self):
         return self.occurrence_report_count
 
+    @property
+    def can_user_edit(self):
+        """
+        :return: True if the application is in one of the editable status.
+        """
+        user_editable_state = ['draft',]
+        return self.processing_status in user_editable_state
+    
+    def has_user_edit_mode(self,user):
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            return (
+                user.id in self.get_species_processor_group().get_system_group_member_ids() #TODO determine which group this should be (maybe this one is fine?)
+            )
+
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
 
+    def get_related_occurrence_reports(self,**kwargs):
+        
+        return OccurrenceReport.objects.filter(occurrence=self)
 
 class OccurrenceLogEntry(CommunicationsLogEntry):
     occurrence = models.ForeignKey(
