@@ -5,7 +5,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Occurrence Name:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" class="form-control" rows="1" id="occurrence_name" placeholder=""
+                    <textarea class="form-control" rows="1" id="occurrence_name" placeholder=""
                     v-model="occurrence_obj.occurrence_name"/>
                 </div>
             </div>
@@ -24,7 +24,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Common Name:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="true" class="form-control" rows="2" id="common_name" placeholder="" 
+                    <textarea :disabled="true" class="form-control" rows="1" id="common_name" placeholder="" 
                     v-model="common_name"/>
                 </div>
             </div>
@@ -58,8 +58,8 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Comments:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" class="form-control" id="occurrence_comments" placeholder=""
-                    v-model="occurrence_obj.occurrence_comments"/>
+                    <textarea class="form-control" id="occurrence_comments" placeholder=""
+                    v-model="occurrence_obj.comment"/>
                 </div>
             </div>
 
@@ -111,18 +111,6 @@ export default {
             FormSection,
             RelatedReports,
         },
-        computed: {
-            
-            isReadOnly: function(){
-                let action = this.$route.query.action;
-                if(action === "edit" && this.occurrence_obj && this.occurrence_obj.assessor_mode.has_assessor_mode){
-                    return false;
-                }
-                else{
-                    return this.occurrence_obj.readonly;
-                }
-            },
-        },
         watch:{
         },
         methods:{
@@ -157,6 +145,7 @@ export default {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.occurrence_obj.species = data;
+                    vm.occurrence_obj.species_id = data.id;
                     vm.species_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                     vm.common_name = e.params.data.common_name;
@@ -271,6 +260,7 @@ export default {
             getWildStatusDisplay: function(){
                 let vm = this;
                 for(let choice of vm.wild_status_list){
+                        console.log(choice,vm.occurrence_obj.wild_status)
                         if(choice.id === vm.occurrence_obj.wild_status)
                         {
                             var newOption = new Option(choice.name, choice.id, false, true);
@@ -292,7 +282,8 @@ export default {
             vm.$http.get(dict_url).then((response) => {
                 vm.occ_profile_dict = response.body;
                 vm.species_list = vm.occ_profile_dict.species_list;
-                //vm.source_list = vm.occ_profile_dict.source_list;
+                vm.source_list = vm.occ_profile_dict.source_list;
+                vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
                 this.getSpeciesDisplay();
                 this.getSourceDisplay();
                 this.getWildStatusDisplay();

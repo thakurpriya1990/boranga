@@ -2309,6 +2309,8 @@ class Occurrence(RevisionedMixin):
         OccurrenceSource, on_delete=models.PROTECT, null=True, blank=True
     )
 
+    comment = models.TextField(null=True, blank=True)
+
     review_due_date = models.DateField(null=True, blank=True)
     review_date = models.DateField(null=True, blank=True)
     reviewed_by = models.IntegerField(null=True)  # EmailUserRO
@@ -2367,6 +2369,23 @@ class Occurrence(RevisionedMixin):
     @property
     def number_of_reports(self):
         return self.occurrence_report_count
+
+    @property
+    def can_user_edit(self):
+        """
+        :return: True if the application is in one of the editable status.
+        """
+        user_editable_state = ['draft',]
+        return self.processing_status in user_editable_state
+    
+    def has_user_edit_mode(self,user):
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            return (
+                user.id in self.get_species_processor_group().get_system_group_member_ids() #TODO determine which group this should be (maybe this one is fine?)
+            )
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)

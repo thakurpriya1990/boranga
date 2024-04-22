@@ -37,28 +37,15 @@
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="splitSpecies()">Split</button><br />
+                                                        @click.prevent="splitOccurrence()">Split</button><br />
                                                 </div>
                                                 <div class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="combineSpecies()">Combine</button><br />
+                                                        @click.prevent="combineOccurrence()">Combine</button><br />
                                                 </div>
                                                 <div class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="renameSpecies()">Rename</button><br />
-                                                </div>
-                                            </div>
-                                        </template>
-                                        <template v-if="canDiscard">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <strong>Action</strong><br />
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="discardSpeciesProposal()">Discard</button><br />
+                                                        @click.prevent="renameOccurrence()">Rename</button><br />
                                                 </div>
                                             </div>
                                         </template>
@@ -75,12 +62,12 @@
                             enctype="multipart/form-data">
 
                             <ProposalOccurrence v-if="occurrence" :occurrence_obj="occurrence"
-                                id="OccurrenceStart" :canEditStatus="false"
+                                id="OccurrenceStart"
                                 ref="occurrence" @refreshFromResponse="refreshFromResponse">
                             </ProposalOccurrence>
 
                             <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                            <input type='hidden' name="occurrence_id" :value="1" />
+                            <input type='hidden' name="occurrence_id" :value="1"/>
                             <div class="row" style="margin-bottom: 50px">
                                 <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
                                     <div v-if="occurrence.can_user_edit" class="container">
@@ -103,13 +90,13 @@
                                                 :disabled="savingOccurrence || submitOccurrence">Save
                                                 and Exit</button>
 
-                                            <button v-if="submitOccurrence"
+                                            <!--<button v-if="submitOccurrence"
                                                 class="btn btn-primary pull-right" style="margin-top:5px;"
                                                 disabled>Submit&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                             <button v-else class="btn btn-primary pull-right"
                                                 style="margin-top:5px;" @click.prevent="submit()"
-                                                :disbaled="saveExitOccurrence || savingOccurrence">Submit</button>
+                                                :disbaled="saveExitOccurrence || savingOccurrence">Submit</button>-->
                                         </div>
                                     </div>
                                     <div v-else-if="hasUserEditMode" class="container">
@@ -131,11 +118,11 @@
                 </div>
             </div>
         </div>
-        <!-- <SpeciesSplit ref="species_split" :occurrence="occurrence" :is_internal="true"
+        <!-- <OccurrenceSplit ref="occurrence_split" :occurrence="occurrence" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <SpeciesCombine ref="species_combine" :occurrence="occurrence" :is_internal="true"
+        <OccurrenceCombine ref="occurrence_combine" :occurrence="occurrence" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <SpeciesRename ref="species_rename" :occurrence_original="occurrence" :is_internal="true"
+        <OccurrenceRename ref="occurrence_rename" :occurrence_original="occurrence" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" /> -->
     </div>
 
@@ -148,9 +135,9 @@ import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 import ProposalOccurrence from '@/components/form_occurrence.vue'
 
-// import SpeciesSplit from './species_split.vue'
-// import SpeciesCombine from './species_combine.vue'
-// import SpeciesRename from './species_rename.vue'
+// import OccurrenceSplit from './occurrence_split.vue'
+// import OccurrenceCombine from './occurrence_combine.vue'
+// import OccurrenceRename from './occurrence_rename.vue'
 
 import {
     api_endpoints,
@@ -181,9 +168,9 @@ export default {
         Submission,
         Workflow,
         ProposalOccurrence,
-        // SpeciesSplit,
-        // SpeciesCombine,
-        // SpeciesRename,
+        // OccurrenceSplit,
+        // OccurrenceCombine,
+        // OccurrenceRename,
     },
     filters: {
         formatDate: function (data) {
@@ -198,14 +185,10 @@ export default {
             return this.occurrence.group_type === "community"
         },
         occurrence_form_url: function () {
-            return (this.occurrence.group_type === "community") ?
-                `/api/community/${this.occurrence.id}/community_save.json` :
-                `/api/species/${this.occurrence.id}/species_save.json`;
+            return `/api/occurrence_paginated/${this.occurrence.id}/occurrence_save.json`;
         },
         occurrence_submit_url: function () {
-            return (this.occurrence.group_type === "community") ?
-                `community` :
-                `species`;
+            return `occurrence`;
         },
         display_group_type: function () {
             let group_type_string = this.occurrence.group_type
@@ -213,14 +196,7 @@ export default {
             return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
         },
         display_number: function () {
-            return (this.occurrence.group_type === "community") ?
-                this.occurrence.community_number :
-                this.occurrence.species_number;
-        },
-        display_name: function () {
-            return (this.occurrence.group_type === "community") ?
-                (this.occurrence.taxonomy_details != null) ? this.occurrence.taxonomy_details.community_migrated_id : '' :
-                (this.occurrence.taxonomy_details != null) ? this.occurrence.taxonomy_details.scientific_name + " (" + this.occurrence.taxonomy_details.taxon_name_id + ")" : '';
+            return this.occurrence.occurrence_number;
         },
         submitter_first_name: function () {
             if (this.occurrence && this.occurrence.submitter) {
@@ -264,36 +240,6 @@ export default {
         },
     },
     methods: {
-        discardSpeciesProposal: function () {
-            let vm = this;
-            swal.fire({
-                title: "Discard Application",
-                text: "Are you sure you want to discard this proposal?",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: 'Discard Application',
-                confirmButtonColor: '#d9534f'
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_species_proposal(vm.occurrence.id))
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Discarded',
-                                text: 'Your proposal has been discarded',
-                                icon: 'success',
-                                confirmButtonColor: '#226fbb',
-                            });
-                            vm.$router.push({
-                                name: 'internal-species-communities-dash'
-                            });
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            }, (error) => {
-
-            });
-        },
         save: async function () {
             let vm = this;
             var missing_data = vm.can_submit("");
@@ -348,7 +294,7 @@ export default {
             await vm.save().then(() => {
                 if (vm.isSaved === true) {
                     vm.$router.push({
-                        name: 'internal-species-communities-dash'
+                        name: 'occurrence-dashboard'
                     });
                 }
                 else {
@@ -384,12 +330,12 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.occurrence.group_type == 'flora' || vm.occurrence.group_type == 'fauna') {
-                if (vm.occurrence.taxonomy_id == null || vm.occurrence.taxonomy_id == '') {
+                if (vm.occurrence.species == null || vm.occurrence.species == '') {
                     blank_fields.push('Scientific Name is missing')
                 }
             }
             else {
-                if (vm.occurrence.taxonomy_details.community_name == null || vm.occurrence.taxonomy_details.community_name == '') {
+                if (vm.occurrence.community == null || vm.occurrence.community == '') {
                     blank_fields.push('Community Name is missing')
                 }
             }
@@ -432,18 +378,11 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.occurrence);
-                        let submit_url = this.occurrence.group_type === "community" ?
-                            helpers.add_endpoint_json(api_endpoints.community, vm.occurrence.id + '/submit') :
-                            helpers.add_endpoint_json(api_endpoints.species, vm.occurrence.id + '/submit')
+                        helpers.add_endpoint_json(api_endpoints.occurrence, vm.occurrence.id + '/submit');
                         vm.$http.post(submit_url, payload).then(res => {
                             vm.occurrence = res.body;
-                            // vm.$router.push({
-                            //     name: 'submit_cs_proposal',
-                            //     params: { conservation_status_obj: vm.conservation_status_obj}
-                            // });
-                            // TODO router should push to submit_cs_proposal for internal side 
                             vm.$router.push({
-                                name: 'internal-species-communities-dash'
+                                name: 'occurrence-dashboard'
                             });
                         }, err => {
                             swal.fire({
@@ -464,23 +403,23 @@ export default {
             vm.original_occurrence = helpers.copyObject(response.body);
             vm.occurrence = helpers.copyObject(response.body);
         },
-        splitSpecies: async function () {
-            this.$refs.species_split.occurrence_original = this.occurrence;
-            let newSpeciesId1 = null
+        splitOccurrence: async function () {
+            this.$refs.occurrence_split.occurrence_original = this.occurrence;
+            let newOccurrenceId1 = null
             try {
-                const createUrl = api_endpoints.species + "/";
+                const createUrl = api_endpoints.occurrence + "/";
                 let payload = new Object();
                 payload.group_type_id = this.occurrence.group_type_id;
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId1 = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId1}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
+                let savedOccurrence = await Vue.http.post(createUrl, payload);
+                if (savedOccurrence) {
+                    newOccurrenceId1 = savedOccurrence.body.id;
+                    Vue.http.get(`/api/occurrence/${newOccurrenceId1}/internal_occurrence.json`).then(res => {
+                        let occurrence_obj = res.body.occurrence_obj;
                         //--- to add empty documents array
-                        species_obj.documents = []
+                        occurrence_obj.documents = []
                         //---empty threats array added to store the select threat ids in from the child component
-                        species_obj.threats = []
-                        this.$refs.species_split.occurrence_list.push(species_obj); //--temp species_obj
+                        occurrence_obj.threats = []
+                        this.$refs.occurrence_split.occurrence_list.push(occurrence_obj); //--temp occurrence_obj
                     },
                         err => {
                             console.log(err);
@@ -493,21 +432,21 @@ export default {
                     return err;
                 }
             }
-            let newSpeciesId2 = null
+            let newOccurrenceId2 = null
             try {
-                const createUrl = api_endpoints.species + "/";
+                const createUrl = api_endpoints.occurrence + "/";
                 let payload = new Object();
                 payload.group_type_id = this.occurrence.group_type_id
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId2 = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
-                        // to add documents id array from original species
-                        species_obj.documents = []
+                let savedOccurrence = await Vue.http.post(createUrl, payload);
+                if (savedOccurrence) {
+                    newOccurrenceId2 = savedOccurrence.body.id;
+                    Vue.http.get(`/api/occurrence/${newOccurrenceId2}/internal_occurrence.json`).then(res => {
+                        let occurrence_obj = res.body.occurrence_obj;
+                        // to add documents id array from original occurrence
+                        occurrence_obj.documents = []
                         //---empty threats array added to store the select threat ids in from the child component
-                        species_obj.threats = []
-                        this.$refs.species_split.occurrence_list.push(species_obj); //--temp species_obj
+                        occurrence_obj.threats = []
+                        this.$refs.occurrence_split.occurrence_list.push(occurrence_obj); //--temp occurrence_obj
                     },
                         err => {
                             console.log(err);
@@ -520,25 +459,25 @@ export default {
                     return err;
                 }
             }
-            this.$refs.species_split.isModalOpen = true;
+            this.$refs.occurrence_split.isModalOpen = true;
         },
-        combineSpecies: async function () {
-            this.$refs.species_combine.original_species_combine_list.push(this.occurrence); //--push current original into the array
-            let newSpeciesId = null
+        combineOccurrence: async function () {
+            this.$refs.occurrence_combine.original_occurrence_combine_list.push(this.occurrence); //--push current original into the array
+            let newOccurrenceId = null
             try {
-                const createUrl = api_endpoints.species + "/";
+                const createUrl = api_endpoints.occurrence + "/";
                 let payload = new Object();
                 payload.group_type_id = this.occurrence.group_type_id;
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
+                let savedOccurrence = await Vue.http.post(createUrl, payload);
+                if (savedOccurrence) {
+                    newOccurrenceId = savedOccurrence.body.id;
+                    Vue.http.get(`/api/occurrence/${newOccurrenceId}/internal_occurrence.json`).then(res => {
+                        let occurrence_obj = res.body.occurrence_obj;
                         //--- to add empty documents array
-                        species_obj.documents = []
+                        occurrence_obj.documents = []
                         //---empty threats array added to store the selected threat ids in from the child component
-                        species_obj.threats = []
-                        this.$refs.species_combine.new_combine_species = species_obj; //---assign the new created species to the modal obj
+                        occurrence_obj.threats = []
+                        this.$refs.occurrence_combine.new_combine_occurrence = occurrence_obj; //---assign the new created occurrence to the modal obj
                     },
                         err => {
                             console.log(err);
@@ -552,15 +491,15 @@ export default {
                     return err;
                 }
             }
-            this.$refs.species_combine.isModalOpen = true;
+            this.$refs.occurrence_combine.isModalOpen = true;
         },
-        renameSpecies: async function () {
-            let rename_species_obj = null;
-            let newRenameSpecies = await Vue.http.get(`/api/species/${this.occurrence.id}/rename_deep_copy.json`)
-            if (newRenameSpecies) {
-                rename_species_obj = newRenameSpecies.body.species_obj;
-                this.$refs.species_rename.new_rename_species = rename_species_obj;
-                this.$refs.species_rename.isModalOpen = true;
+        renameOccurrence: async function () {
+            let rename_occurrence_obj = null;
+            let newRenameOccurrence = await Vue.http.get(`/api/occurrence/${this.occurrence.id}/rename_deep_copy.json`)
+            if (newRenameOccurrence) {
+                rename_occurrence_obj = newRenameOccurrence.body.occurrence_obj;
+                this.$refs.occurrence_rename.new_rename_occurrence = rename_occurrence_obj;
+                this.$refs.occurrence_rename.isModalOpen = true;
             }
         }
     },
@@ -580,17 +519,6 @@ export default {
         err => {
             console.log(err);
         });
-        /*}
-        else {
-            Vue.http.get(`/api/community/${to.params.occurrence_id}/internal_community.json`).then(res => {
-                next(vm => {
-                    vm.occurrence = res.body;
-                });
-            },
-                err => {
-                    console.log(err);
-                });
-        }*/
     },
 }
 </script>

@@ -21,6 +21,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
+from django.urls import reverse
+from django.shortcuts import redirect
 
 from boranga.components.main.api import (
     DatumSearchMixing,
@@ -112,6 +114,7 @@ from boranga.components.occurrence.serializers import (
     SaveOccurrenceReportSerializer,
     SaveOCRConservationThreatSerializer,
     SavePlantCountSerializer,
+    SaveOccurrenceSerializer,
 )
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
@@ -2222,9 +2225,14 @@ class GetOCCProfileDict(views.APIView):
                     'name':specimen.community_name,
                     })
         
+        occurrence_source_list = list(OccurrenceSource.objects.all().values("id","name"))
+        wild_status_list = list(WildStatus.objects.all().values("id","name"))
+
         res_json = {
         "species_list":species_list,
         "community_list":community_list,
+        "source_list":occurrence_source_list,
+        "wild_status_list":wild_status_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type='application/json')
@@ -2618,6 +2626,34 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+        
+    @detail_route(methods=['post'], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def occurrence_save(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                instance = self.get_object() 
+                request_data = request.data
+                serializer = SaveOccurrenceSerializer(instance, data = request_data, partial=True)
+                serializer.is_valid(raise_exception=True)
+
+                print(request_data)
+                print(serializer)
+                if serializer.is_valid():
+                    saved_instance = serializer.save(version_user=request.user)
+
+                    instance.log_user_action(OccurrenceUserAction.ACTION_SAVE_OCCURRENCE.format(instance.occurrence_number), request)
+
+            return redirect(reverse('internal'))
+        
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
 class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
     queryset = OccurrenceDocument.objects.none()
@@ -2750,7 +2786,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-
+        
 
 class OCCConservationThreatViewSet(viewsets.ModelViewSet):
     queryset = OCCConservationThreat.objects.none()
