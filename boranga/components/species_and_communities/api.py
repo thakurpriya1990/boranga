@@ -38,7 +38,7 @@ from boranga.components.species_and_communities.utils import (
     rename_species_original_submit,
 )
 from boranga.components.main.related_item import RelatedItemsSerializer
-
+from boranga.components.main.utils import validate_threat_request
 from boranga.components.species_and_communities.email import (
     send_species_split_email_notification, 
     send_species_combine_email_notification,
@@ -2132,28 +2132,28 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             for choice in current_impacts:
                 current_impact_lists.append({'id': choice.id,
                     'name': choice.name,
-                    });
+                    })
         potential_impact_lists = []
         potential_impacts = PotentialImpact.objects.all()
         if current_impacts:
             for choice in potential_impacts:
                 potential_impact_lists.append({'id': choice.id,
                     'name': choice.name,
-                    });
+                    })
         potential_threat_onset_lists = []
         potential_threats = PotentialThreatOnset.objects.all()
         if potential_threats:
             for choice in potential_threats:
                 potential_threat_onset_lists.append({'id': choice.id,
                     'name': choice.name,
-                    });
+                    })
         threat_agent_lists = []
         threat_agents = ThreatAgent.objects.all()
         if threat_agents:
             for choice in threat_agents:
                 threat_agent_lists.append({'id': choice.id,
                     'name': choice.name,
-                    });
+                    })
         res_json = {
             "threat_category_lists":threat_category_lists,
             "current_impact_lists":current_impact_lists,
@@ -2214,6 +2214,7 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 instance = self.get_object()
                 serializer = SaveConservationThreatSerializer(instance, data=json.loads(request.data.get('data')))
+                validate_threat_request(request)
                 serializer.is_valid(raise_exception=True)
                 serializer.save(version_user=request.user)
                 if instance.species:
@@ -2231,6 +2232,7 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
         try:
             with transaction.atomic():
                 serializer = SaveConservationThreatSerializer(data= json.loads(request.data.get('data')))
+                validate_threat_request(request)
                 serializer.is_valid(raise_exception = True)
                 instance = serializer.save(version_user=request.user)
                 if instance.species:

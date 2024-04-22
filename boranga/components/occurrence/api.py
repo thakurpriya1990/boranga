@@ -33,6 +33,7 @@ from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.utils import (
     handle_validation_error,
     transform_json_geometry,
+    validate_threat_request,
 )
 from boranga.components.occurrence.models import (
     AnimalHealth,
@@ -2217,6 +2218,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
                 serializer = SaveOCRConservationThreatSerializer(
                     instance, data=json.loads(request.data.get("data"))
                 )
+                validate_threat_request(request)
                 serializer.is_valid(raise_exception=True)
                 serializer.save(version_user=request.user)
                 if instance.occurrence_report:
@@ -2239,6 +2241,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
                 serializer = SaveOCRConservationThreatSerializer(
                     data=json.loads(request.data.get("data"))
                 )
+                validate_threat_request(request)
                 serializer.is_valid(raise_exception=True)
                 instance = serializer.save(version_user=request.user)
                 if instance.occurrence_report:
@@ -2933,6 +2936,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
                 serializer = SaveOCCConservationThreatSerializer(
                     instance, data=json.loads(request.data.get("data"))
                 )
+                validate_threat_request(request)
                 serializer.is_valid(raise_exception=True)
                 serializer.save(version_user=request.user)
                 if instance.occurrence:
@@ -2955,6 +2959,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
                 serializer = SaveOCCConservationThreatSerializer(
                     data=json.loads(request.data.get("data"))
                 )
+                validate_threat_request(request)
                 serializer.is_valid(raise_exception=True)
                 instance = serializer.save(version_user=request.user)
                 if instance.occurrence:
