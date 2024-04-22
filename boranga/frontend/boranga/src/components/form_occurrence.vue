@@ -123,13 +123,13 @@
             </ul>
             <div id="pills-tabContent" class="tab-content">
                 <div class="tab-pane fade show active" :id="occurrenceBody" role="tabpanel" aria-labelledby="pills-occurrence-tab">
-                <div
+                <CommunityOccurrence
                     v-if="isCommunity"  
                     ref="community_occurrence" 
                     id="communityOccurrence" 
                     :key="reloadcount"
                     :occurrence_obj="occurrence_obj">
-                </div>
+                </CommunityOccurrence>
                 <SpeciesOccurrence
                     v-else  
                     ref="species_occurrence" 
@@ -277,6 +277,7 @@ import RelatedItems from '@/components/common/table_related_items.vue'
 import OCCDocuments from '@/components/common/occurrence/occ_documents.vue';
 import OCCThreats from '@/components/common/occurrence/occ_threats.vue';
 import SpeciesOccurrence from '@/components/common/occurrence/species_occurrence.vue'
+import CommunityOccurrence from '@/components/common/occurrence/community_occurrence.vue'
 
 export default {
     components: {
@@ -286,8 +287,7 @@ export default {
         OCCDocuments,
         OCCThreats,
         SpeciesOccurrence,
-        // CommunityStatus,
-        // CSDocuments,
+        CommunityOccurrence,
         RelatedItems,
     },
     props: {
