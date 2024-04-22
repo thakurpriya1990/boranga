@@ -606,26 +606,39 @@ export default {
             })
         },
         createCommunityOccurrenceReport: async function () {
-            let newCommunityOCRId = null
-            try {
-                    const createUrl = api_endpoints.occurrence_report+"/";
-                    let payload = new Object();
-                    payload.group_type_id = this.group_type_id
-                    payload.internal_application = true
-                    let savedCommunityOCR = await Vue.http.post(createUrl, payload);
-                    if (savedCommunityOCR) {
-                        newCommunityOCRId = savedCommunityOCR.body.id;
+            swal.fire({
+                title: `Add ${this.group_type_name} Occurrence Report`,
+                text: "Are you sure you want to add a new occurrence report?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Add Occurrence Report',
+                reverseButtons: true,
+                confirmButtonColor: '#226fbb',
+
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newCommunityOCRId = null
+                    try {
+                            const createUrl = api_endpoints.occurrence_report+"/";
+                            let payload = new Object();
+                            payload.group_type_id = this.group_type_id
+                            payload.internal_application = true
+                            let savedCommunityOCR = await Vue.http.post(createUrl, payload);
+                            if (savedCommunityOCR) {
+                                newCommunityOCRId = savedCommunityOCR.body.id;
+                            }
+                        }
+                    catch (err) {
+                        console.log(err);
+                        if (this.is_internal) {
+                            return err;
+                        }
                     }
-                }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            this.$router.push({
-                name: 'internal-occurrence-report-detail',
-                params: {occurrence_report_id: newCommunityOCRId},
+                    this.$router.push({
+                        name: 'internal-occurrence-report-detail',
+                        params: {occurrence_report_id: newCommunityOCRId},
+                        });
+                    }
                 });
         },
         discardOCRProposal:function (occurrence_report_id) {

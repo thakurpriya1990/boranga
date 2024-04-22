@@ -1646,3 +1646,10 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
 
 class ProposeDeclineSerializer(serializers.Serializer):
     reason = serializers.CharField()
+
+
+class ProposeApproveSerializer(serializers.Serializer):
+    occurrence_id = serializers.IntegerField(allow_null=True)
+    effective_from_date = serializers.DateField()
+    effective_to_date = serializers.DateField()
+    details = serializers.CharField()

@@ -1,70 +1,62 @@
 <template id="species_flora_ocr_dashboard">
     <div>
-        <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
+        <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted"
+            class="mb-2">
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group" id="select_occurrence">
                         <label for="ocr_occurrence_lookup">Occurrence:</label>
-                            <select
-                                id="ocr_occurrence_lookup"
-                                name="ocr_occurrence_lookup"
-                                ref="ocr_occurrence_lookup"
-                                class="form-control" />
+                        <select id="ocr_occurrence_lookup" name="ocr_occurrence_lookup" ref="ocr_occurrence_lookup"
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group" id="select_scientific_name_by_groupname">
                         <label for="ocr_scientific_name_lookup_by_groupname">Scientific Name:</label>
-                            <select
-                                id="ocr_scientific_name_lookup_by_groupname"
-                                name="ocr_scientific_name_lookup_by_groupname"
-                                ref="ocr_scientific_name_lookup_by_groupname"
-                                class="form-control" />
+                        <select id="ocr_scientific_name_lookup_by_groupname"
+                            name="ocr_scientific_name_lookup_by_groupname" ref="ocr_scientific_name_lookup_by_groupname"
+                            class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group" id="select_status">
                         <label for="">Status:</label>
-                            <select class="form-select" v-model="filterOCRFloraStatus">
-                                <option value="all">All</option>
-                                <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
-                            </select>
+                        <select class="form-select" v-model="filterOCRFloraStatus">
+                            <option value="all">All</option>
+                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                        </select>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="">Submitted From Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterOCRFloraSubmittedFromDate">
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date"
+                            v-model="filterOCRFloraSubmittedFromDate">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="">Submitted To Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterOCRFloraSubmittedToDate">
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date"
+                            v-model="filterOCRFloraSubmittedToDate">
                     </div>
                 </div>
             </div>
         </CollapsibleFilters>
         <div v-if="addFloraOCRVisibility" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraOccurrenceReport"><i class="fa-solid fa-circle-plus"></i> Add Occurrence Report</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraOccurrenceReport"><i
+                        class="fa-solid fa-circle-plus"></i> Add Occurrence Report</button>
             </div>
         </div>
         <div class="row">
             <div class="col-lg-12">
-                <datatable
-                        ref="flora_ocr_datatable"
-                        :id="datatable_id"
-                        :dtOptions="datatable_options"
-                        :dtHeaders="datatable_headers"
-                />
+                <datatable ref="flora_ocr_datatable" :id="datatable_id" :dtOptions="datatable_options"
+                    :dtHeaders="datatable_headers" />
             </div>
             <div v-if="occurrenceReportHistoryId">
-                <OccurrenceReportHistory
-                    ref="occurrence_report_history"
-                    :key="occurrenceReportHistoryId"
-                    :occurrence-report-id="occurrenceReportHistoryId"
-                />
+                <OccurrenceReportHistory ref="occurrence_report_history" :key="occurrenceReportHistoryId"
+                    :occurrence-report-id="occurrenceReportHistoryId" />
             </div>
         </div>
     </div>
@@ -87,35 +79,35 @@ import {
     api_endpoints,
     constants,
     helpers
-}from '@/utils/hooks'
+} from '@/utils/hooks'
 export default {
     name: 'OccurrenceReportFloraTable',
     props: {
-        level:{
+        level: {
             type: String,
             required: true,
-            validator:function(val) {
-                let options = ['internal','external'];
-                return options.indexOf(val) != -1 ? true: false;
+            validator: function (val) {
+                let options = ['internal', 'external'];
+                return options.indexOf(val) != -1 ? true : false;
             }
         },
-        group_type_name:{
+        group_type_name: {
             type: String,
             required: true
         },
-        group_type_id:{
+        group_type_id: {
             type: Number,
             required: true,
-            default:0
+            default: 0
         },
-        url:{
+        url: {
             type: String,
             required: true
         },
         // for adding agendaitems for the meeting_obj.id
-        meeting_obj:{
+        meeting_obj: {
             type: Object,
-            required:false
+            required: false
         },
         filterOCRFloraOccurrence_cache: {
             type: String,
@@ -147,9 +139,9 @@ export default {
     data() {
         let vm = this;
         return {
-            uuid:0,
+            uuid: 0,
             occurrenceReportHistoryId: null,
-            datatable_id: 'species_flora_or-datatable-'+vm._uid,
+            datatable_id: 'species_flora_or-datatable-' + vm._uid,
 
             //Profile to check if user has access to process Proposal
             profile: {},
@@ -157,19 +149,19 @@ export default {
 
             // selected values for filtering
             filterOCRFloraOccurrence: sessionStorage.getItem(this.filterOCRFloraOccurrence_cache) ?
-                                    sessionStorage.getItem(this.filterOCRFloraOccurrence_cache) : 'all',
+                sessionStorage.getItem(this.filterOCRFloraOccurrence_cache) : 'all',
 
             filterOCRFloraScientificName: sessionStorage.getItem(this.filterOCRFloraScientificName_cache) ?
-                                sessionStorage.getItem(this.filterOCRFloraScientificName_cache) : 'all',
+                sessionStorage.getItem(this.filterOCRFloraScientificName_cache) : 'all',
 
             filterOCRFloraStatus: sessionStorage.getItem(this.filterOCRFloraStatus_cache) ?
-                        sessionStorage.getItem(this.filterOCRFloraStatus_cache) : 'all',
+                sessionStorage.getItem(this.filterOCRFloraStatus_cache) : 'all',
 
             filterOCRFloraSubmittedFromDate: sessionStorage.getItem(this.filterOCRFloraSubmittedFromDate_cache) ?
-                                sessionStorage.getItem(this.filterOCRFloraSubmittedFromDate_cache) : '',
+                sessionStorage.getItem(this.filterOCRFloraSubmittedFromDate_cache) : '',
 
             filterOCRFloraSubmittedToDate: sessionStorage.getItem(this.filterOCRFloraSubmittedToDate_cache) ?
-                                sessionStorage.getItem(this.filterOCRFloraSubmittedToDate_cache) : '',
+                sessionStorage.getItem(this.filterOCRFloraSubmittedToDate_cache) : '',
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -179,119 +171,119 @@ export default {
             submissions_to_list: [],
 
             // filtering options
-            internal_status:[
-                {value: 'draft', name: 'Draft'},
-                {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'with_referral', name: 'With Referral'},
-                {value: 'with_approver', name: 'With Approver'},
-                {value: 'approved', name: 'Approved'},
-                {value: 'declined', name: 'Declined'},
+            internal_status: [
+                { value: 'draft', name: 'Draft' },
+                { value: 'with_assessor', name: 'With Assessor' },
+                { value: 'with_referral', name: 'With Referral' },
+                { value: 'with_approver', name: 'With Approver' },
+                { value: 'approved', name: 'Approved' },
+                { value: 'declined', name: 'Declined' },
             ],
 
             proposal_status: [],
         }
     },
-    components:{
+    components: {
         datatable,
         CollapsibleFilters,
         FormSection,
         OccurrenceReportHistory,
     },
-    watch:{
-        filterOCRFloraOccurrence: function(){
+    watch: {
+        filterOCRFloraOccurrence: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRFloraOccurrence_cache, vm.filterOCRFloraOccurrence);
         },
-        filterOCRFloraScientificName: function() {
+        filterOCRFloraScientificName: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRFloraScientificName_cache, vm.filterOCRFloraScientificName);
         },
-        filterOCRFloraStatus: function() {
+        filterOCRFloraStatus: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRFloraStatus_cache, vm.filterOCRFloraStatus);
         },
-        filterOCRFloraSubmittedFromDate: function() {
+        filterOCRFloraSubmittedFromDate: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRFloraSubmittedFromDate_cache, vm.filterOCRFloraSubmittedFromDate);
         },
-        filterOCRFloraSubmittedToDate: function() {
+        filterOCRFloraSubmittedToDate: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRFloraSubmittedToDate_cache, vm.filterOCRFloraSubmittedToDate);
         },
-        filterApplied: function(){
-            if (this.$refs.collapsible_filters){
+        filterApplied: function () {
+            if (this.$refs.collapsible_filters) {
                 // Collapsible component exists
                 this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
             }
         },
     },
     computed: {
-        filterApplied: function(){
-            if(this.filterOCRFloraOccurrence === 'all' &&
+        filterApplied: function () {
+            if (this.filterOCRFloraOccurrence === 'all' &&
                 this.filterOCRFloraScientificName === 'all' &&
                 this.filterOCRFloraStatus === 'all' &&
                 this.filterOCRFloraSubmittedFromDate === '' &&
-                this.filterOCRFloraSubmittedToDate === ''){
+                this.filterOCRFloraSubmittedToDate === '') {
                 return false
             } else {
                 return true
             }
         },
-        is_external: function(){
+        is_external: function () {
             return this.level == 'external';
         },
-        is_internal: function() {
+        is_internal: function () {
             return this.level == 'internal'
         },
-        addFloraOCRVisibility: function() {
+        addFloraOCRVisibility: function () {
             let visibility = false;
             if (this.is_internal) {
                 visibility = true;
             }
             return visibility;
         },
-        datatable_headers: function(){
-            if (this.is_internal){
-                return ['Number','Occurrence','Scientific Name', 'Submission date/time', 'Submitter', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+        datatable_headers: function () {
+            if (this.is_internal) {
+                return ['Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
             }
         },
-        column_id: function(){
+        column_id: function () {
             return {
                 data: "id",
                 orderable: true,
                 searchable: false,
                 visible: false,
-                'render': function(data, type, full){
+                'render': function (data, type, full) {
                     return full.id
                 },
                 name: "id",
             }
         },
-        column_number: function(){
+        column_number: function () {
             return {
                 data: "occurrence_report_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
+                'render': function (data, type, full) {
                     return full.occurrence_report_number
                 },
                 name: "occurrence_report_number",
             }
         },
-        column_occurrence: function(){
+        column_occurrence: function () {
             return {
                 data: "occurrence_name",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if (full.occurrence_name){
+                'render': function (data, type, full) {
+                    if (full.occurrence_name) {
                         return full.occurrence_name;
                     }
                     return 'NOT SET'
@@ -299,14 +291,14 @@ export default {
                 name: "occurrence__occurrence_number",
             }
         },
-        column_scientific_name: function(){
+        column_scientific_name: function () {
             return {
                 data: "scientific_name",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if (full.scientific_name){
+                'render': function (data, type, full) {
+                    if (full.scientific_name) {
                         return full.scientific_name;
                     }
                     return ''
@@ -314,14 +306,14 @@ export default {
                 name: "species__taxonomy__scientific_name",
             }
         },
-        column_submission_date_time: function(){
+        column_submission_date_time: function () {
             return {
                 data: "reported_date",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if (full.reported_date){
+                'render': function (data, type, full) {
+                    if (full.reported_date) {
                         return full.reported_date;
                     }
                     return ''
@@ -329,14 +321,14 @@ export default {
                 name: "reported_date",
             }
         },
-        column_submitter: function(){
+        column_submitter: function () {
             return {
                 data: "submitter",
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function(data, type, full){
-                    if (full.submitter){
+                'render': function (data, type, full) {
+                    if (full.submitter) {
                         return full.submitter;
                     }
                     return ''
@@ -344,7 +336,7 @@ export default {
                 name: "submitter__first_name, submitter__last_name",
             }
         },
-        column_effective_from: function(){
+        column_effective_from: function () {
             return {
                 data: "effective_from",
                 orderable: true,
@@ -353,7 +345,7 @@ export default {
                 name: "effective_from",
             }
         },
-        column_effective_to: function(){
+        column_effective_to: function () {
             return {
                 data: "effective_to",
                 orderable: true,
@@ -362,7 +354,7 @@ export default {
                 name: "effective_to",
             }
         },
-        column_review_due_date: function(){
+        column_review_due_date: function () {
             return {
                 data: "review_due_date",
                 orderable: true,
@@ -371,14 +363,14 @@ export default {
                 name: "review_due_date",
             }
         },
-        column_status: function(){
+        column_status: function () {
             return {
                 data: "processing_status_display",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(data, type, full){
-                    if (full.processing_status_display){
+                'render': function (data, type, full) {
+                    if (full.processing_status_display) {
                         return full.processing_status_display;
                     }
                     return ''
@@ -386,39 +378,38 @@ export default {
                 name: "processing_status",
             }
         },
-        column_action: function(){
+        column_action: function () {
             let vm = this
             return {
                 data: "internal_user_edit",
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function(data, type, full){
+                'render': function (data, type, full) {
                     let links = "";
-                    if (!vm.is_external){
-                            if(full.internal_user_edit)
-                            {
-                                links +=  `<a href='/internal/occurrence_report/${full.id}'>Continue</a><br/>`;
-                                links +=  `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
-                            }
-                            else{
-                                if(full.can_user_assess){
-                                        links +=  `<a href='/internal/occurrence_report/${full.id}'>Process</a><br/>`;
-                                }
-                                else{
-                                    if(full.assessor_edit){
-                                        links +=  `<a href='/internal/occurrence_report/${full.id}?action=edit'>Edit</a><br/>`;
-                                    }
-                                    links +=  `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
-                                }
-                            }
-                            links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
+                    if (!vm.is_external) {
+                        if (full.internal_user_edit) {
+                            links += `<a href='/internal/occurrence_report/${full.id}'>Continue</a><br/>`;
+                            links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                         }
+                        else {
+                            if (full.can_user_assess) {
+                                links += `<a href='/internal/occurrence_report/${full.id}'>Process</a><br/>`;
+                            }
+                            else {
+                                if (full.assessor_edit) {
+                                    links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Edit</a><br/>`;
+                                }
+                                links += `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
+                            }
+                        }
+                        links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
+                    }
                     return links;
                 }
             }
         },
-        datatable_options: function(){
+        datatable_options: function () {
             let vm = this
 
             let columns = []
@@ -439,7 +430,7 @@ export default {
                     }
                 }
             ]
-            if(vm.is_internal){
+            if (vm.is_internal) {
                 columns = [
                     vm.column_number,
                     vm.column_occurrence,
@@ -463,11 +454,11 @@ export default {
                 order: [
                     [0, 'desc']
                 ],
-                lengthMenu: [ [10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [[10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"]],
                 responsive: true,
                 serverSide: true,
                 searching: search,
-                 //  to show the "workflow Status","Action" columns always in the last position
+                //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
                     { responsivePriority: 3, targets: -1 },
@@ -478,7 +469,7 @@ export default {
                     "dataSrc": 'data',
 
                     // adding extra GET params for Custom filtering
-                    "data": function ( d ) {
+                    "data": function (d) {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_occurrence = vm.filterOCRFloraOccurrence;
                         d.filter_scientific_name = vm.filterOCRFloraScientificName;
@@ -490,108 +481,108 @@ export default {
                 },
                 //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
-                     "<'row'<'col-sm-12'tr>>" +
-                     "<'d-flex align-items-center'<'me-auto'i>p>",
-                buttons:buttons,
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
+                buttons: buttons,
 
                 columns: columns,
                 processing: true,
-                initComplete: function() {
+                initComplete: function () {
                     helpers.enablePopovers();
                 },
             }
         }
 
     },
-    methods:{
-        historyDocument: function(id){
-                this.occurrenceReportHistoryId = parseInt(id);
-                this.uuid++;
-                this.$nextTick(() => {
-                    this.$refs.occurrence_report_history.isModalOpen = true;
-                });
-            },
-        collapsible_component_mounted: function(){
+    methods: {
+        historyDocument: function (id) {
+            this.occurrenceReportHistoryId = parseInt(id);
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.occurrence_report_history.isModalOpen = true;
+            });
+        },
+        collapsible_component_mounted: function () {
             this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
-        initialiseOccurrenceLookup: function(){
-                let vm = this;
-                $(vm.$refs.ocr_occurrence_lookup).select2({
-                    minimumInputLength: 2,
-                    dropdownParent: $("#select_occurrence"),
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder:"Select Occurrence",
-                    ajax: {
-                        url: api_endpoints.occurrence_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
+        initialiseOccurrenceLookup: function () {
+            let vm = this;
+            $(vm.$refs.ocr_occurrence_lookup).select2({
+                minimumInputLength: 2,
+                dropdownParent: $("#select_occurrence"),
+                "theme": "bootstrap-5",
+                allowClear: true,
+                placeholder: "Select Occurrence",
+                ajax: {
+                    url: api_endpoints.occurrence_lookup,
+                    dataType: 'json',
+                    data: function (params) {
+                        var query = {
+                            term: params.term,
+                            type: 'public',
+                            group_type_id: vm.group_type_id,
+                        }
+                        return query;
                     },
-                }).
+                },
+            }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRFloraOccurrence = data;
                     sessionStorage.setItem("filterOCRFloraOccurrenceText", e.params.data.text);
                 }).
-                on("select2:unselect",function (e) {
+                on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
                     vm.filterOCRFloraOccurrence = 'all';
-                    sessionStorage.setItem("filterOCRFloraOccurrenceText",'');
+                    sessionStorage.setItem("filterOCRFloraOccurrenceText", '');
                 }).
-                on("select2:open",function (e) {
+                on("select2:open", function (e) {
                     const searchField = $('[aria-controls="select2-ocr_occurrence_lookup-results"]')
                     searchField[0].focus();
                 });
         },
-        initialiseScientificNameLookup: function(){
-                let vm = this;
-                $(vm.$refs.ocr_scientific_name_lookup_by_groupname).select2({
-                    minimumInputLength: 2,
-                    dropdownParent: $("#select_scientific_name_by_groupname"),
-                    theme: 'bootstrap-5',
-                    allowClear: true,
-                    placeholder:"Select Scientific Name",
-                    ajax: {
-                        url: api_endpoints.scientific_name_lookup,
-                        dataType: 'json',
-                        data: function(params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                                group_type_id: vm.group_type_id,
-                            }
-                            return query;
-                        },
+        initialiseScientificNameLookup: function () {
+            let vm = this;
+            $(vm.$refs.ocr_scientific_name_lookup_by_groupname).select2({
+                minimumInputLength: 2,
+                dropdownParent: $("#select_scientific_name_by_groupname"),
+                theme: 'bootstrap-5',
+                allowClear: true,
+                placeholder: "Select Scientific Name",
+                ajax: {
+                    url: api_endpoints.scientific_name_lookup,
+                    dataType: 'json',
+                    data: function (params) {
+                        var query = {
+                            term: params.term,
+                            type: 'public',
+                            group_type_id: vm.group_type_id,
+                        }
+                        return query;
                     },
-                }).
+                },
+            }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRFloraScientificName = data;
                     sessionStorage.setItem("filterOCRFloraScientificNameText", e.params.data.text);
                 }).
-                on("select2:unselect",function (e) {
+                on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
                     vm.filterOCRFloraScientificName = 'all';
-                    sessionStorage.setItem("filterOCRFloraScientificNameText",'');
+                    sessionStorage.setItem("filterOCRFloraScientificNameText", '');
                 }).
-                on("select2:open",function (e) {
+                on("select2:open", function (e) {
                     const searchField = $('[aria-controls="select2-ocr_scientific_name_lookup_by_groupname-results"]')
                     searchField[0].focus();
                 });
         },
-        fetchFilterLists: function(){
+        fetchFilterLists: function () {
             let vm = this;
             //large FilterList of Species Values object
-            vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
+            vm.$http.get(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.occurrence_list = vm.filterListsSpecies.occurrence_list;
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
@@ -601,36 +592,49 @@ export default {
                 // vm.filterConservationCategory();
                 // vm.filterDistrict();
                 vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
-                        return a.name.trim().localeCompare(b.name.trim());
-                    });
-            },(error) => {
+                    return a.name.trim().localeCompare(b.name.trim());
+                });
+            }, (error) => {
                 console.log(error);
             })
         },
         createFloraOccurrenceReport: async function () {
-            let newFloraOCRId = null
-            try {
-                    const createUrl = api_endpoints.occurrence_report+"/";
-                    let payload = new Object();
-                    payload.group_type_id = this.group_type_id
-                    payload.internal_application = true
-                    let savedFloraOCR = await Vue.http.post(createUrl, payload);
-                    if (savedFloraOCR) {
-                        newFloraOCRId = savedFloraOCR.body.id;
+            swal.fire({
+                title: `Add ${this.group_type_name} Occurrence Report`,
+                text: "Are you sure you want to add a new occurrence report?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Add Occurrence Report',
+                reverseButtons: true,
+                confirmButtonColor: '#226fbb',
+
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newFloraOCRId = null
+                    try {
+                        const createUrl = api_endpoints.occurrence_report + "/";
+                        let payload = new Object();
+                        payload.group_type_id = this.group_type_id
+                        payload.internal_application = true
+                        let savedFloraOCR = await Vue.http.post(createUrl, payload);
+                        if (savedFloraOCR) {
+                            newFloraOCRId = savedFloraOCR.body.id;
+                        }
                     }
+                    catch (err) {
+                        console.log(err);
+                        if (this.is_internal) {
+                            return err;
+                        }
+                    }
+                    this.$router.push({
+                        name: 'internal-occurrence-report-detail',
+                        params: { occurrence_report_id: newFloraOCRId },
+                    });
                 }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            this.$router.push({
-                name: 'internal-occurrence-report-detail',
-                params: {occurrence_report_id: newFloraOCRId},
-                });
+            });
         },
-        discardOCRProposal:function (occurrence_report_id) {
+        discardOCRProposal: function (occurrence_report_id) {
             let vm = this;
             swal.fire({
                 title: "Discard Report",
@@ -638,49 +642,49 @@ export default {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Report',
-                confirmButtonColor:'#d9534f'
+                confirmButtonColor: '#d9534f'
             }).then((swalresult) => {
-                if(swalresult.isConfirmed){
+                if (swalresult.isConfirmed) {
                     vm.$http.delete(api_endpoints.discard_ocr_proposal(occurrence_report_id))
-                    .then((response) => {
-                        swal.fire({
-                            title: 'Discarded',
-                            text: 'Your report has been discarded',
-                            icon: 'success',
-                            confirmButtonColor:'#226fbb',
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'Your report has been discarded',
+                                icon: 'success',
+                                confirmButtonColor: '#226fbb',
+                            });
+                            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                        }, (error) => {
+                            console.log(error);
                         });
-                        vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false);
-                    }, (error) => {
-                        console.log(error);
-                    });
                 }
-            },(error) => {
+            }, (error) => {
 
             });
         },
-        addEventListeners: function(){
+        addEventListeners: function () {
             let vm = this;
             // internal Discard listener
-            vm.$refs.flora_ocr_datatable.vmDataTable.on('click', 'a[data-discard-ocr-proposal]', function(e) {
+            vm.$refs.flora_ocr_datatable.vmDataTable.on('click', 'a[data-discard-ocr-proposal]', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-ocr-proposal');
                 vm.discardOCRProposal(id);
             });
-            vm.$refs.flora_ocr_datatable.vmDataTable.on('click', 'a[data-history-occurrence-report]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-history-occurrence-report');
-                    vm.historyDocument(id);
-                });
+            vm.$refs.flora_ocr_datatable.vmDataTable.on('click', 'a[data-history-occurrence-report]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-occurrence-report');
+                vm.historyDocument(id);
+            });
         },
-        initialiseSearch:function(){
+        initialiseSearch: function () {
             this.submitterSearch();
         },
-        submitterSearch:function(){
+        submitterSearch: function () {
             let vm = this;
             vm.$refs.flora_ocr_datatable.table.dataTableExt.afnFiltering.push(
-                function(settings,data,dataIndex,original){
+                function (settings, data, dataIndex, original) {
                     let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All'){ return true; }
+                    if (filtered_submitter == 'All') { return true; }
                     return filtered_submitter == original.submitter.email;
                 }
             );
@@ -845,14 +849,14 @@ export default {
     },
 
 
-    mounted: function(){
+    mounted: function () {
         this.fetchFilterLists();
         let vm = this;
-        $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
-            var chev = $( this ).children()[ 0 ];
-            window.setTimeout( function () {
-                $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );
-            }, 100 );
+        $('a[data-toggle="collapse"]').on('click', function () {
+            var chev = $(this).children()[0];
+            window.setTimeout(function () {
+                $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+            }, 100);
         });
         this.$nextTick(() => {
             vm.initialiseOccurrenceLookup();
@@ -861,15 +865,13 @@ export default {
             vm.addEventListeners();
 
             // -- to set the select2 field with the session value if exists onload()
-            if(sessionStorage.getItem("filterOCRFloraOccurrence")!='all' && sessionStorage.getItem("filterOCRFloraOccurrence")!=null)
-            {
+            if (sessionStorage.getItem("filterOCRFloraOccurrence") != 'all' && sessionStorage.getItem("filterOCRFloraOccurrence") != null) {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterOCRFloraOccurrenceText"), vm.filterOCRFloraOccurrence, false, true);
                 $('#ocr_occurrence_lookup').append(newOption);
                 //$('#scientific_name_lookup').append(newOption).trigger('change');
             }
-            if(sessionStorage.getItem("filterOCRFloraScientificName")!='all' && sessionStorage.getItem("filterOCRFloraScientificName")!=null)
-            {
+            if (sessionStorage.getItem("filterOCRFloraScientificName") != 'all' && sessionStorage.getItem("filterOCRFloraScientificName") != null) {
                 // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterOCRFloraScientificNameText"), vm.filterOCRFloraScientificName, false, true);
                 $('#ocr_scientific_name_lookup').append(newOption);
@@ -879,12 +881,14 @@ export default {
 }
 </script>
 <style scoped>
-.dt-buttons{
+.dt-buttons {
     float: right;
 }
+
 .collapse-icon {
     cursor: pointer;
 }
+
 .collapse-icon::before {
     top: 5px;
     left: 4px;
@@ -905,9 +909,11 @@ export default {
     font-family: 'Courier New', Courier monospace;
     margin: 5px;
 }
+
 .expand-icon {
     cursor: pointer;
 }
+
 .expand-icon::before {
     top: 5px;
     left: 4px;
@@ -928,5 +934,4 @@ export default {
     font-family: 'Courier New', Courier monospace;
     margin: 5px;
 }
-
 </style>
