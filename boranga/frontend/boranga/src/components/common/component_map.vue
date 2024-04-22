@@ -904,7 +904,7 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import { FullScreen as FullScreenControl } from 'ol/control';
-import { LineString, Point, MultiPoint, Polygon } from 'ol/geom';
+import { LineString, Point, MultiPoint, Polygon, MultiPolygon } from 'ol/geom';
 import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
@@ -2887,6 +2887,8 @@ export default {
             let geometry;
             if (type === 'Polygon') {
                 geometry = new Polygon(featureData.geometry.coordinates);
+            } else if (type === 'MultiPolygon') {
+                geometry = new MultiPolygon(featureData.geometry.coordinates);
             } else if (type === 'Point') {
                 const rgba = vm.colorHexToRgbaValues(color);
                 style = vm.createStyle(
@@ -3233,11 +3235,16 @@ export default {
                 }, []);
         },
         featureArea: function (feature, projection = null) {
+            const geometry = feature.getGeometry();
+            if (!geometry) {
+                console.error('Feature has no geometry');
+                return null;
+            }
             if (!projection) {
                 projection = `EPSG:${this.mapSrid}`;
             }
             return Math.round(
-                getArea(feature.getGeometry(), {
+                getArea(geometry, {
                     projection: projection,
                 })
             );
