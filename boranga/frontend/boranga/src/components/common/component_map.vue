@@ -1,5 +1,6 @@
 <template>
     <div>
+        {{ userInputGeometryStack }}
         <div class="justify-content-end align-items-center mb-2">
             <div v-if="mapInfoText.length > 0" class="row">
                 <div class="col-md-6">
@@ -214,9 +215,7 @@
                                             min="-90"
                                             max="90"
                                             @change="
-                                                updateUserInputCoordinates(
-                                                    feature
-                                                )
+                                                updateUserInputGeoData(feature)
                                             "
                                         />
                                         <label
@@ -241,9 +240,7 @@
                                             min="-180"
                                             max="180"
                                             @change="
-                                                updateUserInputCoordinates(
-                                                    feature
-                                                )
+                                                updateUserInputGeoData(feature)
                                             "
                                         />
                                         <label
@@ -275,7 +272,7 @@
                                             classes="min-width-210"
                                             @option:selected="
                                                 (selected) => {
-                                                    transformToMapCrs(
+                                                    updateUserInputGeoData(
                                                         feature,
                                                         selected.value
                                                     );
@@ -1231,6 +1228,7 @@ export default {
             archiveTypesAllowed: ['.zip'], // The allowed archive types
             shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
+            userInputGeometryStack: {},
         };
     },
     computed: {
@@ -2929,6 +2927,8 @@ export default {
                 feature.getProperties().area = vm.featureArea(feature);
             }
 
+            this.userInputGeometryStack[feature.ol_uid] = original_geometry;
+
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
             delete propertyModel.ocr_geometry;
@@ -3472,13 +3472,19 @@ export default {
                 });
             return transformed;
         },
-        updateUserInputCoordinates: function (feature) {
-            this.transformToMapCrs(feature, feature.getProperties().srid).then(
-                (coordinates) => {
-                    // Update the user input coordinates
-                    this.userCoordinates(feature, coordinates);
-                }
-            );
+        /**
+         * Updates the user input coordinates and srid that are stored on the feature as original_geometry
+         * @param {Object} feature A feature
+         * @param {Number} srid The SRID of the feature
+         */
+        updateUserInputGeoData: function (feature, srid) {
+            if (!srid) {
+                srid = feature.getProperties().srid;
+            }
+            this.transformToMapCrs(feature, srid).then((coordinates) => {
+                // Update the user input coordinates and srid
+                this.userCoordinates(feature, coordinates, srid);
+            });
         },
         transformToMapCrs: async function (feature, srid) {
             const newSrid = Number(srid);
@@ -3501,7 +3507,6 @@ export default {
 
             // Store the new srid in the feature for backend transformation
             feature.set('srid', newSrid);
-            feature.getProperties().original_geometry.properties.srid = newSrid;
             if (newSrid === this.mapSrid) {
                 console.log('No need to transform');
                 this.setCoordinates(feature, inputCoordinates);
@@ -3553,8 +3558,9 @@ export default {
          * If coordinates is provided, also updates the feature's coordinates.
          * @param {object} feature A feature object
          * @param {array=} coordinates A coordinate pair array
+         * @param {number=} srid The SRID of the coordinates
          */
-        userCoordinates: function (feature, coordinates) {
+        userCoordinates: function (feature, coordinates, srid) {
             const geometry = feature.getProperties().original_geometry;
             if (coordinates) {
                 geometry.coordinates = coordinates;
@@ -3562,6 +3568,7 @@ export default {
             if (['MultiPoint'].includes(geometry.type)) {
                 return geometry.coordinates[0];
             }
+            feature.getProperties().original_geometry.properties.srid = srid;
             return geometry.coordinates;
         },
     },
