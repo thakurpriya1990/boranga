@@ -72,15 +72,17 @@
                             <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="amendmentRequest()">Request
                                 Amendment</button>
+                            <button v-if="with_approver" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="backToAssessor()">Back to Assessor</button>
 
                             <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="proposeApprove">Propose Approve</button>
-                            <button v-if="with_approver" style="width:80%;" class="btn btn-primary mb-2"
-                                @click.prevent="">Approve</button>
-
                             <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="proposeDecline">Propose Decline</button>
-                            <button v-if="with_approver" style="width:80%;" class="btn btn-primary mb-4"
+
+                            <button v-if="display_approve_button" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="">Approve</button>
+                            <button v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="">Decline</button>
 
                             <button style="width:80%;" class="btn btn-primary mb-2"
@@ -149,11 +151,14 @@
 
         <AmendmentRequest ref="amendment_request" :occurrence_report_id="occurrence_report.id"
             @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
+        <BackToAssessor ref="back_to_assessor" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
+            @refreshFromResponse="refreshFromResponse"></BackToAssessor>
         <ProposeAppprove ref="propose_approve" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
         :group_type_id="occurrence_report.group_type_id"
             @refreshFromResponse="refreshFromResponse"></ProposeAppprove>
         <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
             @refreshFromResponse="refreshFromResponse"></ProposeDecline>
+
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
@@ -171,6 +176,7 @@ import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import AmendmentRequest from './amendment_request.vue'
+import BackToAssessor from './back_to_assessor.vue'
 import ProposeDecline from './ocr_propose_decline.vue'
 import ProposeAppprove from './ocr_propose_approve.vue'
 
@@ -208,6 +214,7 @@ export default {
         Workflow,
         ProposalOccurrenceReport,
         AmendmentRequest,
+        BackToAssessor,
         ProposeDecline,
         ProposeAppprove,
         // SpeciesSplit,
@@ -250,6 +257,12 @@ export default {
             return (this.occurrence_report.group_type === "community") ?
                 (this.occurrence_report.taxonomy_details != null) ? this.occurrence_report.taxonomy_details.community_migrated_id : '' :
                 (this.occurrence_report.taxonomy_details != null) ? this.occurrence_report.taxonomy_details.scientific_name + " (" + this.occurrence_report.taxonomy_details.taxon_name_id + ")" : '';
+        },
+        display_approve_button: function () {
+            return this.with_approver && this.occurrence_report.approval_details
+        },
+        display_decline_button: function () {
+            return this.with_approver && this.occurrence_report.proposed_decline_status
         },
         submitter_first_name: function () {
             if (this.occurrence_report && this.occurrence_report.submitter) {
@@ -340,6 +353,9 @@ export default {
         },
         amendmentRequest: function () {
             this.$refs.amendment_request.isModalOpen = true;
+        },
+        backToAssessor: function () {
+            this.$refs.back_to_assessor.isModalOpen = true;
         },
         save: async function () {
             let vm = this;
