@@ -2426,6 +2426,17 @@ class WildStatus(models.Model):
     def __str__(self):
         return str(self.name)
 
+class OccurrenceSource(models.Model):
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Source"
+        verbose_name_plural = "Occurrence Sources"
+        ordering = ["name"]
+
+    def __str__(self):
+        return str(self.name)
 
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
@@ -2438,6 +2449,13 @@ class OccurrenceManager(models.Manager):
 
 
 class Occurrence(RevisionedMixin):
+
+    RELATED_ITEM_CHOICES = [
+        ("species", "Species"),
+        ("community", "Community"),
+        ("occurrence_report", "Occurrence Report"),
+    ]
+
     objects = OccurrenceManager()
     occurrence_number = models.CharField(max_length=9, blank=True, default="")
     occurrence_name = models.CharField(
@@ -2466,6 +2484,11 @@ class Occurrence(RevisionedMixin):
     wild_status = models.ForeignKey(
         WildStatus, on_delete=models.PROTECT, null=True, blank=True
     )
+    occurrence_source = models.ForeignKey(
+        OccurrenceSource, on_delete=models.PROTECT, null=True, blank=True
+    )
+
+    comment = models.TextField(null=True, blank=True)
 
     review_due_date = models.DateField(null=True, blank=True)
     review_date = models.DateField(null=True, blank=True)
@@ -2526,8 +2549,72 @@ class Occurrence(RevisionedMixin):
     def number_of_reports(self):
         return self.occurrence_report_count
 
+    @property
+    def can_user_edit(self):
+        """
+        :return: True if the application is in one of the editable status.
+        """
+        user_editable_state = ['draft',]
+        return self.processing_status in user_editable_state
+    
+    def has_user_edit_mode(self,user):
+        officer_view_state = ['draft','historical']
+        if self.processing_status in officer_view_state:
+            return False
+        else:
+            return (
+                user.id in self.get_species_processor_group().get_system_group_member_ids() #TODO determine which group this should be (maybe this one is fine?)
+            )
+
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
+
+    def get_related_occurrence_reports(self,**kwargs):
+        
+        return OccurrenceReport.objects.filter(occurrence=self)
+    
+    def get_related_items(self, filter_type, **kwargs):
+        return_list = []
+        if filter_type == "all":
+            related_field_names = [
+                "species",
+                "community",
+                "occurrence_report"
+            ]
+        else:
+            related_field_names = [
+                filter_type,
+            ]
+        all_fields = self._meta.get_fields()
+        for a_field in all_fields:
+            if a_field.name in related_field_names:
+                field_objects = []
+                if a_field.is_relation:
+                    if a_field.many_to_many:
+                        field_objects = a_field.related_model.objects.filter(
+                            **{a_field.remote_field.name: self}
+                        )
+                    elif a_field.many_to_one:  # foreign key
+                        field_objects = [
+                            getattr(self, a_field.name),
+                        ]
+                    elif a_field.one_to_many:  # reverse foreign key
+                        field_objects = a_field.related_model.objects.filter(
+                            **{a_field.remote_field.name: self}
+                        )
+                    elif a_field.one_to_one:
+                        if hasattr(self, a_field.name):
+                            field_objects = [
+                                getattr(self, a_field.name),
+                            ]
+                for field_object in field_objects:
+                    if field_object:
+                        related_item = field_object.as_related_item
+                        return_list.append(related_item)
+
+        # serializer = RelatedItemsSerializer(return_list, many=True)
+        # return serializer.data
+        return return_list
 
 
 class OccurrenceLogEntry(CommunicationsLogEntry):

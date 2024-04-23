@@ -338,6 +338,12 @@ class Taxonomy(models.Model):
             return previous_queryset
         else:
             return CrossReference.objects.none()
+        
+    @property
+    def taxon_vernacular_name(self):
+        if self.vernaculars.all():
+            vernacular_names_list = TaxonVernacular.objects.filter(taxonomy=self.id).values_list('vernacular_name', flat=True)
+            return ','.join(vernacular_names_list)
 
 
 class TaxonVernacular(models.Model):

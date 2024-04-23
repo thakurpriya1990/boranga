@@ -226,6 +226,16 @@ api_patterns = [
         name="get-community_name",
     ),
     url(
+        r"^api/wild_status_lookup$",
+        occurrence_api.GetWildStatus.as_view(),
+        name="get-wild_status",
+    ),
+    url(
+        r"^api/occurrence_source_lookup$",
+        occurrence_api.GetOccurrenceSource.as_view(),
+        name="get-occurrence_source_lookup",
+    ),
+    url(
         r"^api/cs_profile_dict$",
         conservation_status_api.GetCSProfileDict.as_view(),
         name="get-cs-profile-dict",
@@ -249,6 +259,11 @@ api_patterns = [
         r"^api/document_categories_dict$",
         species_communities_api.GetDocumentCategoriesDict.as_view(),
         name="get-document-categories-dict",
+    ),
+    url(
+        r"^api/occ_profile_dict$",
+        occurrence_api.GetOCCProfileDict.as_view(),
+        name="get-occ-profile-dict",
     ),
     url(
         r"^api/history/(?P<app_label>[\w-]+)/(?P<component_name>[\w-]+)/(?P<model_name>[\w-]+)/(?P<pk>\d+)/$",
