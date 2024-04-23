@@ -163,14 +163,14 @@
                     role="tabpanel"
                     aria-labelledby="pills-habitat-tab"
                 >
-                    <!--<OCCHabitat
+                    <OCCHabitat
                         id="occhabitat"
                         :key="reloadcount"
                         ref="occ_habitat"
                         :is_internal="is_internal"
                         :occurrence_obj="occurrence_obj"
                     >
-                    </OCCHabitat>-->
+                    </OCCHabitat>
                 </div>
                 <div
                     :id="observationBody"
@@ -178,14 +178,14 @@
                     role="tabpanel"
                     aria-labelledby="pills-observation-tab"
                 >
-                    <!--<OCCObservation
+                    <OCCObservation
                         id="occObservation"
                         :key="reloadcount"
                         ref="occ_observation"
                         :is_internal="is_internal"
                         :occurrence_obj="occurrence_obj"
                     >
-                    </OCCObservation>-->
+                    </OCCObservation>
                 </div>
                 <div
                     :id="documentBody"
@@ -269,10 +269,8 @@
 
 <script>
 //import OCCLocation from '@/components/common/occurrence/occ_location.vue';
-// import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
-//import OCCHabitat from '@/components/common/occurrence/occ_habitat.vue';
-//import OCCObservation from '@/components/common/occurrence/occ_observation.vue';
-// import OCCHabitat from '@/components/common/conservation_status/cs_documents.vue'
+import OCCHabitat from '@/components/common/occurrence/occ_habitat.vue';
+import OCCObservation from '@/components/common/occurrence/occ_observation.vue';
 import RelatedItems from '@/components/common/table_related_items.vue'
 import OCCDocuments from '@/components/common/occurrence/occ_documents.vue';
 import OCCThreats from '@/components/common/occurrence/occ_threats.vue';
@@ -282,8 +280,8 @@ import CommunityOccurrence from '@/components/common/occurrence/community_occurr
 export default {
     components: {
         //OCCLocation,
-        //OCCHabitat,
-        //OCCObservation,
+        OCCHabitat,
+        OCCObservation,
         OCCDocuments,
         OCCThreats,
         SpeciesOccurrence,

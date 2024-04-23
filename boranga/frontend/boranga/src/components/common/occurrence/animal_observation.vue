@@ -7,7 +7,7 @@
                     <select :disabled="isReadOnly" 
                         style="width:100%;" class="form-select input-sm"
                         ref="primary_detection_select" 
-                        v-model="occurrence_report_obj.animal_observation.primary_detection_method">
+                        v-model="animal_observation.primary_detection_method">
                         <option v-for="option in primary_detection_method_list" :value="option.id" :key="option.id">
                             {{option.name}}
                         </option>
@@ -20,7 +20,7 @@
                     <select :disabled="isReadOnly" 
                         style="width:100%;" class="form-select input-sm"
                         ref="secondary_sign_select" 
-                        v-model="occurrence_report_obj.animal_observation.secondary_sign">
+                        v-model="animal_observation.secondary_sign">
                         <option v-for="option in secondary_sign_list" :value="option.id" :key="option.id">
                             {{option.name}}
                         </option>
@@ -33,7 +33,7 @@
                     <select :disabled="isReadOnly" 
                         style="width:100%;" class="form-select input-sm"
                         ref="reproductive_maturity_select" 
-                        v-model="occurrence_report_obj.animal_observation.reproductive_maturity">
+                        v-model="animal_observation.reproductive_maturity">
                         <option v-for="option in reprod_maturity_list" :value="option.id" :key="option.id">
                             {{option.name}}
                         </option>
@@ -43,7 +43,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Animal Health:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.animal_observation.animal_health_id">
+                    <select :disabled="isReadOnly" class="form-select" v-model="animal_observation.animal_health_id">
                         <option v-for="option in animal_health_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
@@ -53,7 +53,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Cause of Death:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.animal_observation.death_reason_id">
+                    <select :disabled="isReadOnly" class="form-select" v-model="animal_observation.death_reason_id">
                         <option v-for="option in death_reason_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
@@ -65,28 +65,28 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Distinctive Features :</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features" placeholder="" v-model="occurrence_report_obj.animal_observation.distinctive_feature"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features" placeholder="" v-model="animal_observation.distinctive_feature"/>
                 </div>
             </div>
 
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Actions Taken :</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features" placeholder="" v-model="occurrence_report_obj.animal_observation.action_taken"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features" placeholder="" v-model="animal_observation.action_taken"/>
                 </div>
             </div>
 
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Actions Required :</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features" placeholder="" v-model="occurrence_report_obj.animal_observation.action_required"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features" placeholder="" v-model="animal_observation.action_required"/>
                 </div>
             </div>
 
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Observation Details :</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features" placeholder="" v-model="occurrence_report_obj.animal_observation.observation_detail_comment"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features" placeholder="" v-model="animal_observation.observation_detail_comment"/>
                 </div>
             </div>
 
@@ -114,19 +114,19 @@
                 </div>
                 <div class="col-sm-2">
                     <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="alive_adult" placeholder="" min="0"
-                    v-model="occurrence_report_obj.animal_observation.alive_adult"/>
+                    v-model="animal_observation.alive_adult"/>
                 </div>
                 <div class="col-sm-2">
                     <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="alive_juvenile" placeholder="" min="0"
-                    v-model="occurrence_report_obj.animal_observation.alive_juvenile"/>
+                    v-model="animal_observation.alive_juvenile"/>
                 </div>
                 <div class="col-sm-2">
                     <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="alive_young" placeholder="" min="0"
-                    v-model="occurrence_report_obj.animal_observation.alive_pouch_young"/>
+                    v-model="animal_observation.alive_pouch_young"/>
                 </div>
                 <div class="col-sm-2">
                     <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="alive_unsure" placeholder="" min="0"
-                    v-model="occurrence_report_obj.animal_observation.alive_unsure"/>
+                    v-model="animal_observation.alive_unsure"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -135,19 +135,19 @@
                 </div>
                 <div class="col-sm-2">
                     <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="dead_adult" placeholder="" min="0"
-                    v-model="occurrence_report_obj.animal_observation.dead_adult"/>
+                    v-model="animal_observation.dead_adult"/>
                 </div>
                 <div class="col-sm-2">
                     <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="dead_juvenile" placeholder="" min="0"
-                    v-model="occurrence_report_obj.animal_observation.dead_juvenile"/>
+                    v-model="animal_observation.dead_juvenile"/>
                 </div>
                 <div class="col-sm-2">
                     <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="dead_young" placeholder="" min="0"
-                    v-model="occurrence_report_obj.animal_observation.dead_pouch_young"/>
+                    v-model="animal_observation.dead_pouch_young"/>
                 </div>
                 <div class="col-sm-2">
                     <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="dead_unsure" placeholder="" min="0"
-                    v-model="occurrence_report_obj.animal_observation.dead_unsure"/>
+                    v-model="animal_observation.dead_unsure"/>
                 </div>
             </div>
             
@@ -155,7 +155,7 @@
                 <label for="" class="col-sm-3 control-label">Total Number Seen :</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="quadrats_surveyed" placeholder="" min="0"
-                    v-model="occurrence_report_obj.animal_observation.total_count"/>
+                    v-model="animal_observation.total_count"/>
                 </div>
             </div>
             
@@ -181,8 +181,16 @@ from '@/utils/hooks'
 export default {
         name: 'AnimalObservation',
         props:{
-            occurrence_report_obj:{
+            animal_observation:{
                 type: Object,
+                required:true
+            },
+            is_report:{
+                type: Boolean,
+                required:true
+            },
+            occurrence_id:{
+                type: Number,
                 required:true
             },
             // this prop is only send from split species form to make the original species readonly
@@ -232,11 +240,11 @@ export default {
                 }).
                 on("select2:select",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.animal_observation.primary_detection_method = selected.val();
+                    vm.animal_observation.primary_detection_method = selected.val();
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.animal_observation.primary_detection_method = selected.val();
+                    vm.animal_observation.primary_detection_method = selected.val();
                 });
             },
             initialiseSecondarySignSelect: function(){
@@ -250,11 +258,11 @@ export default {
                 }).
                 on("select2:select",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.animal_observation.secondary_sign = selected.val();
+                    vm.animal_observation.secondary_sign = selected.val();
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.animal_observation.secondary_sign = selected.val();
+                    vm.animal_observation.secondary_sign = selected.val();
                 });
             },
             initialiseReprodMaturitySelect: function(){
@@ -268,21 +276,25 @@ export default {
                 }).
                 on("select2:select",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.animal_observation.reproductive_maturity = selected.val();
+                    vm.animal_observation.reproductive_maturity = selected.val();
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.animal_observation.reproductive_maturity = selected.val();
+                    vm.animal_observation.reproductive_maturity = selected.val();
                 });
             },
             updateAnimalObservationDetails: function() {
                 let vm = this;
                 vm.updatingAnimalOnservationDetails = true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_animal_observation_details')),JSON.stringify(vm.occurrence_report_obj.animal_observation),{
+                let endpoint = api_endpoints.occurrence;
+                if (is_report) {
+                    endpoint = api_endpoints.occurrence_report;
+                }
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_id+'/update_animal_observation_details')),JSON.stringify(vm.animal_observation),{
                     emulateJSON:true
                 }).then((response) => {
                     vm.updatingAnimalOnservationDetails = false;
-                    vm.occurrence_report_obj.animal_observation = response.body;
+                    vm.animal_observation = response.body;
                     swal.fire({
                         title: 'Saved',
                         text: 'Animal Observation details have been saved',

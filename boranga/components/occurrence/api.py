@@ -93,6 +93,7 @@ from boranga.components.occurrence.models import (
     OccurrenceSource,
 )
 from boranga.components.occurrence.serializers import (
+    CreateOccurrenceSerializer,
     CreateOccurrenceReportSerializer,
     InternalOccurrenceReportSerializer,
     ListInternalOccurrenceReportSerializer,
@@ -2684,7 +2685,8 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-        
+
+
 class OCCConservationThreatViewSet(viewsets.ModelViewSet):
     queryset = OCCConservationThreat.objects.none()
     serializer_class = OCCConservationThreatSerializer
@@ -2815,6 +2817,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+
 class GetWildStatus(views.APIView):
     def get(self, request, format=None):
         search_term = request.GET.get('term', '')
@@ -2824,6 +2827,7 @@ class GetWildStatus(views.APIView):
             return Response({"results": data_transform})
         return Response()
 
+
 class GetOccurrenceSource(views.APIView):
     def get(self, request, format=None):
         search_term = request.GET.get('term', '')
@@ -2832,6 +2836,7 @@ class GetOccurrenceSource(views.APIView):
             data_transform = [{'id': occurrence_source['id'], 'text': occurrence_source['name']} for occurrence_source in data]
             return Response({"results": data_transform})
         return Response()
+
 
 class OccurrenceViewSet(UserActionLoggingViewset):
     queryset = Occurrence.objects.none()
@@ -2858,48 +2863,48 @@ class OccurrenceViewSet(UserActionLoggingViewset):
                 new_instance.save(version_user=request.user)
                 data = {"occurrence_id": new_instance.id}
 
-                # create Locatiob for new instance TODO
+                # create Location for new instance TODO
                 #serializer = SaveLocationSerializer(data=data)
                 #serializer.is_valid(raise_exception=True)
                 #serializer.save()
 
                 # create HabitatComposition for new instance
-                serializer = SaveOCRHabitatCompositionSerializer(data=data)
+                serializer = SaveOCCHabitatCompositionSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
                 # create HabitatCondition for new instance
-                serializer = SaveOCRHabitatConditionSerializer(data=data)
+                serializer = SaveOCCHabitatConditionSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
                 # create FireHistory for new instance
-                serializer = SaveOCRFireHistorySerializer(data=data)
+                serializer = SaveOCCFireHistorySerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
-                # create FireHistory for new instance
-                serializer = SaveOCRAssociatedSpeciesSerializer(data=data)
+                # create AssociatedSpecies for new instance
+                serializer = SaveOCCAssociatedSpeciesSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
                 # create ObservationDetail for new instance
-                serializer = SaveOCRObservationDetailSerializer(data=data)
+                serializer = SaveOCCObservationDetailSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
                 # create PlantCount for new instance
-                serializer = SaveOCRPlantCountSerializer(data=data)
+                serializer = SaveOCCPlantCountSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
                 # create AnimalObservation for new instance
-                serializer = SaveOCRAnimalObservationSerializer(data=data)
+                serializer = SaveOCCAnimalObservationSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
                 # create Identification for new instance
-                serializer = SaveOCRIdentificationSerializer(data=data)
+                serializer = SaveOCCIdentificationSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
@@ -2907,7 +2912,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
                 # return Response(
                 #    new_instance.id, status=status.HTTP_201_CREATED, headers=headers
                 # )
-                serialized_obj = CreateOccurrenceReportSerializer(new_instance)
+                serialized_obj = CreateOccurrenceSerializer(new_instance)
                 return Response(serialized_obj.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -3137,7 +3142,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
                 occurrence=occ_instance
             )
             # the request.data is only the habitat composition data thats been sent from front end
-            serializer = SaveOCRHabitatCompositionSerializer(
+            serializer = SaveOCCHabitatCompositionSerializer(
                 habitat_instance, data=request.data, context={"request": request}
             )
             serializer.is_valid(raise_exception=True)
@@ -3166,7 +3171,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
                 occurrence=occ_instance
             )
             # the request.data is only the habitat condition data thats been sent from front end
-            serializer = SaveOCRHabitatConditionSerializer(
+            serializer = SaveOCCHabitatConditionSerializer(
                 habitat_instance, data=request.data, context={"request": request}
             )
             serializer.is_valid(raise_exception=True)
@@ -3195,7 +3200,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
                 occurrence=occ_instance
             )
             # the request.data is only the habitat composition data thats been sent from front end
-            serializer = SaveOCRFireHistorySerializer(
+            serializer = SaveOCCFireHistorySerializer(
                 fire_instance, data=request.data, context={"request": request}
             )
             serializer.is_valid(raise_exception=True)
@@ -3224,7 +3229,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
                 occurrence=occ_instance
             )
             # the request.data is only the habitat composition data thats been sent from front end
-            serializer = SaveOCRAssociatedSpeciesSerializer(
+            serializer = SaveOCCAssociatedSpeciesSerializer(
                 assoc_species_instance, data=request.data, context={"request": request}
             )
             serializer.is_valid(raise_exception=True)
@@ -3240,3 +3245,263 @@ class OccurrenceViewSet(UserActionLoggingViewset):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    
+    # used for Occurrence external form
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def list_of_values(self, request, *args, **kwargs):
+        """used for Occurrence external form"""
+        land_form_list = []
+        types = LandForm.objects.all()
+        if types:
+            for val in types:
+                land_form_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        rock_type_list = []
+        types = RockType.objects.all()
+        if types:
+            for val in types:
+                rock_type_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        soil_type_list = []
+        types = SoilType.objects.all()
+        if types:
+            for val in types:
+                soil_type_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        soil_colour_list = []
+        colours = SoilColour.objects.all()
+        if colours:
+            for val in colours:
+                soil_colour_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        soil_condition_list = []
+        conditions = SoilCondition.objects.all()
+        if conditions:
+            for val in conditions:
+                soil_condition_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        drainage_list = []
+        drainages = Drainage.objects.all()
+        if drainages:
+            for val in drainages:
+                drainage_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        intensity_list = []
+        intensities = Intensity.objects.all()
+        if intensities:
+            for val in intensities:
+                intensity_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        res_json = {
+            "land_form_list": land_form_list,
+            "rock_type_list": rock_type_list,
+            "soil_type_list": soil_type_list,
+            "soil_colour_list": soil_colour_list,
+            "soil_condition_list": soil_condition_list,
+            "drainage_list": drainage_list,
+            "intensity_list": intensity_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
+    
+    # used for Occurrence Observation external form
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def observation_list_of_values(self, request, *args, **kwargs):
+        """used for Occurrence external form"""
+        observation_method_list = []
+        values = ObservationMethod.objects.all()
+        if values:
+            for val in values:
+                observation_method_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        plant_count_method_list = []
+        values = PlantCountMethod.objects.all()
+        if values:
+            for val in values:
+                plant_count_method_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        plant_count_accuracy_list = []
+        values = PlantCountAccuracy.objects.all()
+        if values:
+            for val in values:
+                plant_count_accuracy_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        plant_condition_list = []
+        values = PlantCondition.objects.all()
+        if values:
+            for val in values:
+                plant_condition_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        counted_subject_list = []
+        values = CountedSubject.objects.all()
+        if values:
+            for val in values:
+                counted_subject_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        primary_detection_method_list = []
+        values = PrimaryDetectionMethod.objects.all()
+        if values:
+            for val in values:
+                primary_detection_method_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        secondary_sign_list = []
+        values = SecondarySign.objects.all()
+        if values:
+            for val in values:
+                secondary_sign_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        reprod_maturity_list = []
+        values = ReproductiveMaturity.objects.all()
+        if values:
+            for val in values:
+                reprod_maturity_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        death_reason_list = []
+        values = DeathReason.objects.all()
+        if values:
+            for val in values:
+                death_reason_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        animal_health_list = []
+        values = AnimalHealth.objects.all()
+        if values:
+            for val in values:
+                animal_health_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        identification_certainty_list = []
+        values = IdentificationCertainty.objects.all()
+        if values:
+            for val in values:
+                identification_certainty_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        sample_type_list = []
+        values = SampleType.objects.all()
+        if values:
+            for val in values:
+                sample_type_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        sample_dest_list = []
+        values = SampleDestination.objects.all()
+        if values:
+            for val in values:
+                sample_dest_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        permit_type_list = []
+        values = PermitType.objects.all()
+        if values:
+            for val in values:
+                permit_type_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        res_json = {
+            "observation_method_list": observation_method_list,
+            "plant_count_method_list": plant_count_method_list,
+            "plant_count_accuracy_list": plant_count_accuracy_list,
+            "plant_condition_list": plant_condition_list,
+            "counted_subject_list": counted_subject_list,
+            "primary_detection_method_list": primary_detection_method_list,
+            "secondary_sign_list": secondary_sign_list,
+            "reprod_maturity_list": reprod_maturity_list,
+            "death_reason_list": death_reason_list,
+            "animal_health_list": animal_health_list,
+            "identification_certainty_list": identification_certainty_list,
+            "sample_type_list": sample_type_list,
+            "sample_dest_list": sample_dest_list,
+            "permit_type_list": permit_type_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")

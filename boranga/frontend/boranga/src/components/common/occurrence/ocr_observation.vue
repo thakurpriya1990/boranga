@@ -38,7 +38,9 @@
         <FormSection :formCollapse="false" label="Plant Count" :Index="plantCountBody" v-if="isFlora">
             <PlantCount
                 v-if="isFlora"
-                :occurrence_report_obj="occurrence_report_obj" 
+                :plant_count="occurrence_report_obj.plant_count"
+                :is_report=true
+                :occurrence_id="occurrence_report_obj.id" 
                 id="plantCountDetail" 
                 :is_external="is_external"
                 :isReadOnly="isReadOnly"
@@ -49,7 +51,9 @@
         <FormSection :formCollapse="false" label="Animal Observation" :Index="animalObsBody" v-if="isFauna">
             <AnimalObservation
                 v-if="isFauna"
-                :occurrence_report_obj="occurrence_report_obj" 
+                :animal_observation="occurrence_report_obj.animal_observation"
+                :is_report=true
+                :occurrence_id="occurrence_report_obj.id" 
                 id="animalObservationDetail" 
                 :is_external="is_external"
                 :isReadOnly="isReadOnly"
