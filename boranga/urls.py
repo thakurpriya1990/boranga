@@ -106,6 +106,11 @@ router.register(
     "occurrence_paginated",
 )
 router.register(
+    r"occurrence",
+    occurrence_api.OccurrenceViewSet,
+    "occurrence",
+)
+router.register(
     r"occurrence_documents", occurrence_api.OccurrenceDocumentViewSet
 )
 router.register(

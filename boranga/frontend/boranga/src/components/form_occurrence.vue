@@ -334,10 +334,10 @@ export default {
             return this.occurrence_obj.group_type== "community"
         },
         related_items_ajax_url: function(){
-            return '/api/occurrence_paginated/' + this.occurrence_obj.id + '/get_related_items/';
+            return '/api/occurrence/' + this.occurrence_obj.id + '/get_related_items/';
         },
         related_items_filter_list_url: function(){
-            return '/api/occurrence_paginated/filter_list.json';
+            return '/api/occurrence/filter_list.json';
         },
     },
     mounted: function () {
