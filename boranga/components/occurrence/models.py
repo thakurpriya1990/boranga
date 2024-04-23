@@ -600,6 +600,7 @@ class OccurrenceReport(RevisionedMixin):
 
         send_approver_approve_email_notification(request, self)
 
+    @transaction.atomic
     def back_to_assessor(self, request, validated_data):
         if (
             not self.can_assess(request.user)
@@ -617,7 +618,6 @@ class OccurrenceReport(RevisionedMixin):
         self.log_user_action(
             OccurrenceReportUserAction.ACTION_BACK_TO_ASSESSOR.format(
                 self.occurrence_report_number,
-                request.user.get_full_name(),
                 reason,
             ),
             request,
@@ -728,7 +728,7 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_REMIND_REFERRAL = (
         "Send reminder for referral {} for occurrence report proposal {} to {}"
     )
-    ACTION_BACK_TO_ASSESSOR = "{} sent back to assessor by {}. Reason: {}"
+    ACTION_BACK_TO_ASSESSOR = "{} sent back to assessor. Reason: {}"
     RECALL_REFERRAL = "Referral {} for occurrence report proposal {} has been recalled"
     COMMENT_REFERRAL = (
         "Referral {} for occurrence report proposal {} has been commented by {}"
