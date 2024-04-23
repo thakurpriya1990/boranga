@@ -1854,7 +1854,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
     @detail_route(
         methods=[
-            "GET",
+            "POST",
         ],
         detail=True,
     )
@@ -1864,7 +1864,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             serializer = BackToAssessorSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance.back_to_assessor(request, serializer.validated_data)
-            serializer = InternalOccurrenceReportSerializer(instance)
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
