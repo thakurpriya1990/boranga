@@ -2655,9 +2655,7 @@ export default {
                 console.log('Modify end', evt.features);
                 const feature = evt.features[0];
                 const coordinates = feature.getGeometry().getCoordinates();
-                // TODO: Transform back from map srid to original srid if not already map srid
-                feature.getProperties().original_geometry.coordinates =
-                    coordinates;
+                vm.userCoordinates(feature, coordinates);
                 //commented validateFeature by Priya
                 //validateFeature(feature, vm);
             });
