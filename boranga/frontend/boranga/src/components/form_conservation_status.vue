@@ -1,42 +1,41 @@
 <template lang="html">
     <div>
         <div class="col-md-12">
-
-            <ul v-if="is_internal" class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            <ul v-if="!is_external" class="nav nav-pills" id="pills-tab" role="tablist">
               <li class="nav-item">
-                <a 
-                    class="nav-link" 
-                    id="pills-status-tab" 
-                    data-bs-toggle="pill" 
+                <a
+                    class="nav-link"
+                    id="pills-status-tab"
+                    data-bs-toggle="pill"
                     :href="'#' + statusBody"
-                    role="tab" 
-                    :aria-controls="statusBody" 
+                    role="tab"
+                    :aria-controls="statusBody"
                     aria-selected="true"
                     @click="tabClicked()">
                   Status
                 </a>
               </li>
               <li class="nav-item">
-                <a 
-                    class="nav-link" 
-                    id="pills-documents-tab" 
-                    data-bs-toggle="pill" 
-                    :href="'#' + documentBody" 
-                    role="tab" 
-                    :aria-selected="documentBody" 
+                <a
+                    class="nav-link"
+                    id="pills-documents-tab"
+                    data-bs-toggle="pill"
+                    :href="'#' + documentBody"
+                    role="tab"
+                    :aria-selected="documentBody"
                     aria-selected="false"
                     @click="tabClicked()">
                   Documents
                 </a>
               </li>
               <li class="nav-item">
-                <a 
-                  class="nav-link" 
-                  id="pills-related-items-tab" 
-                  data-bs-toggle="pill" 
-                  :href="'#' + relatedItemBody" 
-                  role="tab" 
-                  :aria-controls="relatedItemBody" 
+                <a
+                  class="nav-link"
+                  id="pills-related-items-tab"
+                  data-bs-toggle="pill"
+                  :href="'#' + relatedItemBody"
+                  role="tab"
+                  :aria-controls="relatedItemBody"
                   aria-selected="false"
                   @click="tabClicked()">
                   Related Items
@@ -46,10 +45,10 @@
             <div class="tab-content" id="pills-tabContent">
               <div class="tab-pane fade show active" :id="statusBody" role="tabpanel" aria-labelledby="pills-status-tab">
                 <CommunityStatus
-                    v-if="isCommunity"  
+                    v-if="isCommunity"
                     :key="reloadcount"
-                    ref="community_conservation_status" 
-                    id="communityStatus" 
+                    ref="community_conservation_status"
+                    id="communityStatus"
                     :is_external="is_external"
                     :canEditStatus="canEditStatus"
                     :conservation_status_obj="conservation_status_obj"
@@ -57,9 +56,9 @@
                 </CommunityStatus>
                 <SpeciesStatus
                     v-else
-                    :key="reloadcount"
-                    ref="species_conservation_status" 
-                    id="speciesStatus" 
+                    :key="reloadcount + 'else'"
+                    ref="species_conservation_status"
+                    id="speciesStatus"
                     :is_external="is_external"
                     :canEditStatus="canEditStatus"
                     :conservation_status_obj="conservation_status_obj"
@@ -67,19 +66,19 @@
                 </SpeciesStatus>
               </div>
               <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
-                <CSDocuments 
+                <CSDocuments
                     :key="reloadcount"
-                    ref="cs_documents" 
-                    id="csDocuments" 
+                    ref="cs_documents"
+                    id="csDocuments"
                     :is_internal="is_internal"
                     :conservation_status_obj="conservation_status_obj">
                 </CSDocuments>
               </div>
               <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel" aria-labelledby="pills-related-items-tab">
                 <RelatedItems
-                    :key="reloadcount" 
-                    ref="cs_related_items" 
-                    id="csRelatedItems" 
+                    :key="reloadcount"
+                    ref="cs_related_items"
+                    id="csRelatedItems"
                     :ajax_url="related_items_ajax_url"
                     :filter_list_url="related_items_filter_list_url">
                 </RelatedItems>
@@ -94,7 +93,7 @@
     import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
     import CSDocuments from '@/components/common/conservation_status/cs_documents.vue'
     import RelatedItems from '@/components/common/table_related_items.vue'
-    
+
     export default {
         props:{
             conservation_status_obj:{
@@ -160,7 +159,7 @@
             vm.form = document.forms.new_conservation_status;
             vm.eventListener();
         }
- 
+
     }
 </script>
 
@@ -210,4 +209,3 @@
         background: gray;
     }
 </style>
-

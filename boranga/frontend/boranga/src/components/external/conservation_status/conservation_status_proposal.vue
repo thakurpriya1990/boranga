@@ -19,14 +19,14 @@
                     </div>
                   </div>
                 </div> -->
-                <FormSection :formCollapse="true" label="An amendment has been requested for this Application" 
+                <FormSection :formCollapse="true" label="An amendment has been requested for this Application"
                 Index="amendment_request" customColor="red">
                   <div v-for="a in amendment_request">
                     <p>Reason: {{a.reason}}</p>
                     <p>Details: <p v-for="t in splitText(a.text)">{{t}}</p></p>
                   </div>
                 </FormSection>
-              </div> 
+              </div>
             </div>
           </div>
 
@@ -43,17 +43,17 @@
                 <h4>Conservation List - {{ display_group_type }}<!-- {{proposal.application_type}} --> Application: {{conservation_status_obj.conservation_status_number}}</h4>
             </div>
 
-            <ProposalConservationStatus 
+            <ProposalConservationStatus
                 v-if="conservation_status_obj"
-                :conservation_status_obj="conservation_status_obj" 
-                id="ConservationStatusStart" 
+                :conservation_status_obj="conservation_status_obj"
+                id="ConservationStatusStart"
                 :canEditStatus="canEditStatus"
                 :is_external="true"
                 ref="conservation_status">
             </ProposalConservationStatus>
 
             <!-- <ProposalTClass v-if="proposal && proposal_parks && proposal.application_type==application_type_tclass" :proposal="proposal" id="proposalStart"  :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_tclass"></ProposalTClass> -->
-            
+
             <div>
                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                 <!-- <input type='hidden' name="schema" :value="JSON.stringify(proposal)" /> -->
@@ -63,9 +63,8 @@
                         <div  class="container">
                           <div class="row" style="margin-bottom: 50px">
                               <div class="navbar fixed-bottom"  style="background-color: #f5f5f5;">
-                                  <div class="navbar-inner-right">
                                     <div v-if="conservation_status_obj && !conservation_status_obj.readonly" class="container">
-                                      <p class="pull-right" style="margin-top:5px">
+                                        <div class="col-md-12 text-end" style="margin-top:5px">
                                         <button v-if="savingCSProposal" type="button" class="btn btn-primary me-2" disabled>Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2" value="Save and Continue" :disabled="saveExitCSProposal || paySubmitting"/>
@@ -78,14 +77,13 @@
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <input v-else type="button" @click.prevent="submit" class="btn btn-primary" :value="submit_text()" :disabled="saveExitCSProposal || savingCSProposal"/>
                                         <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm" class="btn btn-primary" value="Save Without Confirmation"/>
-                                      </p>
+                                      </div>
                                     </div>
                                     <div v-else class="container">
                                       <p class="pull-right" style="margin-top:5px;">
                                         <router-link class="btn btn-primary" :to="{name: 'external-conservation_status-dash'}">Back to Dashboard</router-link>
                                       </p>
                                     </div>
-                                  </div>
                                 </div>
                             </div>
                         </div>
@@ -97,7 +95,7 @@
 </template>
 <script>
 //import Proposal from '../form.vue'
-import Vue from 'vue' 
+import Vue from 'vue'
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
@@ -217,7 +215,7 @@ export default {
           vm.savingCSProposal=false;
           vm.isSaved = true;
       },err=>{
-        var errorText=helpers.apiVueResourceError(err); 
+        var errorText=helpers.apiVueResourceError(err);
                   swal.fire({
                       title: 'Save Error',
                       text: errorText,
@@ -271,7 +269,7 @@ export default {
       const result = await vm.$http.post(vm.cs_proposal_form_url,payload).then(res=>{
           //return true;
       },err=>{
-                  var errorText=helpers.apiVueResourceError(err); 
+                  var errorText=helpers.apiVueResourceError(err);
                   swal.fire({
                           title: 'Submit Error',
                           //helpers.apiVueResourceError(err),
@@ -292,10 +290,10 @@ export default {
 
     setAmendmentData: function(amendment_request){
       this.amendment_request = amendment_request;
-      
+
       if (amendment_request.length > 0)
         this.hasAmendmentRequest = true;
-        
+
     },
 
     splitText: function(aText){
@@ -316,7 +314,7 @@ export default {
         return null;
       }
     },
-    
+
     highlight_missing_fields: function(){
         let vm = this;
         for (var missing_field of vm.missing_fields) {
@@ -424,9 +422,9 @@ export default {
     can_submit: function(check_action){
       let vm=this;
       let blank_fields=[]
-      // TODO check blank 
+      // TODO check blank
       blank_fields=vm.can_submit_conservation_status(check_action);
-      
+
       if(blank_fields.length==0){
         return true;
       }
@@ -509,7 +507,7 @@ export default {
                 });
               }
             }
-            
+
         },(error) => {
           vm.paySubmitting=false;
         });
@@ -524,7 +522,7 @@ export default {
     window.addEventListener('beforeunload', vm.leaving);
     window.addEventListener('onblur', vm.leaving);
   },
-  
+
 
   beforeRouteEnter: function(to, from, next) {
     if (to.params.conservation_status_id) {
@@ -535,20 +533,20 @@ export default {
             vm.conservation_status_obj = res.body;
             vm.loading.splice('fetching conservation status proposal', 1);
             vm.setdata(vm.conservation_status_obj.readonly);
-            
+
             Vue.http.get(helpers.add_endpoint_json(api_endpoints.conservation_status,to.params.conservation_status_id+'/amendment_request')).then((res) => {
-                     
+
                       vm.setAmendmentData(res.body);
-                  
+
                 },
-              err => { 
+              err => {
                         console.log(err);
                   });
               });
           },
         err => {
           console.log(err);
-        });    
+        });
     }
     else {
       Vue.http.post('/api/conservation_status.json').then(res => {

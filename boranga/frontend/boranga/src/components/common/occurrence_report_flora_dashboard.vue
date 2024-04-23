@@ -393,7 +393,7 @@ export default {
                             links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                         }
                         else {
-                            if (full.can_user_assess) {
+                            if (full.can_user_assess || full.can_user_approve) {
                                 links += `<a href='/internal/occurrence_report/${full.id}'>Process</a><br/>`;
                             }
                             else {

@@ -4,12 +4,6 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Scientific Name:</label>
-                        <select class="form-select" v-model="filterCSRefFloraScientificName">
-                            <option value="all">All</option>
-                            <option v-for="option in scientific_name_list" :value="option.id">{{option.name}}
-                            </option>
-                        </select> -->
                         <label for="cs_ref_scientific_name_lookup">Scientific Name:</label>
                         <select
                             id="cs_ref_scientific_name_lookup"
@@ -20,11 +14,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Common Name:</label>
-                        <select class="form-select" v-model="filterCSRefFloraCommonName">
-                            <option value="all">All</option>
-                            <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="cs_ref_common_name_lookup">Common Name:</label>
                         <select
                             id="cs_ref_common_name_lookup"
@@ -45,11 +34,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Family:</label>
-                        <select class="form-select" v-model="filterCSRefFloraFamily">
-                            <option value="all">All</option>
-                            <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="cs_ref_family_lookup">Family:</label>
                         <select
                             id="cs_ref_family_lookup"
@@ -60,11 +44,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Genera:</label>
-                        <select class="form-select" v-model="filterCSRefFloraGenus">
-                            <option value="all">All</option>
-                            <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="cs_ref_genera_lookup">Genera:</label>
                         <select
                             id="cs_ref_genera_lookup"
@@ -136,17 +115,11 @@
     </div>
 </template>
 <script>
-//require('@popperjs/core');
-//import { createPopper } from '@popperjs/core';
-//require('popperjs');
-//require('bootstrap');
+
 import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
-import Vue from 'vue'
-// var select2 = require('select2');
-// require("select2/dist/css/select2.min.css");
-// require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
+
 import {
     api_endpoints,
     constants,
@@ -225,7 +198,6 @@ export default {
             datatable_id: 'species_flora_cs_ref-datatable-'+vm._uid,
 
             // selected values for filtering
-            //filterCSRefFloraScientificName:null,
             filterCSRefFloraScientificName: sessionStorage.getItem(this.filterCSRefFloraScientificName_cache) ?
                                    sessionStorage.getItem(this.filterCSRefFloraScientificName_cache) : 'all',
 
@@ -364,11 +336,11 @@ export default {
                 'render': function(data, type, full){
                     let tick='';
                             if (full.can_be_processed){
-                                tick = "<i class='fa fa-exclamation-circle' style='color:#FFBF00'></i>";
+                                tick = "<i class='fa fa-exclamation-circle ms-2' style='color:#FFBF00'></i>";
                             }
                             else
                             {
-                                tick = "<i class='fa fa-check-circle' style='color:green'></i>";
+                                tick = "<i class='fa fa-check-circle ms-2' style='color:green'></i>";
                             }
                     return full.conservation_status_number+tick;
                 },
@@ -446,34 +418,6 @@ export default {
                 name: "conservation_status__conservation_category__code",
             }
         },
-        /*column_family: function(){
-            return {
-                data: "family",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__family__name",
-            }
-        },
-        column_genera: function(){
-            return {
-                data: "genus",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__genus__name",
-            }
-        },*/
         column_status: function(){
             return {
                 // 9. Workflow Status
@@ -491,38 +435,6 @@ export default {
                 name: "conservation_status__processing_status",
             }
         },
-        /*column_region: function(){
-            return {
-                data: "region",
-                orderable: true,
-                searchable: true, // handles by filter_queryset override method
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.region){
-                        return full.region
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__species__region__name",
-            }
-        },
-        column_district: function(){
-            return {
-                data: "district",
-                orderable: true,
-                searchable: true, // handles by filter_queryset override method
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.district){
-                        return full.district
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__species__district__name",
-            }
-        },*/
         column_action: function(){
             let vm = this
             return {
@@ -533,8 +445,7 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     let links = '';
-                    /*links +=  full.can_user_process ? `<a href='/internal/conservation_status/${full.conservation_status}/referral/${full.id}'>Process</a><br/>`: `<a href='/internal/conservation_status/${full.conservation_status}/referral/${full.id}'>View</a><br/>`;*/
-                     links +=  full.can_be_processed ? `<a href='/internal/conservation_status/${full.conservation_status}/referral/${full.id}'>Process</a><br/>`: `<a href='/internal/conservation_status/${full.conservation_status}/referral/${full.id}'>View</a><br/>`;
+                     links +=  full.can_be_processed ? `<a href='/internal/conservation_status/${full.conservation_status_id}/referral/${full.id}'>Process</a><br/>`: `<a href='/internal/conservation_status/${full.conservation_status_id}/referral/${full.id}'>View</a><br/>`;
                     return links;
                 },
             }
@@ -570,10 +481,6 @@ export default {
                 vm.column_common_name,
                 vm.column_conservation_list,
                 vm.column_conservation_category,
-                /*vm.column_family,
-                vm.column_genera,
-                vm.column_region,
-                vm.column_district,*/
                 vm.column_status,
                 vm.column_action,
             ]
@@ -981,26 +888,6 @@ export default {
                         "regex":"false"
                     }
                 },
-                // "6":{
-                //     "data":"family",
-                //     "name":"species__taxonomy__family__name",
-                //     "searchable":"true",
-                //     "orderable":"true",
-                //     "search":{
-                //         "value":"",
-                //         "regex":"false"
-                //     }
-                // },
-                // "7":{
-                //     "data":"genus",
-                //     "name":"species__taxonomy__genus__name",
-                //     "searchable":"true",
-                //     "orderable":"true",
-                //     "search":{
-                //         "value":"",
-                //         "regex":"false"
-                //     }
-                // },
                 "6":{
                     "data":"processing_status",
                     "name":"conservation_status__processing_status",
@@ -1021,16 +908,6 @@ export default {
                         "regex":"false"
                     }
                 },
-                // "8":{
-                //     "data":"conservation_status",
-                //     "name":"",
-                //     "searchable":"true",
-                //     "orderable":"true",
-                //     "search":{
-                //         "value":"",
-                //         "regex":"false"
-                //     }
-                // },
             };
 
             const object_load = {
