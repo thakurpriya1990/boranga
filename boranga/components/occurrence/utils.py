@@ -14,6 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.db.models import Q
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser  # , Document
+from boranga.components.main.utils import feature_json_to_geosgeometry
 from boranga.components.occurrence.models import (
     OccurrenceReportGeometry,
     OccurrenceReport,
@@ -29,14 +30,6 @@ from boranga.components.occurrence.serializers import (
 
 logger = logging.getLogger(__name__)
 
-
-def feature_json_to_geosgeometry(feature, srid = 4326):
-    from shapely.geometry import shape, mapping
-    import geojson
-
-    geo_json = mapping(geojson.loads(json.dumps(feature)))
-    geom_shape = shape(geo_json.get("geometry"))
-    return GEOSGeometry(geom_shape.wkt, srid=srid)
 
 def save_geometry(request, instance, geometry_data):
     logger.info(f"\n\n\nSaving Occurrence Report geometry")
