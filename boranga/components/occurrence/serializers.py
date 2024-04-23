@@ -29,6 +29,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportApprovalDetails,
+    OccurrenceReportDeclinedDetails,
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
     OccurrenceReportLogEntry,
@@ -885,6 +886,12 @@ class CreateOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         )
 
 
+class OccurrenceReportDeclinedDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportDeclinedDetails
+        fields = "__all__"
+
+
 class OccurrenceReportApprovalDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceReportApprovalDetails
@@ -897,6 +904,9 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_action = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField(read_only=True)
     approval_details = OccurrenceReportApprovalDetailsSerializer(
+        read_only=True, allow_null=True
+    )
+    declined_details = OccurrenceReportDeclinedDetailsSerializer(
         read_only=True, allow_null=True
     )
 
@@ -946,6 +956,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "current_assessor",
             "assigned_approver",
             "proposed_decline_status",
+            "declined_details",
             "approval_details",
         )
 
