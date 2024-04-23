@@ -2826,6 +2826,81 @@ class OccurrenceViewSet(UserActionLoggingViewset):
             qs = qs.filter(submitter=self.request.user.id)
         return qs
     
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                group_type_id = GroupType.objects.get(
+                    id=request.data.get("group_type_id")
+                )
+
+                new_instance = Occurrence(
+                    submitter=request.user.id,
+                    group_type=group_type_id,
+                )
+                new_instance.save(version_user=request.user)
+                data = {"occurrence_id": new_instance.id}
+
+                # create Locatiob for new instance TODO
+                #serializer = SaveLocationSerializer(data=data)
+                #serializer.is_valid(raise_exception=True)
+                #serializer.save()
+
+                # create HabitatComposition for new instance
+                serializer = SaveHabitatCompositionSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create HabitatCondition for new instance
+                serializer = SaveHabitatConditionSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create FireHistory for new instance
+                serializer = SaveFireHistorySerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create FireHistory for new instance
+                serializer = SaveAssociatedSpeciesSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create ObservationDetail for new instance
+                serializer = SaveObservationDetailSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create PlantCount for new instance
+                serializer = SavePlantCountSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create AnimalObservation for new instance
+                serializer = SaveAnimalObservationSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # create Identification for new instance
+                serializer = SaveIdentificationSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                # headers = self.get_success_headers(serializer.data)
+                # return Response(
+                #    new_instance.id, status=status.HTTP_201_CREATED, headers=headers
+                # )
+                serialized_obj = CreateOccurrenceReportSerializer(new_instance)
+                return Response(serialized_obj.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @detail_route(
         methods=[
             "GET",
@@ -3030,3 +3105,120 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+    
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_habitat_composition_details(self, request, *args, **kwargs):
+        try:
+            occ_instance = self.get_object()
+            habitat_instance, created = HabitatComposition.objects.get_or_create(
+                occurrence=occ_instance
+            )
+            # the request.data is only the habitat composition data thats been sent from front end
+            serializer = SaveHabitatCompositionSerializer(
+                habitat_instance, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_habitat_condition_details(self, request, *args, **kwargs):
+        try:
+            occ_instance = self.get_object()
+            habitat_instance, created = HabitatCondition.objects.get_or_create(
+                occurrence=occ_instance
+            )
+            # the request.data is only the habitat condition data thats been sent from front end
+            serializer = SaveHabitatConditionSerializer(
+                habitat_instance, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_fire_history_details(self, request, *args, **kwargs):
+        try:
+            occ_instance = self.get_object()
+            fire_instance, created = FireHistory.objects.get_or_create(
+                occurrence=occ_instance
+            )
+            # the request.data is only the habitat composition data thats been sent from front end
+            serializer = SaveFireHistorySerializer(
+                fire_instance, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_associated_species_details(self, request, *args, **kwargs):
+        try:
+            occ_instance = self.get_object()
+            assoc_species_instance, created = AssociatedSpecies.objects.get_or_create(
+                occurrence=occ_instance
+            )
+            # the request.data is only the habitat composition data thats been sent from front end
+            serializer = SaveAssociatedSpeciesSerializer(
+                assoc_species_instance, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
