@@ -201,11 +201,7 @@
                                             :id="`feature-${feature.ol_uid}-latitude-input`"
                                             :ref="`feature-${feature.ol_uid}-latitude-input`"
                                             class="form-control min-width-90"
-                                            :value="
-                                                feature.getProperties()
-                                                    .original_geometry
-                                                    .coordinates[1]
-                                            "
+                                            :value="userCoordinates(feature)[1]"
                                             placeholder="Latitude"
                                             type="number"
                                             min="-90"
@@ -227,11 +223,7 @@
                                             :id="`feature-${feature.ol_uid}-longitude-input`"
                                             :ref="`feature-${feature.ol_uid}-longitude-input`"
                                             class="form-control min-width-90 me-1"
-                                            :value="
-                                                feature.getProperties()
-                                                    .original_geometry
-                                                    .coordinates[0]
-                                            "
+                                            :value="userCoordinates(feature)[0]"
                                             placeholder="Longitude"
                                             type="number"
                                             min="-180"
@@ -3404,7 +3396,11 @@ export default {
         cloneFeature: function (feature, coordinates = null) {
             const clone = feature.clone();
             if (coordinates) {
-                clone.getGeometry().setCoordinates(coordinates);
+                if (['MultiPoint'].includes(clone.getGeometry().getType())) {
+                    clone.getGeometry().setCoordinates([coordinates]);
+                } else {
+                    clone.getGeometry().setCoordinates(coordinates);
+                }
             }
             return clone;
         },
@@ -3480,6 +3476,11 @@ export default {
             );
 
             console.log('coordinates after', transformed);
+            if (!transformed) {
+                console.error('No transformed coordinates');
+                selectComponent.toggleLoading(false);
+                return;
+            }
             feature.getGeometry().setCoordinates(transformed.coordinates);
             selectComponent.toggleLoading(false);
         },
@@ -3492,6 +3493,13 @@ export default {
             return ['Polygon', 'MultiPolygon'].includes(
                 feature.getGeometry().getType()
             );
+        },
+        userCoordinates: function (feature) {
+            const geometry = feature.getProperties().original_geometry;
+            if (['MultiPoint'].includes(geometry.type)) {
+                return geometry.coordinates[0];
+            }
+            return geometry.coordinates;
         },
     },
 };
