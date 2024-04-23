@@ -27,6 +27,7 @@ from boranga.components.main.models import (
 from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
     send_approver_approve_email_notification,
+    send_approver_back_to_assessor_email_notification,
     send_approver_decline_email_notification,
     send_occurrence_report_amendment_email_notification,
     send_occurrence_report_referral_complete_email_notification,
@@ -585,6 +586,7 @@ class OccurrenceReport(RevisionedMixin):
         )
 
         self.approver_comment = ""
+        self.proposed_decline_status = False
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         self.save()
 
@@ -597,6 +599,31 @@ class OccurrenceReport(RevisionedMixin):
         )
 
         send_approver_approve_email_notification(request, self)
+
+    def back_to_assessor(self, request, validated_data):
+        if (
+            not self.can_assess(request.user)
+            or self.processing_status
+            != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
+        ):
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+        self.save()
+
+        reason = validated_data.get("reason", "")
+
+        # Create a log entry for the proposal
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_BACK_TO_ASSESSOR.format(
+                self.occurrence_report_number,
+                request.user.get_full_name(),
+                reason,
+            ),
+            request,
+        )
+
+        send_approver_back_to_assessor_email_notification(request, self, reason)
 
 
 class OccurrenceReportDeclinedDetails(models.Model):
@@ -701,7 +728,7 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_REMIND_REFERRAL = (
         "Send reminder for referral {} for occurrence report proposal {} to {}"
     )
-    ACTION_BACK_TO_PROCESSING = "Back to processing for occurrence report proposal {}"
+    ACTION_BACK_TO_ASSESSOR = "{} sent back to assessor by {}. Reason: {}"
     RECALL_REFERRAL = "Referral {} for occurrence report proposal {} has been recalled"
     COMMENT_REFERRAL = (
         "Referral {} for occurrence report proposal {} has been commented by {}"
