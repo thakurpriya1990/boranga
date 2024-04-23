@@ -10,7 +10,7 @@
                                 <div class="col">
                                     <div class="form-group">
                                         <label class="control-label mb-3" for="reason">Reason</label>
-                                        <textarea class="form-control" name="reason" v-model="back_to_assessor.text"
+                                        <textarea class="form-control" name="reason" v-model="back_to_assessor.reason"
                                             id="reason" ref="reason" required></textarea>
                                     </div>
                                 </div>
@@ -91,7 +91,7 @@ export default {
             }).then((response) => {
                 swal.fire({
                     title: 'Sent Back',
-                    text: `${bm.occurrence_report_number} has been sent back to the assessor with the provided reason.`,
+                    text: `${vm.occurrence_report_number} has been sent back to the assessor with the provided reason.`,
                     icon: 'success',
                     confirmButtonColor: '#226fbb'
                 });
