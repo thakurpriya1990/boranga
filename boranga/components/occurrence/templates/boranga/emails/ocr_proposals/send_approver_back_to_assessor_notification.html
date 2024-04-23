@@ -1,0 +1,15 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+    <p>
+        The Occurrence Report {{ occurrence_report.occurrence_report_number }} has been sent back to the assessor.
+    </p>
+
+    <p>Reason: {{ reason }}</p>
+
+    <p>
+        You can access this Occurrence Report using the following link:
+    </p>
+
+    <a href="{{url}}">Access Occurrence Report {{ occurrence_report.occurrence_report_number }}</a>
+{%  endblock %}
