@@ -83,7 +83,7 @@
                             <button v-if="display_approve_button" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="">Approve</button>
                             <button v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="">Decline</button>
+                                @click.prevent="decline()">Decline</button>
 
                             <button style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="splitSpecies()">Split</button><br />
@@ -159,6 +159,10 @@
         <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
             @refreshFromResponse="refreshFromResponse"></ProposeDecline>
 
+        <Decline v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
+        :declined_details="occurrence_report.declined_details"
+            @refreshFromResponse="refreshFromResponse"></Decline>
+
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
@@ -179,6 +183,7 @@ import AmendmentRequest from './amendment_request.vue'
 import BackToAssessor from './back_to_assessor.vue'
 import ProposeDecline from './ocr_propose_decline.vue'
 import ProposeAppprove from './ocr_propose_approve.vue'
+import Decline from './ocr_decline.vue'
 
 // import SpeciesSplit from './species_split.vue'
 // import SpeciesCombine from './species_combine.vue'
@@ -217,6 +222,7 @@ export default {
         BackToAssessor,
         ProposeDecline,
         ProposeAppprove,
+        Decline,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,
@@ -262,7 +268,7 @@ export default {
             return this.with_approver && this.occurrence_report.approval_details
         },
         display_decline_button: function () {
-            return this.with_approver && this.occurrence_report.proposed_decline_status
+            return this.with_approver && this.occurrence_report.proposed_decline_status && this.occurrence_report.declined_details
         },
         submitter_first_name: function () {
             if (this.occurrence_report && this.occurrence_report.submitter) {
@@ -356,6 +362,9 @@ export default {
         },
         backToAssessor: function () {
             this.$refs.back_to_assessor.isModalOpen = true;
+        },
+        decline: function () {
+            this.$refs.decline.isModalOpen = true;
         },
         save: async function () {
             let vm = this;
