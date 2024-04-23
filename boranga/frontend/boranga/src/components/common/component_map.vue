@@ -213,6 +213,11 @@
                                             type="number"
                                             min="-90"
                                             max="90"
+                                            @change="
+                                                updateUserInputCoordinates(
+                                                    feature
+                                                )
+                                            "
                                         />
                                         <label
                                             v-if="isPointLikeFeature(feature)"
@@ -235,6 +240,11 @@
                                             type="number"
                                             min="-180"
                                             max="180"
+                                            @change="
+                                                updateUserInputCoordinates(
+                                                    feature
+                                                )
+                                            "
                                         />
                                         <label
                                             v-if="isPointLikeFeature(feature)"
@@ -3399,12 +3409,20 @@ export default {
             hidden.removeClass('hidden');
             notHidden.addClass('hidden');
         },
-        featureInputCoordinates: function (feature) {
+        featureInputCoordinates: function (feature, coordinates) {
+            if (coordinates) {
+                this.$refs[`feature-${feature.ol_uid}-latitude-input`][0] =
+                    coordinates[1];
+                this.$refs[`feature-${feature.ol_uid}-longitude-input`][0] =
+                    coordinates[0];
+            }
+
             const inputLat =
                 this.$refs[`feature-${feature.ol_uid}-latitude-input`][0].value;
             const inputLon =
                 this.$refs[`feature-${feature.ol_uid}-longitude-input`][0]
                     .value;
+
             return [Number(inputLon), Number(inputLat)];
         },
         /**
@@ -3456,6 +3474,14 @@ export default {
                 });
             return transformed;
         },
+        updateUserInputCoordinates: function (feature) {
+            this.transformToMapCrs(feature, feature.getProperties().srid).then(
+                (coordinates) => {
+                    // Update the user input coordinates
+                    this.userCoordinates(feature, coordinates);
+                }
+            );
+        },
         transformToMapCrs: async function (feature, srid) {
             const newSrid = Number(srid);
             if (!newSrid) {
@@ -3481,7 +3507,7 @@ export default {
             if (newSrid === this.mapSrid) {
                 console.log('No need to transform');
                 this.setCoordinates(feature, inputCoordinates);
-                return;
+                return inputCoordinates;
             }
 
             const selectComponent =
@@ -3504,10 +3530,12 @@ export default {
             if (!transformed) {
                 console.error('No transformed coordinates');
                 selectComponent.toggleLoading(false);
-                return;
+                return inputCoordinates;
             }
             this.setCoordinates(feature, transformed.coordinates);
             selectComponent.toggleLoading(false);
+
+            return inputCoordinates;
         },
         isMultiPointFeature: function (feature) {
             return feature.getGeometry().getType() === 'MultiPoint';
@@ -3522,8 +3550,17 @@ export default {
                 feature.getGeometry().getType()
             );
         },
-        userCoordinates: function (feature) {
+        /**
+         * Returns the coordinates from the feature.
+         * If coordinates is provided, also updates the feature's coordinates.
+         * @param {object} feature A feature object
+         * @param {array=} coordinates A coordinate pair array
+         */
+        userCoordinates: function (feature, coordinates) {
             const geometry = feature.getProperties().original_geometry;
+            if (coordinates) {
+                geometry.coordinates = coordinates;
+            }
             if (['MultiPoint'].includes(geometry.type)) {
                 return geometry.coordinates[0];
             }
