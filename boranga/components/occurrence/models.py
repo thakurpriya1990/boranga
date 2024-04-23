@@ -1351,7 +1351,7 @@ class OccurrenceReportGeometry(models.Model):
         return None
 
 
-class ObserverDetail(models.Model):
+class OCRObserverDetail(models.Model):
     """
     Observer data  for occurrence report
 
@@ -1511,7 +1511,7 @@ class SoilCondition(models.Model):
         return str(self.name)
 
 
-class HabitatComposition(models.Model):
+class OCRHabitatComposition(models.Model):
     """
     Habitat data  for occurrence report
 
@@ -1556,7 +1556,7 @@ class HabitatComposition(models.Model):
         return str(self.occurrence_report)  # TODO: is the most appropriate?\
 
 
-class HabitatCondition(models.Model):
+class OCRHabitatCondition(models.Model):
     """
     Habitat Condition data for occurrence report
 
@@ -1637,7 +1637,7 @@ class Intensity(models.Model):
         return str(self.name)
 
 
-class FireHistory(models.Model):
+class OCRFireHistory(models.Model):
     """
     Fire History data for occurrence report
 
@@ -1666,7 +1666,7 @@ class FireHistory(models.Model):
         return str(self.occurrence_report)
 
 
-class AssociatedSpecies(models.Model):
+class OCRAssociatedSpecies(models.Model):
     """
     Associated Species data for occurrence report
 
@@ -1712,7 +1712,7 @@ class ObservationMethod(models.Model):
         return str(self.name)
 
 
-class ObservationDetail(models.Model):
+class OCRObservationDetail(models.Model):
     """
     Observation Details data for occurrence report
 
@@ -1825,7 +1825,7 @@ class PlantCondition(models.Model):
         return str(self.name)
 
 
-class PlantCount(models.Model):
+class OCRPlantCount(models.Model):
     """
     Plant Count data for occurrence report
 
@@ -1998,7 +1998,7 @@ class SecondarySign(models.Model):
         return str(self.name)
 
 
-class AnimalObservation(models.Model):
+class OCRAnimalObservation(models.Model):
     """
     Animal Observation data for occurrence report
 
@@ -2137,7 +2137,7 @@ class PermitType(models.Model):
         return str(self.name)
 
 
-class Identification(models.Model):
+class OCRIdentification(models.Model):
     """
     Identification data for occurrence report
 
@@ -2689,6 +2689,39 @@ class OccurrenceDocument(Document):
         self.save(*args, **kwargs)
 
 
+class OCCObserverDetail(models.Model):
+    """
+    Observer data  for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.ForeignKey(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="observer_detail",
+    )
+    observer_name = models.CharField(max_length=250, blank=True, null=True)
+    role = models.CharField(max_length=250, blank=True, null=True)
+    contact = models.CharField(max_length=250, blank=True, null=True)
+    organisation = models.CharField(max_length=250, blank=True, null=True)
+    main_observer = models.BooleanField(null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+        unique_together = (
+            "observer_name",
+            "occurrence",
+        )
+
+    def __str__(self):
+        return str(self.occurrence)  # TODO: is the most appropriate?
+
+
 class OCCConservationThreat(RevisionedMixin):
     """
     Threat for an occurrence in a particular location.
@@ -2754,6 +2787,361 @@ class OCCConservationThreat(RevisionedMixin):
     @property
     def source(self):
         return self.occurrence.id
+
+
+class OCCHabitatComposition(models.Model):
+    """
+    Habitat data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="habitat_composition",
+    )
+    land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    rock_type = models.ForeignKey(
+        RockType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    loose_rock_percent = models.IntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)]
+    )
+    soil_type = models.ForeignKey(
+        SoilType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    soil_colour = models.ForeignKey(
+        SoilColour, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    soil_condition = models.ForeignKey(
+        SoilCondition, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    drainage = models.ForeignKey(
+        Drainage, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    water_quality = models.CharField(max_length=500, null=True, blank=True)
+    habitat_notes = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)  # TODO: is the most appropriate?\
+
+
+class OCCHabitatCondition(models.Model):
+    """
+    Habitat Condition data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="habitat_condition",
+    )
+    pristine = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    excellent = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    very_good = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    good = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    degraded = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    completely_degraded = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCFireHistory(models.Model):
+    """
+    Fire History data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="fire_history",
+    )
+    last_fire_estimate = models.DateField(null=True, blank=True)
+    intensity = models.ForeignKey(
+        Intensity, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    comment = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCAssociatedSpecies(models.Model):
+    """
+    Associated Species data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="associated_species",
+    )
+    related_species = models.TextField(blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCObservationDetail(models.Model):
+    """
+    Observation Details data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="observation_detail",
+    )
+    observation_method = models.ForeignKey(
+        ObservationMethod, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    area_surveyed = models.IntegerField(null=True, blank=True, default=0)
+    survey_duration = models.IntegerField(null=True, blank=True, default=0)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCPlantCount(models.Model):
+    """
+    Plant Count data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="plant_count",
+    )
+    plant_count_method = models.ForeignKey(
+        PlantCountMethod, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    plant_count_accuracy = models.ForeignKey(
+        PlantCountAccuracy, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    counted_subject = models.ForeignKey(
+        CountedSubject, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    plant_condition = models.ForeignKey(
+        PlantCondition, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    estimated_population_area = models.IntegerField(null=True, blank=True, default=0)
+
+    detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_seedling = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_seedling = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_unknown = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    simple_alive = models.IntegerField(null=True, blank=True, default=0)
+    simple_dead = models.IntegerField(null=True, blank=True, default=0)
+
+    quadrats_present = models.BooleanField(null=True, blank=True)
+    quadrats_data_attached = models.BooleanField(null=True, blank=True)
+    quadrats_surveyed = models.IntegerField(null=True, blank=True, default=0)
+    individual_quadrat_area = models.IntegerField(null=True, blank=True, default=0)
+    total_quadrat_area = models.IntegerField(null=True, blank=True, default=0)
+    flowering_plants_per = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+
+    clonal_reproduction_present = models.BooleanField(null=True, blank=True)
+    vegetative_state_present = models.BooleanField(null=True, blank=True)
+    flower_bud_present = models.BooleanField(null=True, blank=True)
+    flower_present = models.BooleanField(null=True, blank=True)
+    immature_fruit_present = models.BooleanField(null=True, blank=True)
+    ripe_fruit_present = models.BooleanField(null=True, blank=True)
+    dehisced_fruit_present = models.BooleanField(null=True, blank=True)
+    pollinator_observation = models.CharField(max_length=1000, null=True, blank=True)
+    comment = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCAnimalObservation(models.Model):
+    """
+    Animal Observation data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="animal_observation",
+    )
+    primary_detection_method = MultiSelectField(
+        max_length=250, blank=True, choices=[], null=True
+    )
+    reproductive_maturity = MultiSelectField(
+        max_length=250, blank=True, choices=[], null=True
+    )
+    animal_health = models.ForeignKey(
+        AnimalHealth, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    death_reason = models.ForeignKey(
+        DeathReason, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    secondary_sign = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+
+    total_count = models.IntegerField(null=True, blank=True, default=0)
+    distinctive_feature = models.CharField(max_length=1000, null=True, blank=True)
+    action_taken = models.CharField(max_length=1000, null=True, blank=True)
+    action_required = models.CharField(max_length=1000, null=True, blank=True)
+    observation_detail_comment = models.CharField(
+        max_length=1000, null=True, blank=True
+    )
+
+    alive_adult = models.IntegerField(null=True, blank=True, default=0)
+    dead_adult = models.IntegerField(null=True, blank=True, default=0)
+    alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    alive_pouch_young = models.IntegerField(null=True, blank=True, default=0)
+    dead_pouch_young = models.IntegerField(null=True, blank=True, default=0)
+    alive_unsure = models.IntegerField(null=True, blank=True, default=0)
+    dead_unsure = models.IntegerField(null=True, blank=True, default=0)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCIdentification(models.Model):
+    """
+    Identification data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="identification",
+    )
+    id_confirmed_by = models.CharField(max_length=1000, null=True, blank=True)
+    identification_certainty = models.ForeignKey(
+        IdentificationCertainty, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    sample_type = models.ForeignKey(
+        SampleType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    sample_destination = models.ForeignKey(
+        SampleDestination, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    permit_type = models.ForeignKey(
+        PermitType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    permit_id = models.CharField(max_length=500, null=True, blank=True)
+    collector_number = models.CharField(max_length=500, null=True, blank=True)
+    barcode_number = models.CharField(max_length=500, null=True, blank=True)
+    identification_comment = models.TextField(null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
 
 
 # Occurrence Report Document
