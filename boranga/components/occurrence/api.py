@@ -78,6 +78,7 @@ from boranga.components.occurrence.models import (
     SoilType,
 )
 from boranga.components.occurrence.serializers import (
+    BackToAssessorSerializer,
     CreateOccurrenceReportSerializer,
     InternalOccurrenceReportSerializer,
     ListInternalOccurrenceReportSerializer,
@@ -1847,6 +1848,30 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             else:
                 if hasattr(e, "message"):
                     raise serializers.ValidationError(e.message)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def back_to_assessor(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = BackToAssessorSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.back_to_assessor(request, serializer.validated_data)
+            serializer = InternalOccurrenceReportSerializer(instance)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
