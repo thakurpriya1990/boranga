@@ -130,7 +130,7 @@
                                     :class="polygonCount ? '' : 'disabled'"
                                     @mouseover="hover = true"
                                 >
-                                    <img src="../../assets/layers.svg" />
+                                    <img src="../../assets/geo-location.svg" />
                                 </div>
                             </div>
                         </transition>
