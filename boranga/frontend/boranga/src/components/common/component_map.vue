@@ -3385,6 +3385,13 @@ export default {
 
             return [r, g, b, a];
         },
+        /**
+         * Returns whether an array is one-dimensional
+         * @param {Array} array An array
+         */
+        isOneDimensionalArray: function (array) {
+            return array.every((entry) => !Array.isArray(entry));
+        },
         toggleHidden: function (target) {
             // target.innerHTML = label;
             const hidden = $(target).find('img.svg-icon.hidden');
@@ -3400,14 +3407,25 @@ export default {
                     .value;
             return [Number(inputLon), Number(inputLat)];
         },
+        /**
+         * Set the coordinates of a feature. Currently only supporting Point and MultiPoint features.
+         * @param {object} feature A feature object
+         * @param {array} coordinates A coordinate pair array
+         */
+        setCoordinates: function (feature, coordinates) {
+            const isMulti = ['MultiPoint'].includes(
+                feature.getGeometry().getType()
+            );
+            if (isMulti && this.isOneDimensionalArray(coordinates)) {
+                feature.getGeometry().setCoordinates([coordinates]);
+            } else {
+                feature.getGeometry().setCoordinates(coordinates);
+            }
+        },
         cloneFeature: function (feature, coordinates = null) {
             const clone = feature.clone();
             if (coordinates) {
-                if (['MultiPoint'].includes(clone.getGeometry().getType())) {
-                    clone.getGeometry().setCoordinates([coordinates]);
-                } else {
-                    clone.getGeometry().setCoordinates(coordinates);
-                }
+                this.setCoordinates(clone, coordinates);
             }
             return clone;
         },
@@ -3462,7 +3480,7 @@ export default {
             feature.getProperties().original_geometry.properties.srid = newSrid;
             if (newSrid === this.mapSrid) {
                 console.log('No need to transform');
-                feature.getGeometry().setCoordinates(inputCoordinates);
+                this.setCoordinates(feature, inputCoordinates);
                 return;
             }
 
@@ -3488,7 +3506,7 @@ export default {
                 selectComponent.toggleLoading(false);
                 return;
             }
-            feature.getGeometry().setCoordinates(transformed.coordinates);
+            this.setCoordinates(feature, transformed.coordinates);
             selectComponent.toggleLoading(false);
         },
         isMultiPointFeature: function (feature) {
