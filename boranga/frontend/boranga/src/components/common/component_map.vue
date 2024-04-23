@@ -177,9 +177,16 @@
                                         @click="centerOnFeature(feature)"
                                     >
                                         <img
-                                            v-if="isPointLikeFeature(feature)"
+                                            v-if="isMultiPointFeature(feature)"
                                             class="svg-icon"
                                             src="../../assets/draw-points.svg"
+                                        />
+                                        <img
+                                            v-else-if="
+                                                isPointLikeFeature(feature)
+                                            "
+                                            class="svg-icon"
+                                            src="../../assets/draw-point.svg"
                                         />
                                         <img
                                             v-else
@@ -3483,6 +3490,9 @@ export default {
             }
             feature.getGeometry().setCoordinates(transformed.coordinates);
             selectComponent.toggleLoading(false);
+        },
+        isMultiPointFeature: function (feature) {
+            return feature.getGeometry().getType() === 'MultiPoint';
         },
         isPointLikeFeature: function (feature) {
             return ['Point', 'MultiPoint'].includes(
