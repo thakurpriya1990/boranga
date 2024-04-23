@@ -29,6 +29,7 @@ from boranga.components.occurrence.email import (
     send_approver_approve_email_notification,
     send_approver_back_to_assessor_email_notification,
     send_approver_decline_email_notification,
+    send_decline_email_notification,
     send_occurrence_report_amendment_email_notification,
     send_occurrence_report_referral_complete_email_notification,
     send_occurrence_report_referral_email_notification,
@@ -522,7 +523,7 @@ class OccurrenceReport(RevisionedMixin):
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR:
             raise ValidationError(
-                f"You cannot propose to approve Occurrence Report {self} as the processing status is not "
+                f"You cannot propose to decline Occurrence Report {self} as the processing status is not "
                 f"{OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR}"
             )
 
@@ -537,6 +538,7 @@ class OccurrenceReport(RevisionedMixin):
 
         self.proposed_decline_status = True
         self.approver_comment = ""
+        OccurrenceReportApprovalDetails.objects.filter(occurrence_report=self).delete()
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         self.save()
 
@@ -549,6 +551,33 @@ class OccurrenceReport(RevisionedMixin):
         )
 
         send_approver_decline_email_notification(reason, request, self)
+
+    @transaction.atomic
+    def decline(self, request, details):
+        if not self.can_assess(request.user):
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
+            raise ValidationError(
+                f"You cannot decline Occurrence Report {self} as the processing status is not "
+                f"{OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER}"
+            )
+
+        reason = details.get("reason")
+
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_DECLINED
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_DECLINE.format(
+                self.occurrence_report_number,
+                reason,
+            ),
+            request,
+        )
+
+        send_decline_email_notification(reason, request, self)
 
     @transaction.atomic
     def propose_approve(self, request, validated_data):
@@ -587,6 +616,7 @@ class OccurrenceReport(RevisionedMixin):
 
         self.approver_comment = ""
         self.proposed_decline_status = False
+        OccurrenceReportDeclinedDetails.objects.filter(occurrence_report=self).delete()
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         self.save()
 
@@ -627,7 +657,9 @@ class OccurrenceReport(RevisionedMixin):
 
 
 class OccurrenceReportDeclinedDetails(models.Model):
-    occurrence_report = models.OneToOneField(OccurrenceReport, on_delete=models.CASCADE)
+    occurrence_report = models.OneToOneField(
+        OccurrenceReport, on_delete=models.CASCADE, related_name="declined_details"
+    )
     officer = models.IntegerField()  # EmailUserRO
     reason = models.TextField(blank=True)
     cc_email = models.TextField(null=True)
@@ -698,7 +730,7 @@ class OccurrenceReportUserAction(UserAction):
         "Assign occurrence report proposal {} to {} as the approver"
     )
     ACTION_UNASSIGN_APPROVER = "Unassign approver from occurrence report proposal {}"
-    ACTION_DECLINE = "Decline occurrence report application {}"
+    ACTION_DECLINE = "Occurrence Report {} has been declined. Reason: {}"
     ACTION_APPROVE_PROPOSAL_ = "Approve occurrence report  proposal {}"
     ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report proposal {}"
