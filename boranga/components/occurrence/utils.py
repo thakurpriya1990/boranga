@@ -60,7 +60,9 @@ def save_geometry(request, instance, geometry_data):
             )
             continue
 
-        logger.info(f"Processing OccurrenceReport {instance} geometry feature type: {geometry_type}")
+        logger.info(
+            f"Processing OccurrenceReport {instance} geometry feature type: {geometry_type}"
+        )
 
         geom_4326 = feature_json_to_geosgeometry(feature)
 
@@ -72,25 +74,6 @@ def save_geometry(request, instance, geometry_data):
         geom_original = feature_json_to_geosgeometry(feature_json, srid_original)
 
         geoms = [(geom_4326, geom_original)]
-
-        # polygons = (
-        #     [Polygon(feature.get("geometry").get("coordinates")[0], srid=srid)]
-        #     if geometry_type == "Polygon"
-        #     else (
-        #         [Polygon(p, srid=srid) for p in feature.get("geometry").get("coordinates")[0]]
-        #         if geometry_type == "MultiPolygon"
-        #         else []
-        #     )
-        # )
-        # points = (
-        #     [Point(feature.get("geometry").get("coordinates"), srid=srid)]
-        #     if geometry_type == "Point"
-        #     else (
-        #         [Point(p, srid=srid) for p in feature.get("geometry").get("coordinates")]
-        #         if geometry_type == "MultiPoint"
-        #         else []
-        #     )
-        # )
 
         for geom in geoms:
             geometry_data = {
