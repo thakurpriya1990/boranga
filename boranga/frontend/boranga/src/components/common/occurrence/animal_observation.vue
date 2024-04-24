@@ -290,11 +290,11 @@ export default {
                 if (vm.is_report) {
                     endpoint = api_endpoints.occurrence_report;
                 }
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_id+'/update_animal_observation_details')),JSON.stringify(vm.animal_observation),{
+                vm.$http.post(helpers.add_endpoint_json(endpoint,(vm.occurrence_id+'/update_animal_observation_details')),JSON.stringify(vm.animal_observation),{
                     emulateJSON:true
                 }).then((response) => {
                     vm.updatingAnimalOnservationDetails = false;
-                    vm.animal_observation = response.body;
+                    //vm.animal_observation = response.body;
                     swal.fire({
                         title: 'Saved',
                         text: 'Animal Observation details have been saved',

@@ -3369,7 +3369,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         try:
             occ_instance = self.get_object()
             animal_obs_instance, created = OCCAnimalObservation.objects.get_or_create(
-                occurrence_report=occ_instance
+                occurrence=occ_instance
             )
             # the request.data is only the animal obs data thats been sent from front end
             serializer = SaveOCCAnimalObservationSerializer(
