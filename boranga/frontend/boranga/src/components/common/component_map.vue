@@ -1228,7 +1228,7 @@ export default {
             archiveTypesAllowed: ['.zip'], // The allowed archive types
             shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
-            userInputGeometryStack: {},
+            userInputGeometryStack: [],
         };
     },
     computed: {
@@ -1803,6 +1803,20 @@ export default {
                             console.log('redo selected', s.before, s.after);
                             vm.selectedFeatureIds = s.after;
                             vm.setStyleForUnAndSelectedFeatures();
+                        }
+                    );
+
+                    vm.undoredo.define(
+                        'update user input geodata',
+                        function (s) {
+                            // Undo fn
+                            console.log('undo user input geodata', s.before, s.after);
+                            vm.userInputGeometryStack = s.before;
+                        },
+                        function (s) {
+                            // Redo fn
+                            console.log('redo user input geodata', s.before, s.after);
+                            vm.userInputGeometryStack = s.after;
                         }
                     );
 
@@ -2927,7 +2941,9 @@ export default {
                 feature.getProperties().area = vm.featureArea(feature);
             }
 
-            this.userInputGeometryStack[feature.ol_uid] = original_geometry;
+            const stackGeom = { ...original_geometry };
+            stackGeom['ol_uid'] = feature.ol_uid;
+            this.userInputGeometryStack.push(stackGeom);
 
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
@@ -3565,10 +3581,27 @@ export default {
             if (coordinates) {
                 geometry.coordinates = coordinates;
             }
+
+            if (srid) {
+                geometry.properties.srid = srid;
+            }
+
+            if (coordinates || srid) {
+                const stackGeom = { ...geometry };
+                stackGeom['ol_uid'] = feature.ol_uid;
+                // Object.assign(stackGeom, geometry);
+                const before = [...this.userInputGeometryStack];
+                // Object.assign(before, this.userInputGeometryStack);
+                this.userInputGeometryStack.push(stackGeom);
+                this.undoredo.push('update user input geodata', {
+                    before: before,
+                    after: this.userInputGeometryStack,
+                });
+            }
+
             if (['MultiPoint'].includes(geometry.type)) {
                 return geometry.coordinates[0];
             }
-            feature.getProperties().original_geometry.properties.srid = srid;
             return geometry.coordinates;
         },
     },
