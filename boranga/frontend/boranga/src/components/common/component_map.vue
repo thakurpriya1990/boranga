@@ -1820,22 +1820,9 @@ export default {
                             let last = vm.userInputGeometryStack.slice(-1)[0];
                             // Set the stack to the state before the last edit
                             vm.userInputGeometryStack = s.before;
-                            // Since the stack contains all geometries edits, we need to find the last entry for this feature
-                            last = vm.userInputGeometryStack
-                                .slice()
-                                .reverse()
-                                .find((item) => {
-                                    if (item.ol_uid == last.ol_uid) {
-                                        return true;
-                                    }
-                                });
                             // The user input geometry before the last edit, which is the state we want the feature to revert to
-                            // We only need the dict keys we are interested in
-                            const original_geometry = (({
-                                coordinates,
-                                properties,
-                                type,
-                            }) => ({ coordinates, properties, type }))(last);
+                            const original_geometry =
+                                vm.userInputGeometryStackLast(last.ol_uid);
 
                             // Find the respective feature on the map by ol_uid
                             vm.modelQuerySource
@@ -1871,6 +1858,11 @@ export default {
                             console.log('redo user input geodata', s.before, s.after);
                             // TODO: Redo
                             vm.userInputGeometryStack = s.after;
+                            // The last entry the user has edited in the list of geometries
+                            const last = vm.userInputGeometryStack.slice(-1)[0];
+                            // The user input geometry before the last edit, which is the state we want the feature to revert to
+                            const original_geometry =
+                                vm.userInputGeometryStackLast(last.ol_uid);
                         }
                     );
 
@@ -3641,6 +3633,27 @@ export default {
             const clone = structuredClone(original_geometry);
             clone['ol_uid'] = feature.ol_uid;
             this.userInputGeometryStack.push(clone);
+        },
+        userInputGeometryStackLast: function (ol_uid) {
+            let last;
+            if (ol_uid) {
+                last = this.userInputGeometryStack
+                    .slice()
+                    .reverse()
+                    .find((item) => {
+                        if (item.ol_uid == ol_uid) {
+                            return true;
+                        }
+                    });
+            } else {
+                last = this.userInputGeometryStack.slice(-1)[0];
+            }
+            // We only need the dict keys we are interested in
+            return (({ coordinates, properties, type }) => ({
+                coordinates,
+                properties,
+                type,
+            }))(last);
         },
         /**
          * Returns the coordinates from the feature.
