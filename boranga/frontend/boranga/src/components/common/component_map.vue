@@ -146,7 +146,13 @@
                                     :key="
                                         feature.ol_uid +
                                         feature.getProperties()
-                                            .original_geometry.properties.srid
+                                            .original_geometry.properties.srid +
+                                        feature.getProperties()
+                                            .original_geometry.properties
+                                            .latitude +
+                                        feature.getProperties()
+                                            .original_geometry.properties
+                                            .longitude
                                     "
                                     class="input-group input-group-sm mb-1 text-nowrap"
                                 >
@@ -1810,12 +1816,60 @@ export default {
                         'update user input geodata',
                         function (s) {
                             // Undo fn
-                            console.log('undo user input geodata', s.before, s.after);
+                            // The last entry the user has edited in the list of geometries
+                            let last = vm.userInputGeometryStack.slice(-1)[0];
+                            // Set the stack to the state before the last edit
                             vm.userInputGeometryStack = s.before;
+                            // Since the stack contains all geometries edits, we need to find the last entry for this feature
+                            last = vm.userInputGeometryStack
+                                .slice()
+                                .reverse()
+                                .find((item) => {
+                                    if (item.ol_uid == last.ol_uid) {
+                                        return true;
+                                    }
+                                });
+                            // The user input geometry before the last edit, which is the state we want the feature to revert to
+                            // We only need the dict keys we are interested in
+                            const original_geometry = (({
+                                coordinates,
+                                properties,
+                                type,
+                            }) => ({ coordinates, properties, type }))(last);
+
+                            // Find the respective feature on the map by ol_uid
+                            vm.modelQuerySource
+                                .getFeatures()
+                                .forEach((feature) => {
+                                    if (feature.ol_uid == last.ol_uid) {
+                                        // Revert to the last user input geometry on the feature instance
+                                        const clone =
+                                            structuredClone(original_geometry);
+                                        Object.assign(
+                                            feature.getProperties()
+                                                .original_geometry,
+                                            clone
+                                        );
+                                        // Revert to the last user input geometry for that feature in the list of geometries
+                                        vm.featureInputCoordinates(
+                                            feature,
+                                            original_geometry.coordinates,
+                                            original_geometry.properties.srid
+                                        );
+                                        // Finally perform a transformation of the feature on the map
+                                        vm.transformToMapCrs(
+                                            feature,
+                                            original_geometry.properties.srid
+                                        );
+                                    }
+                                });
+
+                            // vm.updateUserInputGeoData
                         },
                         function (s) {
                             // Redo fn
                             console.log('redo user input geodata', s.before, s.after);
+                            // TODO: Redo
                             vm.userInputGeometryStack = s.after;
                         }
                     );
@@ -2941,9 +2995,9 @@ export default {
                 feature.getProperties().area = vm.featureArea(feature);
             }
 
-            const stackGeom = { ...original_geometry };
-            stackGeom['ol_uid'] = feature.ol_uid;
-            this.userInputGeometryStack.push(stackGeom);
+            const clone = structuredClone(original_geometry);
+            clone['ol_uid'] = feature.ol_uid;
+            this.userInputGeometryStack.push(clone);
 
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
@@ -3423,12 +3477,26 @@ export default {
             hidden.removeClass('hidden');
             notHidden.addClass('hidden');
         },
-        featureInputCoordinates: function (feature, coordinates) {
+        /**
+         * Returns the user input coordinates from the list of feature geometries
+         * If coordinates is provided, also updates the feature's coordinates.
+         * If srid is provided, also updates the feature's srid.
+         * @param {Object} feature A feature
+         * @param {Array=} coordinates A coordinate pair array
+         * @param {Number=} srid The SRID of the coordinates
+         */
+        featureInputCoordinates: function (feature, coordinates, srid) {
             if (coordinates) {
-                this.$refs[`feature-${feature.ol_uid}-latitude-input`][0] =
-                    coordinates[1];
-                this.$refs[`feature-${feature.ol_uid}-longitude-input`][0] =
-                    coordinates[0];
+                this.$refs[
+                    `feature-${feature.ol_uid}-latitude-input`
+                ][0].value = coordinates[1];
+                this.$refs[
+                    `feature-${feature.ol_uid}-longitude-input`
+                ][0].value = coordinates[0];
+            }
+            if (srid) {
+                this.$refs[`feature-${feature.ol_uid}-crs-select`][0].value =
+                    srid;
             }
 
             const inputLat =
@@ -3578,21 +3646,31 @@ export default {
          */
         userCoordinates: function (feature, coordinates, srid) {
             const geometry = feature.getProperties().original_geometry;
+            let coordsChanged = false;
+            let sridChanged = false;
             if (coordinates) {
+                // Whether coords have been changed between user input and input to this function
+                coordsChanged = !geometry.coordinates.every(
+                    (e, i) => e == coordinates[i]
+                );
                 geometry.coordinates = coordinates;
             }
 
             if (srid) {
+                // Whether srid has been changed between user input and input to this function
+                sridChanged = !(
+                    parseInt(geometry.properties.srid) === parseInt(srid)
+                );
                 geometry.properties.srid = srid;
             }
 
-            if (coordinates || srid) {
-                const stackGeom = { ...geometry };
-                stackGeom['ol_uid'] = feature.ol_uid;
-                // Object.assign(stackGeom, geometry);
+            if (coordsChanged || sridChanged) {
+                // Update the undo-redo stack for user input geodata
+                const clone = structuredClone(geometry);
+                clone['ol_uid'] = feature.ol_uid;
                 const before = [...this.userInputGeometryStack];
-                // Object.assign(before, this.userInputGeometryStack);
-                this.userInputGeometryStack.push(stackGeom);
+                this.userInputGeometryStack.push(clone);
+
                 this.undoredo.push('update user input geodata', {
                     before: before,
                     after: this.userInputGeometryStack,
