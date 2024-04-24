@@ -4,7 +4,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Observation Method:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.observation_detail.observation_method_id">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_obj.observation_detail.observation_method_id">
                         <option v-for="option in observation_method_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}                            
                         </option>
@@ -15,15 +15,15 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Area Surveyed(m<sup>2</sup>) :</label>
                 <div class="col-sm-6">
-                    <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="area_surveyed" placeholder="" min="0"
-                    v-model="occurrence_report_obj.observation_detail.area_surveyed"/>
+                    <input :disabled="isReadOnly" type="number" class="form-control occ_number" id="area_surveyed" placeholder="" min="0"
+                    v-model="occurrence_obj.observation_detail.area_surveyed"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Survey Duration(mins) :</label>
                 <div class="col-sm-6">
-                    <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="survey_duration" placeholder="" min="0"
-                    v-model="occurrence_report_obj.observation_detail.survey_duration"/>
+                    <input :disabled="isReadOnly" type="number" class="form-control occ_number" id="survey_duration" placeholder="" min="0"
+                    v-model="occurrence_obj.observation_detail.survey_duration"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -38,9 +38,9 @@
         <FormSection :formCollapse="false" label="Plant Count" :Index="plantCountBody" v-if="isFlora">
             <PlantCount
                 v-if="isFlora"
-                :plant_count="occurrence_report_obj.plant_count"
-                :is_report=true
-                :occurrence_id="occurrence_report_obj.id" 
+                :plant_count="occurrence_obj.plant_count"
+                :is_report=false
+                :occurrence_id="occurrence_obj.id" 
                 id="plantCountDetail" 
                 :is_external="is_external"
                 :isReadOnly="isReadOnly"
@@ -51,9 +51,9 @@
         <FormSection :formCollapse="false" label="Animal Observation" :Index="animalObsBody" v-if="isFauna">
             <AnimalObservation
                 v-if="isFauna"
-                :animal_observation="occurrence_report_obj.animal_observation"
-                :is_report=true
-                :occurrence_id="occurrence_report_obj.id" 
+                :animal_observation="occurrence_obj.animal_observation"
+                :is_report=false 
+                :occurrence_id="occurrence_obj.id"  
                 id="animalObservationDetail" 
                 :is_external="is_external"
                 :isReadOnly="isReadOnly"
@@ -65,13 +65,13 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">ID Confirmed by:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="id_confirmed_by" placeholder="" v-model="occurrence_report_obj.identification.id_confirmed_by"/>
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="id_confirmed_by" placeholder="" v-model="occurrence_obj.identification.id_confirmed_by"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Identification Certainty:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.identification.identification_certainty_id">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_obj.identification.identification_certainty_id">
                         <option v-for="option in identification_certainty_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}
                         </option>
@@ -81,7 +81,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Sample Type:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.identification.sample_type_id">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_obj.identification.sample_type_id">
                         <option v-for="option in sample_type_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}
                         </option>
@@ -91,7 +91,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Sample Destination:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.identification.sample_destination_id">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_obj.identification.sample_destination_id">
                         <option v-for="option in sample_dest_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}
                         </option>
@@ -101,7 +101,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Permit Type:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.identification.permit_type_id">
+                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_obj.identification.permit_type_id">
                         <option v-for="option in permit_type_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}
                         </option>
@@ -111,25 +111,25 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Permit ID:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="permit_id" placeholder="" v-model="occurrence_report_obj.identification.permit_id"/>
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="permit_id" placeholder="" v-model="occurrence_obj.identification.permit_id"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Sample Label/ Collector Number:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="collector_number" placeholder="" v-model="occurrence_report_obj.identification.collector_number"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="collector_number" placeholder="" v-model="occurrence_obj.identification.collector_number"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Barcode/Catalog Number:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="barcode_number" placeholder="" v-model="occurrence_report_obj.identification.barcode_number"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="barcode_number" placeholder="" v-model="occurrence_obj.identification.barcode_number"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Identification Comments:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="identification_comment" placeholder="" v-model="occurrence_report_obj.identification.identification_comment"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="identification_comment" placeholder="" v-model="occurrence_obj.identification.identification_comment"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -154,9 +154,9 @@ import {
 }
 from '@/utils/hooks'
 export default {
-        name: 'OCRObservation',
+        name: 'OCCObservation',
         props:{
-            occurrence_report_obj:{
+            occurrence_obj:{
                 type: Object,
                 required:true
             },
@@ -178,8 +178,8 @@ export default {
                 animalObsBody: 'animalObsBody' + vm._uid,
                 identificationBody: 'identificationBody' + vm._uid,
                 //---to show fields related to Fauna
-                isFauna: vm.occurrence_report_obj.group_type==="fauna"?true:false,
-                isFlora: vm.occurrence_report_obj.group_type==="flora"?true:false,
+                isFauna: vm.occurrence_obj.group_type==="fauna"?true:false,
+                isFlora: vm.occurrence_obj.group_type==="flora"?true:false,
                 //----list of values dictionary
                 listOfValuesDict: {},
                 //scientific_name_list: [],
@@ -200,11 +200,11 @@ export default {
         computed: {
             isReadOnly: function(){
                 let action = this.$route.query.action;
-                if(action === "edit" && this.occurrence_report_obj && this.occurrence_report_obj.assessor_mode.has_assessor_mode){
+                if(action === "edit" && this.occurrence_obj && this.occurrence_obj.assessor_mode.has_assessor_mode){
                     return false;
                 }
                 else{
-                    return this.occurrence_report_obj.readonly;
+                    return this.occurrence_obj.readonly;
                 }
             },
         },
@@ -216,11 +216,11 @@ export default {
             updateObservationDetails: function() {
                 let vm = this;
                 vm.updatingObservationDetails = true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_observation_details')),JSON.stringify(vm.occurrence_report_obj.observation_detail),{
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence,(vm.occurrence_obj.id+'/update_observation_details')),JSON.stringify(vm.occurrence_obj.observation_detail),{
                     emulateJSON:true
                 }).then((response) => {
                     vm.updatingObservationDetails = false;
-                    vm.occurrence_report_obj.observation_detail = response.body;
+                    vm.occurrence_obj.observation_detail = response.body;
                     swal.fire({
                         title: 'Saved',
                         text: 'Observation details have been saved',
@@ -242,11 +242,11 @@ export default {
             updateIdentificationDetails: function() {
                 let vm = this;
                 vm.updatingIdentificationDetails = true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_identification_details')),JSON.stringify(vm.occurrence_report_obj.identification),{
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence,(vm.occurrence_obj.id+'/update_identification_details')),JSON.stringify(vm.occurrence_obj.identification),{
                     emulateJSON:true
                 }).then((response) => {
                     vm.updatingIdentificationDetails = false;
-                    vm.occurrence_report_obj.identification = response.body;
+                    vm.occurrence_obj.identification = response.body;
                     swal.fire({
                         title: 'Saved',
                         text: 'Identification details have been saved',
@@ -269,7 +269,7 @@ export default {
         created: async function() {
             let vm=this;
             //------fetch list of values
-            const res = await Vue.http.get('/api/occurrence_report/observation_list_of_values.json');
+            const res = await Vue.http.get('/api/occurrence/observation_list_of_values.json');
             vm.listOfValuesDict = res.body;
             vm.observation_method_list = vm.listOfValuesDict.observation_method_list;
             vm.observation_method_list.splice(0,0,
@@ -393,7 +393,7 @@ export default {
     input[type=number]{
         width: 50%;
     }
-    input.ocr_number{
+    input.occ_number{
         width: 20%;
     }
     input.plant_count{

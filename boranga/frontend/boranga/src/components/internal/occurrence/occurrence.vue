@@ -185,7 +185,7 @@ export default {
             return this.occurrence.group_type === "community"
         },
         occurrence_form_url: function () {
-            return `/api/occurrence_paginated/${this.occurrence.id}/occurrence_save.json`;
+            return `/api/occurrence/${this.occurrence.id}/occurrence_save.json`;
         },
         occurrence_submit_url: function () {
             return `occurrence`;
@@ -511,7 +511,7 @@ export default {
     },
     beforeRouteEnter: function (to, from, next) {
         //if (to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna") {
-        Vue.http.get(`/api/occurrence_paginated/${to.params.occurrence_id}/`).then(res => {
+        Vue.http.get(`/api/occurrence/${to.params.occurrence_id}/`).then(res => {
             next(vm => {
                 vm.occurrence = res.body;
             });

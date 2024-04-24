@@ -98,7 +98,7 @@ export default {
                 order: [[0, 'desc']],
                 ajax: {
                     //"url": '/api/proposal/' + vm.proposal.id + '/get_related_items/',
-                    "url": "/api/occurrence_paginated/" + this.occurrence_obj.id + "/get_related_occurrence_reports/",
+                    "url": "/api/occurrence/" + this.occurrence_obj.id + "/get_related_occurrence_reports/",
                     "dataSrc": "",
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
