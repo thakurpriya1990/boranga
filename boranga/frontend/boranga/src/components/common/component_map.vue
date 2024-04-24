@@ -1,6 +1,5 @@
 <template>
     <div>
-        {{ userInputGeometryStack }}
         <div class="justify-content-end align-items-center mb-2">
             <div v-if="mapInfoText.length > 0" class="row">
                 <div class="col-md-6">
@@ -1325,10 +1324,10 @@ export default {
          */
         undoStack: function () {
             let vm = this;
-            if (!vm.undoredo_forSketch) {
+            if (!vm.undoredo) {
                 return [];
             } else {
-                return vm.undoredo_forSketch.getStack('undo');
+                return vm.undoredo.getStack('undo');
             }
         },
         /**
@@ -1336,10 +1335,10 @@ export default {
          */
         redoStack: function () {
             let vm = this;
-            if (!vm.undoredo_forSketch) {
+            if (!vm.undoredo) {
                 return [];
             } else {
-                return vm.undoredo_forSketch.getStack('redo');
+                return vm.undoredo.getStack('redo');
             }
         },
         hasUndo: function () {
@@ -1824,45 +1823,23 @@ export default {
                             const original_geometry =
                                 vm.userInputGeometryStackLast(last.ol_uid);
 
-                            // Find the respective feature on the map by ol_uid
-                            vm.modelQuerySource
-                                .getFeatures()
-                                .forEach((feature) => {
-                                    if (feature.ol_uid == last.ol_uid) {
-                                        // Revert to the last user input geometry on the feature instance
-                                        const clone =
-                                            structuredClone(original_geometry);
-                                        Object.assign(
-                                            feature.getProperties()
-                                                .original_geometry,
-                                            clone
-                                        );
-                                        // Revert to the last user input geometry for that feature in the list of geometries
-                                        vm.featureInputCoordinates(
-                                            feature,
-                                            original_geometry.coordinates,
-                                            original_geometry.properties.srid
-                                        );
-                                        // Finally perform a transformation of the feature on the map
-                                        vm.transformToMapCrs(
-                                            feature,
-                                            original_geometry.properties.srid
-                                        );
-                                    }
-                                });
-
-                            // vm.updateUserInputGeoData
+                            vm.unOrRedoFeatureUserInputGeoData(
+                                last.ol_uid,
+                                original_geometry
+                            );
                         },
                         function (s) {
                             // Redo fn
-                            console.log('redo user input geodata', s.before, s.after);
-                            // TODO: Redo
                             vm.userInputGeometryStack = s.after;
                             // The last entry the user has edited in the list of geometries
                             const last = vm.userInputGeometryStack.slice(-1)[0];
                             // The user input geometry before the last edit, which is the state we want the feature to revert to
                             const original_geometry =
                                 vm.userInputGeometryStackLast(last.ol_uid);
+                            vm.unOrRedoFeatureUserInputGeoData(
+                                last.ol_uid,
+                                original_geometry
+                            );
                         }
                     );
 
@@ -3213,7 +3190,7 @@ export default {
                 // Find the last feature in the redo stack and validate it (the last feature doesn't necessarily need to be the last item in the stack, as the last item could e.g. be a 'blockend' object)
                 let item = vm.undoredo._redoStack
                     .getArray()
-                    .toReversed()
+                    .toReversed() // .reverse() mutates in-place, .toReversed() doesn't
                     .find((item) => {
                         if (item.feature) {
                             return item;
@@ -3639,7 +3616,7 @@ export default {
             if (ol_uid) {
                 last = this.userInputGeometryStack
                     .slice()
-                    .reverse()
+                    .toReversed() // .reverse() mutates in-place, .toReversed() doesn't
                     .find((item) => {
                         if (item.ol_uid == ol_uid) {
                             return true;
@@ -3691,7 +3668,7 @@ export default {
 
                 this.undoredo.push('update user input geodata', {
                     before: before,
-                    after: this.userInputGeometryStack,
+                    after: structuredClone(this.userInputGeometryStack),
                 });
             }
 
@@ -3699,6 +3676,30 @@ export default {
                 return geometry.coordinates[0];
             }
             return geometry.coordinates;
+        },
+        unOrRedoFeatureUserInputGeoData: function (ol_uid, original_geometry) {
+            // Find the respective feature on the map by ol_uid
+            this.modelQuerySource.getFeatures().forEach((feature) => {
+                if (feature.ol_uid == ol_uid) {
+                    // Revert to the last user input geometry on the feature instance
+                    const clone = structuredClone(original_geometry);
+                    Object.assign(
+                        feature.getProperties().original_geometry,
+                        clone
+                    );
+                    // Revert to the last user input geometry for that feature in the list of geometries
+                    this.featureInputCoordinates(
+                        feature,
+                        original_geometry.coordinates,
+                        original_geometry.properties.srid
+                    );
+                    // Finally perform a transformation of the feature on the map
+                    this.transformToMapCrs(
+                        feature,
+                        original_geometry.properties.srid
+                    );
+                }
+            });
         },
     },
 };
