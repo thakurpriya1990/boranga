@@ -287,7 +287,7 @@ export default {
                 let vm = this;
                 vm.updatingAnimalOnservationDetails = true;
                 let endpoint = api_endpoints.occurrence;
-                if (is_report) {
+                if (vm.is_report) {
                     endpoint = api_endpoints.occurrence_report;
                 }
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_id+'/update_animal_observation_details')),JSON.stringify(vm.animal_observation),{

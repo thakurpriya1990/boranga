@@ -347,14 +347,14 @@ export default {
                 let vm = this;
                 vm.updatingPlantCountDetails = true;
                 let endpoint = api_endpoints.occurrence;
-                if (is_report) {
+                if (vm.is_report) {
                     endpoint = api_endpoints.occurrence_report;
                 }
                 vm.$http.post(helpers.add_endpoint_json(endpoint,(vm.occurrence_id+'/update_plant_count_details')),JSON.stringify(vm.plant_count),{
                     emulateJSON:true
                 }).then((response) => {
                     vm.updatingPlantCountDetails = false;
-                    vm.plant_count = response.body;
+                    //vm.plant_count = response.body;
                     swal.fire({
                         title: 'Saved',
                         text: 'Plant Count details have been saved',

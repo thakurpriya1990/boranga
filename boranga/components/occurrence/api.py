@@ -3244,8 +3244,124 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+ 
+    @list_route(
+    methods=[
+        "POST",
+    ],
+    detail=True,
+    )
+    def update_observation_details(self, request, *args, **kwargs):
+        try:
+            occ_instance = self.get_object()
+            obs_det_instance, created = OCCObservationDetail.objects.get_or_create(
+                occurrence=occ_instance
+            )
+            # the request.data is only the observation detail data thats been sent from front end
+            serializer = SaveOCCObservationDetailSerializer(
+                obs_det_instance, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
-    
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_plant_count_details(self, request, *args, **kwargs):
+        try:
+            occ_instance = self.get_object()
+            plant_count_instance, created = OCCPlantCount.objects.get_or_create(
+                occurrence=occ_instance
+            )
+            # the request.data is only the plant count data thats been sent from front end
+            serializer = SaveOCCPlantCountSerializer(
+                plant_count_instance, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_animal_observation_details(self, request, *args, **kwargs):
+        try:
+            occ_instance = self.get_object()
+            animal_obs_instance, created = OCCAnimalObservation.objects.get_or_create(
+                occurrence_report=occ_instance
+            )
+            # the request.data is only the animal obs data thats been sent from front end
+            serializer = SaveOCCAnimalObservationSerializer(
+                animal_obs_instance, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_identification_details(self, request, *args, **kwargs):
+        try:
+            occ_instance = self.get_object()
+            identification_instance, created = OCCIdentification.objects.get_or_create(
+                occurrence=occ_instance
+            )
+            # the request.data is only the identification data thats been sent from front end
+            serializer = SaveOCCIdentificationSerializer(
+                identification_instance, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
     # used for Occurrence external form
     @list_route(
         methods=[
