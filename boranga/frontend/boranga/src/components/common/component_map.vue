@@ -2331,6 +2331,7 @@ export default {
                 console.log('newFeatureId = ' + vm.newFeatureId);
                 vm.lastPoint = evt.feature;
                 vm.sketchCoordinates = [[]];
+                vm.userInputGeometryStackAdd(evt.feature);
             });
 
             vm.map.addInteraction(vm.drawPolygonsForModel);
@@ -2995,9 +2996,7 @@ export default {
                 feature.getProperties().area = vm.featureArea(feature);
             }
 
-            const clone = structuredClone(original_geometry);
-            clone['ol_uid'] = feature.ol_uid;
-            this.userInputGeometryStack.push(clone);
+            this.userInputGeometryStackAdd(feature);
 
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
@@ -3636,6 +3635,12 @@ export default {
             return ['Polygon', 'MultiPolygon'].includes(
                 feature.getGeometry().getType()
             );
+        },
+        userInputGeometryStackAdd: function (feature) {
+            const original_geometry = feature.getProperties().original_geometry;
+            const clone = structuredClone(original_geometry);
+            clone['ol_uid'] = feature.ol_uid;
+            this.userInputGeometryStack.push(clone);
         },
         /**
          * Returns the coordinates from the feature.
