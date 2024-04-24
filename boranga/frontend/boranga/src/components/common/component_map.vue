@@ -1928,11 +1928,13 @@ export default {
                         copied_from: null,
                         area_sqm: vm.featureArea(feature),
                         original_geometry: original_geometry,
+                        srid: vm.mapSrid,
                     };
 
                     feature.setProperties(properties);
                     feature.setStyle(style);
                     source.addFeature(feature);
+                    vm.userInputGeometryStackAdd(feature);
                     vm.newFeatureId++;
                 }
             });
@@ -2955,7 +2957,7 @@ export default {
                 locked: featureData.properties.locked || false,
                 copied_from: featureData.properties.report_copied_from || null,
                 area_sqm: featureData.properties.area_sqm || null,
-                srid: featureData.properties.srid || null,
+                srid: featureData.properties.srid || vm.mapSrid,
             });
             if (featureData.id) {
                 // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
