@@ -6,7 +6,10 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.db.models import Q
+from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import serializers
+
+from shapely.geometry import shape, mapping
 
 from ledger_api_client.ledger_models import EmailUserRO
 from boranga.components.main.serializers import EmailUserROSerializerForReferral
@@ -122,9 +125,7 @@ def get_geometry_source(geometry_obj):
     return source
 
 def wkb_to_geojson(wkb):
-    from django.contrib.gis.geos import GEOSGeometry
     from shapely.wkt import loads
-    from shapely.geometry import mapping
 
     geos_geometry = GEOSGeometry(wkb)
     shapely_geometry = loads(geos_geometry.wkt)
@@ -133,16 +134,16 @@ def wkb_to_geojson(wkb):
 
     return geo_json
 
+def feature_json_to_geosgeometry(feature, srid = 4326):
+    import geojson
+
+    geo_json = mapping(geojson.loads(json.dumps(feature)))
+    geom_shape = shape(geo_json.get("geometry"))
+    return GEOSGeometry(geom_shape.wkt, srid=srid)
+
 def transform_json_geometry(json_geom, from_srid, to_srid):
-    from django.contrib.gis.geos import Polygon, Point
-
-    if json_geom.get("type") == "Polygon":
-        geom = Polygon(json_geom.get("coordinates"), srid=from_srid)
-    elif json_geom.get("type") == "Point":
-        geom = Point(json_geom.get("coordinates"), srid=from_srid)
-    else:
-        return json_geom
-
+    feature_json = {"type": "Feature", "geometry": json_geom}
+    geom = feature_json_to_geosgeometry(feature_json, from_srid)
     geom.transform(to_srid)
 
     return geom.json

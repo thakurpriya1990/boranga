@@ -77,12 +77,28 @@ class ApproverDeclineSendNotificationEmail(TemplateEmailBase):
     txt_template = "boranga/emails/ocr_proposals/send_approver_decline_notification.txt"
 
 
+class DeclineSendNotificationEmail(TemplateEmailBase):
+    subject = "Your Proposal has been declined."
+    html_template = "boranga/emails/ocr_proposals/send_decline_notification.html"
+    txt_template = "boranga/emails/ocr_proposals/send_decline_notification.txt"
+
+
 class ApproverApproveSendNotificationEmail(TemplateEmailBase):
     subject = "An Occurrence Report has been recommended for approval."
     html_template = (
         "boranga/emails/ocr_proposals/send_approver_approve_notification.html"
     )
     txt_template = "boranga/emails/ocr_proposals/send_approver_approve_notification.txt"
+
+
+class ApproverBackToAssessorSendNotificationEmail(TemplateEmailBase):
+    subject = "An Occurrence Report has been sent back to the Assessor."
+    html_template = (
+        "boranga/emails/ocr_proposals/send_approver_back_to_assessor_notification.html"
+    )
+    txt_template = (
+        "boranga/emails/ocr_proposals/send_approver_back_to_assessor_notification.txt"
+    )
 
 
 def send_submit_email_notification(request, occurrence_report):
@@ -165,6 +181,20 @@ def send_approver_decline_email_notification(reason, request, occurrence_report)
     _log_occurrence_report_email(msg, occurrence_report, sender=sender)
 
 
+def send_decline_email_notification(reason, request, occurrence_report):
+    email = DeclineSendNotificationEmail()
+
+    context = {"occurrence_report": occurrence_report, "reason": reason}
+
+    submitter = EmailUser.objects.get(id=occurrence_report.submitter)
+
+    msg = email.send(submitter.email, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+
 # send email when Occurrence Report is 'proposed to approve' by assessor.
 def send_approver_approve_email_notification(request, occurrence_report):
     email = ApproverApproveSendNotificationEmail()
@@ -183,6 +213,30 @@ def send_approver_approve_email_notification(request, occurrence_report):
     }
 
     msg = email.send(occurrence_report.approver_recipients, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+
+def send_approver_back_to_assessor_email_notification(
+    request, occurrence_report, reason
+):
+    email = ApproverBackToAssessorSendNotificationEmail()
+    url = request.build_absolute_uri(
+        reverse(
+            "internal-occurrence-report-detail",
+            kwargs={"occurrence_report_pk": occurrence_report.id},
+        )
+    )
+
+    context = {
+        "occurrence_report": occurrence_report,
+        "reason": reason,
+        "url": url,
+    }
+
+    msg = email.send(occurrence_report.assessor_recipients, context=context)
 
     sender = get_sender_user()
 

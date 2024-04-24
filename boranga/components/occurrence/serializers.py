@@ -28,6 +28,8 @@ from boranga.components.occurrence.models import (
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
+    OccurrenceReportApprovalDetails,
+    OccurrenceReportDeclinedDetails,
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
     OccurrenceReportLogEntry,
@@ -222,6 +224,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     internal_user_edit = serializers.SerializerMethodField()
+    can_user_approve = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
     occurrence = serializers.IntegerField(source="occurrence.id", allow_null=True)
     occurrence_name = serializers.CharField(
@@ -245,6 +248,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "can_user_edit",
             "can_user_view",
             "can_user_assess",
+            "can_user_approve",
             "internal_user_edit",
             "occurrence",
             "occurrence_name",
@@ -265,6 +269,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "processing_status_display",
             "can_user_edit",
             "can_user_view",
+            "can_user_approve",
             "can_user_assess",
             "internal_user_edit",
         )
@@ -301,6 +306,14 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             is_assessor(request.user)
             and obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+        )
+
+    def get_can_user_approve(self, obj):
+        request = self.context["request"]
+        return (
+            is_assessor(request.user)
+            and obj.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         )
 
 
@@ -980,11 +993,29 @@ class CreateOccurrenceSerializer(BaseOccurrenceReportSerializer):
         )
 
 
+class OccurrenceReportDeclinedDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportDeclinedDetails
+        fields = "__all__"
+
+
+class OccurrenceReportApprovalDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportApprovalDetails
+        fields = "__all__"
+
+
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_approve = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
     can_user_action = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField(read_only=True)
+    approval_details = OccurrenceReportApprovalDetailsSerializer(
+        read_only=True, allow_null=True
+    )
+    declined_details = OccurrenceReportDeclinedDetailsSerializer(
+        read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OccurrenceReport
@@ -1031,6 +1062,9 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "occurrence",
             "current_assessor",
             "assigned_approver",
+            "proposed_decline_status",
+            "declined_details",
+            "approval_details",
         )
 
     def get_can_user_assess(self, obj):
@@ -1752,6 +1786,10 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
 
 
 class ProposeDeclineSerializer(serializers.Serializer):
+    reason = serializers.CharField()
+
+
+class BackToAssessorSerializer(serializers.Serializer):
     reason = serializers.CharField()
 
 

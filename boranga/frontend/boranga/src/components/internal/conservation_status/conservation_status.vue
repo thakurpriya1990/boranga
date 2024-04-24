@@ -1,285 +1,320 @@
 <template lang="html">
     <div v-if="conservation_status_obj" class="container" id="internalConservationStatus">
-      <div class="row" style="padding-bottom: 50px;">
-        <h3>{{ display_group_type }} {{ display_number }} - {{display_name }}</h3>
-        <div v-if="!comparing" class="col-md-3">
-           <!-- TODO -->
+        <div class="row" style="padding-bottom: 50px;">
+            <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
+            <div class="col-md-3">
+                <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
+                    :disable_add_entry="false" />
 
-           <CommsLogs
-                :comms_url="comms_url"
-                :logs_url="logs_url"
-                :comms_add_url="comms_add_url"
-                :disable_add_entry="false"
-            />
+                <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
+                    :submitter_last_name="submitter_last_name" :lodgement_date="conservation_status_obj.lodgement_date"
+                    class="mt-3" />
 
-            <Submission v-if="canSeeSubmission"
-                :submitter_first_name="submitter_first_name"
-                :submitter_last_name="submitter_last_name"
-                :lodgement_date="conservation_status_obj.lodgement_date"
-                class="mt-2"
-            />
-            
-            <div class="top-buffer-s">
-                <div class="card card-default">
-                    <div class="card-header">
-                        Workflow 
-                    </div>
-                     <div class="card-body card-collapse">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Status</strong><br/>
-                                {{ conservation_status_obj.processing_status }}
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div>
-                            <template v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
-                                <div class="col-sm-12 top-buffer-s">
-                                    <strong>Referrals</strong><br/>
-                                    <div class="form-group">
-
-                                        <select :disabled="!canLimitedAction" ref="department_users" class="form-control">
-                                            <option value="null"></option>
-                                            <!-- <option v-for="user in department_users" :value="user.email" :key="user.id">{{user.name}}</option> -->
-                                        </select>
-
-                                        <template v-if='!sendingReferral'>
-                                            <template v-if="selected_referral">
-                                                <label class="control-label pull-left"  for="Name">Comments</label>
-                                                <textarea class="form-control" name="name" v-model="referral_text"></textarea>
-                                                <a v-if="canLimitedAction" @click.prevent="sendReferral()" class="actionBtn pull-right">Send</a>
+                <div class="mt-3">
+                    <div class="card card-default">
+                        <div class="card-header">
+                            Workflow
+                        </div>
+                        <div class="card-body border-bottom">
+                            <strong>Status</strong><br />
+                            {{ conservation_status_obj.processing_status }}
+                        </div>
+                        <div class="card-body border-bottom">
+                            <div class="row">
+                                <template
+                                    v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
+                                    <div class="col-sm-12 top-buffer-s">
+                                        <strong>Referrals</strong><br />
+                                        <div class="form-group mb-3">
+                                            <select :disabled="!canLimitedAction" ref="department_users"
+                                                class="form-control">
+                                            </select>
+                                            <template v-if='!sendingReferral'>
+                                                <template v-if="selected_referral">
+                                                    <label class="control-label pull-left" for="Name">Comments</label>
+                                                    <textarea class="form-control" name="name"
+                                                        v-model="referral_text"></textarea>
+                                                    <a v-if="canLimitedAction" @click.prevent="sendReferral()"
+                                                        class="actionBtn pull-right">Send</a>
+                                                </template>
                                             </template>
+                                            <template v-else>
+                                                <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
+                                                    class="actionBtn text-primary pull-right">
+                                                    Sending Referral&nbsp;
+                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                                </span>
+                                            </template>
+                                        </div>
+                                        <table class="table small-table">
+                                            <tr>
+                                                <th>Referral</th>
+                                                <th>Status/Action</th>
+                                            </tr>
+                                            <tr v-for="r in conservation_status_obj.latest_referrals">
+                                                <td>
+                                                    <small><strong>{{ r.referral_obj.first_name }} {{
+                                                        r.referral_obj.last_name }}</strong></small><br />
+                                                    <small><strong>{{ r.lodged_on | formatDate }}</strong></small>
+                                                </td>
+                                                <td>
+                                                    <small><strong>{{ r.processing_status }}</strong></small><br />
+                                                    <template v-if="r.processing_status == 'Awaiting'">
+                                                        <small v-if="canLimitedAction"><a
+                                                                @click.prevent="remindReferral(r)" href="#">Remind</a> /
+                                                            <a @click.prevent="recallReferral(r)"
+                                                                href="#">Recall</a></small>
+                                                    </template>
+                                                    <template v-else>
+                                                        <small v-if="canLimitedAction"><a
+                                                                @click.prevent="resendReferral(r)"
+                                                                href="#">Resend</a></small>
+                                                    </template>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <template>
+
+                                        </template>
+                                        <CSMoreReferrals @refreshFromResponse="refreshFromResponse"
+                                            :conservation_status_obj="conservation_status_obj"
+                                            :canAction="canLimitedAction" :isFinalised="isFinalised"
+                                            :referral_url="referralListURL" />
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="card-body border-bottom">
+                            <div class="row">
+                                <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
+                                    <strong>Currently assigned to</strong><br />
+                                    <div class="form-group">
+                                        <template v-if="conservation_status_obj.processing_status == 'With Approver'">
+                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
+                                                v-model="conservation_status_obj.assigned_approver">
+                                                <option v-for="member in conservation_status_obj.allowed_assessors"
+                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
+                                                </option>
+                                            </select>
+                                            <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
+                                                @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign
+                                                to me</a>
                                         </template>
                                         <template v-else>
-                                            <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled class="actionBtn text-primary pull-right">
-                                                Sending Referral&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                            </span>
+                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
+                                                v-model="conservation_status_obj.assigned_officer">
+                                                <option v-for="member in conservation_status_obj.allowed_assessors"
+                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
+                                                </option>
+                                            </select>
+                                            <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id"
+                                                @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign
+                                                to me</a>
                                         </template>
                                     </div>
-                                    <table class="table small-table">
-                                        <tr>
-                                            <th>Referral</th>
-                                            <th>Status/Action</th>
-                                        </tr>
-                                        <tr v-for="r in conservation_status_obj.latest_referrals">
-                                            <td>
-                                                <small><strong>{{r.referral_obj.first_name}} {{ r.referral_obj.last_name }}</strong></small><br/>
-                                                <small><strong>{{r.lodged_on | formatDate}}</strong></small>
-                                            </td>
-                                            <td>
-                                                <small><strong>{{r.processing_status}}</strong></small><br/>
-                                                <template v-if="r.processing_status == 'Awaiting'">
-                                                    <small v-if="canLimitedAction"><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)" href="#">Recall</a></small>
-                                                </template>
-                                                <template v-else>
-                                                    <small v-if="canLimitedAction"><a @click.prevent="resendReferral(r)" href="#">Resend</a></small>
-                                                </template>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    <template>
-                                            
-                                    </template>
-                                    <CSMoreReferrals @refreshFromResponse="refreshFromResponse" :conservation_status_obj="conservation_status_obj" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/>
-                                </div>
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                            </template>
-                            <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
-                                <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
-                                    <template v-if="conservation_status_obj.processing_status == 'With Approver'">
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="conservation_status_obj.assigned_approver">
-                                            <option v-for="member in conservation_status_obj.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
-                                    </template>
-                                    <template v-else>
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="conservation_status_obj.assigned_officer">
-                                            <option v-for="member in conservation_status_obj.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
-                                    </template>
                                 </div>
                             </div>
-                            
-                            <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
+                                    <template
+                                        v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <strong>Action</strong><br />
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                    @click.prevent="amendmentRequest()">Request
+                                                    Amendment</button><br />
+                                            </div>
+                                        </div>
+                                        <div class="row"
+                                            v-if="conservation_status_obj.list_approval_level == 'minister'">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                    @click.prevent="proposedReadyForAgenda()">Propose Ready For
+                                                    Agenda</button><br />
+                                            </div>
+                                        </div>
+                                        <div class="row"
+                                            v-if="conservation_status_obj.list_approval_level == 'intermediate'">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                    @click.prevent="declineProposal()">Decline</button><br />
+                                            </div>
+                                        </div>
+                                        <div class="row"
+                                            v-if="conservation_status_obj.list_approval_level == 'intermediate'">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                    @click.prevent="issueProposal()">Approve</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template v-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <strong>Action</strong><br />
+                                            </div>
+                                        </div>
+                                        <div class="row"
+                                            v-if="conservation_status_obj.list_approval_level == 'minister'">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                    @click.prevent="declineProposal()">Decline</button><br />
+                                            </div>
+                                        </div>
+                                        <div class="row"
+                                            v-if="conservation_status_obj.list_approval_level == 'minister'">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                    @click.prevent="issueProposal()">Approve</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <!-- TODO the below template section will not be needed/used  according to Marks workflow where assessor approves the proposal -->
+                                    <template v-else-if="conservation_status_obj.processing_status == 'With Approver'">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <strong>Action</strong><br />
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <label class="control-label pull-left" for="Name">Approver
+                                                    Comments</label>
+                                                <textarea class="form-control" name="name"
+                                                    v-model="approver_comment"></textarea><br>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary"
+                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                    @click.prevent="switchStatus('with_assessor')">Back To
+                                                    Assessor</button><br />
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                    @click.prevent="issueProposal()">Approve</button><br />
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                    @click.prevent="declineProposal()">Decline</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
-                                <template v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
+                                <template v-if="canDiscard">
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <strong>Action</strong><br/>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="amendmentRequest()">Request Amendment</button><br/>
-                                        </div>
-                                    </div>
-                                    <!-- <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="proposedDecline()">Propose to Decline</button>
+                                            <strong>Action</strong><br />
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="proposedApproval()">Propose to Approve</button><br/>
-                                        </div>
-                                    </div> -->
-                                    <div class="row" v-if="conservation_status_obj.list_approval_level == 'minister'">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="proposedReadyForAgenda()">Propose Ready For Agenda</button><br/>
-                                        </div>
-                                    </div>
-                                    <div class="row" v-if="conservation_status_obj.list_approval_level == 'intermediate'">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="declineProposal()">Decline</button><br/>
-                                        </div>
-                                    </div>
-                                    <div class="row" v-if="conservation_status_obj.list_approval_level == 'intermediate'">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="issueProposal()">Approve</button><br/>
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <strong>Action</strong><br/>
-                                        </div>
-                                    </div>
-                                    <div class="row" v-if="conservation_status_obj.list_approval_level == 'minister'">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="declineProposal()">Decline</button><br/>
-                                        </div>
-                                    </div>
-                                    <div class="row" v-if="conservation_status_obj.list_approval_level == 'minister'">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="issueProposal()">Approve</button><br/>
-                                        </div>
-                                    </div>
-                                </template>
-                                <!-- TODO the below template section will not be needed/used  according to Marks workflow where assessor approves the proposal -->
-                                <template v-else-if="conservation_status_obj.processing_status == 'With Approver'">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <strong>Action</strong><br/>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <label class="control-label pull-left"  for="Name">Approver Comments</label>
-                                            <textarea class="form-control" name="name" v-model="approver_comment"></textarea><br>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <!-- <div class="col-sm-12" v-if="conservation_status_obj.proposed_decline_status">
-                                            <button style="width:80%;" class="btn btn-primary" :disabled="conservation_status_obj.can_user_edit" @click.prevent="switchStatus('with_assessor')">Back To Assessor</button><br/>
-                                        </div>
-                                        <div class="col-sm-12" v-else>
-                                            <button style="width:80%;" class="btn btn-primary" :disabled="conservation_status_obj.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Back To Assessor</button><br/>
-                                        </div> -->
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary" :disabled="conservation_status_obj.can_user_edit" @click.prevent="switchStatus('with_assessor')">Back To Assessor</button><br/>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <!-- v-if="!proposal.proposed_decline_status" -->
-                                        <div class="col-sm-12" >
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="issueProposal()">Approve</button><br/>
-                                        </div>
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="conservation_status_obj.can_user_edit" @click.prevent="declineProposal()">Decline</button><br/>
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                @click.prevent="discardCSProposal()">Discard</button><br />
                                         </div>
                                     </div>
                                 </template>
                             </div>
-                            <template v-if="canDiscard">
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <strong>Action</strong><br/>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="discardCSProposal()">Discard</button><br/>
-                                    </div>
-                                </div>
-                            </template>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div v-if="!comparing" class="col-md-1"></div>
-        <!--<div class="col-md-8">-->
-        <div :class="class_ncols">
-            <div class="row">
-                <template>
-                    <div class="">
-                        <div class="row">
-                            <form :action="species_community_cs_form_url" method="post" name="new_conservation_status" enctype="multipart/form-data">
-                                <ProposalConservationStatus 
-                                    ref="conservation_status" 
-                                    :conservation_status_obj="conservation_status_obj" 
-                                    :canEditStatus="canEditStatus"
-                                    id="ConservationStatusStart" 
-                                    :is_internal="true">
-                                    <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
-                                </ProposalConservationStatus>
-                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
-                                <input type='hidden' name="conservation_status_id" :value="1" />
-                                <div class="row" style="margin-bottom: 50px">
-                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                        <!--the below as internal proposal submission ELSE just saving proposal changes -->
-                                        <div v-if="conservation_status_obj.internal_user_edit" class="container">
-                                            <div class="col-md-12 text-end">
-                                                <button v-if="savingConservationStatus" class="btn btn-primary me-2 pull-right" style="margin-top:5px;" disabled >Save and Continue&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary me-2 pull-right" style="margin-top:5px;" 
-                                                @click.prevent="save()" :disabled="saveExitConservationStatus || submitConservationStatus">Save and Continue</button>
-                                                
-                                                <button v-if="saveExitConservationStatus" class="btn btn-primary me-2 pull-right" style="margin-top:5px;" disabled >Save and Exit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary me-2 pull-right" style="margin-top:5px;" 
-                                                @click.prevent="save_exit()" :disabled="savingConservationStatus || submitConservationStatus">Save and Exit</button>
+            <div class="col-md-9">
+                <div class="row">
+                    <template>
+                        <div class="">
+                            <div class="row">
+                                <form :action="species_community_cs_form_url" method="post"
+                                    name="new_conservation_status" enctype="multipart/form-data">
+                                    <ProposalConservationStatus ref="conservation_status"
+                                        :conservation_status_obj="conservation_status_obj"
+                                        :canEditStatus="canEditStatus" id="ConservationStatusStart" :is_internal="true">
+                                        <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
+                                    </ProposalConservationStatus>
+                                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                                    <input type='hidden' name="conservation_status_id" :value="1" />
+                                    <div class="row" style="margin-bottom: 50px">
+                                        <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                            <!--the below as internal proposal submission ELSE just saving proposal changes -->
+                                            <div v-if="conservation_status_obj.internal_user_edit" class="container">
+                                                <div class="col-md-12 text-end">
+                                                    <button v-if="savingConservationStatus"
+                                                        class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
+                                                        disabled>Save and Continue&nbsp;
+                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                    <button v-else class="btn btn-primary me-2 pull-right"
+                                                        style="margin-top:5px;" @click.prevent="save()"
+                                                        :disabled="saveExitConservationStatus || submitConservationStatus">Save
+                                                        and Continue</button>
 
-                                                <button v-if="submitConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" 
-                                                @click.prevent="submit()" :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
+                                                    <button v-if="saveExitConservationStatus"
+                                                        class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
+                                                        disabled>Save and Exit&nbsp;
+                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                    <button v-else class="btn btn-primary me-2 pull-right"
+                                                        style="margin-top:5px;" @click.prevent="save_exit()"
+                                                        :disabled="savingConservationStatus || submitConservationStatus">Save
+                                                        and Exit</button>
+
+                                                    <button v-if="submitConservationStatus"
+                                                        class="btn btn-primary pull-right" style="margin-top:5px;"
+                                                        disabled>Submit&nbsp;
+                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                    <button v-else class="btn btn-primary pull-right"
+                                                        style="margin-top:5px;" @click.prevent="submit()"
+                                                        :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <div v-else-if="hasAssessorMode" class="container">
-                                            <div class="col-md-12 text-end">
-                                                <button v-if="savingConservationStatus" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Save Changes&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                <button v-else class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
+                                            <div v-else-if="hasAssessorMode" class="container">
+                                                <div class="col-md-12 text-end">
+                                                    <button v-if="savingConservationStatus"
+                                                        class="btn btn-primary pull-right" style="margin-top:5px;"
+                                                        disabled>Save Changes&nbsp;
+                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                    <button v-else class="btn btn-primary pull-right"
+                                                        style="margin-top:5px;" @click.prevent="save()">Save
+                                                        Changes</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </form>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                </template>
+                    </template>
+                </div>
             </div>
         </div>
-        </div>
-        <AmendmentRequest ref="amendment_request" :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
-        <ProposedDecline ref="proposed_decline" :processing_status="conservation_status_obj.processing_status" :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
-        <ProposedApproval ref="proposed_approval" :processing_status="conservation_status_obj.processing_status" :conservation_status_id="conservation_status_obj.id" :isApprovalLevelDocument="isApprovalLevelDocument" @refreshFromResponse="refreshFromResponse"/>
-        
+        <AmendmentRequest ref="amendment_request" :conservation_status_id="conservation_status_obj.id"
+            @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
+        <ProposedDecline ref="proposed_decline" :processing_status="conservation_status_obj.processing_status"
+            :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse">
+        </ProposedDecline>
+        <ProposedApproval ref="proposed_approval" :processing_status="conservation_status_obj.processing_status"
+            :conservation_status_id="conservation_status_obj.id" :isApprovalLevelDocument="isApprovalLevelDocument"
+            @refreshFromResponse="refreshFromResponse" />
+
     </div>
 </template>
 <script>
@@ -298,38 +333,37 @@ import {
     api_endpoints,
     helpers
 }
-from '@/utils/hooks'
+    from '@/utils/hooks'
 export default {
     name: 'InternalConservationStatus',
-    data: function() {
+    data: function () {
         let vm = this;
         return {
-            "conservation_status_obj":null,
+            "conservation_status_obj": null,
             "original_conservation_status_obj": null,
             "loading": [],
             form: null,
-            savingConservationStatus:false,
+            savingConservationStatus: false,
             saveExitConservationStatus: false,
             submitConservationStatus: false,
             submitting: false,
             saveExitCSProposal: false,
-            savingCSProposal:false,
-            department_users : [],
+            savingCSProposal: false,
+            department_users: [],
             selected_referral: '',
             referral_text: '',
             approver_comment: '',
             sendingReferral: false,
-            changingStatus:false,
-            proposeReadyForAgenda:false,
-            
+            changingStatus: false,
+            proposeReadyForAgenda: false,
+
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/add_comms_log'),
-            logs_url: helpers.add_endpoint_json(api_endpoints.conservation_status,vm.$route.params.conservation_status_id+'/action_log'),
-            comparing: false,
+            comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/comms_log'),
+            comms_add_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/add_comms_log'),
+            logs_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/action_log'),
             initialisedSelects: false,
             cs_proposal_readonly: true,
-            isSaved:false,
+            isSaved: false,
         }
     },
     components: {
@@ -344,129 +378,149 @@ export default {
         ProposedApproval,
     },
     filters: {
-        formatDate: function(data){
-            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
+        formatDate: function (data) {
+            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
         }
     },
-    watch: {
-    },
     computed: {
-        csrf_token: function() {
-          return helpers.getCookie('csrftoken')
+        csrf_token: function () {
+            return helpers.getCookie('csrftoken')
         },
-        referralListURL: function(){
-            return this.conservation_status_obj!= null ? helpers.add_endpoint_json(api_endpoints.cs_referrals,'datatable_list')+'?conservation_status='+this.conservation_status_obj.id : '';
+        referralListURL: function () {
+            return this.conservation_status_obj != null ? helpers.add_endpoint_json(api_endpoints.cs_referrals, 'datatable_list') + '?conservation_status=' + this.conservation_status_obj.id : '';
         },
-        species_community_cs_form_url: function() {
-            if(this.$route.query.action == 'edit'){
+        species_community_cs_form_url: function () {
+            if (this.$route.query.action == 'edit') {
                 return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_edit.json`;
             }
-            else{
+            else {
                 return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
             }
         },
-        display_group_type: function() {
-            let group_type_string=this.conservation_status_obj.group_type
+        display_group_type: function () {
+            let group_type_string = this.conservation_status_obj.group_type
             // to Capitalize only first character
             return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
         },
-        display_number: function() {
+        display_number: function () {
             return this.conservation_status_obj.conservation_status_number;
         },
-        display_name: function() {
-            return (this.conservation_status_obj.group_type === "community") ? 
-                    this.conservation_status_obj.conservation_status_number : 
-                    this.conservation_status_obj.conservation_status_number;
+        display_name: function () {
+            return (this.conservation_status_obj.group_type === "community") ?
+                this.conservation_status_obj.conservation_status_number :
+                this.conservation_status_obj.conservation_status_number;
         },
-        class_ncols: function(){
-            return this.comparing ? 'col-md-12' : 'col-md-8';
-        },
-        submitter_first_name: function(){
-            if (this.conservation_status_obj.submitter){
+        submitter_first_name: function () {
+            if (this.conservation_status_obj.submitter) {
                 return this.conservation_status_obj.submitter.first_name
             } else {
                 return ''
             }
         },
-        submitter_last_name: function(){
-            if (this.conservation_status_obj.submitter){
+        submitter_last_name: function () {
+            if (this.conservation_status_obj.submitter) {
                 return this.conservation_status_obj.submitter.last_name
             } else {
                 return ''
             }
         },
-        submitter_id: function(){
-            if (this.conservation_status_obj.submitter){
+        submitter_id: function () {
+            if (this.conservation_status_obj.submitter) {
                 return this.conservation_status_obj.submitter.id
             } else {
                 //eturn this.conservation_status_obj.applicant_obj.id
             }
         },
-        submitter_email: function(){
-            if (this.conservation_status_obj.submitter){
+        submitter_email: function () {
+            if (this.conservation_status_obj.submitter) {
                 return this.conservation_status_obj.submitter.email
             } else {
                 //return this.conservation_status_obj.applicant_obj.email
             }
         },
-        canSeeSubmission: function(){
-            /*return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)*/
-
+        canSeeSubmission: function () {
             return true; // TODO the Processing Status based value
         },
-        canEditStatus: function(){
-            return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit: 'false';
+        canEditStatus: function () {
+            return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit : 'false';
         },
-        isFinalised: function(){
+        isFinalised: function () {
             return this.conservation_status_obj.processing_status == 'Declined' || this.conservation_status_obj.processing_status == 'Approved';
         },
-        canLimitedAction: function(){
-            if (this.conservation_status_obj.processing_status == 'With Approver'){
-                return this.conservation_status_obj && (this.conservation_status_obj.processing_status == 'With Assessor' || this.conservation_status_obj.processing_status == 'With Referral') && !this.isFinalised && !this.conservation_status_obj.can_user_edit && (this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver || this.conservation_status_obj.assigned_approver == null ) && this.conservation_status_obj.assessor_mode.assessor_can_assess? true : false;
+        canLimitedAction: function () {
+            if (this.conservation_status_obj.processing_status == 'With Approver') {
+                return this.conservation_status_obj && (this.conservation_status_obj.processing_status == 'With Assessor' || this.conservation_status_obj.processing_status == 'With Referral') && !this.isFinalised && !this.conservation_status_obj.can_user_edit && (this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver || this.conservation_status_obj.assigned_approver == null) && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
-            else{
-                return this.conservation_status_obj && (this.conservation_status_obj.processing_status == 'With Assessor' || this.conservation_status_obj.processing_status == 'With Referral') && !this.isFinalised && !this.conservation_status_obj.can_user_edit && (this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer || this.conservation_status_obj.assigned_officer == null ) && this.conservation_status_obj.assessor_mode.assessor_can_assess? true : false;
+            else {
+                return this.conservation_status_obj
+                    && (
+                        this.conservation_status_obj.processing_status == 'With Assessor'
+                        || this.conservation_status_obj.processing_status == 'With Referral'
+                    )
+                    && !this.isFinalised
+                    && !this.conservation_status_obj.can_user_edit
+                    && (
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
+                        || this.conservation_status_obj.assigned_officer == null
+                    )
+                    && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
         },
-        canAction: function(){
-            if (this.conservation_status_obj.processing_status == 'With Approver'){
-                return this.conservation_status_obj && (this.conservation_status_obj.processing_status == 'With Approver' || this.conservation_status_obj.processing_status == 'With Assessor') && !this.isFinalised && !this.conservation_status_obj.can_user_edit && (this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver || this.conservation_status_obj.assigned_approver == null ) && this.conservation_status_obj.assessor_mode.assessor_can_assess? true : false;
+        canAction: function () {
+            if (this.conservation_status_obj.processing_status == 'With Approver') {
+                return this.conservation_status_obj
+                    && !this.isFinalised
+                    && !this.conservation_status_obj.can_user_edit
+                    && (
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
+                        || this.conservation_status_obj.assigned_approver == null
+                    )
+                    && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
-            else{
-                return this.conservation_status_obj && (this.conservation_status_obj.processing_status == 'With Approver' || this.conservation_status_obj.processing_status == 'With Assessor' || this.conservation_status_obj.processing_status == 'Ready For Agenda') && !this.isFinalised && !this.conservation_status_obj.can_user_edit && (this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer || this.conservation_status_obj.assigned_officer == null ) && this.conservation_status_obj.assessor_mode.assessor_can_assess? true : false;
+            else {
+                return this.conservation_status_obj
+                    && (
+                        this.conservation_status_obj.processing_status == 'With Assessor'
+                        || this.conservation_status_obj.processing_status == 'Ready For Agenda'
+                    )
+                    && !this.isFinalised &&
+                    !this.conservation_status_obj.can_user_edit
+                    && (
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
+                        || this.conservation_status_obj.assigned_officer == null
+                    )
+                    && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
         },
-        canAssess: function(){
+        canAssess: function () {
             return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
         },
-        hasAssessorMode:function(){
+        hasAssessorMode: function () {
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (this.conservation_status_obj.processing_status == 'Approved'){
-                if(this.$route.query.action == 'edit')
-                {
+            if (this.conservation_status_obj.processing_status == 'Approved') {
+                if (this.$route.query.action == 'edit') {
                     return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode ? true : false;
                 }
-                else{
+                else {
                     return false;
                 }
             }
-            else{
+            else {
                 return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode ? true : false;
             }
         },
-        isApprovalLevelDocument: function(){
-            //return this.conservation_status_obj && this.conservation_status_obj.processing_status == 'With Approver' && this.conservation_status_obj.approval_level != null && this.conservation_status_obj.approval_level_document == null ? true : false;
+        isApprovalLevelDocument: function () {
             return false;
         },
-        canDiscard: function(){
+        canDiscard: function () {
             return this.conservation_status_obj.internal_user_edit;
         },
     },
     methods: {
-        commaToNewline(s){
+        commaToNewline(s) {
             return s.replace(/[,;]/g, '\n');
         },
-        discardCSProposal:function () {
+        discardCSProposal: function () {
             let vm = this;
             swal.fire({
                 title: "Discard Application",
@@ -474,719 +528,607 @@ export default {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Application',
-                confirmButtonColor:'#d9534f'
+                confirmButtonColor: '#d9534f'
             }).then((result) => {
-                if(result.isConfirmed){
+                if (result.isConfirmed) {
                     vm.$http.delete(api_endpoints.discard_cs_proposal(vm.conservation_status_obj.id))
-                    .then((response) => {
-                        swal.fire({
-                            title: 'Discarded',
-                            text: 'Your proposal has been discarded',
-                            icon: 'success',
-                            confirmButtonColor:'#226fbb',
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'Your proposal has been discarded',
+                                icon: 'success',
+                                confirmButtonColor: '#226fbb',
+                            });
+                            vm.$router.push({
+                                name: 'internal-conservation_status-dash'
+                            });
+                        }, (error) => {
+                            console.log(error);
                         });
-                        vm.$router.push({
-                        name: 'internal-conservation_status-dash'
-                        });
-                    }, (error) => {
-                        console.log(error);
-                    });
                 }
-            },(error) => {
-
             });
         },
-        amendmentRequest: function(){
-            //this.save_wo();
+        amendmentRequest: function () {
             let value = '';
             value = $('#assessor_deficiencies').val();
-            /*$('#assessor_deficiencies').each((i,d) => {
-                values +=  $(d).val() != '' ? `Question - ${$(d).data('question')}\nDeficiency - ${$(d).val()}\n\n`: '';
-            }); */
             this.$refs.amendment_request.amendment.text = value;
-            
             this.$refs.amendment_request.isModalOpen = true;
         },
-        proposedReadyForAgenda: function(){
+        proposedReadyForAgenda: function () {
             let vm = this;
             vm.proposeReadyForAgenda = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_obj.id+'/proposed_ready_for_agenda')).then((response)=>{
-                        vm.proposeReadyForAgenda = false;
-                        vm.$router.push({ path: '/internal/conservation-status/' }); //Navigate to dashboard page after Propose issue.
-                    },(error)=>{
-                        vm.errors = true;
-                        vm.proposeReadyForAgenda = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/proposed_ready_for_agenda')).then((response) => {
+                vm.proposeReadyForAgenda = false;
+                vm.$router.push({ path: '/internal/conservation-status/' }); //Navigate to dashboard page after Propose issue.
+            }, (error) => {
+                vm.errors = true;
+                vm.proposeReadyForAgenda = false;
+                vm.errorString = helpers.apiVueResourceError(error);
+            });
         },
-        proposedApproval: function(){
-            //this.$refs.proposed_approval.approval = this.conservation_status_obj.proposed_issuance_approval != null ? helpers.copyObject(this.conservation_status_obj.proposed_issuance_approval) : {};
+        proposedApproval: function () {
             this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
-            // Priya - Commented below as  we don't have other details on the form yet
-            // if((this.conservation_status_obj.proposed_issuance_approval==null || this.conservation_status_obj.proposed_issuance_approval.effective_to_date==null) && this.conservation_status_obj.other_details.proposed_end_date!=null){
-            //     // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
-            //     var test_approval={
-            //         'start_date': this.proposal.other_details.nominated_start_date,
-            //         'expiry_date': this.proposal.other_details.proposed_end_date
-            //     };
-            //     this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
-            // }
             this.$refs.proposed_approval.isModalOpen = true;
         },
-        issueProposal:function(){
+        issueProposal: function () {
             this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
             this.$refs.proposed_approval.state = 'final_approval';
             this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument;
             this.$refs.proposed_approval.isModalOpen = true;
         },
-        proposedDecline: function(){
+        proposedDecline: function () {
             this.save_wo();
-            this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails): {};
+            this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails) : {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
-        declineProposal:function(){
-            this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails): {};
+        declineProposal: function () {
+            this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails) : {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
-        save: async function(e) {
+        save: async function (e) {
             let vm = this;
-            var missing_data= vm.can_submit("");
-            if(missing_data!=true){
+            var missing_data = vm.can_submit("");
+            if (missing_data != true) {
                 swal.fire({
                     title: "Please fix following errors before saving",
                     text: missing_data,
-                    icon:'error',
-                    confirmButtonColor:'#226fbb'
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
                 })
-                //vm.paySubmitting=false;
                 return false;
             }
             vm.isSaved = false;
-            vm.savingConservationStatus=true;
+            vm.savingConservationStatus = true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            await vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            await vm.$http.post(vm.species_community_cs_form_url, payload).then(res => {
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes has been saved',
                     icon: 'success',
-                    confirmButtonColor:'#226fbb',
+                    confirmButtonColor: '#226fbb',
                 });
-              vm.savingConservationStatus=false;
-              vm.isSaved = true;
-          },err=>{
-            var errorText=helpers.apiVueResourceError(err); 
+                vm.savingConservationStatus = false;
+                vm.isSaved = true;
+            }, err => {
+                var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor:'#226fbb'
+                    confirmButtonColor: '#226fbb'
                 });
-            vm.savingConservationStatus=false;
-            vm.isSaved = false;
-          });
+                vm.savingConservationStatus = false;
+                vm.isSaved = false;
+            });
         },
-        save_exit: async function(e){
+        save_exit: async function (e) {
             let vm = this;
-            var missing_data= vm.can_submit("");
-            if(missing_data!=true){
+            var missing_data = vm.can_submit("");
+            if (missing_data != true) {
                 swal.fire({
                     title: "Please fix following errors before saving",
                     text: missing_data,
-                    icon:'error',
-                    confirmButtonColor:'#226fbb'
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
                 })
-                //vm.paySubmitting=false;
                 return false;
             }
-            vm.saveExitConservationStatus=true;
-            await this.save(e).then(()=>{
-                if(vm.isSaved === true){
-                    // redirect back to dashboard
+            vm.saveExitConservationStatus = true;
+            await this.save(e).then(() => {
+                if (vm.isSaved === true) {
                     vm.$router.push({
-                            name: 'internal-conservation_status-dash'
-                        });
-                }else{
-                    vm.saveExitConservationStatus=false;
+                        name: 'internal-conservation_status-dash'
+                    });
+                } else {
+                    vm.saveExitConservationStatus = false;
                 }
             });
         },
-        save_before_submit: async function(e) {
-            //console.log('save before submit');
+        save_before_submit: async function (e) {
             let vm = this;
-            vm.saveError=false;
+            vm.saveError = false;
 
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            const result = await vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
+            const result = await vm.$http.post(vm.species_community_cs_form_url, payload).then(res => {
                 //return true;
-            },err=>{
-                        var errorText=helpers.apiVueResourceError(err); 
-                        swal.fire({
-                            title: 'Submit Error',
-                            //helpers.apiVueResourceError(err),
-                            text: errorText,
-                            icon: 'error',
-                            confirmButtonColor:'#226fbb'
-                        });
-                        vm.submitConservationStatus=false;
-                        vm.saveError=true;
-                        //return false;
+            }, err => {
+                var errorText = helpers.apiVueResourceError(err);
+                swal.fire({
+                    title: 'Submit Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
+                });
+                vm.submitConservationStatus = false;
+                vm.saveError = true;
             });
             return result;
         },
-        // can_save: function(){
-        //     let vm=this;
-        //     let blank_fields=[]
-        //     if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
-        //         if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
-        //             blank_fields.push(' Species is missing')
-        //         }
-        //     }
-        //     else{
-        //         if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == ''){
-        //             blank_fields.push(' Community is missing')
-        //         }
-        //     }
-        //     if(blank_fields.length==0){
-        //         return true;
-        //     }
-        //     else{
-        //         return blank_fields;
-        //     }
-        // },
-        can_submit: function(check_action){
-            let vm=this;
-            let blank_fields=[]
-            // TODO check blank 
-            blank_fields=vm.can_submit_conservation_status(check_action);
-            
-            if(blank_fields.length==0){
+        can_submit: function (check_action) {
+            let vm = this;
+            let blank_fields = []
+            // TODO check blank
+            blank_fields = vm.can_submit_conservation_status(check_action);
+
+            if (blank_fields.length == 0) {
                 return true;
             }
-            else{
+            else {
                 return blank_fields;
             }
         },
-        can_submit_conservation_status: function(check_action){
-            let vm=this;
-            let blank_fields=[]
-            if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna'){
-                if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == ''){
+        can_submit_conservation_status: function (check_action) {
+            let vm = this;
+            let blank_fields = []
+            if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna') {
+                if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == '') {
                     blank_fields.push(' Scientific Name is missing')
                 }
             }
-            else{
-                if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == ''){
+            else {
+                if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == '') {
                     blank_fields.push(' Community Name is missing')
                 }
             }
-            if(check_action == "submit"){
-                if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == ''){
+            if (check_action == "submit") {
+                if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == '') {
                     blank_fields.push(' Conservation List is missing')
                 }
-                if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == ''){
+                if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == '') {
                     blank_fields.push(' Conservation Category is missing')
                 }
             }
             return blank_fields
         },
-        submit: async function(){
+        submit: async function () {
             let vm = this;
 
-            var missing_data= vm.can_submit("submit");
-            if(missing_data!=true){
+            var missing_data = vm.can_submit("submit");
+            if (missing_data != true) {
                 swal.fire({
                     title: "Please fix following errors before submitting",
                     text: missing_data,
-                    icon:'error',
-                    confirmButtonColor:'#226fbb'
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
                 })
-                //vm.paySubmitting=false;
                 return false;
             }
-            vm.submitConservationStatus=true;
+            vm.submitConservationStatus = true;
             swal.fire({
                 title: "Submit New Conservation Status Application",
                 text: "Are you sure you want to submit this application?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor:'#226fbb'
+                confirmButtonColor: '#226fbb'
             }).then(async (swalresult) => {
-                if(swalresult.isConfirmed){
+                if (swalresult.isConfirmed) {
                     let result = await vm.save_before_submit()
-                    if(!vm.saveError){
+                    if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.conservation_status_obj);
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,vm.conservation_status_obj.id+'/submit'),payload).then(res=>{
+                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), payload).then(res => {
                             vm.conservation_status_obj = res.body;
-                            // vm.$router.push({
-                            //     name: 'submit_cs_proposal',
-                            //     params: { conservation_status_obj: vm.conservation_status_obj}
-                            // });
-                        // TODO router should push to submit_cs_proposal for internal side 
+                            // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
                                 name: 'internal-conservation_status-dash'
                             });
-                        },err=>{
+                        }, err => {
                             swal.fire({
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor:'#226fbb'
+                                confirmButtonColor: '#226fbb'
                             });
                         });
                     }
                 }
-            },(error) => {
-                vm.submitConservationStatus=false;
+            }, (error) => {
+                vm.submitConservationStatus = false;
             });
         },
-        save_wo: function() {
+        save_wo: function () {
             let vm = this;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
-                },err=>{
+            vm.$http.post(vm.species_community_cs_form_url, payload).then(res => {
+            }, err => {
             });
         },
-        refreshFromResponse:function(response){
+        refreshFromResponse: function (response) {
             let vm = this;
             vm.original_conservation_status_obj = helpers.copyObject(response.body);
             vm.conservation_status_obj = helpers.copyObject(response.body);
-            // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
             vm.$nextTick(() => {
                 vm.initialiseAssignedOfficerSelect(true);
                 vm.updateAssignedOfficerSelect();
             });
         },
-        assignTo: function(){
+        assignTo: function () {
             let vm = this;
             let unassign = true;
             let data = {};
-            if (vm.conservation_status_obj.processing_status == 'With Approver'){
-                unassign = vm.conservation_status_obj.assigned_approver != null && vm.conservation_status_obj.assigned_approver != 'undefined' ? false: true;
-                data = {'assessor_id': vm.conservation_status_obj.assigned_approver};
+            if (vm.conservation_status_obj.processing_status == 'With Approver') {
+                unassign = vm.conservation_status_obj.assigned_approver != null && vm.conservation_status_obj.assigned_approver != 'undefined' ? false : true;
+                data = { 'assessor_id': vm.conservation_status_obj.assigned_approver };
             }
-            else{
-                unassign = vm.conservation_status_obj.assigned_officer != null && vm.conservation_status_obj.assigned_officer != 'undefined' ? false: true;
-                data = {'assessor_id': vm.conservation_status_obj.assigned_officer};
+            else {
+                unassign = vm.conservation_status_obj.assigned_officer != null && vm.conservation_status_obj.assigned_officer != 'undefined' ? false : true;
+                data = { 'assessor_id': vm.conservation_status_obj.assigned_officer };
             }
-            if (!unassign){
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/assign_to')),JSON.stringify(data),{
-                    emulateJSON:true
+            if (!unassign) {
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_to')), JSON.stringify(data), {
+                    emulateJSON: true
                 }).then((response) => {
                     vm.conservation_status_obj = response.body;
                     vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                    
-                    // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
                     vm.updateAssignedOfficerSelect();
-                    //vm.fetchProposalParks(vm.proposal.id);
                 }, (error) => {
                     vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
-                   /* vm.conservation_status_obj.org_applicant.address = vm.conservation_status_obj.org_applicant.address != null ? vm.conservation_status_obj.org_applicant.address : {};*/
-                    
                     vm.updateAssignedOfficerSelect();
-                    //vm.fetchProposalParks(vm.proposal.id);
                     swal.fire({
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor:'#226fbb'
+                        confirmButtonColor: '#226fbb'
                     });
                 });
             }
-            else{
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/unassign')))
-                .then((response) => {
-                    vm.conservation_status_obj = response.body;
-                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                    
-                    // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                    vm.updateAssignedOfficerSelect();
-                    //vm.fetchProposalParks(vm.proposal.id);
-                }, (error) => {
-                    vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
-                    /*vm.conservation_status_obj.org_applicant.address = vm.conservation_status_obj.org_applicant.address != null ? vm.conservation_status_obj.org_applicant.address : {};*/
-                    
-                    vm.updateAssignedOfficerSelect();
-                    //vm.fetchProposalParks(vm.proposal.id);
-                    swal.fire({
-                        title: 'Application Error',
-                        text: helpers.apiVueResourceError(error),
-                        icon: 'error',
-                        confirmButtonColor:'#226fbb'
+            else {
+                vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/unassign')))
+                    .then((response) => {
+                        vm.conservation_status_obj = response.body;
+                        vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                        vm.updateAssignedOfficerSelect();
+                    }, (error) => {
+                        vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+
+                        vm.updateAssignedOfficerSelect();
+                        swal.fire({
+                            title: 'Application Error',
+                            text: helpers.apiVueResourceError(error),
+                            icon: 'error',
+                            confirmButtonColor: '#226fbb'
+                        });
                     });
-                });
             }
         },
-        updateAssignedOfficerSelect:function(){
+        updateAssignedOfficerSelect: function () {
             let vm = this;
-            if (vm.conservation_status_obj.processing_status == 'With Approver'){
+            if (vm.conservation_status_obj.processing_status == 'With Approver') {
                 $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_approver);
                 $(vm.$refs.assigned_officer).trigger('change');
             }
-            else{
+            else {
                 $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_officer);
                 $(vm.$refs.assigned_officer).trigger('change');
             }
         },
-        assignRequestUser: function(){
+        assignRequestUser: function () {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/assign_request_user')))
-            .then((response) => {
-                vm.conservation_status_obj = response.body;
-                //vm.fetchProposalParks(vm.proposal.id);
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                vm.updateAssignedOfficerSelect();
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_request_user')))
+                .then((response) => {
+                    vm.conservation_status_obj = response.body;
+                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                    vm.updateAssignedOfficerSelect();
 
-            }, (error) => {
-                vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
-                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
-                vm.updateAssignedOfficerSelect();
-                swal.fire({
-                    title: 'Application Error',
-                    text: helpers.apiVueResourceError(error),
-                    icon :'error',
-                    confirmButtonColor:'#226fbb'
+                }, (error) => {
+                    vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+                    vm.updateAssignedOfficerSelect();
+                    swal.fire({
+                        title: 'Application Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
                 });
-            });
         },
-        initialiseAssignedOfficerSelect:function(reinit=false){
+        initialiseAssignedOfficerSelect: function (reinit = false) {
             let vm = this;
-            if (reinit){
-                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy'): '';
+            if (reinit) {
+                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy') : '';
             }
             // Assigned officer select
             $(vm.$refs.assigned_officer).select2({
                 "theme": "bootstrap-5",
                 allowClear: true,
-                placeholder:"Select Officer"
+                placeholder: "Select Officer"
             }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                if (vm.conservation_status_obj.processing_status == 'With Approver'){
-                    vm.conservation_status_obj.assigned_approver = selected.val();
-                }
-                else{
-                    vm.conservation_status_obj.assigned_officer = selected.val();
-                }
-                vm.assignTo();
-            }).on("select2:unselecting", function(e) {
-                var self = $(this);
-                setTimeout(() => {
-                    self.select2('close');
-                }, 0);
-            }).on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                if (vm.conservation_status_obj.processing_status == 'With Approver'){
-                    vm.conservation_status_obj.assigned_approver = null;
-                }
-                else{
-                    vm.conservation_status_obj.assigned_officer = null;
-                }
-                vm.assignTo();
-            });
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    if (vm.conservation_status_obj.processing_status == 'With Approver') {
+                        vm.conservation_status_obj.assigned_approver = selected.val();
+                    }
+                    else {
+                        vm.conservation_status_obj.assigned_officer = selected.val();
+                    }
+                    vm.assignTo();
+                }).on("select2:unselecting", function (e) {
+                    var self = $(this);
+                    setTimeout(() => {
+                        self.select2('close');
+                    }, 0);
+                }).on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    if (vm.conservation_status_obj.processing_status == 'With Approver') {
+                        vm.conservation_status_obj.assigned_approver = null;
+                    }
+                    else {
+                        vm.conservation_status_obj.assigned_officer = null;
+                    }
+                    vm.assignTo();
+                });
         },
-        fetchDeparmentUsers: function(){
+        fetchDeparmentUsers: function () {
             let vm = this;
             vm.loading.push('Loading Department Users');
             vm.$http.get(api_endpoints.department_users).then((response) => {
                 vm.department_users = response.body
-                vm.loading.splice('Loading Department Users',1);
-            },(error) => {
+                vm.loading.splice('Loading Department Users', 1);
+            }, (error) => {
                 console.log(error);
-                vm.loading.splice('Loading Department Users',1);
+                vm.loading.splice('Loading Department Users', 1);
             })
         },
-        initialiseSelects: function(){
+        initialiseSelects: function () {
             let vm = this;
-            if (!vm.initialisedSelects){
+            if (!vm.initialisedSelects) {
                 $(vm.$refs.department_users).select2({
-                minimumInputLength: 2,
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder:"Select Referrer",
-                ajax: {
-                    url: api_endpoints.users_api + '/get_department_users/',
-                    dataType: 'json',
-                    data: function(params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                        }
-                        return query;
+                    minimumInputLength: 2,
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    placeholder: "Select Referrer",
+                    ajax: {
+                        url: api_endpoints.users_api + '/get_department_users/',
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            }
+                            return query;
+                        },
                     },
-                },
                 })
-                .on("select2:select", function (e) {
-                    //var selected = $(e.currentTarget);
-                    //vm.selected_referral = selected.val();
-                    let data = e.params.data.id;
-                    vm.selected_referral = data;
-                })
-                .on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_referral = null;
-                })
+                    .on("select2:select", function (e) {
+                        let data = e.params.data.id;
+                        vm.selected_referral = data;
+                    })
+                    .on("select2:unselect", function (e) {
+                        var selected = $(e.currentTarget);
+                        vm.selected_referral = null;
+                    })
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
         },
-        sendReferral: function(){
+        sendReferral: function () {
             let vm = this;
-            //vm.save_wo();
-            //TODO in boranga below checkAssessorData()
-            //vm.checkAssessorData();
             let formData = new FormData(vm.form);
             vm.sendingReferral = true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            vm.$http.post(vm.species_community_cs_form_url,payload).then(res=>{
-
-            let data = {'email':vm.selected_referral, 'text': vm.referral_text};
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/assesor_send_referral')),JSON.stringify(data),{
-                emulateJSON:true
-            }).then((response) => {
-                vm.sendingReferral = false;
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                vm.conservation_status_obj = response.body;
-                swal.fire({
-                    title: 'Referral Sent',
-                    text: 'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
-                    icon: 'success',
-                    confirmButtonColor:'#226fbb'
+            vm.$http.post(vm.species_community_cs_form_url, payload).then(res => {
+                let data = { 'email': vm.selected_referral, 'text': vm.referral_text };
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assesor_send_referral')), JSON.stringify(data), {
+                    emulateJSON: true
+                }).then((response) => {
+                    vm.sendingReferral = false;
+                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                    vm.conservation_status_obj = response.body;
+                    swal.fire({
+                        title: 'Referral Sent',
+                        text: 'The referral has been sent to ' + vm.department_users.find(d => d.email == vm.selected_referral).name,
+                        icon: 'success',
+                        confirmButtonColor: '#226fbb'
+                    });
+                    $(vm.$refs.department_users).val(null).trigger("change");
+                    vm.selected_referral = '';
+                    vm.referral_text = '';
+                }, (error) => {
+                    console.log(error);
+                    swal.fire({
+                        title: 'Referral Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
+                    vm.sendingReferral = false;
                 });
-                $(vm.$refs.department_users).val(null).trigger("change");
-                vm.selected_referral = '';
-                vm.referral_text = '';
-            }, (error) => {
-                console.log(error);
-                swal.fire({
-                    title: 'Referral Error',
-                    text: helpers.apiVueResourceError(error),
-                    icon: 'error',
-                    confirmButtonColor:'#226fbb'
-                });
-                vm.sendingReferral = false;
             });
-
-
-          },err=>{
-          });
         },
-        remindReferral:function(r){
+        remindReferral: function (r) {
             let vm = this;
-
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/remind')).then(response => {
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/remind')).then(response => {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
-                //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 swal.fire({
                     title: 'Referral Reminder',
-                    text: 'A reminder has been sent to '+vm.department_users.find(d => d.id == r.referral).name,
+                    text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral).name,
                     icon: 'success',
-                    confirmButtonColor:'#226fbb'
+                    confirmButtonColor: '#226fbb'
                 });
             },
-            error => {
-                swal.fire({
-                    title: 'Referral Reminder Error',
-                    text: helpers.apiVueResourceError(error),
-                    icon: 'error',
-                    confirmButtonColor:'#226fbb'
+                error => {
+                    swal.fire({
+                        title: 'Referral Reminder Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
                 });
-            });
         },
-        recallReferral:function(r){
+        recallReferral: function (r) {
             let vm = this;
             swal.fire({
-                    title: "Loading...",
-                    //text: "Loading...",
-                    allowOutsideClick: false,
-                    allowEscapeKey:false,
-                    onOpen: () =>{
-                        swal.showLoading()
-                    }
+                title: "Loading...",
+                //text: "Loading...",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                onOpen: () => {
+                    swal.showLoading()
+                }
             })
 
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/recall')).then(response => {
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall')).then(response => {
                 swal.hideLoading();
                 swal.close();
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
-                //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 swal.fire({
                     title: 'Referral Recall',
-                    text: 'The referral has been recalled from '+vm.department_users.find(d => d.id == r.referral).name,
+                    text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral).name,
                     icon: 'success',
-                    confirmButtonColor:'#226fbb'
+                    confirmButtonColor: '#226fbb'
                 });
             },
-            error => {
-                swal.fire({
-                    title: 'Referral Recall Error',
-                    text: helpers.apiVueResourceError(error),
-                    icon: 'error',
-                    confirmButtonColor:'#226fbb'
+                error => {
+                    swal.fire({
+                        title: 'Referral Recall Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
                 });
-            });
         },
-        resendReferral:function(r){
+        resendReferral: function (r) {
             let vm = this;
 
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals,r.id+'/resend')).then(response => {
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(response => {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
-                //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 swal.fire({
                     title: 'Referral Resent',
-                    text: 'The referral has been resent to '+vm.department_users.find(d => d.id == r.referral).name,
+                    text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral).name,
                     icon: 'success',
-                    confirmButtonColor:'#226fbb'
+                    confirmButtonColor: '#226fbb'
                 });
             },
-            error => {
-                swal.fire({
-                    title: 'Referral Resent Error',
-                    text: helpers.apiVueResourceError(error),
-                    icon: 'error',
-                    confirmButtonColor:'#226fbb'
+                error => {
+                    swal.fire({
+                        title: 'Referral Resent Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
                 });
-            });
         },
-        switchStatus: function(status){
+        switchStatus: function (status) {
             let vm = this;
-            //vm.save_wo();
-            //let vm = this;
-            //if approver is pushing back proposal to Assessor then navigate the approver back to dashboard page
-            if(vm.conservation_status_obj.processing_status == 'With Approver' && status=='with_assessor') {
-                let data = {'status': status, 'approver_comment': vm.approver_comment}
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/switch_status')),JSON.stringify(data),{
-                    emulateJSON:true,
+            if (vm.conservation_status_obj.processing_status == 'With Approver' && status == 'with_assessor') {
+                let data = { 'status': status, 'approver_comment': vm.approver_comment }
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/switch_status')), JSON.stringify(data), {
+                    emulateJSON: true,
                 })
-                .then((response) => {
-                    vm.conservation_status_obj = response.body;
-                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                    vm.approver_comment='';
-                    vm.$nextTick(() => {
-                        vm.initialiseAssignedOfficerSelect(true);
-                        vm.updateAssignedOfficerSelect();
+                    .then((response) => {
+                        vm.conservation_status_obj = response.body;
+                        vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                        vm.approver_comment = '';
+                        vm.$nextTick(() => {
+                            vm.initialiseAssignedOfficerSelect(true);
+                            vm.updateAssignedOfficerSelect();
+                        });
+                        vm.$router.push({ path: '/internal/conservation-status/' });
+                    }, (error) => {
+                        vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+                        swal.fire({
+                            title: 'Application Error',
+                            text: helpers.apiVueResourceError(error),
+                            icon: 'error',
+                            confirmButtonColor: '#226fbb'
+                        });
                     });
-                    vm.$router.push({ path: '/internal/conservation-status/' });
-                }, (error) => {
-                    vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
-                    swal.fire({
-                        title: 'Application Error',
-                        text: helpers.apiVueResourceError(error),
-                        icon: 'error',
-                        confirmButtonColor:'#226fbb'
-                    });
-                });
             }
-            else{
-                let data = {'status': status, 'approver_comment': vm.approver_comment}
-                vm.changingStatus=true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status,(vm.conservation_status_obj.id+'/switch_status')),JSON.stringify(data),{
-                    emulateJSON:true,
+            else {
+                let data = { 'status': status, 'approver_comment': vm.approver_comment }
+                vm.changingStatus = true;
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/switch_status')), JSON.stringify(data), {
+                    emulateJSON: true,
                 })
-                .then((response) => {
-                    vm.conservation_status_obj = response.body;
-                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                    vm.approver_comment='';
-                    vm.$nextTick(() => {
-                        vm.initialiseAssignedOfficerSelect(true);
-                        vm.updateAssignedOfficerSelect();
+                    .then((response) => {
+                        vm.conservation_status_obj = response.body;
+                        vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                        vm.approver_comment = '';
+                        vm.$nextTick(() => {
+                            vm.initialiseAssignedOfficerSelect(true);
+                            vm.updateAssignedOfficerSelect();
+                        });
+                        vm.changingStatus = false;
+                    }, (error) => {
+                        vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+                        swal.fire({
+                            title: 'Application Error',
+                            text: helpers.apiVueResourceError(error),
+                            icon: 'error',
+                            confirmButtonColor: '#226fbb'
+                        });
+                        vm.changingStatus = false;
                     });
-                    vm.changingStatus=false;
-                }, (error) => {
-                    vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
-                    swal.fire({
-                        title: 'Application Error',
-                        text: helpers.apiVueResourceError(error),
-                        icon: 'error',
-                        confirmButtonColor:'#226fbb'
-                    });
-                    vm.changingStatus=false;
-                });
             }
         },
     },
-    mounted: function() {
+    mounted: function () {
         let vm = this;
         vm.fetchDeparmentUsers();
     },
-    updated: function(){
+    updated: function () {
         let vm = this;
         this.$nextTick(() => {
             vm.initialiseSelects();
             vm.form = document.forms.new_conservation_status;
         });
     },
-    beforeRouteEnter: function(to, from, next) {
-        //-------------get species_conservation_status object if received species id
-        /*if(to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna"){
-            Vue.http.get(`/api/species_conservation_status/${to.params.conservation_status_id}/internal_species_conservation_status.json`).then(res => {
-              next(vm => {
-                vm.conservation_status_obj = res.body.species_conservation_status_obj; //--temp species_obj
-              });
-            },
-            err => {
-              console.log(err);
-            });
-        }
-        //------get community_conservations_status object if received community id
-        else{
-            Vue.http.get(`/api/community_conservation_status/${to.params.conservation_status_id}/internal_community_conservation_status.json`).then(res => {
-              next(vm => {
-                vm.conservation_status_obj = res.body.community_conservation_status_obj; //--temp community_obj
-              });
-            },
-            err => {
-              console.log(err);
-            });
-        }*/
+    beforeRouteEnter: function (to, from, next) {
         Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(res => {
-              next(vm => {
+            next(vm => {
                 vm.conservation_status_obj = res.body.conservation_status_obj;
-                //vm.setdata(vm.conservation_status_obj.readonly);
-              });
-            },
+            });
+        },
             err => {
-              console.log(err);
+                console.log(err);
             });
     },
-    /*beforeRouteUpdate: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.conservation_status_id}.json`).then(res => {
-              next(vm => {
-                vm.proposal = res.body;
-                vm.original_proposal = helpers.copyObject(res.body);
-                
-              });
-            },
-            err => {
-              console.log(err);
-            });
-    }*/
 }
 </script>
 <style scoped>
 .top-buffer-s {
     margin-top: 10px;
 }
+
 .actionBtn {
     cursor: pointer;
 }
+
 .hidePopover {
     display: none;
 }
+
 .separator {
     border: 1px solid;
     margin-top: 15px;
     margin-bottom: 10px;
     width: 100%;
 }
-
 </style>

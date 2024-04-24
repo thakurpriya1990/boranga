@@ -386,7 +386,7 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.conservation_status_obj.species_id = e.params.data.species
+                    vm.conservation_status_obj.species_id = e.params.data.id
                     vm.species_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                 }).
