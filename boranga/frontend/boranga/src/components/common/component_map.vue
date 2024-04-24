@@ -130,7 +130,7 @@
                                     :class="polygonCount ? '' : 'disabled'"
                                     @mouseover="hover = true"
                                 >
-                                    <img src="../../assets/layers.svg" />
+                                    <img src="../../assets/geo-location.svg" />
                                 </div>
                             </div>
                         </transition>
@@ -145,7 +145,13 @@
                                     :key="
                                         feature.ol_uid +
                                         feature.getProperties()
-                                            .original_geometry.properties.srid
+                                            .original_geometry.properties.srid +
+                                        feature.getProperties()
+                                            .original_geometry.properties
+                                            .latitude +
+                                        feature.getProperties()
+                                            .original_geometry.properties
+                                            .longitude
                                     "
                                     class="input-group input-group-sm mb-1 text-nowrap"
                                 >
@@ -177,13 +183,16 @@
                                         @click="centerOnFeature(feature)"
                                     >
                                         <img
-                                            v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() == 'Point'
-                                            "
+                                            v-if="isMultiPointFeature(feature)"
                                             class="svg-icon"
                                             src="../../assets/draw-points.svg"
+                                        />
+                                        <img
+                                            v-else-if="
+                                                isPointLikeFeature(feature)
+                                            "
+                                            class="svg-icon"
+                                            src="../../assets/draw-point.svg"
                                         />
                                         <img
                                             v-else
@@ -201,30 +210,21 @@
                                         class="form-floating flex-grow-1 input-group-text"
                                     >
                                         <input
-                                            v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() === 'Point'
-                                            "
+                                            v-if="isPointLikeFeature(feature)"
                                             :id="`feature-${feature.ol_uid}-latitude-input`"
                                             :ref="`feature-${feature.ol_uid}-latitude-input`"
                                             class="form-control min-width-90"
-                                            :value="
-                                                feature.getProperties()
-                                                    .original_geometry
-                                                    .coordinates[1]
-                                            "
+                                            :value="userCoordinates(feature)[1]"
                                             placeholder="Latitude"
                                             type="number"
                                             min="-90"
                                             max="90"
+                                            @change="
+                                                updateUserInputGeoData(feature)
+                                            "
                                         />
                                         <label
-                                            v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() === 'Point'
-                                            "
+                                            v-if="isPointLikeFeature(feature)"
                                             :for="`feature-${feature.ol_uid}-latitude-input`"
                                             >Latitude</label
                                         >
@@ -235,30 +235,21 @@
                                         class="form-floating flex-grow-1 input-group-text"
                                     >
                                         <input
-                                            v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() === 'Point'
-                                            "
+                                            v-if="isPointLikeFeature(feature)"
                                             :id="`feature-${feature.ol_uid}-longitude-input`"
                                             :ref="`feature-${feature.ol_uid}-longitude-input`"
                                             class="form-control min-width-90 me-1"
-                                            :value="
-                                                feature.getProperties()
-                                                    .original_geometry
-                                                    .coordinates[0]
-                                            "
+                                            :value="userCoordinates(feature)[0]"
                                             placeholder="Longitude"
                                             type="number"
                                             min="-180"
                                             max="180"
+                                            @change="
+                                                updateUserInputGeoData(feature)
+                                            "
                                         />
                                         <label
-                                            v-if="
-                                                feature
-                                                    .getGeometry()
-                                                    .getType() === 'Point'
-                                            "
+                                            v-if="isPointLikeFeature(feature)"
                                             :for="`feature-${feature.ol_uid}-longitude-input`"
                                             >Longitude</label
                                         >
@@ -286,7 +277,7 @@
                                             classes="min-width-210"
                                             @option:selected="
                                                 (selected) => {
-                                                    transformToMapCrs(
+                                                    updateUserInputGeoData(
                                                         feature,
                                                         selected.value
                                                     );
@@ -904,7 +895,7 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import { FullScreen as FullScreenControl } from 'ol/control';
-import { LineString, Point, MultiPoint, Polygon } from 'ol/geom';
+import { LineString, Point, MultiPoint, Polygon, MultiPolygon } from 'ol/geom';
 import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
@@ -1242,6 +1233,7 @@ export default {
             archiveTypesAllowed: ['.zip'], // The allowed archive types
             shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
+            userInputGeometryStack: [],
         };
     },
     computed: {
@@ -1332,10 +1324,10 @@ export default {
          */
         undoStack: function () {
             let vm = this;
-            if (!vm.undoredo_forSketch) {
+            if (!vm.undoredo) {
                 return [];
             } else {
-                return vm.undoredo_forSketch.getStack('undo');
+                return vm.undoredo.getStack('undo');
             }
         },
         /**
@@ -1343,10 +1335,10 @@ export default {
          */
         redoStack: function () {
             let vm = this;
-            if (!vm.undoredo_forSketch) {
+            if (!vm.undoredo) {
                 return [];
             } else {
-                return vm.undoredo_forSketch.getStack('redo');
+                return vm.undoredo.getStack('redo');
             }
         },
         hasUndo: function () {
@@ -1563,8 +1555,9 @@ export default {
                 'getGeometry' in featureData
                     ? featureData.getGeometry().getType()
                     : featureData.geometry.type;
-            const featureColors =
-                type === 'Point' ? vm.pointFeatureColors : vm.featureColors;
+            const featureColors = ['Point', 'MultiPoint'].includes(type)
+                ? vm.pointFeatureColors
+                : vm.featureColors;
 
             if (vm.styleBy === 'assessor') {
                 // Assume the object is a feature containing a geometry_source property
@@ -1629,7 +1622,7 @@ export default {
                 return new Style({
                     stroke: stroke,
                 });
-            } else if (type === 'Point') {
+            } else if (['MultiPoint', 'Point'].includes(type)) {
                 if (svg) {
                     return new Style({
                         image: new Icon({
@@ -1818,6 +1811,38 @@ export default {
                         }
                     );
 
+                    vm.undoredo.define(
+                        'update user input geodata',
+                        function (s) {
+                            // Undo fn
+                            // The last entry the user has edited in the list of geometries
+                            let last = vm.userInputGeometryStack.slice(-1)[0];
+                            // Set the stack to the state before the last edit
+                            vm.userInputGeometryStack = s.before;
+                            // The user input geometry before the last edit, which is the state we want the feature to revert to
+                            const original_geometry =
+                                vm.userInputGeometryStackLast(last.ol_uid);
+
+                            vm.unOrRedoFeatureUserInputGeoData(
+                                last.ol_uid,
+                                original_geometry
+                            );
+                        },
+                        function (s) {
+                            // Redo fn
+                            vm.userInputGeometryStack = s.after;
+                            // The last entry the user has edited in the list of geometries
+                            const last = vm.userInputGeometryStack.slice(-1)[0];
+                            // The user input geometry before the last edit, which is the state we want the feature to revert to
+                            const original_geometry =
+                                vm.userInputGeometryStackLast(last.ol_uid);
+                            vm.unOrRedoFeatureUserInputGeoData(
+                                last.ol_uid,
+                                original_geometry
+                            );
+                        }
+                    );
+
                     // Setup a dedicated undo/redo for sketch points on the draw layer
                     vm.undoredo_forSketch = new UndoRedo({
                         layers: [vm.modelQueryLayer],
@@ -1903,11 +1928,13 @@ export default {
                         copied_from: null,
                         area_sqm: vm.featureArea(feature),
                         original_geometry: original_geometry,
+                        srid: vm.mapSrid,
                     };
 
                     feature.setProperties(properties);
                     feature.setStyle(style);
                     source.addFeature(feature);
+                    vm.userInputGeometryStackAdd(feature);
                     vm.newFeatureId++;
                 }
             });
@@ -1984,9 +2011,9 @@ export default {
                 style: function (feature) {
                     const color = feature.get('color') || vm.defaultColor;
                     let style = polygonStyle;
-                    if (feature.getGeometry().getType() === 'Polygon') {
+                    if (vm.isPolygonLikeFeature(feature)) {
                         style.getFill().setColor(color);
-                    } else if (feature.getGeometry().getType() === 'Point') {
+                    } else if (vm.isPointLikeFeature(feature)) {
                         const rgba = vm.colorHexToRgbaValues(color);
                         style = vm.createStyle(
                             color,
@@ -2275,6 +2302,7 @@ export default {
                 console.log('newFeatureId = ' + vm.newFeatureId);
                 vm.lastPoint = evt.feature;
                 vm.sketchCoordinates = [[]];
+                vm.userInputGeometryStackAdd(evt.feature);
             });
 
             vm.map.addInteraction(vm.drawPolygonsForModel);
@@ -2295,7 +2323,7 @@ export default {
             function hoverSelect(feature) {
                 const color = feature.get('color') || vm.defaultColor;
                 let hoverStyle = hoverStylePolygon;
-                if (feature.getGeometry().getType() === 'Point') {
+                if (vm.isPointLikeFeature(feature)) {
                     const rgba = vm.colorHexToRgbaValues(color);
                     hoverStyle = vm.createStyle(
                         vm.hoverFill,
@@ -2316,10 +2344,10 @@ export default {
                     hoverStyle.setFill(_hoverFill);
                     hoverStyle.setStroke(vm.clickSelectStroke);
                 } else {
-                    if (feature.getGeometry().getType() === 'Polygon') {
+                    if (vm.isPolygonLikeFeature(feature)) {
                         hoverStyle.setFill(vm.hoverFill);
                         hoverStyle.setStroke(vm.hoverStrokePolygon);
-                    } else if (feature.getGeometry().getType() === 'Point') {
+                    } else if (vm.isPointLikeFeature(feature)) {
                         const image = hoverStyle.getImage();
                         // Marker icons don't have a fill or stroke property
                         if (Object.hasOwn(image, 'setFill')) {
@@ -2665,9 +2693,7 @@ export default {
                 console.log('Modify end', evt.features);
                 const feature = evt.features[0];
                 const coordinates = feature.getGeometry().getCoordinates();
-                // TODO: Transform back from map srid to original srid if not already map srid
-                feature.getProperties().original_geometry.coordinates =
-                    coordinates;
+                vm.userCoordinates(feature, coordinates);
                 //commented validateFeature by Priya
                 //validateFeature(feature, vm);
             });
@@ -2887,7 +2913,9 @@ export default {
             let geometry;
             if (type === 'Polygon') {
                 geometry = new Polygon(featureData.geometry.coordinates);
-            } else if (type === 'Point') {
+            } else if (type === 'MultiPolygon') {
+                geometry = new MultiPolygon(featureData.geometry.coordinates);
+            } else if (['MultiPoint', 'Point'].includes(type)) {
                 const rgba = vm.colorHexToRgbaValues(color);
                 style = vm.createStyle(
                     color,
@@ -2898,7 +2926,11 @@ export default {
                     require('../../assets/map-marker.svg'),
                     rgba[3]
                 );
-                geometry = new Point(featureData.geometry.coordinates);
+                if (type === 'Point') {
+                    geometry = new Point(featureData.geometry.coordinates);
+                } else if (type === 'MultiPoint') {
+                    geometry = new MultiPoint(featureData.geometry.coordinates);
+                }
             } else if (type === 'LineString') {
                 alert('LineString not yet supported');
             } else {
@@ -2925,7 +2957,7 @@ export default {
                 locked: featureData.properties.locked || false,
                 copied_from: featureData.properties.report_copied_from || null,
                 area_sqm: featureData.properties.area_sqm || null,
-                srid: featureData.properties.srid || null,
+                srid: featureData.properties.srid || vm.mapSrid,
             });
             if (featureData.id) {
                 // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
@@ -2934,6 +2966,8 @@ export default {
             if (!feature.getProperties().area) {
                 feature.getProperties().area = vm.featureArea(feature);
             }
+
+            this.userInputGeometryStackAdd(feature);
 
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
@@ -3158,7 +3192,7 @@ export default {
                 // Find the last feature in the redo stack and validate it (the last feature doesn't necessarily need to be the last item in the stack, as the last item could e.g. be a 'blockend' object)
                 let item = vm.undoredo._redoStack
                     .getArray()
-                    .toReversed()
+                    .toReversed() // .reverse() mutates in-place, .toReversed() doesn't
                     .find((item) => {
                         if (item.feature) {
                             return item;
@@ -3233,11 +3267,16 @@ export default {
                 }, []);
         },
         featureArea: function (feature, projection = null) {
+            const geometry = feature.getGeometry();
+            if (!geometry) {
+                console.error('Feature has no geometry');
+                return null;
+            }
             if (!projection) {
                 projection = `EPSG:${this.mapSrid}`;
             }
             return Math.round(
-                getArea(feature.getGeometry(), {
+                getArea(geometry, {
                     projection: projection,
                 })
             );
@@ -3394,6 +3433,13 @@ export default {
 
             return [r, g, b, a];
         },
+        /**
+         * Returns whether an array is one-dimensional
+         * @param {Array} array An array
+         */
+        isOneDimensionalArray: function (array) {
+            return array.every((entry) => !Array.isArray(entry));
+        },
         toggleHidden: function (target) {
             // target.innerHTML = label;
             const hidden = $(target).find('img.svg-icon.hidden');
@@ -3401,18 +3447,55 @@ export default {
             hidden.removeClass('hidden');
             notHidden.addClass('hidden');
         },
-        featureInputCoordinates: function (feature) {
+        /**
+         * Returns the user input coordinates from the list of feature geometries
+         * If coordinates is provided, also updates the feature's coordinates.
+         * If srid is provided, also updates the feature's srid.
+         * @param {Object} feature A feature
+         * @param {Array=} coordinates A coordinate pair array
+         * @param {Number=} srid The SRID of the coordinates
+         */
+        featureInputCoordinates: function (feature, coordinates, srid) {
+            if (coordinates) {
+                this.$refs[
+                    `feature-${feature.ol_uid}-latitude-input`
+                ][0].value = coordinates[1];
+                this.$refs[
+                    `feature-${feature.ol_uid}-longitude-input`
+                ][0].value = coordinates[0];
+            }
+            if (srid) {
+                this.$refs[`feature-${feature.ol_uid}-crs-select`][0].value =
+                    srid;
+            }
+
             const inputLat =
                 this.$refs[`feature-${feature.ol_uid}-latitude-input`][0].value;
             const inputLon =
                 this.$refs[`feature-${feature.ol_uid}-longitude-input`][0]
                     .value;
+
             return [Number(inputLon), Number(inputLat)];
+        },
+        /**
+         * Set the coordinates of a feature. Currently only supporting Point and MultiPoint features.
+         * @param {object} feature A feature object
+         * @param {array} coordinates A coordinate pair array
+         */
+        setCoordinates: function (feature, coordinates) {
+            const isMulti = ['MultiPoint'].includes(
+                feature.getGeometry().getType()
+            );
+            if (isMulti && this.isOneDimensionalArray(coordinates)) {
+                feature.getGeometry().setCoordinates([coordinates]);
+            } else {
+                feature.getGeometry().setCoordinates(coordinates);
+            }
         },
         cloneFeature: function (feature, coordinates = null) {
             const clone = feature.clone();
             if (coordinates) {
-                clone.getGeometry().setCoordinates(coordinates);
+                this.setCoordinates(clone, coordinates);
             }
             return clone;
         },
@@ -3443,6 +3526,20 @@ export default {
                 });
             return transformed;
         },
+        /**
+         * Updates the user input coordinates and srid that are stored on the feature as original_geometry
+         * @param {Object} feature A feature
+         * @param {Number} srid The SRID of the feature
+         */
+        updateUserInputGeoData: function (feature, srid) {
+            if (!srid) {
+                srid = feature.getProperties().srid;
+            }
+            this.transformToMapCrs(feature, srid).then((coordinates) => {
+                // Update the user input coordinates and srid
+                this.userCoordinates(feature, coordinates, srid);
+            });
+        },
         transformToMapCrs: async function (feature, srid) {
             const newSrid = Number(srid);
             if (!newSrid) {
@@ -3450,10 +3547,11 @@ export default {
                 return;
             }
 
-            const featureType = feature.getGeometry().getType();
-            if (featureType != 'Point') {
+            if (!this.isPointLikeFeature(feature)) {
                 this.errorMessageProperty(
-                    `Feature type ${featureType} is not yet supported for transformation.`
+                    `Feature type ${feature
+                        .getGeometry()
+                        .getType()} is not yet supported for transformation.`
                 );
                 return;
             }
@@ -3463,11 +3561,10 @@ export default {
 
             // Store the new srid in the feature for backend transformation
             feature.set('srid', newSrid);
-            feature.getProperties().original_geometry.properties.srid = newSrid;
             if (newSrid === this.mapSrid) {
                 console.log('No need to transform');
-                feature.getGeometry().setCoordinates(inputCoordinates);
-                return;
+                this.setCoordinates(feature, inputCoordinates);
+                return inputCoordinates;
             }
 
             const selectComponent =
@@ -3487,8 +3584,124 @@ export default {
             );
 
             console.log('coordinates after', transformed);
-            feature.getGeometry().setCoordinates(transformed.coordinates);
+            if (!transformed) {
+                console.error('No transformed coordinates');
+                selectComponent.toggleLoading(false);
+                return inputCoordinates;
+            }
+            this.setCoordinates(feature, transformed.coordinates);
             selectComponent.toggleLoading(false);
+
+            return inputCoordinates;
+        },
+        isMultiPointFeature: function (feature) {
+            return feature.getGeometry().getType() === 'MultiPoint';
+        },
+        isPointLikeFeature: function (feature) {
+            return ['Point', 'MultiPoint'].includes(
+                feature.getGeometry().getType()
+            );
+        },
+        isPolygonLikeFeature: function (feature) {
+            return ['Polygon', 'MultiPolygon'].includes(
+                feature.getGeometry().getType()
+            );
+        },
+        userInputGeometryStackAdd: function (feature) {
+            const original_geometry = feature.getProperties().original_geometry;
+            const clone = structuredClone(original_geometry);
+            clone['ol_uid'] = feature.ol_uid;
+            this.userInputGeometryStack.push(clone);
+        },
+        userInputGeometryStackLast: function (ol_uid) {
+            let last;
+            if (ol_uid) {
+                last = this.userInputGeometryStack
+                    .slice()
+                    .toReversed() // .reverse() mutates in-place, .toReversed() doesn't
+                    .find((item) => {
+                        if (item.ol_uid == ol_uid) {
+                            return true;
+                        }
+                    });
+            } else {
+                last = this.userInputGeometryStack.slice(-1)[0];
+            }
+            // We only need the dict keys we are interested in
+            return (({ coordinates, properties, type }) => ({
+                coordinates,
+                properties,
+                type,
+            }))(last);
+        },
+        /**
+         * Returns the coordinates from the feature.
+         * If coordinates is provided, also updates the feature's coordinates.
+         * @param {object} feature A feature object
+         * @param {array=} coordinates A coordinate pair array
+         * @param {number=} srid The SRID of the coordinates
+         */
+        userCoordinates: function (feature, coordinates, srid) {
+            const geometry = feature.getProperties().original_geometry;
+            let coordsChanged = false;
+            let sridChanged = false;
+            if (coordinates) {
+                // Whether coords have been changed between user input and input to this function
+                coordsChanged = !geometry.coordinates.every(
+                    (e, i) => e == coordinates[i]
+                );
+                geometry.coordinates = coordinates;
+            }
+
+            if (srid) {
+                // Whether srid has been changed between user input and input to this function
+                sridChanged = !(
+                    parseInt(geometry.properties.srid) === parseInt(srid)
+                );
+                geometry.properties.srid = srid;
+            }
+
+            if (coordsChanged || sridChanged) {
+                // Update the undo-redo stack for user input geodata
+                const clone = structuredClone(geometry);
+                clone['ol_uid'] = feature.ol_uid;
+                const before = [...this.userInputGeometryStack];
+                this.userInputGeometryStack.push(clone);
+
+                this.undoredo.push('update user input geodata', {
+                    before: before,
+                    after: structuredClone(this.userInputGeometryStack),
+                });
+            }
+
+            if (['MultiPoint'].includes(geometry.type)) {
+                return geometry.coordinates[0];
+            }
+            return geometry.coordinates;
+        },
+        unOrRedoFeatureUserInputGeoData: function (ol_uid, original_geometry) {
+            // Find the respective feature on the map by ol_uid
+            this.modelQuerySource.getFeatures().forEach((feature) => {
+                if (feature.ol_uid == ol_uid) {
+                    // Revert to the last user input geometry on the feature instance
+                    const clone = structuredClone(original_geometry);
+                    Object.assign(
+                        feature.getProperties().original_geometry,
+                        clone
+                    );
+                    // Revert to the last user input geometry for that feature in the list of geometries
+                    this.featureInputCoordinates(
+                        feature,
+                        original_geometry.coordinates,
+                        original_geometry.properties.srid
+                    );
+                    // Finally perform a transformation of the feature on the map
+                    this.transformToMapCrs(
+                        feature,
+                        original_geometry.properties.srid
+                    );
+                }
+            });
         },
     },
 };
