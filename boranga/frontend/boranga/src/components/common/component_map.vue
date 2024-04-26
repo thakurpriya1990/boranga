@@ -2844,28 +2844,37 @@ export default {
             vm.lastPoint = feature;
             vm.sketchCoordinates = [[]];
         },
-        featurePropertiesFromContext: function (feature, context) {
+        featurePropertiesFromContext: function (
+            feature,
+            context,
+            properties = {}
+        ) {
             // Add original_geometry for list of geometries and modification of geom parameters
             const coords = feature.getGeometry().getCoordinates();
-            const original_geometry = {
+            const original_geometry = properties.original_geometry || {
                 coordinates: coords,
                 properties: { srid: this.mapSrid },
             };
             const color =
+                properties.color ||
                 this.featureColors['draw'] ||
                 this.featureColors['unknown'] ||
                 this.defaultColor;
+
             return {
                 id: this.newFeatureId,
                 model: context,
-                geometry_source: 'New',
+                geometry_source: properties.geometry_source || 'New',
+                source: properties.source || null,
                 name: context.id || -1,
                 label:
                     context.occurrence_report_number || context.label || 'Draw',
                 color: color,
-                locked: false,
-                srid: this.mapSrid,
+                locked: properties.locked || false,
+                copied_from: properties.report_copied_from || null,
+                srid: properties.srid || this.mapSrid,
                 original_geometry: original_geometry,
+                area_sqm: properties.area_sqm || this.featureArea(feature),
             };
         },
         /**
@@ -2909,44 +2918,28 @@ export default {
                 console.error(`Unsupported geometry type ${type}`);
             }
 
-            const original_geometry = featureData.properties
-                .original_geometry || {
-                coordinates: geometry.getCoordinates(),
-                properties: { srid: vm.mapSrid },
-            };
-
+            featureData.properties['color'] = color;
             let feature = new Feature({
-                id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
                 geometry: geometry,
-                original_geometry: original_geometry,
-                name: model.id,
-                label: model.label,
-                color: color,
-                source: featureData.properties.source || null,
-                geometry_source:
-                    featureData.properties.geometry_source || 'New',
-                locked: featureData.properties.locked || false,
-                copied_from: featureData.properties.report_copied_from || null,
-                area_sqm: featureData.properties.area_sqm || null,
-                srid: featureData.properties.srid || vm.mapSrid,
             });
-            if (featureData.id) {
-                // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
-                feature.setId(featureData.id);
-            }
-            if (!feature.getProperties().area) {
-                feature.getProperties().area = vm.featureArea(feature);
-            }
-
-            this.userInputGeometryStackAdd(feature);
 
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
             delete propertyModel.ocr_geometry;
 
-            feature.setProperties({
-                model: propertyModel,
-            });
+            const properties = vm.featurePropertiesFromContext(
+                feature,
+                propertyModel,
+                featureData.properties
+            );
+            feature.setProperties(properties);
+
+            if (featureData.id) {
+                // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
+                feature.setId(featureData.id);
+            }
+            this.userInputGeometryStackAdd(feature);
+
             feature.setStyle(style);
             console.log(feature);
 
