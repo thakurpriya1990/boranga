@@ -2841,6 +2841,10 @@ class OCCConservationThreat(RevisionedMixin):
 
     class Meta:
         app_label = "boranga"
+        unique_together = (
+            "occurrence",
+            "occurrence_report_threat",
+        )
 
     def __str__(self):
         return str(self.id)  # TODO: is the most appropriate?

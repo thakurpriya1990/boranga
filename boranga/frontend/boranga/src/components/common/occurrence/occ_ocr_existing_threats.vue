@@ -282,7 +282,7 @@ export default {
                 emulateJSON: true,
             }).then((response) => {
                 vm.addingThreat = false;
-                vm.close();
+                vm.refreshFromResponse();
                 vm.$parent.updatedThreats();
             }, (error) => {
                 vm.errors = true;
