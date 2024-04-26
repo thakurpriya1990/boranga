@@ -31,6 +31,10 @@ export default {
             type: Object,
             required:true
         },
+        section_type: {
+            type: String,
+            required: false,
+        }
     },
     data() {
         let vm = this;
@@ -73,7 +77,13 @@ export default {
                 visible: true,
                 'render': function(row, type, full){
                     let links = '';
-                    links += `<a href='/internal/occurrence_report/${full.id}' target="_blank">View</a><br>`;
+                   
+                    if (this.section_type !== "") {
+                        links += `<a href='#' data-view-section='${full.id}' data-view-section-type='${section_type}'>View Section</a><br>`;
+                    } else {
+                        links += `<a href='/internal/occurrence_report/${full.id}' target="_blank">View</a><br>`;
+                    }
+
                     return links;
                 }
             }
