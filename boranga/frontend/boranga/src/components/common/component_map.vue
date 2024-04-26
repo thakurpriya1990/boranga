@@ -1912,27 +1912,13 @@ export default {
                         feature.getGeometry().getType()
                     );
 
-                    const coords = feature.getGeometry().getCoordinates();
-                    const original_geometry = {
-                        coordinates: coords,
-                        properties: { srid: vm.mapSrid },
-                    };
-                    const properties = {
-                        id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
-                        model: vm.context,
-                        name: vm.context.id,
-                        label: vm.context.label,
-                        color: color,
-                        geometry_source: 'New',
-                        locked: false,
-                        copied_from: null,
-                        area_sqm: vm.featureArea(feature),
-                        original_geometry: original_geometry,
-                        srid: vm.mapSrid,
-                    };
+                    vm.featurePropertiesFromContext(
+                        feature,
+                        vm.context,
+                        { color: color },
+                        style
+                    );
 
-                    feature.setProperties(properties);
-                    feature.setStyle(style);
                     source.addFeature(feature);
                     vm.userInputGeometryStackAdd(feature);
                     vm.newFeatureId++;
@@ -2835,10 +2821,8 @@ export default {
         onDrawEnd: function (feature) {
             let vm = this;
             console.log('drawend', feature.values_.geometry.flatCoordinates);
-            let model = vm.context || {};
 
-            const properties = vm.featurePropertiesFromContext(feature, model);
-            feature.setProperties(properties);
+            vm.featurePropertiesFromContext(feature);
             vm.newFeatureId++;
             console.log('newFeatureId = ' + vm.newFeatureId);
             vm.lastPoint = feature;
@@ -2847,8 +2831,12 @@ export default {
         featurePropertiesFromContext: function (
             feature,
             context,
-            properties = {}
+            properties = {},
+            style = null
         ) {
+            if (!context) {
+                context = this.context || {};
+            }
             // Add original_geometry for list of geometries and modification of geom parameters
             const coords = feature.getGeometry().getCoordinates();
             const original_geometry = properties.original_geometry || {
@@ -2861,7 +2849,7 @@ export default {
                 this.featureColors['unknown'] ||
                 this.defaultColor;
 
-            return {
+            feature.setProperties({
                 id: this.newFeatureId,
                 model: context,
                 geometry_source: properties.geometry_source || 'New',
@@ -2875,7 +2863,12 @@ export default {
                 srid: properties.srid || this.mapSrid,
                 original_geometry: original_geometry,
                 area_sqm: properties.area_sqm || this.featureArea(feature),
-            };
+            });
+            if (style) {
+                feature.setStyle(style);
+            }
+
+            return feature;
         },
         /**
          * Creates a styled feature object from a feature dictionary
@@ -2927,12 +2920,12 @@ export default {
             let propertyModel = model;
             delete propertyModel.ocr_geometry;
 
-            const properties = vm.featurePropertiesFromContext(
+            vm.featurePropertiesFromContext(
                 feature,
                 propertyModel,
-                featureData.properties
+                featureData.properties,
+                style
             );
-            feature.setProperties(properties);
 
             if (featureData.id) {
                 // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
@@ -2940,7 +2933,6 @@ export default {
             }
             this.userInputGeometryStackAdd(feature);
 
-            feature.setStyle(style);
             console.log(feature);
 
             return feature;
