@@ -2233,38 +2233,13 @@ export default {
                 console.log('Draw: click event', evt);
             });
             vm.drawPolygonsForModel.on('drawend', function (evt) {
-                console.log(evt);
+                // TODO: point and polygon drawend in fn
                 console.log(evt.feature.values_.geometry.flatCoordinates);
                 // Priya I think context is the occurrencereport_obj thats sent through prop
                 let model = vm.context || {};
-                const coords = evt.feature.getGeometry().getCoordinates();
-                const original_geometry = {
-                    coordinates: coords,
-                    properties: { srid: vm.mapSrid },
-                };
 
-                let color =
-                    vm.featureColors['draw'] ||
-                    vm.featureColors['unknown'] ||
-                    vm.defaultColor;
-                evt.feature.setProperties({
-                    id: vm.newFeatureId,
-                    model: model,
-                    geometry_source: 'New',
-                    name: model.id || -1,
-                    label:
-                        model.occurrence_report_number ||
-                        model.label ||
-                        // model.application_type_name_display ||
-                        // (model.application_type
-                        //     ? model.application_type.name_display
-                        //     : undefined) ||
-                        'Draw',
-                    color: color,
-                    locked: false,
-                    srid: vm.mapSrid,
-                    original_geometry: original_geometry,
-                });
+                const properties = vm.featurePropertiesFromContext(evt.feature, model);
+                evt.feature.setProperties(properties);
                 vm.newFeatureId++;
                 console.log('newFeatureId = ' + vm.newFeatureId);
                 vm.lastPoint = evt.feature;
@@ -2272,36 +2247,17 @@ export default {
             });
 
             vm.drawPointsForModel.on('drawend', function (evt) {
-                console.log(evt);
+                // TODO: point and polygon drawend in fn
                 console.log(evt.feature.values_.geometry.flatCoordinates);
                 let model = vm.context || {};
-                // Add original_geometry for list of geometries and modification of geom parameters
-                const coords = evt.feature.getGeometry().getCoordinates();
-                const original_geometry = {
-                    coordinates: coords,
-                    properties: { srid: vm.mapSrid },
-                };
 
-                let color =
-                    vm.featureColors['draw'] ||
-                    vm.featureColors['unknown'] ||
-                    vm.defaultColor;
-                evt.feature.setProperties({
-                    id: vm.newFeatureId,
-                    model: model,
-                    geometry_source: 'New',
-                    name: model.id || -1,
-                    label:
-                        model.occurrence_report_number || model.label || 'Draw',
-                    color: color,
-                    locked: false,
-                    srid: vm.mapSrid,
-                    original_geometry: original_geometry,
-                });
+                const properties = vm.featurePropertiesFromContext(evt.feature, model);
+                evt.feature.setProperties(properties);
                 vm.newFeatureId++;
                 console.log('newFeatureId = ' + vm.newFeatureId);
                 vm.lastPoint = evt.feature;
                 vm.sketchCoordinates = [[]];
+
                 vm.userInputGeometryStackAdd(evt.feature);
             });
 
@@ -2896,6 +2852,32 @@ export default {
                 },
             });
         },
+        featurePropertiesFromContext: function (feature, context) {
+            // Add original_geometry for list of geometries and modification of geom parameters
+            const coords = feature.getGeometry().getCoordinates();
+            const original_geometry = {
+                coordinates: coords,
+                properties: { srid: this.mapSrid },
+            };
+            const color =
+                this.featureColors['draw'] ||
+                this.featureColors['unknown'] ||
+                this.defaultColor;
+            return {
+                id: this.newFeatureId,
+                model: context,
+                geometry_source: 'New',
+                name: context.id || -1,
+                label:
+                    context.occurrence_report_number ||
+                    context.label ||
+                    'Draw',
+                color: color,
+                locked: false,
+                srid: this.mapSrid,
+                original_geometry: original_geometry,
+            }
+        },
         /**
          * Creates a styled feature object from a feature dictionary
          * @param {dict} featureData A feature dictionary
@@ -2948,7 +2930,6 @@ export default {
                 geometry: geometry,
                 original_geometry: original_geometry,
                 name: model.id,
-                // label: model.label || model.application_type_name_display,
                 label: model.label,
                 color: color,
                 source: featureData.properties.source || null,
