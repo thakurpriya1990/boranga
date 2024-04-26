@@ -2803,6 +2803,16 @@ class OCCConservationThreat(RevisionedMixin):
         blank=True,
         related_name="occ_threats",
     )
+
+    #original ocr, if any
+    occurrence_report_threat = models.ForeignKey(
+        OCRConservationThreat,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="original_report_threat",
+    )
+
     threat_number = models.CharField(max_length=9, blank=True, default="")
     threat_category = models.ForeignKey(
         ThreatCategory, on_delete=models.CASCADE, default=None, null=True, blank=True
@@ -2831,6 +2841,10 @@ class OCCConservationThreat(RevisionedMixin):
 
     class Meta:
         app_label = "boranga"
+        unique_together = (
+            "occurrence",
+            "occurrence_report_threat",
+        )
 
     def __str__(self):
         return str(self.id)  # TODO: is the most appropriate?

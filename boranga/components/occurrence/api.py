@@ -2847,8 +2847,10 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
                 serializer = SaveOCCConservationThreatSerializer(
                     data=json.loads(request.data.get("data"))
                 )
+                print(serializer)
                 validate_threat_request(request)
                 serializer.is_valid(raise_exception=True)
+
                 instance = serializer.save(version_user=request.user)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
@@ -3128,8 +3130,30 @@ class OccurrenceViewSet(UserActionLoggingViewset):
                 related_reports = related_reports.all()
             else:
                 related_reports = related_reports.none()
-            print(related_reports)
             serializer = ListInternalOccurrenceReportSerializer(related_reports, many=True, context={"request": request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+        
+    @detail_route(methods=["get"], detail=True)
+    def get_existing_ocr_threats(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            related_reports = instance.get_related_occurrence_reports().values_list('id',flat=True)
+            addedThreats = OCCConservationThreat.objects.filter(occurrence=instance).exclude(occurrence_report_threat=None).values_list('occurrence_report_threat_id',flat=True)
+            threats = OCRConservationThreat.objects.filter(occurrence_report_id__in=related_reports).exclude(id__in=addedThreats)
+            if is_internal(self.request):
+                threats = threats.all()
+            else:
+                threats = threats.none()
+            serializer = OCRConservationThreatSerializer(threats, many=True, context={"request": request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())

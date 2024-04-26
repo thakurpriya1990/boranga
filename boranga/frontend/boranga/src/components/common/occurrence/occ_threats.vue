@@ -6,7 +6,12 @@
                     <div class="text-end">
                         <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
                             <i class="fa-solid fa-circle-plus"></i>
-                                Add Threat
+                                Add New Threat
+                        </button>
+                        &nbsp;
+                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="existingThreat">
+                            <i class="fa-solid fa-circle-plus"></i>
+                                Add Existing Threat
                         </button>
                     </div>
                 </div>
@@ -17,6 +22,9 @@
             </form>
         </FormSection>
         <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="occ_threat_url"></ThreatDetail>
+        <div v-if="showExisting">
+            <ExistingThreat ref="existing_threats" :occurrenceId="occurrence_obj.id"/>
+        </div>
         <div v-if="occConservationThreatHistoryId">
             <ConservationThreatHistory
                 ref="occ_conservation_threat_history"
@@ -30,6 +38,7 @@
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from '@/components/common/species_communities/add_threat.vue'
+import ExistingThreat from '@/components/common/occurrence/occ_ocr_existing_threats.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import ConservationThreatHistory from '../../internal/occurrence/occ_conservation_threat_history.vue';
 import {
@@ -58,11 +67,12 @@ export default {
             return{
                 uuid:0,
                 occConservationThreatHistoryId: null,
+                showExisting: false,
                 threatBody: "threatBody"+ vm._uid,
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 occ_threat_url: api_endpoints.occ_threat,
-                threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
+                threats_headers:['Number', 'Original Report','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
                                 'Current Impact', 'Potential Impact','Action'],
                 threats_options:{
                     autowidth: false,
@@ -113,6 +123,20 @@ export default {
                                 }
                                 else{
                                     return '<s>'+ full.threat_number + '</s>'
+                                }
+                            },
+
+                        },
+                        {
+                            data: "original_report",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                if(full.visible){
+                                    return full.original_report;
+                                }
+                                else{
+                                    return '<s>'+ full.original_report + '</s>'
                                 }
                             },
 
@@ -246,6 +270,7 @@ export default {
             datatable,
             ThreatDetail,
             ConservationThreatHistory,
+            ExistingThreat,
         },
         computed: {
             isReadOnly: function(){
@@ -277,6 +302,13 @@ export default {
                 this.$refs.threat_detail.threatObj=new_occ_threat;
                 this.$refs.threat_detail.threat_action='add';
                 this.$refs.threat_detail.isModalOpen = true;
+            },
+            existingThreat: function(){
+                this.showExisting = true;
+                this.uuid++;
+                this.$nextTick(() => {
+                    this.$refs.existing_threats.isModalOpen = true;
+                })
             },
             editThreat: function(id){
                 let vm=this;
