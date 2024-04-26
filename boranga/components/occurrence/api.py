@@ -3128,8 +3128,29 @@ class OccurrenceViewSet(UserActionLoggingViewset):
                 related_reports = related_reports.all()
             else:
                 related_reports = related_reports.none()
-            print(related_reports)
             serializer = ListInternalOccurrenceReportSerializer(related_reports, many=True, context={"request": request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+        
+    @detail_route(methods=["get"], detail=True)
+    def get_existing_ocr_threats(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            related_reports = instance.get_related_occurrence_reports().values_list('id',flat=True)
+            threats = OCRConservationThreat.objects.filter(id__in=related_reports)
+            if is_internal(self.request):
+                threats = threats.all()
+            else:
+                threats = threats.none()
+            serializer = OCRConservationThreatSerializer(threats, many=True, context={"request": request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
