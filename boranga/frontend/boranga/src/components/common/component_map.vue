@@ -2233,31 +2233,11 @@ export default {
                 console.log('Draw: click event', evt);
             });
             vm.drawPolygonsForModel.on('drawend', function (evt) {
-                // TODO: point and polygon drawend in fn
-                console.log(evt.feature.values_.geometry.flatCoordinates);
-                // Priya I think context is the occurrencereport_obj thats sent through prop
-                let model = vm.context || {};
-
-                const properties = vm.featurePropertiesFromContext(evt.feature, model);
-                evt.feature.setProperties(properties);
-                vm.newFeatureId++;
-                console.log('newFeatureId = ' + vm.newFeatureId);
-                vm.lastPoint = evt.feature;
-                vm.sketchCoordinates = [[]];
+                vm.onDrawEnd(evt.feature);
             });
 
             vm.drawPointsForModel.on('drawend', function (evt) {
-                // TODO: point and polygon drawend in fn
-                console.log(evt.feature.values_.geometry.flatCoordinates);
-                let model = vm.context || {};
-
-                const properties = vm.featurePropertiesFromContext(evt.feature, model);
-                evt.feature.setProperties(properties);
-                vm.newFeatureId++;
-                console.log('newFeatureId = ' + vm.newFeatureId);
-                vm.lastPoint = evt.feature;
-                vm.sketchCoordinates = [[]];
-
+                vm.onDrawEnd(evt.feature);
                 vm.userInputGeometryStackAdd(evt.feature);
             });
 
@@ -2852,6 +2832,18 @@ export default {
                 },
             });
         },
+        onDrawEnd: function (feature) {
+            let vm = this;
+            console.log('drawend', feature.values_.geometry.flatCoordinates);
+            let model = vm.context || {};
+
+            const properties = vm.featurePropertiesFromContext(feature, model);
+            feature.setProperties(properties);
+            vm.newFeatureId++;
+            console.log('newFeatureId = ' + vm.newFeatureId);
+            vm.lastPoint = feature;
+            vm.sketchCoordinates = [[]];
+        },
         featurePropertiesFromContext: function (feature, context) {
             // Add original_geometry for list of geometries and modification of geom parameters
             const coords = feature.getGeometry().getCoordinates();
@@ -2869,14 +2861,12 @@ export default {
                 geometry_source: 'New',
                 name: context.id || -1,
                 label:
-                    context.occurrence_report_number ||
-                    context.label ||
-                    'Draw',
+                    context.occurrence_report_number || context.label || 'Draw',
                 color: color,
                 locked: false,
                 srid: this.mapSrid,
                 original_geometry: original_geometry,
-            }
+            };
         },
         /**
          * Creates a styled feature object from a feature dictionary
