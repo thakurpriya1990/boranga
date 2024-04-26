@@ -1577,6 +1577,7 @@ class OCRConservationThreatSerializer(serializers.ModelSerializer):
     current_impact_name = serializers.SerializerMethodField()
     potential_impact_name = serializers.SerializerMethodField()
     potential_threat_onset_name = serializers.SerializerMethodField()
+    occurrence_report = OccurrenceReportSerializer()
 
     class Meta:
         model = OCRConservationThreat

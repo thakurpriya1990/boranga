@@ -75,11 +75,12 @@ export default {
         datatable_headers: function () {
             return [
                 'Number',
-                'Category', 
-                'Threat Source', 
+                'Occurrence Report',
+                'Category',                 
                 'Date Observed', 
-                'Threat Agent',
                 'Action',
+                'Threat Agent',
+                'Threat Source', 
                 'Comments',
                 'Current Impact', 
                 'Potential Impact'
@@ -96,6 +97,21 @@ export default {
                     }
                     else{
                         return '<s>'+ full.threat_number + '</s>'
+                    }
+                },
+            };
+        },
+        column_ocr: function () {
+            return {
+                data: "occurrence_report",
+                orderable: true,
+                searchable: true,
+                mRender: function(data,type,full){
+                    if(full.visible){
+                        return full.occurrence_report.occurrence_report_number;
+                    }
+                    else{
+                        return '<s>'+ full.occurrence_report.occurrence_report_number + '</s>'
                     }
                 },
             };
@@ -222,11 +238,12 @@ export default {
             let vm = this;
             let columns = [
                 vm.column_number,
-                vm.column_category,
-                vm.column_source,
+                vm.column_ocr,
+                vm.column_category,           
                 vm.column_observed,
-                vm.column_threat_agent,
                 vm.column_action,
+                vm.column_threat_agent,
+                vm.column_source,
                 vm.column_comment,
                 vm.column_current_impact,
                 vm.column_potential_impact,                
