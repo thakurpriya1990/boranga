@@ -1906,18 +1906,10 @@ export default {
                 for (let i = 0, ii = features.length; i < ii; i++) {
                     let feature = features[i];
                     let color = vm.styleByColor(feature, vm.context, 'draw');
-                    let style = vm.createStyle(
-                        color,
-                        null,
-                        feature.getGeometry().getType()
-                    );
 
-                    vm.featurePropertiesFromContext(
-                        feature,
-                        vm.context,
-                        { color: color },
-                        style
-                    );
+                    vm.setFeaturePropertiesFromContext(feature, vm.context, {
+                        color: color,
+                    });
 
                     source.addFeature(feature);
                     vm.userInputGeometryStackAdd(feature);
@@ -2822,13 +2814,21 @@ export default {
             let vm = this;
             console.log('drawend', feature.values_.geometry.flatCoordinates);
 
-            vm.featurePropertiesFromContext(feature);
+            vm.setFeaturePropertiesFromContext(feature);
             vm.newFeatureId++;
             console.log('newFeatureId = ' + vm.newFeatureId);
             vm.lastPoint = feature;
             vm.sketchCoordinates = [[]];
         },
-        featurePropertiesFromContext: function (
+        /**
+         * Sets the properties of a feature from a context model object
+         * @param {Feature} feature The feature object
+         * @param {Proxy} context The model object
+         * @param {Object=} properties Additional properties to set oder overwrite
+         * @param {Style=} style The style object
+         * @returns {Feature} The feature object with updated properties
+         */
+        setFeaturePropertiesFromContext: function (
             feature,
             context,
             properties = {},
@@ -2864,9 +2864,24 @@ export default {
                 original_geometry: original_geometry,
                 area_sqm: properties.area_sqm || this.featureArea(feature),
             });
-            if (style) {
-                feature.setStyle(style);
+
+            const type = feature.getGeometry().getType();
+            if (!style) {
+                style = this.createStyle(color, this.defaultColor, type);
+                const rgba = this.colorHexToRgbaValues(color);
+                if (['MultiPoint', 'Point'].includes(type)) {
+                    style = this.createStyle(
+                        color,
+                        this.defaultColor,
+                        type,
+                        null,
+                        null,
+                        require('../../assets/map-marker.svg'),
+                        rgba[3]
+                    );
+                }
             }
+            feature.setStyle(style);
 
             return feature;
         },
@@ -2883,23 +2898,13 @@ export default {
 
             let color = vm.styleByColor(featureData, model);
             const type = featureData.geometry.type;
-            let style = vm.createStyle(color, vm.defaultColor, type);
+            // let style = vm.createStyle(color, vm.defaultColor, type);
             let geometry;
             if (type === 'Polygon') {
                 geometry = new Polygon(featureData.geometry.coordinates);
             } else if (type === 'MultiPolygon') {
                 geometry = new MultiPolygon(featureData.geometry.coordinates);
             } else if (['MultiPoint', 'Point'].includes(type)) {
-                const rgba = vm.colorHexToRgbaValues(color);
-                style = vm.createStyle(
-                    color,
-                    vm.defaultColor,
-                    type,
-                    null,
-                    null,
-                    require('../../assets/map-marker.svg'),
-                    rgba[3]
-                );
                 if (type === 'Point') {
                     geometry = new Point(featureData.geometry.coordinates);
                 } else if (type === 'MultiPoint') {
@@ -2920,11 +2925,10 @@ export default {
             let propertyModel = model;
             delete propertyModel.ocr_geometry;
 
-            vm.featurePropertiesFromContext(
+            vm.setFeaturePropertiesFromContext(
                 feature,
                 propertyModel,
-                featureData.properties,
-                style
+                featureData.properties
             );
 
             if (featureData.id) {
