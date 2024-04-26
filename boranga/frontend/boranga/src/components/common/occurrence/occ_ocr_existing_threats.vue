@@ -65,6 +65,7 @@ export default {
             successString: '',
             success: false,
             occ_threat_url: api_endpoints.occ_threat,
+            threat_obj: null,
         };
     },
     computed: {
@@ -77,11 +78,11 @@ export default {
                 'Category', 
                 'Threat Source', 
                 'Date Observed', 
-                'Threat Agent', 
+                'Threat Agent',
+                'Action',
                 'Comments',
                 'Current Impact', 
-                'Potential Impact',
-                'Action'
+                'Potential Impact'
             ];
         },
         column_number: function () {
@@ -212,6 +213,7 @@ export default {
                 mRender: function(data, type, full){
                     let links = "";
                     links += `<a href='#' data-view-threat='${full.id}'>View</a><br>`;
+                    links += `<a href='#' data-add-threat='${full.id}'>Add</a><br>`;
                     return links;
                 }
             };
@@ -224,10 +226,10 @@ export default {
                 vm.column_source,
                 vm.column_observed,
                 vm.column_threat_agent,
+                vm.column_action,
                 vm.column_comment,
                 vm.column_current_impact,
-                vm.column_potential_impact,
-                vm.column_action,
+                vm.column_potential_impact,                
             ];
             return {
                 autoWidth: false,
@@ -256,11 +258,44 @@ export default {
             this.isModalOpen = false;
             $('.has-error').removeClass('has-error');
         },
+        sendData: function () {
+            let vm = this;
+            vm.errors = false;
+            
+            let newThreatObj = new Object();
+            newThreatObj.occurrence_report_threat_id = vm.threatObj.id;
+            newThreatObj.date_observed = vm.threatObj.date_observed;
+            newThreatObj.potential_threat_onset = vm.threatObj.potential_threat_onset;
+            newThreatObj.potential_impact = vm.threatObj.potential_impact;
+            newThreatObj.current_impact = vm.threatObj.current_impact;
+            newThreatObj.comment = vm.threatObj.comment;
+            newThreatObj.threat_agent_id = vm.threatObj.threat_agent_id;
+            newThreatObj.threat_category_id = vm.threatObj.threat_category_id;
+            newThreatObj.occurrence = vm.occurrenceId;
+            
+            let threatObj = JSON.parse(JSON.stringify(newThreatObj));
+            let formData = new FormData()
+
+            vm.addingThreat = true;
+            formData.append('data', JSON.stringify(threatObj));
+            vm.$http.post(vm.occ_threat_url, formData, {
+                emulateJSON: true,
+            }).then((response) => {
+                vm.addingThreat = false;
+                vm.close();
+                vm.$parent.updatedThreats();
+            }, (error) => {
+                vm.errors = true;
+                vm.addingThreat = false;
+                vm.errorString = helpers.apiVueResourceError(error);
+            });
+            
+        },
         viewThreat: function(id){
             let vm=this;
             this.$refs.threat_detail.threat_id = id;
             this.$refs.threat_detail.threat_action='view';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_threat,id)).then((response) => {
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.ocr_threat,id)).then((response) => {
                     this.$refs.threat_detail.threatObj=response.body;
                     this.$refs.threat_detail.threatObj.date_observed = response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
                 },
@@ -269,12 +304,28 @@ export default {
                     });
             this.$refs.threat_detail.isModalOpen = true;
         },
+        addThreat: function(id){
+            let vm=this;
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.ocr_threat,id)).then((response) => {
+                    this.threatObj=response.body;
+                    console.log(this.threatObj);
+                    vm.sendData()
+                },
+                err => {
+                        console.log(err);
+                    });            
+        },
         addEventListeners:function (){
             let vm=this;
             vm.$refs.threat_datatable.vmDataTable.on('click', 'a[data-view-threat]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-view-threat');
                 vm.viewThreat(id);
+            });
+            vm.$refs.threat_datatable.vmDataTable.on('click', 'a[data-add-threat]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-add-threat');
+                vm.addThreat(id);
             });
         },
         refreshFromResponse: function(){

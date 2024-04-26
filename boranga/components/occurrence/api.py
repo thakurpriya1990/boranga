@@ -2847,8 +2847,10 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
                 serializer = SaveOCCConservationThreatSerializer(
                     data=json.loads(request.data.get("data"))
                 )
+                print(serializer)
                 validate_threat_request(request)
                 serializer.is_valid(raise_exception=True)
+
                 instance = serializer.save(version_user=request.user)
                 if instance.occurrence:
                     instance.occurrence.log_user_action(
@@ -3145,7 +3147,8 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         try:
             instance = self.get_object()
             related_reports = instance.get_related_occurrence_reports().values_list('id',flat=True)
-            threats = OCRConservationThreat.objects.filter(id__in=related_reports)
+            addedThreats = OCCConservationThreat.objects.filter(occurrence=instance).exclude(occurrence_report_threat=None).values_list('occurrence_report_threat_id',flat=True)
+            threats = OCRConservationThreat.objects.filter(occurrence_report_id__in=related_reports).exclude(id__in=addedThreats)
             if is_internal(self.request):
                 threats = threats.all()
             else:

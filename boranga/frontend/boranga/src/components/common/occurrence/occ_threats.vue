@@ -72,7 +72,7 @@ export default {
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 occ_threat_url: api_endpoints.occ_threat,
-                threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
+                threats_headers:['Number', 'Original Report','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
                                 'Current Impact', 'Potential Impact','Action'],
                 threats_options:{
                     autowidth: false,
@@ -123,6 +123,20 @@ export default {
                                 }
                                 else{
                                     return '<s>'+ full.threat_number + '</s>'
+                                }
+                            },
+
+                        },
+                        {
+                            data: "original_report",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                if(full.visible){
+                                    return full.original_report;
+                                }
+                                else{
+                                    return '<s>'+ full.original_report + '</s>'
                                 }
                             },
 
