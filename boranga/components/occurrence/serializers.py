@@ -1816,7 +1816,7 @@ class BackToAssessorSerializer(serializers.Serializer):
 
 class ProposeApproveSerializer(serializers.Serializer):
     occurrence_id = serializers.IntegerField(allow_null=True)
-    new_occurrence_name = serializers.CharField(allow_null=True)
+    new_occurrence_name = serializers.CharField(allow_blank=True)
     effective_from_date = serializers.DateField()
     effective_to_date = serializers.DateField()
     details = serializers.CharField()
