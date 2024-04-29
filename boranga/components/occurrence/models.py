@@ -567,6 +567,7 @@ class OccurrenceReport(RevisionedMixin):
         reason = details.get("reason")
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_DECLINED
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DECLINED
         self.save()
 
         # Log proposal action
@@ -650,6 +651,7 @@ class OccurrenceReport(RevisionedMixin):
             )
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_APPROVED
 
         if self.approval_details.occurrence:
             occurrence = self.approval_details.occurrence
