@@ -655,6 +655,69 @@ class OccurrenceReport(RevisionedMixin):
 
         send_approver_back_to_assessor_email_notification(request, self, reason)
 
+    @transaction.atomic
+    def send_referral(self, request, referral_email, referral_text):
+        referral_email = referral_email.lower()
+        if self.processing_status not in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+        ]:
+            raise exceptions.OccurrenceReportReferralCannotBeSent()
+
+        if (
+            not self.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+        ):
+            self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+            self.save()
+
+        referral = None
+
+        # Check if the user is in ledger
+        try:
+            user = EmailUser.objects.get(email__icontains=referral_email)
+        except EmailUser.DoesNotExist:
+            raise ValidationError(
+                "The user you want to send the referral to does not exist in the ledger database"
+            )
+
+        # Validate if it is a deparment user
+        if not get_department_user(referral_email):
+            raise ValidationError(
+                "The user you want to send the referral to is not a member of the department"
+            )
+
+        # Check if the user is in ledger or create
+        # TODO: If we want to add non existent users to ledger that must be done via api
+        # Waiting to confirm with PM/BA if external referrals are required
+
+        if OccurrenceReportReferral.objects.filter(
+            referral=user.id, occurrence_report=self
+        ).exists():
+            raise ValidationError("A referral has already been sent to this user")
+
+        # Create Referral
+        referral = OccurrenceReportReferral.objects.create(
+            occurrence_report=self,
+            referral=user.id,
+            sent_by=request.user.id,
+            text=referral_text,
+            assigned_officer=request.user.id,  # TODO should'nt use assigned officer as per das
+        )
+
+        # Create a log entry for the proposal
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
+                referral.id,
+                self.occurrence_report_number,
+                f"{user.get_full_name()}({user.email})",
+            ),
+            request,
+        )
+
+        # send email
+        send_occurrence_report_referral_email_notification(referral, request)
+
 
 class OccurrenceReportDeclinedDetails(models.Model):
     occurrence_report = models.OneToOneField(
@@ -2426,6 +2489,7 @@ class WildStatus(models.Model):
     def __str__(self):
         return str(self.name)
 
+
 class OccurrenceSource(models.Model):
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
 
@@ -2437,6 +2501,7 @@ class OccurrenceSource(models.Model):
 
     def __str__(self):
         return str(self.name)
+
 
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
@@ -2554,33 +2619,33 @@ class Occurrence(RevisionedMixin):
         """
         :return: True if the application is in one of the editable status.
         """
-        user_editable_state = ['draft',]
+        user_editable_state = [
+            "draft",
+        ]
         return self.processing_status in user_editable_state
-    
-    def has_user_edit_mode(self,user):
-        officer_view_state = ['draft','historical']
+
+    def has_user_edit_mode(self, user):
+        officer_view_state = ["draft", "historical"]
         if self.processing_status in officer_view_state:
             return False
         else:
             return (
-                user.id in self.get_species_processor_group().get_system_group_member_ids() #TODO determine which group this should be (maybe this one is fine?)
+                user.id
+                in self.get_species_processor_group().get_system_group_member_ids()
+                # TODO determine which group this should be (maybe this one is fine?)
             )
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
 
-    def get_related_occurrence_reports(self,**kwargs):
-        
+    def get_related_occurrence_reports(self, **kwargs):
+
         return OccurrenceReport.objects.filter(occurrence=self)
-    
+
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
         if filter_type == "all":
-            related_field_names = [
-                "species",
-                "community",
-                "occurrence_report"
-            ]
+            related_field_names = ["species", "community", "occurrence_report"]
         else:
             related_field_names = [
                 filter_type,
