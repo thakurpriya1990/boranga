@@ -26,6 +26,7 @@ from boranga.components.main.models import (
 )
 from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
+    send_approve_email_notification,
     send_approver_approve_email_notification,
     send_approver_back_to_assessor_email_notification,
     send_approver_decline_email_notification,
@@ -566,6 +567,7 @@ class OccurrenceReport(RevisionedMixin):
         reason = details.get("reason")
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_DECLINED
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DECLINED
         self.save()
 
         # Log proposal action
@@ -601,6 +603,7 @@ class OccurrenceReport(RevisionedMixin):
                 )
 
         details = validated_data.get("details", None)
+        new_occurrence_name = validated_data.get("new_occurrence_name", None)
         effective_from_date = validated_data.get("effective_from_date")
         effective_to_date = validated_data.get("effective_to_date")
         OccurrenceReportApprovalDetails.objects.update_or_create(
@@ -608,6 +611,7 @@ class OccurrenceReport(RevisionedMixin):
             defaults={
                 "officer": request.user.id,
                 "occurrence": occurrence,
+                "new_occurrence_name": new_occurrence_name,
                 "effective_from_date": effective_from_date,
                 "effective_to_date": effective_to_date,
                 "details": details,
@@ -629,6 +633,55 @@ class OccurrenceReport(RevisionedMixin):
         )
 
         send_approver_approve_email_notification(request, self)
+
+    @transaction.atomic
+    def approve(self, request):
+        if not self.can_assess(request.user):
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
+            raise ValidationError(
+                f"You cannot approve Occurrence Report {self} as the processing status is not "
+                f"{OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER}"
+            )
+
+        if not self.approval_details:
+            raise ValidationError(
+                f"Approval details are required to approve Occurrence Report {self}"
+            )
+
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_APPROVED
+
+        if self.approval_details.occurrence:
+            occurrence = self.approval_details.occurrence
+        else:
+            if not self.approval_details.new_occurrence_name:
+                raise ValidationError(
+                    "New occurrence name is required to approve Occurrence Report"
+                )
+            occurrence = Occurrence()
+            occurrence.occurrence_name = self.approval_details.new_occurrence_name
+            occurrence.group_type = self.group_type
+            if self.species:
+                occurrence.species = self.species
+            elif self.community:
+                occurrence.community = self.community
+            occurrence.save()
+
+        self.occurrence = occurrence
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_APPROVE.format(
+                self.occurrence_report_number,
+                request.user.get_full_name(),
+            ),
+            request,
+        )
+
+        send_approve_email_notification(request, self)
 
     @transaction.atomic
     def back_to_assessor(self, request, validated_data):
@@ -655,6 +708,69 @@ class OccurrenceReport(RevisionedMixin):
 
         send_approver_back_to_assessor_email_notification(request, self, reason)
 
+    @transaction.atomic
+    def send_referral(self, request, referral_email, referral_text):
+        referral_email = referral_email.lower()
+        if self.processing_status not in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+        ]:
+            raise exceptions.OccurrenceReportReferralCannotBeSent()
+
+        if (
+            not self.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+        ):
+            self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+            self.save()
+
+        referral = None
+
+        # Check if the user is in ledger
+        try:
+            user = EmailUser.objects.get(email__icontains=referral_email)
+        except EmailUser.DoesNotExist:
+            raise ValidationError(
+                "The user you want to send the referral to does not exist in the ledger database"
+            )
+
+        # Validate if it is a deparment user
+        if not get_department_user(referral_email):
+            raise ValidationError(
+                "The user you want to send the referral to is not a member of the department"
+            )
+
+        # Check if the user is in ledger or create
+        # TODO: If we want to add non existent users to ledger that must be done via api
+        # Waiting to confirm with PM/BA if external referrals are required
+
+        if OccurrenceReportReferral.objects.filter(
+            referral=user.id, occurrence_report=self
+        ).exists():
+            raise ValidationError("A referral has already been sent to this user")
+
+        # Create Referral
+        referral = OccurrenceReportReferral.objects.create(
+            occurrence_report=self,
+            referral=user.id,
+            sent_by=request.user.id,
+            text=referral_text,
+            assigned_officer=request.user.id,  # TODO should'nt use assigned officer as per das
+        )
+
+        # Create a log entry for the proposal
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
+                referral.id,
+                self.occurrence_report_number,
+                f"{user.get_full_name()}({user.email})",
+            ),
+            request,
+        )
+
+        # send email
+        send_occurrence_report_referral_email_notification(referral, request)
+
 
 class OccurrenceReportDeclinedDetails(models.Model):
     occurrence_report = models.OneToOneField(
@@ -675,6 +791,7 @@ class OccurrenceReportApprovalDetails(models.Model):
     occurrence = models.OneToOneField(
         "Occurrence", on_delete=models.PROTECT, null=True, blank=True
     )  # If being added to an existing occurrence
+    new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
     effective_from_date = models.DateField(null=True, blank=True)
     effective_to_date = models.DateField(null=True, blank=True)
@@ -682,6 +799,13 @@ class OccurrenceReportApprovalDetails(models.Model):
 
     class Meta:
         app_label = "boranga"
+
+    @property
+    def officer_name(self):
+        if not self.officer:
+            return None
+
+        return retrieve_email_user(self.officer).get_full_name()
 
 
 class OccurrenceReportLogEntry(CommunicationsLogEntry):
@@ -731,7 +855,7 @@ class OccurrenceReportUserAction(UserAction):
     )
     ACTION_UNASSIGN_APPROVER = "Unassign approver from occurrence report proposal {}"
     ACTION_DECLINE = "Occurrence Report {} has been declined. Reason: {}"
-    ACTION_APPROVE_PROPOSAL_ = "Approve occurrence report  proposal {}"
+    ACTION_APPROVE = "Occurrence Report {} has been approved by {}"
     ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
@@ -2426,6 +2550,7 @@ class WildStatus(models.Model):
     def __str__(self):
         return str(self.name)
 
+
 class OccurrenceSource(models.Model):
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
 
@@ -2437,6 +2562,7 @@ class OccurrenceSource(models.Model):
 
     def __str__(self):
         return str(self.name)
+
 
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
@@ -2526,6 +2652,7 @@ class Occurrence(RevisionedMixin):
         indexes = [
             models.Index(fields=["group_type"]),
             models.Index(fields=["species"]),
+            models.Index(fields=["community"]),
         ]
         app_label = "boranga"
 
@@ -2554,33 +2681,33 @@ class Occurrence(RevisionedMixin):
         """
         :return: True if the application is in one of the editable status.
         """
-        user_editable_state = ['draft',]
+        user_editable_state = [
+            "draft",
+        ]
         return self.processing_status in user_editable_state
-    
-    def has_user_edit_mode(self,user):
-        officer_view_state = ['draft','historical']
+
+    def has_user_edit_mode(self, user):
+        officer_view_state = ["draft", "historical"]
         if self.processing_status in officer_view_state:
             return False
         else:
             return (
-                user.id in self.get_species_processor_group().get_system_group_member_ids() #TODO determine which group this should be (maybe this one is fine?)
+                user.id
+                in self.get_species_processor_group().get_system_group_member_ids()
+                # TODO determine which group this should be (maybe this one is fine?)
             )
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
 
-    def get_related_occurrence_reports(self,**kwargs):
-        
+    def get_related_occurrence_reports(self, **kwargs):
+
         return OccurrenceReport.objects.filter(occurrence=self)
-    
+
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
         if filter_type == "all":
-            related_field_names = [
-                "species",
-                "community",
-                "occurrence_report"
-            ]
+            related_field_names = ["species", "community", "occurrence_report"]
         else:
             related_field_names = [
                 filter_type,
@@ -2748,7 +2875,7 @@ class OccurrenceDocument(Document):
         self.save(*args, **kwargs)
 
 
-#TODO keep for now, remove if not needed (depends on what requirements are for OCR/OCC location)
+# TODO keep for now, remove if not needed (depends on what requirements are for OCR/OCC location)
 class OCCObserverDetail(models.Model):
     """
     Observer data  for occurrence
@@ -2804,7 +2931,7 @@ class OCCConservationThreat(RevisionedMixin):
         related_name="occ_threats",
     )
 
-    #original ocr, if any
+    # original ocr, if any
     occurrence_report_threat = models.ForeignKey(
         OCRConservationThreat,
         on_delete=models.CASCADE,
@@ -3215,7 +3342,6 @@ class OCCIdentification(models.Model):
 
     def __str__(self):
         return str(self.occurrence)
-
 
 
 # Occurrence Report Document
