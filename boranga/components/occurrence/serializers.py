@@ -1702,6 +1702,7 @@ class OCCConservationThreatSerializer(serializers.ModelSerializer):
     potential_impact_name = serializers.SerializerMethodField()
     potential_threat_onset_name = serializers.SerializerMethodField()
     original_report = serializers.SerializerMethodField()
+    original_threat = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCConservationThreat
@@ -1724,6 +1725,7 @@ class OCCConservationThreatSerializer(serializers.ModelSerializer):
             "occurrence",
             "visible",
             "original_report",
+            "original_threat",
         )
         read_only_fields = (
             "id",
@@ -1755,6 +1757,10 @@ class OCCConservationThreatSerializer(serializers.ModelSerializer):
             return (
                 obj.occurrence_report_threat.occurrence_report.occurrence_report_number
             )
+
+    def get_original_threat(self, obj):
+        if obj.occurrence_report_threat:
+            return obj.occurrence_report_threat.threat_number
 
 
 class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
