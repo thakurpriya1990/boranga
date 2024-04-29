@@ -317,9 +317,11 @@ def send_occurrence_report_referral_email_notification(
         "reminder": reminder,
         "comments": referral.text,
     }
+
     msg = email.send(EmailUser.objects.get(id=referral.referral).email, context=context)
 
     sender = get_sender_user()
+
     _log_occurrence_report_referral_email(msg, referral, sender=sender)
     # if referral.occurrence_report.applicant:
     #     _log_org_email(msg, referral.occurrence_report.applicant, referral.referral, sender=sender)
