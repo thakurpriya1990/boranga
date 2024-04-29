@@ -78,9 +78,15 @@ class ApproverDeclineSendNotificationEmail(TemplateEmailBase):
 
 
 class DeclineSendNotificationEmail(TemplateEmailBase):
-    subject = "Your Proposal has been declined."
+    subject = "Occurrence Report Declined"
     html_template = "boranga/emails/ocr_proposals/send_decline_notification.html"
     txt_template = "boranga/emails/ocr_proposals/send_decline_notification.txt"
+
+
+class ApproveSendNotificationEmail(TemplateEmailBase):
+    subject = "Occurrence Report Approved"
+    html_template = "boranga/emails/ocr_proposals/send_approval_notification.html"
+    txt_template = "boranga/emails/ocr_proposals/send_approval_notification.txt"
 
 
 class ApproverApproveSendNotificationEmail(TemplateEmailBase):
@@ -185,6 +191,20 @@ def send_decline_email_notification(reason, request, occurrence_report):
     email = DeclineSendNotificationEmail()
 
     context = {"occurrence_report": occurrence_report, "reason": reason}
+
+    submitter = EmailUser.objects.get(id=occurrence_report.submitter)
+
+    msg = email.send(submitter.email, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+
+def send_approve_email_notification(reason, request, occurrence_report):
+    email = ApproveSendNotificationEmail()
+
+    context = {"occurrence_report": occurrence_report}
 
     submitter = EmailUser.objects.get(id=occurrence_report.submitter)
 
