@@ -137,6 +137,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             )  # need to show only WA_list species
             # TODO: Shouldn't we only allow the objects to be linked in the first place if the
             # conseration list applies to wa?
+            if not hasattr(conservation_status, "conservation_list"):
+                return ""
             return conservation_status.conservation_list.code
         except ConservationStatus.DoesNotExist:
             return ""
@@ -149,6 +151,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
                 conservation_list__applies_to_wa=True,
                 processing_status="approved",
             )  # need to show only WA_list species
+            if not hasattr(conservation_status, "conservation_category"):
+                return ""
             return conservation_status.conservation_category.code
         except ConservationStatus.DoesNotExist:
             return ""
@@ -1191,6 +1195,8 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
             "can_user_edit",
             "can_user_view",
             "comment",
+            "conservation_plan_exists",
+            "conservation_plan_reference",
         )
         read_only_fields = ("id", "group_type")
 

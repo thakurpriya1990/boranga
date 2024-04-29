@@ -37,7 +37,7 @@
                     <div class="card-body">
                         <div class="mb-2"><strong>Currently assigned to</strong></div>
                         <template v-if="with_approver">
-                            <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
+                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_approve" class="form-select mb-2"
                                 v-model="occurrence_report.assigned_approver">
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
@@ -47,7 +47,7 @@
                                 me</a>
                         </template>
                         <template v-else>
-                            <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
+                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess" class="form-select mb-2"
                                 v-model="occurrence_report.assigned_officer">
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
@@ -675,34 +675,7 @@ export default {
         initialiseSelects: function () {
             let vm = this;
             if (!vm.initialisedSelects) {
-                $(vm.$refs.department_users).select2({
-                    minimumInputLength: 2,
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder: "Search for Referree",
-                    ajax: {
-                        url: api_endpoints.users_api + '/get_department_users/',
-                        dataType: 'json',
-                        data: function (params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                            }
-                            return query;
-                        },
-                    },
-                })
-                    .on("select2:select", function (e) {
-                        let data = e.params.data.id;
-                        vm.selected_referral = data;
-                        vm.$nextTick(() => {
-                            vm.$refs.referral_text.focus();
-                        });
-                    })
-                    .on("select2:unselect", function (e) {
-                        var selected = $(e.currentTarget);
-                        vm.selected_referral = null;
-                    })
+                vm.initialiseReferreeSelect();
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
@@ -814,6 +787,37 @@ export default {
                     });
                 });
         },
+        initialiseReferreeSelect: function () {
+            let vm = this;
+            $(vm.$refs.department_users).select2({
+                minimumInputLength: 2,
+                "theme": "bootstrap-5",
+                allowClear: true,
+                placeholder: "Search for Referree",
+                ajax: {
+                    url: api_endpoints.users_api + '/get_department_users/',
+                    dataType: 'json',
+                    data: function (params) {
+                        var query = {
+                            term: params.term,
+                            type: 'public',
+                        }
+                        return query;
+                    },
+                },
+            })
+                .on("select2:select", function (e) {
+                    let data = e.params.data.id;
+                    vm.selected_referral = data;
+                    vm.$nextTick(() => {
+                        vm.$refs.referral_text.focus();
+                    });
+                })
+                .on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.selected_referral = null;
+                })
+        },
         initialiseAssignedOfficerSelect: function (reinit = false) {
             let vm = this;
             if (reinit) {
@@ -916,7 +920,9 @@ export default {
                     vm.occurrence_report = response.body;
                     vm.original_occurrence_report = helpers.copyObject(response.body);
                     vm.updateAssignedOfficerSelect();
-
+                    vm.$nextTick(() => {
+                        vm.initialiseReferreeSelect();
+                    });
                 }, (error) => {
                     vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
                     vm.updateAssignedOfficerSelect();

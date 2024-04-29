@@ -663,7 +663,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Conservation Plan Exists: </label>
+                <label for="conservation_plan_exists" class="col-sm-3 control-label">Conservation Plan Exists: </label>
                 <div class="col-sm-9">
                     <label for="conservation_plan_exists" class="me-2">No</label>
                     <input :disabled="isReadOnly" type="radio" :value="false" class="form-check-input me-2"
@@ -674,7 +674,7 @@
                 </div>
             </div>
             <div v-if="species_community.conservation_plan_exists" class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Conservation Plan Reference / Location: </label>
+                <label for="conservation_plan_reference" class="col-sm-3 control-label">Conservation Plan Reference / Location: </label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" name="conservation_plan_reference"
                         ref="conservation_plan_reference" @change="checkDate()"
