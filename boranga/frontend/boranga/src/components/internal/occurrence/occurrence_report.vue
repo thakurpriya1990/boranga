@@ -97,7 +97,7 @@
                                 @click.prevent="proposeDecline">Propose Decline</button>
 
                             <button v-if="display_approve_button" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="">Approve</button>
+                                @click.prevent="approve()">Approve</button>
                             <button v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="decline()">Decline</button>
 
@@ -183,6 +183,10 @@
         <Decline v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="occurrence_report.occurrence_report_number"
             :declined_details="occurrence_report.declined_details" @refreshFromResponse="refreshFromResponse"></Decline>
+        <Approve v-if="display_approve_button && occurrence_report.approval_details" ref="approve" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :approval_details="occurrence_report.approval_details" @refreshFromResponse="refreshFromResponse"></Approve>
+
 
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
@@ -205,6 +209,7 @@ import BackToAssessor from './back_to_assessor.vue'
 import ProposeDecline from './ocr_propose_decline.vue'
 import ProposeAppprove from './ocr_propose_approve.vue'
 import Decline from './ocr_decline.vue'
+import Approve from './ocr_approve.vue'
 
 // import SpeciesSplit from './species_split.vue'
 // import SpeciesCombine from './species_combine.vue'
@@ -247,6 +252,7 @@ export default {
         ProposeDecline,
         ProposeAppprove,
         Decline,
+        Approve,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,
@@ -392,6 +398,9 @@ export default {
         },
         decline: function () {
             this.$refs.decline.isModalOpen = true;
+        },
+        approve: function () {
+            this.$refs.approve.isModalOpen = true;
         },
         save: async function () {
             let vm = this;
