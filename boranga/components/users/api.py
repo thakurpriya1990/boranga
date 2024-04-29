@@ -18,7 +18,6 @@ from rest_framework.response import Response
 
 from boranga.components.main.models import UserSystemSettings
 from boranga.components.main.utils import retrieve_department_users
-from boranga.components.organisations.serializers import OrganisationRequestDTSerializer
 from boranga.components.users.serializers import (
     ContactSerializer,
     EmailUserActionSerializer,
@@ -223,31 +222,6 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             instance = self.get_object()
             serializer = UserSerializer(instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @detail_route(
-        methods=[
-            "GET",
-        ],
-        detail=True,
-    )
-    def pending_org_requests(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = OrganisationRequestDTSerializer(
-                instance.organisationrequest_set.filter(status="with_assessor"),
-                many=True,
-                context={"request": request},
-            )
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
