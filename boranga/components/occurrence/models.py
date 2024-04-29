@@ -1490,8 +1490,10 @@ class OccurrenceReportGeometry(models.Model):
         null=True,
         related_name="ocr_geometry",
     )
-    # geometry = gis_models.GeometryField(extent=(112.5, -17.5, 129.0, -31.5), blank=True, null=True)
-    geometry = gis_models.GeometryField(blank=True, null=True)
+    # Extents of WA
+    geometry = gis_models.GeometryField(
+        extent=(112.5, -17.5, 129.0, -31.5), blank=True, null=True
+    )
     original_geometry_ewkb = models.BinaryField(
         blank=True, null=True, editable=True
     )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
