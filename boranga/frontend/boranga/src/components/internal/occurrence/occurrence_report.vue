@@ -43,7 +43,8 @@
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
+                                me</a>
                         </template>
                         <template v-else>
                             <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
@@ -56,13 +57,28 @@
                                 me</a>
                         </template>
                     </div>
-                    <div v-if="isAssignedOfficer" class="card-body border-top">
+                    <div v-if="display_referral_actions" class="card-body border-top">
                         <div class="mb-2"><strong>Referrals</strong></div>
-                        <select class="form-select mb-2" placeholder="Select a referee">
-                            <option value="">Unassigned</option>
-                            <option value="1">User 1</option>
-                        </select>
-                        <a href="">Show referrals</a>
+                        <div class="form-group mb-3">
+                            <select :disabled="!canAction" ref="department_users" class="form-control">
+                            </select>
+                            <template v-if='!sendingReferral'>
+                                <template v-if="selected_referral">
+                                    <label class="control-label mt-3" for="referral_text">Comments</label>
+                                    <textarea class="form-control" name="referral_text" ref="referral_text"
+                                        v-model="referral_text"></textarea>
+                                    <a v-if="canAction" @click.prevent="sendReferral()" class="actionBtn float-end mt-2"
+                                        role="button">Send</a>
+                                </template>
+                            </template>
+                            <template v-else>
+                                <span v-if="canAction" @click.prevent="sendReferral()" disabled
+                                    class="actionBtn text-primary float-end">
+                                    Sending Referral&nbsp;
+                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                </span>
+                            </template>
+                        </div>
                     </div>
                     <div v-if="canAction" class="card-body border-top">
                         <div class="mb-3">
@@ -151,17 +167,22 @@
 
         <AmendmentRequest ref="amendment_request" :occurrence_report_id="occurrence_report.id"
             @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
-        <BackToAssessor ref="back_to_assessor" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
-            @refreshFromResponse="refreshFromResponse"></BackToAssessor>
-        <ProposeAppprove ref="propose_approve" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
-        :group_type_id="occurrence_report.group_type_id"
-            @refreshFromResponse="refreshFromResponse"></ProposeAppprove>
-        <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
-            @refreshFromResponse="refreshFromResponse"></ProposeDecline>
+        <BackToAssessor ref="back_to_assessor" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            @refreshFromResponse="refreshFromResponse">
+        </BackToAssessor>
+        <ProposeAppprove ref="propose_approve" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :group_type_id="occurrence_report.group_type_id" @refreshFromResponse="refreshFromResponse">
+        </ProposeAppprove>
+        <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            @refreshFromResponse="refreshFromResponse">
+        </ProposeDecline>
 
-        <Decline v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
-        :declined_details="occurrence_report.declined_details"
-            @refreshFromResponse="refreshFromResponse"></Decline>
+        <Decline v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :declined_details="occurrence_report.declined_details" @refreshFromResponse="refreshFromResponse"></Decline>
 
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
@@ -203,6 +224,9 @@ export default {
             original_occurrence_report: null,
             initialisedSelects: false,
             form: null,
+            selected_referral: '',
+            referral_text: '',
+            sendingReferral: false,
             savingOccurrenceReport: false,
             saveExitOccurrenceReport: false,
             submitOccurrenceReport: false,
@@ -269,6 +293,9 @@ export default {
         },
         display_decline_button: function () {
             return this.with_approver && this.occurrence_report.proposed_decline_status && this.occurrence_report.declined_details
+        },
+        display_referral_actions: function () {
+            return this.occurrence_report && ['With Assessor', 'With Referrer'].includes(this.occurrence_report.processing_status) && this.isAssignedOfficer
         },
         submitter_first_name: function () {
             if (this.occurrence_report && this.occurrence_report.submitter) {
@@ -642,7 +669,7 @@ export default {
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
-                    placeholder: "Select Referrer",
+                    placeholder: "Search for Referree",
                     ajax: {
                         url: api_endpoints.users_api + '/get_department_users/',
                         dataType: 'json',
@@ -658,6 +685,9 @@ export default {
                     .on("select2:select", function (e) {
                         let data = e.params.data.id;
                         vm.selected_referral = data;
+                        vm.$nextTick(() => {
+                            vm.$refs.referral_text.focus();
+                        });
                     })
                     .on("select2:unselect", function (e) {
                         var selected = $(e.currentTarget);
@@ -666,6 +696,113 @@ export default {
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
+        },
+        sendReferral: function () {
+            let vm = this;
+            let formData = new FormData(vm.form);
+            vm.sendingReferral = true;
+            let data = { 'email': vm.selected_referral, 'text': vm.referral_text };
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assessor_send_referral')), JSON.stringify(data), {
+                emulateJSON: true
+            }).then((response) => {
+                vm.sendingReferral = false;
+                vm.original_occurrence_report = helpers.copyObject(response.body);
+                vm.occurrence_report = response.body;
+                swal.fire({
+                    title: 'Referral Sent',
+                    text: 'The referral has been sent to ' + vm.department_users.find(d => d.email == vm.selected_referral).name,
+                    icon: 'success',
+                    confirmButtonColor: '#226fbb'
+                });
+                $(vm.$refs.department_users).val(null).trigger("change");
+                vm.selected_referral = '';
+                vm.referral_text = '';
+            }, (error) => {
+                console.log(error);
+                swal.fire({
+                    title: 'Referral Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
+                });
+                vm.sendingReferral = false;
+            });
+        },
+        remindReferral: function (r) {
+            let vm = this;
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/remind')).then(response => {
+                vm.original_occurrence_report = helpers.copyObject(response.body);
+                vm.occurrence_report = response.body;
+                swal.fire({
+                    title: 'Referral Reminder',
+                    text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor: '#226fbb'
+                });
+            },
+                error => {
+                    swal.fire({
+                        title: 'Referral Reminder Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
+                });
+        },
+        recallReferral: function (r) {
+            let vm = this;
+            swal.fire({
+                title: "Loading...",
+                //text: "Loading...",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                onOpen: () => {
+                    swal.showLoading()
+                }
+            })
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall')).then(response => {
+                swal.hideLoading();
+                swal.close();
+                vm.original_occurrence_report = helpers.copyObject(response.body);
+                vm.occurrence_report = response.body;
+                swal.fire({
+                    title: 'Referral Recall',
+                    text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor: '#226fbb'
+                });
+            },
+                error => {
+                    swal.fire({
+                        title: 'Referral Recall Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
+                });
+        },
+        resendReferral: function (r) {
+            let vm = this;
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(response => {
+                vm.original_occurrence_report = helpers.copyObject(response.body);
+                vm.occurrence_report = response.body;
+                swal.fire({
+                    title: 'Referral Resent',
+                    text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor: '#226fbb'
+                });
+            },
+                error => {
+                    swal.fire({
+                        title: 'Referral Resent Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
+                });
         },
         initialiseAssignedOfficerSelect: function (reinit = false) {
             let vm = this;
