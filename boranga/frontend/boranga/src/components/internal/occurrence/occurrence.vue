@@ -2,16 +2,16 @@
     <div class="container" id="internal-occurence-detail">
         <div class="row" style="padding-bottom: 50px;">
             <div v-if="occurrence" class="col">
-                <h3>Occurrence: {{ occurrence.occurrence_number }} - {{ display_group_type }}</h3>
+                <h3>Occurrence: {{ occurrence.occurrence_number }} - <span class="text-capitalize">{{ display_group_type }}</span></h3>
                 <div class="row pb-4">
                 <div v-if="!comparing" class="col-md-3">
 
                     <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                        :disable_add_entry="false" class="mb-2" />
+                        :disable_add_entry="false" class="mb-3" />
 
                     <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
                         :submitter_last_name="submitter_last_name" :lodgement_date="occurrence.lodgement_date"
-                        class="mb-2" />
+                        class="mb-3" />
 
                     <div>
                         <div class="card card-default">
@@ -191,9 +191,10 @@ export default {
             return `occurrence`;
         },
         display_group_type: function () {
-            let group_type_string = this.occurrence.group_type
-            // to Capitalize only first character
-            return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
+            if(this.occurrence && this.occurrence.group_type){
+                return this.occurrence.group_type;
+            }
+            return '';
         },
         display_number: function () {
             return this.occurrence.occurrence_number;

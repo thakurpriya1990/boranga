@@ -338,12 +338,14 @@ class Taxonomy(models.Model):
             return previous_queryset
         else:
             return CrossReference.objects.none()
-        
+
     @property
     def taxon_vernacular_name(self):
         if self.vernaculars.all():
-            vernacular_names_list = TaxonVernacular.objects.filter(taxonomy=self.id).values_list('vernacular_name', flat=True)
-            return ','.join(vernacular_names_list)
+            vernacular_names_list = TaxonVernacular.objects.filter(
+                taxonomy=self.id
+            ).values_list("vernacular_name", flat=True)
+            return ",".join(vernacular_names_list)
 
 
 class TaxonVernacular(models.Model):
@@ -868,7 +870,9 @@ class Species(RevisionedMixin):
 
     @property
     def related_item_descriptor(self):
-        return self.taxonomy.scientific_name
+        if self.taxonomy and self.taxonomy.scientific_name:
+            return self.taxonomy.scientific_name
+        return "Descriptor not available"
 
     @property
     def related_item_status(self):
