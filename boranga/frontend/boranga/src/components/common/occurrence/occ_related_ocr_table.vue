@@ -10,21 +10,40 @@
                 />
             </div>
         </FormSection>
+
+        <div v-if="sectionOCRId">
+            <SectionModal
+                ref="section_modal"
+                :key="sectionOCRId"
+                :sectionType="sectionTypeFormatted"
+                :ocrNumber="sectionOCRId"
+                :sectionObj="sectionObj"
+            />
+        </div>
     </div>
 </template>
 
 <script>
+import Vue from 'vue'
 import { v4 as uuid } from 'uuid'
-import { constants, helpers } from '@/utils/hooks'
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
+import SectionModal from '@/components/common/occurrence/section_modal.vue'
+import {
+    constants,
+    api_endpoints,
+    helpers,
+}
+from '@/utils/hooks'
+
 export default {
     name: 'TableRelatedItems',
     components: {
         datatable,
         FormSection,
         CollapsibleFilters,
+        SectionModal,
     },
     props: {
         occurrence_obj:{
@@ -34,12 +53,17 @@ export default {
         section_type: {
             type: String,
             required: false,
+            default: "",
         }
     },
     data() {
         let vm = this;
         return {
+            uuid:0,
             datatable_id: uuid(),
+            sectionOCRId: null,
+            sectionTypeFormatted: null,
+            sectionObj: null,
         }
     },
     computed: {
@@ -77,24 +101,39 @@ export default {
                 visible: true,
                 'render': function(row, type, full){
                     let links = '';
-                   
-                    if (this.section_type !== "") {
-                        links += `<a href='#' data-view-section='${full.id}' data-view-section-type='${section_type}'>View Section</a><br>`;
-                    } else {
-                        links += `<a href='/internal/occurrence_report/${full.id}' target="_blank">View</a><br>`;
-                    }
-
+                    links += `<a href='/internal/occurrence_report/${full.id}' target="_blank">View</a><br>`;
+                    return links;
+                }
+            }
+        },
+        column_copy_action: function(){
+            return {
+                //name: 'action',
+                data: 'id',
+                orderable: false,
+                searchable: false,
+                visible: true,
+                'render': function(row, type, full){
+                    let links = '';
+                    links += `<a href='#' data-view-section='${full.id}'>View Section</a><br>`;
                     return links;
                 }
             }
         },
         datatable_options: function(){
             let vm = this
+
+            let action = vm.column_action
+            if (vm.section_type !== "")
+            {
+                action = vm.column_copy_action
+            }
+
             let columns = [
                 vm.column_number,
                 vm.column_status,
                 vm.column_submitter,
-                vm.column_action,
+                action,
             ]
             return {
                 autoWidth: false,
@@ -133,8 +172,42 @@ export default {
             ]
         },
     },
+    methods:{
+        viewSection:function (id) {
+            let vm=this;
+            //get ocr object with id
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report,id)).then((response) => {
+                let ocrObj=response.body;
+
+                vm.sectionObj = ocrObj[vm.section_type];
+                vm.sectionOCRId = id;
+                vm.sectionTypeFormatted = vm.section_type.split('_')
+                .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+                .join(' ');
+
+                this.$nextTick(() => {
+                this.$refs.section_modal.isModalOpen = true;
+                });
+            },
+            err => {
+                console.log(err);
+            });
+            
+        },
+        addEventListeners:function (){
+            let vm=this;
+            vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-view-section]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-view-section');
+                vm.viewSection(id);
+            });
+        }
+    },
     mounted: function(){
         let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+        });
     }
 }
 </script>

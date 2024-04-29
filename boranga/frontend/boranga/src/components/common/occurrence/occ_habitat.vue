@@ -97,6 +97,11 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+
+            <RelatedReports 
+                :occurrence_obj=occurrence_obj
+                :section_type="'habitat_composition'"
+            />
         </FormSection>
         <FormSection :formCollapse="false" label="Habitat Condition" :Index="habitatConditionBody">
             <label for="" class="col-lg-3 control-label fs-5 fw-bold">Keiry Scale</label>
@@ -154,6 +159,10 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+            <RelatedReports 
+                :occurrence_obj=occurrence_obj
+                :section_type="'habitat_condition'"
+            />
         </FormSection>
         <FormSection :formCollapse="false" label="Fire History" :Index="fireHistoryBody">
             <label for="" class="col-lg-3 control-label fs-5 fw-bold">Last Fire History</label>
@@ -187,6 +196,10 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+            <RelatedReports 
+                :occurrence_obj=occurrence_obj
+                :section_type="'fire_history'"
+            />
         </FormSection>
         <FormSection :formCollapse="false" label="Associated Species" :Index="associatedSpeciesBody">
             <div class="row mb-3">
@@ -212,6 +225,10 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+            <RelatedReports 
+                    :occurrence_obj=occurrence_obj
+                    :section_type="'associated_species'"
+                />
         </FormSection>
     </div>
 </template>
@@ -220,6 +237,7 @@
 import Vue from 'vue' ;
 import FormSection from '@/components/forms/section_toggle.vue';
 import RichText from '@/components/forms/richtext.vue'
+import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 import {
   api_endpoints,
   helpers
@@ -271,6 +289,7 @@ export default {
         components: {
             FormSection,
             RichText,
+            RelatedReports,
         },
         computed: {
             isReadOnly: function(){
