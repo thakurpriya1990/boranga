@@ -1,0 +1,7 @@
+{%  extends 'boranga/emails/base_email.txt' %}
+
+{%  block content %}
+
+    Occurrence Report {{occurrence_report.occurrence_report_number}} has been approved
+
+{%  endblock %}
