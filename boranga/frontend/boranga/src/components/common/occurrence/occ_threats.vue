@@ -119,10 +119,10 @@ export default {
                             searchable: true,
                             mRender: function(data,type,full){
                                 if(full.visible){
-                                    return full.threat_number;
+                                    return "OCC" + full.occurrence + " - " + full.threat_number;
                                 }
                                 else{
-                                    return '<s>'+ full.threat_number + '</s>'
+                                    return '<s>'+ "OCC" + full.occurrence + " - " + full.threat_number + '</s>'
                                 }
                             },
 
@@ -132,11 +132,11 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.original_report;
+                                if(full.visible && full.original_report != null){
+                                    return full.original_report + " - " + full.original_threat;
                                 }
                                 else{
-                                    return '<s>'+ full.original_report + '</s>'
+                                    return ""
                                 }
                             },
 
