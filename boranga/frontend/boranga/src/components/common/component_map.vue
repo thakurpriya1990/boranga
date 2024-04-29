@@ -135,6 +135,8 @@
                             </div>
                         </transition>
                         <transition v-if="modelQuerySource">
+                            <!-- TODO: Strange tooltip behavior, so commenting the callback for now -->
+                            <!-- @mouseenter="bootstrapTooltipTrigger" -->
                             <form
                                 v-show="hover"
                                 class="layer_options form-horizontal"
@@ -159,6 +161,9 @@
                                         <input
                                             :id="`feature-${feature.ol_uid}-checkbox`"
                                             type="checkbox"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Select feature"
                                             :checked="
                                                 selectedFeatureIds.includes(
                                                     feature.getProperties().id
@@ -204,7 +209,6 @@
                                             src="../../assets/map-zoom.svg"
                                         />
                                     </button>
-                                    <!-- TODO: N-S Extents of WA -->
                                     <!-- Latitude -->
                                     <div
                                         class="form-floating flex-grow-1 input-group-text"
@@ -217,8 +221,12 @@
                                             :value="userCoordinates(feature)[1]"
                                             placeholder="Latitude"
                                             type="number"
-                                            min="-90"
-                                            max="90"
+                                            min="-35.5"
+                                            max="-13.5"
+                                            step="0.0001"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Enter the latitude value"
                                             @change="
                                                 updateUserInputGeoData(feature)
                                             "
@@ -229,7 +237,6 @@
                                             >Latitude</label
                                         >
                                     </div>
-                                    <!-- TODO: W-E Extents of WA -->
                                     <!-- Longitude -->
                                     <div
                                         class="form-floating flex-grow-1 input-group-text"
@@ -242,8 +249,12 @@
                                             :value="userCoordinates(feature)[0]"
                                             placeholder="Longitude"
                                             type="number"
-                                            min="-180"
-                                            max="180"
+                                            min="112.5"
+                                            max="129.0"
+                                            step="0.0001"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Enter the longitude value"
                                             @change="
                                                 updateUserInputGeoData(feature)
                                             "
@@ -292,6 +303,21 @@
                                             "
                                         />
                                     </div>
+                                </div>
+                                <!-- A new-point Button -->
+                                <div
+                                    class="input-group-text justify-content-end"
+                                >
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary btn-sm"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        data-bs-title="Add a new point"
+                                        @click="addNewPoint(-31.0, 116.0)"
+                                    >
+                                        <i class="fa-solid fa-circle-plus"></i>
+                                    </button>
                                 </div>
                             </form>
                         </transition>
@@ -1025,7 +1051,7 @@ export default {
             default: () => {
                 return {
                     unknown: '#9999', // greyish
-                    draw: '#00FFFFAA', // cyan
+                    draw: '#FFFFAA', // cyan
                     applicant: '#00FF00',
                     assessor: '#0000FF',
                 };
@@ -3661,6 +3687,33 @@ export default {
                         original_geometry.properties.srid
                     );
                 }
+            });
+        },
+        addNewPoint: function (lat, lon) {
+            console.log(lat, lon);
+            const feature = new Feature({
+                geometry: new Point([lon, lat]),
+            });
+            const color = this.styleByColor(feature, this.context, 'draw');
+            this.setFeaturePropertiesFromContext(feature, this.context, {
+                color: color,
+            });
+
+            this.modelQuerySource.addFeature(feature);
+            this.userInputGeometryStackAdd(feature);
+            this.newFeatureId++;
+
+            // this.bootstrapTooltipTrigger();
+        },
+        bootstrapTooltipTrigger: function () {
+            var tooltipTriggerList = [].slice.call(
+                document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            );
+            // eslint-disable-next-line no-unused-vars
+            var tooltipList = tooltipTriggerList.map(function (
+                tooltipTriggerEl
+            ) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         },
     },
