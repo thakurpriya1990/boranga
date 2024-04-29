@@ -7,11 +7,11 @@
                 <div v-if="!comparing" class="col-md-3">
 
                     <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                        :disable_add_entry="false" class="mb-2" />
+                        :disable_add_entry="false" class="mb-3" />
 
                     <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
                         :submitter_last_name="submitter_last_name" :lodgement_date="occurrence.lodgement_date"
-                        class="mb-2" />
+                        class="mb-3" />
 
                     <div>
                         <div class="card card-default">
