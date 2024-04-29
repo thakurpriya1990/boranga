@@ -26,6 +26,7 @@ from boranga.components.main.models import (
 )
 from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
+    send_approve_email_notification,
     send_approver_approve_email_notification,
     send_approver_back_to_assessor_email_notification,
     send_approver_decline_email_notification,
@@ -601,6 +602,7 @@ class OccurrenceReport(RevisionedMixin):
                 )
 
         details = validated_data.get("details", None)
+        new_occurrence_name = validated_data.get("new_occurrence_name", None)
         effective_from_date = validated_data.get("effective_from_date")
         effective_to_date = validated_data.get("effective_to_date")
         OccurrenceReportApprovalDetails.objects.update_or_create(
@@ -608,6 +610,7 @@ class OccurrenceReport(RevisionedMixin):
             defaults={
                 "officer": request.user.id,
                 "occurrence": occurrence,
+                "new_occurrence_name": new_occurrence_name,
                 "effective_from_date": effective_from_date,
                 "effective_to_date": effective_to_date,
                 "details": details,
@@ -629,6 +632,54 @@ class OccurrenceReport(RevisionedMixin):
         )
 
         send_approver_approve_email_notification(request, self)
+
+    @transaction.atomic
+    def approve(self, request):
+        if not self.can_assess(request.user):
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
+            raise ValidationError(
+                f"You cannot approve Occurrence Report {self} as the processing status is not "
+                f"{OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER}"
+            )
+
+        if not self.approval_details:
+            raise ValidationError(
+                f"Approval details are required to approve Occurrence Report {self}"
+            )
+
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
+
+        if self.approval_details.occurrence:
+            occurrence = self.approval_details.occurrence
+        else:
+            if not self.approval_details.new_occurrence_name:
+                raise ValidationError(
+                    "New occurrence name is required to approve Occurrence Report"
+                )
+            occurrence = Occurrence()
+            occurrence.occurrence_name = self.approval_details.new_occurrence_name
+            occurrence.group_type = self.group_type
+            if self.species:
+                occurrence.species = self.species
+            elif self.community:
+                occurrence.community = self.community
+            occurrence.save()
+
+        self.occurrence = occurrence
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_APPROVE.format(
+                self.occurrence_report_number,
+                request.user.get_full_name(),
+            ),
+            request,
+        )
+
+        send_approve_email_notification(request, self)
 
     @transaction.atomic
     def back_to_assessor(self, request, validated_data):
@@ -738,6 +789,7 @@ class OccurrenceReportApprovalDetails(models.Model):
     occurrence = models.OneToOneField(
         "Occurrence", on_delete=models.PROTECT, null=True, blank=True
     )  # If being added to an existing occurrence
+    new_occurrence_name = models.CharField(max_length=200, blank=True)
     officer = models.IntegerField()  # EmailUserRO
     effective_from_date = models.DateField(null=True, blank=True)
     effective_to_date = models.DateField(null=True, blank=True)
@@ -745,6 +797,13 @@ class OccurrenceReportApprovalDetails(models.Model):
 
     class Meta:
         app_label = "boranga"
+
+    @property
+    def officer_name(self):
+        if not self.officer:
+            return None
+
+        return retrieve_email_user(self.officer).get_full_name()
 
 
 class OccurrenceReportLogEntry(CommunicationsLogEntry):
@@ -794,7 +853,7 @@ class OccurrenceReportUserAction(UserAction):
     )
     ACTION_UNASSIGN_APPROVER = "Unassign approver from occurrence report proposal {}"
     ACTION_DECLINE = "Occurrence Report {} has been declined. Reason: {}"
-    ACTION_APPROVE_PROPOSAL_ = "Approve occurrence report  proposal {}"
+    ACTION_APPROVE = "Occurrence Report {} has been approved by {}"
     ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
@@ -2591,6 +2650,7 @@ class Occurrence(RevisionedMixin):
         indexes = [
             models.Index(fields=["group_type"]),
             models.Index(fields=["species"]),
+            models.Index(fields=["community"]),
         ]
         app_label = "boranga"
 
