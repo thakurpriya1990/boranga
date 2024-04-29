@@ -3456,6 +3456,45 @@ class OccurrenceViewSet(UserActionLoggingViewset):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(methods=['post'], detail=True)
+    def copy_ocr_section(self, request, *args, **kwargs):
+
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                data = json.loads(request.data['data'])
+
+                ocrId = data["occurrence_report_id"]
+                section = data["section"]
+                mode = data["mode"]
+
+                ocr = OccurrenceReport.objects.get(id=ocrId)
+                ocrSection = getattr(ocr,section)
+                occSection = getattr(instance,section)
+
+                section_fields = type(ocrSection)._meta.get_fields()
+
+                for i in section_fields:
+                    if i.name != "id" and i.name != "occurrence_report":
+                        #TODO check if merge or replace
+                        ocrValue = getattr(ocrSection,i.name)
+                        setattr(occSection,i.name,ocrValue)
+
+                setattr(instance,section,occSection)
+                #TODO WIP
+                instance.save(version_user=request.user)
+
+            return redirect(reverse('internal'))
+        
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(
         methods=[
             "POST",

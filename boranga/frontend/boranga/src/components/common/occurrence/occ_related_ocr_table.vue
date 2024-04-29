@@ -116,6 +116,9 @@ export default {
                 'render': function(row, type, full){
                     let links = '';
                     links += `<a href='#' data-view-section='${full.id}'>View Section</a><br>`;
+                    links += `<a href='#' data-merge-section='${full.id}'>Copy Section Data (merge)</a><br>`;
+                    links += `<a href='#' data-replace-section='${full.id}'>Copy Section Data (replace)</a><br>`;
+                    
                     return links;
                 }
             }
@@ -191,8 +194,23 @@ export default {
             },
             err => {
                 console.log(err);
-            });
-            
+            });  
+        },
+        copySection:function (id,mode) {
+            let vm = this;
+            vm.errors = false;
+
+            let formData = new FormData()
+
+            let data = {'occurrence_report_id': id,'section': vm.section_type, 'mode': mode};
+            formData.append('data', JSON.stringify(data));
+
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+"/copy_ocr_section"), formData, {
+                    emulateJSON: true,
+                }, (error) => {
+                    vm.errors = true;
+                    vm.errorString = helpers.apiVueResourceError(error);
+                });
         },
         addEventListeners:function (){
             let vm=this;
@@ -200,6 +218,16 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-view-section');
                 vm.viewSection(id);
+            });
+            vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-merge-section]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-merge-section');
+                vm.copySection(id,"merge");
+            });
+            vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-replace-section]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-replace-section');
+                vm.copySection(id,"replace");
             });
         }
     },
