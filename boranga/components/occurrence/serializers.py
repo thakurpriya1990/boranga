@@ -11,17 +11,18 @@ from boranga.components.main.serializers import (
 )
 from boranga.components.main.utils import get_geometry_source, wkb_to_geojson
 from boranga.components.occurrence.models import (
-    OCRAnimalObservation,
-    OCRAssociatedSpecies,
-    OCRFireHistory,
-    OCRHabitatComposition,
-    OCRHabitatCondition,
-    OCRIdentification,
     LandForm,
     Location,
-    OCRObservationDetail,
-    OCRObserverDetail,
+    OCCAnimalObservation,
+    OCCAssociatedSpecies,
     OCCConservationThreat,
+    OCCFireHistory,
+    OCCHabitatComposition,
+    OCCHabitatCondition,
+    OCCIdentification,
+    OCCObservationDetail,
+    OCCObserverDetail,
+    OCCPlantCount,
     Occurrence,
     OccurrenceDocument,
     OccurrenceLogEntry,
@@ -35,20 +36,19 @@ from boranga.components.occurrence.models import (
     OccurrenceReportLogEntry,
     OccurrenceReportUserAction,
     OccurrenceUserAction,
+    OCRAnimalObservation,
+    OCRAssociatedSpecies,
     OCRConservationThreat,
+    OCRFireHistory,
+    OCRHabitatComposition,
+    OCRHabitatCondition,
+    OCRIdentification,
+    OCRObservationDetail,
+    OCRObserverDetail,
     OCRPlantCount,
     PrimaryDetectionMethod,
     ReproductiveMaturity,
     SecondarySign,
-    OCCAnimalObservation,
-    OCCAssociatedSpecies,
-    OCCFireHistory,
-    OCCHabitatComposition,
-    OCCHabitatCondition,
-    OCCIdentification,
-    OCCObservationDetail,
-    OCCObserverDetail,
-    OCCPlantCount,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
 from boranga.helpers import is_approver, is_assessor, is_internal
@@ -91,7 +91,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
             request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
         )
         return obj.has_user_edit_mode(user)
-    
+
     def get_habitat_composition(self, obj):
         try:
             qs = OCCHabitatComposition.objects.get(occurrence=obj)
@@ -147,7 +147,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
             return OCCIdentificationSerializer(qs).data
         except OCCIdentification.DoesNotExist:
             return OCCIdentificationSerializer().data
-        
+
     def get_label(self, obj):
         return "Occurrence"
 
@@ -1000,6 +1000,14 @@ class OccurrenceReportDeclinedDetailsSerializer(serializers.ModelSerializer):
 
 
 class OccurrenceReportApprovalDetailsSerializer(serializers.ModelSerializer):
+    occurrence_number = serializers.CharField(
+        source="occurrence.occurrence_number", allow_null=True
+    )
+    occurrence_name = serializers.CharField(
+        source="occurrence.occurrence_name", allow_null=True
+    )
+    officer_name = serializers.CharField(read_only=True, allow_null=True)
+
     class Meta:
         model = OccurrenceReportApprovalDetails
         fields = "__all__"
@@ -1715,7 +1723,7 @@ class OCCConservationThreatSerializer(serializers.ModelSerializer):
             "source",
             "occurrence",
             "visible",
-            "original_report"
+            "original_report",
         )
         read_only_fields = (
             "id",
@@ -1741,10 +1749,12 @@ class OCCConservationThreatSerializer(serializers.ModelSerializer):
     def get_potential_threat_onset_name(self, obj):
         if obj.potential_threat_onset:
             return obj.potential_threat_onset.name
-        
+
     def get_original_report(self, obj):
         if obj.occurrence_report_threat:
-            return obj.occurrence_report_threat.occurrence_report.occurrence_report_number
+            return (
+                obj.occurrence_report_threat.occurrence_report.occurrence_report_number
+            )
 
 
 class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
@@ -1806,6 +1816,7 @@ class BackToAssessorSerializer(serializers.Serializer):
 
 class ProposeApproveSerializer(serializers.Serializer):
     occurrence_id = serializers.IntegerField(allow_null=True)
+    new_occurrence_name = serializers.CharField(allow_null=True)
     effective_from_date = serializers.DateField()
     effective_to_date = serializers.DateField()
     details = serializers.CharField()
@@ -2043,6 +2054,7 @@ class OCCObserverDetailSerializer(serializers.ModelSerializer):
             "main_observer",
         )
 
+
 class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_id = serializers.IntegerField(required=False, allow_null=True)
@@ -2269,4 +2281,3 @@ class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
             "barcode_number",
             "identification_comment",
         )
-
