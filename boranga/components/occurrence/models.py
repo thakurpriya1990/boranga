@@ -4,8 +4,8 @@ import logging
 import reversion
 from django.conf import settings
 from django.contrib.gis.db import models as gis_models
-from django.contrib.gis.db.models.functions import Area
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.db.models.functions import Area, AsWKB
+from django.contrib.gis.geos import Polygon, GEOSGeometry
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -1484,6 +1484,8 @@ class OccurrenceReportGeometryManager(models.Manager):
 class OccurrenceReportGeometry(models.Model):
     objects = OccurrenceReportGeometryManager()
 
+    EXTENT = (112.5, -35.5, 129.0, -13.5)
+
     occurrence_report = models.ForeignKey(
         OccurrenceReport,
         on_delete=models.CASCADE,
@@ -1491,9 +1493,7 @@ class OccurrenceReportGeometry(models.Model):
         related_name="ocr_geometry",
     )
     # Extents of WA
-    geometry = gis_models.GeometryField(
-        extent=(112.5, -17.5, 129.0, -31.5), blank=True, null=True
-    )
+    geometry = gis_models.GeometryField(extent=EXTENT, blank=True, null=True)
     original_geometry_ewkb = models.BinaryField(
         blank=True, null=True, editable=True
     )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
@@ -1513,9 +1513,17 @@ class OccurrenceReportGeometry(models.Model):
     def save(self, *args, **kwargs):
         if (
             self.occurrence_report.group_type.name == GroupType.GROUP_TYPE_FAUNA
-            and self.polygon
+            and type(self.geometry).__name__ in ["Polygon", "MultiPolygon"]
         ):
             raise ValidationError("Fauna occurrence reports cannot have polygons")
+
+        if not self.geometry.within(
+            GEOSGeometry(Polygon.from_bbox(self.EXTENT), srid=4326)
+        ):
+            raise ValidationError(
+                "A geometry is not within the extent of Western Australia"
+            )
+
         super().save(*args, **kwargs)
 
     @property
