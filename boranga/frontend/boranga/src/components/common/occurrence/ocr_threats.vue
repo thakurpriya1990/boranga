@@ -109,10 +109,10 @@ export default {
                             searchable: true,
                             mRender: function(data,type,full){
                                 if(full.visible){
-                                    return full.threat_number;
+                                    return "OCR" + full.occurrence_report.id + " - " + full.threat_number;
                                 }
                                 else{
-                                    return '<s>'+ full.threat_number + '</s>'
+                                    return '<s>'+ "OCR" + full.occurrence_report.id + " - " + full.threat_number + '</s>'
                                 }
                             },
 

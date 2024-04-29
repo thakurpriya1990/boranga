@@ -103,10 +103,10 @@ export default {
                             searchable: true,
                             mRender: function(data,type,full){
                                 if(full.visible){
-                                    return full.threat_number;
+                                    return "C" + full.community + " - " + full.threat_number;
                                 }
                                 else{
-                                    return '<s>'+ full.threat_number + '</s>'
+                                    return '<s>C' + full.community + " - " + full.threat_number + '</s>'
                                 }
                             },
 
