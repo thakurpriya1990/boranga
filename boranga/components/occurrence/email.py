@@ -201,7 +201,7 @@ def send_decline_email_notification(reason, request, occurrence_report):
     _log_occurrence_report_email(msg, occurrence_report, sender=sender)
 
 
-def send_approve_email_notification(reason, request, occurrence_report):
+def send_approve_email_notification(request, occurrence_report):
     email = ApproveSendNotificationEmail()
 
     context = {"occurrence_report": occurrence_report}
