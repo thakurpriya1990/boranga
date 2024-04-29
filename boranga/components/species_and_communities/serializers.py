@@ -1191,6 +1191,8 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
             "can_user_edit",
             "can_user_view",
             "comment",
+            "conservation_plan_exists",
+            "conservation_plan_reference",
         )
         read_only_fields = ("id", "group_type")
 
