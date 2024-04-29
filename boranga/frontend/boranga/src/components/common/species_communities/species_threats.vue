@@ -16,6 +16,12 @@
                 </div>
             </form>
         </FormSection>
+        <FormSection :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
+            <SpeciesOCCThreats
+            :species_obj="species_community"
+            />
+        </FormSection>
+
         <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="threat_url"></ThreatDetail>
         <div v-if="conservationThreatHistoryId">
             <ConservationThreatHistory
@@ -32,6 +38,8 @@ import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from './add_threat.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import ConservationThreatHistory from '../../internal/species_communities/conservation_threat_history.vue';
+import SpeciesOCCThreats from '@/components/common/species_communities/species_occ_threats.vue';
+
 import {
     constants,
     api_endpoints,
@@ -59,6 +67,7 @@ export default {
                 uuid:0,
                 conservationThreatHistoryId: null,
                 threatBody: "threatBody"+ vm._uid,
+                occThreatBody: "occThreatBody"+ vm._uid,
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 threat_url: api_endpoints.threat,
@@ -109,10 +118,10 @@ export default {
                             searchable: true,
                             mRender: function(data,type,full){
                                 if(full.visible){
-                                    return full.threat_number;
+                                    return "S" + full.species + " - " + full.threat_number;
                                 }
                                 else{
-                                    return '<s>'+ full.threat_number + '</s>'
+                                    return '<s> S'+ full.species_number + " - " + full.threat_number + '</s>'
                                 }
                             },
 
@@ -246,6 +255,7 @@ export default {
             datatable,
             ThreatDetail,
             ConservationThreatHistory,
+            SpeciesOCCThreats,
         },
         computed: {
             isReadOnly: function(){

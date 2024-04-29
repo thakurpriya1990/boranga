@@ -16,6 +16,12 @@
                 </div>
             </form>
         </FormSection>
+        <FormSection :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
+            <CommunityOCCThreats
+            :community_obj="species_community"
+            />
+        </FormSection>
+
         <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="threat_url"></ThreatDetail>
         <div v-if="conservationThreatHistoryId">
             <ConservationThreatHistory
@@ -32,6 +38,8 @@ import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from './add_threat.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import ConservationThreatHistory from '../../internal/species_communities/conservation_threat_history.vue';
+import CommunityOCCThreats from '@/components/common/species_communities/community_occ_threats.vue';
+
 import {
     constants,
     api_endpoints,
@@ -55,6 +63,7 @@ export default {
                 conservationThreatHistoryId: null,
                 panelBody: "community-threats-"+vm._uid,
                 values:null,
+                occThreatBody: "occThreatBody"+ vm._uid,
                 threat_url: api_endpoints.threat,
                 threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
                                 'Current Impact', 'Potential Impact','Action'],
@@ -103,10 +112,10 @@ export default {
                             searchable: true,
                             mRender: function(data,type,full){
                                 if(full.visible){
-                                    return full.threat_number;
+                                    return "C" + full.community + " - " + full.threat_number;
                                 }
                                 else{
-                                    return '<s>'+ full.threat_number + '</s>'
+                                    return '<s>C' + full.community + " - " + full.threat_number + '</s>'
                                 }
                             },
 
@@ -240,6 +249,7 @@ export default {
             datatable,
             ThreatDetail,
             ConservationThreatHistory,
+            CommunityOCCThreats,
         },
         computed: {
         },

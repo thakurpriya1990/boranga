@@ -119,6 +119,8 @@ from boranga.components.species_and_communities.serializers import (
     CommunityLogEntrySerializer,
     CommunityUserActionSerializer,
 )
+from boranga.components.occurrence.models import Occurrence, OCCConservationThreat
+from boranga.components.occurrence.serializers import OCCConservationThreatSerializer
 
                             
 
@@ -993,6 +995,24 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         res_json = json.dumps(related_type) 
         return HttpResponse(res_json, content_type='application/json')
 
+    @list_route(methods=['GET',], detail=True)
+    def occurrence_threats(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            occurrences = Occurrence.objects.filter(species=instance).values_list('id',flat=True)
+            threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
+            serializer = OCCConservationThreatSerializer(threats, many=True, context={"request": request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+    
     # used for species field on community profile
     # not used at the moment as per requirements
     # @detail_route(methods=['GET',], detail=False)
@@ -1584,6 +1604,23 @@ class CommunityViewSet(viewsets.ModelViewSet):
         res_json = json.dumps(related_type) 
         return HttpResponse(res_json, content_type='application/json')
 
+    @list_route(methods=['GET',], detail=True)
+    def occurrence_threats(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            occurrences = Occurrence.objects.filter(community=instance).values_list('id',flat=True)
+            threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
+            serializer = OCCConservationThreatSerializer(threats, many=True, context={"request": request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
     @detail_route(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
