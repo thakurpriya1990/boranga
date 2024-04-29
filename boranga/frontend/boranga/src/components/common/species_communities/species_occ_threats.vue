@@ -1,33 +1,16 @@
 <template lang="html">
-    <div id="community_threats">
-        <FormSection :formCollapse="false" label="Threats" Index="threats">
-            <form class="form-horizontal" action="index.html" method="post">
-                <div class="col-sm-12">
-                    <div class="text-end">
-                        <button type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
-                            <i class="fa-solid fa-circle-plus"></i>
-                                Add Threat
-                        </button>
-                    </div>
-                </div>
-                <div>
-                    <datatable ref="threats_datatable" :id="panelBody" :dtOptions="threats_options"
-                    :dtHeaders="threats_headers"/>
-                </div>
-            </form>
-        </FormSection>
-        <FormSection :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
-            <CommunityOCCThreats
-            :community_obj="species_community"
-            />
-        </FormSection>
+    <div id="species_occ_threats">
+        <div>
+            <datatable ref="threats_datatable" :id="panelBody" :dtOptions="threats_options"
+            :dtHeaders="threats_headers"/>
+        </div>
 
-        <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="threat_url"></ThreatDetail>
-        <div v-if="conservationThreatHistoryId">
+        <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="occ_threat_url"></ThreatDetail>
+        <div v-if="occConservationThreatHistoryId">
             <ConservationThreatHistory
-                ref="conservation_threat_history"
-                :key="conservationThreatHistoryId"
-                :threat-id="conservationThreatHistoryId"
+                ref="occ_conservation_threat_history"
+                :key="occConservationThreatHistoryId"
+                :threat-id="occConservationThreatHistoryId"
             />
         </div>
     </div>
@@ -35,11 +18,8 @@
 <script>
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
-import ThreatDetail from './add_threat.vue'
-import FormSection from '@/components/forms/section_toggle.vue';
-import ConservationThreatHistory from '../../internal/species_communities/conservation_threat_history.vue';
-import CommunityOCCThreats from '@/components/common/species_communities/community_occ_threats.vue';
-
+import ThreatDetail from '@/components/common/species_communities/add_threat.vue'
+import ConservationThreatHistory from '../../internal/occurrence/occ_conservation_threat_history.vue';
 import {
     constants,
     api_endpoints,
@@ -49,9 +29,9 @@ from '@/utils/hooks'
 
 
 export default {
-        name: 'CommunityThreats',
+        name: 'OCCThreats',
         props:{
-            species_community:{
+            species_obj:{
                 type: Object,
                 required:true
             },
@@ -60,12 +40,13 @@ export default {
             let vm = this;
             return{
                 uuid:0,
-                conservationThreatHistoryId: null,
-                panelBody: "community-threats-"+vm._uid,
+                occConservationThreatHistoryId: null,
+                showExisting: false,
+                threatBody: "threatBody"+ vm._uid,
+                panelBody: "species-threats-"+ vm._uid,
                 values:null,
-                occThreatBody: "occThreatBody"+ vm._uid,
-                threat_url: api_endpoints.threat,
-                threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
+                occ_threat_url: api_endpoints.occ_threat,
+                threats_headers:['Number', 'Original Report','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
                                 'Current Impact', 'Potential Impact','Action'],
                 threats_options:{
                     autowidth: false,
@@ -80,7 +61,7 @@ export default {
                         { responsivePriority: 2, targets: -1 },
                     ],
                     ajax:{
-                        "url": helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/threats'),
+                        "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_obj.id+'/occurrence_threats'),
                         "dataSrc": ''
                     },
                     order: [],
@@ -112,10 +93,24 @@ export default {
                             searchable: true,
                             mRender: function(data,type,full){
                                 if(full.visible){
-                                    return "C" + full.community + " - " + full.threat_number;
+                                    return "OCC" + full.occurrence + " - " + full.threat_number;
                                 }
                                 else{
-                                    return '<s>C' + full.community + " - " + full.threat_number + '</s>'
+                                    return '<s>'+ "OCC" + full.occurrence + " - " + full.threat_number + '</s>'
+                                }
+                            },
+
+                        },
+                        {
+                            data: "original_report",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                if(full.visible && full.original_report != null){
+                                    return full.original_report + " - " + full.original_threat;
+                                }
+                                else{
+                                    return ""
                                 }
                             },
 
@@ -220,12 +215,9 @@ export default {
                                 let links = '';
                                 if(full.visible){
                                     links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
-                                    links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
                                     links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                                 }
                                 else{
-                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
                                     links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                                 }
                                 return links;
@@ -235,8 +227,8 @@ export default {
                     processing:true,
                     initComplete: function() {
                         helpers.enablePopovers();
-                        // to fix the responsive table overflow css on tab switch
-                        // vm.$refs.documents_datatable.vmDataTable.draw('page');
+                        // another option to fix the responsive table overflow css on tab switch
+                        // vm.$refs.threats_datatable.vmDataTable.draw('page');
                         setTimeout(function (){
                             vm.adjust_table_width();
                         },100);
@@ -245,55 +237,16 @@ export default {
             }
         },
         components: {
-            FormSection,
             datatable,
             ThreatDetail,
             ConservationThreatHistory,
-            CommunityOCCThreats,
-        },
-        computed: {
-        },
-        watch:{
-
         },
         methods:{
-            newThreat: function(){
-                let vm=this;
-                this.$refs.threat_detail.threat_id = '';
-                //-----for adding new community threat
-                var new_community_threat_another={
-                    community: vm.species_community.id,
-                    source:  vm.species_community.id,
-                    threat_category: '',
-                    threat_agent: '',
-                    comment: '',
-                    current_impact: '',
-                    potential_impact: '',
-                    potential_threat_onset: '',
-                    date_observed: null,
-                }
-                this.$refs.threat_detail.threatObj=new_community_threat_another;
-                this.$refs.threat_detail.threat_action='add';
-                this.$refs.threat_detail.isModalOpen = true;
-            },
-            editThreat: function(id){
-                let vm=this;
-                this.$refs.threat_detail.threat_id = id;
-                this.$refs.threat_detail.threat_action='edit';
-                Vue.http.get(helpers.add_endpoint_json(api_endpoints.threat,id)).then((response) => {
-                      this.$refs.threat_detail.threatObj=response.body;
-                      this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
-                    },
-                  err => {
-                            console.log(err);
-                      });
-                this.$refs.threat_detail.isModalOpen = true;
-            },
             viewThreat: function(id){
                 let vm=this;
                 this.$refs.threat_detail.threat_id = id;
                 this.$refs.threat_detail.threat_action='view';
-                Vue.http.get(helpers.add_endpoint_json(api_endpoints.threat,id)).then((response) => {
+                Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_threat,id)).then((response) => {
                       this.$refs.threat_detail.threatObj=response.body;
                       this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
                     },
@@ -303,66 +256,10 @@ export default {
                 this.$refs.threat_detail.isModalOpen = true;
             },
             historyThreat: function(id){
-                this.conservationThreatHistoryId = parseInt(id);
+                this.occConservationThreatHistoryId = parseInt(id);
                 this.uuid++;
                 this.$nextTick(() => {
-                    this.$refs.conservation_threat_history.isModalOpen = true;
-                });
-            },
-            discardThreat:function (id) {
-                let vm = this;
-                swal.fire({
-                    title: "Remove Threat",
-                    text: "Are you sure you want to remove this Threat?",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: 'Remove Threat',
-                    confirmButtonColor:'#d9534f'
-                }).then((result) => {
-                    if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/discard'))
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Discarded',
-                                text: 'Your threat has been removed',
-                                icon: 'success',
-                                confirmButtonColor:'#226fbb',
-                            });
-                            vm.$refs.threats_datatable.vmDataTable.ajax.reload();
-                        }, (error) => {
-                            console.log(error);
-                        });
-                    }
-                },(error) => {
-
-                });
-            },
-            reinstateThreat:function (id) {
-                let vm = this;
-                swal.fire({
-                    title: "Reinstate Threat",
-                    text: "Are you sure you want to Reinstate this Threat?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonText: 'Reinstate Threat',
-                    confirmButtonColor:'#226fbb',
-                }).then((result) => {
-                    if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/reinstate'))
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Reinstated',
-                                text: 'Your threat has been reinstated',
-                                icon: 'success',
-                                confirmButtonColor:'#226fbb',
-                            });
-                            vm.$refs.threats_datatable.vmDataTable.ajax.reload();
-                        }, (error) => {
-                            console.log(error);
-                        });
-                    }
-                },(error) => {
-
+                    this.$refs.occ_conservation_threat_history.isModalOpen = true;
                 });
             },
             updatedThreats(){
@@ -370,11 +267,6 @@ export default {
             },
             addEventListeners:function (){
                 let vm=this;
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-edit-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-edit-threat');
-                    vm.editThreat(id);
-                });
                 vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-view-threat]', function(e) {
                     e.preventDefault();
                     var id = $(this).attr('data-view-threat');
@@ -384,18 +276,6 @@ export default {
                     e.preventDefault();
                     var id = $(this).attr('data-history-threat');
                     vm.historyThreat(id);
-                });
-                // External Discard listener
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-discard-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-discard-threat');
-                    vm.discardThreat(id);
-                });
-                // External Reinstate listener
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-reinstate-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-reinstate-threat');
-                    vm.reinstateThreat(id);
                 });
             },
             refreshFromResponse: function(){
