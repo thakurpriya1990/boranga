@@ -498,6 +498,10 @@ class Species(RevisionedMixin):
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
     last_data_curration_date = models.DateField(blank=True, null=True)
+    conservation_plan_exists = models.BooleanField(default=False)
+    conservation_plan_reference = models.CharField(
+        max_length=500, null=True, blank=True
+    )
     processing_status = models.CharField(
         "Processing Status",
         max_length=30,
@@ -1119,6 +1123,10 @@ class Community(RevisionedMixin):
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
     last_data_curration_date = models.DateField(blank=True, null=True)
+    conservation_plan_exists = models.BooleanField(default=False)
+    conservation_plan_reference = models.CharField(
+        max_length=500, null=True, blank=True
+    )
     submitter = models.IntegerField(null=True)  # EmailUserRO
     image_doc = models.ForeignKey(
         "CommunityDocument",
