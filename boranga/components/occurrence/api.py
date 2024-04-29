@@ -9,11 +9,13 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.urls import reverse
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import serializers, viewsets, views
+from rest_framework import serializers, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -21,16 +23,15 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
-from boranga.components.main.related_item import RelatedItemsSerializer
-from django.urls import reverse
-from django.shortcuts import redirect
 
+from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import (
     DatumSearchMixing,
     UserActionLoggingViewset,
     search_datums,
 )
 from boranga.components.main.decorators import basic_exception_handler
+from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import (
     handle_validation_error,
     transform_json_geometry,
@@ -64,6 +65,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportDocument,
     OccurrenceReportUserAction,
+    OccurrenceSource,
     OccurrenceUserAction,
     OCRConservationThreat,
     PermitType,
@@ -81,7 +83,6 @@ from boranga.components.occurrence.models import (
     SoilCondition,
     SoilType,
     WildStatus,
-    OccurrenceSource,
 )
 from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
@@ -117,9 +118,9 @@ from boranga.components.occurrence.serializers import (
     SaveOccurrenceDocumentSerializer,
     SaveOccurrenceReportDocumentSerializer,
     SaveOccurrenceReportSerializer,
+    SaveOccurrenceSerializer,
     SaveOCRConservationThreatSerializer,
     SavePlantCountSerializer,
-    SaveOccurrenceSerializer,
 )
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
@@ -127,7 +128,11 @@ from boranga.components.occurrence.utils import (
     save_geometry,
     validate_map_files,
 )
-from boranga.components.species_and_communities.models import GroupType, Species, Community, Taxonomy, CommunityTaxonomy
+from boranga.components.species_and_communities.models import (
+    CommunityTaxonomy,
+    GroupType,
+    Species,
+)
 from boranga.helpers import is_customer, is_internal
 
 logger = logging.getLogger(__name__)
@@ -1805,6 +1810,32 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(methods=["post"], detail=True)
+    def assessor_send_referral(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SendReferralSerializer(
+                data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            instance.send_referral(
+                request,
+                serializer.validated_data["email"],
+                serializer.validated_data["text"],
+            )
+            serializer = InternalOccurrenceReportSerializer(
+                instance, context={"request": request}
+            )
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @detail_route(
         methods=[
             "GET",
@@ -2327,42 +2358,54 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
 
 class GetOCCProfileDict(views.APIView):
     def get(self, request, format=None):
-        group_type = request.GET.get('group_type','')
+        group_type = request.GET.get("group_type", "")
 
         species_list = []
         if group_type:
-            exclude_status = ['draft']
-            species = Species.objects.filter(~Q(processing_status__in=exclude_status) & ~Q(taxonomy=None) & Q(group_type__name=group_type))
+            exclude_status = ["draft"]
+            species = Species.objects.filter(
+                ~Q(processing_status__in=exclude_status)
+                & ~Q(taxonomy=None)
+                & Q(group_type__name=group_type)
+            )
             if species:
                 for specimen in species:
-                    species_list.append({
-                        'id': specimen.id,
-                        'name':specimen.taxonomy.scientific_name,
-                        'taxon_previous_name':specimen.taxonomy.taxon_previous_name,
-                        'common_name': specimen.taxonomy.taxon_vernacular_name,
-                        })
+                    species_list.append(
+                        {
+                            "id": specimen.id,
+                            "name": specimen.taxonomy.scientific_name,
+                            "taxon_previous_name": specimen.taxonomy.taxon_previous_name,
+                            "common_name": specimen.taxonomy.taxon_vernacular_name,
+                        }
+                    )
         community_list = []
-        exculde_status = ['draft']
-        communities = CommunityTaxonomy.objects.filter(~Q(community__processing_status__in=exculde_status)) # TODO remove later as every community will have community name
+        exculde_status = ["draft"]
+        communities = CommunityTaxonomy.objects.filter(
+            ~Q(community__processing_status__in=exculde_status)
+        )  # TODO remove later as every community will have community name
         if communities:
             for specimen in communities:
-                community_list.append({
-                    'id': specimen.community.id,
-                    'name':specimen.community_name,
-                    })
-        
-        occurrence_source_list = list(OccurrenceSource.objects.all().values("id","name"))
-        wild_status_list = list(WildStatus.objects.all().values("id","name"))
+                community_list.append(
+                    {
+                        "id": specimen.community.id,
+                        "name": specimen.community_name,
+                    }
+                )
+
+        occurrence_source_list = list(
+            OccurrenceSource.objects.all().values("id", "name")
+        )
+        wild_status_list = list(WildStatus.objects.all().values("id", "name"))
 
         res_json = {
-        "species_list":species_list,
-        "community_list":community_list,
-        "source_list":occurrence_source_list,
-        "wild_status_list":wild_status_list,
+            "species_list": species_list,
+            "community_list": community_list,
+            "source_list": occurrence_source_list,
+            "wild_status_list": wild_status_list,
         }
         res_json = json.dumps(res_json)
-        return HttpResponse(res_json, content_type='application/json')
-    
+        return HttpResponse(res_json, content_type="application/json")
+
 
 class OccurrenceFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -2728,7 +2771,7 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-        
+
     @detail_route(methods=["get"], detail=True)
     def get_related_occurrence_reports(self, request, *args, **kwargs):
         try:
@@ -2739,7 +2782,9 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
             else:
                 related_reports = related_reports.none()
             print(related_reports)
-            serializer = ListInternalOccurrenceReportSerializer(related_reports, many=True, context={"request": request})
+            serializer = ListInternalOccurrenceReportSerializer(
+                related_reports, many=True, context={"request": request}
+            )
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -2750,42 +2795,54 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-        
+
     @detail_route(methods=["get"], detail=True)
     @basic_exception_handler
     def get_related_items(self, request, *args, **kwargs):
         instance = self.get_object()
-        related_filter_type= request.GET.get('related_filter_type')
+        related_filter_type = request.GET.get("related_filter_type")
         related_items = instance.get_related_items(related_filter_type)
         serializer = RelatedItemsSerializer(related_items, many=True)
         return Response(serializer.data)
-    
-    @list_route(methods=['GET',], detail=False)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
     def filter_list(self, request, *args, **kwargs):
-        """ Used by the Related Items dashboard filters """
-        related_type =  Occurrence.RELATED_ITEM_CHOICES
-        res_json = json.dumps(related_type) 
-        return HttpResponse(res_json, content_type='application/json')
-        
-    @detail_route(methods=['post'], detail=True)
+        """Used by the Related Items dashboard filters"""
+        related_type = Occurrence.RELATED_ITEM_CHOICES
+        res_json = json.dumps(related_type)
+        return HttpResponse(res_json, content_type="application/json")
+
+    @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     def occurrence_save(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                instance = self.get_object() 
+                instance = self.get_object()
                 request_data = request.data
-                serializer = SaveOccurrenceSerializer(instance, data = request_data, partial=True)
+                serializer = SaveOccurrenceSerializer(
+                    instance, data=request_data, partial=True
+                )
                 serializer.is_valid(raise_exception=True)
 
                 print(request_data)
                 print(serializer)
                 if serializer.is_valid():
-                    saved_instance = serializer.save(version_user=request.user)
+                    serializer.save(version_user=request.user)
 
-                    instance.log_user_action(OccurrenceUserAction.ACTION_SAVE_OCCURRENCE.format(instance.occurrence_number), request)
+                    instance.log_user_action(
+                        OccurrenceUserAction.ACTION_SAVE_OCCURRENCE.format(
+                            instance.occurrence_number
+                        ),
+                        request,
+                    )
 
-            return redirect(reverse('internal'))
-        
+            return redirect(reverse("internal"))
+
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -2794,6 +2851,7 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
 
 class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
     queryset = OccurrenceDocument.objects.none()
@@ -2926,7 +2984,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-        
+
 
 class OCCConservationThreatViewSet(viewsets.ModelViewSet):
     queryset = OCCConservationThreat.objects.none()
@@ -3058,20 +3116,32 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+
 class GetWildStatus(views.APIView):
     def get(self, request, format=None):
-        search_term = request.GET.get('term', '')
+        search_term = request.GET.get("term", "")
         if search_term:
-            data = WildStatus.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
-            data_transform = [{'id': wild_status['id'], 'text': wild_status['name']} for wild_status in data]
+            data = WildStatus.objects.filter(name__icontains=search_term).values(
+                "id", "name"
+            )[:10]
+            data_transform = [
+                {"id": wild_status["id"], "text": wild_status["name"]}
+                for wild_status in data
+            ]
             return Response({"results": data_transform})
         return Response()
 
+
 class GetOccurrenceSource(views.APIView):
     def get(self, request, format=None):
-        search_term = request.GET.get('term', '')
+        search_term = request.GET.get("term", "")
         if search_term:
-            data = OccurrenceSource.objects.filter(name__icontains=search_term).values('id', 'name')[:10]
-            data_transform = [{'id': occurrence_source['id'], 'text': occurrence_source['name']} for occurrence_source in data]
+            data = OccurrenceSource.objects.filter(name__icontains=search_term).values(
+                "id", "name"
+            )[:10]
+            data_transform = [
+                {"id": occurrence_source["id"], "text": occurrence_source["name"]}
+                for occurrence_source in data
+            ]
             return Response({"results": data_transform})
         return Response()
