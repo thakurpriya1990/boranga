@@ -2,7 +2,7 @@
     <div class="container" id="internal-occurence-detail">
         <div class="row" style="padding-bottom: 50px;">
             <div v-if="occurrence" class="col">
-                <h3>Occurrence: {{ occurrence.occurrence_number }} - {{ display_group_type }}</h3>
+                <h3>Occurrence: {{ occurrence.occurrence_number }} - <span class="text-capitalize">{{ display_group_type }}</span></h3>
                 <div class="row pb-4">
                 <div v-if="!comparing" class="col-md-3">
 
@@ -191,9 +191,10 @@ export default {
             return `occurrence`;
         },
         display_group_type: function () {
-            let group_type_string = this.occurrence.group_type
-            // to Capitalize only first character
-            return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
+            if(this.occurrence && this.occurrence.group_type){
+                return this.occurrence.group_type;
+            }
+            return '';
         },
         display_number: function () {
             return this.occurrence.occurrence_number;

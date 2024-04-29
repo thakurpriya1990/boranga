@@ -2,7 +2,7 @@
     <div v-if="occurrence_report" class="container" id="internal-occurence-report-detail">
         <div class="row">
             <div class="col">
-                <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }}</h3>
+                <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }} - <span class="text-capitalize">{{ display_group_type }}</span></h3>
                 <h4 class="text-muted mb-3">
                     Occurrence:
                     <template v-if="occurrence_report.occurrence">
@@ -280,9 +280,10 @@ export default {
                 `species`;
         },
         display_group_type: function () {
-            let group_type_string = this.occurrence_report.group_type
-            // to Capitalize only first character
-            return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
+            if(this.occurrence_report && this.occurrence_report.group_type){
+                return this.occurrence_report.group_type;
+            }
+            return '';
         },
         display_number: function () {
             return (this.occurrence_report.group_type === "community") ?
