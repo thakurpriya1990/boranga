@@ -791,7 +791,7 @@ class OccurrenceReportApprovalDetails(models.Model):
     occurrence = models.OneToOneField(
         "Occurrence", on_delete=models.PROTECT, null=True, blank=True
     )  # If being added to an existing occurrence
-    new_occurrence_name = models.CharField(max_length=200, blank=True)
+    new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
     effective_from_date = models.DateField(null=True, blank=True)
     effective_to_date = models.DateField(null=True, blank=True)
