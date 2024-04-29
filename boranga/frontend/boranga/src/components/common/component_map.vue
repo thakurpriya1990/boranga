@@ -135,6 +135,8 @@
                             </div>
                         </transition>
                         <transition v-if="modelQuerySource">
+                            <!-- TODO: Strange tooltip behavior, so commenting the callback for now -->
+                            <!-- @mouseenter="bootstrapTooltipTrigger" -->
                             <form
                                 v-show="hover"
                                 class="layer_options form-horizontal"
@@ -159,6 +161,9 @@
                                         <input
                                             :id="`feature-${feature.ol_uid}-checkbox`"
                                             type="checkbox"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Select feature"
                                             :checked="
                                                 selectedFeatureIds.includes(
                                                     feature.getProperties().id
@@ -204,7 +209,6 @@
                                             src="../../assets/map-zoom.svg"
                                         />
                                     </button>
-                                    <!-- TODO: N-S Extents of WA -->
                                     <!-- Latitude -->
                                     <div
                                         class="form-floating flex-grow-1 input-group-text"
@@ -217,8 +221,12 @@
                                             :value="userCoordinates(feature)[1]"
                                             placeholder="Latitude"
                                             type="number"
-                                            min="-90"
-                                            max="90"
+                                            min="-35.5"
+                                            max="-13.5"
+                                            step="0.0001"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Enter the latitude value"
                                             @change="
                                                 updateUserInputGeoData(feature)
                                             "
@@ -229,7 +237,6 @@
                                             >Latitude</label
                                         >
                                     </div>
-                                    <!-- TODO: W-E Extents of WA -->
                                     <!-- Longitude -->
                                     <div
                                         class="form-floating flex-grow-1 input-group-text"
@@ -242,8 +249,12 @@
                                             :value="userCoordinates(feature)[0]"
                                             placeholder="Longitude"
                                             type="number"
-                                            min="-180"
-                                            max="180"
+                                            min="112.5"
+                                            max="129.0"
+                                            step="0.0001"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Enter the longitude value"
                                             @change="
                                                 updateUserInputGeoData(feature)
                                             "
@@ -292,6 +303,26 @@
                                             "
                                         />
                                     </div>
+                                </div>
+                                <!-- A new-point Button -->
+                                <div
+                                    class="input-group-text justify-content-end"
+                                >
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary btn-sm"
+                                        :class="
+                                            pointFeaturesSupported
+                                                ? ''
+                                                : 'disabled'
+                                        "
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        data-bs-title="Add a new point"
+                                        @click="addNewPoint(-31.0, 116.0)"
+                                    >
+                                        <i class="fa-solid fa-circle-plus"></i>
+                                    </button>
                                 </div>
                             </form>
                         </transition>
@@ -1025,7 +1056,7 @@ export default {
             default: () => {
                 return {
                     unknown: '#9999', // greyish
-                    draw: '#00FFFFAA', // cyan
+                    draw: '#FFFFAA', // cyan
                     applicant: '#00FF00',
                     assessor: '#0000FF',
                 };
@@ -1906,33 +1937,11 @@ export default {
                 for (let i = 0, ii = features.length; i < ii; i++) {
                     let feature = features[i];
                     let color = vm.styleByColor(feature, vm.context, 'draw');
-                    let style = vm.createStyle(
-                        color,
-                        null,
-                        feature.getGeometry().getType()
-                    );
 
-                    const coords = feature.getGeometry().getCoordinates();
-                    const original_geometry = {
-                        coordinates: coords,
-                        properties: { srid: vm.mapSrid },
-                    };
-                    const properties = {
-                        id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
-                        model: vm.context,
-                        name: vm.context.id,
-                        label: vm.context.label,
+                    vm.setFeaturePropertiesFromContext(feature, vm.context, {
                         color: color,
-                        geometry_source: 'New',
-                        locked: false,
-                        copied_from: null,
-                        area_sqm: vm.featureArea(feature),
-                        original_geometry: original_geometry,
-                        srid: vm.mapSrid,
-                    };
+                    });
 
-                    feature.setProperties(properties);
-                    feature.setStyle(style);
                     source.addFeature(feature);
                     vm.userInputGeometryStackAdd(feature);
                     vm.newFeatureId++;
@@ -2233,75 +2242,11 @@ export default {
                 console.log('Draw: click event', evt);
             });
             vm.drawPolygonsForModel.on('drawend', function (evt) {
-                console.log(evt);
-                console.log(evt.feature.values_.geometry.flatCoordinates);
-                // Priya I think context is the occurrencereport_obj thats sent through prop
-                let model = vm.context || {};
-                const coords = evt.feature.getGeometry().getCoordinates();
-                const original_geometry = {
-                    coordinates: coords,
-                    properties: { srid: vm.mapSrid },
-                };
-
-                let color =
-                    vm.featureColors['draw'] ||
-                    vm.featureColors['unknown'] ||
-                    vm.defaultColor;
-                evt.feature.setProperties({
-                    id: vm.newFeatureId,
-                    model: model,
-                    geometry_source: 'New',
-                    name: model.id || -1,
-                    label:
-                        model.occurrence_report_number ||
-                        model.label ||
-                        // model.application_type_name_display ||
-                        // (model.application_type
-                        //     ? model.application_type.name_display
-                        //     : undefined) ||
-                        'Draw',
-                    color: color,
-                    locked: false,
-                    srid: vm.mapSrid,
-                    original_geometry: original_geometry,
-                });
-                vm.newFeatureId++;
-                console.log('newFeatureId = ' + vm.newFeatureId);
-                vm.lastPoint = evt.feature;
-                vm.sketchCoordinates = [[]];
+                vm.onDrawEnd(evt.feature);
             });
 
             vm.drawPointsForModel.on('drawend', function (evt) {
-                console.log(evt);
-                console.log(evt.feature.values_.geometry.flatCoordinates);
-                let model = vm.context || {};
-                // Add original_geometry for list of geometries and modification of geom parameters
-                const coords = evt.feature.getGeometry().getCoordinates();
-                const original_geometry = {
-                    coordinates: coords,
-                    properties: { srid: vm.mapSrid },
-                };
-
-                let color =
-                    vm.featureColors['draw'] ||
-                    vm.featureColors['unknown'] ||
-                    vm.defaultColor;
-                evt.feature.setProperties({
-                    id: vm.newFeatureId,
-                    model: model,
-                    geometry_source: 'New',
-                    name: model.id || -1,
-                    label:
-                        model.occurrence_report_number || model.label || 'Draw',
-                    color: color,
-                    locked: false,
-                    srid: vm.mapSrid,
-                    original_geometry: original_geometry,
-                });
-                vm.newFeatureId++;
-                console.log('newFeatureId = ' + vm.newFeatureId);
-                vm.lastPoint = evt.feature;
-                vm.sketchCoordinates = [[]];
+                vm.onDrawEnd(evt.feature);
                 vm.userInputGeometryStackAdd(evt.feature);
             });
 
@@ -2896,6 +2841,81 @@ export default {
                 },
             });
         },
+        onDrawEnd: function (feature) {
+            let vm = this;
+            console.log('drawend', feature.values_.geometry.flatCoordinates);
+
+            vm.setFeaturePropertiesFromContext(feature);
+            vm.newFeatureId++;
+            console.log('newFeatureId = ' + vm.newFeatureId);
+            vm.lastPoint = feature;
+            vm.sketchCoordinates = [[]];
+        },
+        /**
+         * Sets the properties of a feature from a context model object
+         * @param {Feature} feature The feature object
+         * @param {Proxy} context The model object
+         * @param {Object=} properties Additional properties to set oder overwrite
+         * @param {Style=} style The style object
+         * @returns {Feature} The feature object with updated properties
+         */
+        setFeaturePropertiesFromContext: function (
+            feature,
+            context,
+            properties = {},
+            style = null
+        ) {
+            if (!context) {
+                context = this.context || {};
+            }
+            // Add original_geometry for list of geometries and modification of geom parameters
+            const coords = feature.getGeometry().getCoordinates();
+            const original_geometry = properties.original_geometry || {
+                coordinates: coords,
+                properties: { srid: this.mapSrid },
+            };
+            const color =
+                properties.color ||
+                this.featureColors['draw'] ||
+                this.featureColors['unknown'] ||
+                this.defaultColor;
+
+            feature.setProperties({
+                id: this.newFeatureId,
+                model: context,
+                geometry_source: properties.geometry_source || 'New',
+                source: properties.source || null,
+                name: context.id || -1,
+                label:
+                    context.occurrence_report_number || context.label || 'Draw',
+                color: color,
+                locked: properties.locked || false,
+                copied_from: properties.report_copied_from || null,
+                srid: properties.srid || this.mapSrid,
+                original_geometry: original_geometry,
+                area_sqm: properties.area_sqm || this.featureArea(feature),
+            });
+
+            const type = feature.getGeometry().getType();
+            if (!style) {
+                style = this.createStyle(color, this.defaultColor, type);
+                const rgba = this.colorHexToRgbaValues(color);
+                if (['MultiPoint', 'Point'].includes(type)) {
+                    style = this.createStyle(
+                        color,
+                        this.defaultColor,
+                        type,
+                        null,
+                        null,
+                        require('../../assets/map-marker.svg'),
+                        rgba[3]
+                    );
+                }
+            }
+            feature.setStyle(style);
+
+            return feature;
+        },
         /**
          * Creates a styled feature object from a feature dictionary
          * @param {dict} featureData A feature dictionary
@@ -2909,23 +2929,13 @@ export default {
 
             let color = vm.styleByColor(featureData, model);
             const type = featureData.geometry.type;
-            let style = vm.createStyle(color, vm.defaultColor, type);
+            // let style = vm.createStyle(color, vm.defaultColor, type);
             let geometry;
             if (type === 'Polygon') {
                 geometry = new Polygon(featureData.geometry.coordinates);
             } else if (type === 'MultiPolygon') {
                 geometry = new MultiPolygon(featureData.geometry.coordinates);
             } else if (['MultiPoint', 'Point'].includes(type)) {
-                const rgba = vm.colorHexToRgbaValues(color);
-                style = vm.createStyle(
-                    color,
-                    vm.defaultColor,
-                    type,
-                    null,
-                    null,
-                    require('../../assets/map-marker.svg'),
-                    rgba[3]
-                );
                 if (type === 'Point') {
                     geometry = new Point(featureData.geometry.coordinates);
                 } else if (type === 'MultiPoint') {
@@ -2937,46 +2947,27 @@ export default {
                 console.error(`Unsupported geometry type ${type}`);
             }
 
-            const original_geometry = featureData.properties
-                .original_geometry || {
-                coordinates: geometry.getCoordinates(),
-                properties: { srid: vm.mapSrid },
-            };
-
+            featureData.properties['color'] = color;
             let feature = new Feature({
-                id: vm.newFeatureId, // Incrementing-id of the polygon/feature on the map
                 geometry: geometry,
-                original_geometry: original_geometry,
-                name: model.id,
-                // label: model.label || model.application_type_name_display,
-                label: model.label,
-                color: color,
-                source: featureData.properties.source || null,
-                geometry_source:
-                    featureData.properties.geometry_source || 'New',
-                locked: featureData.properties.locked || false,
-                copied_from: featureData.properties.report_copied_from || null,
-                area_sqm: featureData.properties.area_sqm || null,
-                srid: featureData.properties.srid || vm.mapSrid,
             });
-            if (featureData.id) {
-                // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
-                feature.setId(featureData.id);
-            }
-            if (!feature.getProperties().area) {
-                feature.getProperties().area = vm.featureArea(feature);
-            }
-
-            this.userInputGeometryStackAdd(feature);
 
             // to remove the ocr_geometry as it shows up when the geometry is downloaded
             let propertyModel = model;
             delete propertyModel.ocr_geometry;
 
-            feature.setProperties({
-                model: propertyModel,
-            });
-            feature.setStyle(style);
+            vm.setFeaturePropertiesFromContext(
+                feature,
+                propertyModel,
+                featureData.properties
+            );
+
+            if (featureData.id) {
+                // Id of the model object (https://datatracker.ietf.org/doc/html/rfc7946#section-3.2)
+                feature.setId(featureData.id);
+            }
+            this.userInputGeometryStackAdd(feature);
+
             console.log(feature);
 
             return feature;
@@ -3701,6 +3692,33 @@ export default {
                         original_geometry.properties.srid
                     );
                 }
+            });
+        },
+        addNewPoint: function (lat, lon) {
+            console.log(lat, lon);
+            const feature = new Feature({
+                geometry: new Point([lon, lat]),
+            });
+            const color = this.styleByColor(feature, this.context, 'draw');
+            this.setFeaturePropertiesFromContext(feature, this.context, {
+                color: color,
+            });
+
+            this.modelQuerySource.addFeature(feature);
+            this.userInputGeometryStackAdd(feature);
+            this.newFeatureId++;
+
+            // this.bootstrapTooltipTrigger();
+        },
+        bootstrapTooltipTrigger: function () {
+            var tooltipTriggerList = [].slice.call(
+                document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            );
+            // eslint-disable-next-line no-unused-vars
+            var tooltipList = tooltipTriggerList.map(function (
+                tooltipTriggerEl
+            ) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         },
     },
