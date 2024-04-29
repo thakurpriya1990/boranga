@@ -311,6 +311,11 @@
                                     <button
                                         type="button"
                                         class="btn btn-primary btn-sm"
+                                        :class="
+                                            pointFeaturesSupported
+                                                ? ''
+                                                : 'disabled'
+                                        "
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="top"
                                         data-bs-title="Add a new point"
