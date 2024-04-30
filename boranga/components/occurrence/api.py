@@ -634,74 +634,66 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             return InternalOccurrenceReportSerializer
         return OccurrenceReportSerializer
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         try:
-            with transaction.atomic():
-                group_type_id = GroupType.objects.get(
-                    id=request.data.get("group_type_id")
-                )
-                # internal_application = False
-                # if request.data.get('internal_application'):
-                #         internal_application = request.data.get('internal_application')
-                new_instance = OccurrenceReport(
-                    submitter=request.user.id,
-                    group_type=group_type_id,
-                    # internal_application=internal_application
-                )
-                new_instance.save(version_user=request.user)
-                data = {"occurrence_report_id": new_instance.id}
+            group_type_id = GroupType.objects.get(id=request.data.get("group_type_id"))
 
-                # create Locatiob for new instance
-                serializer = SaveLocationSerializer(data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            new_instance = OccurrenceReport(
+                submitter=request.user.id,
+                group_type=group_type_id,
+            )
+            new_instance.save(version_user=request.user)
+            data = {"occurrence_report_id": new_instance.id}
 
-                # create HabitatComposition for new instance
-                serializer = SaveOCRHabitatCompositionSerializer(data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            # create Locatiob for new instance
+            serializer = SaveLocationSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-                # create HabitatCondition for new instance
-                serializer = SaveOCRHabitatConditionSerializer(data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            # create HabitatComposition for new instance
+            serializer = SaveOCRHabitatCompositionSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-                # create FireHistory for new instance
-                serializer = SaveOCRFireHistorySerializer(data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            # create HabitatCondition for new instance
+            serializer = SaveOCRHabitatConditionSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-                # create FireHistory for new instance
-                serializer = SaveOCRAssociatedSpeciesSerializer(data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            # create FireHistory for new instance
+            serializer = SaveOCRFireHistorySerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-                # create ObservationDetail for new instance
-                serializer = SaveOCRObservationDetailSerializer(data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            # create FireHistory for new instance
+            serializer = SaveOCRAssociatedSpeciesSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-                # create PlantCount for new instance
-                serializer = SaveOCRPlantCountSerializer(data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            # create ObservationDetail for new instance
+            serializer = SaveOCRObservationDetailSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-                # create AnimalObservation for new instance
-                serializer = SaveOCRAnimalObservationSerializer(data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            # create PlantCount for new instance
+            serializer = SaveOCRPlantCountSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-                # create Identification for new instance
-                serializer = SaveOCRIdentificationSerializer(data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            # create AnimalObservation for new instance
+            serializer = SaveOCRAnimalObservationSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-                # headers = self.get_success_headers(serializer.data)
-                # return Response(
-                #    new_instance.id, status=status.HTTP_201_CREATED, headers=headers
-                # )
-                serialized_obj = CreateOccurrenceReportSerializer(new_instance)
-                return Response(serialized_obj.data)
+            # create Identification for new instance
+            serializer = SaveOCRIdentificationSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            serialized_obj = CreateOccurrenceReportSerializer(new_instance)
+            return Response(serialized_obj.data)
+
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
