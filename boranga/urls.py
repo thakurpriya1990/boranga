@@ -110,9 +110,7 @@ router.register(
     occurrence_api.OccurrenceViewSet,
     "occurrence",
 )
-router.register(
-    r"occurrence_documents", occurrence_api.OccurrenceDocumentViewSet
-)
+router.register(r"occurrence_documents", occurrence_api.OccurrenceDocumentViewSet)
 router.register(
     r"occurrence_report_paginated",
     occurrence_api.OccurrenceReportPaginatedViewSet,
@@ -276,7 +274,7 @@ api_patterns = [
         name="get-versions",
     ),
     url(
-        r'^api/history/(?P<app_label>[\w-]+)/(?P<model_name>[\w-]+)/(?P<revision_id>\d+)/$',
+        r"^api/history/(?P<app_label>[\w-]+)/(?P<model_name>[\w-]+)/(?P<revision_id>\d+)/$",
         history_api.GetRevisionVersionsView.as_view(),
         name="get-revision",
     ),
@@ -357,6 +355,12 @@ urlpatterns = [
 
 if settings.DEBUG:  # Serve media locally in development.
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    if "debug_toolbar" in settings.INSTALLED_APPS and settings.SHOW_DEBUG_TOOLBAR:
+        urlpatterns += [
+            # ...
+            path("__debug__/", include("debug_toolbar.urls")),
+        ]
 
 # DBCA Template URLs
 urlpatterns.append(

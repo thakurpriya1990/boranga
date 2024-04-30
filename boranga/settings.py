@@ -80,7 +80,6 @@ if SHOW_DEBUG_TOOLBAR:
 
 STATIC_URL = "/static/"
 
-
 INSTALLED_APPS += [
     "webtemplate_dbca",
     "boranga",
