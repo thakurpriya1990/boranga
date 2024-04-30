@@ -16,6 +16,8 @@ os.environ.setdefault("BASE_DIR", BASE_DIR)
 
 from ledger_api_client.settings_base import *  # noqa: F403
 
+WORKING_FROM_HOME = env("WORKING_FROM_HOME", False)
+
 ROOT_URLCONF = "boranga.urls"
 SITE_ID = 1
 DEPT_DOMAINS = env("DEPT_DOMAINS", ["dpaw.wa.gov.au", "dbca.wa.gov.au"])
