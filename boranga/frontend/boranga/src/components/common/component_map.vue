@@ -1434,8 +1434,15 @@ export default {
                 };
             });
         },
+        /**
+         * Returns the features in the modelQuerySource sorted by their id
+         */
         mapFeaturesSorted: function () {
-            return this.modelQuerySource.getFeatures();
+            return this.modelQuerySource
+                .getFeatures()
+                .toSorted(function (a, b) {
+                    return a.getProperties().id - b.getProperties().id;
+                });
         },
     },
     watch: {
