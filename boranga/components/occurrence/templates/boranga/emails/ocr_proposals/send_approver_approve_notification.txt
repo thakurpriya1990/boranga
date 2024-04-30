@@ -4,7 +4,7 @@
     The Occurrence Report {{ occurrence_report.occurrence_report_number }} has been assessed and has been recommended for approval.
 
     Recommendation: Approve
-    Create New or Add to Existing Occurrence?: {% if approval_details.occurrence %}Add to Existing Occurrence: {{ approval_details.occurrence.occurrence_number }} - {{ approval_details.occurrence.occurrence_name }}{% else %}Create a new Occurrence{% endif %}
+    Create New or Add to Existing Occurrence?: {% if approval_details.occurrence %}Add to Existing Occurrence: {{ approval_details.occurrence.occurrence_number }} - {{ approval_details.occurrence.occurrence_name }}{% else %}Create a new Occurrence: {{ approval_details.new_occurrence_name }}{% endif %}
     Effective from: {{ approval_details.effective_from_date }}
     Effective to: {{ approval_details.effective_to_date }}
     Details: {{ approval_details.details }}
