@@ -3466,25 +3466,27 @@ class OccurrenceViewSet(UserActionLoggingViewset):
 
                 ocrId = data["occurrence_report_id"]
                 section = data["section"]
-                mode = data["mode"]
+                merge = data["merge"]
 
                 ocr = OccurrenceReport.objects.get(id=ocrId)
                 ocrSection = getattr(ocr,section)
                 occSection = getattr(instance,section)
 
                 section_fields = type(ocrSection)._meta.get_fields()
-
                 for i in section_fields:
-                    if i.name != "id" and i.name != "occurrence_report":
+                    if i.name != "id" and i.name != "occurrence_report" and hasattr(occSection,i.name):
                         #TODO check if merge or replace
-                        ocrValue = getattr(ocrSection,i.name)
-                        setattr(occSection,i.name,ocrValue)
+                        if merge:
+                            pass
+                        else:
+                            ocrValue = getattr(ocrSection,i.name)
+                            setattr(occSection,i.name,ocrValue)
 
-                setattr(instance,section,occSection)
-                #TODO WIP
+                occSection.save()
                 instance.save(version_user=request.user)
 
-            return redirect(reverse('internal'))
+                serialized_obj = OccurrenceSerializer(instance, context={"request": request})
+                return Response(serialized_obj.data)
         
         except serializers.ValidationError:
             print(traceback.print_exc())

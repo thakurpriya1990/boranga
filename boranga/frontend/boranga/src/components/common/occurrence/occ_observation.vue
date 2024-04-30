@@ -36,6 +36,7 @@
             <RelatedReports 
                     :occurrence_obj=occurrence_obj
                     :section_type="'observation_detail'"
+                    @copyUpdate="copyUpdate"
                 />
         </FormSection>
         
@@ -53,6 +54,7 @@
             <RelatedReports 
                     :occurrence_obj=occurrence_obj
                     :section_type="'plant_count'"
+                    @copyUpdate="copyUpdate"
                 />
         </FormSection>
 
@@ -70,6 +72,7 @@
             <RelatedReports 
                     :occurrence_obj=occurrence_obj
                     :section_type="'animal_observation'"
+                    @copyUpdate="copyUpdate"
                 />
         </FormSection>
 
@@ -154,6 +157,7 @@
             <RelatedReports 
                     :occurrence_obj=occurrence_obj
                     :section_type="'identification'"
+                    @copyUpdate="copyUpdate"
                 />
         </FormSection>
    </div>
@@ -256,6 +260,10 @@ export default {
                     });
                     vm.updatingObservationDetails = false;
                 });
+            },
+            copyUpdate: function(object,section) {
+                let vm = this;
+                vm.occurrence_obj[section] = object[section];
             },
             updateIdentificationDetails: function() {
                 let vm = this;

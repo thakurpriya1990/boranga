@@ -101,6 +101,7 @@
             <RelatedReports 
                 :occurrence_obj=occurrence_obj
                 :section_type="'habitat_composition'"
+                @copyUpdate="copyUpdate"
             />
         </FormSection>
         <FormSection :formCollapse="false" label="Habitat Condition" :Index="habitatConditionBody">
@@ -162,6 +163,7 @@
             <RelatedReports 
                 :occurrence_obj=occurrence_obj
                 :section_type="'habitat_condition'"
+                @copyUpdate="copyUpdate"
             />
         </FormSection>
         <FormSection :formCollapse="false" label="Fire History" :Index="fireHistoryBody">
@@ -199,6 +201,7 @@
             <RelatedReports 
                 :occurrence_obj=occurrence_obj
                 :section_type="'fire_history'"
+                @copyUpdate="copyUpdate"
             />
         </FormSection>
         <FormSection :formCollapse="false" label="Associated Species" :Index="associatedSpeciesBody">
@@ -214,7 +217,7 @@
                         label="Rich text in here" 
                         :readonly="isReadOnly" 
                         :can_view_richtext_src=true
-                        :key="occurrence_obj.id"
+                        :key="richTextKey"
                         @textChanged="relatedSpeciesTextChanged"
                     />
                 </div>
@@ -228,6 +231,7 @@
             <RelatedReports 
                     :occurrence_obj=occurrence_obj
                     :section_type="'associated_species'"
+                    @copyUpdate="copyUpdate"
                 />
         </FormSection>
     </div>
@@ -267,6 +271,7 @@ export default {
                 habitatConditionBody: 'habitatConditionBody' + vm._uid,
                 fireHistoryBody: 'fireHistoryBody' + vm._uid,
                 associatedSpeciesBody: 'associatedSpeciesBody'+ vm._uid,
+                richTextKey: 0,
                 //---to show fields related to Fauna
                 isFauna: vm.occurrence_obj.group_type==="fauna"?true:false,
                 //----list of values dictionary
@@ -361,6 +366,15 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.occurrence_obj.habitat_composition.land_form = selected.val();
                 });
+            },
+            copyUpdate: function(object,section) {
+                let vm = this;
+                vm.occurrence_obj[section] = object[section];
+
+                //special handling
+                if (section == "associated_species") {
+                    vm.richTextKey++;
+                }
             },
             updateHabitatCompositionDetails: function() {
                 let vm = this;

@@ -196,18 +196,22 @@ export default {
                 console.log(err);
             });  
         },
-        copySection:function (id,mode) {
+        copySection:function (id,merge) {
             let vm = this;
             vm.errors = false;
 
             let formData = new FormData()
 
-            let data = {'occurrence_report_id': id,'section': vm.section_type, 'mode': mode};
+            let data = {'occurrence_report_id': id,'section': vm.section_type, 'merge': merge};
             formData.append('data', JSON.stringify(data));
 
             vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+"/copy_ocr_section"), formData, {
                     emulateJSON: true,
-                }, (error) => {
+                }).then((response) => {
+                    vm.$refs.related_ocr_datatable.vmDataTable.ajax.reload();                    
+                    vm.$emit('copyUpdate', response.body, vm.section_type);
+                },
+                (error) => {
                     vm.errors = true;
                     vm.errorString = helpers.apiVueResourceError(error);
                 });
@@ -222,12 +226,12 @@ export default {
             vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-merge-section]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-merge-section');
-                vm.copySection(id,"merge");
+                vm.copySection(id,true);
             });
             vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-replace-section]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-replace-section');
-                vm.copySection(id,"replace");
+                vm.copySection(id,false);
             });
         }
     },
