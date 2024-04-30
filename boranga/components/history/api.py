@@ -25,18 +25,30 @@ class InternalAuthorizationView(views.APIView):
     django_admin_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport"]
+                       "Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument"
+                       "OCRConservationThreat","OCCConservationThreat",
+                       "Meeting", "ConservationThreat"]
     assessor_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport"]
+                       "Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument",
+                       "OCRConservationThreat","OCCConservationThreat",
+                       "Meeting", "ConservationThreat"]
     approver_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport"]
-    species_processor_models = ["Species","SpeciesDocument"]
-    community_processor_models = [ "Community","CommunityDocument"]
-    conservation_status_editor_models = ["ConservationStatus","ConservationStatusDocument"]
+                       "Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument",
+                       "OCRConservationThreat","OCCConservationThreat",
+                       "Meeting", "ConservationThreat"]
+    species_processor_models = ["Species","SpeciesDocument", "ConservationThreat",
+                       "Meeting"]
+    community_processor_models = [ "Community","CommunityDocument", "ConservationThreat",
+                       "Meeting"]
+    conservation_status_editor_models = ["ConservationStatus","ConservationStatusDocument",
+                       "Meeting"]
 
     #TODO other models to consider - Meetings, Minutes, and any Occurence Document Models
 
