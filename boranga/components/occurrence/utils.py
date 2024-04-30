@@ -69,6 +69,11 @@ def save_geometry(request, instance, geometry_data):
 
         original_geometry = feature.get("properties", {}).get("original_geometry")
         srid_original = original_geometry.get("properties", {}).get("srid", 4326)
+        if not srid_original:
+            raise ValidationError(
+                f"Geometry must have an SRID set: {original_geometry.get('coordinates', [])}"
+            )
+
         if not original_geometry.get("type", None):
             original_geometry["type"] = geometry_type
         feature_json = {"type": "Feature", "geometry": original_geometry}
