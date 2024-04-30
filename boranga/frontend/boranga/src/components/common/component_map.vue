@@ -492,12 +492,48 @@
                             />
                         </div>
                     </div>
+
+                    <!-- Buffer Features -->
                     <div
                         v-if="editable"
                         class="optional-layers-button-wrapper"
                         :title="
                             polygonCount
-                                ? 'Select a feature to delete'
+                                ? 'Select feature(s) to buffer'
+                                : 'No features to buffer'
+                        "
+                    >
+                        <div
+                            class="optional-layers-button btn"
+                            :class="[
+                                selectedFeatureIds.length == 0
+                                    ? 'disabled'
+                                    : 'btn-warning',
+                                navbarButtonsDisabled ? 'disabled' : '',
+                            ]"
+                            title="Buffer selected features"
+                            @click="bufferModelFeatures()"
+                        >
+                            <img
+                                class="svg-icon"
+                                src="../../assets/convex-hull.svg"
+                            />
+                            <span
+                                v-if="selectedFeatureIds.length"
+                                id="selectedFeatureCountWarning"
+                                class="badge badge-warning"
+                                >{{ selectedFeatureIds.length }}</span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Delete features -->
+                    <div
+                        v-if="editable"
+                        class="optional-layers-button-wrapper"
+                        :title="
+                            polygonCount
+                                ? 'Select feature(s) to delete'
                                 : 'No features to delete'
                         "
                     >
@@ -518,7 +554,7 @@
                             />
                             <span
                                 v-if="selectedFeatureIds.length"
-                                id="selectedFeatureCount"
+                                id="selectedFeatureCountDanger"
                                 class="badge badge-warning"
                                 >{{ selectedFeatureIds.length }}</span
                             >
@@ -2709,34 +2745,28 @@ export default {
 
             vm.drawPolygonsForModel.updateSketchFeatures_();
         },
+        bufferModelFeatures: function () {
+            const selectedFeatures = this.selectedFeatures();
+            console.log('Buffering features', selectedFeatures);
+        },
         removeModelFeatures: function () {
             let vm = this;
             let cannot_delete_features = [];
-            const features = vm.modelQuerySource
-                .getFeatures()
-                .filter((feature) => {
-                    if (
-                        vm.selectedFeatureIds.includes(
+            const features = vm.selectedFeatures().filter((feature) => {
+                if (
+                    feature.getProperties().locked === false ||
+                    vm.debug // Allow deletion of locked features if debug mode is enabled
+                ) {
+                    return feature;
+                } else {
+                    console.warn(
+                        `Cannot delete feature. ${
                             feature.getProperties().id
-                        )
-                    ) {
-                        if (
-                            feature.getProperties().locked === false ||
-                            vm.debug // Allow deletion of locked features if debug mode is enabled
-                        ) {
-                            return feature;
-                        } else {
-                            console.warn(
-                                `Cannot delete feature. ${
-                                    feature.getProperties().id
-                                } is locked`
-                            );
-                            cannot_delete_features.push(
-                                feature.getProperties().id
-                            );
-                        }
-                    }
-                });
+                        } is locked`
+                    );
+                    cannot_delete_features.push(feature.getProperties().id);
+                }
+            });
 
             if (cannot_delete_features.length > 0) {
                 vm.errorMessageProperty(null);
@@ -3756,13 +3786,21 @@ export default {
     background-color: #c67605;
 }
 
-#selectedFeatureCount {
+#selectedFeatureCountDanger {
     font-size: 12px;
-    background: #ff0000;
     color: #fff;
     padding: 0 5px;
     vertical-align: top;
     margin-left: -10px;
+    background: #ff0000;
+}
+#selectedFeatureCountWarning {
+    font-size: 12px;
+    color: #fff;
+    padding: 0 5px;
+    vertical-align: top;
+    margin-left: -10px;
+    background: #ffa500;
 }
 
 .map-spinner {
