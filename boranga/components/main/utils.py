@@ -137,9 +137,12 @@ def wkb_to_geojson(wkb):
 def feature_json_to_geosgeometry(feature, srid = 4326):
     import geojson
 
+    if isinstance(srid, str) and srid.isnumeric():
+        srid = int(srid)
     geo_json = mapping(geojson.loads(json.dumps(feature)))
     geom_shape = shape(geo_json.get("geometry"))
-    return GEOSGeometry(geom_shape.wkt, srid=srid)
+
+    return GEOSGeometry(geom_shape.wkt, srid=4326)
 
 def transform_json_geometry(json_geom, from_srid, to_srid):
     feature_json = {"type": "Feature", "geometry": json_geom}
