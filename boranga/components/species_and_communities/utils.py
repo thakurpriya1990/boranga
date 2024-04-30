@@ -45,7 +45,9 @@ def species_form_submit(species_instance, request):
     submitter = retrieve_email_user(species_instance.submitter)
     if submitter:
         submitter.log_user_action(
-            SpeciesUserAction.ACTION_LODGE_PROPOSAL.format(species_instance.id),
+            SpeciesUserAction.ACTION_CREATE_SPECIES.format(
+                species_instance.species_number
+            ),
             request,
         )
 
@@ -54,7 +56,7 @@ def species_form_submit(species_instance, request):
 
     if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
         species_instance.processing_status = Species.PROCESSING_STATUS_ACTIVE
-        species_instance.documents.all().update(can_delete=False)
+        species_instance.species_documents.all().update(can_delete=False)
         species_instance.save()
     else:
         raise ValidationError(
@@ -83,7 +85,9 @@ def community_form_submit(community_instance, request):
     submitter = retrieve_email_user(community_instance.submitter)
     if submitter:
         submitter.log_user_action(
-            CommunityUserAction.ACTION_LODGE_PROPOSAL.format(community_instance.id),
+            CommunityUserAction.ACTION_CREATE_COMMUNITY.format(
+                community_instance.community_number
+            ),
             request,
         )
 
@@ -92,7 +96,7 @@ def community_form_submit(community_instance, request):
 
     if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
         community_instance.processing_status = Community.PROCESSING_STATUS_ACTIVE
-        community_instance.documents.all().update(can_delete=False)
+        community_instance.community_documents.all().update(can_delete=False)
         community_instance.save()
     else:
         raise ValidationError(
