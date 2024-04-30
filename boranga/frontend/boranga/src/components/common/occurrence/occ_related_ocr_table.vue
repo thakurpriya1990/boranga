@@ -1,6 +1,6 @@
 <template lang="html">
-    <div id="related_ocr">
-        <FormSection :formCollapse="false" label="Related Occurrence Reports" Index="related_ocr">
+    <div :id="'related_ocr'+section_type">
+        <FormSection :formCollapse="true" label="Related Occurrence Reports" :Index="'related_ocr'+section_type">
             <div>
                 <datatable
                     ref="related_ocr_datatable"
@@ -116,8 +116,8 @@ export default {
                 'render': function(row, type, full){
                     let links = '';
                     links += `<a href='#' data-view-section='${full.id}'>View Section</a><br>`;
-                    links += `<a href='#' data-merge-section='${full.id}'>Copy Section Data (merge)</a><br>`;
-                    links += `<a href='#' data-replace-section='${full.id}'>Copy Section Data (replace)</a><br>`;
+                    //links += `<a href='#' data-merge-section='${full.id}'>Copy Section Data (merge)</a><br>`;
+                    links += `<a href='#' data-replace-section='${full.id}'>Copy Section Data</a><br>`;
                     
                     return links;
                 }

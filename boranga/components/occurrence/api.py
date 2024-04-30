@@ -3475,11 +3475,14 @@ class OccurrenceViewSet(UserActionLoggingViewset):
                 section_fields = type(ocrSection)._meta.get_fields()
                 for i in section_fields:
                     if i.name != "id" and i.name != "occurrence_report" and hasattr(occSection,i.name):
-                        #TODO check if merge or replace
+                        ocrValue = getattr(ocrSection,i.name)
                         if merge:
+                            #if not ocrValue: #do not overwrite if None, 0, or empty string
+                            #    #determine if field is one-to-many
+                            #    many = False
+                            #DEFERRED for now
                             pass
                         else:
-                            ocrValue = getattr(ocrSection,i.name)
                             setattr(occSection,i.name,ocrValue)
 
                 occSection.save()
