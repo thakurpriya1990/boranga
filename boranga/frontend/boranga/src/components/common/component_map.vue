@@ -156,7 +156,7 @@
                                             .longitude
                                     "
                                     class="input-group input-group-sm mb-1 text-nowrap"
-                                >{{ feature.getProperties().id }}
+                                >
                                     <div class="input-group-text">
                                         <input
                                             :id="`feature-${feature.ol_uid}-checkbox`"
@@ -2667,6 +2667,8 @@ export default {
                 evt.features.forEach((feature) => {
                     //commented validateFeature by Priya
                     // validateFeature(feature, vm);
+                    const coordinates = feature.getGeometry().getCoordinates();
+                    vm.userCoordinates(feature, coordinates);
                 });
             };
 
