@@ -715,6 +715,16 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
         return HttpResponse(transformed, content_type="application/json")
 
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        url_path="buffer-geometry",
+    )
+    def buffer_geometry(self, request, *args, **kwargs):
+        pass
+
     # used for Location Tab of Occurrence Report external form
     @list_route(
         methods=[
