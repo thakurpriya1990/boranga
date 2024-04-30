@@ -97,6 +97,12 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+
+            <RelatedReports 
+                :occurrence_obj=occurrence_obj
+                :section_type="'habitat_composition'"
+                @copyUpdate="copyUpdate"
+            />
         </FormSection>
         <FormSection :formCollapse="false" label="Habitat Condition" :Index="habitatConditionBody">
             <label for="" class="col-lg-3 control-label fs-5 fw-bold">Keiry Scale</label>
@@ -154,6 +160,11 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+            <RelatedReports 
+                :occurrence_obj=occurrence_obj
+                :section_type="'habitat_condition'"
+                @copyUpdate="copyUpdate"
+            />
         </FormSection>
         <FormSection :formCollapse="false" label="Fire History" :Index="fireHistoryBody">
             <label for="" class="col-lg-3 control-label fs-5 fw-bold">Last Fire History</label>
@@ -187,6 +198,11 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+            <RelatedReports 
+                :occurrence_obj=occurrence_obj
+                :section_type="'fire_history'"
+                @copyUpdate="copyUpdate"
+            />
         </FormSection>
         <FormSection :formCollapse="false" label="Associated Species" :Index="associatedSpeciesBody">
             <div class="row mb-3">
@@ -201,7 +217,7 @@
                         label="Rich text in here" 
                         :readonly="isReadOnly" 
                         :can_view_richtext_src=true
-                        :key="occurrence_obj.id"
+                        :key="richTextKey"
                         @textChanged="relatedSpeciesTextChanged"
                     />
                 </div>
@@ -212,6 +228,11 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+            <RelatedReports 
+                    :occurrence_obj=occurrence_obj
+                    :section_type="'associated_species'"
+                    @copyUpdate="copyUpdate"
+                />
         </FormSection>
     </div>
 </template>
@@ -220,6 +241,7 @@
 import Vue from 'vue' ;
 import FormSection from '@/components/forms/section_toggle.vue';
 import RichText from '@/components/forms/richtext.vue'
+import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 import {
   api_endpoints,
   helpers
@@ -249,6 +271,7 @@ export default {
                 habitatConditionBody: 'habitatConditionBody' + vm._uid,
                 fireHistoryBody: 'fireHistoryBody' + vm._uid,
                 associatedSpeciesBody: 'associatedSpeciesBody'+ vm._uid,
+                richTextKey: 0,
                 //---to show fields related to Fauna
                 isFauna: vm.occurrence_obj.group_type==="fauna"?true:false,
                 //----list of values dictionary
@@ -271,6 +294,7 @@ export default {
         components: {
             FormSection,
             RichText,
+            RelatedReports,
         },
         computed: {
             isReadOnly: function(){
@@ -342,6 +366,15 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.occurrence_obj.habitat_composition.land_form = selected.val();
                 });
+            },
+            copyUpdate: function(object,section) {
+                let vm = this;
+                vm.occurrence_obj[section] = object[section];
+
+                //special handling
+                if (section == "associated_species") {
+                    vm.richTextKey++;
+                }
             },
             updateHabitatCompositionDetails: function() {
                 let vm = this;

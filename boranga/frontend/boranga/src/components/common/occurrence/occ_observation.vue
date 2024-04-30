@@ -33,6 +33,11 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+            <RelatedReports 
+                    :occurrence_obj=occurrence_obj
+                    :section_type="'observation_detail'"
+                    @copyUpdate="copyUpdate"
+                />
         </FormSection>
         
         <FormSection :formCollapse="false" label="Plant Count" :Index="plantCountBody" v-if="isFlora">
@@ -46,6 +51,11 @@
                 :isReadOnly="isReadOnly"
                 ref="plantCountDetail">
             </PlantCount>
+            <RelatedReports 
+                    :occurrence_obj=occurrence_obj
+                    :section_type="'plant_count'"
+                    @copyUpdate="copyUpdate"
+                />
         </FormSection>
 
         <FormSection :formCollapse="false" label="Animal Observation" :Index="animalObsBody" v-if="isFauna">
@@ -59,6 +69,11 @@
                 :isReadOnly="isReadOnly"
                 ref="animalObservationDetail">
             </AnimalObservation>
+            <RelatedReports 
+                    :occurrence_obj=occurrence_obj
+                    :section_type="'animal_observation'"
+                    @copyUpdate="copyUpdate"
+                />
         </FormSection>
 
         <FormSection :formCollapse="false" label="Identification" :Index="identificationBody">
@@ -139,6 +154,11 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+            <RelatedReports 
+                    :occurrence_obj=occurrence_obj
+                    :section_type="'identification'"
+                    @copyUpdate="copyUpdate"
+                />
         </FormSection>
    </div>
 </template>
@@ -148,6 +168,7 @@ import Vue from 'vue' ;
 import FormSection from '@/components/forms/section_toggle.vue';
 import PlantCount from './plant_count.vue'
 import AnimalObservation from './animal_observation.vue'
+import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 import {
   api_endpoints,
   helpers
@@ -196,6 +217,7 @@ export default {
             FormSection,
             PlantCount,
             AnimalObservation,
+            RelatedReports,
         },
         computed: {
             isReadOnly: function(){
@@ -238,6 +260,10 @@ export default {
                     });
                     vm.updatingObservationDetails = false;
                 });
+            },
+            copyUpdate: function(object,section) {
+                let vm = this;
+                vm.occurrence_obj[section] = object[section];
             },
             updateIdentificationDetails: function() {
                 let vm = this;
