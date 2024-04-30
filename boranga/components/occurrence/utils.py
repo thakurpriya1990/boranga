@@ -153,15 +153,12 @@ def ocr_proposal_submit(ocr_proposal, request):
     )
 
     # Create a log entry for the user
-    if ocr_proposal.submitter:
-        submitter = retrieve_email_user(ocr_proposal.submitter)
-        if submitter:
-            submitter.log_user_action(
-                OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(
-                    ocr_proposal.id
-                ),
-                request,
-            )
+    submitter = retrieve_email_user(ocr_proposal.submitter)
+    if submitter:
+        submitter.log_user_action(
+            OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),
+            request,
+        )
 
     ret1 = send_submit_email_notification(request, ocr_proposal)
     ret2 = send_external_submit_email_notification(request, ocr_proposal)
