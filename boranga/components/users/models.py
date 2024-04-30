@@ -48,7 +48,6 @@ class EmailUserAction(UserAction):
         return cls.objects.create(
             email_user=email_user.id,
             who=request_user.id,
-            who_full_name=request_user.get_full_name(),
             what=str(action),
         )
 
