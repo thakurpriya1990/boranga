@@ -143,7 +143,7 @@
                                 @mouseleave="hover = false"
                             >
                                 <div
-                                    v-for="feature in modelQuerySource.getFeatures()"
+                                    v-for="feature in mapFeaturesSorted"
                                     :key="
                                         feature.ol_uid +
                                         feature.getProperties()
@@ -156,7 +156,7 @@
                                             .longitude
                                     "
                                     class="input-group input-group-sm mb-1 text-nowrap"
-                                >
+                                >{{ feature.getProperties().id }}
                                     <div class="input-group-text">
                                         <input
                                             :id="`feature-${feature.ol_uid}-checkbox`"
@@ -1434,6 +1434,9 @@ export default {
                 };
             });
         },
+        mapFeaturesSorted: function () {
+            return this.modelQuerySource.getFeatures();
+        },
     },
     watch: {
         selectedFeatureIds: function () {
@@ -1944,7 +1947,6 @@ export default {
 
                     source.addFeature(feature);
                     vm.userInputGeometryStackAdd(feature);
-                    vm.newFeatureId++;
                 }
             });
 
@@ -2798,7 +2800,6 @@ export default {
                 );
 
                 vm.modelQuerySource.addFeature(feature);
-                vm.newFeatureId++;
             }
         },
         assignProposalFeatureColors: function (proposals) {
@@ -2830,7 +2831,6 @@ export default {
                         return;
                     }
                     vm.modelQuerySource.addFeature(feature);
-                    vm.newFeatureId++;
                 });
             });
             // vm.addFeatureCollectionToMap();
@@ -2846,7 +2846,6 @@ export default {
             console.log('drawend', feature.values_.geometry.flatCoordinates);
 
             vm.setFeaturePropertiesFromContext(feature);
-            vm.newFeatureId++;
             console.log('newFeatureId = ' + vm.newFeatureId);
             vm.lastPoint = feature;
             vm.sketchCoordinates = [[]];
@@ -2913,6 +2912,7 @@ export default {
                 }
             }
             feature.setStyle(style);
+            this.newFeatureId++;
 
             return feature;
         },
@@ -3706,7 +3706,6 @@ export default {
 
             this.modelQuerySource.addFeature(feature);
             this.userInputGeometryStackAdd(feature);
-            this.newFeatureId++;
 
             // this.bootstrapTooltipTrigger();
         },
