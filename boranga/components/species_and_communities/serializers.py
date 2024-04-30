@@ -641,6 +641,7 @@ class SpeciesSerializer(BaseSpeciesSerializer):
     processing_status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
+        model = Species
         fields = (
             "id",
             "species_number",
