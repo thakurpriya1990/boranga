@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import serializers
 
+import geojson
 from shapely.geometry import shape, mapping
 
 from ledger_api_client.ledger_models import EmailUserRO
@@ -74,7 +75,7 @@ def validate_threat_request(request):
         raise serializers.ValidationError("Date observed value invalid - must be on or before the current date")
     return True
 
-#def add_business_days(from_date, number_of_days):
+# def add_business_days(from_date, number_of_days):
 #    """ given from_date and number_of_days, returns the next weekday date i.e. excludes Sat/Sun """
 #    to_date = from_date
 #    while number_of_days:
@@ -83,7 +84,7 @@ def validate_threat_request(request):
 #            number_of_days -= 1
 #    return to_date
 #
-#def get_next_weekday(from_date):
+# def get_next_weekday(from_date):
 #    """ given from_date and number_of_days, returns the next weekday date i.e. excludes Sat/Sun """
 #    if from_date.weekday() == 5: # i.e. Sat
 #        from_date += timedelta(2)
@@ -134,9 +135,12 @@ def wkb_to_geojson(wkb):
 
     return geo_json
 
-def feature_json_to_geosgeometry(feature, srid = 4326):
-    import geojson
 
+def features_json_to_geosgeometry(features, srid=4326):
+    return [feature_json_to_geosgeometry(feature, srid) for feature in features]
+
+
+def feature_json_to_geosgeometry(feature, srid = 4326):
     if isinstance(srid, str) and srid.isnumeric():
         srid = int(srid)
     geo_json = mapping(geojson.loads(json.dumps(feature)))
