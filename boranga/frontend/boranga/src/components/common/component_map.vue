@@ -512,7 +512,7 @@
                                 navbarButtonsDisabled ? 'disabled' : '',
                             ]"
                             title="Buffer selected features"
-                            @click="bufferModelFeatures()"
+                            @click="bufferFeatures()"
                         >
                             <img
                                 class="svg-icon"
@@ -1628,14 +1628,11 @@ export default {
             let vm = this;
             if (!geometry_source) {
                 geometry_source =
-                    featureData.properties.geometry_source?.toLowerCase() ||
+                    featureData.properties?.geometry_source?.toLowerCase() ||
                     'draw';
             }
 
-            const type =
-                'getGeometry' in featureData
-                    ? featureData.getGeometry().getType()
-                    : featureData.geometry.type;
+            const type = vm.getFeatureType(featureData);
             const featureColors = ['Point', 'MultiPoint'].includes(type)
                 ? vm.pointFeatureColors
                 : vm.featureColors;
@@ -2749,9 +2746,53 @@ export default {
 
             vm.drawPolygonsForModel.updateSketchFeatures_();
         },
-        bufferModelFeatures: function () {
+        bufferFeatures: async function () {
             const selectedFeatures = this.selectedFeatures();
             console.log('Buffering features', selectedFeatures);
+            const format = new GeoJSON();
+            const features = [];
+
+            for (let feature of selectedFeatures) {
+                let geomStr = format.writeGeometry(feature.getGeometry());
+                features.push(JSON.parse(geomStr));
+            }
+
+            const featureCollection = {
+                type: 'FeatureCollection',
+                features: features.map((geom) => {
+                    return {
+                        type: 'Feature',
+                        geometry: geom,
+                    };
+                }),
+            };
+
+            const buffered = await fetch(
+                helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/buffer-geometry/?geometry=${JSON.stringify(
+                        featureCollection
+                    )}`
+                )
+            )
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    return data;
+                })
+                .catch((error) => {
+                    console.error(
+                        'Error coordinate transforming geometry:',
+                        error
+                    );
+                });
+
+            this.addFeatureCollectionToMap(buffered);
+            return buffered;
         },
         removeModelFeatures: function () {
             let vm = this;
@@ -2922,14 +2963,16 @@ export default {
                 this.featureColors['unknown'] ||
                 this.defaultColor;
 
+            const label =
+                context.occurrence_report_number || context.label || 'Draw';
+
             feature.setProperties({
                 id: this.newFeatureId,
                 model: context,
                 geometry_source: properties.geometry_source || 'New',
                 source: properties.source || null,
                 name: context.id || -1,
-                label:
-                    context.occurrence_report_number || context.label || 'Draw',
+                label: label,
                 color: color,
                 locked: properties.locked || false,
                 copied_from: properties.report_copied_from || null,
@@ -2971,7 +3014,7 @@ export default {
             }
 
             let color = vm.styleByColor(featureData, model);
-            const type = featureData.geometry.type;
+            const type = vm.getFeatureType(featureData);
             // let style = vm.createStyle(color, vm.defaultColor, type);
             let geometry;
             if (type === 'Polygon') {
@@ -3762,6 +3805,25 @@ export default {
             ) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
+        },
+        /**
+         * Returns the type of a feature
+         * @param {Object} feature A feature object or a feature dictionary
+         */
+        getFeatureType: function (feature) {
+            const type =
+                'getGeometry' in feature
+                    ? feature.getGeometry().getType()
+                    : feature.geometry
+                    ? feature.geometry.type
+                    : feature.type
+                    ? feature.type
+                    : null;
+            if (!type) {
+                console.error('Unknown feature type: ' + feature);
+            }
+
+            return type;
         },
     },
 };
