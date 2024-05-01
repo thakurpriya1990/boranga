@@ -79,6 +79,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     identification = serializers.SerializerMethodField()
     label = serializers.SerializerMethodField()
     model_name = serializers.SerializerMethodField()
+    occurrence_reports = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
@@ -155,6 +156,12 @@ class OccurrenceSerializer(serializers.ModelSerializer):
 
     def get_model_name(self, obj):
         return "occurrence"
+
+    def get_occurrence_reports(self, obj):
+        serializer = ListOccurrenceReportSerializer(
+            obj.occurrence_reports.all(), many=True, context=self.context
+        )
+        return serializer.data
 
 
 class ListOccurrenceReportSerializer(serializers.ModelSerializer):
