@@ -5,7 +5,7 @@
             :key="componentMapKey"
             class="me-3"
             :context="occurrence"
-            :proposal-ids="[]"
+            :proposal-ids="occurrenceReportIds"
             :is_external="false"
             :point-features-supported="true"
             :polygon-features-supported="true"
@@ -71,6 +71,11 @@ export default {
         },
         coordinateReferenceSystems() {
             return [{ id: 4326, name: 'EPSG:4326 - WGS 84' }];
+        },
+        occurrenceReportIds() {
+            return this.occurrence.occurrence_reports.map(
+                (report) => report.id
+            );
         },
     },
 };
