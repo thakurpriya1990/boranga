@@ -365,14 +365,17 @@ def is_authorised_to_access_document(request):
 
 
 def getPrivateFile(request):
+
+    file_name_path = request.path
+    # norm path will convert any traversal or repeat / in to its normalised form
+    full_file_path = os.path.normpath(settings.BASE_DIR + file_name_path)
+
+    if not os.path.isfile(full_file_path):
+        return HttpResponse("Not Found", status=404)
+
     if is_authorised_to_access_document(request):
-        file_name_path = request.path
-        # norm path will convert any traversal or repeat / in to its normalised form
-        full_file_path = os.path.normpath(settings.BASE_DIR + file_name_path)
         # we then ensure the normalised path is within the BASE_DIR (and the file exists)
-        if full_file_path.startswith(settings.BASE_DIR) and os.path.isfile(
-            full_file_path
-        ):
+        if full_file_path.startswith(settings.BASE_DIR):
             extension = file_name_path.split(".")[-1]
             the_file = open(full_file_path, "rb")
             the_data = the_file.read()
