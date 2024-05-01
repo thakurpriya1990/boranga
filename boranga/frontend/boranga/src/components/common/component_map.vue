@@ -123,7 +123,7 @@
                         <transition>
                             <div
                                 class="optional-layers-button-wrapper"
-                                :title="`There are ${optionalLayers.length} geometries available}`"
+                                :title="`There are ${optionalLayers.length} geometries available`"
                             >
                                 <div
                                     class="optional-layers-button btn"
@@ -1317,7 +1317,11 @@ export default {
             if (this.context?.model_name == 'occurrencereport') {
                 endpoint = api_endpoints.occurrence_report;
                 obj_id = this.context.id;
+            } else if (this.context?.model_name == 'occurrence') {
+                endpoint = api_endpoints.occurrence;
+                obj_id = this.context.id;
             } else {
+                // TODO: Make work with occurrence model
                 console.warn('shapefileDocumentUrl: invalid context');
                 return ''; // Should not reach here.
             }
