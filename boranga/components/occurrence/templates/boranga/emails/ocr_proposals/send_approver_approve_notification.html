@@ -11,7 +11,7 @@
         {% if approval_details.occurrence %}
             Add to Existing Occurrence: {{ approval_details.occurrence.occurrence_number }} - {{ approval_details.occurrence.occurrence_name }}
         {% else %}
-            Create a new Occurrence
+            Create a new Occurrence: {{ approval_details.new_occurrence_name }}
         {% endif %}
     </p>
     <p>Effective from: {{ approval_details.effective_from_date }}</p>

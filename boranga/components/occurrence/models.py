@@ -4,8 +4,8 @@ import logging
 import reversion
 from django.conf import settings
 from django.contrib.gis.db import models as gis_models
-from django.contrib.gis.db.models.functions import Area, AsWKB
-from django.contrib.gis.geos import Polygon, GEOSGeometry
+from django.contrib.gis.db.models.functions import Area
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -934,10 +934,17 @@ class OccurrenceReportProposalRequest(models.Model):
 
     class Meta:
         app_label = "boranga"
+        ordering = ["id"]
 
 
 class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
-    STATUS_CHOICES = (("requested", "Requested"), ("amended", "Amended"))
+    STATUS_CHOICE_REQUESTED = "requested"
+    STATUS_CHOICE_AMENDED = "amended"
+
+    STATUS_CHOICES = (
+        (STATUS_CHOICE_REQUESTED, "Requested"),
+        (STATUS_CHOICE_AMENDED, "Amended"),
+    )
 
     status = models.CharField(
         "Status", max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
@@ -948,6 +955,7 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
 
     class Meta:
         app_label = "boranga"
+        ordering = ["id"]
 
     @transaction.atomic
     def generate_amendment(self, request):

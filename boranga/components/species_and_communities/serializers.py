@@ -139,6 +139,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             # conseration list applies to wa?
             if not hasattr(conservation_status, "conservation_list"):
                 return ""
+            if not conservation_status.conservation_list:
+                return ""
             return conservation_status.conservation_list.code
         except ConservationStatus.DoesNotExist:
             return ""
@@ -152,6 +154,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
                 processing_status="approved",
             )  # need to show only WA_list species
             if not hasattr(conservation_status, "conservation_category"):
+                return ""
+            if not conservation_status.conservation_category:
                 return ""
             return conservation_status.conservation_category.code
         except ConservationStatus.DoesNotExist:
@@ -637,6 +641,7 @@ class SpeciesSerializer(BaseSpeciesSerializer):
     processing_status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
+        model = Species
         fields = (
             "id",
             "species_number",
