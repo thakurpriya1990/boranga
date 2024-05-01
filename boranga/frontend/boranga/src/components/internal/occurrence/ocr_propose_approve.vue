@@ -214,6 +214,7 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.group_type_id,
+                            occurrence_report_id: vm.occurrence_report_id,
                         }
                         return query;
                     },
