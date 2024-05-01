@@ -119,6 +119,7 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.BrowsableAPIRenderer",
         "rest_framework_datatables.renderers.DatatablesRenderer",
     ),
+    "EXCEPTION_HANDLER": "boranga.exceptions.custom_exception_handler",
 }
 
 MIDDLEWARE_CLASSES += [
