@@ -231,11 +231,11 @@ module.exports = {
     },
 
     lookup_history_ocr_conservation_threat: function (id) {
-      return `/api/history/boranga/occurrence/OcrConservationThreat/${id}/`;
+      return `/api/history/boranga/occurrence/OCRConservationThreat/${id}/`;
     },
 
     lookup_history_occ_conservation_threat: function (id) {
-      return `/api/history/boranga/occurrence/OccConservationThreat/${id}/`;
+      return `/api/history/boranga/occurrence/OCCConservationThreat/${id}/`;
     },
 
     lookup_history_minutes: function (id) {
