@@ -170,3 +170,31 @@ def get_instance_identifier(instance):
     raise AttributeError(
         f"Model instance has no valid identifier to use for logging. Tried: {settings.ACTION_LOGGING_IDENTIFIER_FIELDS}"
     )
+
+
+def clone_model(source_model_class, target_model_class, source_model):
+    """
+    Copy field values from source_model to target_model
+    """
+    if source_model is None:
+        return None
+
+    if not isinstance(source_model, source_model_class):
+        raise ValueError(
+            f"source_model is not an instance of {source_model_class.__name__}"
+        )
+
+    target_model = target_model_class()
+
+    try:
+        for field in source_model._meta.fields:
+            if field.primary_key:
+                continue
+
+            setattr(target_model, field.name, getattr(source_model, field.name))
+    except AttributeError as e:
+        logger.error(
+            f"Error copying field values from {source_model} to {target_model}: {e}"
+        )
+
+    return target_model.save()
