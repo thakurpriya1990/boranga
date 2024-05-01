@@ -5,7 +5,8 @@ from io import BytesIO
 
 import pandas as pd
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import CharField, Q, Value
+from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -2233,17 +2234,56 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         queryset = self.get_queryset()
         group_type_id = request.GET.get("group_type_id", None)
         if group_type_id:
-            queryset = queryset.filter(group_type_id=group_type_id)
+            try:
+                group_type = GroupType.objects.get(id=group_type_id)
+            except GroupType.DoesNotExist:
+                logger.warning(f"GroupType with id {group_type_id} does not exist")
+                return Response({"results": []})
+
+            queryset = queryset.filter(group_type=group_type)
+            occurrence_report_id = request.GET.get("occurrence_report_id", None)
+            if occurrence_report_id:
+                try:
+                    occurrence_report = OccurrenceReport.objects.get(
+                        id=occurrence_report_id
+                    )
+                except OccurrenceReport.DoesNotExist:
+                    logger.warning(
+                        "OccurrenceReport with id {} does not exist".format(
+                            occurrence_report_id
+                        )
+                    )
+                    return Response({"results": []})
+
+                if group_type.name in [
+                    GroupType.GROUP_TYPE_FLORA,
+                    GroupType.GROUP_TYPE_FAUNA,
+                ]:
+                    queryset = queryset.filter(species=occurrence_report.species)
+                elif group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+                    queryset = queryset.filter(community=occurrence_report.community)
+
         search_term = request.GET.get("term", None)
         if search_term:
-            queryset = queryset.values_list("occurrence_name", flat=True)
             queryset = (
-                queryset.filter(occurrence_name__icontains=search_term)
+                queryset.annotate(
+                    display_name=Concat(
+                        "occurrence_number",
+                        Value(" - "),
+                        "occurrence_name",
+                        Value(" ("),
+                        "group_type__name",
+                        Value(")"),
+                        output_field=CharField(),
+                    ),
+                )
+                .filter(display_name__icontains=search_term)
                 .distinct()
-                .values("id", "occurrence_name")[:10]
+                .values("id", "display_name")[:10]
             )
+
             queryset = [
-                {"id": occurrence["id"], "text": occurrence["occurrence_name"]}
+                {"id": occurrence["id"], "text": occurrence["display_name"]}
                 for occurrence in queryset
             ]
         return Response({"results": queryset})

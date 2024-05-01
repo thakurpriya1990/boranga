@@ -788,7 +788,7 @@ class OccurrenceReportApprovalDetails(models.Model):
     occurrence_report = models.OneToOneField(
         OccurrenceReport, on_delete=models.CASCADE, related_name="approval_details"
     )
-    occurrence = models.OneToOneField(
+    occurrence = models.ForeignKey(
         "Occurrence", on_delete=models.PROTECT, null=True, blank=True
     )  # If being added to an existing occurrence
     new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
