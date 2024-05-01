@@ -141,10 +141,8 @@ export default {
                 effective_from_date: '',
                 effective_to_date: '',
                 details: '',
-                occurrence_report: this.occurrence_report_id
             };
             this.errorString = '';
-            this.form.reset();
         },
         proposeApprove: function () {
             let vm = this;
