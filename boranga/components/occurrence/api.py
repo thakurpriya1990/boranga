@@ -32,6 +32,7 @@ from boranga.components.main.api import (
 from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import (
+    features_json_to_geosgeometry,
     transform_json_geometry,
     validate_threat_request,
 )
@@ -723,7 +724,27 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         url_path="buffer-geometry",
     )
     def buffer_geometry(self, request, *args, **kwargs):
-        pass
+        geometry = request.GET.get("geometry", None)
+        if not geometry:
+            return HttpResponse({}, content_type="application/json")
+        json_geom = json.loads(geometry)
+
+        geoms = features_json_to_geosgeometry(json_geom["features"])
+        buffer_geoms = [geom.buffer(0.0001) for geom in geoms]
+
+        json.loads(buffer_geoms[0].json)
+
+        feature_collection = {
+            "type": "FeatureCollection",
+            "features": [
+                {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
+                for geom in buffer_geoms
+            ],
+        }
+
+        res_json = json.dumps(feature_collection)
+
+        return HttpResponse(res_json, content_type="application/json")
 
     # used for Location Tab of Occurrence Report external form
     @list_route(
