@@ -370,23 +370,25 @@ def getPrivateFile(request):
     # norm path will convert any traversal or repeat / in to its normalised form
     full_file_path = os.path.normpath(settings.BASE_DIR + file_name_path)
 
+    if not full_file_path.startswith(settings.BASE_DIR):
+        return HttpResponse("Unauthorized", status=401)
+
     if not os.path.isfile(full_file_path):
         return HttpResponse("Not Found", status=404)
 
     if is_authorised_to_access_document(request):
         # we then ensure the normalised path is within the BASE_DIR (and the file exists)
-        if full_file_path.startswith(settings.BASE_DIR):
-            extension = file_name_path.split(".")[-1]
-            the_file = open(full_file_path, "rb")
-            the_data = the_file.read()
-            the_file.close()
-            if extension == "msg":
-                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
-            if extension == "eml":
-                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+        extension = file_name_path.split(".")[-1]
+        the_file = open(full_file_path, "rb")
+        the_data = the_file.read()
+        the_file.close()
+        if extension == "msg":
+            return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+        if extension == "eml":
+            return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
 
-            return HttpResponse(
-                the_data, content_type=mimetypes.types_map["." + str(extension)]
-            )
+        return HttpResponse(
+            the_data, content_type=mimetypes.types_map["." + str(extension)]
+        )
 
     return HttpResponse("Unauthorized", status=401)
