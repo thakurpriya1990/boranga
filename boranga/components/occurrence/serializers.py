@@ -77,6 +77,8 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     plant_count = serializers.SerializerMethodField()
     animal_observation = serializers.SerializerMethodField()
     identification = serializers.SerializerMethodField()
+    label = serializers.SerializerMethodField()
+    model_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
