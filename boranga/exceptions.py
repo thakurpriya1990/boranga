@@ -70,11 +70,10 @@ def custom_exception_handler(exc, context):
     elif isinstance(exc, ValidationError):
         if hasattr(exc, "error_dict"):
             exc = serializers.ValidationError(repr(exc.error_dict))
+        elif hasattr(exc, "message"):
+            exc = serializers.ValidationError(exc.message)
         else:
-            if hasattr(exc, "message"):
-                exc = serializers.ValidationError(exc.message)
-            else:
-                exc = serializers.ValidationError(str(exc))
+            exc = serializers.ValidationError(str(exc))
 
     # Handle all other exceptions
     else:
