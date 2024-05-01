@@ -1,6 +1,6 @@
 <template lang="html">
-    <div id="related_ocr">
-        <FormSection :formCollapse="false" label="Related Occurrence Reports" Index="related_ocr">
+    <div :id="'related_ocr'+section_type">
+        <FormSection :formCollapse="true" label="Related Occurrence Reports" :Index="'related_ocr'+section_type">
             <div>
                 <datatable
                     ref="related_ocr_datatable"
@@ -10,32 +10,60 @@
                 />
             </div>
         </FormSection>
+
+        <div v-if="sectionOCRId">
+            <SectionModal
+                ref="section_modal"
+                :key="sectionOCRId"
+                :sectionType="sectionTypeFormatted"
+                :ocrNumber="sectionOCRId"
+                :sectionObj="sectionObj"
+            />
+        </div>
     </div>
 </template>
 
 <script>
+import Vue from 'vue'
 import { v4 as uuid } from 'uuid'
-import { constants, helpers } from '@/utils/hooks'
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
+import SectionModal from '@/components/common/occurrence/section_modal.vue'
+import {
+    constants,
+    api_endpoints,
+    helpers,
+}
+from '@/utils/hooks'
+
 export default {
     name: 'TableRelatedItems',
     components: {
         datatable,
         FormSection,
         CollapsibleFilters,
+        SectionModal,
     },
     props: {
         occurrence_obj:{
             type: Object,
             required:true
         },
+        section_type: {
+            type: String,
+            required: false,
+            default: "",
+        }
     },
     data() {
         let vm = this;
         return {
+            uuid:0,
             datatable_id: uuid(),
+            sectionOCRId: null,
+            sectionTypeFormatted: null,
+            sectionObj: null,
         }
     },
     computed: {
@@ -78,13 +106,37 @@ export default {
                 }
             }
         },
+        column_copy_action: function(){
+            return {
+                //name: 'action',
+                data: 'id',
+                orderable: false,
+                searchable: false,
+                visible: true,
+                'render': function(row, type, full){
+                    let links = '';
+                    links += `<a href='#' data-view-section='${full.id}'>View Section</a><br>`;
+                    //links += `<a href='#' data-merge-section='${full.id}'>Copy Section Data (merge)</a><br>`;
+                    links += `<a href='#' data-replace-section='${full.id}'>Copy Section Data</a><br>`;
+                    
+                    return links;
+                }
+            }
+        },
         datatable_options: function(){
             let vm = this
+
+            let action = vm.column_action
+            if (vm.section_type !== "")
+            {
+                action = vm.column_copy_action
+            }
+
             let columns = [
                 vm.column_number,
                 vm.column_status,
                 vm.column_submitter,
-                vm.column_action,
+                action,
             ]
             return {
                 autoWidth: false,
@@ -123,8 +175,71 @@ export default {
             ]
         },
     },
+    methods:{
+        viewSection:function (id) {
+            let vm=this;
+            //get ocr object with id
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report,id)).then((response) => {
+                let ocrObj=response.body;
+
+                vm.sectionObj = ocrObj[vm.section_type];
+                vm.sectionOCRId = id;
+                vm.sectionTypeFormatted = vm.section_type.split('_')
+                .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+                .join(' ');
+
+                this.$nextTick(() => {
+                this.$refs.section_modal.isModalOpen = true;
+                });
+            },
+            err => {
+                console.log(err);
+            });  
+        },
+        copySection:function (id,merge) {
+            let vm = this;
+            vm.errors = false;
+
+            let formData = new FormData()
+
+            let data = {'occurrence_report_id': id,'section': vm.section_type, 'merge': merge};
+            formData.append('data', JSON.stringify(data));
+
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+"/copy_ocr_section"), formData, {
+                    emulateJSON: true,
+                }).then((response) => {
+                    vm.$refs.related_ocr_datatable.vmDataTable.ajax.reload();                    
+                    vm.$emit('copyUpdate', response.body, vm.section_type);
+                },
+                (error) => {
+                    vm.errors = true;
+                    vm.errorString = helpers.apiVueResourceError(error);
+                });
+        },
+        addEventListeners:function (){
+            let vm=this;
+            vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-view-section]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-view-section');
+                vm.viewSection(id);
+            });
+            vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-merge-section]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-merge-section');
+                vm.copySection(id,true);
+            });
+            vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-replace-section]', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-replace-section');
+                vm.copySection(id,false);
+            });
+        }
+    },
     mounted: function(){
         let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+        });
     }
 }
 </script>

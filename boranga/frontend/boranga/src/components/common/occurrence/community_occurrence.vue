@@ -43,9 +43,9 @@
                 </div>
             </div>
 
-            <div class="row mb-3">
+            <!--<div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Land Manager/s:</label>
-            </div>
+            </div>-->
 
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Comments:</label>

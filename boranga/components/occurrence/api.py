@@ -2849,6 +2849,50 @@ class OccurrenceViewSet(UserActionLoggingViewset):
 
         return redirect(reverse("internal"))
 
+    @detail_route(methods=['post'], detail=True)
+    def copy_ocr_section(self, request, *args, **kwargs):
+
+        try:
+            with transaction.atomic():
+                instance = self.get_object()
+                data = json.loads(request.data['data'])
+
+                ocrId = data["occurrence_report_id"]
+                section = data["section"]
+                merge = data["merge"]
+
+                ocr = OccurrenceReport.objects.get(id=ocrId)
+                ocrSection = getattr(ocr,section)
+                occSection = getattr(instance,section)
+
+                section_fields = type(ocrSection)._meta.get_fields()
+                for i in section_fields:
+                    if i.name != "id" and i.name != "occurrence_report" and hasattr(occSection,i.name):
+                        ocrValue = getattr(ocrSection,i.name)
+                        if merge:
+                            #if not ocrValue: #do not overwrite if None, 0, or empty string
+                            #    #determine if field is one-to-many
+                            #    many = False
+                            #DEFERRED for now
+                            pass
+                        else:
+                            setattr(occSection,i.name,ocrValue)
+
+                occSection.save()
+                instance.save(version_user=request.user)
+
+                serialized_obj = OccurrenceSerializer(instance, context={"request": request})
+                return Response(serialized_obj.data)
+        
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
     @list_route(
         methods=[
             "POST",
