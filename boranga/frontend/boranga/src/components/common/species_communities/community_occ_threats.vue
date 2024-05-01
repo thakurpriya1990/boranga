@@ -64,7 +64,7 @@ export default {
                         "url": helpers.add_endpoint_json(api_endpoints.community,vm.community_obj.id+'/occurrence_threats'),
                         "dataSrc": ''
                     },
-                    order: [],
+                    oorder: [[0, 'desc']],
                     dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",

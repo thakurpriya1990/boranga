@@ -89,7 +89,7 @@ export default {
                         "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/threats'),
                         "dataSrc": ''
                     },
-                    order: [],
+                    order: [[0, 'desc']],
                     dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",

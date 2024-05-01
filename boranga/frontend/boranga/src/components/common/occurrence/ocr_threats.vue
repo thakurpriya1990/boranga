@@ -80,7 +80,7 @@ export default {
                         "url": helpers.add_endpoint_json(api_endpoints.occurrence_report,vm.occurrence_report_obj.id+'/threats'),
                         "dataSrc": ''
                     },
-                    order: [],
+                    order: [[0, 'desc']],
                     dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",
@@ -265,7 +265,7 @@ export default {
                 //----for adding new species Threat
                 var new_ocr_threat={
                     occurrence_report: vm.occurrence_report_obj.id,
-                    source:  vm.occurrence_report_obj.id,
+                    source:  vm.occurrence_report_obj.occurrence_report_number,
                     threat_category: '',
                     threat_agent: '',
                     comment: '',
