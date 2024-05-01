@@ -48,6 +48,7 @@ from boranga.components.species_and_communities.models import (
     ThreatAgent,
     ThreatCategory,
 )
+from boranga.helpers import clone_model
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR
 
@@ -660,13 +661,8 @@ class OccurrenceReport(RevisionedMixin):
                 raise ValidationError(
                     "New occurrence name is required to approve Occurrence Report"
                 )
-            occurrence = Occurrence()
+            occurrence = Occurrence.clone_from_occurrence_report(self)
             occurrence.occurrence_name = self.approval_details.new_occurrence_name
-            occurrence.group_type = self.group_type
-            if self.species:
-                occurrence.species = self.species
-            elif self.community:
-                occurrence.community = self.community
             occurrence.save()
 
         self.occurrence = occurrence
@@ -2761,6 +2757,123 @@ class Occurrence(RevisionedMixin):
         # serializer = RelatedItemsSerializer(return_list, many=True)
         # return serializer.data
         return return_list
+
+    @classmethod
+    @transaction.atomic
+    def clone_from_occurrence_report(self, occurrence_report):
+        occurrence = Occurrence()
+
+        occurrence.group_type = occurrence_report.group_type
+
+        occurrence.species = occurrence_report.species
+        occurrence.community = occurrence_report.community
+
+        occurrence.effective_from = occurrence_report.effective_from
+        occurrence.effective_to = occurrence_report.effective_to
+
+        occurrence.review_due_date = occurrence_report.review_due_date
+        occurrence.review_date = occurrence_report.review_date
+        occurrence.reviewed_by = occurrence_report.reviewed_by
+        occurrence.review_status = occurrence_report.review_status
+
+        occurrence.save()
+
+        # Clone all the associated models
+        habitat_composition = clone_model(
+            OCRHabitatComposition,
+            OCCHabitatComposition,
+            occurrence_report.habitat_composition,
+        )
+        if habitat_composition:
+            habitat_composition.occurrence = occurrence
+            habitat_composition.save()
+
+        habitat_condition = clone_model(
+            OCRHabitatCondition,
+            OCCHabitatCondition,
+            occurrence_report.habitat_condition,
+        )
+        if habitat_condition:
+            habitat_condition.occurrence = occurrence
+            habitat_condition.save()
+
+        fire_history = clone_model(
+            OCRFireHistory, OCCFireHistory, occurrence_report.fire_history
+        )
+        clone_model(
+            OCRAssociatedSpecies,
+            OCCAssociatedSpecies,
+            occurrence_report.associated_species,
+        )
+        if fire_history:
+            fire_history.occurrence = occurrence
+            fire_history.save()
+
+        observation_detail = clone_model(
+            OCRObservationDetail,
+            OCCObservationDetail,
+            occurrence_report.observation_detail,
+        )
+        if observation_detail:
+            observation_detail.occurrence = occurrence
+            observation_detail.save()
+
+        plant_count = clone_model(
+            OCRPlantCount, OCCPlantCount, occurrence_report.plant_count
+        )
+        if plant_count:
+            plant_count.occurrence = occurrence
+            plant_count.save()
+
+        animal_observation = clone_model(
+            OCRAnimalObservation,
+            OCCAnimalObservation,
+            occurrence_report.animal_observation,
+        )
+        if animal_observation:
+            animal_observation.occurrence = occurrence
+            animal_observation.save()
+
+        identification = clone_model(
+            OCRIdentification, OCCIdentification, occurrence_report.identification
+        )
+        if identification:
+            identification.occurrence = occurrence
+            identification.save()
+
+        # Clone the threats
+        for threat in occurrence_report.ocr_threats.all():
+            occ_threat = clone_model(
+                OCRConservationThreat, OCCConservationThreat, threat
+            )
+            if occ_threat:
+                occ_threat.occurrence = occurrence
+                occ_threat.occurrence_report_threat = threat
+                occ_threat.save()
+
+        # Clone the documents
+        for doc in occurrence_report.documents.all():
+            occ_doc = clone_model(OccurrenceReportDocument, OccurrenceDocument, doc)
+            if occ_doc:
+                occ_doc.occurrence = occurrence
+                occ_doc.save()
+
+        # Clone the shapefiles
+        for shp_doc in occurrence_report.shapefile_documents.all():
+            occ_shp_doc = clone_model(
+                OccurrenceReportShapefileDocument,
+                OccurrenceReportShapefileDocument,
+                doc,
+            )
+            if occ_shp_doc:
+                occ_shp_doc.occurrence = occurrence
+                occ_shp_doc.save()
+
+        # TODO: Once occurrence has it's own geometry field, clone the geometry here
+
+        # TODO: Make sure everything else is cloned once OCR/OCC sections are finalised
+
+        return occurrence
 
 
 class OccurrenceLogEntry(CommunicationsLogEntry):
