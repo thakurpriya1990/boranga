@@ -17,7 +17,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"></label>
                 <div class="col-sm-9">
-                    <textarea disabled class="form-control" rows="2" id="species_display" v-model="species_display" />
+                    <textarea disabled class="form-control" rows=2 id="species_display" v-model="species_display" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -196,6 +196,33 @@
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="number_of_iucn_subpopulations"
                         placeholder="" v-model="species_community.distribution.number_of_iucn_subpopulations" />
+                </div>
+            </div>
+        </FormSection>
+        <FormSection :formCollapse="false" label="Conservation Status" :Index="conservationStatusBody">
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Conservation List</label>
+                <div class="col-sm-9">
+                    <input disabled class="form-control" id="conservation_list" v-model="conservation_list" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Conservation Category</label>
+                <div class="col-sm-9">
+                    <input disabled class="form-control" id="conservation_category" v-model="conservation_category" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Conservation Criteria</label>
+                <div class="col-sm-9">
+                    <textarea disabled class="form-control" rows=2 id="conservation_criteria" v-model="conservation_criteria" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-6 control-label">Is there a Conservation Status proposal under review?</label>
+                <div class="col-sm-6">
+                    <label class="me-2">Yes</label><input disabled type="radio" :checked="conservation_status_under_review" class="form-check-input me-2">
+                    <label class="me-2">No</label><input disabled type="radio" :checked="!conservation_status_under_review" class="form-check-input me-2">
                 </div>
             </div>
         </FormSection>
@@ -733,8 +760,8 @@ export default {
             select_flowering_period: "select_flowering_period" + vm._uid,
             taxonBody: 'taxonBody' + vm._uid,
             distributionBody: 'distributionBody' + vm._uid,
+            conservationStatusBody: 'conservationStatusBody' + vm._uid,
             conservationBody: 'conservationBody' + vm._uid,
-            distributionBody: 'distributionBody' + vm._uid,
             generalBody: 'generalBody' + vm._uid,
             //---to show fields related to Fauna
             isFauna: vm.species_community.group_type === "fauna" ? true : false,
@@ -757,6 +784,10 @@ export default {
             breeding_period_list: [],
             // to display the species Taxonomy selected details
             species_display: '',
+            conservation_category: '',
+            conservation_list: '',
+            conservation_criteria: '',
+            conservation_status_under_review: false,
             common_name: null,
             taxon_name_id: null,
             taxon_previous_name: null,
@@ -1093,6 +1124,10 @@ export default {
                     let data = e.params.data.id;
                     vm.species_community.taxonomy_id = data
                     vm.species_display = e.params.data.scientific_name;
+                    vm.conservation_category = e.params.data.conservation_status.conservation_category;
+                    vm.conservation_list = e.params.data.conservation_status.conservation_list;
+                    vm.conservation_criteria = e.params.data.conservation_status.conservation_criteria;
+                    vm.conservation_status_under_review = e.params.data.conservation_status_under_review;
                     vm.common_name = e.params.data.common_name;
                     vm.taxon_name_id = e.params.data.taxon_name_id;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
@@ -1108,6 +1143,10 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.species_community.taxonomy_id = ''
                     vm.species_display = '';
+                    vm.conservation_category = '';
+                    vm.conservation_criteria = '';
+                    vm.conservation_list = '';
+                    vm.conservation_status_under_review = false;
                     vm.common_name = '';
                     vm.taxon_name_id = '';
                     vm.taxon_previous_name = '';
@@ -1132,6 +1171,9 @@ export default {
                 // newOption.setAttribute('data-select2-id', '2');
                 $('#' + vm.scientific_name_lookup).append(newOption);
                 vm.species_display = vm.species_community.taxonomy_details.scientific_name;
+                vm.conservation_category = vm.species_community.conservation_status.conservation_category
+                vm.conservation_list = vm.species_community.conservation_status.conservation_list
+                vm.conservation_status_under_review = vm.species_community.conservation_status_under_review;
                 vm.common_name = vm.species_community.taxonomy_details.common_name;
                 vm.taxon_name_id = vm.species_community.taxonomy_details.taxon_name_id;
                 vm.taxon_previous_name = vm.species_community.taxonomy_details.taxon_previous_name;

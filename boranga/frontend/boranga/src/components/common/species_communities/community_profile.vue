@@ -194,6 +194,33 @@
                 </div>
             </div>
         </FormSection>
+        <FormSection :formCollapse="false" label="Conservation Status" :Index="conservationStatusBody">
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Conservation List</label>
+                <div class="col-sm-9">
+                    <input disabled class="form-control" id="conservation_list" v-model="species_community.conservation_status.conservation_list" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Conservation Category</label>
+                <div class="col-sm-9">
+                    <input disabled class="form-control" id="conservation_category" v-model="species_community.conservation_status.conservation_category" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Conservation Criteria</label>
+                <div class="col-sm-9">
+                    <textarea disabled class="form-control" rows=2 id="conservation_criteria" v-model="species_community.conservation_status.conservation_criteria" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-6 control-label">Is there a Conservation Status proposal under review?</label>
+                <div class="col-sm-6">
+                    <label class="me-2">Yes</label><input disabled type="radio" :checked="species_community.conservation_status_under_review" class="form-check-input me-2">
+                    <label class="me-2">No</label><input disabled type="radio" :checked="!species_community.conservation_status_under_review" class="form-check-input me-2">
+                </div>
+            </div>
+        </FormSection>
         <FormSection :formCollapse="false" label="Conservation Attributes" Index="conservation_attributes">
             <!-- <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Habitat/Growth Form:</label>

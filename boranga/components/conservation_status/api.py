@@ -1383,6 +1383,8 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
 
                     # add the updated recommended conservation criteria list [1,2] to the cs instance,
                     # saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
+                    
+                    serializer.save(version_user=request.user)
 
                     instance.log_user_action(
                         ConservationStatusUserAction.ACTION_SAVE_APPLICATION.format(
