@@ -46,8 +46,8 @@ export default {
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 occ_threat_url: api_endpoints.occ_threat,
-                threats_headers:['Number', 'Original Report','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
-                                'Current Impact', 'Potential Impact','Action'],
+                threats_headers:['Number', 'Original Report','Category', 'Date Observed', 'Threat Agent', 'Comments',
+                                'Current Impact', 'Threat Source', 'Potential Impact','Action'],
                 threats_options:{
                     autowidth: false,
                     language:{

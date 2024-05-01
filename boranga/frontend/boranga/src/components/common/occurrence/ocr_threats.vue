@@ -62,7 +62,7 @@ export default {
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 ocr_threat_url: api_endpoints.ocr_threat,
-                threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
+                threats_headers:['Number','Category', 'Date Observed', 'Threat Agent', 'Comments', 'Threat Source',
                                 'Current Impact', 'Potential Impact','Action'],
                 threats_options:{
                     autowidth: false,
@@ -132,20 +132,6 @@ export default {
 
                         },
                         {
-                            data: "source",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.source;
-                                }
-                                else{
-                                    return '<s>'+ full.source + '</s>'
-                                }
-                            },
-
-                        },
-                        {
                             data: "date_observed",
                             mRender:function (data,type,full){
                                 if(full.visible){
@@ -183,6 +169,20 @@ export default {
                                     return type=='export' ? '<s>' + value + '</s>' : '<s>' + result + '</s>';
                                 }
                             },
+                        },
+                        {
+                            data: "source",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                if(full.visible){
+                                    return full.source;
+                                }
+                                else{
+                                    return '<s>'+ full.source + '</s>'
+                                }
+                            },
+
                         },
                         {
                             data: "current_impact_name",
@@ -264,11 +264,11 @@ export default {
                 this.$refs.threat_detail.threat_id = '';
                 //----for adding new species Threat
                 var new_ocr_threat={
-                    occurrence_report: vm.occurrence_report_obj.id,
-                    source:  vm.occurrence_report_obj.occurrence_report_number,
+                    occurrence_report: vm.occurrence_report_obj.id,                    
                     threat_category: '',
                     threat_agent: '',
                     comment: '',
+                    source:  vm.occurrence_report_obj.occurrence_report_number,
                     current_impact: '',
                     potential_impact: '',
                     potential_threat_onset: '',
