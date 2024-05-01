@@ -845,7 +845,7 @@
             </div>
         </div>
         <!-- If no context provided, e.g. no proposal or cp, don't allow for shapefile upload -->
-        <div v-if="context" class="row shapefile-row">
+        <div v-if="context && !fileUploadDisabled" class="row shapefile-row">
             <div class="col-sm-6 border p-2">
                 <div class="row mb-2">
                     <div class="col">
@@ -1217,6 +1217,14 @@ export default {
             required: false,
             default: false,
         },
+        /**
+         * Whether upload of shapefiles, drag&drop etc is diabled
+         */
+        fileUploadDisabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+        },
         coordinateReferenceSystems: {
             type: Array,
             required: false,
@@ -1307,13 +1315,6 @@ export default {
         shapefileDocumentUrl: function () {
             let endpoint = '';
             let obj_id = 0;
-            // if (this.context?.model_name == 'proposal') {
-            //     endpoint = api_endpoints.proposal;
-            //     obj_id = this.context.id;
-            // } else if (this.context?.model_name == 'competitiveprocess') {
-            //     endpoint = api_endpoints.competitive_process;
-            //     obj_id = this.context.id;
-            // }
             if (this.context?.model_name == 'occurrencereport') {
                 endpoint = api_endpoints.occurrence_report;
                 obj_id = this.context.id;
@@ -1321,7 +1322,6 @@ export default {
                 endpoint = api_endpoints.occurrence;
                 obj_id = this.context.id;
             } else {
-                // TODO: Make work with occurrence model
                 console.warn('shapefileDocumentUrl: invalid context');
                 return ''; // Should not reach here.
             }
