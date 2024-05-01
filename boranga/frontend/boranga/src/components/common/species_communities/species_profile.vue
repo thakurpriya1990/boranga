@@ -17,7 +17,13 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"></label>
                 <div class="col-sm-9">
-                    <textarea disabled class="form-control" rows="2" id="species_display" v-model="species_display" />
+                    <textarea disabled class="form-control" rows=2 id="species_display" v-model="species_display" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Conservation Category</label>
+                <div class="col-sm-9">
+                    <input disabled class="form-control" id="conservation_category" v-model="conservation_category" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -757,6 +763,7 @@ export default {
             breeding_period_list: [],
             // to display the species Taxonomy selected details
             species_display: '',
+            conservation_category: '',
             common_name: null,
             taxon_name_id: null,
             taxon_previous_name: null,
@@ -1093,6 +1100,7 @@ export default {
                     let data = e.params.data.id;
                     vm.species_community.taxonomy_id = data
                     vm.species_display = e.params.data.scientific_name;
+                    vm.conservation_category = e.params.data.conservation_status.conservation_category;
                     vm.common_name = e.params.data.common_name;
                     vm.taxon_name_id = e.params.data.taxon_name_id;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
@@ -1108,6 +1116,7 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.species_community.taxonomy_id = ''
                     vm.species_display = '';
+                    vm.conservation_category = '';
                     vm.common_name = '';
                     vm.taxon_name_id = '';
                     vm.taxon_previous_name = '';
@@ -1132,6 +1141,7 @@ export default {
                 // newOption.setAttribute('data-select2-id', '2');
                 $('#' + vm.scientific_name_lookup).append(newOption);
                 vm.species_display = vm.species_community.taxonomy_details.scientific_name;
+                vm.conservation_category = vm.species_community.conservation_status.conservation_category
                 vm.common_name = vm.species_community.taxonomy_details.common_name;
                 vm.taxon_name_id = vm.species_community.taxonomy_details.taxon_name_id;
                 vm.taxon_previous_name = vm.species_community.taxonomy_details.taxon_previous_name;

@@ -34,6 +34,12 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Conservation Category</label>
+                <div class="col-sm-9">
+                    <input disabled class="form-control" id="conservation_category" v-model="species_community.conservation_status.conservation_category" />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Community ID:</label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control"
