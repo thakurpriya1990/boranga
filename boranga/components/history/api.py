@@ -25,20 +25,30 @@ class InternalAuthorizationView(views.APIView):
     django_admin_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport"]
+                       "Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument",
+                       "OCRConservationThreat","OCCConservationThreat",
+                       "Minutes", "ConservationThreat"]
     assessor_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport"]
+                       "Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument",
+                       "OCRConservationThreat","OCCConservationThreat",
+                       "Minutes", "ConservationThreat"]
     approver_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport"]
-    species_processor_models = ["Species","SpeciesDocument"]
-    community_processor_models = [ "Community","CommunityDocument"]
-    conservation_status_editor_models = ["ConservationStatus","ConservationStatusDocument"]
-
-    #TODO other models to consider - Meetings, Minutes, and any Occurence Document Models
+                       "Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument",
+                       "OCRConservationThreat","OCCConservationThreat",
+                       "Minutes", "ConservationThreat"]
+    species_processor_models = ["Species","SpeciesDocument", "ConservationThreat",
+                       "Minutes"]
+    community_processor_models = [ "Community","CommunityDocument", "ConservationThreat",
+                       "Minutes"]
+    conservation_status_editor_models = ["ConservationStatus","ConservationStatusDocument",
+                       "Minutes"]
 
     def check_auth_by_model(self, request, model_name):
         if (request.user.is_superuser or
@@ -47,7 +57,7 @@ class InternalAuthorizationView(views.APIView):
         else:
             #go through each list, if model is in it run function for user
             #return the result if true, otherwise run other checks until all possibilities exhausted
-            if model_name in self.django_admin_models and is_assessor(request):
+            if model_name in self.django_admin_models and is_django_admin(request):
                 return True
             if model_name in self.assessor_models and is_assessor(request):
                 return True
