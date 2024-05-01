@@ -4,6 +4,11 @@
             :title="`Propose Approve ${occurrence_report_number}`" large>
             <div class="container">
                 <form id="propose-approve-form">
+                    <div v-if="errorString" class="row mb-3">
+                        <div class="col">
+                            <alert type="danger"><strong>{{ errorString }}</strong></alert>
+                        </div>
+                    </div>
                     <div class="row mb-3">
                         <div class="col">
                             <div class="form-check form-check-inline">
@@ -35,8 +40,8 @@
                                 <label class="mb-3" for="new_occurrence_name">New
                                     Occurrence Name:</label>
                                 <input type="text" class="form-control" id="new_occurrence_name"
-                                    name="new_occurrence_name" ref="new_occurrence_name" v-model="propose_approve.new_occurrence_name"
-                                    required />
+                                    name="new_occurrence_name" ref="new_occurrence_name"
+                                    v-model="propose_approve.new_occurrence_name" required />
                             </div>
                             <div class="mt-3">
                                 <label class="form-label" for="effective_from_date">Effective From</label>
