@@ -548,6 +548,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     conservation_status = serializers.SerializerMethodField()
+    conservation_status_under_review = serializers.SerializerMethodField()
     taxonomy_details = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
     distribution = serializers.SerializerMethodField()
@@ -563,6 +564,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             "group_type_id",
             "taxonomy_id",
             "conservation_status",
+            "conservation_status_under_review",
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
@@ -609,6 +611,14 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             return SpeciesConservationStatusSerializer().data
             # return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
+    def get_conservation_status_under_review(self, obj):
+
+        return ConservationStatus.objects.filter(
+            species=obj,
+            conservation_list__applies_to_wa=True,
+            processing_status="ready_for_agenda",
+        ).exists()
+
     def get_conservation_attributes(self, obj):
         try:
             qs = SpeciesConservationAttributes.objects.get(species=obj)
@@ -650,6 +660,7 @@ class SpeciesSerializer(BaseSpeciesSerializer):
             "group_type_id",
             "taxonomy_id",
             "conservation_status",
+            "conservation_status_under_review",
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
@@ -702,6 +713,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "group_type_id",
             "taxonomy_id",
             "conservation_status",
+            "conservation_status_under_review",
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
@@ -931,6 +943,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField(read_only=True)
     taxonomy_details = serializers.SerializerMethodField()
     conservation_status = serializers.SerializerMethodField()
+    conservation_status_under_review = serializers.SerializerMethodField()
     distribution = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
     readonly = serializers.SerializerMethodField(read_only=True)
@@ -948,6 +961,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             "region_id",
             "district_id",
             "conservation_status",
+            "conservation_status_under_review",
             "distribution",
             "conservation_attributes",
             "last_data_curration_date",
@@ -995,6 +1009,14 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             return CommunityConservationStatusSerializer().data
             # return [CommunityConservationStatusSerializer(qs).data]
             # this array was used for dashboard on profile page
+
+    def get_conservation_status_under_review(self, obj):
+
+        return ConservationStatus.objects.filter(
+            community=obj,
+            conservation_list__applies_to_wa=True,
+            processing_status="ready_for_agenda",
+        ).exists()
 
     def get_distribution(self, obj):
         try:
@@ -1074,6 +1096,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "region_id",
             "district_id",
             "conservation_status",
+            "conservation_status_under_review",
             "distribution",
             "conservation_attributes",
             "last_data_curration_date",
