@@ -132,8 +132,13 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                if(full.visible && full.original_report != null){
-                                    return full.original_report + " - " + full.original_threat;
+                                if(full.original_report != null){
+                                    if (full.visible) {
+                                        return full.original_report + " - " + full.original_threat;
+                                    }
+                                    else {
+                                        return '<s>'+ full.original_report + " - " + full.original_threat + '</s>';
+                                    }
                                 }
                                 else{
                                     return ""
