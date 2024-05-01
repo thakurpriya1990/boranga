@@ -71,8 +71,8 @@ export default {
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 threat_url: api_endpoints.threat,
-                threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
-                                'Current Impact', 'Potential Impact','Action'],
+                threats_headers:['Number','Category', 'Date Observed', 'Threat Agent', 'Comments',
+                                'Current Impact', 'Potential Impact','Threat Source','Action'],
                 threats_options:{
                     autowidth: false,
                     language:{
@@ -89,7 +89,7 @@ export default {
                         "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/threats'),
                         "dataSrc": ''
                     },
-                    order: [],
+                    order: [[0, 'desc']],
                     dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",
@@ -136,20 +136,6 @@ export default {
                                 }
                                 else{
                                     return '<s>'+ full.threat_category + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "source",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.source;
-                                }
-                                else{
-                                    return '<s>'+ full.source + '</s>'
                                 }
                             },
 
@@ -219,6 +205,20 @@ export default {
                                     return '<s>'+ full.potential_impact_name + '</s>'
                                 }
                             },
+                        },
+                        {
+                            data: "source",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                if(full.visible){
+                                    return full.source;
+                                }
+                                else{
+                                    return '<s>'+ full.source + '</s>'
+                                }
+                            },
+
                         },
                         {
                             data: "id",

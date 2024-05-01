@@ -46,8 +46,8 @@ export default {
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 occ_threat_url: api_endpoints.occ_threat,
-                threats_headers:['Number', 'Original Report','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
-                                'Current Impact', 'Potential Impact','Action'],
+                threats_headers:['Number', 'Original Report','Category', 'Date Observed', 'Threat Agent', 'Comments',
+                                'Current Impact', 'Threat Source', 'Potential Impact','Action'],
                 threats_options:{
                     autowidth: false,
                     language:{
@@ -64,7 +64,7 @@ export default {
                         "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_obj.id+'/occurrence_threats'),
                         "dataSrc": ''
                     },
-                    order: [],
+                    order: [[0, 'desc']],
                     dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",

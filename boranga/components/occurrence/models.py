@@ -2554,7 +2554,7 @@ class OCRConservationThreat(RevisionedMixin):
 
     @property
     def source(self):
-        return self.occurrence_report.id
+        return self.occurrence_report.occurrence_report_number
 
 
 class WildStatus(models.Model):
@@ -3006,7 +3006,9 @@ class OCCConservationThreat(RevisionedMixin):
 
     @property
     def source(self):
-        return self.occurrence.id
+        if self.occurrence_report_threat:
+            return self.occurrence_report_threat.occurrence_report.occurrence_report_number
+        return self.occurrence.occurrence_number
 
 
 class OCCHabitatComposition(models.Model):
