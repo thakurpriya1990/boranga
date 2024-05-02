@@ -646,7 +646,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         new_instance.save(version_user=request.user)
         data = {"occurrence_report_id": new_instance.id}
 
-        # create Locatiob for new instance
+        # create Location for new instance
         serializer = SaveLocationSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -2687,10 +2687,6 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        # headers = self.get_success_headers(serializer.data)
-        # return Response(
-        #    new_instance.id, status=status.HTTP_201_CREATED, headers=headers
-        # )
         serialized_obj = CreateOccurrenceSerializer(new_instance)
         return Response(serialized_obj.data)
 
