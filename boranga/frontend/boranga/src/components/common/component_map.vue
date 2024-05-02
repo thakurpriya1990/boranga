@@ -501,17 +501,17 @@
                             <div
                                 class="submenu-button-wrapper"
                                 :title="
-                                    polygonFeaturesSupported
-                                        ? ''
-                                        : 'The map does not support polygon features'
+                                    selectedFeatureIds.length
+                                        ? 'Buffer selected features'
+                                        : 'Select feature(s) to buffer'
                                 "
                             >
                                 <div
-                                    :title="
-                                        mode == 'draw' && subMode == 'Polygon'
-                                            ? 'Deactivate draw tool'
-                                            : 'Draw a new polygon feature'
-                                    "
+                                    :title="`Buffer ${
+                                        selectedFeatureIds.length
+                                    } selected feature${
+                                        selectedFeatureIds.length > 1 ? 's' : ''
+                                    }`"
                                     class="btn optional-layers-button"
                                     :class="[
                                         selectedFeatureIds.length == 0
@@ -580,7 +580,11 @@
                                     : 'btn-danger',
                                 navbarButtonsDisabled ? 'disabled' : '',
                             ]"
-                            title="Delete selected features"
+                            :title="`Delete ${
+                                selectedFeatureIds.length
+                            } selected feature${
+                                selectedFeatureIds.length > 1 ? 's' : ''
+                            }`"
                             @click="removeModelFeatures()"
                         >
                             <img
