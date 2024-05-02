@@ -517,7 +517,7 @@
                                                 : ''
                                         }`"
                                         :show-title="false"
-                                        placeholder="Coordinate Reference System"
+                                        placeholder="Spatial Operation"
                                         :options="
                                             spatialOperationsAvailable.map(
                                                 (op) => {
@@ -567,6 +567,45 @@
                                         >{{ parameterInputLabel }}</label
                                     >
                                 </div>
+
+                                <!-- Unit Dropdown -->
+                                <div
+                                    class="input-group-text form-floating flex-grow-1"
+                                >
+                                    <SelectFilter
+                                        id="features-unit-select"
+                                        ref="features-unit-select"
+                                        :disabled="processingFeatures"
+                                        :title="`Run a ${selectedSpatialOperation} spatial operation on ${
+                                            selectedFeatureIds.length
+                                        } selected feature${
+                                            selectedFeatureIds.length > 1
+                                                ? 's'
+                                                : ''
+                                        }`"
+                                        :show-title="false"
+                                        placeholder="Unit"
+                                        :options="
+                                            spatialUnitsAvailable.map((op) => {
+                                                return {
+                                                    id: op.id,
+                                                    name: op.name,
+                                                };
+                                            })
+                                        "
+                                        :pre-selected-filter-item="
+                                            selectedSpatialUnit
+                                        "
+                                        classes="min-width-150"
+                                        @option:selected="
+                                            (selected) => {
+                                                selectedSpatialUnit =
+                                                    selected.value;
+                                            }
+                                        "
+                                    />
+                                </div>
+                                <!-- Button to run the operation -->
                                 <div
                                     class="form-floating flex-grow-1 input-group-text"
                                 >
@@ -601,7 +640,8 @@
                                                 @click="
                                                     processFeatures(
                                                         selectedSpatialOperation,
-                                                        spatialOperationParameters
+                                                        spatialOperationParameters,
+                                                        selectedSpatialUnit
                                                     )
                                                 "
                                             >
@@ -1445,6 +1485,7 @@ export default {
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
             userInputGeometryStack: [],
             selectedSpatialOperation: 'buffer',
+            selectedSpatialUnit: 'm',
             spatialOperationParameters: [1.0],
         };
     },
@@ -1626,6 +1667,19 @@ export default {
             ];
             return spatialOPerations;
         },
+        spatialUnitsAvailable: function () {
+            const units = [
+                {
+                    id: 'm',
+                    name: 'Metres',
+                },
+                {
+                    id: 'deg',
+                    name: 'Degree',
+                },
+            ];
+            return units;
+        },
         /**
          * Returns the features in the modelQuerySource sorted by their id
          */
@@ -1639,7 +1693,7 @@ export default {
         parameterInputLabel: function () {
             let label = 'Parameter';
             if (this.selectedSpatialOperation == 'buffer') {
-                label = 'Buffer Distance (m)';
+                label = `Buffer Distance (${this.selectedSpatialUnit})`;
             }
             return label;
         },
@@ -2933,8 +2987,18 @@ export default {
          * @param {String} operation The operation to perform on the selected features
          * @param {Array=} parameters The parameters to pass to the operation
          */
-        processFeatures: async function (operation, parameters = []) {
+        processFeatures: async function (
+            operation,
+            parameters = [],
+            unit = null
+        ) {
             this.processingFeatures = true;
+
+            if (!unit) {
+                // TODO: Find a better way to determine the unit if not set
+                console.warn('Unit not set, defaulting to degrees');
+                unit = 'deg';
+            }
             const selectedFeatures = this.selectedFeatures();
             if (selectedFeatures.length === 0) {
                 console.warn('No features selected');
@@ -2968,7 +3032,7 @@ export default {
                         featureCollection
                     )}&operation=${operation}&parameters=${parameters.join(
                         ','
-                    )}`
+                    )}&unit=${unit}`
                 )
             )
                 .then(async (response) => {
