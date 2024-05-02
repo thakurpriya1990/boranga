@@ -1073,6 +1073,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "proposed_decline_status",
             "declined_details",
             "approval_details",
+            "internal_application",
         )
 
     def get_can_user_assess(self, obj):

@@ -17,7 +17,7 @@
             </div>
         </div>
         <div class="row pb-4">
-            <div v-if="!comparing" class="col-md-3">
+            <div class="col-md-3">
 
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="false" class="mb-3" />
@@ -122,7 +122,7 @@
                         <input type='hidden' name="occurrence_report_id" :value="1" />
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="hasUserEditMode" class="container">
+                                <div v-if="occurrence_report.internal_application" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
@@ -148,7 +148,7 @@
                                             :disbaled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
-                                <div v-else-if="hasUserEditMode" class="container">
+                                <div v-else-if="occurrence_report.internal_application" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
@@ -238,7 +238,6 @@ export default {
             imageURL: '',
             isSaved: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comparing: false,
         }
     },
     components: {
@@ -328,15 +327,6 @@ export default {
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
             return true
-        },
-        hasUserEditMode: function () {
-            // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (['process'].includes(this.$route.query.action)) {
-                return this.occurrence_report && this.occurrence_report.can_user_edit;
-            }
-            else {
-                return false;
-            }
         },
         isAssignedOfficer: function () {
             return this.occurrence_report && this.occurrence_report.assigned_officer == this.occurrence_report.current_assessor.id;
@@ -493,13 +483,13 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.occurrence_report.group_type == 'flora' || vm.occurrence_report.group_type == 'fauna') {
-                if (vm.occurrence_report.taxonomy_id == null || vm.occurrence_report.taxonomy_id == '') {
-                    blank_fields.push('Scientific Name is missing')
+                if (vm.occurrence_report.species_id == null || vm.occurrence_report.species_id == '') {
+                    blank_fields.push(' Scientific Name is missing')
                 }
             }
             else {
-                if (vm.occurrence_report.taxonomy_details.community_name == null || vm.occurrence_report.taxonomy_details.community_name == '') {
-                    blank_fields.push('Community Name is missing')
+                if (vm.occurrence_report.community_id == null || vm.occurrence_report.community_id == '') {
+                    blank_fields.push(' Community Name is missing')
                 }
             }
             if (check_action == 'submit') {
@@ -530,7 +520,7 @@ export default {
             vm.submitOccurrenceReport = true;
             swal.fire({
                 title: "Submit",
-                text: "Are you sure you want to submit this application?",
+                text: "Are you sure you want to submit this occurrence report?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
@@ -541,18 +531,11 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.occurrence_report);
-                        let submit_url = this.occurrence_report.group_type === "community" ?
-                            helpers.add_endpoint_json(api_endpoints.community, vm.occurrence_report.id + '/submit') :
-                            helpers.add_endpoint_json(api_endpoints.species, vm.occurrence_report.id + '/submit')
-                        vm.$http.post(submit_url, payload).then(res => {
+                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report.id + '/submit'), payload).then(res => {
                             vm.occurrence = res.body;
-                            // vm.$router.push({
-                            //     name: 'submit_cs_proposal',
-                            //     params: { occurrence_report: vm.occurrence_report}
-                            // });
                             // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
-                                name: 'internal-species-communities-dash'
+                                name: 'internal-occurrence-dash'
                             });
                         }, err => {
                             swal.fire({

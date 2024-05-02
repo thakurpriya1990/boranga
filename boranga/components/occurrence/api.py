@@ -281,7 +281,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     )
     def occurrence_report_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
-        qs = qs.filter(Q(internal_application=False))
+        qs = qs.filter(internal_application=False)
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -640,10 +640,13 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             submitter=request.user.id,
             group_type=group_type_id,
         )
+        if is_internal(request):
+            new_instance.internal_application = True
+
         new_instance.save(version_user=request.user)
         data = {"occurrence_report_id": new_instance.id}
 
-        # create Locatiob for new instance
+        # create Location for new instance
         serializer = SaveLocationSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -2684,10 +2687,6 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        # headers = self.get_success_headers(serializer.data)
-        # return Response(
-        #    new_instance.id, status=status.HTTP_201_CREATED, headers=headers
-        # )
         serialized_obj = CreateOccurrenceSerializer(new_instance)
         return Response(serialized_obj.data)
 
