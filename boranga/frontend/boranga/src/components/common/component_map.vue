@@ -493,6 +493,43 @@
                         </div>
                     </div>
 
+                    <div
+                        id="submenu-spatial-operations"
+                        class="map-menu-submenu"
+                    >
+                        <div class="scaled-button">
+                            <div
+                                class="submenu-button-wrapper"
+                                :title="
+                                    polygonFeaturesSupported
+                                        ? ''
+                                        : 'The map does not support polygon features'
+                                "
+                            >
+                                <div
+                                    :title="
+                                        mode == 'draw' && subMode == 'Polygon'
+                                            ? 'Deactivate draw tool'
+                                            : 'Draw a new polygon feature'
+                                    "
+                                    class="btn optional-layers-button"
+                                    :class="[
+                                        selectedFeatureIds.length == 0
+                                            ? 'disabled'
+                                            : 'btn-warning',
+                                        navbarButtonsDisabled ? 'disabled' : '',
+                                    ]"
+                                    @click="processFeatures('buffer')"
+                                >
+                                    <img
+                                        class="svg-icon"
+                                        src="../../assets/convex-hull.svg"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Spatially process Features -->
                     <div
                         v-if="editable"
@@ -505,18 +542,16 @@
                     >
                         <div
                             class="optional-layers-button btn"
-                            :class="[
-                                selectedFeatureIds.length == 0
-                                    ? 'disabled'
-                                    : 'btn-warning',
-                                navbarButtonsDisabled ? 'disabled' : '',
-                            ]"
-                            title="Process selected features"
-                            @click="processFeatures('buffer')"
+                            title="Select a method to process selected features"
+                            @click="
+                                toggleElementVisibility(
+                                    'submenu-spatial-operations'
+                                )
+                            "
                         >
                             <img
                                 class="svg-icon"
-                                src="../../assets/convex-hull.svg"
+                                src="../../assets/spatial-processing.svg"
                             />
                             <span
                                 v-if="selectedFeatureIds.length"
@@ -2748,6 +2783,10 @@ export default {
         },
         processFeatures: async function (operation) {
             const selectedFeatures = this.selectedFeatures();
+            if (selectedFeatures.length === 0) {
+                console.warn('No features selected');
+                return;
+            }
             console.log('Buffering features', selectedFeatures);
             const format = new GeoJSON();
             const features = [];
@@ -3884,6 +3923,9 @@ export default {
 }
 
 #submenu-draw {
+    display: none;
+}
+#submenu-spatial-operations {
     display: none;
 }
 .hidden {
