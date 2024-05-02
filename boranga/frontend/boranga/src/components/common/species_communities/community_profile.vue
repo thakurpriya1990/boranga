@@ -376,7 +376,7 @@
                         id="conservation_plan_exists" v-model="species_community.conservation_plan_exists">
                     <label for="conservation_plan_exists" class="me-2">Yes</label>
                     <input :disabled="isReadOnly" type="radio" :value="true" class="form-check-input"
-                        id="conservation_plan_exists" v-model="species_community.conservation_plan_exists" @change="focusConservationPlanReference">
+                        id="conservation_plan_exists" v-model="species_community.conservation_plan_exists"> <!--@change="focusConservationPlanReference">-->
                 </div>
             </div>
             <div v-if="species_community.conservation_plan_exists" class="row mb-3">
@@ -422,6 +422,7 @@ export default {
             return{
                 // community_name_lookup: 'community_name_lookup' + vm._uid,
                 // select_community_name: "select_community_name"+ vm._uid,
+                conservationStatusBody: 'conservationStatusBody' + vm._uid,
                 species_list: [],
                 // taxon_names: [],
                 community_profile_dict: {},
