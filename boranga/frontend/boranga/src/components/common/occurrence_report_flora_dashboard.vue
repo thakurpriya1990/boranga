@@ -675,6 +675,9 @@ export default {
                 var id = $(this).attr('data-history-occurrence-report');
                 vm.historyDocument(id);
             });
+            vm.$refs.flora_ocr_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
         },
         initialiseSearch: function () {
             this.submitterSearch();

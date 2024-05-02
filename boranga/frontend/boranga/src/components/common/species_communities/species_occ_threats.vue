@@ -225,7 +225,10 @@ export default {
                         },
                     ],
                     processing:true,
-                    initComplete: function() {
+                    drawCallback: function() {
+                    helpers.enablePopovers();
+                },
+                initComplete: function() {
                         helpers.enablePopovers();
                         // another option to fix the responsive table overflow css on tab switch
                         // vm.$refs.threats_datatable.vmDataTable.draw('page');
@@ -276,6 +279,9 @@ export default {
                     e.preventDefault();
                     var id = $(this).attr('data-history-threat');
                     vm.historyThreat(id);
+                });
+                vm.$refs.threats_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
                 });
             },
             refreshFromResponse: function(){

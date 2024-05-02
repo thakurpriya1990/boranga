@@ -784,6 +784,9 @@ export default {
 
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                     var $searchInput = $('div.dataTables_filter input');
@@ -1364,6 +1367,9 @@ export default {
                     var id = $(this).attr('data-history-species');
                     vm.historyDocument(id);
                 });
+            vm.$refs.flora_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
         },
         initialiseSearch:function(){
             this.submitterSearch();

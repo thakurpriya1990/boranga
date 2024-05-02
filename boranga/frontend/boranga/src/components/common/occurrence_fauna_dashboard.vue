@@ -564,6 +564,9 @@ export default {
                 var id = $(this).attr('data-history-occurrence');
                 vm.historyDocument(id);
             });
+            vm.$refs.fauna_occ_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
         },
         initialiseSearch: function () {
             this.submitterSearch();
