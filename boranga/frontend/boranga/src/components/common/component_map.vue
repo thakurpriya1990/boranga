@@ -472,7 +472,7 @@
                             title="Zoom map to layer(s)"
                             class="optional-layers-button btn"
                             :class="polygonCount ? '' : 'disabled'"
-                            @click="displayAllFeatures"
+                            @click="displayAllFeatures()"
                         >
                             <img
                                 class="svg-icon"
@@ -1712,13 +1712,20 @@ export default {
             );
             vm.download_content(json, 'boranga_layers.geojson', 'text/plain');
         },
-        displayAllFeatures: function () {
+        displayAllFeatures: function (features) {
             console.log('in displayAllFeatures()');
             let vm = this;
             if (vm.map) {
                 if (vm.modelQuerySource.getFeatures().length > 0) {
                     let view = vm.map.getView();
-                    let ext = vm.modelQuerySource.getExtent();
+
+                    let ext;
+                    if (features) {
+                        ext = vm.getFeaturesExtent(features);
+                    } else {
+                        ext = vm.modelQuerySource.getExtent();
+                    }
+
                     let centre = [
                         (ext[0] + ext[2]) / 2.0,
                         (ext[1] + ext[3]) / 2.0,
@@ -1728,6 +1735,22 @@ export default {
                     view.animate({ zoom: z, center: centre });
                 }
             }
+        },
+        getFeaturesExtent: function (features) {
+            const [E, S, W, N] = [[], [], [], []];
+            for (let feature of features) {
+                let extent = feature.getGeometry().getExtent();
+                E.push(extent[0]);
+                S.push(extent[1]);
+                W.push(extent[2]);
+                N.push(extent[3]);
+            }
+            return [
+                Math.min(...E),
+                Math.min(...S),
+                Math.max(...W),
+                Math.max(...N),
+            ];
         },
         centerOnFeature: function (feature) {
             const ext = feature.getGeometry().getExtent();
@@ -2961,10 +2984,21 @@ export default {
                     console.error('Error processing geometry:', error);
                 })
                 .finally(() => {
-                    this.processingFeatures = false;
+                    swal.fire({
+                        title: 'Processing Successful',
+                        icon: 'success',
+                        timer: 1000,
+                        showConfirmButton: false,
+                        timerProgressBar: true,
+                    }).then(() => {
+                        const features =
+                            this.addFeatureCollectionToMap(processedGeometry);
+
+                        this.displayAllFeatures(features);
+                        this.processingFeatures = false;
+                    });
                 });
 
-            this.addFeatureCollectionToMap(processedGeometry);
             return processedGeometry;
         },
         removeModelFeatures: function () {
@@ -3048,6 +3082,7 @@ export default {
             if (featureCollection == null) {
                 featureCollection = vm.featureCollection;
             }
+            const features = [];
             console.log('Adding features to map:', featureCollection);
 
             for (let featureData of featureCollection['features']) {
@@ -3056,8 +3091,11 @@ export default {
                     featureData.model
                 );
 
+                features.push(feature);
                 vm.modelQuerySource.addFeature(feature);
             }
+
+            return features;
         },
         assignProposalFeatureColors: function (proposals) {
             let vm = this;
