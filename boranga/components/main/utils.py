@@ -156,9 +156,9 @@ def transform_json_geometry(json_geom, from_srid, to_srid):
     return geom.json
 
 
-def spatially_process_geometry(json_geom, operation, parameters=[]):
+def spatially_process_geometry(json_geom, operation, parameters=[], unit=None):
     if operation == "buffer":
-        res_json = buffer_json_geometry(json_geom, *parameters)
+        res_json = buffer_json_geometry(json_geom, *parameters, unit)
     else:
         raise serializers.ValidationError(
             f"Spatial operation {operation} not supported"
@@ -167,9 +167,18 @@ def spatially_process_geometry(json_geom, operation, parameters=[]):
     return res_json
 
 
-def buffer_json_geometry(json_geom, distance):
+def buffer_json_geometry(json_geom, distance, unit):
     geoms = features_json_to_geosgeometry(json_geom["features"])
-    buffer_geoms = [geom.buffer(distance) for geom in geoms]
+
+    if unit == "m":
+        # TODO: aea transform
+        raise serializers.ValidationError("Buffer operation does not support unit 'm'")
+    elif unit == "deg":
+        buffer_geoms = [geom.buffer(distance) for geom in geoms]
+    else:
+        raise serializers.ValidationError(
+            f"Buffer operation requires unit parameter, got {unit}"
+        )
 
     feature_collection = {
         "type": "FeatureCollection",

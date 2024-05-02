@@ -728,15 +728,18 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         operation = request.GET.get("operation", None)
         parameters = request.GET.get("parameters", None)
         parameters = [float(p) for p in parameters.split(",")] if parameters else []
+        unit = request.GET.get("unit", None)
 
         if not geometry:
             raise serializers.ValidationError("Geometry is required")
         if not operation:
             raise serializers.ValidationError("Operation is required")
+        if not unit:
+            raise serializers.ValidationError("Unit is required")
 
         try:
             res_json = spatially_process_geometry(
-                json.loads(geometry), operation, parameters
+                json.loads(geometry), operation, parameters, unit
             )
         except Exception as e:
             raise e
