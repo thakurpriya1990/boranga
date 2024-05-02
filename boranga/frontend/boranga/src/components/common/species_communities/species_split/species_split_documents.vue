@@ -246,7 +246,7 @@ export default {
                 });
             },
             adjust_table_width: function(){
-                this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();
+                if (this.$refs.documents_datatable !== undefined) {this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();}
             },
         },
         mounted: function(){

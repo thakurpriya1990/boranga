@@ -188,7 +188,7 @@ export default {
             },
             adjust_table_width: function(){
                 let vm = this;
-                vm.$refs.observer_detail_datatable.vmDataTable.columns.adjust().responsive.recalc();
+                if (vm.$refs.observer_detail_datatable !== undefined) {vm.$refs.observer_detail_datatable.vmDataTable.columns.adjust().responsive.recalc();}
             },
             newObserverDetail: function(){
                 let vm=this;
