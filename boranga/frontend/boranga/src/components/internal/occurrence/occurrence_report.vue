@@ -111,7 +111,6 @@
             </div>
             <div class="col-md-9">
                 <template>
-                    {{ occurrence_report }}
                     <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
                         enctype="multipart/form-data">
                         <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
@@ -149,7 +148,7 @@
                                             :disbaled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
-                                <div v-else-if="hasUserEditMode" class="container">
+                                <div v-else-if="occurrence_report.internal_application" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
