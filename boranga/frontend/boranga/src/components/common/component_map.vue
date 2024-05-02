@@ -497,37 +497,103 @@
                         id="submenu-spatial-operations"
                         class="map-menu-submenu"
                     >
-                        <div class="scaled-button">
+                        <form class="layer_options form-horizontal">
                             <div
-                                class="submenu-button-wrapper"
-                                :title="
-                                    selectedFeatureIds.length
-                                        ? 'Buffer selected features'
-                                        : 'Select feature(s) to buffer'
-                                "
+                                class="input-group input-group-sm mb-1 text-nowrap"
                             >
+                                <!-- Spatial Operations Dropdown -->
                                 <div
-                                    :title="`Buffer ${
-                                        selectedFeatureIds.length
-                                    } selected feature${
-                                        selectedFeatureIds.length > 1 ? 's' : ''
-                                    }`"
-                                    class="btn optional-layers-button"
-                                    :class="[
-                                        selectedFeatureIds.length == 0
-                                            ? 'disabled'
-                                            : 'btn-warning',
-                                        navbarButtonsDisabled ? 'disabled' : '',
-                                    ]"
-                                    @click="processFeatures('buffer')"
+                                    class="input-group-text form-floating flex-grow-1"
                                 >
-                                    <img
-                                        class="svg-icon"
-                                        src="../../assets/convex-hull.svg"
+                                    <SelectFilter
+                                        id="features-spatial-operation-select"
+                                        ref="features-spatial-operation-select"
+                                        :title="`Run a ${selectedSpatialOperation} spatial operation on ${
+                                            selectedFeatureIds.length
+                                        } selected feature${
+                                            selectedFeatureIds.length > 1
+                                                ? 's'
+                                                : ''
+                                        }`"
+                                        :show-title="false"
+                                        placeholder="Coordinate Reference System"
+                                        :options="
+                                            spatialOperationsAvailable.map(
+                                                (op) => {
+                                                    return {
+                                                        id: op.id,
+                                                        name: op.name,
+                                                    };
+                                                }
+                                            )
+                                        "
+                                        :pre-selected-filter-item="
+                                            selectedSpatialOperation
+                                        "
+                                        classes="min-width-150"
+                                        @option:selected="
+                                            (selected) => {
+                                                selectedSpatialOperation =
+                                                    selected.value;
+                                            }
+                                        "
                                     />
                                 </div>
+                                <div
+                                    class="form-floating flex-grow-1 input-group-text"
+                                >
+                                    <div class="scaled-button">
+                                        <div
+                                            class="submenu-button-wrapper"
+                                            :title="
+                                                selectedFeatureIds.length
+                                                    ? 'Process selected features'
+                                                    : 'Select feature(s) to process'
+                                            "
+                                        >
+                                            <div
+                                                :title="`Process ${
+                                                    selectedFeatureIds.length
+                                                } selected feature${
+                                                    selectedFeatureIds.length >
+                                                    1
+                                                        ? 's'
+                                                        : ''
+                                                }`"
+                                                class="btn optional-layers-button"
+                                                :class="[
+                                                    selectedFeatureIds.length ==
+                                                    0
+                                                        ? 'disabled'
+                                                        : 'btn-warning',
+                                                    navbarButtonsDisabled
+                                                        ? 'disabled'
+                                                        : '',
+                                                ]"
+                                                @click="
+                                                    processFeatures(
+                                                        selectedSpatialOperation
+                                                    )
+                                                "
+                                            >
+                                                <img
+                                                    class="svg-icon"
+                                                    :src="
+                                                        require(`../../assets/${
+                                                            spatialOperationsAvailable.find(
+                                                                (op) =>
+                                                                    op.id ==
+                                                                    selectedSpatialOperation
+                                                            ).icon
+                                                        }`)
+                                                    "
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
 
                     <!-- Spatially process Features -->
@@ -1348,6 +1414,7 @@ export default {
             shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
             userInputGeometryStack: [],
+            selectedSpatialOperation: 'buffer',
         };
     },
     computed: {
@@ -1512,6 +1579,21 @@ export default {
                     name: crs.name,
                 };
             });
+        },
+        spatialOperationsAvailable: function () {
+            const spatialOPerations = [
+                {
+                    id: 'buffer',
+                    name: 'Buffer',
+                    icon: 'buffer-geometries.svg',
+                },
+                {
+                    id: 'convex_hull',
+                    name: 'Convex Hull',
+                    icon: 'convex-hull.svg',
+                },
+            ];
+            return spatialOPerations;
         },
         /**
          * Returns the features in the modelQuerySource sorted by their id
@@ -2810,7 +2892,7 @@ export default {
                 }),
             };
 
-            const buffered = await fetch(
+            const processedGeometry = await fetch(
                 helpers.add_endpoint_join(
                     api_endpoints.occurrence_report,
                     `/spatially-process-geometries/?geometry=${JSON.stringify(
@@ -2818,9 +2900,11 @@ export default {
                     )}&operation=${operation}`
                 )
             )
-                .then((response) => {
+                .then(async (response) => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        return await response.json().then((json) => {
+                            throw new Error(json);
+                        });
                     }
                     return response.json();
                 })
@@ -2828,14 +2912,11 @@ export default {
                     return data;
                 })
                 .catch((error) => {
-                    console.error(
-                        'Error coordinate transforming geometry:',
-                        error
-                    );
+                    console.error('Error processing geometry:', error);
                 });
 
-            this.addFeatureCollectionToMap(buffered);
-            return buffered;
+            this.addFeatureCollectionToMap(processedGeometry);
+            return processedGeometry;
         },
         removeModelFeatures: function () {
             let vm = this;
