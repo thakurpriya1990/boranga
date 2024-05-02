@@ -32,7 +32,7 @@ from boranga.components.main.api import (
 from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import (
-    features_json_to_geosgeometry,
+    spatially_process_geometry,
     transform_json_geometry,
     validate_threat_request,
 )
@@ -721,28 +721,18 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             "GET",
         ],
         detail=False,
-        url_path="buffer-geometry",
+        url_path="spatially-process-geometries",
     )
-    def buffer_geometry(self, request, *args, **kwargs):
+    def spatially_process_geometries(self, request, *args, **kwargs):
         geometry = request.GET.get("geometry", None)
+        operation = request.GET.get("operation", None)
+
         if not geometry:
-            return HttpResponse({}, content_type="application/json")
-        json_geom = json.loads(geometry)
+            raise serializers.ValidationError("Geometry is required")
+        if not operation:
+            raise serializers.ValidationError("Operation is required")
 
-        geoms = features_json_to_geosgeometry(json_geom["features"])
-        buffer_geoms = [geom.buffer(0.0001) for geom in geoms]
-
-        json.loads(buffer_geoms[0].json)
-
-        feature_collection = {
-            "type": "FeatureCollection",
-            "features": [
-                {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
-                for geom in buffer_geoms
-            ],
-        }
-
-        res_json = json.dumps(feature_collection)
+        res_json = spatially_process_geometry(json.loads(geometry), operation)
 
         return HttpResponse(res_json, content_type="application/json")
 
@@ -771,7 +761,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
                 for g in ocr_geometries.values_list("geometry", flat=True).distinct()
             ]
             # Add the srids of the original geometries to epsg_codes
-            original_geometry_srids = [str(g.original_geometry_srid) for g in ocr_geometries]
+            original_geometry_srids = [
+                str(g.original_geometry_srid) for g in ocr_geometries
+            ]
             epsg_codes += [g for g in original_geometry_srids if g.isnumeric()]
             epsg_codes = list(set(epsg_codes))
             datum_list = search_datums("", codes=epsg_codes)

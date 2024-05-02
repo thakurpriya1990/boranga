@@ -154,3 +154,27 @@ def transform_json_geometry(json_geom, from_srid, to_srid):
     geom.transform(to_srid)
 
     return geom.json
+
+def spatially_process_geometry(json_geom, operation):
+    if operation == "buffer":
+        res_json = buffer_json_geometry(json_geom, 0.0001)
+    else:
+        raise serializers.ValidationError(
+            f"Spatial operation {operation} not supported"
+        )
+
+    return res_json
+
+def buffer_json_geometry(json_geom, distance):
+    geoms = features_json_to_geosgeometry(json_geom["features"])
+    buffer_geoms = [geom.buffer(distance) for geom in geoms]
+
+    feature_collection = {
+        "type": "FeatureCollection",
+        "features": [
+            {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
+            for geom in buffer_geoms
+        ],
+    }
+
+    return json.dumps(feature_collection)
