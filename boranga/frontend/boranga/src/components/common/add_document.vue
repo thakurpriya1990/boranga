@@ -9,11 +9,11 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Document Category</label>
+                                        <label for="document_category" class="control-label">Category</label>
                                     </div>
-                                    <div class="col-sm-9">
-                                        <select class="form-select" v-model="documentObj.document_category"
-                                            @change="filterSubCategory($event)">
+                                    <div class="col-sm-6">
+                                        <select id="document_category" ref="document_category" class="form-select"
+                                            v-model="documentObj.document_category" @change="filterSubCategory($event)">
                                             <option v-for="category in documentCategories" :value="category.id"
                                                 v-bind:key="category.id">
                                                 {{ category.name }}
@@ -21,12 +21,13 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="row mb-3">
+                                <div v-if="documentObj.document_category" class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Document Sub Category</label>
+                                        <label for="document_sub_category" class="control-label">Sub Category</label>
                                     </div>
-                                    <div class="col-sm-9">
-                                        <select class="form-select" v-model="documentObj.document_sub_category">
+                                    <div class="col-sm-6">
+                                        <select id="document_sub_category" ref="document_sub_category" class="form-select"
+                                            v-model="documentObj.document_sub_category" @change="focusDescription">
                                             <option v-for="sub_category in filteredDocumentSubCategories"
                                                 :value="sub_category.id" v-bind:key="sub_category.id">
                                                 {{ sub_category.name }}
@@ -36,28 +37,31 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Description</label>
+                                        <label for="description" class="control-label">Description</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <textarea class="form-control" v-model="documentObj.description">
+                                        <textarea id="description" ref="description" class="form-control"
+                                            v-model="documentObj.description">
                                       </textarea>
                                     </div>
                                 </div>
-                                <div class="row mb-3">
+                                <div v-if="documentObj.uploaded_date" class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label for="" class="control-label pull-left">Date/Time: </label>
+                                        <label for="uploaded_date" class="control-label">Date/Time: </label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <input disabled type="datetime-local" class="form-control" name="uploaded_date"
-                                            ref="uploaded_date" v-model="documentObj.uploaded_date" />
+                                        <input disabled type="datetime-local" class="form-control" id="uploaded_date"
+                                            name="uploaded_date" ref="uploaded_date"
+                                            v-model="documentObj.uploaded_date" />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
-                                    <label class="mb-3">Document</label>
+                                    <label for="documents_file" class="mb-3">Document</label>
                                     <div class="col">
                                         <FileField2 ref="filefield" :proposal_id="document_id"
                                             :uploaded_documents="uploaded_document" :isRepeatable="false"
-                                            name="documents_file" @refreshFromResponse="refreshFromResponse" />
+                                            id="documents_file" name="documents_file"
+                                            @refreshFromResponse="refreshFromResponse" />
                                     </div>
                                 </div>
                             </div>
@@ -107,7 +111,6 @@ export default {
             form: null,
             document_id: String,
             document_action: String,
-            //speciesDocument: Object,
             documentObj: Object,
             uploaded_document: [],
             documentCategories: [],
@@ -125,6 +128,15 @@ export default {
             title: null,
         }
     },
+    watch: {
+        isModalOpen: function (val) {
+            if (val) {
+                this.$nextTick(() => {
+                    this.$refs.document_category.focus();
+                });
+            }
+        },
+    },
     computed: {
         showError: function () {
             var vm = this;
@@ -132,6 +144,11 @@ export default {
         },
     },
     methods: {
+        focusDescription: function () {
+            this.$nextTick(() => {
+                this.$refs['description'].focus();
+            });
+        },
         refreshFromResponse: function (updated_docs) {
             //this.documentObj= updated_docs; TODO: This is being referenced. It should do something or be removed.
         },
@@ -151,6 +168,9 @@ export default {
                     if (choice.category_id === this.documentObj.document_category) {
                         this.filteredDocumentSubCategories.push(choice);
                     }
+                }
+                if(this.$refs['document_sub_category']){
+                    this.$refs['document_sub_category'].focus();
                 }
             });
         },
