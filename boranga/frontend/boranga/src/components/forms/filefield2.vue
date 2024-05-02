@@ -27,7 +27,18 @@
                                 <i class="bi bi-file-earmark-arrow-up me-1"></i>
                                 <input :name="name" type="file" :data-que="n" :accept="fileTypes"
                                     @change="handleChange($event)" :required="isRequired" />
-                                Attach <template v-if="isRepeatable && files && files.length > 0">Another </template>Document
+                                <template v-if="isRepeatable">
+                                    Attach <template v-if="isRepeatable && files && files.length > 0">Another
+                                    </template>Document
+                                </template>
+                                <template v-else>
+                                    <template v-if="files && files.length > 0">
+                                        Replace Document
+                                    </template>
+                                    <template v-else>
+                                        Attach Document
+                                    </template>
+                                </template>
                             </span>
                         </div>
                     </div>
@@ -36,7 +47,7 @@
         </div>
         <div v-if="files && files.length > 0" class="mt-3 pt-3 border-top">
             <div class="mt-3">
-                <ul class="list-group list-group-numbered">
+                <ul class="list-group" :class="isRepeatable ? 'list-group-numbered' : ''">
                     <li v-for="v in files" class="list-group-item">
                         <i class="bi bi-file-earmark-text-fill text-secondary"></i> {{ v.name }} &nbsp;
                         <a @click="pop_file(v)" class="bi bi-trash" title="Remove file" :filename="v.name"
