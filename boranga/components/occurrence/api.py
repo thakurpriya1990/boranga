@@ -726,6 +726,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     def spatially_process_geometries(self, request, *args, **kwargs):
         geometry = request.GET.get("geometry", None)
         operation = request.GET.get("operation", None)
+        parameters = request.GET.get("parameters", None)
+        parameters = [int(p) for p in parameters.split(",")] if parameters else []
 
         if not geometry:
             raise serializers.ValidationError("Geometry is required")
@@ -733,12 +735,13 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             raise serializers.ValidationError("Operation is required")
 
         try:
-            res_json = spatially_process_geometry(json.loads(geometry), operation)
+            res_json = spatially_process_geometry(
+                json.loads(geometry), operation, parameters
+            )
         except Exception as e:
             raise e
         else:
             return HttpResponse(res_json, content_type="application/json")
-
 
     # used for Location Tab of Occurrence Report external form
     @list_route(
