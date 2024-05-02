@@ -539,6 +539,32 @@
                                         "
                                     />
                                 </div>
+                                <!-- Related input field like buffer distance -->
+                                <div
+                                    class="form-floating flex-grow-1 input-group-text"
+                                >
+                                    <input
+                                        id="spatial-operation-parameter-input"
+                                        ref="spatial-operation-parameter-input"
+                                        class="form-control min-width-90 me-1"
+                                        :value="spatialOperationParameters[0]"
+                                        :placeholder="parameterInputLabel"
+                                        type="number"
+                                        min="0"
+                                        step="0.0001"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        data-bs-title="Enter the value"
+                                        @change="
+                                            spatialOperationParameters[0] =
+                                                $event.target.value
+                                        "
+                                    />
+                                    <label
+                                        for="spatial-operation-parameter-input"
+                                        >{{ parameterInputLabel }}</label
+                                    >
+                                </div>
                                 <div
                                     class="form-floating flex-grow-1 input-group-text"
                                 >
@@ -572,7 +598,8 @@
                                                 ]"
                                                 @click="
                                                     processFeatures(
-                                                        selectedSpatialOperation
+                                                        selectedSpatialOperation,
+                                                        spatialOperationParameters
                                                     )
                                                 "
                                             >
@@ -1415,6 +1442,7 @@ export default {
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
             userInputGeometryStack: [],
             selectedSpatialOperation: 'buffer',
+            spatialOperationParameters: [1.0],
         };
     },
     computed: {
@@ -1604,6 +1632,13 @@ export default {
                 .toSorted(function (a, b) {
                     return a.getProperties().id - b.getProperties().id;
                 });
+        },
+        parameterInputLabel: function () {
+            let label = 'Parameter';
+            if (this.selectedSpatialOperation == 'buffer') {
+                label = 'Buffer Distance (m)';
+            }
+            return label;
         },
     },
     watch: {
@@ -2867,7 +2902,12 @@ export default {
 
             vm.drawPolygonsForModel.updateSketchFeatures_();
         },
-        processFeatures: async function (operation) {
+        /**
+         * Perform a spatial operation on the selected features
+         * @param {String} operation The operation to perform on the selected features
+         * @param {Array=} parameters The parameters to pass to the operation
+         */
+        processFeatures: async function (operation, parameters = []) {
             const selectedFeatures = this.selectedFeatures();
             if (selectedFeatures.length === 0) {
                 console.warn('No features selected');
@@ -2897,7 +2937,9 @@ export default {
                     api_endpoints.occurrence_report,
                     `/spatially-process-geometries/?geometry=${JSON.stringify(
                         featureCollection
-                    )}&operation=${operation}`
+                    )}&operation=${operation}&parameters=${parameters.join(
+                        ','
+                    )}`
                 )
             )
                 .then(async (response) => {

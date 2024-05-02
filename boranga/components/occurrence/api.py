@@ -727,7 +727,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         geometry = request.GET.get("geometry", None)
         operation = request.GET.get("operation", None)
         parameters = request.GET.get("parameters", None)
-        parameters = [int(p) for p in parameters.split(",")] if parameters else []
+        parameters = [float(p) for p in parameters.split(",")] if parameters else []
 
         if not geometry:
             raise serializers.ValidationError("Geometry is required")
