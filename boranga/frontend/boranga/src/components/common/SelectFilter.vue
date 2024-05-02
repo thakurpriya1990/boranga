@@ -19,6 +19,7 @@
             :track-by="name"
             :placeholder="placeholder"
             :class="classes"
+            :disabled="disabled"
             @option:selected="(selected) => $emit('option:selected', selected)"
             @search="(...args) => $emit('search', ...args)"
             @select="
@@ -107,6 +108,11 @@ export default {
             type: String,
             required: false,
             default: '',
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
         },
     },
     emits: [
