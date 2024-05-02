@@ -281,7 +281,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
     )
     def occurrence_report_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
-        qs = qs.filter(Q(internal_application=False))
+        qs = qs.filter(internal_application=False)
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -640,6 +640,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             submitter=request.user.id,
             group_type=group_type_id,
         )
+        if is_internal(request):
+            new_instance.internal_application = True
+
         new_instance.save(version_user=request.user)
         data = {"occurrence_report_id": new_instance.id}
 
