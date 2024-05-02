@@ -2959,6 +2959,8 @@ export default {
                 }),
             };
 
+            let success = false;
+            let errorStr = '';
             const processedGeometry = await fetch(
                 helpers.add_endpoint_join(
                     api_endpoints.occurrence_report,
@@ -2978,23 +2980,31 @@ export default {
                     return response.json();
                 })
                 .then((data) => {
+                    success = true;
                     return data;
                 })
                 .catch((error) => {
+                    errorStr = error;
                     console.error('Error processing geometry:', error);
                 })
                 .finally(() => {
                     swal.fire({
-                        title: 'Processing Successful',
-                        icon: 'success',
-                        timer: 1000,
-                        showConfirmButton: false,
-                        timerProgressBar: true,
+                        title: success
+                            ? 'Processing Successful'
+                            : 'Processing Failed',
+                        icon: success ? 'success' : 'error',
+                        text: success ? '' : errorStr,
+                        timer: success ? 1000 : 0,
+                        showConfirmButton: !success,
+                        timerProgressBar: success,
                     }).then(() => {
-                        const features =
-                            this.addFeatureCollectionToMap(processedGeometry);
-
-                        this.displayAllFeatures(features);
+                        if (success) {
+                            const features =
+                                this.addFeatureCollectionToMap(
+                                    processedGeometry
+                                );
+                            this.displayAllFeatures(features);
+                        }
                         this.processingFeatures = false;
                     });
                 });
