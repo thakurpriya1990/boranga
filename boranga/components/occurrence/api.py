@@ -2265,27 +2265,38 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
 
         search_term = request.GET.get("term", None)
         if search_term:
-            queryset = (
-                queryset.annotate(
-                    display_name=Concat(
-                        "occurrence_number",
-                        Value(" - "),
-                        "occurrence_name",
-                        Value(" ("),
-                        "group_type__name",
-                        Value(")"),
-                        output_field=CharField(),
-                    ),
+            if occurrence_report_id:
+                queryset = (
+                    queryset.annotate(
+                        display_name=Concat(
+                            "occurrence_number",
+                            Value(" - "),
+                            "occurrence_name",
+                            Value(" ("),
+                            "group_type__name",
+                            Value(")"),
+                            output_field=CharField(),
+                        ),
+                    )
+                    .filter(display_name__icontains=search_term)
+                    .distinct()
+                    .values("id", "display_name")[:10]
                 )
-                .filter(display_name__icontains=search_term)
-                .distinct()
-                .values("id", "display_name")[:10]
-            )
+                queryset = [
+                    {"id": occurrence["id"], "text": occurrence["display_name"]}
+                    for occurrence in queryset
+                ]
+            else:
+                queryset = (
+                    queryset.filter(occurrence_name__icontains=search_term)
+                    .distinct()
+                    .values("id", "occurrence_name")[:10]
+                )
 
-            queryset = [
-                {"id": occurrence["id"], "text": occurrence["display_name"]}
-                for occurrence in queryset
-            ]
+                queryset = [
+                    {"id": occurrence["id"], "text": occurrence["occurrence_name"]}
+                    for occurrence in queryset
+                ]
         return Response({"results": queryset})
 
     @detail_route(
@@ -2849,49 +2860,42 @@ class OccurrenceViewSet(UserActionLoggingViewset):
 
         return redirect(reverse("internal"))
 
-    @detail_route(methods=['post'], detail=True)
+    @detail_route(methods=["post"], detail=True)
+    @transaction.atomic
     def copy_ocr_section(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = json.loads(request.data["data"])
 
-        try:
-            with transaction.atomic():
-                instance = self.get_object()
-                data = json.loads(request.data['data'])
+        ocrId = data["occurrence_report_id"]
+        section = data["section"]
+        merge = data["merge"]
 
-                ocrId = data["occurrence_report_id"]
-                section = data["section"]
-                merge = data["merge"]
+        ocr = OccurrenceReport.objects.get(id=ocrId)
+        ocrSection = getattr(ocr, section)
+        occSection = getattr(instance, section)
 
-                ocr = OccurrenceReport.objects.get(id=ocrId)
-                ocrSection = getattr(ocr,section)
-                occSection = getattr(instance,section)
+        section_fields = type(ocrSection)._meta.get_fields()
+        for i in section_fields:
+            if (
+                i.name != "id"
+                and i.name != "occurrence_report"
+                and hasattr(occSection, i.name)
+            ):
+                ocrValue = getattr(ocrSection, i.name)
+                if merge:
+                    # if not ocrValue: #do not overwrite if None, 0, or empty string
+                    #    #determine if field is one-to-many
+                    #    many = False
+                    # DEFERRED for now
+                    pass
+                else:
+                    setattr(occSection, i.name, ocrValue)
 
-                section_fields = type(ocrSection)._meta.get_fields()
-                for i in section_fields:
-                    if i.name != "id" and i.name != "occurrence_report" and hasattr(occSection,i.name):
-                        ocrValue = getattr(ocrSection,i.name)
-                        if merge:
-                            #if not ocrValue: #do not overwrite if None, 0, or empty string
-                            #    #determine if field is one-to-many
-                            #    many = False
-                            #DEFERRED for now
-                            pass
-                        else:
-                            setattr(occSection,i.name,ocrValue)
+        occSection.save()
+        instance.save(version_user=request.user)
 
-                occSection.save()
-                instance.save(version_user=request.user)
-
-                serialized_obj = OccurrenceSerializer(instance, context={"request": request})
-                return Response(serialized_obj.data)
-        
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        serialized_obj = OccurrenceSerializer(instance, context={"request": request})
+        return Response(serialized_obj.data)
 
     @list_route(
         methods=[
