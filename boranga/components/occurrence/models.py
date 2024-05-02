@@ -3381,4 +3381,4 @@ reversion.register(OccurrenceDocument)
 reversion.register(OCCConservationThreat)
 
 # Occurrence
-reversion.register(Occurrence, follow=["species", "community"])
+reversion.register(Occurrence, follow=["species", "community","occurrence_reports"])
