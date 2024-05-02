@@ -493,14 +493,14 @@
                         </div>
                     </div>
 
-                    <!-- Buffer Features -->
+                    <!-- Spatially process Features -->
                     <div
                         v-if="editable"
                         class="optional-layers-button-wrapper"
                         :title="
                             polygonCount
-                                ? 'Select feature(s) to buffer'
-                                : 'No features to buffer'
+                                ? 'Select feature(s) to process'
+                                : 'No features to process'
                         "
                     >
                         <div
@@ -511,8 +511,8 @@
                                     : 'btn-warning',
                                 navbarButtonsDisabled ? 'disabled' : '',
                             ]"
-                            title="Buffer selected features"
-                            @click="bufferFeatures()"
+                            title="Process selected features"
+                            @click="processFeatures('buffer')"
                         >
                             <img
                                 class="svg-icon"
@@ -2746,7 +2746,7 @@ export default {
 
             vm.drawPolygonsForModel.updateSketchFeatures_();
         },
-        bufferFeatures: async function () {
+        processFeatures: async function (operation) {
             const selectedFeatures = this.selectedFeatures();
             console.log('Buffering features', selectedFeatures);
             const format = new GeoJSON();
@@ -2770,9 +2770,9 @@ export default {
             const buffered = await fetch(
                 helpers.add_endpoint_join(
                     api_endpoints.occurrence_report,
-                    `/buffer-geometry/?geometry=${JSON.stringify(
+                    `/spatially-process-geometries/?geometry=${JSON.stringify(
                         featureCollection
-                    )}`
+                    )}&operation=${operation}`
                 )
             )
                 .then((response) => {
