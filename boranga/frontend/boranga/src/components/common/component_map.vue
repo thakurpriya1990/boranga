@@ -508,6 +508,7 @@
                                     <SelectFilter
                                         id="features-spatial-operation-select"
                                         ref="features-spatial-operation-select"
+                                        :disabled="processingFeatures"
                                         :title="`Run a ${selectedSpatialOperation} spatial operation on ${
                                             selectedFeatureIds.length
                                         } selected feature${
@@ -547,6 +548,7 @@
                                         id="spatial-operation-parameter-input"
                                         ref="spatial-operation-parameter-input"
                                         class="form-control min-width-90 me-1"
+                                        :disabled="processingFeatures"
                                         :value="spatialOperationParameters[0]"
                                         :placeholder="parameterInputLabel"
                                         type="number"
@@ -589,7 +591,7 @@
                                                 class="btn optional-layers-button"
                                                 :class="[
                                                     selectedFeatureIds.length ==
-                                                    0
+                                                        0 || processingFeatures
                                                         ? 'disabled'
                                                         : 'btn-warning',
                                                     navbarButtonsDisabled
@@ -1402,6 +1404,7 @@ export default {
             queryingGeoserver: false,
             loadingMap: false,
             fetchingProposals: false,
+            processingFeatures: false,
             proposals: [],
             modelQuerySource: null,
             modelQueryLayer: null,
@@ -2908,6 +2911,7 @@ export default {
          * @param {Array=} parameters The parameters to pass to the operation
          */
         processFeatures: async function (operation, parameters = []) {
+            this.processingFeatures = true;
             const selectedFeatures = this.selectedFeatures();
             if (selectedFeatures.length === 0) {
                 console.warn('No features selected');
@@ -2955,6 +2959,9 @@ export default {
                 })
                 .catch((error) => {
                     console.error('Error processing geometry:', error);
+                })
+                .finally(() => {
+                    this.processingFeatures = false;
                 });
 
             this.addFeatureCollectionToMap(processedGeometry);
