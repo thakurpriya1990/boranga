@@ -732,9 +732,13 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         if not operation:
             raise serializers.ValidationError("Operation is required")
 
-        res_json = spatially_process_geometry(json.loads(geometry), operation)
+        try:
+            res_json = spatially_process_geometry(json.loads(geometry), operation)
+        except Exception as e:
+            raise e
+        else:
+            return HttpResponse(res_json, content_type="application/json")
 
-        return HttpResponse(res_json, content_type="application/json")
 
     # used for Location Tab of Occurrence Report external form
     @list_route(
