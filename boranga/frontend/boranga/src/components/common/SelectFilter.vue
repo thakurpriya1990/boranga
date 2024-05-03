@@ -148,6 +148,8 @@ export default {
     methods: {
         input: function (event) {
             if (!this.multiple) {
+                // For some reason option:deselected doesn't get triggered when the select component is in single mode
+                // Therefor we need to emit it manually
                 this.$emit('option:deselected', event);
             }
             this.$emit('input', event);
