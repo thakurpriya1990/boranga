@@ -538,6 +538,11 @@
                                                     selected.value;
                                             }
                                         "
+                                        @option:deselected="
+                                            () => {
+                                                selectedSpatialOperation = null;
+                                            }
+                                        "
                                     />
                                 </div>
                                 <!-- Related input field like buffer distance -->
@@ -553,10 +558,10 @@
                                         :placeholder="parameterInputLabel"
                                         type="number"
                                         min="0"
-                                        step="0.0001"
+                                        :step="unitDependentStep"
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="top"
-                                        data-bs-title="Enter the value"
+                                        data-bs-title="Enter a value"
                                         @change="
                                             spatialOperationParameters[0] =
                                                 $event.target.value
@@ -584,7 +589,7 @@
                                                 : ''
                                         }`"
                                         :show-title="false"
-                                        placeholder="Unit"
+                                        placeholder="Select a unit"
                                         :options="
                                             spatialUnitsAvailable.map((op) => {
                                                 return {
@@ -603,10 +608,16 @@
                                                     selected.value;
                                             }
                                         "
+                                        @option:deselected="
+                                            () => {
+                                                selectedSpatialUnit = null;
+                                            }
+                                        "
                                     />
                                 </div>
                                 <!-- Button to run the operation -->
                                 <div
+                                    v-if="selectedSpatialOperation"
                                     class="form-floating flex-grow-1 input-group-text"
                                 >
                                     <div class="scaled-button">
@@ -1696,6 +1707,9 @@ export default {
                 label = `Buffer Distance (${this.selectedSpatialUnit})`;
             }
             return label;
+        },
+        unitDependentStep: function () {
+            return this.selectedSpatialUnit === 'deg' ? 0.0001 : 1;
         },
     },
     watch: {
