@@ -227,7 +227,9 @@ export default {
         OccurenceReportDocumentHistory,
     },
     computed: {
-        // to restrict submitter to add doc when the report is in workflow
+        isReadonly: function () {
+            return this.occurrence_report_obj.readonly;
+        },
         can_user_edit_doc: function () {
             return this.is_external && this.occurrence_report_obj.customer_status == "Draft";
         }
