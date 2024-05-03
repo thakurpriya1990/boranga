@@ -1,10 +1,8 @@
 import json
 import logging
-import traceback
 from io import BytesIO
 
 import pandas as pd
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
@@ -61,7 +59,6 @@ from boranga.components.conservation_status.serializers import (
 from boranga.components.conservation_status.utils import cs_proposal_submit
 from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.related_item import RelatedItemsSerializer
-from boranga.components.main.utils import handle_validation_error
 from boranga.components.species_and_communities.models import (
     ClassificationSystem,
     CommunityTaxonomy,
@@ -408,13 +405,6 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
             print(e)
         setattr(view, "_datatables_total_count", total_count)
         return queryset
-
-
-# class SpeciesConservationStatusRenderer(DatatablesRenderer):
-#     def render(self, data, accepted_media_type=None, renderer_context=None):
-#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
-#         return super(SpeciesConservationStatusRenderer, self).render(data, accepted_media_type, renderer_context)
 
 
 class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
@@ -863,13 +853,6 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-# class CommunityConservationStatusRenderer(DatatablesRenderer):
-#     def render(self, data, accepted_media_type=None, renderer_context=None):
-#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
-#         return super(CommunityConservationStatusRenderer, self).render(data, accepted_media_type, renderer_context)
-
-
 class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (CommunityConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
@@ -1230,13 +1213,6 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-# class ConservationStatusRenderer(DatatablesRenderer):
-#     def render(self, data, accepted_media_type=None, renderer_context=None):
-#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
-#         return super(ConservationStatusRenderer, self).render(data, accepted_media_type, renderer_context)
-
-
 class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (ConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
@@ -1298,29 +1274,6 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         )
         return ConservationStatus.objects.none()
 
-    def get_serializer_class(self):
-        try:
-            # application_type = Proposal.objects.get(id=self.kwargs.get('id')).application_type.name
-            # if application_type == ApplicationType.TCLASS:
-            #     return ProposalSerializer
-            # elif application_type == ApplicationType.FILMING:
-            #     return ProposalFilmingSerializer
-            # elif application_type == ApplicationType.EVENT:
-            #     return ProposalEventSerializer
-            return ConservationStatusSerializer
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
     def internal_serializer_class(self):
         return InternalConservationStatusSerializer
 
@@ -1353,209 +1306,146 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
+    @transaction.atomic
     def conservation_status_save(self, request, *args, **kwargs):
-        try:
-            with transaction.atomic():
-                instance = self.get_object()
-                request_data = request.data
-                # to resolve error for serializer submitter id as object is received in request
-                if request_data["submitter"]:
-                    request.data["submitter"] = "{}".format(
-                        request_data["submitter"].get("id")
-                    )
-                if (
-                    instance.application_type.name == GroupType.GROUP_TYPE_FLORA
-                    or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA
-                ):
-                    serializer = SaveSpeciesConservationStatusSerializer(
-                        instance, data=request_data, partial=True
-                    )
-                elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
-                    serializer = SaveCommunityConservationStatusSerializer(
-                        instance, data=request_data, partial=True
-                    )
+        instance = self.get_object()
+        request_data = request.data
+        # to resolve error for serializer submitter id as object is received in request
+        if request_data["submitter"]:
+            request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
+        if (
+            instance.application_type.name == GroupType.GROUP_TYPE_FLORA
+            or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA
+        ):
+            serializer = SaveSpeciesConservationStatusSerializer(
+                instance, data=request_data, partial=True
+            )
+        elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+            serializer = SaveCommunityConservationStatusSerializer(
+                instance, data=request_data, partial=True
+            )
 
-                serializer.is_valid(raise_exception=True)
-                if serializer.is_valid():
+        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
 
-                    # add the updated Current conservation criteria list [1,2] to the cs instance,
-                    # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+            # add the updated Current conservation criteria list [1,2] to the cs instance,
+            # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
-                    # add the updated recommended conservation criteria list [1,2] to the cs instance,
-                    # saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
-                    
-                    serializer.save(version_user=request.user)
+            # add the updated recommended conservation criteria list [1,2] to the cs instance,
+            # saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
 
-                    instance.log_user_action(
-                        ConservationStatusUserAction.ACTION_SAVE_APPLICATION.format(
-                            instance.conservation_status_number
-                        ),
-                        request,
-                    )
+            serializer.save(version_user=request.user)
 
-            return redirect(reverse("internal"))
+            instance.log_user_action(
+                ConservationStatusUserAction.ACTION_SAVE_APPLICATION.format(
+                    instance.conservation_status_number
+                ),
+                request,
+            )
 
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        return redirect(reverse("internal"))
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
+    @transaction.atomic
     def conservation_status_edit(self, request, *args, **kwargs):
-        try:
-            with transaction.atomic():
-                instance = self.get_object()
-                request_data = request.data
-                if not instance.can_assess(request.user):
-                    raise exceptions.ProposalNotAuthorized()
-                if instance.processing_status == "approved":
-                    # to resolve error for serializer submitter id as object is received in request
-                    if request_data["submitter"]:
-                        request.data["submitter"] = "{}".format(
-                            request_data["submitter"].get("id")
-                        )
-                    if (
-                        instance.application_type.name == GroupType.GROUP_TYPE_FLORA
-                        or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA
-                    ):
-                        serializer = SaveSpeciesConservationStatusSerializer(
-                            instance, data=request_data, partial=True
-                        )
-                    elif (
-                        instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY
-                    ):
-                        serializer = SaveCommunityConservationStatusSerializer(
-                            instance, data=request_data, partial=True
-                        )
+        instance = self.get_object()
+        request_data = request.data
+        if not instance.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
+        if instance.processing_status == "approved":
+            # to resolve error for serializer submitter id as object is received in request
+            if request_data["submitter"]:
+                request.data["submitter"] = "{}".format(
+                    request_data["submitter"].get("id")
+                )
+            if (
+                instance.application_type.name == GroupType.GROUP_TYPE_FLORA
+                or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA
+            ):
+                serializer = SaveSpeciesConservationStatusSerializer(
+                    instance, data=request_data, partial=True
+                )
+            elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+                serializer = SaveCommunityConservationStatusSerializer(
+                    instance, data=request_data, partial=True
+                )
 
-                    serializer.is_valid(raise_exception=True)
-                    if serializer.is_valid():
-                        serializer.save(version_user=request.user)
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save(version_user=request.user)
 
-                        # add the updated Current conservation criteria list [1,2] to the cs instance,
-                        # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+                # add the updated Current conservation criteria list [1,2] to the cs instance,
+                # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
-                        # add the updated recommended conservation criteria list [1,2] to the cs instance,
-                        # saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
+                # add the updated recommended conservation criteria list [1,2] to the cs instance,
+                # saved_instance.recommended_conservation_criteria.set(request_data.get('recommended_conservation_criteria'))
 
-                        instance.log_user_action(
-                            ConservationStatusUserAction.ACTION_EDIT_APPLICATION.format(
-                                instance.conservation_status_number
-                            ),
-                            request,
-                        )
+                instance.log_user_action(
+                    ConservationStatusUserAction.ACTION_EDIT_APPLICATION.format(
+                        instance.conservation_status_number
+                    ),
+                    request,
+                )
 
-            return redirect(reverse("external"))
-
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        return redirect(reverse("external"))
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
+    @transaction.atomic
     def draft(self, request, *args, **kwargs):
-        try:
-            with transaction.atomic():
-                instance = self.get_object()
-                request_data = request.data
-                # request.data['submitter'] = u'{}'.format(request.user.id)
-                if request_data["submitter"]:
-                    request.data["submitter"] = "{}".format(
-                        request_data["submitter"].get("id")
-                    )
-                if (
-                    instance.application_type.name == GroupType.GROUP_TYPE_FLORA
-                    or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA
-                ):
-                    serializer = SaveSpeciesConservationStatusSerializer(
-                        instance, data=request_data, partial=True
-                    )
-                elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
-                    serializer = SaveCommunityConservationStatusSerializer(
-                        instance, data=request_data, partial=True
-                    )
+        instance = self.get_object()
+        request_data = request.data
+        # request.data['submitter'] = u'{}'.format(request.user.id)
+        if request_data["submitter"]:
+            request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
+        if (
+            instance.application_type.name == GroupType.GROUP_TYPE_FLORA
+            or instance.application_type.name == GroupType.GROUP_TYPE_FAUNA
+        ):
+            serializer = SaveSpeciesConservationStatusSerializer(
+                instance, data=request_data, partial=True
+            )
+        elif instance.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+            serializer = SaveCommunityConservationStatusSerializer(
+                instance, data=request_data, partial=True
+            )
 
-                serializer.is_valid(raise_exception=True)
-                if serializer.is_valid():
-                    serializer.save(version_user=request.user)
+        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            serializer.save(version_user=request.user)
 
-                    # add the updated Current conservation criteria list [1,2] to the cs instance,
-                    # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
+            # add the updated Current conservation criteria list [1,2] to the cs instance,
+            # saved_instance.conservation_criteria.set(request_data.get('conservation_criteria'))
 
-            return redirect(reverse("external"))
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        return redirect(reverse("external"))
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            # instance.submit(request,self)
-            cs_proposal_submit(instance, request)
-            instance.save(version_user=request.user)
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-            # return redirect(reverse('external'))
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        # instance.submit(request,self)
+        cs_proposal_submit(instance, request)
+        instance.save(version_user=request.user)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
-        try:
-            with transaction.atomic():
-                group_type_id = GroupType.objects.get(
-                    id=request.data.get("application_type_id")
-                )
-                internal_application = False
-                if request.data.get("internal_application"):
-                    internal_application = request.data.get("internal_application")
-                obj = ConservationStatus(
-                    submitter=request.user.id,
-                    application_type=group_type_id,
-                    internal_application=internal_application,
-                )
-                obj.save(version_user=request.user)
-                serialized_obj = CreateConservationStatusSerializer(obj)
-                return Response(serialized_obj.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        group_type_id = GroupType.objects.get(
+            id=request.data.get("application_type_id")
+        )
+        internal_application = False
+        if request.data.get("internal_application"):
+            internal_application = request.data.get("internal_application")
+        obj = ConservationStatus(
+            submitter=request.user.id,
+            application_type=group_type_id,
+            internal_application=internal_application,
+        )
+        obj.save(version_user=request.user)
+        serialized_obj = CreateConservationStatusSerializer(obj)
+        return Response(serialized_obj.data)
 
     @detail_route(
         methods=[
@@ -1564,20 +1454,10 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def action_log(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            qs = instance.action_logs.all()
-            serializer = ConservationStatusUserActionSerializer(qs, many=True)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        qs = instance.action_logs.all()
+        serializer = ConservationStatusUserActionSerializer(qs, many=True)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1586,20 +1466,10 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def comms_log(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            qs = instance.comms_logs.all()
-            serializer = ConservationStatusLogEntrySerializer(qs, many=True)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        qs = instance.comms_logs.all()
+        serializer = ConservationStatusLogEntrySerializer(qs, many=True)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1608,36 +1478,26 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     @renderer_classes((JSONRenderer,))
+    @transaction.atomic
     def add_comms_log(self, request, *args, **kwargs):
-        try:
-            with transaction.atomic():
-                instance = self.get_object()
-                mutable = request.data._mutable
-                request.data._mutable = True
-                request.data["conservation_status"] = f"{instance.id}"
-                request.data["staff"] = f"{request.user.id}"
-                request.data._mutable = mutable
-                serializer = ConservationStatusLogEntrySerializer(data=request.data)
-                serializer.is_valid(raise_exception=True)
-                comms = serializer.save()
-                # Save the files
-                for f in request.FILES:
-                    document = comms.documents.create()
-                    document.name = str(request.FILES[f])
-                    document._file = request.FILES[f]
-                    document.save()
-                # End Save Documents
+        instance = self.get_object()
+        mutable = request.data._mutable
+        request.data._mutable = True
+        request.data["conservation_status"] = f"{instance.id}"
+        request.data["staff"] = f"{request.user.id}"
+        request.data._mutable = mutable
+        serializer = ConservationStatusLogEntrySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        comms = serializer.save()
+        # Save the files
+        for f in request.FILES:
+            document = comms.documents.create()
+            document.name = str(request.FILES[f])
+            document._file = request.FILES[f]
+            document.save()
+        # End Save Documents
 
-                return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1646,23 +1506,11 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def amendment_request(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            qs = instance.amendment_requests
-            qs = qs.filter(status="requested")
-            serializer = ConservationStatusAmendmentRequestDisplaySerializer(
-                qs, many=True
-            )
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        qs = instance.amendment_requests
+        qs = qs.filter(status="requested")
+        serializer = ConservationStatusAmendmentRequestDisplaySerializer(qs, many=True)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1671,22 +1519,12 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def assign_request_user(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.assign_officer(request, request.user)
-            # serializer = InternalProposalSerializer(instance,context={'request':request})
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.assign_officer(request, request.user)
+        # serializer = InternalProposalSerializer(instance,context={'request':request})
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1695,32 +1533,22 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def assign_to(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_id = request.data.get("assessor_id", None)
+        user = None
+        if not user_id:
+            raise serializers.ValidationError("An assessor id is required")
         try:
-            instance = self.get_object()
-            user_id = request.data.get("assessor_id", None)
-            user = None
-            if not user_id:
-                raise serializers.ValidationError("An assessor id is required")
-            try:
-                user = EmailUser.objects.get(id=user_id)
-            except EmailUser.DoesNotExist:
-                raise serializers.ValidationError(
-                    "A user with the id passed in does not exist"
-                )
-            instance.assign_officer(request, user)
-            # serializer = InternalProposalSerializer(instance,context={'request':request})
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+            user = EmailUser.objects.get(id=user_id)
+        except EmailUser.DoesNotExist:
+            raise serializers.ValidationError(
+                "A user with the id passed in does not exist"
+            )
+        instance.assign_officer(request, user)
+        # serializer = InternalProposalSerializer(instance,context={'request':request})
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1729,50 +1557,31 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def unassign(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.unassign(request)
-            # serializer = InternalProposalSerializer(instance,context={'request':request})
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.unassign(request)
+        # serializer = InternalProposalSerializer(instance,context={'request':request})
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)
     def assesor_send_referral(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = SendReferralSerializer(
-                data=request.data, context={"request": request}
-            )
-            serializer.is_valid(raise_exception=True)
-            # text=serializer.validated_data['text']
-            # instance.send_referral(request,serializer.validated_data['email'])
-            instance.send_referral(
-                request,
-                serializer.validated_data["email"],
-                serializer.validated_data["text"],
-            )
-            # serializer = InternalProposalSerializer(instance,context={'request':request})
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        serializer = SendReferralSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        # text=serializer.validated_data['text']
+        # instance.send_referral(request,serializer.validated_data['email'])
+        instance.send_referral(
+            request,
+            serializer.validated_data["email"],
+            serializer.validated_data["text"],
+        )
+        # serializer = InternalProposalSerializer(instance,context={'request':request})
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     # with new workflow not used at the moment
     @detail_route(
@@ -1782,26 +1591,13 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def proposed_decline(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = ProposedDeclineSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance.proposed_decline(request, serializer.validated_data)
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        serializer = ProposedDeclineSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance.proposed_decline(request, serializer.validated_data)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1810,26 +1606,13 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def final_decline(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = ProposedDeclineSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance.final_decline(request, serializer.validated_data)
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        serializer = ProposedDeclineSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance.final_decline(request, serializer.validated_data)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     # with new workflow not used at the moment
     @detail_route(
@@ -1839,27 +1622,14 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def proposed_approval(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = ProposedApprovalSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance.proposed_approval(request, serializer.validated_data)
-            # serializer = InternalProposalSerializer(instance,context={'request':request})
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        serializer = ProposedApprovalSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance.proposed_approval(request, serializer.validated_data)
+        # serializer = InternalProposalSerializer(instance,context={'request':request})
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1868,28 +1638,15 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def final_approval(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = ProposedApprovalSerializer(
-                data=json.loads(request.data.get("data"))
-            )
-            serializer.is_valid(raise_exception=True)
-            instance.final_approval(request, serializer.validated_data)
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        serializer = ProposedApprovalSerializer(
+            data=json.loads(request.data.get("data"))
+        )
+        serializer.is_valid(raise_exception=True)
+        instance.final_approval(request, serializer.validated_data)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1898,33 +1655,18 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def switch_status(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            status = request.data.get("status")
-            approver_comment = request.data.get("approver_comment")
-            if not status:
-                raise serializers.ValidationError("Status is required")
-            else:
-                if status not in ["with_assessor", "with_approver"]:
-                    raise serializers.ValidationError(
-                        "The status provided is not allowed"
-                    )
-            instance.move_to_status(request, status, approver_comment)
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        status = request.data.get("status")
+        approver_comment = request.data.get("approver_comment")
+        if not status:
+            raise serializers.ValidationError("Status is required")
+        else:
+            if status not in ["with_assessor", "with_approver"]:
+                raise serializers.ValidationError("The status provided is not allowed")
+        instance.move_to_status(request, status, approver_comment)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1933,25 +1675,12 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def proposed_ready_for_agenda(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.proposed_ready_for_agenda(request)
-            # serializer = InternalProposalSerializer(instance,context={'request':request})
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.proposed_ready_for_agenda(request)
+        # serializer = InternalProposalSerializer(instance,context={'request':request})
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1960,26 +1689,16 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def documents(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            qs = instance.documents.all()
-            qs = qs.exclude(
-                input_name="conservation_status_approval_doc"
-            )  # TODO do we need/not to show approval doc in cs documents tab
-            qs = qs.order_by("-uploaded_date")
-            serializer = ConservationStatusDocumentSerializer(
-                qs, many=True, context={"request": request}
-            )
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        qs = instance.documents.all()
+        qs = qs.exclude(
+            input_name="conservation_status_approval_doc"
+        )  # TODO do we need/not to show approval doc in cs documents tab
+        qs = qs.order_by("-uploaded_date")
+        serializer = ConservationStatusDocumentSerializer(
+            qs, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
     @basic_exception_handler
@@ -2005,16 +1724,7 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         return ConservationStatusReferral.objects.none()
 
     def get_serializer_class(self):
-        try:
-            return ConservationStatusReferralSerializer
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        return ConservationStatusReferralSerializer
 
     # used for Species (flora/Fauna)Referred to me internal dashboard filters
     @list_route(
@@ -2320,21 +2030,12 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=["GET", "POST"], detail=True)
     def complete(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            # referral_comment = request.data.get('referral_comment')
-            # instance.complete(request, referral_comment)
-            instance.complete(request)
-            serializer = self.get_serializer(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        # referral_comment = request.data.get('referral_comment')
+        # instance.complete(request, referral_comment)
+        instance.complete(request)
+        serializer = self.get_serializer(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -2343,22 +2044,12 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def remind(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.remind(request)
-            serializer = InternalConservationStatusSerializer(
-                instance.conservation_status, context={"request": request}
-            )
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.remind(request)
+        serializer = InternalConservationStatusSerializer(
+            instance.conservation_status, context={"request": request}
+        )
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -2367,22 +2058,12 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def recall(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.recall(request)
-            serializer = InternalConservationStatusSerializer(
-                instance.conservation_status, context={"request": request}
-            )
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.recall(request)
+        serializer = InternalConservationStatusSerializer(
+            instance.conservation_status, context={"request": request}
+        )
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -2391,76 +2072,47 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def resend(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.resend(request)
-            serializer = InternalConservationStatusSerializer(
-                instance.conservation_status, context={"request": request}
-            )
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.resend(request)
+        serializer = InternalConservationStatusSerializer(
+            instance.conservation_status, context={"request": request}
+        )
+        return Response(serializer.data)
 
     # used on referral form
     @detail_route(methods=["post"], detail=True)
     def send_referral(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = SendReferralSerializer(
-                data=request.data, context={"request": request}
-            )
-            serializer.is_valid(raise_exception=True)
-            instance.send_referral(
-                request,
-                serializer.validated_data["email"],
-                serializer.validated_data["text"],
-            )
-            serializer = self.get_serializer(instance, context={"request": request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        serializer = SendReferralSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        instance.send_referral(
+            request,
+            serializer.validated_data["email"],
+            serializer.validated_data["text"],
+        )
+        serializer = self.get_serializer(instance, context={"request": request})
+        return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
+    @transaction.atomic
     def conservation_status_referral_save(self, request, *args, **kwargs):
-        try:
-            with transaction.atomic():
-                instance = self.get_object()
-                request_data = request.data
-                instance.referral_comment = request_data.get("referral_comment")
-                instance.save()
-                # Create a log entry for the proposal
-                instance.conservation_status.log_user_action(
-                    ConservationStatusUserAction.COMMENT_REFERRAL.format(
-                        instance.id,
-                        instance.conservation_status.conservation_status_number,
-                        f"{instance.referral_as_email_user.get_full_name()}({instance.referral_as_email_user.email})",
-                    ),
-                    request,
-                )
-            return redirect(reverse("internal"))
-
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        request_data = request.data
+        instance.referral_comment = request_data.get("referral_comment")
+        instance.save()
+        # Create a log entry for the proposal
+        instance.conservation_status.log_user_action(
+            ConservationStatusUserAction.COMMENT_REFERRAL.format(
+                instance.id,
+                instance.conservation_status.conservation_status_number,
+                f"{instance.referral_as_email_user.get_full_name()}({instance.referral_as_email_user.email})",
+            ),
+            request,
+        )
+        return redirect(reverse("internal"))
 
 
 class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
@@ -2474,22 +2126,13 @@ class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
         return ConservationStatusAmendmentRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
-        try:
-            serializer = self.get_serializer(data=json.loads(request.data.get("data")))
-            serializer.is_valid(raise_exception=True)
-            instance = serializer.save()
-            instance.add_documents(request)
-            instance.generate_amendment(request)
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        serializer = self.get_serializer(data=json.loads(request.data.get("data")))
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        instance.add_documents(request)
+        instance.generate_amendment(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -2499,26 +2142,16 @@ class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
     )
     @renderer_classes((JSONRenderer,))
     def delete_document(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            ConservationStatusAmendmentRequestDocument.objects.get(
-                id=request.data.get("id")
-            ).delete()
-            return Response(
-                [
-                    dict(id=i.id, name=i.name, _file=i._file.url)
-                    for i in instance.cs_amendment_request_documents.all()
-                ]
-            )
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        ConservationStatusAmendmentRequestDocument.objects.get(
+            id=request.data.get("id")
+        ).delete()
+        return Response(
+            [
+                dict(id=i.id, name=i.name, _file=i._file.url)
+                for i in instance.cs_amendment_request_documents.all()
+            ]
+        )
 
 
 class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
@@ -2538,21 +2171,11 @@ class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def discard(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.visible = False
-            instance.save(version_user=request.user)
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.visible = False
+        instance.save(version_user=request.user)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -2561,57 +2184,30 @@ class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def reinstate(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.visible = True
-            instance.save(version_user=request.user)
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.visible = True
+        instance.save(version_user=request.user)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = SaveConservationStatusDocumentSerializer(
-                instance, data=json.loads(request.data.get("data"))
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save(no_revision=True)
-            instance.add_documents(request, version_user=request.user)
-            return Response(serializer.data)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        serializer = SaveConservationStatusDocumentSerializer(
+            instance, data=json.loads(request.data.get("data"))
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(no_revision=True)
+        instance.add_documents(request, version_user=request.user)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        try:
-            serializer = SaveConservationStatusDocumentSerializer(
-                data=json.loads(request.data.get("data"))
-            )
-            serializer.is_valid(raise_exception=True)
-            instance = serializer.save(no_revision=True)
-            instance.add_documents(request, version_user=request.user)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e, "error_dict"):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                if hasattr(e, "message"):
-                    raise serializers.ValidationError(e.message)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        serializer = SaveConservationStatusDocumentSerializer(
+            data=json.loads(request.data.get("data"))
+        )
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save(no_revision=True)
+        instance.add_documents(request, version_user=request.user)
+        return Response(serializer.data)
 
 
 class AmendmentRequestReasonChoicesView(views.APIView):
@@ -2622,10 +2218,8 @@ class AmendmentRequestReasonChoicesView(views.APIView):
 
     def get(self, request, format=None):
         choices_list = []
-        # choices = AmendmentRequest.REASON_CHOICES
         choices = ProposalAmendmentReason.objects.all()
         if choices:
             for c in choices:
-                # choices_list.append({'key': c[0],'value': c[1]})
                 choices_list.append({"key": c.id, "value": c.reason})
         return Response(choices_list)
