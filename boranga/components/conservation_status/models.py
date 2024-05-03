@@ -629,7 +629,7 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def latest_referrals(self):
-        return self.referrals.all()[:2]
+        return self.referrals.all()[: settings.RECENT_REFERRAL_COUNT]
 
     @property
     def is_flora_application(self):
