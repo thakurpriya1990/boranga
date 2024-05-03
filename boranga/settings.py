@@ -283,6 +283,8 @@ LEDGER_UI_ACCOUNTS_MANAGEMENT = [
     {"mobile_number": {"options": {"view": True, "edit": True}}},
 ]
 
+RECENT_REFERRAL_COUNT = env("RECENT_REFERRAL_COUNT", 5)
+
 # NOMOS login details
 NOMOS_URL = env("NOMOS_URL")
 NOMOS_USERNAME = env("NOMOS_USERNAME")
