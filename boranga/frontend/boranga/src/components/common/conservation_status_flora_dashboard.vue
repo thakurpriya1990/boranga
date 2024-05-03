@@ -827,6 +827,9 @@ export default {
 
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                 },
@@ -1189,6 +1192,9 @@ export default {
                 var list = $(this).attr('data-history-conservation-list');
                 var species = $(this).attr('data-history-species');
                 vm.historyDocument(id,list,species);
+            });
+            vm.$refs.flora_cs_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         },
         initialiseSearch:function(){

@@ -658,6 +658,9 @@ export default {
 
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                 },
@@ -852,6 +855,9 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-cp-proposal');
                 vm.discardCSProposal(id);
+            });
+            vm.$refs.cp_communities_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         },
         initialiseSearch:function(){

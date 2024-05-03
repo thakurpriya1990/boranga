@@ -149,9 +149,13 @@ export default {
                             mRender: function(data,type,full){
                                 let links='';
                                 if(full.visible){
-                                    links+='<a href="'+ full._file+'" target="_blank"><p>' + full.name + '</p></a>' ;
+                                    let value = full.name;
+                                    let result = helpers.dtPopoverSplit(value, 30, 'hover');
+                                    links+='<span><a href="'+ full._file+'" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
                                 }else{
-                                    links+='<s>'+ full.name +'</s>';
+                                    let value = full.name;
+                                    let result = helpers.dtPopover(value, 30, 'hover');
+                                    links+='<s>'+ type=='export' ? value : result +'</s>';
                                 }
                                 return links;
                             },
@@ -198,7 +202,10 @@ export default {
                         },
                     ],
                     processing:true,
-                    initComplete: function() {
+                    drawCallback: function() {
+                    helpers.enablePopovers();
+                },
+                initComplete: function() {
                         helpers.enablePopovers();
                     },
                 }
@@ -341,6 +348,9 @@ export default {
                     e.preventDefault();
                     var id = $(this).attr('data-reinstate-document');
                     vm.reinstateDocument(id);
+                });
+                vm.$refs.minutes_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
                 });
             },
             refreshFromResponse: function(){

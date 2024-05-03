@@ -626,6 +626,9 @@ export default {
                 var id = $(this).attr('data-discard-cs-proposal');
                 vm.discardCSProposal(id);
             });
+            vm.$refs.conservation_status_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
+            });
         },
         initialiseSearch: function () {
             this.submitterSearch();

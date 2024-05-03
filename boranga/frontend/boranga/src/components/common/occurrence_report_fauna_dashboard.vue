@@ -486,7 +486,10 @@ export default {
 
                 columns: columns,
                 processing: true,
-                initComplete: function () {
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
+                initComplete: function() {
                     helpers.enablePopovers();
                 },
             }
@@ -669,10 +672,13 @@ export default {
                 var id = $(this).attr('data-discard-ocr-proposal');
                 vm.discardCSProposal(id);
             });
-            vm.$refs.fauna_ocr_datatable.vmDataTable.on('click', 'a[data-history-occurrence-report]', function (e) {
+            vm.$refs.fauna_ocr_datatable.vmDataTable.on('click', 'a[data-history-occurrence-report]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-history-occurrence-report');
                 vm.historyDocument(id);
+            });
+            vm.$refs.fauna_ocr_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         },
         initialiseSearch: function () {
