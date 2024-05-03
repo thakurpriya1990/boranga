@@ -552,14 +552,11 @@ export default {
         },
         isReadOnly: function () {
             let action = this.$route.query.action;
-            if (
-                action === 'edit' &&
-                this.occurrence_report_obj &&
-                this.occurrence_report_obj.assessor_mode.has_assessor_mode
-            ) {
+            if(action === "edit" && this.occurrence_report_obj && this.occurrence_report_obj.assessor_mode.has_assessor_mode){
                 return false;
-            } else {
-                return this.occurrence_report_obj.readonly;
+            }
+            else{
+                return true;
             }
         },
         componentMapKey: function () {

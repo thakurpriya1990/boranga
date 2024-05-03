@@ -204,7 +204,7 @@ export default {
                     return false;
                 }
                 else{
-                    return this.occurrence_report_obj.readonly;
+                    return true;
                 }
             },
         },

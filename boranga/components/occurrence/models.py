@@ -397,6 +397,32 @@ class OccurrenceReport(RevisionedMixin):
         )
         return users
 
+    def has_assessor_mode(self, user):
+        status_without_assessor = [
+            "with_approver",
+            "approved",
+            "closed",
+            "declined",
+            "draft",
+        ]
+        if self.processing_status in status_without_assessor:
+            if self.internal_application: #TODO should assessors be able to edit external OCRs before submission?
+                return True
+            return False
+        else:
+            if self.assigned_officer:
+                if self.assigned_officer == user.id:
+                    return (
+                        user.id
+                        in self.get_assessor_group().get_system_group_member_ids()
+                    )
+                else:
+                    return False
+            else:
+                return (
+                    user.id in self.get_assessor_group().get_system_group_member_ids()
+                )
+
     def get_assessor_group(self):
         # TODO: Take application_type into account
         return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)

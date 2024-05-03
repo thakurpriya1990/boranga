@@ -122,7 +122,7 @@
                         <input type='hidden' name="occurrence_report_id" :value="1" />
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="occurrence_report.internal_application" class="container">
+                                <div v-if="occurrence_report.internal_application && occurrence_report.processing_status == 'Draft'" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
@@ -145,7 +145,7 @@
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <button v-else class="btn btn-primary" style="margin-top:5px;"
                                             @click.prevent="submit()"
-                                            :disbaled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
+                                            :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
                                 <div v-else-if="occurrence_report.internal_application" class="container">
@@ -269,9 +269,7 @@ export default {
             return this.occurrence_report && this.occurrence_report.group_type === "community"
         },
         occurrence_report_form_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                `/api/community/${this.occurrence_report.id}/community_save.json` :
-                `/api/species/${this.occurrence_report.id}/species_save.json`;
+            return `/api/occurrence_report/${this.occurrence_report.id}/draft.json`;
         },
         occurrence_report_submit_url: function () {
             return (this.occurrence_report.group_type === "community") ?

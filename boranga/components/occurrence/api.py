@@ -1294,7 +1294,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             request.data.get("proposal") if request.data.get("proposal") else {}
         )
         # request.data['submitter'] = u'{}'.format(request.user.id)
-        if proposal_data["submitter"]:
+        if "submitter" in proposal_data and proposal_data["submitter"]:
             request.data.get("proposal")["submitter"] = "{}".format(
                 proposal_data["submitter"].get("id")
             )

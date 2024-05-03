@@ -253,6 +253,16 @@ export default {
                 if(this.is_readonly){
                     return  this.is_readonly;
                 }
+                let action = this.$route.query.action;
+                console.log(action)
+                console.log(this.occurrence_report_obj.assessor_mode.has_assessor_mode);
+                //otherwise, check the action and check the obj
+                if(action === "edit" && this.occurrence_report_obj && this.occurrence_report_obj.assessor_mode.has_assessor_mode){
+                    return false;
+                }
+                else{
+                    return true;
+                }
             },
         },
         watch:{
