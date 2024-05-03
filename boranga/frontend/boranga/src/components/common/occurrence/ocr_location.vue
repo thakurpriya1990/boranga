@@ -551,16 +551,7 @@ export default {
             return has_value;
         },
         isReadOnly: function () {
-            let action = this.$route.query.action;
-            if (
-                action === 'edit' &&
-                this.occurrence_report_obj &&
-                this.occurrence_report_obj.assessor_mode.has_assessor_mode
-            ) {
-                return false;
-            } else {
-                return this.occurrence_report_obj.readonly;
-            }
+            return this.occurrence_report_obj.readonly;
         },
         componentMapKey: function () {
             return `component-map-${this.uuid}`;

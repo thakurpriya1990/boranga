@@ -1,0 +1,9 @@
+{%  extends 'boranga/emails/base_email.txt' %}
+
+{%  block content %}
+    A referral for Occurrence Report {{occurrence_report.occurrence_report_number}} has been recalled.
+
+    You can access this occurrence report using the following link:
+
+    {{url}}
+{%  endblock %}

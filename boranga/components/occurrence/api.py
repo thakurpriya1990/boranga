@@ -31,13 +31,11 @@ from boranga.components.main.api import (
 )
 from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.related_item import RelatedItemsSerializer
-from boranga.components.main.utils import (
-    validate_threat_request,
-)
 from boranga.components.main.spatial_utils import (
     spatially_process_geometry,
     transform_json_geometry,
 )
+from boranga.components.main.utils import validate_threat_request
 from boranga.components.occurrence.models import (
     AnimalHealth,
     CoordinationSource,
@@ -65,6 +63,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportDocument,
+    OccurrenceReportReferral,
     OccurrenceReportUserAction,
     OccurrenceSource,
     OccurrenceUserAction,
@@ -97,6 +96,7 @@ from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
     CreateOccurrenceReportSerializer,
     CreateOccurrenceSerializer,
+    InternalOccurrenceReportReferralSerializer,
     InternalOccurrenceReportSerializer,
     ListInternalOccurrenceReportSerializer,
     ListOccurrenceReportSerializer,
@@ -108,6 +108,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportAmendmentRequestSerializer,
     OccurrenceReportDocumentSerializer,
     OccurrenceReportLogEntrySerializer,
+    OccurrenceReportReferralSerializer,
     OccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
     OccurrenceSerializer,
@@ -1628,23 +1629,6 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     def unassign(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.unassign(request)
-        serializer = InternalOccurrenceReportSerializer(
-            instance, context={"request": request}
-        )
-        return Response(serializer.data)
-
-    @detail_route(methods=["post"], detail=True)
-    def assessor_send_referral(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = SendReferralSerializer(
-            data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        instance.send_referral(
-            request,
-            serializer.validated_data["email"],
-            serializer.validated_data["text"],
-        )
         serializer = InternalOccurrenceReportSerializer(
             instance, context={"request": request}
         )
@@ -3342,3 +3326,118 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
+
+
+class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
+    queryset = OccurrenceReportReferral.objects.all()
+    serializer_class = OccurrenceReportReferralSerializer
+
+    def get_serializer_class(self):
+        if is_internal(self.request):
+            return InternalOccurrenceReportReferralSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            qs.filter(occurrence_report__submitter=self.request.user)
+        return qs
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def referral_list(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = self.get_queryset().filter(
+            sent_by=instance.referral, occurrence_report=instance.occurrence_report
+        )
+        serializer = self.get_serializer(qs, many=True, context={"request": request})
+        return Response(serializer.data)
+
+    @detail_route(methods=["GET", "POST"], detail=True)
+    def complete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.complete(request)
+        serializer = self.get_serializer(instance, context={"request": request})
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def remind(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.remind(request)
+        serializer = InternalOccurrenceReportSerializer(
+            instance.occurrence_report, context={"request": request}
+        )
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def recall(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.recall(request)
+        serializer = InternalOccurrenceReportSerializer(
+            instance.occurrence_report, context={"request": request}
+        )
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def resend(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.resend(request)
+        serializer = InternalOccurrenceReportSerializer(
+            instance.occurrence_report, context={"request": request}
+        )
+        return Response(serializer.data)
+
+    # used on referral form
+    @detail_route(methods=["post"], detail=True)
+    def send_referral(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = SendReferralSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        instance.send_referral(
+            request,
+            serializer.validated_data["email"],
+            serializer.validated_data["text"],
+        )
+        serializer = self.get_serializer(instance, context={"request": request})
+        return Response(serializer.data)
+
+    @detail_route(methods=["post"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @transaction.atomic
+    def occurrence_report_referral_save(self, request, *args, **kwargs):
+        instance = self.get_object()
+        request_data = request.data
+        instance.referral_comment = request_data.get("referral_comment")
+        instance.save()
+
+        # Create a log entry for the occurrence report
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.COMMENT_REFERRAL.format(
+                instance.id,
+                instance.occurrence_report.occurrence_report_number,
+                f"{instance.referral_as_email_user.get_full_name()}({instance.referral_as_email_user.email})",
+            ),
+            request,
+        )
+        return redirect(reverse("internal"))

@@ -141,6 +141,10 @@ class InternalOccurrenceReportView(DetailView):
         return super(BorangaRoutingView, self).get(*args, **kwargs)
 
 
+class InternalOccurrenceReportReferralView(TemplateView):
+    template_name = "boranga/dash/index.html"
+
+
 class BorangaRoutingView(TemplateView):
     template_name = "boranga/index.html"
 
@@ -270,6 +274,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
     else:
         return False
 
+
 def is_authorised_to_access_occurrence_document(request, document_id):
     if is_internal(request):
         # check auth
@@ -332,12 +337,10 @@ def is_authorised_to_access_document(request):
             request, or_document_id
         )
 
-    # occurrence 
+    # occurrence
     o_document_id = get_file_path_id("occurrence", request.path)
     if o_document_id:
-        return is_authorised_to_access_occurrence_document(
-            request, o_document_id
-        )
+        return is_authorised_to_access_occurrence_document(request, o_document_id)
 
     # conservation status
     cs_document_id = get_file_path_id("conservation_status", request.path)
