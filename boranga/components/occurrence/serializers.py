@@ -34,6 +34,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
     OccurrenceReportLogEntry,
+    OccurrenceReportReferral,
     OccurrenceReportUserAction,
     OccurrenceUserAction,
     OCRAnimalObservation,
@@ -2288,3 +2289,15 @@ class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
             "barcode_number",
             "identification_comment",
         )
+
+
+class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportReferral
+        fields = "__all__"
+
+
+class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportReferral
+        fields = "__all__"
