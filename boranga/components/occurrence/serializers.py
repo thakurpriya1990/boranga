@@ -9,7 +9,8 @@ from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
 )
-from boranga.components.main.utils import get_geometry_source, wkb_to_geojson
+from boranga.components.main.utils import get_geometry_source
+from boranga.components.main.spatial_utils import wkb_to_geojson
 from boranga.components.occurrence.models import (
     LandForm,
     Location,

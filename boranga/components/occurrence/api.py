@@ -32,9 +32,11 @@ from boranga.components.main.api import (
 from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import (
+    validate_threat_request,
+)
+from boranga.components.main.spatial_utils import (
     spatially_process_geometry,
     transform_json_geometry,
-    validate_threat_request,
 )
 from boranga.components.occurrence.models import (
     AnimalHealth,

@@ -6,11 +6,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.db.models import Q
-from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import serializers
-
-import geojson
-from shapely.geometry import shape, mapping
 
 from ledger_api_client.ledger_models import EmailUserRO
 from boranga.components.main.serializers import EmailUserROSerializerForReferral
@@ -124,68 +120,3 @@ def get_geometry_source(geometry_obj):
             source = "Assessor"
 
     return source
-
-def wkb_to_geojson(wkb):
-    from shapely.wkt import loads
-
-    geos_geometry = GEOSGeometry(wkb)
-    shapely_geometry = loads(geos_geometry.wkt)
-    geo_json = mapping(shapely_geometry)
-    geo_json["properties"] = {"srid": geos_geometry.srid}
-
-    return geo_json
-
-
-def features_json_to_geosgeometry(features, srid=4326):
-    return [feature_json_to_geosgeometry(feature, srid) for feature in features]
-
-
-def feature_json_to_geosgeometry(feature, srid = 4326):
-    if isinstance(srid, str) and srid.isnumeric():
-        srid = int(srid)
-    geo_json = mapping(geojson.loads(json.dumps(feature)))
-    geom_shape = shape(geo_json.get("geometry"))
-
-    return GEOSGeometry(geom_shape.wkt, srid=4326)
-
-def transform_json_geometry(json_geom, from_srid, to_srid):
-    feature_json = {"type": "Feature", "geometry": json_geom}
-    geom = feature_json_to_geosgeometry(feature_json, from_srid)
-    geom.transform(to_srid)
-
-    return geom.json
-
-
-def spatially_process_geometry(json_geom, operation, parameters=[], unit=None):
-    if operation == "buffer":
-        res_json = buffer_json_geometry(json_geom, *parameters, unit)
-    else:
-        raise serializers.ValidationError(
-            f"Spatial operation {operation} not supported"
-        )
-
-    return res_json
-
-
-def buffer_json_geometry(json_geom, distance, unit):
-    geoms = features_json_to_geosgeometry(json_geom["features"])
-
-    if unit == "m":
-        # TODO: aea transform
-        raise serializers.ValidationError("Buffer operation does not support unit 'm'")
-    elif unit == "deg":
-        buffer_geoms = [geom.buffer(distance) for geom in geoms]
-    else:
-        raise serializers.ValidationError(
-            f"Buffer operation requires unit parameter, got {unit}"
-        )
-
-    feature_collection = {
-        "type": "FeatureCollection",
-        "features": [
-            {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
-            for geom in buffer_geoms
-        ],
-    }
-
-    return json.dumps(feature_collection)
