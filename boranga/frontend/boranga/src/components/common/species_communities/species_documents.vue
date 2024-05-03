@@ -154,9 +154,13 @@ export default {
                             mRender: function(data,type,full){
                                 let links='';
                                 if(full.visible){
-                                    links+='<a href="'+ full._file+'" target="_blank"><p>' + full.name + '</p></a>' ;
+                                    let value = full.name;
+                                    let result = helpers.dtPopoverSplit(value, 30, 'hover');
+                                    links+='<span><a href="'+ full._file+'" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
                                 }else{
-                                    links+='<s>'+ full.name +'</s>';
+                                    let value = full.name;
+                                    let result = helpers.dtPopover(value, 30, 'hover');
+                                    links+='<s>'+ type=='export' ? value : result +'</s>';
                                 }
                                 return links;
                             },

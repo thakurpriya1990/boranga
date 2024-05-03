@@ -141,6 +141,33 @@ module.exports = {
         }
         return result;
     },
+    //for when we need the text and hover link to be separated
+    dtPopoverSplit: function(value,truncate_length=30,trigger='hover'){
+        var ellipsis = '...',
+        truncated = _.truncate(value, {
+            length: truncate_length,
+            omission: ellipsis,
+            separator: ' '
+        }),
+        result = '<span>' + truncated + '</span>',
+        popTemplate = _.template('<a href="#" ' +
+            'role="button" ' +
+            'data-bs-toggle="popover" ' +
+            'data-bs-trigger="'+trigger+'" ' +
+            'data-bs-placement="top"' +
+            'data-bs-html="true" ' +
+            'data-bs-content="<%= text %>" ' +
+            '>more</a>');
+
+        if (_.endsWith(truncated, ellipsis)) {
+            return {"text":result, "link":popTemplate({
+                text: value
+            })}
+        } else {
+            return {"text":result, link: ""}
+        };
+    },
+    
 
 /*
     dtPopoverCellFn: function(cell){

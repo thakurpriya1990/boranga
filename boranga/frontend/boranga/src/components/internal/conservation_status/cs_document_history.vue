@@ -239,12 +239,9 @@ export default {
                 mRender: function (row, type, full) {
                     let links='';
                     if(full.data.conservationstatusdocument.fields.visible){
-                        let name = full.data.conservationstatusdocument.fields.name;
-                        if (name.length > 30)
-                        {
-                            name = name.substring(0, 27) + "...";
-                        }
-                        links+='<a href="/private-media/'+ full.data.conservationstatusdocument.fields._file+'" target="_blank"><p>' + name + '</p></a>' ;
+                        let value = full.data.conservationstatusdocument.fields.name;
+                        let result = helpers.dtPopoverSplit(value, 30, 'hover');
+                        links+='<span><a href="/private-media/'+ full.data.conservationstatusdocument.fields._file+'" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
                     }else{
                         let value = full.data.conservationstatusdocument.fields.name;
                         let result = helpers.dtPopover(value, 30, 'hover');
