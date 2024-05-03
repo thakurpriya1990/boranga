@@ -356,7 +356,7 @@ urlpatterns = [
         name="internal-occurrence-report-detail",
     ),
     url(
-        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/cs_referral/(?P<referral_pk>\d+)/$",
+        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/ocr_referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="internal-occurrence-report-referral-detail",
     ),
