@@ -1014,6 +1014,18 @@ class OccurrenceReportApprovalDetailsSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportReferral
+        fields = "__all__"
+
+
+class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportReferral
+        fields = "__all__"
+
+
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_approve = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
@@ -1024,6 +1036,9 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     )
     declined_details = OccurrenceReportDeclinedDetailsSerializer(
         read_only=True, allow_null=True
+    )
+    latest_referrals = OccurrenceReportReferralSerializer(
+        many=True, read_only=True, allow_null=True
     )
 
     class Meta:
@@ -1075,6 +1090,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "declined_details",
             "approval_details",
             "internal_application",
+            "latest_referrals",
         )
 
     def get_can_user_assess(self, obj):
@@ -2289,15 +2305,3 @@ class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
             "barcode_number",
             "identification_comment",
         )
-
-
-class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OccurrenceReportReferral
-        fields = "__all__"
-
-
-class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OccurrenceReportReferral
-        fields = "__all__"
