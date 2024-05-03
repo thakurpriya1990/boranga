@@ -1,0 +1,65 @@
+[
+    {
+        "model": "boranga.landform",
+        "pk": 1,
+        "fields": {
+            "name": "Crest"
+        }
+    },
+    {
+        "model": "boranga.landform",
+        "pk": 2,
+        "fields": {
+            "name": "Hill"
+        }
+    },
+    {
+        "model": "boranga.landform",
+        "pk": 3,
+        "fields": {
+            "name": "Ridge"
+        }
+    },
+    {
+        "model": "boranga.landform",
+        "pk": 4,
+        "fields": {
+            "name": "Outcrop"
+        }
+    },
+    {
+        "model": "boranga.landform",
+        "pk": 5,
+        "fields": {
+            "name": "Slope"
+        }
+    },
+    {
+        "model": "boranga.landform",
+        "pk": 6,
+        "fields": {
+            "name": "Flat"
+        }
+    },
+    {
+        "model": "boranga.landform",
+        "pk": 7,
+        "fields": {
+            "name": "Open depression"
+        }
+    },
+    {
+        "model": "boranga.landform",
+        "pk": 8,
+        "fields": {
+            "name": "Drainage line"
+        }
+    },
+    {
+        "model": "boranga.landform",
+        "pk": 9,
+        "fields": {
+            "name": "Closed depression"
+        }
+    }
+]

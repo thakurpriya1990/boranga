@@ -10,7 +10,6 @@
             <div class="col-md-9">
                 <ul class="nav nav-tabs">
                     <li class="active"><a data-toggle="tab" :href="'#'+dTab">Details</a></li>
-                    <li><a data-toggle="tab" :href="'#'+oTab">Other</a></li>
                 </ul>
                 <div class="tab-content">
                     <div :id="dTab" class="tab-pane fade in active">
@@ -37,7 +36,7 @@
                                             <div class="col-sm-6">
                                                 <input type="text" class="form-control" name="last_name" placeholder="" v-model="user.last_name">
                                             </div>
-                                          </div>                   
+                                          </div>
                                           <div class="form-group">
                                             <div class="col-sm-12">
                                                 <button v-if="!updatingPersonal" class="pull-right btn btn-primary" @click.prevent="updatePersonal()">Update</button>
@@ -219,11 +218,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div> 
-                    <div :id="oTab" class="tab-pane fade">
-                        <ProposalDashTable ref="proposals_table" level='internal' :url='proposals_url'/>
-                        <ApprovalDashTable ref="approvals_table" level='internal' :url='approvals_url'/>
-                        <ComplianceDashTable ref="compliance_table" level='internal' :url='compliance_url'/>
                     </div>
                 </div>
             </div>
@@ -234,17 +228,12 @@
 </template>
 
 <script>
-//import $ from 'jquery'
-import Vue from 'vue'
+
 import { api_endpoints, helpers } from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
-import AddContact from '@common-utils/add_contact.vue'
-import ProposalDashTable from '@common-utils/proposals_dashboard.vue'
-import ApprovalDashTable from '@common-utils/approvals_dashboard.vue'
-import ComplianceDashTable from '@common-utils/compliances_dashboard.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import utils from '../utils'
-import api from '../api'
+
 export default {
     name: 'User',
     data () {
@@ -256,7 +245,6 @@ export default {
             odBody: 'odBody'+vm._uid,
             idBody: 'idBody'+vm._uid,
             dTab: 'dTab'+vm._uid,
-            oTab: 'oTab'+vm._uid,
             user: {
                 residential_address: {},
                 borangacompliance_organisations: []
@@ -283,9 +271,6 @@ export default {
     },
     components: {
         datatable,
-        ProposalDashTable,
-        ApprovalDashTable,
-        ComplianceDashTable,
         CommsLogs
     },
     computed: {
@@ -323,15 +308,6 @@ export default {
         });
     },
     methods: {
-        eventListeners: function(){
-            let vm = this;
-            // Fix the table responsiveness when tab is shown
-            $('a[href="#'+vm.oTab+'"]').on('shown.bs.tab', function (e) {
-                vm.$refs.proposals_table.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
-                vm.$refs.approvals_table.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
-                vm.$refs.compliance_table.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
-            });
-        },
         updatePersonal: function() {
             let vm = this;
             vm.updatingPersonal = true;
@@ -526,12 +502,11 @@ export default {
                 });
             }
         },
-        
+
     },
     mounted: function(){
         let vm = this;
         this.personal_form = document.forms.personal_form;
-        this.eventListeners();
     },
 }
 </script>

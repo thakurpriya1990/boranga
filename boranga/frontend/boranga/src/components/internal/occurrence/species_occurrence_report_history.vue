@@ -86,9 +86,10 @@ export default {
                 'Number',
                 'Date Modified',
                 'Modified By',
+                'Occurrence',
                 'Scientific Name',
-                'Common Name',
-                'Previous Name',
+                //'Common Name',
+                //'Previous Name',
                 'Status',
                 'Action',
             ];
@@ -236,7 +237,7 @@ export default {
                 name: 'scientific_name', //_name',
             };
         },
-        column_non_current_name: function () {
+        /*column_non_current_name: function () {
             return {
                 data: 'data.data.taxonomy.fields.non_current_name', 
                 defaultContent: '',
@@ -314,6 +315,22 @@ export default {
                 },
                 name: 'vernacular_name', //_name',
             };
+        },*/
+        column_occurrence: function () {
+            return {
+                
+                data: 'data.data.occurrencereport.fields.occurrence',
+                defaultContent: '',
+                orderable: true,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if (full.data.occurrencereport.fields.occurrence)
+                        return "OCC"+full.data.occurrencereport.fields.occurrence;
+                    return ""
+                },
+                name: 'occurrence',
+            };
         },
         column_processing_status: function () {
             return {
@@ -348,9 +365,10 @@ export default {
                 vm.column_sequence,
                 vm.column_revision_date,
                 vm.column_revision_user,
+                vm.column_occurrence,
                 vm.column_scientific_name,
-                vm.column_common_name,
-                vm.column_non_current_name,
+                //vm.column_common_name,
+                //vm.column_non_current_name,
                 vm.column_processing_status,
                 vm.column_action,
             ];

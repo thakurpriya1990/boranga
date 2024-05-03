@@ -3,6 +3,7 @@ import logging
 import ledger_api_client
 from django.conf import settings
 from django.core.cache import cache
+from django.db import models
 from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -170,3 +171,47 @@ def get_instance_identifier(instance):
     raise AttributeError(
         f"Model instance has no valid identifier to use for logging. Tried: {settings.ACTION_LOGGING_IDENTIFIER_FIELDS}"
     )
+
+
+def clone_model(
+    source_model_class: models.base.ModelBase,
+    target_model_class: models.base.ModelBase,
+    source_model: models.Model,
+    save: bool = False,
+) -> models.Model:
+    """
+    Copies field values from source_model to a new instance of target_model_class.
+
+    Will complain if:
+        - source_model is not an instance of source_model_class.
+        - the new instance of target_model_class does not contain a field that is in source_model.
+
+    Returns None if source_model is None so caller must check for existence of return value.
+
+    Pass save=True to save the new instance to the database automatically after copying the field values.
+    """
+    logger.debug(f"Save: {save}")
+    if source_model is None:
+        return None
+
+    if not isinstance(source_model, source_model_class):
+        raise ValueError(
+            f"source_model is not an instance of {source_model_class.__name__}"
+        )
+
+    target_model = target_model_class()
+
+    try:
+        for field in source_model._meta.fields:
+            if field.primary_key:
+                continue
+
+            setattr(target_model, field.name, getattr(source_model, field.name))
+    except AttributeError as e:
+        logger.error(
+            f"Error copying field values from {source_model} to {target_model}: {e}"
+        )
+    if save:
+        target_model.save()
+
+    return target_model

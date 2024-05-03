@@ -47,7 +47,7 @@ export default {
                 values:null,
                 occ_threat_url: api_endpoints.occ_threat,
                 threats_headers:['Number', 'Original Report','Category', 'Date Observed', 'Threat Agent', 'Comments',
-                                'Current Impact', 'Threat Source', 'Potential Impact','Action'],
+                                'Current Impact', 'Potential Impact', 'Threat Source','Action'],
                 threats_options:{
                     autowidth: false,
                     language:{
@@ -130,20 +130,6 @@ export default {
 
                         },
                         {
-                            data: "source",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.source;
-                                }
-                                else{
-                                    return '<s>'+ full.source + '</s>'
-                                }
-                            },
-
-                        },
-                        {
                             data: "date_observed",
                             mRender:function (data,type,full){
                                 if(full.visible){
@@ -208,6 +194,20 @@ export default {
                                     return '<s>'+ full.potential_impact_name + '</s>'
                                 }
                             },
+                        },
+                        {
+                            data: "source",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                if(full.visible){
+                                    return full.source;
+                                }
+                                else{
+                                    return '<s>'+ full.source + '</s>'
+                                }
+                            },
+
                         },
                         {
                             data: "id",

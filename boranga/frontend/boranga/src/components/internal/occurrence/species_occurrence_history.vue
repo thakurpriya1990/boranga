@@ -87,8 +87,11 @@ export default {
                 'Date Modified',
                 'Modified By',
                 'Scientific Name',
-                'Common Name',
-                'Previous Name',
+                'Number of Reports',
+                'Wild Status',
+                'Occurrence Source',         
+                //'Common Name',
+                //'Previous Name',
                 'Status',
                 'Action',
             ];
@@ -236,7 +239,7 @@ export default {
                 name: 'scientific_name', //_name',
             };
         },
-        column_non_current_name: function () {
+        /*column_non_current_name: function () {
             return {
                 data: 'data.data.taxonomy.fields.non_current_name', 
                 defaultContent: '',
@@ -314,6 +317,60 @@ export default {
                 },
                 name: 'vernacular_name', //_name',
             };
+        },*/
+        column_num_reports: function () {
+            return {                
+                data: 'data.data.occurrencereport',
+                defaultContent: '',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if (full.data.occurrencereport === undefined) {
+                        return 0;
+                    } else {
+                        if (full.data.occurrencereport.fields === undefined) {
+                            return full.data.occurrencereport.length
+                        } else {
+                            return 1;
+                        }
+                    }
+                },
+                name: 'number_of_reports',
+            };
+        },
+        column_wild_status: function () {
+            return {
+                data: 'data.data.occurrence.fields.wild_status',
+                defaultContent: '',
+                orderable: true,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if (full.data.occurrence.fields.wild_status) {
+                        return full.data.occurrence.fields.wild_status.name;
+                    }
+                    return "";
+                },
+                name: 'wild_status',
+            };
+        },
+        column_occ_source: function () {
+            return {
+                
+                data: 'data.data.occurrence.fields.occurrence_source',
+                defaultContent: '',
+                orderable: true,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if (full.data.occurrence.fields.occurrence_source) {
+                        return full.data.occurrence.fields.occurrence_source.name;
+                    }
+                    return "";
+                },
+                name: 'occurrence_source',
+            };
         },
         column_processing_status: function () {
             return {
@@ -349,8 +406,11 @@ export default {
                 vm.column_revision_date,
                 vm.column_revision_user,
                 vm.column_scientific_name,
-                vm.column_common_name,
-                vm.column_non_current_name,
+                //vm.column_common_name,
+                //vm.column_non_current_name,
+                vm.column_num_reports,
+                vm.column_wild_status,
+                vm.column_occ_source,
                 vm.column_processing_status,
                 vm.column_action,
             ];

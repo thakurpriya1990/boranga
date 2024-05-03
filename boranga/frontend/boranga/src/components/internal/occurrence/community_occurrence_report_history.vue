@@ -86,8 +86,9 @@ export default {
                 'Number',
                 'Date Modified',
                 'Modified By',
+                'Occurrence',
                 'Community Name',
-                'Previous Name',
+                //'Previous Name',
                 'Status',
                 'Action',
             ];
@@ -226,7 +227,7 @@ export default {
                 name: 'community_name',
             };
         },
-        column_previous_name: function () {
+        /*column_previous_name: function () {
             return {
                 data: 'data.data.communitytaxonomy.fields.previous_name', 
                 defaultContent: '',
@@ -263,6 +264,22 @@ export default {
                 },
                 name: 'previous_name', //_name',
             };
+        },*/
+        column_occurrence: function () {
+            return {
+                
+                data: 'data.data.occurrencereport.fields.occurrence',
+                defaultContent: '',
+                orderable: true,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if (full.data.occurrencereport.fields.occurrence)
+                        return "OCC"+full.data.occurrencereport.fields.occurrence;
+                    return ""
+                },
+                name: 'occurrence',
+            };
         },
         column_processing_status: function () {
             return {
@@ -297,8 +314,9 @@ export default {
                 vm.column_sequence,
                 vm.column_revision_date,
                 vm.column_revision_user,
+                vm.column_occurrence,
                 vm.column_community_name,
-                vm.column_previous_name,
+                //vm.column_previous_name,
                 vm.column_processing_status,
                 vm.column_action,
             ];

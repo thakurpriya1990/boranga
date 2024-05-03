@@ -48,7 +48,7 @@
 
         <div v-if="addCommunityOCRVisibility" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrenceReport"><i class="fa-solid fa-circle-plus"></i> Add Occurrence Report</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrenceReport"><i class="fa-solid fa-circle-plus"></i> Add Community Occurrence Report</button>
             </div>
         </div>
 
