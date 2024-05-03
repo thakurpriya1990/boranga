@@ -3058,6 +3058,12 @@ export default {
                     return response.json();
                 })
                 .then((data) => {
+                    const empty = data.features.some((feature) => {
+                        return feature.geometry.coordinates.length == 0;
+                    });
+                    if (empty) {
+                        throw new Error('Operation returned an empty geometry');
+                    }
                     success = true;
                     return data;
                 })
