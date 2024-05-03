@@ -233,13 +233,13 @@ export default {
     computed: {
         related_items_ajax_url: function () {
             return (
-                '/api/conservation_status/' +
+                '/api/occurrence_report/' +
                 this.occurrence_report_obj.id +
                 '/get_related_items/'
             );
         },
         related_items_filter_list_url: function () {
-            return '/api/conservation_status/filter_list.json';
+            return '/api/occurrence_report/filter_list.json';
         },
     },
     mounted: function () {
