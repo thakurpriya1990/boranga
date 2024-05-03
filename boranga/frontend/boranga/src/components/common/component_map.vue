@@ -1704,7 +1704,10 @@ export default {
         parameterInputLabel: function () {
             let label = 'Parameter';
             if (this.selectedSpatialOperation == 'buffer') {
-                label = `Buffer Distance (${this.selectedSpatialUnit})`;
+                const unit = this.selectedSpatialUnit
+                    ? this.selectedSpatialUnit
+                    : 'N/A';
+                label = `Buffer Distance (${unit})`;
             }
             return label;
         },
