@@ -3320,9 +3320,7 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset().filter(
             sent_by=instance.referral, occurrence_report=instance.occurrence_report
         )
-        serializer = self.get_serializer_class(
-            qs, many=True, context={"request": request}
-        )
+        serializer = self.get_serializer(qs, many=True, context={"request": request})
         return Response(serializer.data)
 
     @detail_route(methods=["GET", "POST"], detail=True)
@@ -3341,7 +3339,7 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
     def remind(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.remind(request)
-        serializer = self.get_serializer_class(
+        serializer = InternalOccurrenceReportSerializer(
             instance.occurrence_report, context={"request": request}
         )
         return Response(serializer.data)
@@ -3355,7 +3353,7 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
     def recall(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.recall(request)
-        serializer = self.get_serializer_class(
+        serializer = InternalOccurrenceReportSerializer(
             instance.occurrence_report, context={"request": request}
         )
         return Response(serializer.data)
@@ -3369,7 +3367,7 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
     def resend(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.resend(request)
-        serializer = self.get_serializer_class(
+        serializer = InternalOccurrenceReportSerializer(
             instance.occurrence_report, context={"request": request}
         )
         return Response(serializer.data)
