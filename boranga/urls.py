@@ -101,6 +101,11 @@ router.register(
     r"occurrence_report", occurrence_api.OccurrenceReportViewSet, "occurrence_report"
 )
 router.register(
+    r"occurrence_report_referrals",
+    occurrence_api.OccurrenceReportReferralViewSet,
+    "occurrence_report_referrals",
+)
+router.register(
     r"occurrence_paginated",
     occurrence_api.OccurrencePaginatedViewSet,
     "occurrence_paginated",
@@ -349,6 +354,11 @@ urlpatterns = [
         r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/$",
         views.InternalOccurrenceReportView.as_view(),
         name="internal-occurrence-report-detail",
+    ),
+    url(
+        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/cs_referral/(?P<referral_pk>\d+)/$",
+        views.InternalOccurrenceReportReferralView.as_view(),
+        name="internal-occurrence-report-referral-detail",
     ),
     urls.path("sentry-debug/", trigger_error),
 ] + ledger_patterns
