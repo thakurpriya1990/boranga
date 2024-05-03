@@ -27,6 +27,7 @@
                                     <DisplayHistory
                                         ref="display_history"
                                         :key="historyId"
+                                        :primary_model_number="'MN'+minutesId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
                                         :primary_model="'Minutes'"

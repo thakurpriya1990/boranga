@@ -27,6 +27,7 @@
                                     <DisplayHistory
                                         ref="display_history"
                                         :key="historyId"
+                                        :primary_model_number="'S'+speciesId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
                                         :primary_model="'Species'"

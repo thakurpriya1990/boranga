@@ -262,12 +262,9 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
 
         # Build the list of versions
         versions_list = []
-        primary_content_type = ""
-        if queryset.count() > 1:
-            primary_content_type = queryset[0].content_type
 
         #we do not want to present multiple versions of the same object
-        related_versions = Version.objects.annotate(data=Cast('serialized_data', JSONField())).exclude(Q(content_type=primary_content_type)&~Q(object_id=pk))
+        related_versions = Version.objects.annotate(data=Cast('serialized_data', JSONField())).exclude(Q(content_type__model__iexact=model_name)&~Q(object_id=pk))
 
         paginated_queryset = Version.objects.filter(id__in=list(map(lambda i:i.pk,queryset_list)))
         self.lookup_getter.getVersionModelLookUpFieldValues(paginated_queryset,model)
