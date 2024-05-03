@@ -1,7 +1,7 @@
 {%  extends 'boranga/emails/base_email.txt' %}
 
 {%  block content %}
-    A referral for Occurrence Report {{ocr_proposal.occurrence_report}} has been completed:
+    A referral for Occurrence Report {{occurrence_report.occurrence_report}} has been completed:
 
     Referral Comments: {{referral_comments}}
 
