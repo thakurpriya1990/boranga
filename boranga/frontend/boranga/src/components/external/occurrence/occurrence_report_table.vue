@@ -521,6 +521,9 @@ export default {
                 var id = $(this).attr('data-discard-ocr-proposal');
                 vm.discardOCR(id);
             });
+            vm.$refs.occurrence_report_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
+            });
         },
         check_assessor: function (proposal) {
             let vm = this;

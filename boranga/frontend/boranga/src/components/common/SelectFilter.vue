@@ -19,7 +19,12 @@
             :track-by="name"
             :placeholder="placeholder"
             :class="classes"
+            :disabled="disabled"
             @option:selected="(selected) => $emit('option:selected', selected)"
+            @option:deselected="
+                (deselected) => $emit('option:deselected', deselected)
+            "
+            @input="input($event)"
             @search="(...args) => $emit('search', ...args)"
             @select="
                 $emit('selection-changed-select', {
@@ -108,12 +113,19 @@ export default {
             required: false,
             default: '',
         },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+        },
     },
     emits: [
         'selection-changed-select',
         'selection-changed-remove',
         'search',
         'option:selected',
+        'option:deselected',
+        'input',
     ],
     data: function () {
         return {
@@ -134,6 +146,14 @@ export default {
         );
     },
     methods: {
+        input: function (event) {
+            if (!this.multiple) {
+                // For some reason option:deselected doesn't get triggered when the select component is in single mode
+                // Therefor we need to emit it manually
+                this.$emit('option:deselected', event);
+            }
+            this.$emit('input', event);
+        },
         /**
          * Maps key-value pairs to value-text pairs to be used by the MultiSelect component
          * @param {{ key: String, value: String; }[] | { value: String, text: String; }[] } options The key-value pair(s) to be mapped

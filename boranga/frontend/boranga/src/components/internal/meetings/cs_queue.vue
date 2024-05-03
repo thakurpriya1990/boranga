@@ -165,6 +165,9 @@ export default {
                 ],
                 searching:true,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                     vm.addTableListeners();
@@ -246,6 +249,10 @@ export default {
                 var tr = $(e.target).parents('tr');
                 var id = $(this).attr('data-id');
                 vm.moveDown(id,tr);
+            });
+
+            vm.$refs.cs_queue_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
             });
         },
         removeAgendaItem:function (conservation_status_id) {

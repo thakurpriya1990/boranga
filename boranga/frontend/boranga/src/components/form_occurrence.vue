@@ -144,18 +144,18 @@
                     role="tabpanel"
                     aria-labelledby="pills-location-tab"
                 >
-                    <!--<OCCLocation
+                    <OCCLocations
                         id="occLocation"
                         :key="reloadcount"
                         ref="occ_location"
-                        :is_external="is_external"
-                        :is_internal="is_internal"
+                        :is-external="is_external"
+                        :is-internal="is_internal"
                         :can-edit-status="canEditStatus"
-                        :occurrence_obj="occurrence_obj"
+                        :occurrence="occurrence_obj"
                         :referral="referral"
                         @refreshFromResponse="refreshFromResponse"
                     >
-                    </OCCLocation>-->
+                    </OCCLocations>
                 </div>
                 <div
                     :id="habitatBody"
@@ -268,7 +268,7 @@
 </template>
 
 <script>
-//import OCCLocation from '@/components/common/occurrence/occ_location.vue';
+import OCCLocations from '@/components/common/occurrence/occ_locations.vue';
 import OCCHabitat from '@/components/common/occurrence/occ_habitat.vue';
 import OCCObservation from '@/components/common/occurrence/occ_observation.vue';
 import RelatedItems from '@/components/common/table_related_items.vue'
@@ -279,7 +279,7 @@ import CommunityOccurrence from '@/components/common/occurrence/community_occurr
 
 export default {
     components: {
-        //OCCLocation,
+        OCCLocations,
         OCCHabitat,
         OCCObservation,
         OCCDocuments,

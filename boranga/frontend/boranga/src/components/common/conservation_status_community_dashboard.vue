@@ -702,6 +702,9 @@ export default {
 
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                 },
@@ -938,6 +941,9 @@ export default {
                 var list = $(this).attr('data-history-conservation-list');
                 var community = $(this).attr('data-history-community');
                 vm.historyDocument(id,list,community);
+            });
+            vm.$refs.cs_communities_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         },
         initialiseSearch:function(){

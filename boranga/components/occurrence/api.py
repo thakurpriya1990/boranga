@@ -31,10 +31,11 @@ from boranga.components.main.api import (
 )
 from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.related_item import RelatedItemsSerializer
-from boranga.components.main.utils import (
+from boranga.components.main.spatial_utils import (
+    spatially_process_geometry,
     transform_json_geometry,
-    validate_threat_request,
 )
+from boranga.components.main.utils import validate_threat_request
 from boranga.components.occurrence.models import (
     AnimalHealth,
     CoordinationSource,
@@ -718,6 +719,36 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
         return HttpResponse(transformed, content_type="application/json")
 
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        url_path="spatially-process-geometries",
+    )
+    def spatially_process_geometries(self, request, *args, **kwargs):
+        geometry = request.GET.get("geometry", None)
+        operation = request.GET.get("operation", None)
+        parameters = request.GET.get("parameters", None)
+        parameters = [float(p) for p in parameters.split(",")] if parameters else []
+        unit = request.GET.get("unit", None)
+
+        if not geometry:
+            raise serializers.ValidationError("Geometry is required")
+        if not operation:
+            raise serializers.ValidationError("Operation is required")
+        if not unit:
+            raise serializers.ValidationError("Unit is required")
+
+        try:
+            res_json = spatially_process_geometry(
+                json.loads(geometry), operation, parameters, unit
+            )
+        except Exception as e:
+            raise e
+        else:
+            return HttpResponse(res_json, content_type="application/json")
+
     # used for Location Tab of Occurrence Report external form
     @list_route(
         methods=[
@@ -743,7 +774,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
                 for g in ocr_geometries.values_list("geometry", flat=True).distinct()
             ]
             # Add the srids of the original geometries to epsg_codes
-            epsg_codes += [str(g.original_geometry_srid) for g in ocr_geometries]
+            original_geometry_srids = [
+                str(g.original_geometry_srid) for g in ocr_geometries
+            ]
+            epsg_codes += [g for g in original_geometry_srids if g.isnumeric()]
             epsg_codes = list(set(epsg_codes))
             datum_list = search_datums("", codes=epsg_codes)
 

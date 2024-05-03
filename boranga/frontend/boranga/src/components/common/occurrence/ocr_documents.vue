@@ -115,7 +115,6 @@ export default {
                                 return '<s>' + full.document_number + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "document_category_name",
@@ -129,7 +128,6 @@ export default {
                                 return '<s>' + full.document_category_name + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "document_sub_category_name",
@@ -143,7 +141,6 @@ export default {
                                 return '<s>' + full.document_sub_category_name + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "name",
@@ -152,13 +149,16 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             if (full.visible) {
-                                links += '<a href="' + full._file + '" target="_blank"><p>' + full.name + '</p></a>';
+                                let value = full.name;
+                                let result = helpers.dtPopoverSplit(value, 30, 'hover');
+                                links += '<span><a href="' + full._file + '" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
                             } else {
-                                links += '<s>' + full.name + '</s>';
+                                let value = full.name;
+                                let result = helpers.dtPopover(value, 30, 'hover');
+                                links += '<s>' + type == 'export' ? value : result + '</s>';
                             }
                             return links;
                         },
-
                     },
                     {
                         data: "description",
@@ -206,6 +206,9 @@ export default {
                     },
                 ],
                 processing: true,
+                drawCallback: function () {
+                    helpers.enablePopovers();
+                },
                 initComplete: function () {
                     helpers.enablePopovers();
                     // to fix the responsive table overflow css on tab switch
@@ -224,9 +227,7 @@ export default {
         OccurenceReportDocumentHistory,
     },
     computed: {
-        isReadonly: function () {
-            return this.occurrence_report_obj.readonly;
-        },
+        // to restrict submitter to add doc when the report is in workflow
         can_user_edit_doc: function () {
             return this.is_external && this.occurrence_report_obj.customer_status == "Draft";
         }
@@ -236,6 +237,7 @@ export default {
         newDocument: function () {
             let vm = this;
             this.$refs.document_detail.document_id = '';
+            //this.$refs.edit_park.fetchPark(id);
             var new_document_another = {
                 occurrence_report: vm.occurrence_report_obj.id,
                 input_name: 'occurrence_report_doc',
@@ -354,12 +356,15 @@ export default {
                 var id = $(this).attr('data-reinstate-document');
                 vm.reinstateDocument(id);
             });
+            vm.$refs.documents_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
         },
         refreshFromResponse: function () {
             this.$refs.documents_datatable.vmDataTable.ajax.reload();
         },
         adjust_table_width: function () {
-            this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();
+            if (this.$refs.documents_datatable !== undefined) { this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc() };
         },
     },
     mounted: function () {

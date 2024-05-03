@@ -114,7 +114,6 @@ export default {
                                 return '<s>' + "OCR" + full.occurrence_report.id + " - " + full.threat_number + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "threat_category",
@@ -128,7 +127,6 @@ export default {
                                 return '<s>' + full.threat_category + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "date_observed",
@@ -181,7 +179,6 @@ export default {
                                 return '<s>' + full.source + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "current_impact_name",
@@ -195,7 +192,6 @@ export default {
                                 return '<s>' + full.current_impact_name + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "potential_impact_name",
