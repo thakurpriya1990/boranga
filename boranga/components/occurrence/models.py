@@ -1021,7 +1021,7 @@ class OccurrenceReportReferral(models.Model):
         (PROCESSING_STATUS_COMPLETED, "Completed"),
     )
     lodged_on = models.DateTimeField(auto_now_add=True)
-    ocurrence_report = models.ForeignKey(
+    occurrence_report = models.ForeignKey(
         OccurrenceReport, related_name="referrals", on_delete=models.CASCADE
     )
     sent_by = models.IntegerField()  # EmailUserRO
