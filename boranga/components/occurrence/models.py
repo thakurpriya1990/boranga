@@ -704,6 +704,10 @@ class OccurrenceReport(RevisionedMixin):
 
         send_approver_back_to_assessor_email_notification(request, self, reason)
 
+    @property
+    def latest_referrals(self):
+        return self.referrals.all()[: settings.RECENT_REFERRAL_COUNT]
+
 
 class OccurrenceReportDeclinedDetails(models.Model):
     occurrence_report = models.OneToOneField(
@@ -1058,13 +1062,6 @@ class OccurrenceReportReferral(models.Model):
         return "Occurrence Report {} - Referral {}".format(
             self.occurrence_report.id, self.id
         )
-
-    # Methods
-    @property
-    def latest_referrals(self):
-        return OccurrenceReportReferral.objects.filter(
-            sent_by=self.referral, occurrence_report=self.occurrence_report
-        )[:2]
 
     @property
     def can_be_completed(self):
@@ -3417,6 +3414,36 @@ class OCCIdentification(models.Model):
 
     def __str__(self):
         return str(self.occurrence)
+
+
+class OCRExternalRefereeInvite(models.Model):
+    email = models.EmailField()
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    datetime_sent = models.DateTimeField(null=True, blank=True)
+    datetime_first_logged_in = models.DateTimeField(null=True, blank=True)
+    occurrence_report = models.ForeignKey(
+        OccurrenceReport,
+        related_name="external_referee_invites",
+        on_delete=models.CASCADE,
+    )
+    sent_by = models.IntegerField()
+    invite_text = models.TextField(blank=True)
+    archived = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "External Occurrence Report Referral"
+        verbose_name_plural = "External Occurrence Report Referrals"
+
+    def __str__(self):
+        return_str = f"{self.first_name} {self.last_name} ({self.email})"
+        if self.archived:
+            return_str += " - Archived"
+        return return_str
+
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
 
 # Occurrence Report Document
