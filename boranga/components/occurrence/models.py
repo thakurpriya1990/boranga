@@ -1094,21 +1094,16 @@ class OccurrenceReportReferral(models.Model):
             request,
         )
 
-        # Create a log entry for the organisation
-        applicant_field = getattr(
-            self.occurrence_report, self.occurrence_report.applicant_field
-        )
-        applicant_field = retrieve_email_user(applicant_field)
-
-        # Create a log entry for the applicant
-        applicant_field.log_user_action(
-            OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
-                self.id,
-                self.occurrence_report.occurrence_report_number,
-                f"{self.referral_as_email_user.get_full_name()}",
-            ),
-            request,
-        )
+        # Create a log entry for the submitter
+        if self.occurrence_report.submitter:
+            submitter = retrieve_email_user(self.occurrence_report.submitter)
+            submitter.log_user_action(
+                OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
+                    self.id,
+                    self.occurrence_report.occurrence_report_number,
+                ),
+                request,
+            )
 
         # send email
         send_occurrence_report_referral_email_notification(
@@ -1127,7 +1122,7 @@ class OccurrenceReportReferral(models.Model):
 
         send_occurrence_report_referral_recall_email_notification(self, request)
 
-        # Log OccurrenceReport proposal action
+        # Create a log entry for the occurrence report
         self.occurrence_report.log_user_action(
             OccurrenceReportUserAction.RECALL_REFERRAL.format(
                 self.id,
@@ -1136,13 +1131,16 @@ class OccurrenceReportReferral(models.Model):
             request,
         )
 
-        # TODO log organisation action
-        self.proposal.applicant.log_user_action(
-            OccurrenceReportUserAction.RECALL_REFERRAL.format(
-                self.id, self.proposal.lodgement_number
-            ),
-            request,
-        )
+        # Create a log entry for the submitter
+        if self.occurrence_report.submitter:
+            submitter = retrieve_email_user(self.occurrence_report.submitter)
+            submitter.log_user_action(
+                OccurrenceReportUserAction.RECALL_REFERRAL.format(
+                    self.id,
+                    self.occurrence_report.occurrence_report_number,
+                ),
+                request,
+            )
 
     @transaction.atomic
     def resend(self, request):
@@ -1169,17 +1167,15 @@ class OccurrenceReportReferral(models.Model):
         )
 
         # Create a log entry for the submitter
-        self.occurrence_report.applicant.log_user_action(
-            OccurrenceReportUserAction.ACTION_RESEND_REFERRAL_TO.format(
-                self.id,
-                self.occurrence_report.occurrence_report_number,
-                "{}({})".format(
-                    self.referral_as_email_user.get_full_name(),
-                    self.referral_as_email_user.email,
+        if self.occurrence_report.submitter:
+            submitter = retrieve_email_user(self.occurrence_report.submitter)
+            submitter.log_user_action(
+                OccurrenceReportUserAction.RESEND_REFERRAL.format(
+                    self.id,
+                    self.occurrence_report.occurrence_report_number,
                 ),
-            ),
-            request,
-        )
+                request,
+            )
 
         # send email
         send_occurrence_report_referral_email_notification(self, request)
