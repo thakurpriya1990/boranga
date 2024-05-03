@@ -1155,7 +1155,7 @@ class OccurrenceReportReferral(models.Model):
         self.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
         self.occurrence_report.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
         self.occurrence_report.save()
-        self.sent_from = self.SENT_CHOICE_FROM_ASSESSOR
+
         self.save()
 
         # Create a log entry for the occurrence report
