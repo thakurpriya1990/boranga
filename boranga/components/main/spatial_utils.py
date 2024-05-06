@@ -4,7 +4,7 @@ import json
 
 from django.contrib.gis.geos import GEOSGeometry
 import geojson
-from shapely.geometry import Point, Polygon, shape, mapping
+from shapely.geometry import Point, MultiPoint, Polygon, shape, mapping
 from shapely.ops import transform
 
 aea_wa_string = "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
@@ -45,6 +45,8 @@ def transform_json_geometry(json_geom, from_srid, to_srid):
 def spatially_process_geometry(json_geom, operation, parameters=[], unit=None):
     if operation == "buffer":
         res_json = buffer_json_geometry(json_geom, *parameters, unit)
+    elif operation == "convex_hull":
+        res_json = convex_hull(json_geom)
     else:
         raise serializers.ValidationError(
             f"Spatial operation {operation} not supported"
@@ -133,6 +135,20 @@ def buffer_json_geometry(json_geom, distance, unit):
         "features": [
             {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
             for geom in buffered_geoms
+        ],
+    }
+
+    return json.dumps(feature_collection)
+
+def convex_hull(json_geom):
+    geoms = features_json_to_geosgeometry(json_geom["features"])
+    convex_hull = MultiPoint(geoms).convex_hull
+    geom = GEOSGeometry(convex_hull.wkt)
+
+    feature_collection = {
+        "type": "FeatureCollection",
+        "features": [
+            {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
         ],
     }
 
