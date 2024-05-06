@@ -4,12 +4,6 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Scientific Name:</label>
-                        <select class="form-select" v-model="filterFloraScientificName">
-                            <option value="all">All</option>
-                            <option v-for="option in scientific_name_list" :value="option.name">{{option.name}}
-                            </option>
-                        </select> -->
                         <label for="scientific_name_lookup">Scientific Name:</label>
                         <select
                             id="scientific_name_lookup"
@@ -20,11 +14,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Common Name:</label>
-                        <select class="form-select" v-model="filterFloraCommonName">
-                            <option value="all">All</option>
-                            <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="common_name_lookup">Common Name:</label>
                         <select
                             id="common_name_lookup"
@@ -35,12 +24,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Phylo Group:</label>
-                        <select class="form-select" v-model="filterFloraPhylogeneticGroup">
-                            <option value="all">All</option>
-                            <option v-for="option in phylogenetic_group_list" :value="option.id">
-                                {{option.name}}</option>
-                        </select> -->
                         <label for="phylo_group_lookup">Phylo Group:</label>
                         <select
                             id="phylo_group_lookup"
@@ -51,11 +34,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Family:</label>
-                        <select class="form-select" v-model="filterFloraFamily">
-                            <option value="all">All</option>
-                            <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="family_lookup">Family:</label>
                         <select
                             id="family_lookup"
@@ -66,11 +44,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Genera:</label>
-                        <select class="form-select" v-model="filterFloraGenus">
-                            <option value="all">All</option>
-                            <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="genera_lookup">Genera:</label>
                         <select
                             id="genera_lookup"
@@ -165,18 +138,14 @@
     </div>
 </template>
 <script>
-//require('@popperjs/core');
-//import { createPopper } from '@popperjs/core';
-//require('popperjs');
-//require('bootstrap');
+
 import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
 import SpeciesHistory from '../internal/species_communities/species_history.vue';
 import Vue from 'vue'
-//require("select2/dist/css/select2.min.css");
-//require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
+
 import {
     api_endpoints,
     constants,
@@ -674,6 +643,8 @@ export default {
                             links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                         }
+                    } else {
+                        links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                     }
                     return links;
                 }
