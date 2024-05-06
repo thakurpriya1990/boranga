@@ -13,7 +13,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from boranga.components.main.utils import feature_json_to_geosgeometry
+from boranga.components.main.spatial_utils import feature_json_to_geosgeometry
 from boranga.components.occurrence.email import (
     send_external_submit_email_notification,
     send_submit_email_notification,
@@ -69,6 +69,11 @@ def save_geometry(request, instance, geometry_data):
 
         original_geometry = feature.get("properties", {}).get("original_geometry")
         srid_original = original_geometry.get("properties", {}).get("srid", 4326)
+        if not srid_original:
+            raise ValidationError(
+                f"Geometry must have an SRID set: {original_geometry.get('coordinates', [])}"
+            )
+
         if not original_geometry.get("type", None):
             original_geometry["type"] = geometry_type
         feature_json = {"type": "Feature", "geometry": original_geometry}

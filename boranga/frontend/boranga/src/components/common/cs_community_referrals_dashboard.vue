@@ -515,6 +515,9 @@ export default {
 
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                 },
@@ -656,6 +659,9 @@ export default {
         },
         addEventListeners: function(){
             let vm = this;
+            vm.$refs.cs_communities_ref_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
         },
         initialiseSearch:function(){
             this.submitterSearch();

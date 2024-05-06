@@ -6,10 +6,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.db.models import Q
-from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import serializers
-
-from shapely.geometry import shape, mapping
 
 from ledger_api_client.ledger_models import EmailUserRO
 from boranga.components.main.serializers import EmailUserROSerializerForReferral
@@ -74,7 +71,7 @@ def validate_threat_request(request):
         raise serializers.ValidationError("Date observed value invalid - must be on or before the current date")
     return True
 
-#def add_business_days(from_date, number_of_days):
+# def add_business_days(from_date, number_of_days):
 #    """ given from_date and number_of_days, returns the next weekday date i.e. excludes Sat/Sun """
 #    to_date = from_date
 #    while number_of_days:
@@ -83,7 +80,7 @@ def validate_threat_request(request):
 #            number_of_days -= 1
 #    return to_date
 #
-#def get_next_weekday(from_date):
+# def get_next_weekday(from_date):
 #    """ given from_date and number_of_days, returns the next weekday date i.e. excludes Sat/Sun """
 #    if from_date.weekday() == 5: # i.e. Sat
 #        from_date += timedelta(2)
@@ -123,27 +120,3 @@ def get_geometry_source(geometry_obj):
             source = "Assessor"
 
     return source
-
-def wkb_to_geojson(wkb):
-    from shapely.wkt import loads
-
-    geos_geometry = GEOSGeometry(wkb)
-    shapely_geometry = loads(geos_geometry.wkt)
-    geo_json = mapping(shapely_geometry)
-    geo_json["properties"] = {"srid": geos_geometry.srid}
-
-    return geo_json
-
-def feature_json_to_geosgeometry(feature, srid = 4326):
-    import geojson
-
-    geo_json = mapping(geojson.loads(json.dumps(feature)))
-    geom_shape = shape(geo_json.get("geometry"))
-    return GEOSGeometry(geom_shape.wkt, srid=srid)
-
-def transform_json_geometry(json_geom, from_srid, to_srid):
-    feature_json = {"type": "Feature", "geometry": json_geom}
-    geom = feature_json_to_geosgeometry(feature_json, from_srid)
-    geom.transform(to_srid)
-
-    return geom.json

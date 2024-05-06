@@ -9,7 +9,8 @@ from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
 )
-from boranga.components.main.utils import get_geometry_source, wkb_to_geojson
+from boranga.components.main.spatial_utils import wkb_to_geojson
+from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
     LandForm,
     Location,
@@ -34,6 +35,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
     OccurrenceReportLogEntry,
+    OccurrenceReportReferral,
     OccurrenceReportUserAction,
     OccurrenceUserAction,
     OCRAnimalObservation,
@@ -77,6 +79,9 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     plant_count = serializers.SerializerMethodField()
     animal_observation = serializers.SerializerMethodField()
     identification = serializers.SerializerMethodField()
+    label = serializers.SerializerMethodField()
+    model_name = serializers.SerializerMethodField()
+    occurrence_reports = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
@@ -153,6 +158,12 @@ class OccurrenceSerializer(serializers.ModelSerializer):
 
     def get_model_name(self, obj):
         return "occurrence"
+
+    def get_occurrence_reports(self, obj):
+        serializer = ListOccurrenceReportSerializer(
+            obj.occurrence_reports.all(), many=True, context=self.context
+        )
+        return serializer.data
 
 
 class ListOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -1022,6 +1033,18 @@ class OccurrenceReportApprovalDetailsSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportReferral
+        fields = "__all__"
+
+
+class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportReferral
+        fields = "__all__"
+
+
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_approve = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
@@ -1034,6 +1057,9 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         read_only=True, allow_null=True
     )
     assessor_mode = serializers.SerializerMethodField()
+    latest_referrals = OccurrenceReportReferralSerializer(
+        many=True, read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OccurrenceReport
@@ -1085,6 +1111,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "approval_details",
             "internal_application",
             "assessor_mode",
+            "latest_referrals",
         )
 
     def get_can_user_assess(self, obj):

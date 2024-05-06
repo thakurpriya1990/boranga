@@ -29,6 +29,7 @@
                                     <DisplayHistory
                                         ref="display_history"
                                         :key="historyId"
+                                        :primary_model_number="'CS'+conservationStatusId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
                                         :primary_model="'ConservationStatus'"
@@ -460,6 +461,9 @@ export default {
                          "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                 },
@@ -488,6 +492,9 @@ export default {
                 var id = $(this).attr('data-view-history');
                 var seq = $(this).attr('data-view-history-seq');
                 vm.viewHistory(id,seq);
+            });
+            vm.$refs.history_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
             });
         }
     },

@@ -2,7 +2,7 @@
     <div id="displayHistory">
         <modal
             transition="modal fade"
-            :title="primary_model + ' History - Revision ' + revision_sequence"
+            :title="primary_model + ' ' + primary_model_number + ' History - Revision ' + revision_sequence"
             :large="true"
             :full="true"
             :showOK="false"
@@ -101,6 +101,10 @@ export default {
     },
     props:{
         primary_model:{
+            type: String,
+            required:true
+        },
+        primary_model_number:{
             type: String,
             required:true
         },

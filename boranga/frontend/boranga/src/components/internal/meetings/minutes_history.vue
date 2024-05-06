@@ -27,6 +27,7 @@
                                     <DisplayHistory
                                         ref="display_history"
                                         :key="historyId"
+                                        :primary_model_number="'MN'+minutesId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
                                         :primary_model="'Minutes'"
@@ -225,12 +226,9 @@ export default {
                 mRender: function (row, type, full) {
                     let links='';
                     if(full.data.minutes.fields.visible){
-                        let name = full.data.minutes.fields.name;
-                        if (name.length > 30)
-                        {
-                            name = name.substring(0, 27) + "...";
-                        }
-                        links+='<a href="/private-media/'+ full.data.minutes.fields._file+'" target="_blank"><p>' + name + '</p></a>' ;
+                        let value = full.data.minutes.fields.name;
+                        let result = helpers.dtPopoverSplit(value, 30, 'hover');
+                        links+='<span><a href="/private-media/'+ full.data.minutes.fields._file+'" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
                     }else{
                         let value = full.data.minutes.fields.name;
                         let result = helpers.dtPopover(value, 30, 'hover');
@@ -319,6 +317,12 @@ export default {
                          "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
+                initComplete: function() {
+                    helpers.enablePopovers();
+                },
             };
         },
     },
@@ -344,6 +348,9 @@ export default {
                 var id = $(this).attr('data-view-history');
                 var seq = $(this).attr('data-view-history-seq');
                 vm.viewHistory(id,seq);
+            });
+            vm.$refs.history_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         }
     },

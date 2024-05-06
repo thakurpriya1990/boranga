@@ -123,7 +123,7 @@
                         <transition>
                             <div
                                 class="optional-layers-button-wrapper"
-                                :title="`There are ${optionalLayers.length} geometries available}`"
+                                :title="`There are ${optionalLayers.length} geometries available`"
                             >
                                 <div
                                     class="optional-layers-button btn"
@@ -143,7 +143,7 @@
                                 @mouseleave="hover = false"
                             >
                                 <div
-                                    v-for="feature in modelQuerySource.getFeatures()"
+                                    v-for="feature in mapFeaturesSorted"
                                     :key="
                                         feature.ol_uid +
                                         feature.getProperties()
@@ -472,7 +472,7 @@
                             title="Zoom map to layer(s)"
                             class="optional-layers-button btn"
                             :class="polygonCount ? '' : 'disabled'"
-                            @click="displayAllFeatures"
+                            @click="displayAllFeatures()"
                         >
                             <img
                                 class="svg-icon"
@@ -492,12 +492,229 @@
                             />
                         </div>
                     </div>
+
+                    <div
+                        id="submenu-spatial-operations"
+                        class="map-menu-submenu"
+                    >
+                        <form class="layer_options form-horizontal">
+                            <div
+                                class="input-group input-group-sm mb-1 text-nowrap"
+                            >
+                                <!-- Spatial Operations Dropdown -->
+                                <div
+                                    class="input-group-text form-floating flex-grow-1"
+                                >
+                                    <SelectFilter
+                                        id="features-spatial-operation-select"
+                                        ref="features-spatial-operation-select"
+                                        :disabled="processingFeatures"
+                                        :title="`Run a ${selectedSpatialOperation} spatial operation on ${
+                                            selectedFeatureIds.length
+                                        } selected feature${
+                                            selectedFeatureIds.length > 1
+                                                ? 's'
+                                                : ''
+                                        }`"
+                                        :show-title="false"
+                                        placeholder="Spatial Operation"
+                                        :options="
+                                            spatialOperationsAvailable.map(
+                                                (op) => {
+                                                    return {
+                                                        id: op.id,
+                                                        name: op.name,
+                                                    };
+                                                }
+                                            )
+                                        "
+                                        :pre-selected-filter-item="
+                                            selectedSpatialOperation
+                                        "
+                                        classes="min-width-150"
+                                        @option:selected="
+                                            (selected) => {
+                                                selectedSpatialOperation =
+                                                    selected.value;
+                                            }
+                                        "
+                                        @option:deselected="
+                                            () => {
+                                                selectedSpatialOperation = null;
+                                            }
+                                        "
+                                    />
+                                </div>
+                                <!-- Related input field like buffer distance -->
+                                <div
+                                    class="form-floating flex-grow-1 input-group-text"
+                                >
+                                    <input
+                                        id="spatial-operation-parameter-input"
+                                        ref="spatial-operation-parameter-input"
+                                        class="form-control min-width-90 me-1"
+                                        :disabled="processingFeatures"
+                                        :value="spatialOperationParameters[0]"
+                                        :placeholder="parameterInputLabel"
+                                        type="number"
+                                        min="0"
+                                        :step="unitDependentStep"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        data-bs-title="Enter a value"
+                                        @change="
+                                            spatialOperationParameters[0] =
+                                                $event.target.value
+                                        "
+                                    />
+                                    <label
+                                        for="spatial-operation-parameter-input"
+                                        >{{ parameterInputLabel }}</label
+                                    >
+                                </div>
+
+                                <!-- Unit Dropdown -->
+                                <div
+                                    class="input-group-text form-floating flex-grow-1"
+                                >
+                                    <SelectFilter
+                                        id="features-unit-select"
+                                        ref="features-unit-select"
+                                        :disabled="processingFeatures"
+                                        :title="`Run a ${selectedSpatialOperation} spatial operation on ${
+                                            selectedFeatureIds.length
+                                        } selected feature${
+                                            selectedFeatureIds.length > 1
+                                                ? 's'
+                                                : ''
+                                        }`"
+                                        :show-title="false"
+                                        placeholder="Select a unit"
+                                        :options="
+                                            spatialUnitsAvailable.map((op) => {
+                                                return {
+                                                    id: op.id,
+                                                    name: op.name,
+                                                };
+                                            })
+                                        "
+                                        :pre-selected-filter-item="
+                                            selectedSpatialUnit
+                                        "
+                                        classes="min-width-150"
+                                        @option:selected="
+                                            (selected) => {
+                                                selectedSpatialUnit =
+                                                    selected.value;
+                                            }
+                                        "
+                                        @option:deselected="
+                                            () => {
+                                                selectedSpatialUnit = null;
+                                            }
+                                        "
+                                    />
+                                </div>
+                                <!-- Button to run the operation -->
+                                <div
+                                    v-if="selectedSpatialOperation"
+                                    class="form-floating flex-grow-1 input-group-text"
+                                >
+                                    <div class="scaled-button">
+                                        <div
+                                            class="submenu-button-wrapper"
+                                            :title="
+                                                selectedFeatureIds.length
+                                                    ? 'Process selected features'
+                                                    : 'Select feature(s) to process'
+                                            "
+                                        >
+                                            <div
+                                                :title="`Process ${
+                                                    selectedFeatureIds.length
+                                                } selected feature${
+                                                    selectedFeatureIds.length >
+                                                    1
+                                                        ? 's'
+                                                        : ''
+                                                }`"
+                                                class="btn optional-layers-button"
+                                                :class="[
+                                                    selectedFeatureIds.length ==
+                                                        0 || processingFeatures
+                                                        ? 'disabled'
+                                                        : 'btn-warning',
+                                                    navbarButtonsDisabled
+                                                        ? 'disabled'
+                                                        : '',
+                                                ]"
+                                                @click="
+                                                    processFeatures(
+                                                        selectedSpatialOperation,
+                                                        spatialOperationParameters,
+                                                        selectedSpatialUnit
+                                                    )
+                                                "
+                                            >
+                                                <img
+                                                    class="svg-icon"
+                                                    :src="
+                                                        require(`../../assets/${
+                                                            spatialOperationsAvailable.find(
+                                                                (op) =>
+                                                                    op.id ==
+                                                                    selectedSpatialOperation
+                                                            ).icon
+                                                        }`)
+                                                    "
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Spatially process Features -->
                     <div
                         v-if="editable"
                         class="optional-layers-button-wrapper"
                         :title="
                             polygonCount
-                                ? 'Select a feature to delete'
+                                ? 'Select feature(s) to process'
+                                : 'No features to process'
+                        "
+                    >
+                        <div
+                            class="optional-layers-button btn"
+                            title="Select a method to process selected features"
+                            @click="
+                                toggleElementVisibility(
+                                    'submenu-spatial-operations'
+                                )
+                            "
+                        >
+                            <img
+                                class="svg-icon"
+                                src="../../assets/spatial-processing.svg"
+                            />
+                            <span
+                                v-if="selectedFeatureIds.length"
+                                id="selectedFeatureCountWarning"
+                                class="badge badge-warning"
+                                >{{ selectedFeatureIds.length }}</span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Delete features -->
+                    <div
+                        v-if="editable"
+                        class="optional-layers-button-wrapper"
+                        :title="
+                            polygonCount
+                                ? 'Select feature(s) to delete'
                                 : 'No features to delete'
                         "
                     >
@@ -509,7 +726,11 @@
                                     : 'btn-danger',
                                 navbarButtonsDisabled ? 'disabled' : '',
                             ]"
-                            title="Delete selected features"
+                            :title="`Delete ${
+                                selectedFeatureIds.length
+                            } selected feature${
+                                selectedFeatureIds.length > 1 ? 's' : ''
+                            }`"
                             @click="removeModelFeatures()"
                         >
                             <img
@@ -518,7 +739,7 @@
                             />
                             <span
                                 v-if="selectedFeatureIds.length"
-                                id="selectedFeatureCount"
+                                id="selectedFeatureCountDanger"
                                 class="badge badge-warning"
                                 >{{ selectedFeatureIds.length }}</span
                             >
@@ -809,7 +1030,7 @@
             </div>
         </div>
         <!-- If no context provided, e.g. no proposal or cp, don't allow for shapefile upload -->
-        <div v-if="context" class="row shapefile-row">
+        <div v-if="context && !fileUploadDisabled" class="row shapefile-row">
             <div class="col-sm-6 border p-2">
                 <div class="row mb-2">
                     <div class="col">
@@ -1181,6 +1402,14 @@ export default {
             required: false,
             default: false,
         },
+        /**
+         * Whether upload of shapefiles, drag&drop etc is diabled
+         */
+        fileUploadDisabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+        },
         coordinateReferenceSystems: {
             type: Array,
             required: false,
@@ -1226,6 +1455,7 @@ export default {
             queryingGeoserver: false,
             loadingMap: false,
             fetchingProposals: false,
+            processingFeatures: false,
             proposals: [],
             modelQuerySource: null,
             modelQueryLayer: null,
@@ -1265,21 +1495,20 @@ export default {
             shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
             userInputGeometryStack: [],
+            selectedSpatialOperation: 'buffer',
+            selectedSpatialUnit: 'm',
+            spatialOperationParameters: [1.0],
         };
     },
     computed: {
         shapefileDocumentUrl: function () {
             let endpoint = '';
             let obj_id = 0;
-            // if (this.context?.model_name == 'proposal') {
-            //     endpoint = api_endpoints.proposal;
-            //     obj_id = this.context.id;
-            // } else if (this.context?.model_name == 'competitiveprocess') {
-            //     endpoint = api_endpoints.competitive_process;
-            //     obj_id = this.context.id;
-            // }
             if (this.context?.model_name == 'occurrencereport') {
                 endpoint = api_endpoints.occurrence_report;
+                obj_id = this.context.id;
+            } else if (this.context?.model_name == 'occurrence') {
+                endpoint = api_endpoints.occurrence;
                 obj_id = this.context.id;
             } else {
                 console.warn('shapefileDocumentUrl: invalid context');
@@ -1434,6 +1663,57 @@ export default {
                 };
             });
         },
+        spatialOperationsAvailable: function () {
+            const spatialOPerations = [
+                {
+                    id: 'buffer',
+                    name: 'Buffer',
+                    icon: 'buffer-geometries.svg',
+                },
+                {
+                    id: 'convex_hull',
+                    name: 'Convex Hull',
+                    icon: 'convex-hull.svg',
+                },
+            ];
+            return spatialOPerations;
+        },
+        spatialUnitsAvailable: function () {
+            const units = [
+                {
+                    id: 'm',
+                    name: 'Metres',
+                },
+                {
+                    id: 'deg',
+                    name: 'Degree',
+                },
+            ];
+            return units;
+        },
+        /**
+         * Returns the features in the modelQuerySource sorted by their id
+         */
+        mapFeaturesSorted: function () {
+            return this.modelQuerySource
+                .getFeatures()
+                .toSorted(function (a, b) {
+                    return a.getProperties().id - b.getProperties().id;
+                });
+        },
+        parameterInputLabel: function () {
+            let label = 'Parameter';
+            if (this.selectedSpatialOperation == 'buffer') {
+                const unit = this.selectedSpatialUnit
+                    ? this.selectedSpatialUnit
+                    : 'N/A';
+                label = `Buffer Distance (${unit})`;
+            }
+            return label;
+        },
+        unitDependentStep: function () {
+            return this.selectedSpatialUnit === 'deg' ? 0.0001 : 1;
+        },
     },
     watch: {
         selectedFeatureIds: function () {
@@ -1503,13 +1783,20 @@ export default {
             );
             vm.download_content(json, 'boranga_layers.geojson', 'text/plain');
         },
-        displayAllFeatures: function () {
+        displayAllFeatures: function (features) {
             console.log('in displayAllFeatures()');
             let vm = this;
             if (vm.map) {
                 if (vm.modelQuerySource.getFeatures().length > 0) {
                     let view = vm.map.getView();
-                    let ext = vm.modelQuerySource.getExtent();
+
+                    let ext;
+                    if (features) {
+                        ext = vm.getFeaturesExtent(features);
+                    } else {
+                        ext = vm.modelQuerySource.getExtent();
+                    }
+
                     let centre = [
                         (ext[0] + ext[2]) / 2.0,
                         (ext[1] + ext[3]) / 2.0,
@@ -1519,6 +1806,22 @@ export default {
                     view.animate({ zoom: z, center: centre });
                 }
             }
+        },
+        getFeaturesExtent: function (features) {
+            const [E, S, W, N] = [[], [], [], []];
+            for (let feature of features) {
+                let extent = feature.getGeometry().getExtent();
+                E.push(extent[0]);
+                S.push(extent[1]);
+                W.push(extent[2]);
+                N.push(extent[3]);
+            }
+            return [
+                Math.min(...E),
+                Math.min(...S),
+                Math.max(...W),
+                Math.max(...N),
+            ];
         },
         centerOnFeature: function (feature) {
             const ext = feature.getGeometry().getExtent();
@@ -1578,14 +1881,11 @@ export default {
             let vm = this;
             if (!geometry_source) {
                 geometry_source =
-                    featureData.properties.geometry_source?.toLowerCase() ||
+                    featureData.properties?.geometry_source?.toLowerCase() ||
                     'draw';
             }
 
-            const type =
-                'getGeometry' in featureData
-                    ? featureData.getGeometry().getType()
-                    : featureData.geometry.type;
+            const type = vm.getFeatureType(featureData);
             const featureColors = ['Point', 'MultiPoint'].includes(type)
                 ? vm.pointFeatureColors
                 : vm.featureColors;
@@ -1944,7 +2244,6 @@ export default {
 
                     source.addFeature(feature);
                     vm.userInputGeometryStackAdd(feature);
-                    vm.newFeatureId++;
                 }
             });
 
@@ -2658,6 +2957,8 @@ export default {
                 evt.features.forEach((feature) => {
                     //commented validateFeature by Priya
                     // validateFeature(feature, vm);
+                    const coordinates = feature.getGeometry().getCoordinates();
+                    vm.userCoordinates(feature, coordinates);
                 });
             };
 
@@ -2698,34 +2999,123 @@ export default {
 
             vm.drawPolygonsForModel.updateSketchFeatures_();
         },
+        /**
+         * Perform a spatial operation on the selected features
+         * @param {String} operation The operation to perform on the selected features
+         * @param {Array=} parameters The parameters to pass to the operation
+         */
+        processFeatures: async function (
+            operation,
+            parameters = [],
+            unit = null
+        ) {
+            this.processingFeatures = true;
+
+            if (!unit) {
+                // TODO: Find a better way to determine the unit if not set
+                console.warn('Unit not set, defaulting to degrees');
+                unit = 'deg';
+            }
+            const selectedFeatures = this.selectedFeatures();
+            if (selectedFeatures.length === 0) {
+                console.warn('No features selected');
+                return;
+            }
+            console.log('Buffering features', selectedFeatures);
+            const format = new GeoJSON();
+            const features = [];
+
+            for (let feature of selectedFeatures) {
+                let geomStr = format.writeGeometry(feature.getGeometry());
+                features.push(JSON.parse(geomStr));
+            }
+
+            const featureCollection = {
+                type: 'FeatureCollection',
+                features: features.map((geom) => {
+                    return {
+                        type: 'Feature',
+                        geometry: geom,
+                    };
+                }),
+            };
+
+            let success = false;
+            let errorStr = '';
+            const processedGeometry = await fetch(
+                helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/spatially-process-geometries/?geometry=${JSON.stringify(
+                        featureCollection
+                    )}&operation=${operation}&parameters=${parameters.join(
+                        ','
+                    )}&unit=${unit}`
+                )
+            )
+                .then(async (response) => {
+                    if (!response.ok) {
+                        return await response.json().then((json) => {
+                            throw new Error(json);
+                        });
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    const empty = data.features.some((feature) => {
+                        return feature.geometry.coordinates.length == 0;
+                    });
+                    if (empty) {
+                        throw new Error('Operation returned an empty geometry');
+                    }
+                    success = true;
+                    return data;
+                })
+                .catch((error) => {
+                    errorStr = error;
+                    console.error('Error processing geometry:', error);
+                })
+                .finally(() => {
+                    swal.fire({
+                        title: success
+                            ? 'Processing Successful'
+                            : 'Processing Failed',
+                        icon: success ? 'success' : 'error',
+                        text: success ? '' : errorStr,
+                        timer: success ? 1000 : 0,
+                        showConfirmButton: !success,
+                        timerProgressBar: success,
+                    }).then(() => {
+                        if (success) {
+                            const features =
+                                this.addFeatureCollectionToMap(
+                                    processedGeometry
+                                );
+                            this.displayAllFeatures(features);
+                        }
+                        this.processingFeatures = false;
+                    });
+                });
+
+            return processedGeometry;
+        },
         removeModelFeatures: function () {
             let vm = this;
             let cannot_delete_features = [];
-            const features = vm.modelQuerySource
-                .getFeatures()
-                .filter((feature) => {
-                    if (
-                        vm.selectedFeatureIds.includes(
+            const features = vm.selectedFeatures().filter((feature) => {
+                if (
+                    feature.getProperties().locked === false ||
+                    vm.debug // Allow deletion of locked features if debug mode is enabled
+                ) {
+                    return feature;
+                } else {
+                    console.warn(
+                        `Cannot delete feature. ${
                             feature.getProperties().id
-                        )
-                    ) {
-                        if (
-                            feature.getProperties().locked === false ||
-                            vm.debug // Allow deletion of locked features if debug mode is enabled
-                        ) {
-                            return feature;
-                        } else {
-                            console.warn(
-                                `Cannot delete feature. ${
-                                    feature.getProperties().id
-                                } is locked`
-                            );
-                            cannot_delete_features.push(
-                                feature.getProperties().id
-                            );
-                        }
-                    }
-                });
+                        } is locked`
+                    );
+                    cannot_delete_features.push(feature.getProperties().id);
+                }
+            });
 
             if (cannot_delete_features.length > 0) {
                 vm.errorMessageProperty(null);
@@ -2789,6 +3179,7 @@ export default {
             if (featureCollection == null) {
                 featureCollection = vm.featureCollection;
             }
+            const features = [];
             console.log('Adding features to map:', featureCollection);
 
             for (let featureData of featureCollection['features']) {
@@ -2797,9 +3188,11 @@ export default {
                     featureData.model
                 );
 
+                features.push(feature);
                 vm.modelQuerySource.addFeature(feature);
-                vm.newFeatureId++;
             }
+
+            return features;
         },
         assignProposalFeatureColors: function (proposals) {
             let vm = this;
@@ -2830,7 +3223,6 @@ export default {
                         return;
                     }
                     vm.modelQuerySource.addFeature(feature);
-                    vm.newFeatureId++;
                 });
             });
             // vm.addFeatureCollectionToMap();
@@ -2846,7 +3238,6 @@ export default {
             console.log('drawend', feature.values_.geometry.flatCoordinates);
 
             vm.setFeaturePropertiesFromContext(feature);
-            vm.newFeatureId++;
             console.log('newFeatureId = ' + vm.newFeatureId);
             vm.lastPoint = feature;
             vm.sketchCoordinates = [[]];
@@ -2880,14 +3271,16 @@ export default {
                 this.featureColors['unknown'] ||
                 this.defaultColor;
 
+            const label =
+                context.occurrence_report_number || context.label || 'Draw';
+
             feature.setProperties({
                 id: this.newFeatureId,
                 model: context,
                 geometry_source: properties.geometry_source || 'New',
                 source: properties.source || null,
                 name: context.id || -1,
-                label:
-                    context.occurrence_report_number || context.label || 'Draw',
+                label: label,
                 color: color,
                 locked: properties.locked || false,
                 copied_from: properties.report_copied_from || null,
@@ -2913,6 +3306,7 @@ export default {
                 }
             }
             feature.setStyle(style);
+            this.newFeatureId++;
 
             return feature;
         },
@@ -2928,7 +3322,7 @@ export default {
             }
 
             let color = vm.styleByColor(featureData, model);
-            const type = featureData.geometry.type;
+            const type = vm.getFeatureType(featureData);
             // let style = vm.createStyle(color, vm.defaultColor, type);
             let geometry;
             if (type === 'Polygon') {
@@ -3706,7 +4100,6 @@ export default {
 
             this.modelQuerySource.addFeature(feature);
             this.userInputGeometryStackAdd(feature);
-            this.newFeatureId++;
 
             // this.bootstrapTooltipTrigger();
         },
@@ -3720,6 +4113,25 @@ export default {
             ) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
+        },
+        /**
+         * Returns the type of a feature
+         * @param {Object} feature A feature object or a feature dictionary
+         */
+        getFeatureType: function (feature) {
+            const type =
+                'getGeometry' in feature
+                    ? feature.getGeometry().getType()
+                    : feature.geometry
+                    ? feature.geometry.type
+                    : feature.type
+                    ? feature.type
+                    : null;
+            if (!type) {
+                console.error('Unknown feature type: ' + feature);
+            }
+
+            return type;
         },
     },
 };
@@ -3748,13 +4160,21 @@ export default {
     background-color: #c67605;
 }
 
-#selectedFeatureCount {
+#selectedFeatureCountDanger {
     font-size: 12px;
-    background: #ff0000;
     color: #fff;
     padding: 0 5px;
     vertical-align: top;
     margin-left: -10px;
+    background: #ff0000;
+}
+#selectedFeatureCountWarning {
+    font-size: 12px;
+    color: #fff;
+    padding: 0 5px;
+    vertical-align: top;
+    margin-left: -10px;
+    background: #ffa500;
 }
 
 .map-spinner {
@@ -3772,6 +4192,9 @@ export default {
 }
 
 #submenu-draw {
+    display: none;
+}
+#submenu-spatial-operations {
     display: none;
 }
 .hidden {

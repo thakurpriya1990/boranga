@@ -235,7 +235,10 @@ export default {
                         },
                     ],
                     processing:true,
-                    initComplete: function() {
+                    drawCallback: function() {
+                    helpers.enablePopovers();
+                },
+                initComplete: function() {
                         helpers.enablePopovers();
                     },
                 }
@@ -280,6 +283,9 @@ export default {
         methods:{
             eventListeners:function (){
                 let vm = this;
+                vm.$refs.members_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
+                });
             },
             //  render only once onload if meeting_obj.selected_committee_members>0 i.e previous sumbitted members
             renderExistsSelectedMembersTable: function(){

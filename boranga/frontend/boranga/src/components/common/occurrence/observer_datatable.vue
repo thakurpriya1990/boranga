@@ -143,7 +143,10 @@ export default {
                         },
                     ],
                     processing:true,
-                    initComplete: function() {
+                    drawCallback: function() {
+                    helpers.enablePopovers();
+                },
+                initComplete: function() {
                         helpers.enablePopovers();
                         // another option to fix the responsive table overflow css on tab switch
                         // vm.$refs.threats_datatable.vmDataTable.draw('page');
@@ -181,6 +184,9 @@ export default {
                     var id = $(this).attr('data-delete-observer_det');
                     vm.deleteObserverDetail(id);
                 });
+                vm.$refs.observer_detail_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
+                });
             },
             refreshFromResponse: function(){
                 let vm = this;
@@ -188,7 +194,7 @@ export default {
             },
             adjust_table_width: function(){
                 let vm = this;
-                vm.$refs.observer_detail_datatable.vmDataTable.columns.adjust().responsive.recalc();
+                if (vm.$refs.observer_detail_datatable !== undefined) {vm.$refs.observer_detail_datatable.vmDataTable.columns.adjust().responsive.recalc();}
             },
             newObserverDetail: function(){
                 let vm=this;

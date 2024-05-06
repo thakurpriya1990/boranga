@@ -269,12 +269,7 @@ export default {
             return this.occurrence_report && this.occurrence_report.group_type === "community"
         },
         occurrence_report_form_url: function () {
-            return `/api/occurrence_report/${this.occurrence_report.id}/draft.json`;
-        },
-        occurrence_report_submit_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                `community` :
-                `species`;
+            return (this.occurrence_report) ? `/api/occurrence_report/${this.occurrence_report.id}/draft.json` : '';
         },
         display_group_type: function () {
             if(this.occurrence_report && this.occurrence_report.group_type){
@@ -405,8 +400,13 @@ export default {
                 return false;
             }
             vm.savingOccurrenceReport = true;
-            let payload = new Object();
-            Object.assign(payload, vm.occurrence_report);
+
+            // add map geometry to the occurrence_report
+            if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
+                vm.occurrence_report.ocr_geometry = vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
+            }
+
+            let payload = { proposal: vm.occurrence_report };
             await vm.$http.post(vm.occurrence_report_form_url, payload).then(res => {
                 swal.fire({
                     title: "Saved",
@@ -458,8 +458,12 @@ export default {
             let vm = this;
             vm.saveError = false;
 
-            let payload = new Object();
-            Object.assign(payload, vm.occurrence_report);
+            // add map geometry to the occurrence_report
+            if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
+                vm.occurrence_report.ocr_geometry = vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
+            }
+
+            let payload = { proposal: vm.occurrence_report };
             const result = await vm.$http.post(vm.occurrence_report_form_url, payload).then(res => {
                 //return true;
             }, err => {

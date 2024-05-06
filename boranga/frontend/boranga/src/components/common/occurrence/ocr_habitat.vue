@@ -4,9 +4,9 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Land Form:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" 
+                    <select :disabled="isReadOnly"
                         style="width:100%;" class="form-select input-sm"
-                        ref="land_form_select" 
+                        ref="land_form_select"
                         v-model="occurrence_report_obj.habitat_composition.land_form" >
                         <option v-for="option in land_form_list" :value="option.id" :key="option.id">
                             {{option.name}}
@@ -19,7 +19,7 @@
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.habitat_composition.rock_type_id">
                         <option v-for="option in rock_type_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
+                            {{ option.name }}
                         </option>
                     </select>
 
@@ -37,7 +37,7 @@
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.habitat_composition.soil_type_id">
                         <option v-for="option in soil_type_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
+                            {{ option.name }}
                         </option>
                     </select>
 
@@ -48,7 +48,7 @@
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.habitat_composition.soil_colour_id">
                         <option v-for="option in soil_colour_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
+                            {{ option.name }}
                         </option>
                     </select>
 
@@ -59,7 +59,7 @@
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.habitat_composition.soil_condition_id">
                         <option v-for="option in soil_condition_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
+                            {{ option.name }}
                         </option>
                     </select>
 
@@ -70,7 +70,7 @@
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.habitat_composition.drainage_id">
                         <option v-for="option in drainage_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
+                            {{ option.name }}
                         </option>
                     </select>
 
@@ -79,14 +79,14 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Water Quality:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder="" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder=""
                     v-model="occurrence_report_obj.habitat_composition.water_quality"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Habitat Notes:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder="" 
+                    <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder=""
                     v-model="occurrence_report_obj.habitat_composition.habitat_notes"/>
                 </div>
             </div>
@@ -160,7 +160,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Last Fire Estimate:</label>
                 <div class="col-sm-9">
-                    <input :disabled="isReadOnly" type="month" class="form-control" name="last_fire_date" 
+                    <input :disabled="isReadOnly" type="month" class="form-control" name="last_fire_date"
                     ref="last_fire_date" @change="checkDate()" v-model="occurrence_report_obj.fire_history.last_fire_estimate" />
                 </div>
             </div>
@@ -169,7 +169,7 @@
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.fire_history.intensity_id">
                         <option v-for="option in intensity_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
+                            {{ option.name }}
                         </option>
                     </select>
 
@@ -198,8 +198,8 @@
                         id="related_species"
                         :proposalData="occurrence_report_obj.associated_species.related_species"
                         ref="related_species"
-                        label="Rich text in here" 
-                        :readonly="isReadOnly" 
+                        label="Rich text in here"
+                        :readonly="isReadOnly"
                         :can_view_richtext_src=true
                         :key="occurrence_report_obj.id"
                         @textChanged="relatedSpeciesTextChanged"
@@ -364,7 +364,7 @@ export default {
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
                     swal.fire({
-                        title: 'Error', 
+                        title: 'Error',
                         text: 'Habitat Composition details cannot be saved because of the following error: '+text,
                         icon: 'error',
                         confirmButtonColor:'#226fbb',
@@ -391,7 +391,7 @@ export default {
                     }, (error) => {
                         var text= helpers.apiVueResourceError(error);
                         swal.fire({
-                            title: 'Error', 
+                            title: 'Error',
                             text: 'Habitat Condition details cannot be saved because of the following error: '+text,
                             icon: 'error',
                             confirmButtonColor:'#226fbb',
@@ -418,7 +418,7 @@ export default {
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
                     swal.fire({
-                        title: 'Error', 
+                        title: 'Error',
                         text: 'Fire History details cannot be saved because of the following error: '+text,
                         icon: 'error',
                         confirmButtonColor:'#226fbb',
@@ -444,7 +444,7 @@ export default {
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
                     swal.fire({
-                        title: 'Error', 
+                        title: 'Error',
                         text: 'Associated Species cannot be saved because of the following error: '+text,
                         icon: 'error',
                         confirmButtonColor:'#226fbb',
@@ -465,7 +465,7 @@ export default {
                 vm.habitat_cond_sum = total;
                 if(total>100){
                     swal.fire({
-                        title: 'warning', 
+                        title: 'warning',
                         text: 'The total Kiery Scale should not exceed 100% ',
                         icon: 'warning',
                         confirmButtonColor:'#226fbb',
@@ -565,4 +565,3 @@ export default {
         color: red;
     }
 </style>
-
