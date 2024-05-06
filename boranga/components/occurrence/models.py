@@ -24,7 +24,6 @@ from boranga.components.main.models import (
     RevisionedMixin,
     UserAction,
 )
-from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
     send_approve_email_notification,
     send_approver_approve_email_notification,
@@ -48,7 +47,7 @@ from boranga.components.species_and_communities.models import (
     ThreatAgent,
     ThreatCategory,
 )
-from boranga.helpers import clone_model
+from boranga.helpers import clone_model, email_in_dept_domains
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR
 
@@ -735,7 +734,7 @@ class OccurrenceReport(RevisionedMixin):
             )
 
         # Validate if it is a deparment user
-        if not get_department_user(referral_email):
+        if not email_in_dept_domains(referral_email):
             raise ValidationError(
                 "The user you want to send the referral to is not a member of the department"
             )
@@ -747,12 +746,12 @@ class OccurrenceReport(RevisionedMixin):
             raise ValidationError("A referral has already been sent to this user")
 
         # Check if the user sending the referral is a referee themselves
-        sent_from = self.SENT_CHOICE_FROM_ASSESSOR
+        sent_from = OccurrenceReportReferral.SENT_CHOICE_FROM_ASSESSOR
         if OccurrenceReportReferral.objects.filter(
             occurrence_report=self,
             referral=request.user.id,
         ).exists():
-            sent_from = self.SENT_CHOICE_FROM_REFERRAL
+            sent_from = OccurrenceReportReferral.SENT_CHOICE_FROM_REFERRAL
 
         # Create Referral
         referral = OccurrenceReportReferral.objects.create(
