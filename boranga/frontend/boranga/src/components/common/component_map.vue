@@ -594,6 +594,13 @@
                                 </div>
                                 <!-- Related input field like buffer distance -->
                                 <div
+                                    v-if="
+                                        spatialOperationsAvailable.find(
+                                            (op) =>
+                                                op.id ==
+                                                selectedSpatialOperation
+                                        )?.number_params > 0
+                                    "
                                     class="form-floating flex-grow-1 input-group-text"
                                 >
                                     <input
@@ -622,6 +629,13 @@
 
                                 <!-- Unit Dropdown -->
                                 <div
+                                    v-if="
+                                        spatialOperationsAvailable.find(
+                                            (op) =>
+                                                op.id ==
+                                                selectedSpatialOperation
+                                        )?.number_params > 0
+                                    "
                                     class="input-group-text form-floating flex-grow-1"
                                 >
                                     <SelectFilter
@@ -1718,11 +1732,13 @@ export default {
                     id: 'buffer',
                     name: 'Buffer',
                     icon: 'buffer-geometries.svg',
+                    number_params: 1,
                 },
                 {
                     id: 'convex_hull',
                     name: 'Convex Hull',
                     icon: 'convex-hull.svg',
+                    number_params: 0,
                 },
             ];
             return spatialOPerations;
