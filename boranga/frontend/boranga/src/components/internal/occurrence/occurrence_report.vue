@@ -2,7 +2,8 @@
     <div v-if="occurrence_report" class="container" id="internal-occurence-report-detail">
         <div class="row">
             <div class="col">
-                <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }} - <span class="text-capitalize">{{ display_group_type }}</span></h3>
+                <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }} - <span
+                        class="text-capitalize">{{ display_group_type }}</span></h3>
                 <h4 class="text-muted mb-3">
                     Occurrence:
                     <template v-if="occurrence_report.occurrence">
@@ -37,8 +38,8 @@
                     <div class="card-body">
                         <div class="mb-2"><strong>Currently assigned to</strong></div>
                         <template v-if="with_approver">
-                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_approve" class="form-select mb-2"
-                                v-model="occurrence_report.assigned_approver">
+                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_approve"
+                                class="form-select mb-2" v-model="occurrence_report.assigned_approver">
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
@@ -47,8 +48,8 @@
                                 me</a>
                         </template>
                         <template v-else>
-                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess" class="form-select mb-2"
-                                v-model="occurrence_report.assigned_officer">
+                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess"
+                                class="form-select mb-2" v-model="occurrence_report.assigned_officer">
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
@@ -78,6 +79,87 @@
                                     <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
                                 </span>
                             </template>
+                        </div>
+                    </div>
+                    <div v-if="display_referral_actions &&
+                        isAssignedOfficer &&
+                        occurrence_report.latest_referrals &&
+                        occurrence_report.latest_referrals.length > 0
+                    " class="card-body border-top">
+                        <div>
+                            <div class="fw-bold mb-1">
+                                Recent Referrals
+                                <small class="text-secondary fw-lighter">(Showing {{
+                                    occurrence_report.latest_referrals.length }} of
+                                    {{ occurrence_report.referrals.length }})</small>
+                            </div>
+                            <table class="table table-sm table-hover table-referrals">
+                                <thead>
+                                    <tr>
+                                        <th>Referee</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="r in occurrence_report.latest_referrals" :key="r.id">
+                                        <td class="truncate-name">
+                                            {{ r.referral_obj.first_name }}
+                                            {{ r.referral_obj.last_name }}
+                                        </td>
+                                        <td>
+                                            {{ r.processing_status_display }}
+                                        </td>
+                                        <td class="text-center">
+                                            <template v-if="'with_referral' == r.processing_status">
+                                                <a v-if="canAction" role="button" data-bs-toggle="popover"
+                                                    data-bs-trigger="hover focus" :data-bs-content="'Send a reminder to ' +
+                                                        r.referral_obj['fullname']
+                                                        " data-bs-placement="bottom" @click.prevent="
+                                                                remindReferral.bind(this)(
+                                                                    referrals_api_endpoint,
+                                                                    r.id,
+                                                                    r.referral_obj['fullname']
+                                                                )
+                                                                "><i class="fa fa-bell text-warning"
+                                                        aria-hidden="true"></i>
+                                                </a>
+                                                <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                    :data-bs-content="'Recall the referral request sent to ' +
+                                                        r.referral_obj['fullname']
+                                                        " data-bs-placement="bottom" @click.prevent="
+                                                                recallReferral.bind(this)(
+                                                                    referrals_api_endpoint,
+                                                                    r.id,
+                                                                    r.referral_obj['fullname']
+                                                                )
+                                                                "><i class="fa fa-times-circle text-danger"
+                                                        aria-hidden="true"></i>
+                                                </a>
+                                            </template>
+                                            <template v-else>
+                                                <small v-if="canAction"><a role="button" data-bs-toggle="popover"
+                                                        data-bs-trigger="hover focus" :data-bs-content="'Resend this referral request to ' +
+                                                            r.referral_obj['fullname']
+                                                            " @click.prevent="
+                                                                    resendReferral.bind(this)(
+                                                                        referrals_api_endpoint,
+                                                                        r.id,
+                                                                        r.referral_obj[
+                                                                        'fullname'
+                                                                        ]
+                                                                    )
+                                                                    "><i class="fa fa-envelope text-primary"
+                                                            aria-hidden="true"></i>
+                                                    </a></small>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <MoreReferrals @refreshFromResponse="refreshFromResponse" :proposal="occurrence_report"
+                                :canAction="canLimitedAction" :isFinalised="isFinalised"
+                                :referral_url="referralListURL" />
                         </div>
                     </div>
                     <div v-if="canAction" class="card-body border-top">
@@ -183,7 +265,8 @@
         <Decline v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="occurrence_report.occurrence_report_number"
             :declined_details="occurrence_report.declined_details" @refreshFromResponse="refreshFromResponse"></Decline>
-        <Approve v-if="display_approve_button && occurrence_report.approval_details" ref="approve" :occurrence_report_id="occurrence_report.id"
+        <Approve v-if="display_approve_button && occurrence_report.approval_details" ref="approve"
+            :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="occurrence_report.occurrence_report_number"
             :approval_details="occurrence_report.approval_details" @refreshFromResponse="refreshFromResponse"></Approve>
 
@@ -203,6 +286,7 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
+import MoreReferrals from '@common-utils/more_referrals.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import AmendmentRequest from './amendment_request.vue'
 import BackToAssessor from './back_to_assessor.vue'
@@ -227,6 +311,7 @@ export default {
         return {
             occurrence_report: null,
             original_occurrence_report: null,
+            referrals_api_endpoint: api_endpoints.referrals,
             initialisedSelects: false,
             form: null,
             selected_referral: '',
@@ -272,7 +357,7 @@ export default {
             return (this.occurrence_report) ? `/api/occurrence_report/${this.occurrence_report.id}/draft.json` : '';
         },
         display_group_type: function () {
-            if(this.occurrence_report && this.occurrence_report.group_type){
+            if (this.occurrence_report && this.occurrence_report.group_type) {
                 return this.occurrence_report.group_type;
             }
             return '';
@@ -341,6 +426,16 @@ export default {
         },
         logs_url: function () {
             return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/action_log')
+        },
+        referralListURL: function () {
+            return this.occurrence_report != null
+                ? helpers.add_endpoint_json(
+                    api_endpoints.referrals,
+                    'datatable_list'
+                ) +
+                '?occurrence_report=' +
+                this.occurrence_report.id
+                : '';
         },
     },
     methods: {
