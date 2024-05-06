@@ -32,6 +32,11 @@ if settings.DEBUG is not True:
     router.include_root_view = False
 
 
+router.register(
+    r"external_species",
+    species_communities_api.ExternalSpeciesViewSet,
+    "external_species",
+)
 router.register(r"species", species_communities_api.SpeciesViewSet, "species")
 router.register(r"community", species_communities_api.CommunityViewSet, "community")
 router.register(
@@ -297,6 +302,16 @@ urlpatterns = [
         name="ds_further_info",
     ),
     url(r"^internal/", views.InternalView.as_view(), name="internal"),
+    url(
+        r"^external/species-communities$",
+        views.PublicView.as_view(),
+        name="species-communities",
+    ),
+    url(
+        r"^external/species_communities/(?P<species_proposal_pk>\d+)",
+        views.SpeciesView.as_view(),
+        name="external-species-detail",
+    ),
     url(r"^external/", views.ExternalView.as_view(), name="external"),
     url(r"^account/$", views.ExternalView.as_view(), name="manage-account"),
     url(r"^profiles/", views.ExternalView.as_view(), name="manage-profiles"),
