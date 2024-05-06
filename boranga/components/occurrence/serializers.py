@@ -1031,9 +1031,17 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
 
 
 class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    referral_obj = serializers.SerializerMethodField()
+    processing_status_display = serializers.CharField(
+        source="get_processing_status_display"
+    )
+
     class Meta:
         model = OccurrenceReportReferral
         fields = "__all__"
+
+    def get_referral_obj(self, obj):
+        return EmailUserSerializer(retrieve_email_user(obj.referral)).data
 
 
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
@@ -1047,7 +1055,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     declined_details = OccurrenceReportDeclinedDetailsSerializer(
         read_only=True, allow_null=True
     )
-    latest_referrals = OccurrenceReportReferralSerializer(
+    latest_referrals = InternalOccurrenceReportReferralSerializer(
+        many=True, read_only=True, allow_null=True
+    )
+    referrals = InternalOccurrenceReportReferralSerializer(
         many=True, read_only=True, allow_null=True
     )
     readonly = serializers.SerializerMethodField(read_only=True)
@@ -1102,6 +1113,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "approval_details",
             "internal_application",
             "latest_referrals",
+            "referrals",
         )
 
     def get_readonly(self, obj):
