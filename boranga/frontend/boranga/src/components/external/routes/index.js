@@ -1,4 +1,8 @@
+import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
 import ExternalConservationStatusDash from '../conservation_status/dashboard.vue'
+
+import ExternalSpeciesCommunity from '../species_communities/species_communities.vue'
+
 import ConservationStatusProposal from '../conservation_status/conservation_status_proposal.vue'
 import ConservationStatusProposalSubmit from '../conservation_status/conservation_status_proposal_submit.vue'
 import ExternalOccurrenceReportDash from '../occurrence/dashboard.vue'
@@ -15,6 +19,36 @@ export default
             }
         },
         children: [
+            {
+                path: 'species-communities',
+                component: SpeciesCommunitiesDash,
+                name: "external-species-communities-dash"
+            },
+            {
+                path: 'species_communities',
+                component: {
+                    render(c) {
+                        return c('router-view')
+                    },
+                },
+                children: [
+                    {
+                        path: ':species_community_id',
+                        component: {
+                            render(c) {
+                                return c('router-view')
+                            },
+                        },
+                        children: [
+                            {
+                                path: '/',
+                                component: ExternalSpeciesCommunity,
+                                name: "external-species-communities"
+                            },
+                        ]
+                    },
+                ]
+            },
             {
                 path: 'conservation-status',
                 component: ExternalConservationStatusDash,

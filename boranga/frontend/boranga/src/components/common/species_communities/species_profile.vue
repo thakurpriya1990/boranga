@@ -4,12 +4,6 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Scientific Name:</label>
                 <div class="col-sm-9" :id="select_scientific_name">
-                    <!-- <select :disabled="rename_species?false:isReadOnly" class="form-select"
-                        v-model="species_community.taxonomy_id" id="scientific_name" @change="loadTaxonomydetails()">
-                        <option v-for="option in taxon_names" :value="option.id" v-bind:key="option.id">
-                            {{ option.scientific_name }}
-                        </option>
-                    </select> -->
                     <select :disabled="rename_species ? false : isReadOnly" :id="scientific_name_lookup"
                         :name="scientific_name_lookup" :ref="scientific_name_lookup" class="form-control" />
                 </div>
@@ -32,9 +26,6 @@
                 <div class="col-sm-9">
                     <input :disabled="true" type="text" class="form-control" id="taxon_name_id" placeholder=""
                         v-model="taxon_name_id" />
-                    <!-- gives error for the below when new species created as no taxonomy id is present -->
-                    <!-- <input :disabled="true" type="text" class="form-control" id="taxon_name_id" placeholder=""
-                    v-model="species_communities.taxonomy_details.taxon_name_id"/> -->
                 </div>
             </div>
             <div class="row mb-3">
@@ -47,11 +38,6 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Phylogenetic Group:</label>
                 <div class="col-sm-9">
-                    <!-- <select :disabled="true" class="form-select" v-model="phylogenetic_group_id" id="phylogenetic_group">
-                        <option v-for="option in phylo_group_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select> -->
                     <textarea :disabled="true" class="form-control" rows="1" id="phylogenetic_group" placeholder=""
                         v-model="phylogenetic_group" />
                 </div>
@@ -118,7 +104,6 @@
                             {{ option.name }}
                         </option>
                     </select>
-
                 </div>
             </div>
             <div class="row mb-3">
@@ -276,17 +261,6 @@
                         placeholder="" v-model="species_community.conservation_attributes.flora_recruitment_notes" />
                 </div>
             </div>
-            <!-- <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Seed Viability and Germination Info:</label>
-                <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="species_community.conservation_attributes.seed_viability_germination_info_id">
-                        <option v-for="option in seed_viability_germination_info_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
-                </div>
-            </div> -->
             <div class="row mb-3" v-show="!isFauna">
                 <label for="" class="col-sm-3 control-label">Seed Viability and Germination Info:</label>
                 <div class="col-sm-9">
@@ -305,17 +279,6 @@
                     </select>
                 </div>
             </div>
-            <!-- <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
-                <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="species_community.conservation_attributes.pollinator_information_id">
-                        <option v-for="option in pollinator_info_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
-                </div>
-            </div> -->
             <div class="row mb-3" v-show="!isFauna">
                 <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
                 <div class="col-sm-9">
@@ -335,17 +298,6 @@
                     </select>
                 </div>
             </div>
-            <!-- <div class="row mb-3" v-show="isFauna">
-                <label for="" class="col-sm-3 control-label">Fauna Breeding:</label>
-                <div class="col-sm-9">
-                    <div v-for="option in fauna_breeding_list">
-                        <input :disabled="isReadOnly" class='form-check-input' type="radio" v-bind:value="option.id"
-                            :id="'breeding_type_'+option.id"
-                            v-model="species_community.conservation_attributes.fauna_breeding_id">
-                        <label :for="'breeding_type_'+option.id">{{ option.name }}</label>
-                    </div>
-                </div>
-            </div> -->
             <div class="row mb-3" v-show="isFauna">
                 <label for="" class="col-sm-3 control-label">Fauna Breeding:</label>
                 <div class="col-sm-9">
