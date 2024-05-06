@@ -294,8 +294,10 @@ export default {
         },
         computed: {
             isReadOnly: function () {
+
+                console.log(this.$route.query.action);
                 if (this.$route.query.action == 'edit') {
-                    return this.occurrence && this.occurrence.can_user_edit ? false : true;
+                    return this.occurrence_obj && this.occurrence_obj.can_user_edit ? false : true;
                 }
                 else {
                     return true;
