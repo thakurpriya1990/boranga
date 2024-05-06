@@ -10,8 +10,12 @@
     <li class="nav-item"><a class="nav-link {% if page_status.conservation_status is True %} active {% endif %}" href="/internal/conservation-status">Conservation Status</a></li>
     <li class="nav-item"><a class="nav-link {% if page_status.meetings is True %} active {% endif %}" href="/internal/meetings">Meetings</a></li>
     <li class="nav-item"><a class="nav-link {% if page_status.occurrence is True %} active {% endif %}" href="/internal/occurrence">Occurrences</a></li>
-{% elif request.user.is_authenticated %}
+{% elif not request.user.is_authenticated %}
+    <li class="nav-item"><a class="nav-link {% if page_status.species_and_communities is True %} active {% endif %}" href="/external/species-communities">
+        <div style="inline">Species &amp; Communities</div></a>
+    </li>
+{% endif %}
+{% if not is_internal_login and request.user.is_authenticated %}
     <li class="nav-item"><a class="nav-link {% if page_status.conservation_status is True %} active {% endif %}" href="/external/conservation-status">Conservation Status</a></li>
     <li class="nav-item"><a class="nav-link {% if page_status.occurrence_report is True %} active {% endif %}" href="/external/occurrence-report">Occurrence Reports</a></li>
 {% endif %}
-
