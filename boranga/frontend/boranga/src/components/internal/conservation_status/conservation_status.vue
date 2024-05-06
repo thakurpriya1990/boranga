@@ -15,78 +15,74 @@
                         <div class="card-header">
                             Workflow
                         </div>
-                        <div class="card-body border-bottom">
+                        <div class="card-body">
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
                         </div>
-                        <div class="card-body border-bottom">
+                        <div v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'"
+                            class="card-body border-top">
                             <div class="row">
-                                <template
-                                    v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
-                                    <div class="col-sm-12 top-buffer-s">
-                                        <strong>Referrals</strong><br />
-                                        <div class="form-group mb-3">
-                                            <select :disabled="!canLimitedAction" ref="department_users"
-                                                class="form-control">
-                                            </select>
-                                            <template v-if='!sendingReferral'>
-                                                <template v-if="selected_referral">
-                                                    <label class="control-label pull-left" for="Name">Comments</label>
-                                                    <textarea class="form-control" name="name"
-                                                        v-model="referral_text"></textarea>
-                                                    <a v-if="canLimitedAction" @click.prevent="sendReferral()"
-                                                        class="actionBtn pull-right">Send</a>
-                                                </template>
+                                <div class="col-sm-12 top-buffer-s">
+                                    <strong>Referrals</strong><br />
+                                    <div class="form-group mb-3">
+                                        <select :disabled="!canLimitedAction" ref="department_users"
+                                            class="form-control">
+                                        </select>
+                                        <template v-if='!sendingReferral'>
+                                            <template v-if="selected_referral">
+                                                <label class="control-label pull-left" for="Name">Comments</label>
+                                                <textarea class="form-control" name="name"
+                                                    v-model="referral_text"></textarea>
+                                                <a v-if="canLimitedAction" @click.prevent="sendReferral()"
+                                                    class="actionBtn pull-right">Send</a>
                                             </template>
-                                            <template v-else>
-                                                <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
-                                                    class="actionBtn text-primary pull-right">
-                                                    Sending Referral&nbsp;
-                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                                </span>
-                                            </template>
-                                        </div>
-                                        <table class="table small-table">
-                                            <tr>
-                                                <th>Referral</th>
-                                                <th>Status/Action</th>
-                                            </tr>
-                                            <tr v-for="r in conservation_status_obj.latest_referrals">
-                                                <td>
-                                                    <small><strong>{{ r.referral_obj.first_name }} {{
-                                                        r.referral_obj.last_name }}</strong></small><br />
-                                                    <small><strong>{{ r.lodged_on | formatDate }}</strong></small>
-                                                </td>
-                                                <td>
-                                                    <small><strong>{{ r.processing_status }}</strong></small><br />
-                                                    <template v-if="r.processing_status == 'Awaiting'">
-                                                        <small v-if="canLimitedAction"><a
-                                                                @click.prevent="remindReferral(r)" href="#">Remind</a> /
-                                                            <a @click.prevent="recallReferral(r)"
-                                                                href="#">Recall</a></small>
-                                                    </template>
-                                                    <template v-else>
-                                                        <small v-if="canLimitedAction"><a
-                                                                @click.prevent="resendReferral(r)"
-                                                                href="#">Resend</a></small>
-                                                    </template>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        <template>
-
                                         </template>
-                                        <CSMoreReferrals @refreshFromResponse="refreshFromResponse"
-                                            :conservation_status_obj="conservation_status_obj"
-                                            :canAction="canLimitedAction" :isFinalised="isFinalised"
-                                            :referral_url="referralListURL" />
+                                        <template v-else>
+                                            <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
+                                                class="actionBtn text-primary pull-right">
+                                                Sending Referral&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                            </span>
+                                        </template>
                                     </div>
-                                </template>
+                                    <table class="table small-table">
+                                        <tr>
+                                            <th>Referral</th>
+                                            <th>Status/Action</th>
+                                        </tr>
+                                        <tr v-for="r in conservation_status_obj.latest_referrals">
+                                            <td>
+                                                <small><strong>{{ r.referral_obj.first_name }} {{
+                                                    r.referral_obj.last_name }}</strong></small><br />
+                                                <small><strong>{{ r.lodged_on | formatDate }}</strong></small>
+                                            </td>
+                                            <td>
+                                                <small><strong>{{ r.processing_status }}</strong></small><br />
+                                                <template v-if="r.processing_status == 'Awaiting'">
+                                                    <small v-if="canLimitedAction"><a @click.prevent="remindReferral(r)"
+                                                            href="#">Remind</a> /
+                                                        <a @click.prevent="recallReferral(r)"
+                                                            href="#">Recall</a></small>
+                                                </template>
+                                                <template v-else>
+                                                    <small v-if="canLimitedAction"><a @click.prevent="resendReferral(r)"
+                                                            href="#">Resend</a></small>
+                                                </template>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <template>
+
+                                    </template>
+                                    <CSMoreReferrals @refreshFromResponse="refreshFromResponse"
+                                        :conservation_status_obj="conservation_status_obj" :canAction="canLimitedAction"
+                                        :isFinalised="isFinalised" :referral_url="referralListURL" />
+                                </div>
                             </div>
                         </div>
-                        <div class="card-body border-bottom">
+                        <div v-if="!isFinalised" class="card-body border-top">
                             <div class="row">
-                                <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
+                                <div class="col-sm-12 top-buffer-s">
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
                                         <template v-if="conservation_status_obj.processing_status == 'With Approver'">
@@ -115,9 +111,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
+                        <div v-if="!isFinalised && canAction" class="card-body border-top">
                             <div class="row">
-                                <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
+                                <div class="col-sm-12 top-buffer-s">
                                     <template
                                         v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
                                         <div class="row">
