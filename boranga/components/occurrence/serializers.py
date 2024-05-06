@@ -1116,7 +1116,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         return (
             is_assessor(request.user)
             and obj.processing_status
-            == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            in [
+                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+                OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+            ]
             and obj.assigned_officer == request.user.id
         )
 
