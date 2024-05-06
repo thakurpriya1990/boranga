@@ -4,6 +4,11 @@
             :title="`Propose Approve ${occurrence_report_number}`" large>
             <div class="container">
                 <form id="propose-approve-form">
+                    <div v-if="errorString" class="row mb-3">
+                        <div class="col">
+                            <alert type="danger"><strong>{{ errorString }}</strong></alert>
+                        </div>
+                    </div>
                     <div class="row mb-3">
                         <div class="col">
                             <div class="form-check form-check-inline">
@@ -31,10 +36,17 @@
                                         ref="occurrence_name_lookup_propose_approve" class="form-control" required />
                                 </div>
                             </div>
+                            <div v-else class="mt-3">
+                                <label class="mb-3" for="new_occurrence_name">New
+                                    Occurrence Name:</label>
+                                <input type="text" class="form-control" id="new_occurrence_name"
+                                    name="new_occurrence_name" ref="new_occurrence_name"
+                                    v-model="propose_approve.new_occurrence_name" required />
+                            </div>
                             <div class="mt-3">
                                 <label class="form-label" for="effective_from_date">Effective From</label>
-                                <input type="date" class="form-control" id="effective_from_date" name="effective_from_date"
-                                    v-model="propose_approve.effective_from_date" required />
+                                <input type="date" class="form-control" id="effective_from_date"
+                                    name="effective_from_date" v-model="propose_approve.effective_from_date" required />
                             </div>
                             <div class="mt-3">
                                 <label class="form-label" for="effective_to_date">Effective To</label>
@@ -88,6 +100,7 @@ export default {
                 occurrence_id: null,
                 occurrence_name: '',
                 create_new_occurrence: false,
+                new_occurrence_name: '',
                 effective_from_date: '',
                 effective_to_date: '',
                 details: '',
@@ -124,13 +137,12 @@ export default {
                 occurrence_id: null,
                 occurrence_name: '',
                 create_new_occurrence: false,
+                new_occurrence_name: '',
                 effective_from_date: '',
                 effective_to_date: '',
                 details: '',
-                occurrence_report: this.occurrence_report_id
             };
             this.errorString = '';
-            this.form.reset();
         },
         proposeApprove: function () {
             let vm = this;
@@ -177,6 +189,9 @@ export default {
         resetSelectedOccurrence: function () {
             this.propose_approve.occurrence_id = null;
             this.propose_approve.occurrence_name = '';
+            this.$nextTick(() => {
+                this.$refs['new_occurrence_name'].focus();
+            });
         },
         reinitialiseOccurrenceNameLookup: function () {
             let vm = this;
@@ -202,6 +217,7 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.group_type_id,
+                            occurrence_report_id: vm.occurrence_report_id,
                         }
                         return query;
                     },

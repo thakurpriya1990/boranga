@@ -338,12 +338,14 @@ class Taxonomy(models.Model):
             return previous_queryset
         else:
             return CrossReference.objects.none()
-        
+
     @property
     def taxon_vernacular_name(self):
         if self.vernaculars.all():
-            vernacular_names_list = TaxonVernacular.objects.filter(taxonomy=self.id).values_list('vernacular_name', flat=True)
-            return ','.join(vernacular_names_list)
+            vernacular_names_list = TaxonVernacular.objects.filter(
+                taxonomy=self.id
+            ).values_list("vernacular_name", flat=True)
+            return ",".join(vernacular_names_list)
 
 
 class TaxonVernacular(models.Model):
@@ -496,6 +498,10 @@ class Species(RevisionedMixin):
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
     last_data_curration_date = models.DateField(blank=True, null=True)
+    conservation_plan_exists = models.BooleanField(default=False)
+    conservation_plan_reference = models.CharField(
+        max_length=500, null=True, blank=True
+    )
     processing_status = models.CharField(
         "Processing Status",
         max_length=30,
@@ -868,7 +874,9 @@ class Species(RevisionedMixin):
 
     @property
     def related_item_descriptor(self):
-        return self.taxonomy.scientific_name
+        if self.taxonomy and self.taxonomy.scientific_name:
+            return self.taxonomy.scientific_name
+        return "Descriptor not available"
 
     @property
     def related_item_status(self):
@@ -1115,6 +1123,10 @@ class Community(RevisionedMixin):
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
     last_data_curration_date = models.DateField(blank=True, null=True)
+    conservation_plan_exists = models.BooleanField(default=False)
+    conservation_plan_reference = models.CharField(
+        max_length=500, null=True, blank=True
+    )
     submitter = models.IntegerField(null=True)  # EmailUserRO
     image_doc = models.ForeignKey(
         "CommunityDocument",

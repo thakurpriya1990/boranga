@@ -48,7 +48,7 @@
 
         <div v-if="addCommunityOCRVisibility" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrenceReport"><i class="fa-solid fa-circle-plus"></i> Add Occurrence Report</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrenceReport"><i class="fa-solid fa-circle-plus"></i> Add Community Occurrence Report</button>
             </div>
         </div>
 
@@ -495,6 +495,9 @@ export default {
 
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                 },
@@ -682,6 +685,9 @@ export default {
                     var id = $(this).attr('data-history-occurrence-report');
                     vm.historyDocument(id);
                 });
+            vm.$refs.community_ocr_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
         },
         initialiseSearch:function(){
             this.submitterSearch();

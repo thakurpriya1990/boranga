@@ -179,10 +179,8 @@
 
 <script>
 import OCRLocation from '@/components/common/occurrence/ocr_location.vue';
-// import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
 import OCRHabitat from '@/components/common/occurrence/ocr_habitat.vue';
 import OCRObservation from '@/components/common/occurrence/ocr_observation.vue';
-// import OCRHabitat from '@/components/common/conservation_status/cs_documents.vue'
 // import RelatedItems from '@/components/common/table_related_items.vue'
 import OCRDocuments from '@/components/common/occurrence/ocr_documents.vue';
 import OCRThreats from '@/components/common/occurrence/ocr_threats.vue';
@@ -194,8 +192,6 @@ export default {
         OCRObservation,
         OCRDocuments,
         OCRThreats,
-        // CommunityStatus,
-        // CSDocuments,
         // RelatedItems,
     },
     props: {
@@ -237,13 +233,13 @@ export default {
     computed: {
         related_items_ajax_url: function () {
             return (
-                '/api/conservation_status/' +
+                '/api/occurrence_report/' +
                 this.occurrence_report_obj.id +
                 '/get_related_items/'
             );
         },
         related_items_filter_list_url: function () {
-            return '/api/conservation_status/filter_list.json';
+            return '/api/occurrence_report/filter_list.json';
         },
     },
     mounted: function () {

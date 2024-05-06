@@ -1,39 +1,40 @@
+import json
 import logging
 import os
-import re
-import json
 from zipfile import ZipFile
-import geopandas as gpd
 
-from django.conf import settings
-from django.contrib.gis.geos import Polygon, Point, GEOSGeometry
-from django.contrib.gis.gdal import SpatialReference
-from django.core.exceptions import ValidationError
+import geopandas as gpd
 from django.apps import apps
+from django.conf import settings
+from django.contrib.gis.gdal import SpatialReference
+from django.contrib.gis.geos import GEOSGeometry
+from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.utils import timezone
 from django.db.models import Q
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser  # , Document
-from boranga.components.occurrence.models import (
-    OccurrenceReportGeometry,
-    OccurrenceReport,
-    OccurrenceReportUserAction,
-)
+from django.utils import timezone
+
+from boranga.components.main.spatial_utils import feature_json_to_geosgeometry
 from boranga.components.occurrence.email import (
     send_external_submit_email_notification,
     send_submit_email_notification,
 )
+from boranga.components.occurrence.models import (
+    OccurrenceReport,
+    OccurrenceReportAmendmentRequest,
+    OccurrenceReportGeometry,
+    OccurrenceReportUserAction,
+)
 from boranga.components.occurrence.serializers import (
     OccurrenceReportGeometrySaveSerializer,
 )
+from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger(__name__)
 
 
 def save_geometry(request, instance, geometry_data):
-    logger.info(f"\n\n\nSaving Occurrence Report geometry")
     if not geometry_data:
-        logger.warn(f"No Occurrence Report geometry to save")
+        logger.warn("No Occurrence Report geometry to save")
         return
 
     geometry = json.loads(geometry_data)
@@ -43,71 +44,49 @@ def save_geometry(request, instance, geometry_data):
         == OccurrenceReportGeometry.objects.filter(occurrence_report=instance).count()
     ):
         # No feature to save and no feature to delete
-        logger.warn(f"OccurrenceReport geometry has no features to save or delete")
+        logger.warn("OccurrenceReport geometry has no features to save or delete")
         return
 
     action = request.data.get("action", None)
 
     geometry_ids = []
     for feature in geometry.get("features"):
-        allowed_geometry_types = ["MultiPolygon", "Polygon", "MultiPoint", "Point"]
+        supported_geometry_types = ["MultiPolygon", "Polygon", "MultiPoint", "Point"]
         geometry_type = feature.get("geometry").get("type")
-        # check if feature is a polygon, continue if not
-        if geometry_type not in allowed_geometry_types:
+        # Check if feature is of a supported type, continue if not
+        if geometry_type not in supported_geometry_types:
             logger.warn(
-                f"OccurrenceReport: {instance} contains a feature that is not a {' or '.join(allowed_geometry_types)}: {feature}"
+                f"OccurrenceReport: {instance} contains a feature that is not a "
+                f"{' or '.join(supported_geometry_types)}: {feature}"
             )
             continue
 
-        srid = feature.get("properties", {}).get("srid", None)
-        # Create a Polygon object from the open layers feature
-        from shapely.geometry import shape, mapping
-        import geojson
+        logger.info(
+            f"Processing OccurrenceReport {instance} geometry feature type: {geometry_type}"
+        )
 
-        geo_json = mapping(geojson.loads(json.dumps(feature)))
-        shape_4326 = shape(geo_json.get("geometry"))
-        GEOSGeometry(shape_4326.wkt)
+        geom_4326 = feature_json_to_geosgeometry(feature)
 
-        original_geometry = geo_json.get("properties", {}).get("original_geometry")
+        original_geometry = feature.get("properties", {}).get("original_geometry")
+        srid_original = original_geometry.get("properties", {}).get("srid", 4326)
+        if not srid_original:
+            raise ValidationError(
+                f"Geometry must have an SRID set: {original_geometry.get('coordinates', [])}"
+            )
+
         if not original_geometry.get("type", None):
             original_geometry["type"] = geometry_type
-        shape_original = shape(original_geometry)
-        srid_original = original_geometry.get("properties", {}).get("srid", 4326)
-        GEOSGeometry(shape_original.wkt, srid=srid_original)
+        feature_json = {"type": "Feature", "geometry": original_geometry}
+        geom_original = feature_json_to_geosgeometry(feature_json, srid_original)
 
-        # TODO: Iterate over GEOSGeometries
-        # ewkb = GEOSGeometry(shape_original.wkt, srid=srid_original)
-        # pp = GEOSGeometry(shape_4326.wkt)
-        # no transformation needed because the geoms should already come in transformed
+        geoms = [(geom_4326, geom_original)]
 
-        polygons = (
-            [Polygon(feature.get("geometry").get("coordinates")[0], srid=srid)]
-            if geometry_type == "Polygon"
-            else (
-                [Polygon(p, srid=srid) for p in feature.get("geometry").get("coordinates")[0]]
-                if geometry_type == "MultiPolygon"
-                else []
-            )
-        )
-        points = (
-            [Point(feature.get("geometry").get("coordinates"), srid=srid)]
-            if geometry_type == "Point"
-            else (
-                [Point(p, srid=srid) for p in feature.get("geometry").get("coordinates")]
-                if geometry_type == "MultiPoint"
-                else []
-            )
-        )
-
-        for pp in polygons + points:
-            ewkb = pp.ewkb
-            if pp.srid != 4326:
-                pp.transform(4326)
-
+        for geom in geoms:
             geometry_data = {
                 "occurrence_report_id": instance.id,
-                "geometry": pp,
-                "original_geometry_ewkb": ewkb,
+                "geometry": geom[0],
+                "original_geometry_ewkb": geom[1].ewkb,
+                # TODO: Add intersects condition
                 # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
             }
             if feature.get("id"):
@@ -157,49 +136,51 @@ def save_geometry(request, instance, geometry_data):
         )
 
 
+@transaction.atomic
 def ocr_proposal_submit(ocr_proposal, request):
-    with transaction.atomic():
-        if ocr_proposal.can_user_edit:
-            ocr_proposal.submitter = request.user.id
-            ocr_proposal.lodgement_date = timezone.now()
-            # if (ocr_proposal.amendment_requests):
-            #     qs = ocr_proposal.amendment_requests.filter(status = "requested")
-            #     if (qs):
-            #         for q in qs:
-            #             q.status = 'amended'
-            #             q.save()
+    if not ocr_proposal.can_user_edit:
+        raise ValidationError(
+            "You can't submit this report at the moment due to the status or a permission issue"
+        )
 
-            # Create a log entry for the proposal
-            ocr_proposal.log_user_action(
-                OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(
-                    ocr_proposal.id
-                ),
-                request,
-            )
-            # Create a log entry for the organisation
-            # proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(ocr_proposal.id),request)
-            applicant_field = getattr(ocr_proposal, ocr_proposal.applicant_field)
-            # TODO handle the error "'EmailUserRO' object has no attribute 'log_user_action'" for below
-            # applicant_field.log_user_action(ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),request)
+    ocr_proposal.submitter = request.user.id
+    ocr_proposal.lodgement_date = timezone.now()
 
-            ret1 = send_submit_email_notification(request, ocr_proposal)
-            ret2 = send_external_submit_email_notification(request, ocr_proposal)
+    # Set the status of any pending amendment requests to 'amended'
+    ocr_proposal.amendment_requests.filter(
+        status=OccurrenceReportAmendmentRequest.STATUS_CHOICE_REQUESTED
+    ).update(status=OccurrenceReportAmendmentRequest.STATUS_CHOICE_AMENDED)
 
-            # cs_proposal.save_form_tabs(request)
-            if ret1 and ret2:
-                ocr_proposal.processing_status = "with_assessor"
-                ocr_proposal.customer_status = "with_assessor"
-                # cs_proposal.documents.all().update(can_delete=False)
-                ocr_proposal.save()
-            else:
-                raise ValidationError(
-                    "An error occurred while submitting occurrence report proposal (Submit email notifications failed)"
-                )
+    # Create a log entry for the proposal
+    ocr_proposal.log_user_action(
+        OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),
+        request,
+    )
 
-            return ocr_proposal
+    # Create a log entry for the user
+    submitter = retrieve_email_user(ocr_proposal.submitter)
+    if submitter:
+        submitter.log_user_action(
+            OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),
+            request,
+        )
 
-        else:
-            raise ValidationError("You can't edit this report at this moment")
+    ret1 = send_submit_email_notification(request, ocr_proposal)
+    ret2 = send_external_submit_email_notification(request, ocr_proposal)
+
+    if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
+        ocr_proposal.processing_status = (
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+        )
+        ocr_proposal.customer_status = OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+        ocr_proposal.documents.all().update(can_delete=False)
+        ocr_proposal.save()
+    else:
+        raise ValidationError(
+            "An error occurred while submitting occurrence report (Submit email notifications failed)"
+        )
+
+    return ocr_proposal
 
 
 def save_document(request, instance, comms_instance, document_type, input_name=None):
@@ -339,7 +320,8 @@ def validate_map_files(request, instance, foreign_key_field=None):
     # Check if all files have the same count
     if not (shp_files.count() == shx_files.count() == dbf_files.count()):
         raise ValidationError(
-            "Please attach at least a .shp, .shx, and .dbf file (the .prj file is optional but recommended) for every shapefile"
+            "Please attach at least a .shp, .shx, and .dbf file "
+            "(the .prj file is optional but recommended) for every shapefile"
         )
 
     # Add the shapefiles to a zip file for archiving purposes

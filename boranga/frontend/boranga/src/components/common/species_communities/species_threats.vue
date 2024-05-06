@@ -16,6 +16,12 @@
                 </div>
             </form>
         </FormSection>
+        <FormSection :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
+            <SpeciesOCCThreats
+            :species_obj="species_community"
+            />
+        </FormSection>
+
         <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="threat_url"></ThreatDetail>
         <div v-if="conservationThreatHistoryId">
             <ConservationThreatHistory
@@ -32,6 +38,8 @@ import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from './add_threat.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import ConservationThreatHistory from '../../internal/species_communities/conservation_threat_history.vue';
+import SpeciesOCCThreats from '@/components/common/species_communities/species_occ_threats.vue';
+
 import {
     constants,
     api_endpoints,
@@ -59,11 +67,12 @@ export default {
                 uuid:0,
                 conservationThreatHistoryId: null,
                 threatBody: "threatBody"+ vm._uid,
+                occThreatBody: "occThreatBody"+ vm._uid,
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 threat_url: api_endpoints.threat,
-                threats_headers:['Number','Category', 'Threat Source', 'Date Observed', 'Threat Agent', 'Comments',
-                                'Current Impact', 'Potential Impact','Action'],
+                threats_headers:['Number','Category', 'Date Observed', 'Threat Agent', 'Comments',
+                                'Current Impact', 'Potential Impact','Threat Source','Action'],
                 threats_options:{
                     autowidth: false,
                     language:{
@@ -80,7 +89,7 @@ export default {
                         "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/threats'),
                         "dataSrc": ''
                     },
-                    order: [],
+                    order: [[0, 'desc']],
                     dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",
@@ -109,10 +118,10 @@ export default {
                             searchable: true,
                             mRender: function(data,type,full){
                                 if(full.visible){
-                                    return full.threat_number;
+                                    return "S" + full.species + " - " + full.threat_number;
                                 }
                                 else{
-                                    return '<s>'+ full.threat_number + '</s>'
+                                    return '<s> S'+ full.species_number + " - " + full.threat_number + '</s>'
                                 }
                             },
 
@@ -127,20 +136,6 @@ export default {
                                 }
                                 else{
                                     return '<s>'+ full.threat_category + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "source",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.source;
-                                }
-                                else{
-                                    return '<s>'+ full.source + '</s>'
                                 }
                             },
 
@@ -212,6 +207,20 @@ export default {
                             },
                         },
                         {
+                            data: "source",
+                            orderable: true,
+                            searchable: true,
+                            mRender: function(data,type,full){
+                                if(full.visible){
+                                    return full.source;
+                                }
+                                else{
+                                    return '<s>'+ full.source + '</s>'
+                                }
+                            },
+
+                        },
+                        {
                             data: "id",
                             mRender:function (data,type,full){
                                 let links = '';
@@ -230,7 +239,10 @@ export default {
                         },
                     ],
                     processing:true,
-                    initComplete: function() {
+                    drawCallback: function() {
+                    helpers.enablePopovers();
+                },
+                initComplete: function() {
                         helpers.enablePopovers();
                         // another option to fix the responsive table overflow css on tab switch
                         // vm.$refs.threats_datatable.vmDataTable.draw('page');
@@ -246,6 +258,7 @@ export default {
             datatable,
             ThreatDetail,
             ConservationThreatHistory,
+            SpeciesOCCThreats,
         },
         computed: {
             isReadOnly: function(){
@@ -399,12 +412,15 @@ export default {
                     var id = $(this).attr('data-reinstate-threat');
                     vm.reinstateThreat(id);
                 });
+                vm.$refs.threats_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
+                });
             },
             refreshFromResponse: function(){
                 this.$refs.threats_datatable.vmDataTable.ajax.reload();
             },
             adjust_table_width: function(){
-                this.$refs.threats_datatable.vmDataTable.columns.adjust().responsive.recalc();
+                if (this.$refs.threats_datatable !== undefined) {this.$refs.threats_datatable.vmDataTable.columns.adjust().responsive.recalc();}
             },
         },
         mounted: function(){

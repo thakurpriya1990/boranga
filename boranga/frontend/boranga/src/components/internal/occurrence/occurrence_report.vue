@@ -2,7 +2,7 @@
     <div v-if="occurrence_report" class="container" id="internal-occurence-report-detail">
         <div class="row">
             <div class="col">
-                <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }}</h3>
+                <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }} - <span class="text-capitalize">{{ display_group_type }}</span></h3>
                 <h4 class="text-muted mb-3">
                     Occurrence:
                     <template v-if="occurrence_report.occurrence">
@@ -17,7 +17,7 @@
             </div>
         </div>
         <div class="row pb-4">
-            <div v-if="!comparing" class="col-md-3">
+            <div class="col-md-3">
 
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="false" class="mb-3" />
@@ -37,16 +37,17 @@
                     <div class="card-body">
                         <div class="mb-2"><strong>Currently assigned to</strong></div>
                         <template v-if="with_approver">
-                            <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
+                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_approve" class="form-select mb-2"
                                 v-model="occurrence_report.assigned_approver">
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
+                                me</a>
                         </template>
                         <template v-else>
-                            <select ref="assigned_officer" :disabled="!hasUserEditMode" class="form-select mb-2"
+                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess" class="form-select mb-2"
                                 v-model="occurrence_report.assigned_officer">
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
@@ -56,13 +57,28 @@
                                 me</a>
                         </template>
                     </div>
-                    <div v-if="isAssignedOfficer" class="card-body border-top">
+                    <div v-if="display_referral_actions" class="card-body border-top">
                         <div class="mb-2"><strong>Referrals</strong></div>
-                        <select class="form-select mb-2" placeholder="Select a referee">
-                            <option value="">Unassigned</option>
-                            <option value="1">User 1</option>
-                        </select>
-                        <a href="">Show referrals</a>
+                        <div class="form-group mb-3">
+                            <select :disabled="!canAction" ref="department_users" class="form-control">
+                            </select>
+                            <template v-if='!sendingReferral'>
+                                <template v-if="selected_referral">
+                                    <label class="control-label mt-3" for="referral_text">Comments</label>
+                                    <textarea class="form-control" name="referral_text" ref="referral_text"
+                                        v-model="referral_text"></textarea>
+                                    <a v-if="canAction" @click.prevent="sendReferral()" class="actionBtn float-end mt-2"
+                                        role="button">Send</a>
+                                </template>
+                            </template>
+                            <template v-else>
+                                <span v-if="canAction" @click.prevent="sendReferral()" disabled
+                                    class="actionBtn text-primary float-end">
+                                    Sending Referral&nbsp;
+                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                </span>
+                            </template>
+                        </div>
                     </div>
                     <div v-if="canAction" class="card-body border-top">
                         <div class="mb-3">
@@ -81,7 +97,7 @@
                                 @click.prevent="proposeDecline">Propose Decline</button>
 
                             <button v-if="display_approve_button" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="">Approve</button>
+                                @click.prevent="approve()">Approve</button>
                             <button v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="decline()">Decline</button>
 
@@ -106,7 +122,7 @@
                         <input type='hidden' name="occurrence_report_id" :value="1" />
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="hasUserEditMode" class="container">
+                                <div v-if="occurrence_report.internal_application" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
@@ -132,7 +148,7 @@
                                             :disbaled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
-                                <div v-else-if="hasUserEditMode" class="container">
+                                <div v-else-if="occurrence_report.internal_application" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
@@ -151,17 +167,26 @@
 
         <AmendmentRequest ref="amendment_request" :occurrence_report_id="occurrence_report.id"
             @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
-        <BackToAssessor ref="back_to_assessor" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
-            @refreshFromResponse="refreshFromResponse"></BackToAssessor>
-        <ProposeAppprove ref="propose_approve" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
-        :group_type_id="occurrence_report.group_type_id"
-            @refreshFromResponse="refreshFromResponse"></ProposeAppprove>
-        <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
-            @refreshFromResponse="refreshFromResponse"></ProposeDecline>
+        <BackToAssessor ref="back_to_assessor" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            @refreshFromResponse="refreshFromResponse">
+        </BackToAssessor>
+        <ProposeAppprove ref="propose_approve" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :group_type_id="occurrence_report.group_type_id" @refreshFromResponse="refreshFromResponse">
+        </ProposeAppprove>
+        <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            @refreshFromResponse="refreshFromResponse">
+        </ProposeDecline>
 
-        <Decline v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id" :occurrence_report_number="occurrence_report.occurrence_report_number"
-        :declined_details="occurrence_report.declined_details"
-            @refreshFromResponse="refreshFromResponse"></Decline>
+        <Decline v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :declined_details="occurrence_report.declined_details" @refreshFromResponse="refreshFromResponse"></Decline>
+        <Approve v-if="display_approve_button && occurrence_report.approval_details" ref="approve" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :approval_details="occurrence_report.approval_details" @refreshFromResponse="refreshFromResponse"></Approve>
+
 
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
@@ -184,6 +209,7 @@ import BackToAssessor from './back_to_assessor.vue'
 import ProposeDecline from './ocr_propose_decline.vue'
 import ProposeAppprove from './ocr_propose_approve.vue'
 import Decline from './ocr_decline.vue'
+import Approve from './ocr_approve.vue'
 
 // import SpeciesSplit from './species_split.vue'
 // import SpeciesCombine from './species_combine.vue'
@@ -203,13 +229,15 @@ export default {
             original_occurrence_report: null,
             initialisedSelects: false,
             form: null,
+            selected_referral: '',
+            referral_text: '',
+            sendingReferral: false,
             savingOccurrenceReport: false,
             saveExitOccurrenceReport: false,
             submitOccurrenceReport: false,
             imageURL: '',
             isSaved: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comparing: false,
         }
     },
     components: {
@@ -223,6 +251,7 @@ export default {
         ProposeDecline,
         ProposeAppprove,
         Decline,
+        Approve,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,
@@ -240,19 +269,13 @@ export default {
             return this.occurrence_report && this.occurrence_report.group_type === "community"
         },
         occurrence_report_form_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                `/api/community/${this.occurrence_report.id}/community_save.json` :
-                `/api/species/${this.occurrence_report.id}/species_save.json`;
-        },
-        occurrence_report_submit_url: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                `community` :
-                `species`;
+            return (this.occurrence_report) ? `/api/occurrence_report/${this.occurrence_report.id}/draft.json` : '';
         },
         display_group_type: function () {
-            let group_type_string = this.occurrence_report.group_type
-            // to Capitalize only first character
-            return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
+            if(this.occurrence_report && this.occurrence_report.group_type){
+                return this.occurrence_report.group_type;
+            }
+            return '';
         },
         display_number: function () {
             return (this.occurrence_report.group_type === "community") ?
@@ -269,6 +292,9 @@ export default {
         },
         display_decline_button: function () {
             return this.with_approver && this.occurrence_report.proposed_decline_status && this.occurrence_report.declined_details
+        },
+        display_referral_actions: function () {
+            return this.occurrence_report && ['With Assessor', 'With Referrer'].includes(this.occurrence_report.processing_status) && this.isAssignedOfficer
         },
         submitter_first_name: function () {
             if (this.occurrence_report && this.occurrence_report.submitter) {
@@ -294,15 +320,6 @@ export default {
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
             return true
-        },
-        hasUserEditMode: function () {
-            // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (['process'].includes(this.$route.query.action)) {
-                return this.occurrence_report && this.occurrence_report.can_user_edit;
-            }
-            else {
-                return false;
-            }
         },
         isAssignedOfficer: function () {
             return this.occurrence_report && this.occurrence_report.assigned_officer == this.occurrence_report.current_assessor.id;
@@ -366,6 +383,9 @@ export default {
         decline: function () {
             this.$refs.decline.isModalOpen = true;
         },
+        approve: function () {
+            this.$refs.approve.isModalOpen = true;
+        },
         save: async function () {
             let vm = this;
             var missing_data = vm.can_submit("");
@@ -380,8 +400,13 @@ export default {
                 return false;
             }
             vm.savingOccurrenceReport = true;
-            let payload = new Object();
-            Object.assign(payload, vm.occurrence_report);
+
+            // add map geometry to the occurrence_report
+            if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
+                vm.occurrence_report.ocr_geometry = vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
+            }
+
+            let payload = { proposal: vm.occurrence_report };
             await vm.$http.post(vm.occurrence_report_form_url, payload).then(res => {
                 swal.fire({
                     title: "Saved",
@@ -433,8 +458,12 @@ export default {
             let vm = this;
             vm.saveError = false;
 
-            let payload = new Object();
-            Object.assign(payload, vm.occurrence_report);
+            // add map geometry to the occurrence_report
+            if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
+                vm.occurrence_report.ocr_geometry = vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
+            }
+
+            let payload = { proposal: vm.occurrence_report };
             const result = await vm.$http.post(vm.occurrence_report_form_url, payload).then(res => {
                 //return true;
             }, err => {
@@ -456,13 +485,13 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.occurrence_report.group_type == 'flora' || vm.occurrence_report.group_type == 'fauna') {
-                if (vm.occurrence_report.taxonomy_id == null || vm.occurrence_report.taxonomy_id == '') {
-                    blank_fields.push('Scientific Name is missing')
+                if (vm.occurrence_report.species_id == null || vm.occurrence_report.species_id == '') {
+                    blank_fields.push(' Scientific Name is missing')
                 }
             }
             else {
-                if (vm.occurrence_report.taxonomy_details.community_name == null || vm.occurrence_report.taxonomy_details.community_name == '') {
-                    blank_fields.push('Community Name is missing')
+                if (vm.occurrence_report.community_id == null || vm.occurrence_report.community_id == '') {
+                    blank_fields.push(' Community Name is missing')
                 }
             }
             if (check_action == 'submit') {
@@ -493,7 +522,7 @@ export default {
             vm.submitOccurrenceReport = true;
             swal.fire({
                 title: "Submit",
-                text: "Are you sure you want to submit this application?",
+                text: "Are you sure you want to submit this occurrence report?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
@@ -504,18 +533,11 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.occurrence_report);
-                        let submit_url = this.occurrence_report.group_type === "community" ?
-                            helpers.add_endpoint_json(api_endpoints.community, vm.occurrence_report.id + '/submit') :
-                            helpers.add_endpoint_json(api_endpoints.species, vm.occurrence_report.id + '/submit')
-                        vm.$http.post(submit_url, payload).then(res => {
+                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report.id + '/submit'), payload).then(res => {
                             vm.occurrence = res.body;
-                            // vm.$router.push({
-                            //     name: 'submit_cs_proposal',
-                            //     params: { occurrence_report: vm.occurrence_report}
-                            // });
                             // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
-                                name: 'internal-species-communities-dash'
+                                name: 'internal-occurrence-dash'
                             });
                         }, err => {
                             swal.fire({
@@ -638,34 +660,148 @@ export default {
         initialiseSelects: function () {
             let vm = this;
             if (!vm.initialisedSelects) {
-                $(vm.$refs.department_users).select2({
-                    minimumInputLength: 2,
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder: "Select Referrer",
-                    ajax: {
-                        url: api_endpoints.users_api + '/get_department_users/',
-                        dataType: 'json',
-                        data: function (params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                            }
-                            return query;
-                        },
-                    },
-                })
-                    .on("select2:select", function (e) {
-                        let data = e.params.data.id;
-                        vm.selected_referral = data;
-                    })
-                    .on("select2:unselect", function (e) {
-                        var selected = $(e.currentTarget);
-                        vm.selected_referral = null;
-                    })
+                vm.initialiseReferreeSelect();
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
+        },
+        sendReferral: function () {
+            let vm = this;
+            let formData = new FormData(vm.form);
+            vm.sendingReferral = true;
+            let data = { 'email': vm.selected_referral, 'text': vm.referral_text };
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assessor_send_referral')), JSON.stringify(data), {
+                emulateJSON: true
+            }).then((response) => {
+                vm.sendingReferral = false;
+                vm.original_occurrence_report = helpers.copyObject(response.body);
+                vm.occurrence_report = response.body;
+                swal.fire({
+                    title: 'Referral Sent',
+                    text: 'The referral has been sent to ' + vm.department_users.find(d => d.email == vm.selected_referral).name,
+                    icon: 'success',
+                    confirmButtonColor: '#226fbb'
+                });
+                $(vm.$refs.department_users).val(null).trigger("change");
+                vm.selected_referral = '';
+                vm.referral_text = '';
+            }, (error) => {
+                console.log(error);
+                swal.fire({
+                    title: 'Referral Error',
+                    text: helpers.apiVueResourceError(error),
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
+                });
+                vm.sendingReferral = false;
+            });
+        },
+        remindReferral: function (r) {
+            let vm = this;
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/remind')).then(response => {
+                vm.original_occurrence_report = helpers.copyObject(response.body);
+                vm.occurrence_report = response.body;
+                swal.fire({
+                    title: 'Referral Reminder',
+                    text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor: '#226fbb'
+                });
+            },
+                error => {
+                    swal.fire({
+                        title: 'Referral Reminder Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
+                });
+        },
+        recallReferral: function (r) {
+            let vm = this;
+            swal.fire({
+                title: "Loading...",
+                //text: "Loading...",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                onOpen: () => {
+                    swal.showLoading()
+                }
+            })
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall')).then(response => {
+                swal.hideLoading();
+                swal.close();
+                vm.original_occurrence_report = helpers.copyObject(response.body);
+                vm.occurrence_report = response.body;
+                swal.fire({
+                    title: 'Referral Recall',
+                    text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor: '#226fbb'
+                });
+            },
+                error => {
+                    swal.fire({
+                        title: 'Referral Recall Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
+                });
+        },
+        resendReferral: function (r) {
+            let vm = this;
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(response => {
+                vm.original_occurrence_report = helpers.copyObject(response.body);
+                vm.occurrence_report = response.body;
+                swal.fire({
+                    title: 'Referral Resent',
+                    text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral).name,
+                    icon: 'success',
+                    confirmButtonColor: '#226fbb'
+                });
+            },
+                error => {
+                    swal.fire({
+                        title: 'Referral Resent Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        confirmButtonColor: '#226fbb'
+                    });
+                });
+        },
+        initialiseReferreeSelect: function () {
+            let vm = this;
+            $(vm.$refs.department_users).select2({
+                minimumInputLength: 2,
+                "theme": "bootstrap-5",
+                allowClear: true,
+                placeholder: "Search for Referree",
+                ajax: {
+                    url: api_endpoints.users_api + '/get_department_users/',
+                    dataType: 'json',
+                    data: function (params) {
+                        var query = {
+                            term: params.term,
+                            type: 'public',
+                        }
+                        return query;
+                    },
+                },
+            })
+                .on("select2:select", function (e) {
+                    let data = e.params.data.id;
+                    vm.selected_referral = data;
+                    vm.$nextTick(() => {
+                        vm.$refs.referral_text.focus();
+                    });
+                })
+                .on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.selected_referral = null;
+                })
         },
         initialiseAssignedOfficerSelect: function (reinit = false) {
             let vm = this;
@@ -769,7 +905,9 @@ export default {
                     vm.occurrence_report = response.body;
                     vm.original_occurrence_report = helpers.copyObject(response.body);
                     vm.updateAssignedOfficerSelect();
-
+                    vm.$nextTick(() => {
+                        vm.initialiseReferreeSelect();
+                    });
                 }, (error) => {
                     vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
                     vm.updateAssignedOfficerSelect();

@@ -6,10 +6,10 @@
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_report_obj.observation_detail.observation_method_id">
                         <option v-for="option in observation_method_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
+                            {{ option.name }}
                         </option>
                     </select>
-                    
+
                 </div>
             </div>
             <div class="row mb-3">
@@ -34,12 +34,14 @@
                 </div>
             </div>
         </FormSection>
-        
+
         <FormSection :formCollapse="false" label="Plant Count" :Index="plantCountBody" v-if="isFlora">
             <PlantCount
                 v-if="isFlora"
-                :occurrence_report_obj="occurrence_report_obj" 
-                id="plantCountDetail" 
+                :plant_count="occurrence_report_obj.plant_count"
+                :is_report=true
+                :occurrence_id="occurrence_report_obj.id"
+                id="plantCountDetail"
                 :is_external="is_external"
                 :isReadOnly="isReadOnly"
                 ref="plantCountDetail">
@@ -49,8 +51,10 @@
         <FormSection :formCollapse="false" label="Animal Observation" :Index="animalObsBody" v-if="isFauna">
             <AnimalObservation
                 v-if="isFauna"
-                :occurrence_report_obj="occurrence_report_obj" 
-                id="animalObservationDetail" 
+                :animal_observation="occurrence_report_obj.animal_observation"
+                :is_report=true
+                :occurrence_id="occurrence_report_obj.id"
+                id="animalObservationDetail"
                 :is_external="is_external"
                 :isReadOnly="isReadOnly"
                 ref="animalObservationDetail">
@@ -195,13 +199,7 @@ export default {
         },
         computed: {
             isReadOnly: function(){
-                let action = this.$route.query.action;
-                if(action === "edit" && this.occurrence_report_obj && this.occurrence_report_obj.assessor_mode.has_assessor_mode){
-                    return false;
-                }
-                else{
-                    return this.occurrence_report_obj.readonly;
-                }
+                return this.occurrence_report_obj.readonly;
             },
         },
         watch:{
@@ -227,7 +225,7 @@ export default {
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
                     swal.fire({
-                        title: 'Error', 
+                        title: 'Error',
                         text: 'Observation details cannot be saved because of the following error: '+text,
                         icon: 'error',
                         confirmButtonColor:'#226fbb',
@@ -253,7 +251,7 @@ export default {
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
                     swal.fire({
-                        title: 'Error', 
+                        title: 'Error',
                         text: 'Identification details cannot be saved because of the following error: '+text,
                         icon: 'error',
                         confirmButtonColor:'#226fbb',
@@ -396,4 +394,3 @@ export default {
         width: 63%;
     }
 </style>
-

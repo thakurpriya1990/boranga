@@ -51,6 +51,18 @@ class InternalView(UserPassesTestMixin, TemplateView):
         return context
 
 
+class PublicView(TemplateView):
+    template_name = "boranga/dash/index.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["dev"] = settings.DEV_STATIC
+        context["dev_url"] = settings.DEV_STATIC_URL
+        if hasattr(settings, "DEV_APP_BUILD_URL") and settings.DEV_APP_BUILD_URL:
+            context["app_build_url"] = settings.DEV_APP_BUILD_URL
+        return context
+
+
 class ExternalView(LoginRequiredMixin, TemplateView):
     template_name = "boranga/dash/index.html"
 
@@ -61,6 +73,10 @@ class ExternalView(LoginRequiredMixin, TemplateView):
         if hasattr(settings, "DEV_APP_BUILD_URL") and settings.DEV_APP_BUILD_URL:
             context["app_build_url"] = settings.DEV_APP_BUILD_URL
         return context
+
+
+class SpeciesView(TemplateView):
+    template_name = "boranga/dash/index.html"
 
 
 class InternalSpeciesView(DetailView):
@@ -139,6 +155,10 @@ class InternalOccurrenceReportView(DetailView):
             return redirect("external-occurrence-report-detail")
         kwargs["form"] = LoginForm
         return super(BorangaRoutingView, self).get(*args, **kwargs)
+
+
+class InternalOccurrenceReportReferralView(TemplateView):
+    template_name = "boranga/dash/index.html"
 
 
 class BorangaRoutingView(TemplateView):
@@ -270,6 +290,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
     else:
         return False
 
+
 def is_authorised_to_access_occurrence_document(request, document_id):
     if is_internal(request):
         # check auth
@@ -332,12 +353,10 @@ def is_authorised_to_access_document(request):
             request, or_document_id
         )
 
-    # occurrence 
+    # occurrence
     o_document_id = get_file_path_id("occurrence", request.path)
     if o_document_id:
-        return is_authorised_to_access_occurrence_document(
-            request, o_document_id
-        )
+        return is_authorised_to_access_occurrence_document(request, o_document_id)
 
     # conservation status
     cs_document_id = get_file_path_id("conservation_status", request.path)
@@ -365,25 +384,30 @@ def is_authorised_to_access_document(request):
 
 
 def getPrivateFile(request):
-    if is_authorised_to_access_document(request):
-        file_name_path = request.path
-        # norm path will convert any traversal or repeat / in to its normalised form
-        full_file_path = os.path.normpath(settings.BASE_DIR + file_name_path)
-        # we then ensure the normalised path is within the BASE_DIR (and the file exists)
-        if full_file_path.startswith(settings.BASE_DIR) and os.path.isfile(
-            full_file_path
-        ):
-            extension = file_name_path.split(".")[-1]
-            the_file = open(full_file_path, "rb")
-            the_data = the_file.read()
-            the_file.close()
-            if extension == "msg":
-                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
-            if extension == "eml":
-                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
 
-            return HttpResponse(
-                the_data, content_type=mimetypes.types_map["." + str(extension)]
-            )
+    file_name_path = request.path
+    # norm path will convert any traversal or repeat / in to its normalised form
+    full_file_path = os.path.normpath(settings.BASE_DIR + file_name_path)
+
+    if not full_file_path.startswith(settings.BASE_DIR):
+        return HttpResponse("Unauthorized", status=401)
+
+    if not os.path.isfile(full_file_path):
+        return HttpResponse("Not Found", status=404)
+
+    if is_authorised_to_access_document(request):
+        # we then ensure the normalised path is within the BASE_DIR (and the file exists)
+        extension = file_name_path.split(".")[-1]
+        the_file = open(full_file_path, "rb")
+        the_data = the_file.read()
+        the_file.close()
+        if extension == "msg":
+            return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+        if extension == "eml":
+            return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+
+        return HttpResponse(
+            the_data, content_type=mimetypes.types_map["." + str(extension)]
+        )
 
     return HttpResponse("Unauthorized", status=401)

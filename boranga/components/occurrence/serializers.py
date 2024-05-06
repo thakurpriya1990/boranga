@@ -9,19 +9,21 @@ from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
 )
-from boranga.components.main.utils import get_geometry_source, wkb_to_geojson
+from boranga.components.main.spatial_utils import wkb_to_geojson
+from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
-    AnimalObservation,
-    AssociatedSpecies,
-    FireHistory,
-    HabitatComposition,
-    HabitatCondition,
-    Identification,
     LandForm,
     Location,
-    ObservationDetail,
-    ObserverDetail,
+    OCCAnimalObservation,
+    OCCAssociatedSpecies,
     OCCConservationThreat,
+    OCCFireHistory,
+    OCCHabitatComposition,
+    OCCHabitatCondition,
+    OCCIdentification,
+    OCCObservationDetail,
+    OCCObserverDetail,
+    OCCPlantCount,
     Occurrence,
     OccurrenceDocument,
     OccurrenceLogEntry,
@@ -33,10 +35,19 @@ from boranga.components.occurrence.models import (
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
     OccurrenceReportLogEntry,
+    OccurrenceReportReferral,
     OccurrenceReportUserAction,
     OccurrenceUserAction,
+    OCRAnimalObservation,
+    OCRAssociatedSpecies,
     OCRConservationThreat,
-    PlantCount,
+    OCRFireHistory,
+    OCRHabitatComposition,
+    OCRHabitatCondition,
+    OCRIdentification,
+    OCRObservationDetail,
+    OCRObserverDetail,
+    OCRPlantCount,
     PrimaryDetectionMethod,
     ReproductiveMaturity,
     SecondarySign,
@@ -60,6 +71,18 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     can_user_edit = serializers.SerializerMethodField()
     user_edit_mode = serializers.SerializerMethodField()
 
+    habitat_composition = serializers.SerializerMethodField()
+    habitat_condition = serializers.SerializerMethodField()
+    fire_history = serializers.SerializerMethodField()
+    associated_species = serializers.SerializerMethodField()
+    observation_detail = serializers.SerializerMethodField()
+    plant_count = serializers.SerializerMethodField()
+    animal_observation = serializers.SerializerMethodField()
+    identification = serializers.SerializerMethodField()
+    label = serializers.SerializerMethodField()
+    model_name = serializers.SerializerMethodField()
+    occurrence_reports = serializers.SerializerMethodField()
+
     class Meta:
         model = Occurrence
         fields = "__all__"
@@ -73,6 +96,75 @@ class OccurrenceSerializer(serializers.ModelSerializer):
             request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
         )
         return obj.has_user_edit_mode(user)
+
+    def get_habitat_composition(self, obj):
+        try:
+            qs = OCCHabitatComposition.objects.get(occurrence=obj)
+            return OCCHabitatCompositionSerializer(qs).data
+        except OCCHabitatComposition.DoesNotExist:
+            return OCCHabitatCompositionSerializer().data
+
+    def get_habitat_condition(self, obj):
+        try:
+            qs = OCCHabitatCondition.objects.get(occurrence=obj)
+            return OCCHabitatConditionSerializer(qs).data
+        except OCCHabitatCondition.DoesNotExist:
+            return OCCHabitatConditionSerializer().data
+
+    def get_fire_history(self, obj):
+        try:
+            qs = OCCFireHistory.objects.get(occurrence=obj)
+            return OCCFireHistorySerializer(qs).data
+        except OCCFireHistory.DoesNotExist:
+            return OCCFireHistorySerializer().data
+
+    def get_associated_species(self, obj):
+        try:
+            qs = OCCAssociatedSpecies.objects.get(occurrence=obj)
+            return OCCAssociatedSpeciesSerializer(qs).data
+        except OCCAssociatedSpecies.DoesNotExist:
+            return OCCAssociatedSpeciesSerializer().data
+
+    def get_observation_detail(self, obj):
+        try:
+            qs = OCCObservationDetail.objects.get(occurrence=obj)
+            return OCCObservationDetailSerializer(qs).data
+        except OCCObservationDetail.DoesNotExist:
+            return OCCObservationDetailSerializer().data
+
+    def get_plant_count(self, obj):
+        try:
+            qs = OCCPlantCount.objects.get(occurrence=obj)
+            return OCCPlantCountSerializer(qs).data
+        except OCCPlantCount.DoesNotExist:
+            return OCCPlantCountSerializer().data
+
+    def get_animal_observation(self, obj):
+        try:
+            qs = OCCAnimalObservation.objects.get(occurrence=obj)
+            return OCCAnimalObservationSerializer(qs).data
+        except OCCAnimalObservation.DoesNotExist:
+            return OCCAnimalObservationSerializer().data
+
+    def get_identification(self, obj):
+        try:
+            qs = OCCIdentification.objects.get(occurrence=obj)
+            return OCCIdentificationSerializer(qs).data
+        except OCCIdentification.DoesNotExist:
+            return OCCIdentificationSerializer().data
+
+    def get_label(self, obj):
+        return "Occurrence"
+
+    def get_model_name(self, obj):
+        return "occurrence"
+
+    def get_occurrence_reports(self, obj):
+        serializer = ListOccurrenceReportSerializer(
+            obj.occurrence_reports.all(), many=True, context=self.context
+        )
+        return serializer.data
+
 
 class ListOccurrenceReportSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
@@ -236,10 +328,10 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         )
 
 
-class HabitatCompositionSerializer(serializers.ModelSerializer):
+class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = HabitatComposition
+        model = OCRHabitatComposition
         fields = (
             "id",
             "occurrence_report_id",
@@ -265,10 +357,10 @@ class HabitatCompositionSerializer(serializers.ModelSerializer):
         )
 
 
-class HabitatConditionSerializer(serializers.ModelSerializer):
+class OCRHabitatConditionSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = HabitatCondition
+        model = OCRHabitatCondition
         fields = (
             "id",
             "occurrence_report_id",
@@ -281,11 +373,11 @@ class HabitatConditionSerializer(serializers.ModelSerializer):
         )
 
 
-class FireHistorySerializer(serializers.ModelSerializer):
+class OCRFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")
 
     class Meta:
-        model = FireHistory
+        model = OCRFireHistory
         fields = (
             "id",
             "occurrence_report_id",
@@ -295,10 +387,10 @@ class FireHistorySerializer(serializers.ModelSerializer):
         )
 
 
-class AssociatedSpeciesSerializer(serializers.ModelSerializer):
+class OCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = AssociatedSpecies
+        model = OCRAssociatedSpecies
         fields = (
             "id",
             "occurrence_report_id",
@@ -306,10 +398,10 @@ class AssociatedSpeciesSerializer(serializers.ModelSerializer):
         )
 
 
-class ObservationDetailSerializer(serializers.ModelSerializer):
+class OCRObservationDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ObservationDetail
+        model = OCRObservationDetail
         fields = (
             "id",
             "occurrence_report_id",
@@ -319,10 +411,10 @@ class ObservationDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class PlantCountSerializer(serializers.ModelSerializer):
+class OCRPlantCountSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = PlantCount
+        model = OCRPlantCount
         fields = (
             "id",
             "occurrence_report_id",
@@ -359,10 +451,10 @@ class PlantCountSerializer(serializers.ModelSerializer):
         )
 
 
-class AnimalObservationSerializer(serializers.ModelSerializer):
+class OCRAnimalObservationSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = AnimalObservation
+        model = OCRAnimalObservation
         fields = (
             "id",
             "occurrence_report_id",
@@ -411,10 +503,10 @@ class AnimalObservationSerializer(serializers.ModelSerializer):
         )
 
 
-class IdentificationSerializer(serializers.ModelSerializer):
+class OCRIdentificationSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Identification
+        model = OCRIdentification
         fields = (
             "id",
             "occurrence_report_id",
@@ -807,59 +899,59 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_habitat_composition(self, obj):
         try:
-            qs = HabitatComposition.objects.get(occurrence_report=obj)
-            return HabitatCompositionSerializer(qs).data
-        except HabitatComposition.DoesNotExist:
-            return HabitatCompositionSerializer().data
+            qs = OCRHabitatComposition.objects.get(occurrence_report=obj)
+            return OCRHabitatCompositionSerializer(qs).data
+        except OCRHabitatComposition.DoesNotExist:
+            return OCRHabitatCompositionSerializer().data
 
     def get_habitat_condition(self, obj):
         try:
-            qs = HabitatCondition.objects.get(occurrence_report=obj)
-            return HabitatConditionSerializer(qs).data
-        except HabitatCondition.DoesNotExist:
-            return HabitatConditionSerializer().data
+            qs = OCRHabitatCondition.objects.get(occurrence_report=obj)
+            return OCRHabitatConditionSerializer(qs).data
+        except OCRHabitatCondition.DoesNotExist:
+            return OCRHabitatConditionSerializer().data
 
     def get_fire_history(self, obj):
         try:
-            qs = FireHistory.objects.get(occurrence_report=obj)
-            return FireHistorySerializer(qs).data
-        except FireHistory.DoesNotExist:
-            return FireHistorySerializer().data
+            qs = OCRFireHistory.objects.get(occurrence_report=obj)
+            return OCRFireHistorySerializer(qs).data
+        except OCRFireHistory.DoesNotExist:
+            return OCRFireHistorySerializer().data
 
     def get_associated_species(self, obj):
         try:
-            qs = AssociatedSpecies.objects.get(occurrence_report=obj)
-            return AssociatedSpeciesSerializer(qs).data
-        except AssociatedSpecies.DoesNotExist:
-            return AssociatedSpeciesSerializer().data
+            qs = OCRAssociatedSpecies.objects.get(occurrence_report=obj)
+            return OCRAssociatedSpeciesSerializer(qs).data
+        except OCRAssociatedSpecies.DoesNotExist:
+            return OCRAssociatedSpeciesSerializer().data
 
     def get_observation_detail(self, obj):
         try:
-            qs = ObservationDetail.objects.get(occurrence_report=obj)
-            return ObservationDetailSerializer(qs).data
-        except ObservationDetail.DoesNotExist:
-            return ObservationDetailSerializer().data
+            qs = OCRObservationDetail.objects.get(occurrence_report=obj)
+            return OCRObservationDetailSerializer(qs).data
+        except OCRObservationDetail.DoesNotExist:
+            return OCRObservationDetailSerializer().data
 
     def get_plant_count(self, obj):
         try:
-            qs = PlantCount.objects.get(occurrence_report=obj)
-            return PlantCountSerializer(qs).data
-        except PlantCount.DoesNotExist:
-            return PlantCountSerializer().data
+            qs = OCRPlantCount.objects.get(occurrence_report=obj)
+            return OCRPlantCountSerializer(qs).data
+        except OCRPlantCount.DoesNotExist:
+            return OCRPlantCountSerializer().data
 
     def get_animal_observation(self, obj):
         try:
-            qs = AnimalObservation.objects.get(occurrence_report=obj)
-            return AnimalObservationSerializer(qs).data
-        except AnimalObservation.DoesNotExist:
-            return AnimalObservationSerializer().data
+            qs = OCRAnimalObservation.objects.get(occurrence_report=obj)
+            return OCRAnimalObservationSerializer(qs).data
+        except OCRAnimalObservation.DoesNotExist:
+            return OCRAnimalObservationSerializer().data
 
     def get_identification(self, obj):
         try:
-            qs = Identification.objects.get(occurrence_report=obj)
-            return IdentificationSerializer(qs).data
-        except Identification.DoesNotExist:
-            return IdentificationSerializer().data
+            qs = OCRIdentification.objects.get(occurrence_report=obj)
+            return OCRIdentificationSerializer(qs).data
+        except OCRIdentification.DoesNotExist:
+            return OCRIdentificationSerializer().data
 
     def get_label(self, obj):
         return "Occurrence Report"
@@ -899,6 +991,19 @@ class CreateOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         )
 
 
+class CreateOccurrenceSerializer(BaseOccurrenceReportSerializer):
+    class Meta:
+        model = Occurrence
+        fields = (
+            "id",
+            "submitter",
+        )
+        read_only_fields = (
+            "id",
+            "submitter",
+        )
+
+
 class OccurrenceReportDeclinedDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceReportDeclinedDetails
@@ -906,8 +1011,28 @@ class OccurrenceReportDeclinedDetailsSerializer(serializers.ModelSerializer):
 
 
 class OccurrenceReportApprovalDetailsSerializer(serializers.ModelSerializer):
+    occurrence_number = serializers.CharField(
+        source="occurrence.occurrence_number", allow_null=True
+    )
+    occurrence_name = serializers.CharField(
+        source="occurrence.occurrence_name", allow_null=True
+    )
+    officer_name = serializers.CharField(read_only=True, allow_null=True)
+
     class Meta:
         model = OccurrenceReportApprovalDetails
+        fields = "__all__"
+
+
+class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportReferral
+        fields = "__all__"
+
+
+class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceReportReferral
         fields = "__all__"
 
 
@@ -922,6 +1047,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     declined_details = OccurrenceReportDeclinedDetailsSerializer(
         read_only=True, allow_null=True
     )
+    latest_referrals = OccurrenceReportReferralSerializer(
+        many=True, read_only=True, allow_null=True
+    )
+    readonly = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -971,7 +1100,16 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "proposed_decline_status",
             "declined_details",
             "approval_details",
+            "internal_application",
+            "latest_referrals",
         )
+
+    def get_readonly(self, obj):
+        if not obj.internal_application:
+            return True
+
+        request = self.context["request"]
+        return not request.user.id == obj.submitter
 
     def get_can_user_assess(self, obj):
         request = self.context["request"]
@@ -1002,7 +1140,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         }
 
 
-class SaveHabitatCompositionSerializer(serializers.ModelSerializer):
+class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
     land_form = serializers.MultipleChoiceField(
@@ -1015,7 +1153,7 @@ class SaveHabitatCompositionSerializer(serializers.ModelSerializer):
     drainage_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
-        model = HabitatComposition
+        model = OCRHabitatComposition
         fields = (
             "id",
             "occurrence_report_id",
@@ -1038,13 +1176,13 @@ class SaveHabitatCompositionSerializer(serializers.ModelSerializer):
         ]
 
 
-class SaveHabitatConditionSerializer(serializers.ModelSerializer):
+class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
     # occurrence_report_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
-        model = HabitatCondition
+        model = OCRHabitatCondition
         fields = (
             "id",
             "occurrence_report_id",
@@ -1057,7 +1195,7 @@ class SaveHabitatConditionSerializer(serializers.ModelSerializer):
         )
 
 
-class SaveFireHistorySerializer(serializers.ModelSerializer):
+class SaveOCRFireHistorySerializer(serializers.ModelSerializer):
     # occurrence_report_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     # write_only removed from below as the serializer will not return that field in serializer.data
     last_fire_estimate = serializers.DateField(
@@ -1067,7 +1205,7 @@ class SaveFireHistorySerializer(serializers.ModelSerializer):
     intensity_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
-        model = FireHistory
+        model = OCRFireHistory
         fields = (
             "id",
             "occurrence_report_id",
@@ -1077,11 +1215,11 @@ class SaveFireHistorySerializer(serializers.ModelSerializer):
         )
 
 
-class SaveAssociatedSpeciesSerializer(serializers.ModelSerializer):
+class SaveOCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
-        model = AssociatedSpecies
+        model = OCRAssociatedSpecies
         fields = (
             "id",
             "occurrence_report_id",
@@ -1089,12 +1227,12 @@ class SaveAssociatedSpeciesSerializer(serializers.ModelSerializer):
         )
 
 
-class SaveObservationDetailSerializer(serializers.ModelSerializer):
+class SaveOCRObservationDetailSerializer(serializers.ModelSerializer):
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
     observation_method_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
-        model = ObservationDetail
+        model = OCRObservationDetail
         fields = (
             "id",
             "occurrence_report_id",
@@ -1104,7 +1242,7 @@ class SaveObservationDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class SavePlantCountSerializer(serializers.ModelSerializer):
+class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
     plant_count_method_id = serializers.IntegerField(required=False, allow_null=True)
     plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
@@ -1112,7 +1250,7 @@ class SavePlantCountSerializer(serializers.ModelSerializer):
     plant_condition_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
-        model = PlantCount
+        model = OCRPlantCount
         fields = (
             "id",
             "occurrence_report_id",
@@ -1149,7 +1287,7 @@ class SavePlantCountSerializer(serializers.ModelSerializer):
         )
 
 
-class SaveAnimalObservationSerializer(serializers.ModelSerializer):
+class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
@@ -1164,7 +1302,7 @@ class SaveAnimalObservationSerializer(serializers.ModelSerializer):
     death_reason_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
-        model = AnimalObservation
+        model = OCRAnimalObservation
         fields = (
             "id",
             "occurrence_report_id",
@@ -1204,7 +1342,7 @@ class SaveAnimalObservationSerializer(serializers.ModelSerializer):
         ]
 
 
-class SaveIdentificationSerializer(serializers.ModelSerializer):
+class SaveOCRIdentificationSerializer(serializers.ModelSerializer):
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
     identification_certainty_id = serializers.IntegerField(
         required=False, allow_null=True
@@ -1214,7 +1352,7 @@ class SaveIdentificationSerializer(serializers.ModelSerializer):
     permit_type_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
-        model = Identification
+        model = OCRIdentification
         fields = (
             "id",
             "occurrence_report_id",
@@ -1259,10 +1397,10 @@ class SaveLocationSerializer(serializers.ModelSerializer):
         )
 
 
-class ObserverDetailSerializer(serializers.ModelSerializer):
+class OCRObserverDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ObserverDetail
+        model = OCRObserverDetail
         fields = (
             "id",
             "occurrence_report",
@@ -1483,6 +1621,7 @@ class OCRConservationThreatSerializer(serializers.ModelSerializer):
     current_impact_name = serializers.SerializerMethodField()
     potential_impact_name = serializers.SerializerMethodField()
     potential_threat_onset_name = serializers.SerializerMethodField()
+    occurrence_report = OccurrenceReportSerializer()
 
     class Meta:
         model = OCRConservationThreat
@@ -1598,6 +1737,8 @@ class OCCConservationThreatSerializer(serializers.ModelSerializer):
     current_impact_name = serializers.SerializerMethodField()
     potential_impact_name = serializers.SerializerMethodField()
     potential_threat_onset_name = serializers.SerializerMethodField()
+    original_report = serializers.SerializerMethodField()
+    original_threat = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCConservationThreat
@@ -1619,6 +1760,8 @@ class OCCConservationThreatSerializer(serializers.ModelSerializer):
             "source",
             "occurrence",
             "visible",
+            "original_report",
+            "original_threat",
         )
         read_only_fields = (
             "id",
@@ -1645,6 +1788,16 @@ class OCCConservationThreatSerializer(serializers.ModelSerializer):
         if obj.potential_threat_onset:
             return obj.potential_threat_onset.name
 
+    def get_original_report(self, obj):
+        if obj.occurrence_report_threat:
+            return (
+                obj.occurrence_report_threat.occurrence_report.occurrence_report_number
+            )
+
+    def get_original_threat(self, obj):
+        if obj.occurrence_report_threat:
+            return obj.occurrence_report_threat.threat_number
+
 
 class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
 
@@ -1656,6 +1809,9 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
     )
     date_observed = serializers.DateField(
         format="%Y-%m-%d", required=False, allow_null=True
+    )
+    occurrence_report_threat_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
     )
 
     class Meta:
@@ -1670,6 +1826,7 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
             "potential_impact",
             "potential_threat_onset",
             "date_observed",
+            "occurrence_report_threat_id",
         )
         read_only_fields = ("id",)
 
@@ -1701,9 +1858,12 @@ class BackToAssessorSerializer(serializers.Serializer):
 
 class ProposeApproveSerializer(serializers.Serializer):
     occurrence_id = serializers.IntegerField(allow_null=True)
+    new_occurrence_name = serializers.CharField(allow_blank=True)
     effective_from_date = serializers.DateField()
     effective_to_date = serializers.DateField()
     details = serializers.CharField()
+
+
 class SaveOccurrenceSerializer(serializers.ModelSerializer):
     species_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
@@ -1727,3 +1887,439 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
+
+class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCHabitatComposition
+        fields = (
+            "id",
+            "occurrence_id",
+            "land_form",
+            "rock_type_id",
+            "loose_rock_percent",
+            "soil_type_id",
+            "soil_colour_id",
+            "soil_condition_id",
+            "drainage_id",
+            "water_quality",
+            "habitat_notes",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["land_form"] = serializers.MultipleChoiceField(
+            choices=[
+                (land_form_instance.id, land_form_instance.name)
+                for land_form_instance in LandForm.objects.all()
+            ],
+            allow_blank=False,
+        )
+
+
+class OCCHabitatConditionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCHabitatCondition
+        fields = (
+            "id",
+            "occurrence_id",
+            "pristine",
+            "excellent",
+            "very_good",
+            "good",
+            "degraded",
+            "completely_degraded",
+        )
+
+
+class OCCFireHistorySerializer(serializers.ModelSerializer):
+    last_fire_estimate = serializers.DateField(format="%Y-%m")
+
+    class Meta:
+        model = OCCFireHistory
+        fields = (
+            "id",
+            "occurrence_id",
+            "last_fire_estimate",
+            "intensity_id",
+            "comment",
+        )
+
+
+class OCCAssociatedSpeciesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCAssociatedSpecies
+        fields = (
+            "id",
+            "occurrence_id",
+            "related_species",
+        )
+
+
+class OCCObservationDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCObservationDetail
+        fields = (
+            "id",
+            "occurrence_id",
+            "observation_method_id",
+            "area_surveyed",
+            "survey_duration",
+        )
+
+
+class OCCPlantCountSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCPlantCount
+        fields = (
+            "id",
+            "occurrence_id",
+            "plant_count_method_id",
+            "plant_count_accuracy_id",
+            "counted_subject_id",
+            "plant_condition_id",
+            "estimated_population_area",
+            "quadrats_present",
+            "quadrats_data_attached",
+            "quadrats_surveyed",
+            "individual_quadrat_area",
+            "total_quadrat_area",
+            "flowering_plants_per",
+            "clonal_reproduction_present",
+            "vegetative_state_present",
+            "flower_bud_present",
+            "flower_present",
+            "immature_fruit_present",
+            "ripe_fruit_present",
+            "dehisced_fruit_present",
+            "pollinator_observation",
+            "comment",
+            "simple_alive",
+            "simple_dead",
+            "detailed_alive_mature",
+            "detailed_dead_mature",
+            "detailed_alive_juvenile",
+            "detailed_dead_juvenile",
+            "detailed_alive_seedling",
+            "detailed_dead_seedling",
+            "detailed_alive_unknown",
+            "detailed_dead_unknown",
+        )
+
+
+class OCCAnimalObservationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCAnimalObservation
+        fields = (
+            "id",
+            "occurrence_id",
+            "primary_detection_method",
+            "secondary_sign",
+            "reproductive_maturity",
+            "animal_health_id",
+            "death_reason_id",
+            "total_count",
+            "distinctive_feature",
+            "action_taken",
+            "action_required",
+            "observation_detail_comment",
+            "alive_adult",
+            "dead_adult",
+            "alive_juvenile",
+            "dead_juvenile",
+            "alive_pouch_young",
+            "dead_pouch_young",
+            "alive_unsure",
+            "dead_unsure",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["primary_detection_method"] = serializers.MultipleChoiceField(
+            choices=[
+                (primary_det_instance.id, primary_det_instance.name)
+                for primary_det_instance in PrimaryDetectionMethod.objects.all()
+            ],
+            allow_blank=False,
+        )
+        self.fields["secondary_sign"] = serializers.MultipleChoiceField(
+            choices=[
+                (sec_sign_instance.id, sec_sign_instance.name)
+                for sec_sign_instance in SecondarySign.objects.all()
+            ],
+            allow_blank=False,
+        )
+        self.fields["reproductive_maturity"] = serializers.MultipleChoiceField(
+            choices=[
+                (rep_maturity_instance.id, rep_maturity_instance.name)
+                for rep_maturity_instance in ReproductiveMaturity.objects.all()
+            ],
+            allow_blank=False,
+        )
+
+
+class OCCIdentificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCIdentification
+        fields = (
+            "id",
+            "occurrence_id",
+            "id_confirmed_by",
+            "identification_certainty_id",
+            "sample_type_id",
+            "sample_destination_id",
+            "permit_type_id",
+            "permit_id",
+            "collector_number",
+            "barcode_number",
+            "identification_comment",
+        )
+
+
+class OCCObserverDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCObserverDetail
+        fields = (
+            "id",
+            "occurrence",
+            "observer_name",
+            "role",
+            "contact",
+            "organisation",
+            "main_observer",
+        )
+
+
+class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):
+    # write_only removed from below as the serializer will not return that field in serializer.data
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+    land_form = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    rock_type_id = serializers.IntegerField(required=False, allow_null=True)
+    soil_type_id = serializers.IntegerField(required=False, allow_null=True)
+    soil_colour_id = serializers.IntegerField(required=False, allow_null=True)
+    soil_condition_id = serializers.IntegerField(required=False, allow_null=True)
+    drainage_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCHabitatComposition
+        fields = (
+            "id",
+            "occurrence_id",
+            "land_form",
+            "rock_type_id",
+            "loose_rock_percent",
+            "soil_type_id",
+            "soil_colour_id",
+            "soil_condition_id",
+            "drainage_id",
+            "water_quality",
+            "habitat_notes",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["land_form"].choices = [
+            (land_form_instance.id, land_form_instance.name)
+            for land_form_instance in LandForm.objects.all()
+        ]
+
+
+class SaveOCCHabitatConditionSerializer(serializers.ModelSerializer):
+    # occurrence_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    # write_only removed from below as the serializer will not return that field in serializer.data
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCHabitatCondition
+        fields = (
+            "id",
+            "occurrence_id",
+            "pristine",
+            "excellent",
+            "very_good",
+            "good",
+            "degraded",
+            "completely_degraded",
+        )
+
+
+class SaveOCCFireHistorySerializer(serializers.ModelSerializer):
+    # occurrence_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
+    # write_only removed from below as the serializer will not return that field in serializer.data
+    last_fire_estimate = serializers.DateField(
+        format="%Y-%m", input_formats=["%Y-%m"], required=False, allow_null=True
+    )
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+    intensity_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCFireHistory
+        fields = (
+            "id",
+            "occurrence_id",
+            "last_fire_estimate",
+            "intensity_id",
+            "comment",
+        )
+
+
+class SaveOCCAssociatedSpeciesSerializer(serializers.ModelSerializer):
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCAssociatedSpecies
+        fields = (
+            "id",
+            "occurrence_id",
+            "related_species",
+        )
+
+
+class SaveOCCObservationDetailSerializer(serializers.ModelSerializer):
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+    observation_method_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCObservationDetail
+        fields = (
+            "id",
+            "occurrence_id",
+            "observation_method_id",
+            "area_surveyed",
+            "survey_duration",
+        )
+
+
+class SaveOCCPlantCountSerializer(serializers.ModelSerializer):
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+    plant_count_method_id = serializers.IntegerField(required=False, allow_null=True)
+    plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
+    counted_subject_id = serializers.IntegerField(required=False, allow_null=True)
+    plant_condition_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCPlantCount
+        fields = (
+            "id",
+            "occurrence_id",
+            "plant_count_method_id",
+            "plant_count_accuracy_id",
+            "counted_subject_id",
+            "plant_condition_id",
+            "estimated_population_area",
+            "quadrats_present",
+            "quadrats_data_attached",
+            "quadrats_surveyed",
+            "individual_quadrat_area",
+            "total_quadrat_area",
+            "flowering_plants_per",
+            "clonal_reproduction_present",
+            "vegetative_state_present",
+            "flower_bud_present",
+            "flower_present",
+            "immature_fruit_present",
+            "ripe_fruit_present",
+            "dehisced_fruit_present",
+            "pollinator_observation",
+            "comment",
+            "simple_alive",
+            "simple_dead",
+            "detailed_alive_mature",
+            "detailed_dead_mature",
+            "detailed_alive_juvenile",
+            "detailed_dead_juvenile",
+            "detailed_alive_seedling",
+            "detailed_dead_seedling",
+            "detailed_alive_unknown",
+            "detailed_dead_unknown",
+        )
+
+
+class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+    primary_detection_method = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    secondary_sign = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    reproductive_maturity = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    animal_health_id = serializers.IntegerField(required=False, allow_null=True)
+    death_reason_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCAnimalObservation
+        fields = (
+            "id",
+            "occurrence_id",
+            "primary_detection_method",
+            "secondary_sign",
+            "reproductive_maturity",
+            "animal_health_id",
+            "death_reason_id",
+            "total_count",
+            "distinctive_feature",
+            "action_taken",
+            "action_required",
+            "observation_detail_comment",
+            "alive_adult",
+            "dead_adult",
+            "alive_juvenile",
+            "dead_juvenile",
+            "alive_pouch_young",
+            "dead_pouch_young",
+            "alive_unsure",
+            "dead_unsure",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["primary_detection_method"].choices = [
+            (primary_det_instance.id, primary_det_instance.name)
+            for primary_det_instance in PrimaryDetectionMethod.objects.all()
+        ]
+        self.fields["secondary_sign"].choices = [
+            (sec_sign_instance.id, sec_sign_instance.name)
+            for sec_sign_instance in SecondarySign.objects.all()
+        ]
+        self.fields["reproductive_maturity"].choices = [
+            (rep_maturity_instance.id, rep_maturity_instance.name)
+            for rep_maturity_instance in ReproductiveMaturity.objects.all()
+        ]
+
+
+class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+    identification_certainty_id = serializers.IntegerField(
+        required=False, allow_null=True
+    )
+    sample_type_id = serializers.IntegerField(required=False, allow_null=True)
+    sample_destination_id = serializers.IntegerField(required=False, allow_null=True)
+    permit_type_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCIdentification
+        fields = (
+            "id",
+            "occurrence_id",
+            "id_confirmed_by",
+            "identification_certainty_id",
+            "sample_type_id",
+            "sample_destination_id",
+            "permit_type_id",
+            "permit_id",
+            "collector_number",
+            "barcode_number",
+            "identification_comment",
+        )

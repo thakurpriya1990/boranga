@@ -27,6 +27,7 @@
                                     <DisplayHistory
                                         ref="display_history"
                                         :key="historyId"
+                                        :primary_model_number="'OCR'+occurrenceReportId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
                                         :primary_model="'OccurrenceReport'"
@@ -86,8 +87,9 @@ export default {
                 'Number',
                 'Date Modified',
                 'Modified By',
+                'Occurrence',
                 'Community Name',
-                'Previous Name',
+                //'Previous Name',
                 'Status',
                 'Action',
             ];
@@ -226,7 +228,7 @@ export default {
                 name: 'community_name',
             };
         },
-        column_previous_name: function () {
+        /*column_previous_name: function () {
             return {
                 data: 'data.data.communitytaxonomy.fields.previous_name', 
                 defaultContent: '',
@@ -263,6 +265,22 @@ export default {
                 },
                 name: 'previous_name', //_name',
             };
+        },*/
+        column_occurrence: function () {
+            return {
+                
+                data: 'data.data.occurrencereport.fields.occurrence',
+                defaultContent: '',
+                orderable: true,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if (full.data.occurrencereport.fields.occurrence)
+                        return "OCC"+full.data.occurrencereport.fields.occurrence;
+                    return ""
+                },
+                name: 'occurrence',
+            };
         },
         column_processing_status: function () {
             return {
@@ -297,8 +315,9 @@ export default {
                 vm.column_sequence,
                 vm.column_revision_date,
                 vm.column_revision_user,
+                vm.column_occurrence,
                 vm.column_community_name,
-                vm.column_previous_name,
+                //vm.column_previous_name,
                 vm.column_processing_status,
                 vm.column_action,
             ];
@@ -339,6 +358,9 @@ export default {
                          "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                 },
@@ -367,6 +389,9 @@ export default {
                 var id = $(this).attr('data-view-history');
                 var seq = $(this).attr('data-view-history-seq');
                 vm.viewHistory(id,seq);
+            });
+            vm.$refs.history_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         }
     },

@@ -71,7 +71,7 @@ def validate_threat_request(request):
         raise serializers.ValidationError("Date observed value invalid - must be on or before the current date")
     return True
 
-#def add_business_days(from_date, number_of_days):
+# def add_business_days(from_date, number_of_days):
 #    """ given from_date and number_of_days, returns the next weekday date i.e. excludes Sat/Sun """
 #    to_date = from_date
 #    while number_of_days:
@@ -80,7 +80,7 @@ def validate_threat_request(request):
 #            number_of_days -= 1
 #    return to_date
 #
-#def get_next_weekday(from_date):
+# def get_next_weekday(from_date):
 #    """ given from_date and number_of_days, returns the next weekday date i.e. excludes Sat/Sun """
 #    if from_date.weekday() == 5: # i.e. Sat
 #        from_date += timedelta(2)
@@ -120,29 +120,3 @@ def get_geometry_source(geometry_obj):
             source = "Assessor"
 
     return source
-
-def wkb_to_geojson(wkb):
-    from django.contrib.gis.geos import GEOSGeometry
-    from shapely.wkt import loads
-    from shapely.geometry import mapping
-
-    geos_geometry = GEOSGeometry(wkb)
-    shapely_geometry = loads(geos_geometry.wkt)
-    geo_json = mapping(shapely_geometry)
-    geo_json["properties"] = {"srid": geos_geometry.srid}
-
-    return geo_json
-
-def transform_json_geometry(json_geom, from_srid, to_srid):
-    from django.contrib.gis.geos import Polygon, Point
-
-    if json_geom.get("type") == "Polygon":
-        geom = Polygon(json_geom.get("coordinates"), srid=from_srid)
-    elif json_geom.get("type") == "Point":
-        geom = Point(json_geom.get("coordinates"), srid=from_srid)
-    else:
-        return json_geom
-
-    geom.transform(to_srid)
-
-    return geom.json

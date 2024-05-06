@@ -5,7 +5,7 @@ import reversion
 from django.conf import settings
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -26,6 +26,7 @@ from boranga.components.main.models import (
 )
 from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
+    send_approve_email_notification,
     send_approver_approve_email_notification,
     send_approver_back_to_assessor_email_notification,
     send_approver_decline_email_notification,
@@ -47,6 +48,7 @@ from boranga.components.species_and_communities.models import (
     ThreatAgent,
     ThreatCategory,
 )
+from boranga.helpers import clone_model
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR
 
@@ -566,6 +568,7 @@ class OccurrenceReport(RevisionedMixin):
         reason = details.get("reason")
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_DECLINED
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DECLINED
         self.save()
 
         # Log proposal action
@@ -601,6 +604,7 @@ class OccurrenceReport(RevisionedMixin):
                 )
 
         details = validated_data.get("details", None)
+        new_occurrence_name = validated_data.get("new_occurrence_name", None)
         effective_from_date = validated_data.get("effective_from_date")
         effective_to_date = validated_data.get("effective_to_date")
         OccurrenceReportApprovalDetails.objects.update_or_create(
@@ -608,6 +612,7 @@ class OccurrenceReport(RevisionedMixin):
             defaults={
                 "officer": request.user.id,
                 "occurrence": occurrence,
+                "new_occurrence_name": new_occurrence_name,
                 "effective_from_date": effective_from_date,
                 "effective_to_date": effective_to_date,
                 "details": details,
@@ -629,6 +634,50 @@ class OccurrenceReport(RevisionedMixin):
         )
 
         send_approver_approve_email_notification(request, self)
+
+    @transaction.atomic
+    def approve(self, request):
+        if not self.can_assess(request.user):
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
+            raise ValidationError(
+                f"You cannot approve Occurrence Report {self} as the processing status is not "
+                f"{OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER}"
+            )
+
+        if not self.approval_details:
+            raise ValidationError(
+                f"Approval details are required to approve Occurrence Report {self}"
+            )
+
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_APPROVED
+
+        if self.approval_details.occurrence:
+            occurrence = self.approval_details.occurrence
+        else:
+            if not self.approval_details.new_occurrence_name:
+                raise ValidationError(
+                    "New occurrence name is required to approve Occurrence Report"
+                )
+            occurrence = Occurrence.clone_from_occurrence_report(self)
+            occurrence.occurrence_name = self.approval_details.new_occurrence_name
+            occurrence.save()
+
+        self.occurrence = occurrence
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_APPROVE.format(
+                self.occurrence_report_number,
+                request.user.get_full_name(),
+            ),
+            request,
+        )
+
+        send_approve_email_notification(request, self)
 
     @transaction.atomic
     def back_to_assessor(self, request, validated_data):
@@ -655,6 +704,10 @@ class OccurrenceReport(RevisionedMixin):
 
         send_approver_back_to_assessor_email_notification(request, self, reason)
 
+    @property
+    def latest_referrals(self):
+        return self.referrals.all()[: settings.RECENT_REFERRAL_COUNT]
+
 
 class OccurrenceReportDeclinedDetails(models.Model):
     occurrence_report = models.OneToOneField(
@@ -672,9 +725,10 @@ class OccurrenceReportApprovalDetails(models.Model):
     occurrence_report = models.OneToOneField(
         OccurrenceReport, on_delete=models.CASCADE, related_name="approval_details"
     )
-    occurrence = models.OneToOneField(
+    occurrence = models.ForeignKey(
         "Occurrence", on_delete=models.PROTECT, null=True, blank=True
     )  # If being added to an existing occurrence
+    new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
     effective_from_date = models.DateField(null=True, blank=True)
     effective_to_date = models.DateField(null=True, blank=True)
@@ -682,6 +736,13 @@ class OccurrenceReportApprovalDetails(models.Model):
 
     class Meta:
         app_label = "boranga"
+
+    @property
+    def officer_name(self):
+        if not self.officer:
+            return None
+
+        return retrieve_email_user(self.officer).get_full_name()
 
 
 class OccurrenceReportLogEntry(CommunicationsLogEntry):
@@ -731,7 +792,7 @@ class OccurrenceReportUserAction(UserAction):
     )
     ACTION_UNASSIGN_APPROVER = "Unassign approver from occurrence report proposal {}"
     ACTION_DECLINE = "Occurrence Report {} has been declined. Reason: {}"
-    ACTION_APPROVE_PROPOSAL_ = "Approve occurrence report  proposal {}"
+    ACTION_APPROVE = "Occurrence Report {} has been approved by {}"
     ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
@@ -810,10 +871,17 @@ class OccurrenceReportProposalRequest(models.Model):
 
     class Meta:
         app_label = "boranga"
+        ordering = ["id"]
 
 
 class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
-    STATUS_CHOICES = (("requested", "Requested"), ("amended", "Amended"))
+    STATUS_CHOICE_REQUESTED = "requested"
+    STATUS_CHOICE_AMENDED = "amended"
+
+    STATUS_CHOICES = (
+        (STATUS_CHOICE_REQUESTED, "Requested"),
+        (STATUS_CHOICE_AMENDED, "Amended"),
+    )
 
     status = models.CharField(
         "Status", max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
@@ -824,6 +892,7 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
 
     class Meta:
         app_label = "boranga"
+        ordering = ["id"]
 
     @transaction.atomic
     def generate_amendment(self, request):
@@ -940,7 +1009,13 @@ class OccurrenceReportReferralDocument(Document):
 
 
 class OccurrenceReportReferral(models.Model):
-    SENT_CHOICES = ((1, "Sent From Assessor"), (2, "Sent From Referral"))
+    SENT_CHOICE_FROM_ASSESSOR = 1
+    SENT_CHOICE_FROM_REFERRAL = 2
+
+    SENT_CHOICES = (
+        (SENT_CHOICE_FROM_ASSESSOR, "Sent From Assessor"),
+        (SENT_CHOICE_FROM_REFERRAL, "Sent From Referral"),
+    )
     PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
     PROCESSING_STATUS_RECALLED = "recalled"
     PROCESSING_STATUS_COMPLETED = "completed"
@@ -950,7 +1025,7 @@ class OccurrenceReportReferral(models.Model):
         (PROCESSING_STATUS_COMPLETED, "Completed"),
     )
     lodged_on = models.DateTimeField(auto_now_add=True)
-    ocurrence_report = models.ForeignKey(
+    occurrence_report = models.ForeignKey(
         OccurrenceReport, related_name="referrals", on_delete=models.CASCADE
     )
     sent_by = models.IntegerField()  # EmailUserRO
@@ -988,13 +1063,6 @@ class OccurrenceReportReferral(models.Model):
             self.occurrence_report.id, self.id
         )
 
-    # Methods
-    @property
-    def latest_referrals(self):
-        return OccurrenceReportReferral.objects.filter(
-            sent_by=self.referral, occurrence_report=self.occurrence_report
-        )[:2]
-
     @property
     def can_be_completed(self):
         # Referral cannot be completed until second level referral sent by referral has been completed/recalled
@@ -1025,21 +1093,17 @@ class OccurrenceReportReferral(models.Model):
             ),
             request,
         )
-        # Create a log entry for the organisation
-        applicant_field = getattr(
-            self.occurrence_report, self.occurrence_report.applicant_field
-        )
-        applicant_field = retrieve_email_user(applicant_field)
 
-        # Create a log entry for the applicant
-        applicant_field.log_user_action(
-            OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
-                self.id,
-                self.occurrence_report.occurrence_report_number,
-                f"{self.referral_as_email_user.get_full_name()}",
-            ),
-            request,
-        )
+        # Create a log entry for the submitter
+        if self.occurrence_report.submitter:
+            submitter = retrieve_email_user(self.occurrence_report.submitter)
+            submitter.log_user_action(
+                OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
+                    self.id,
+                    self.occurrence_report.occurrence_report_number,
+                ),
+                request,
+            )
 
         # send email
         send_occurrence_report_referral_email_notification(
@@ -1053,11 +1117,12 @@ class OccurrenceReportReferral(models.Model):
         if not self.occurrence_report.can_assess(request.user):
             raise exceptions.OccurrenceReportNotAuthorized()
 
-        self.processing_status = "recalled"
+        self.processing_status = self.PROCESSING_STATUS_RECALLED
         self.save()
+
         send_occurrence_report_referral_recall_email_notification(self, request)
 
-        # TODO Log OccurrenceReport proposal action
+        # Create a log entry for the occurrence report
         self.occurrence_report.log_user_action(
             OccurrenceReportUserAction.RECALL_REFERRAL.format(
                 self.id,
@@ -1066,26 +1131,29 @@ class OccurrenceReportReferral(models.Model):
             request,
         )
 
-        # TODO log organisation action
-        self.proposal.applicant.log_user_action(
-            OccurrenceReportUserAction.RECALL_REFERRAL.format(
-                self.id, self.proposal.lodgement_number
-            ),
-            request,
-        )
+        # Create a log entry for the submitter
+        if self.occurrence_report.submitter:
+            submitter = retrieve_email_user(self.occurrence_report.submitter)
+            submitter.log_user_action(
+                OccurrenceReportUserAction.RECALL_REFERRAL.format(
+                    self.id,
+                    self.occurrence_report.occurrence_report_number,
+                ),
+                request,
+            )
 
     @transaction.atomic
     def resend(self, request):
         if not self.occurrence_report.can_assess(request.user):
             raise exceptions.OccurrenceReportNotAuthorized()
 
-        self.processing_status = "with_referral"
-        self.occurrence_report.processing_status = "with_referral"
+        self.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
+        self.occurrence_report.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
         self.occurrence_report.save()
-        self.sent_from = 1
+
         self.save()
 
-        # Create a log entry for the proposal
+        # Create a log entry for the occurrence report
         self.occurrence_report.log_user_action(
             OccurrenceReportUserAction.ACTION_RESEND_REFERRAL_TO.format(
                 self.id,
@@ -1098,8 +1166,16 @@ class OccurrenceReportReferral(models.Model):
             request,
         )
 
-        # Create a log entry for the organisation
-        # self.proposal.applicant.log_user_action(OccurrenceReportUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+        # Create a log entry for the submitter
+        if self.occurrence_report.submitter:
+            submitter = retrieve_email_user(self.occurrence_report.submitter)
+            submitter.log_user_action(
+                OccurrenceReportUserAction.RESEND_REFERRAL.format(
+                    self.id,
+                    self.occurrence_report.occurrence_report_number,
+                ),
+                request,
+            )
 
         # send email
         send_occurrence_report_referral_email_notification(self, request)
@@ -1107,98 +1183,82 @@ class OccurrenceReportReferral(models.Model):
     @transaction.atomic
     def send_referral(self, request, referral_email, referral_text):
         referral_email = referral_email.lower()
+        if self.processing_status not in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+        ]:
+            raise exceptions.OccurrenceReportReferralCannotBeSent()
+
         if (
-            self.occurrence_report.processing_status
+            not self.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
         ):
-            if request.user.id != self.referral:
-                raise exceptions.ReferralNotAuthorized()
+            self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+            self.save()
 
-            if self.sent_from != 1:
-                raise exceptions.ReferralCanNotSend()
+        referral = None
 
-            self.occurrence_report.processing_status = (
-                OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+        # Check if the user is in ledger
+        try:
+            referee = EmailUser.objects.get(email__icontains=referral_email)
+        except EmailUser.DoesNotExist:
+            raise ValidationError(
+                "The user you want to send the referral to does not exist in the ledger database"
             )
 
-            self.occurrence_report.save()
-            referral = None
-
-            # Check if the user is in ledger
-            try:
-                user = EmailUser.objects.get(email__icontains=referral_email)
-            except EmailUser.DoesNotExist:
-                # Validate if it is a deparment user
-                department_user = get_department_user(referral_email)
-                if not department_user:
-                    raise ValidationError(
-                        "The user you want to send the referral to is not a member of the department"
-                    )
-                # Check if the user is in ledger or create
-                user, created = EmailUser.objects.get_or_create(
-                    email=department_user["email"].lower()
-                )
-                if created:
-                    user.first_name = department_user["given_name"]
-                    user.last_name = department_user["surname"]
-                    user.save()
-            qs = OccurrenceReportReferral.objects.filter(
-                sent_by=user.id, occurrence_report=self.occurrence_report
-            )
-            if qs:
-                raise ValidationError("You cannot send referral to this user")
-            try:
-                OccurrenceReportReferral.objects.get(
-                    referral=user.id,
-                    occurrence_report=self.occurrence_report,
-                )
-                raise ValidationError("A referral has already been sent to this user")
-
-            except OccurrenceReportReferral.DoesNotExist:
-                # Create Referral
-                referral = OccurrenceReportReferral.objects.create(
-                    occurrence_report=self.occurrence_report,
-                    referral=user.id,
-                    sent_by=request.user.id,
-                    sent_from=2,
-                    text=referral_text,
-                )
-
-            # Create a log entry for the proposal
-            self.occurrence_report.log_user_action(
-                OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
-                    referral.id,
-                    self.occurrence_report.occurrence_report_number,
-                    f"{user.get_full_name()}({user.email})",
-                ),
-                request,
+        # Validate if it is a deparment user
+        if not get_department_user(referral_email):
+            raise ValidationError(
+                "The user you want to send the referral to is not a member of the department"
             )
 
-            # Create a log entry for the applicant
-            self.proposal.applicant.log_user_action(
-                OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
-                    referral.id,
-                    self.proposal.lodgement_number,
-                    f"{user.get_full_name()}({user.email})",
-                ),
-                request,
-            )
+        # Check if the referral has already been sent to this user
+        if OccurrenceReportReferral.objects.filter(
+            referral=referee.id, occurrence_report=self
+        ).exists():
+            raise ValidationError("A referral has already been sent to this user")
 
-            # send email
-            send_occurrence_report_referral_email_notification(referral, request)
-        else:
-            raise exceptions.OccurrenceReportReferralCannotBeSent()
+        # Check if the user sending the referral is a referee themselves
+        sent_from = self.SENT_CHOICE_FROM_ASSESSOR
+        if OccurrenceReportReferral.objects.filter(
+            occurrence_report=self,
+            referral=request.user.id,
+        ).exists():
+            sent_from = self.SENT_CHOICE_FROM_REFERRAL
+
+        # Create Referral
+        referral = OccurrenceReportReferral.objects.create(
+            occurrence_report=self,
+            referral=referee.id,
+            sent_by=request.user.id,
+            sent_from=sent_from,
+            text=referral_text,
+            assigned_officer=request.user.id,  # TODO should'nt use assigned officer as per das
+        )
+
+        # Create a log entry for the proposal
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
+                referral.id,
+                self.occurrence_report_number,
+                f"{referee.get_full_name()}({referee.email})",
+            ),
+            request,
+        )
+
+        # send email
+        send_occurrence_report_referral_email_notification(referral, request)
 
     @transaction.atomic
     def complete(self, request):
         if request.user.id != self.referral:
             raise exceptions.ReferralNotAuthorized()
 
-        self.processing_status = "completed"
+        self.processing_status = self.PROCESSING_STATUS_COMPLETED
         self.save()
 
         outstanding = self.occurrence_report.referrals.filter(
-            processing_status="with_referral"
+            processing_status=self.PROCESSING_STATUS_WITH_REFERRAL
         )
         if len(outstanding) == 0:
             self.occurrence_report.processing_status = (
@@ -1232,11 +1292,11 @@ class OccurrenceReportReferral(models.Model):
         send_occurrence_report_referral_complete_email_notification(self, request)
 
     def can_assess_referral(self, user):
-        return self.processing_status == "with_referral"
+        return self.processing_status == self.PROCESSING_STATUS_WITH_REFERRAL
 
     @property
     def can_be_processed(self):
-        return self.processing_status == "with_referral"
+        return self.processing_status == self.PROCESSING_STATUS_WITH_REFERRAL
 
 
 class Datum(models.Model):
@@ -1360,13 +1420,16 @@ class OccurrenceReportGeometryManager(models.Manager):
 class OccurrenceReportGeometry(models.Model):
     objects = OccurrenceReportGeometryManager()
 
+    EXTENT = (112.5, -35.5, 129.0, -13.5)
+
     occurrence_report = models.ForeignKey(
         OccurrenceReport,
         on_delete=models.CASCADE,
         null=True,
         related_name="ocr_geometry",
     )
-    geometry = gis_models.GeometryField(blank=True, null=True)
+    # Extents of WA
+    geometry = gis_models.GeometryField(extent=EXTENT, blank=True, null=True)
     original_geometry_ewkb = models.BinaryField(
         blank=True, null=True, editable=True
     )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
@@ -1386,9 +1449,17 @@ class OccurrenceReportGeometry(models.Model):
     def save(self, *args, **kwargs):
         if (
             self.occurrence_report.group_type.name == GroupType.GROUP_TYPE_FAUNA
-            and self.polygon
+            and type(self.geometry).__name__ in ["Polygon", "MultiPolygon"]
         ):
             raise ValidationError("Fauna occurrence reports cannot have polygons")
+
+        if not self.geometry.within(
+            GEOSGeometry(Polygon.from_bbox(self.EXTENT), srid=4326)
+        ):
+            raise ValidationError(
+                "A geometry is not within the extent of Western Australia"
+            )
+
         super().save(*args, **kwargs)
 
     @property
@@ -1410,7 +1481,7 @@ class OccurrenceReportGeometry(models.Model):
         return None
 
 
-class ObserverDetail(models.Model):
+class OCRObserverDetail(models.Model):
     """
     Observer data  for occurrence report
 
@@ -1570,7 +1641,7 @@ class SoilCondition(models.Model):
         return str(self.name)
 
 
-class HabitatComposition(models.Model):
+class OCRHabitatComposition(models.Model):
     """
     Habitat data  for occurrence report
 
@@ -1615,7 +1686,7 @@ class HabitatComposition(models.Model):
         return str(self.occurrence_report)  # TODO: is the most appropriate?\
 
 
-class HabitatCondition(models.Model):
+class OCRHabitatCondition(models.Model):
     """
     Habitat Condition data for occurrence report
 
@@ -1696,7 +1767,7 @@ class Intensity(models.Model):
         return str(self.name)
 
 
-class FireHistory(models.Model):
+class OCRFireHistory(models.Model):
     """
     Fire History data for occurrence report
 
@@ -1725,7 +1796,7 @@ class FireHistory(models.Model):
         return str(self.occurrence_report)
 
 
-class AssociatedSpecies(models.Model):
+class OCRAssociatedSpecies(models.Model):
     """
     Associated Species data for occurrence report
 
@@ -1771,7 +1842,7 @@ class ObservationMethod(models.Model):
         return str(self.name)
 
 
-class ObservationDetail(models.Model):
+class OCRObservationDetail(models.Model):
     """
     Observation Details data for occurrence report
 
@@ -1884,7 +1955,7 @@ class PlantCondition(models.Model):
         return str(self.name)
 
 
-class PlantCount(models.Model):
+class OCRPlantCount(models.Model):
     """
     Plant Count data for occurrence report
 
@@ -2057,7 +2128,7 @@ class SecondarySign(models.Model):
         return str(self.name)
 
 
-class AnimalObservation(models.Model):
+class OCRAnimalObservation(models.Model):
     """
     Animal Observation data for occurrence report
 
@@ -2196,7 +2267,7 @@ class PermitType(models.Model):
         return str(self.name)
 
 
-class Identification(models.Model):
+class OCRIdentification(models.Model):
     """
     Identification data for occurrence report
 
@@ -2411,7 +2482,7 @@ class OCRConservationThreat(RevisionedMixin):
 
     @property
     def source(self):
-        return self.occurrence_report.id
+        return self.occurrence_report.occurrence_report_number
 
 
 class WildStatus(models.Model):
@@ -2426,6 +2497,7 @@ class WildStatus(models.Model):
     def __str__(self):
         return str(self.name)
 
+
 class OccurrenceSource(models.Model):
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
 
@@ -2437,6 +2509,7 @@ class OccurrenceSource(models.Model):
 
     def __str__(self):
         return str(self.name)
+
 
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
@@ -2526,6 +2599,7 @@ class Occurrence(RevisionedMixin):
         indexes = [
             models.Index(fields=["group_type"]),
             models.Index(fields=["species"]),
+            models.Index(fields=["community"]),
         ]
         app_label = "boranga"
 
@@ -2554,33 +2628,33 @@ class Occurrence(RevisionedMixin):
         """
         :return: True if the application is in one of the editable status.
         """
-        user_editable_state = ['draft',]
+        user_editable_state = [
+            "draft",
+        ]
         return self.processing_status in user_editable_state
-    
-    def has_user_edit_mode(self,user):
-        officer_view_state = ['draft','historical']
+
+    def has_user_edit_mode(self, user):
+        officer_view_state = ["draft", "historical"]
         if self.processing_status in officer_view_state:
             return False
         else:
             return (
-                user.id in self.get_species_processor_group().get_system_group_member_ids() #TODO determine which group this should be (maybe this one is fine?)
+                user.id
+                in self.get_species_processor_group().get_system_group_member_ids()
+                # TODO determine which group this should be (maybe this one is fine?)
             )
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
 
-    def get_related_occurrence_reports(self,**kwargs):
-        
+    def get_related_occurrence_reports(self, **kwargs):
+
         return OccurrenceReport.objects.filter(occurrence=self)
-    
+
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
         if filter_type == "all":
-            related_field_names = [
-                "species",
-                "community",
-                "occurrence_report"
-            ]
+            related_field_names = ["species", "community", "occurrence_report"]
         else:
             related_field_names = [
                 filter_type,
@@ -2615,6 +2689,123 @@ class Occurrence(RevisionedMixin):
         # serializer = RelatedItemsSerializer(return_list, many=True)
         # return serializer.data
         return return_list
+
+    @classmethod
+    @transaction.atomic
+    def clone_from_occurrence_report(self, occurrence_report):
+        occurrence = Occurrence()
+
+        occurrence.group_type = occurrence_report.group_type
+
+        occurrence.species = occurrence_report.species
+        occurrence.community = occurrence_report.community
+
+        occurrence.effective_from = occurrence_report.effective_from
+        occurrence.effective_to = occurrence_report.effective_to
+
+        occurrence.review_due_date = occurrence_report.review_due_date
+        occurrence.review_date = occurrence_report.review_date
+        occurrence.reviewed_by = occurrence_report.reviewed_by
+        occurrence.review_status = occurrence_report.review_status
+
+        occurrence.save()
+
+        # Clone all the associated models
+        habitat_composition = clone_model(
+            OCRHabitatComposition,
+            OCCHabitatComposition,
+            occurrence_report.habitat_composition,
+        )
+        if habitat_composition:
+            habitat_composition.occurrence = occurrence
+            habitat_composition.save()
+
+        habitat_condition = clone_model(
+            OCRHabitatCondition,
+            OCCHabitatCondition,
+            occurrence_report.habitat_condition,
+        )
+        if habitat_condition:
+            habitat_condition.occurrence = occurrence
+            habitat_condition.save()
+
+        fire_history = clone_model(
+            OCRFireHistory, OCCFireHistory, occurrence_report.fire_history
+        )
+        clone_model(
+            OCRAssociatedSpecies,
+            OCCAssociatedSpecies,
+            occurrence_report.associated_species,
+        )
+        if fire_history:
+            fire_history.occurrence = occurrence
+            fire_history.save()
+
+        observation_detail = clone_model(
+            OCRObservationDetail,
+            OCCObservationDetail,
+            occurrence_report.observation_detail,
+        )
+        if observation_detail:
+            observation_detail.occurrence = occurrence
+            observation_detail.save()
+
+        plant_count = clone_model(
+            OCRPlantCount, OCCPlantCount, occurrence_report.plant_count
+        )
+        if plant_count:
+            plant_count.occurrence = occurrence
+            plant_count.save()
+
+        animal_observation = clone_model(
+            OCRAnimalObservation,
+            OCCAnimalObservation,
+            occurrence_report.animal_observation,
+        )
+        if animal_observation:
+            animal_observation.occurrence = occurrence
+            animal_observation.save()
+
+        identification = clone_model(
+            OCRIdentification, OCCIdentification, occurrence_report.identification
+        )
+        if identification:
+            identification.occurrence = occurrence
+            identification.save()
+
+        # Clone the threats
+        for threat in occurrence_report.ocr_threats.all():
+            occ_threat = clone_model(
+                OCRConservationThreat, OCCConservationThreat, threat
+            )
+            if occ_threat:
+                occ_threat.occurrence = occurrence
+                occ_threat.occurrence_report_threat = threat
+                occ_threat.save()
+
+        # Clone the documents
+        for doc in occurrence_report.documents.all():
+            occ_doc = clone_model(OccurrenceReportDocument, OccurrenceDocument, doc)
+            if occ_doc:
+                occ_doc.occurrence = occurrence
+                occ_doc.save()
+
+        # Clone the shapefiles
+        for shp_doc in occurrence_report.shapefile_documents.all():
+            occ_shp_doc = clone_model(
+                OccurrenceReportShapefileDocument,
+                OccurrenceReportShapefileDocument,
+                doc,
+            )
+            if occ_shp_doc:
+                occ_shp_doc.occurrence = occurrence
+                occ_shp_doc.save()
+
+        # TODO: Once occurrence has it's own geometry field, clone the geometry here
+
+        # TODO: Make sure everything else is cloned once OCR/OCC sections are finalised
+
+        return occurrence
 
 
 class OccurrenceLogEntry(CommunicationsLogEntry):
@@ -2748,6 +2939,40 @@ class OccurrenceDocument(Document):
         self.save(*args, **kwargs)
 
 
+# TODO keep for now, remove if not needed (depends on what requirements are for OCR/OCC location)
+class OCCObserverDetail(models.Model):
+    """
+    Observer data  for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.ForeignKey(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="observer_detail",
+    )
+    observer_name = models.CharField(max_length=250, blank=True, null=True)
+    role = models.CharField(max_length=250, blank=True, null=True)
+    contact = models.CharField(max_length=250, blank=True, null=True)
+    organisation = models.CharField(max_length=250, blank=True, null=True)
+    main_observer = models.BooleanField(null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+        unique_together = (
+            "observer_name",
+            "occurrence",
+        )
+
+    def __str__(self):
+        return str(self.occurrence)  # TODO: is the most appropriate?
+
+
 class OCCConservationThreat(RevisionedMixin):
     """
     Threat for an occurrence in a particular location.
@@ -2769,6 +2994,16 @@ class OCCConservationThreat(RevisionedMixin):
         blank=True,
         related_name="occ_threats",
     )
+
+    # original ocr, if any
+    occurrence_report_threat = models.ForeignKey(
+        OCRConservationThreat,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="original_report_threat",
+    )
+
     threat_number = models.CharField(max_length=9, blank=True, default="")
     threat_category = models.ForeignKey(
         ThreatCategory, on_delete=models.CASCADE, default=None, null=True, blank=True
@@ -2797,6 +3032,10 @@ class OCCConservationThreat(RevisionedMixin):
 
     class Meta:
         app_label = "boranga"
+        unique_together = (
+            "occurrence",
+            "occurrence_report_threat",
+        )
 
     def __str__(self):
         return str(self.id)  # TODO: is the most appropriate?
@@ -2812,7 +3051,395 @@ class OCCConservationThreat(RevisionedMixin):
 
     @property
     def source(self):
-        return self.occurrence.id
+        if self.occurrence_report_threat:
+            return (
+                self.occurrence_report_threat.occurrence_report.occurrence_report_number
+            )
+        return self.occurrence.occurrence_number
+
+
+class OCCHabitatComposition(models.Model):
+    """
+    Habitat data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="habitat_composition",
+    )
+    land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    rock_type = models.ForeignKey(
+        RockType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    loose_rock_percent = models.IntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)]
+    )
+    soil_type = models.ForeignKey(
+        SoilType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    soil_colour = models.ForeignKey(
+        SoilColour, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    soil_condition = models.ForeignKey(
+        SoilCondition, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    drainage = models.ForeignKey(
+        Drainage, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    water_quality = models.CharField(max_length=500, null=True, blank=True)
+    habitat_notes = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)  # TODO: is the most appropriate?\
+
+
+class OCCHabitatCondition(models.Model):
+    """
+    Habitat Condition data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="habitat_condition",
+    )
+    pristine = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    excellent = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    very_good = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    good = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    degraded = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    completely_degraded = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCFireHistory(models.Model):
+    """
+    Fire History data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="fire_history",
+    )
+    last_fire_estimate = models.DateField(null=True, blank=True)
+    intensity = models.ForeignKey(
+        Intensity, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    comment = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCAssociatedSpecies(models.Model):
+    """
+    Associated Species data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="associated_species",
+    )
+    related_species = models.TextField(blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCObservationDetail(models.Model):
+    """
+    Observation Details data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="observation_detail",
+    )
+    observation_method = models.ForeignKey(
+        ObservationMethod, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    area_surveyed = models.IntegerField(null=True, blank=True, default=0)
+    survey_duration = models.IntegerField(null=True, blank=True, default=0)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCPlantCount(models.Model):
+    """
+    Plant Count data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="plant_count",
+    )
+    plant_count_method = models.ForeignKey(
+        PlantCountMethod, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    plant_count_accuracy = models.ForeignKey(
+        PlantCountAccuracy, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    counted_subject = models.ForeignKey(
+        CountedSubject, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    plant_condition = models.ForeignKey(
+        PlantCondition, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    estimated_population_area = models.IntegerField(null=True, blank=True, default=0)
+
+    detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_seedling = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_seedling = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_unknown = models.IntegerField(null=True, blank=True, default=0)
+    detailed_dead_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    simple_alive = models.IntegerField(null=True, blank=True, default=0)
+    simple_dead = models.IntegerField(null=True, blank=True, default=0)
+
+    quadrats_present = models.BooleanField(null=True, blank=True)
+    quadrats_data_attached = models.BooleanField(null=True, blank=True)
+    quadrats_surveyed = models.IntegerField(null=True, blank=True, default=0)
+    individual_quadrat_area = models.IntegerField(null=True, blank=True, default=0)
+    total_quadrat_area = models.IntegerField(null=True, blank=True, default=0)
+    flowering_plants_per = models.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+
+    clonal_reproduction_present = models.BooleanField(null=True, blank=True)
+    vegetative_state_present = models.BooleanField(null=True, blank=True)
+    flower_bud_present = models.BooleanField(null=True, blank=True)
+    flower_present = models.BooleanField(null=True, blank=True)
+    immature_fruit_present = models.BooleanField(null=True, blank=True)
+    ripe_fruit_present = models.BooleanField(null=True, blank=True)
+    dehisced_fruit_present = models.BooleanField(null=True, blank=True)
+    pollinator_observation = models.CharField(max_length=1000, null=True, blank=True)
+    comment = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCAnimalObservation(models.Model):
+    """
+    Animal Observation data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="animal_observation",
+    )
+    primary_detection_method = MultiSelectField(
+        max_length=250, blank=True, choices=[], null=True
+    )
+    reproductive_maturity = MultiSelectField(
+        max_length=250, blank=True, choices=[], null=True
+    )
+    animal_health = models.ForeignKey(
+        AnimalHealth, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    death_reason = models.ForeignKey(
+        DeathReason, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    secondary_sign = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+
+    total_count = models.IntegerField(null=True, blank=True, default=0)
+    distinctive_feature = models.CharField(max_length=1000, null=True, blank=True)
+    action_taken = models.CharField(max_length=1000, null=True, blank=True)
+    action_required = models.CharField(max_length=1000, null=True, blank=True)
+    observation_detail_comment = models.CharField(
+        max_length=1000, null=True, blank=True
+    )
+
+    alive_adult = models.IntegerField(null=True, blank=True, default=0)
+    dead_adult = models.IntegerField(null=True, blank=True, default=0)
+    alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
+    alive_pouch_young = models.IntegerField(null=True, blank=True, default=0)
+    dead_pouch_young = models.IntegerField(null=True, blank=True, default=0)
+    alive_unsure = models.IntegerField(null=True, blank=True, default=0)
+    dead_unsure = models.IntegerField(null=True, blank=True, default=0)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCIdentification(models.Model):
+    """
+    Identification data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="identification",
+    )
+    id_confirmed_by = models.CharField(max_length=1000, null=True, blank=True)
+    identification_certainty = models.ForeignKey(
+        IdentificationCertainty, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    sample_type = models.ForeignKey(
+        SampleType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    sample_destination = models.ForeignKey(
+        SampleDestination, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    permit_type = models.ForeignKey(
+        PermitType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    permit_id = models.CharField(max_length=500, null=True, blank=True)
+    collector_number = models.CharField(max_length=500, null=True, blank=True)
+    barcode_number = models.CharField(max_length=500, null=True, blank=True)
+    identification_comment = models.TextField(null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCRExternalRefereeInvite(models.Model):
+    email = models.EmailField()
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    datetime_sent = models.DateTimeField(null=True, blank=True)
+    datetime_first_logged_in = models.DateTimeField(null=True, blank=True)
+    occurrence_report = models.ForeignKey(
+        OccurrenceReport,
+        related_name="external_referee_invites",
+        on_delete=models.CASCADE,
+    )
+    sent_by = models.IntegerField()
+    invite_text = models.TextField(blank=True)
+    archived = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "External Occurrence Report Referral"
+        verbose_name_plural = "External Occurrence Report Referrals"
+
+    def __str__(self):
+        return_str = f"{self.first_name} {self.last_name} ({self.email})"
+        if self.archived:
+            return_str += " - Archived"
+        return return_str
+
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
 
 # Occurrence Report Document
@@ -2831,4 +3458,4 @@ reversion.register(OccurrenceDocument)
 reversion.register(OCCConservationThreat)
 
 # Occurrence
-reversion.register(Occurrence, follow=["species", "community"])
+reversion.register(Occurrence, follow=["species", "community", "occurrence_reports"])

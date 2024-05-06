@@ -1,0 +1,15 @@
+{%  extends 'boranga/emails/base_email.txt' %}
+
+{%  block content %}
+    {% if reminder %}
+        This is a reminder for a referral for Occurrence Report <strong>{{occurrence_report.occurrence_report_number}}</strong> that has been sent to you
+    {% else %}
+        A referral for Occurrence Report {{occurrence_report.occurrence_report_number}} has been sent to you:
+
+        Comments: {{comments}}
+    {% endif %}
+
+    You can access this occurrence report using the following link:
+
+    {{url}}
+{%  endblock %}

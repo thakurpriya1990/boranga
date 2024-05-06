@@ -4,7 +4,7 @@
             <ul v-if="!is_external" class="nav nav-pills" id="pills-tab" role="tablist">
               <li class="nav-item">
                 <a
-                    class="nav-link"
+                    class="nav-link active"
                     id="pills-status-tab"
                     data-bs-toggle="pill"
                     :href="'#' + statusBody"

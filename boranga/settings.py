@@ -16,6 +16,8 @@ os.environ.setdefault("BASE_DIR", BASE_DIR)
 
 from ledger_api_client.settings_base import *  # noqa: F403
 
+WORKING_FROM_HOME = env("WORKING_FROM_HOME", False)
+
 ROOT_URLCONF = "boranga.urls"
 SITE_ID = 1
 DEPT_DOMAINS = env("DEPT_DOMAINS", ["dpaw.wa.gov.au", "dbca.wa.gov.au"])
@@ -78,7 +80,6 @@ if SHOW_DEBUG_TOOLBAR:
 
 STATIC_URL = "/static/"
 
-
 INSTALLED_APPS += [
     "webtemplate_dbca",
     "boranga",
@@ -118,6 +119,7 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.BrowsableAPIRenderer",
         "rest_framework_datatables.renderers.DatatablesRenderer",
     ),
+    "EXCEPTION_HANDLER": "boranga.exceptions.custom_exception_handler",
 }
 
 MIDDLEWARE_CLASSES += [
@@ -280,6 +282,8 @@ LEDGER_UI_ACCOUNTS_MANAGEMENT = [
     {"phone_number": {"options": {"view": True, "edit": True}}},
     {"mobile_number": {"options": {"view": True, "edit": True}}},
 ]
+
+RECENT_REFERRAL_COUNT = env("RECENT_REFERRAL_COUNT", 5)
 
 # NOMOS login details
 NOMOS_URL = env("NOMOS_URL")

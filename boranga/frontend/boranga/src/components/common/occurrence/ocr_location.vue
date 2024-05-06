@@ -551,16 +551,7 @@ export default {
             return has_value;
         },
         isReadOnly: function () {
-            let action = this.$route.query.action;
-            if (
-                action === 'edit' &&
-                this.occurrence_report_obj &&
-                this.occurrence_report_obj.assessor_mode.has_assessor_mode
-            ) {
-                return false;
-            } else {
-                return this.occurrence_report_obj.readonly;
-            }
+            return this.occurrence_report_obj.readonly;
         },
         componentMapKey: function () {
             return `component-map-${this.uuid}`;
@@ -909,7 +900,13 @@ export default {
                 })
                 .then((data) => {
                     console.log('New search data return:', data);
-                    vm.datum_list = Object.assign([], data);
+                    // Append to existing list of datum rather than overwrite and potentially lose prior search results which might create issues when setting a pre-selected value
+                    const datum_ids = vm.datum_list.map((datum) => datum.id);
+                    data.forEach((datum) => {
+                        if (!datum_ids.includes(datum.id)) {
+                            vm.datum_list.push(datum);
+                        }
+                    });
                 })
                 .catch((error) => {
                     console.log(error);

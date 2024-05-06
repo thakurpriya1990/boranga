@@ -1,7 +1,7 @@
 import logging
 
 from rest_framework import serializers
-from django.db import models
+
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.conservation_status.serializers import (
     CommunityConservationStatusSerializer,
@@ -137,6 +137,10 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             )  # need to show only WA_list species
             # TODO: Shouldn't we only allow the objects to be linked in the first place if the
             # conseration list applies to wa?
+            if not hasattr(conservation_status, "conservation_list"):
+                return ""
+            if not conservation_status.conservation_list:
+                return ""
             return conservation_status.conservation_list.code
         except ConservationStatus.DoesNotExist:
             return ""
@@ -149,6 +153,10 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
                 conservation_list__applies_to_wa=True,
                 processing_status="approved",
             )  # need to show only WA_list species
+            if not hasattr(conservation_status, "conservation_category"):
+                return ""
+            if not conservation_status.conservation_category:
+                return ""
             return conservation_status.conservation_category.code
         except ConservationStatus.DoesNotExist:
             return ""
@@ -540,6 +548,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     conservation_status = serializers.SerializerMethodField()
+    conservation_status_under_review = serializers.SerializerMethodField()
     taxonomy_details = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
     distribution = serializers.SerializerMethodField()
@@ -555,6 +564,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             "group_type_id",
             "taxonomy_id",
             "conservation_status",
+            "conservation_status_under_review",
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
@@ -601,6 +611,14 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             return SpeciesConservationStatusSerializer().data
             # return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
+    def get_conservation_status_under_review(self, obj):
+
+        return ConservationStatus.objects.filter(
+            species=obj,
+            conservation_list__applies_to_wa=True,
+            processing_status="ready_for_agenda",
+        ).exists()
+
     def get_conservation_attributes(self, obj):
         try:
             qs = SpeciesConservationAttributes.objects.get(species=obj)
@@ -633,6 +651,7 @@ class SpeciesSerializer(BaseSpeciesSerializer):
     processing_status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
+        model = Species
         fields = (
             "id",
             "species_number",
@@ -641,6 +660,7 @@ class SpeciesSerializer(BaseSpeciesSerializer):
             "group_type_id",
             "taxonomy_id",
             "conservation_status",
+            "conservation_status_under_review",
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
@@ -693,6 +713,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "group_type_id",
             "taxonomy_id",
             "conservation_status",
+            "conservation_status_under_review",
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
@@ -709,6 +730,9 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "current_assessor",
             "allowed_species_processors",
             "user_edit_mode",
+            "comment",
+            "conservation_plan_exists",
+            "conservation_plan_reference",
             "comment",
         )
 
@@ -919,6 +943,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField(read_only=True)
     taxonomy_details = serializers.SerializerMethodField()
     conservation_status = serializers.SerializerMethodField()
+    conservation_status_under_review = serializers.SerializerMethodField()
     distribution = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
     readonly = serializers.SerializerMethodField(read_only=True)
@@ -936,6 +961,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             "region_id",
             "district_id",
             "conservation_status",
+            "conservation_status_under_review",
             "distribution",
             "conservation_attributes",
             "last_data_curration_date",
@@ -983,6 +1009,14 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             return CommunityConservationStatusSerializer().data
             # return [CommunityConservationStatusSerializer(qs).data]
             # this array was used for dashboard on profile page
+
+    def get_conservation_status_under_review(self, obj):
+
+        return ConservationStatus.objects.filter(
+            community=obj,
+            conservation_list__applies_to_wa=True,
+            processing_status="ready_for_agenda",
+        ).exists()
 
     def get_distribution(self, obj):
         try:
@@ -1062,6 +1096,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "region_id",
             "district_id",
             "conservation_status",
+            "conservation_status_under_review",
             "distribution",
             "conservation_attributes",
             "last_data_curration_date",
@@ -1076,6 +1111,8 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "allowed_community_processors",
             "user_edit_mode",
             "comment",
+            "conservation_plan_exists",
+            "conservation_plan_reference",
         )
 
     def get_submitter(self, obj):
@@ -1134,6 +1171,8 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
             "can_user_edit",
             "can_user_view",
             "comment",
+            "conservation_plan_exists",
+            "conservation_plan_reference",
         )
         read_only_fields = ("id", "group_type")
 
@@ -1149,18 +1188,19 @@ class CreateSpeciesSerializer(BaseSpeciesSerializer):
         )
         read_only_fields = ("id",)
 
-    #override save so we can include our kwargs
+    # override save so we can include our kwargs
     def save(self, *args, **kwargs):
         instance = Species()
         validated_data = self.run_validation(self.initial_data)
         for field_name in self.Meta.fields:
-            if not field_name in self.Meta.read_only_fields:
-                setattr(instance,field_name,validated_data[field_name])            
+            if field_name not in self.Meta.read_only_fields:
+                setattr(instance, field_name, validated_data[field_name])
         instance.save(*args, **kwargs)
-        data = {} #here we also return the instance data
+        data = {}  # here we also return the instance data
         for field_name in self.Meta.fields:
-            data[field_name] = getattr(instance,field_name)
+            data[field_name] = getattr(instance, field_name)
         return instance, data
+
 
 class SaveCommunitySerializer(BaseCommunitySerializer):
     region_id = serializers.IntegerField(
@@ -1183,6 +1223,8 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
             "can_user_edit",
             "can_user_view",
             "comment",
+            "conservation_plan_exists",
+            "conservation_plan_reference",
         )
         read_only_fields = ("id", "group_type")
 
@@ -1198,18 +1240,19 @@ class CreateCommunitySerializer(BaseCommunitySerializer):
         )
         read_only_fields = ("id",)
 
-    #override save so we can include our kwargs
+    # override save so we can include our kwargs
     def save(self, *args, **kwargs):
         instance = Community()
         validated_data = self.run_validation(self.initial_data)
         for field_name in self.Meta.fields:
-            if not field_name in self.Meta.read_only_fields:
-                setattr(instance,field_name,validated_data[field_name])            
+            if field_name not in self.Meta.read_only_fields:
+                setattr(instance, field_name, validated_data[field_name])
         instance.save(*args, **kwargs)
         data = {}
         for field_name in self.Meta.fields:
-            data[field_name] = getattr(instance,field_name)
+            data[field_name] = getattr(instance, field_name)
         return instance, data
+
 
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1264,17 +1307,20 @@ class SaveSpeciesDocumentSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
-    #override save so we can include our kwargs
+    # override save so we can include our kwargs
     def save(self, *args, **kwargs):
-        #if the instance already exists, carry on as normal
+        # if the instance already exists, carry on as normal
         if self.instance:
-            return super(SaveSpeciesDocumentSerializer,self).save(*args, **kwargs)
+            return super().save(*args, **kwargs)
         else:
             instance = SpeciesDocument()
             validated_data = self.run_validation(self.initial_data)
             for field_name in self.Meta.fields:
-                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
-                    setattr(instance,field_name,validated_data[field_name])            
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
 
@@ -1326,17 +1372,20 @@ class SaveCommunityDocumentSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
-    #override save so we can include our kwargs
+    # override save so we can include our kwargs
     def save(self, *args, **kwargs):
-        #if the instance already exists, carry on as normal
+        # if the instance already exists, carry on as normal
         if self.instance:
-            return super(SaveCommunityDocumentSerializer,self).save(*args, **kwargs)
+            return super().save(*args, **kwargs)
         else:
             instance = CommunityDocument()
             validated_data = self.run_validation(self.initial_data)
             for field_name in self.Meta.fields:
-                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
-                    setattr(instance,field_name,validated_data[field_name])            
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
 
@@ -1445,17 +1494,20 @@ class SaveConservationThreatSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
-    #override save so we can include our kwargs
+    # override save so we can include our kwargs
     def save(self, *args, **kwargs):
-        #if the instance already exists, carry on as normal
+        # if the instance already exists, carry on as normal
         if self.instance:
-            return super(SaveConservationThreatSerializer,self).save(*args, **kwargs)
+            return super().save(*args, **kwargs)
         else:
             instance = ConservationThreat()
             validated_data = self.run_validation(self.initial_data)
             for field_name in self.Meta.fields:
-                if field_name in validated_data and not field_name in self.Meta.read_only_fields:
-                    setattr(instance,field_name,validated_data[field_name])            
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
 

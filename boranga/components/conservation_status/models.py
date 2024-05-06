@@ -629,7 +629,7 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def latest_referrals(self):
-        return self.referrals.all()[:2]
+        return self.referrals.all()[: settings.RECENT_REFERRAL_COUNT]
 
     @property
     def is_flora_application(self):
@@ -1958,7 +1958,13 @@ class ProposalAmendmentReason(models.Model):
 
 
 class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
-    STATUS_CHOICES = (("requested", "Requested"), ("amended", "Amended"))
+    STATUS_CHOICE_REQUESTED = "requested"
+    STATUS_CHOICE_AMENDED = "amended"
+
+    STATUS_CHOICES = (
+        (STATUS_CHOICE_REQUESTED, "Requested"),
+        (STATUS_CHOICE_AMENDED, "Amended"),
+    )
 
     status = models.CharField(
         "Status", max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]

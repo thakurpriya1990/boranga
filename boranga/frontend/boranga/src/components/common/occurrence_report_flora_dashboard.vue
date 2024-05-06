@@ -46,7 +46,7 @@
         <div v-if="addFloraOCRVisibility" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraOccurrenceReport"><i
-                        class="fa-solid fa-circle-plus"></i> Add Occurrence Report</button>
+                        class="fa-solid fa-circle-plus"></i> Add Flora Occurrence Report</button>
             </div>
         </div>
         <div class="row">
@@ -674,6 +674,9 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-history-occurrence-report');
                 vm.historyDocument(id);
+            });
+            vm.$refs.flora_ocr_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         },
         initialiseSearch: function () {

@@ -9,7 +9,7 @@ from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from django.db.models import JSONField
 from django.db.models.functions import Cast
 from rest_framework_datatables.filters import DatatablesFilterBackend
-from django.db.models import F
+from django.db.models import F, Q
 from rest_framework_datatables.utils import get_param
 from boranga.helpers import (is_internal, is_customer,
 is_boranga_admin, is_django_admin, is_assessor, is_approver,
@@ -25,20 +25,30 @@ class InternalAuthorizationView(views.APIView):
     django_admin_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport"]
+                       "Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument",
+                       "OCRConservationThreat","OCCConservationThreat",
+                       "Minutes", "ConservationThreat"]
     assessor_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport"]
+                       "Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument",
+                       "OCRConservationThreat","OCCConservationThreat",
+                       "Minutes", "ConservationThreat"]
     approver_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport"]
-    species_processor_models = ["Species","SpeciesDocument"]
-    community_processor_models = [ "Community","CommunityDocument"]
-    conservation_status_editor_models = ["ConservationStatus","ConservationStatusDocument"]
-
-    #TODO other models to consider - Meetings, Minutes, and any Occurence Document Models
+                       "Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument",
+                       "OCRConservationThreat","OCCConservationThreat",
+                       "Minutes", "ConservationThreat"]
+    species_processor_models = ["Species","SpeciesDocument", "ConservationThreat",
+                       "Minutes"]
+    community_processor_models = [ "Community","CommunityDocument", "ConservationThreat",
+                       "Minutes"]
+    conservation_status_editor_models = ["ConservationStatus","ConservationStatusDocument",
+                       "Minutes"]
 
     def check_auth_by_model(self, request, model_name):
         if (request.user.is_superuser or
@@ -47,7 +57,7 @@ class InternalAuthorizationView(views.APIView):
         else:
             #go through each list, if model is in it run function for user
             #return the result if true, otherwise run other checks until all possibilities exhausted
-            if model_name in self.django_admin_models and is_assessor(request):
+            if model_name in self.django_admin_models and is_django_admin(request):
                 return True
             if model_name in self.assessor_models and is_assessor(request):
                 return True
@@ -252,7 +262,9 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
 
         # Build the list of versions
         versions_list = []
-        related_versions = Version.objects.annotate(data=Cast('serialized_data', JSONField()))
+
+        #we do not want to present multiple versions of the same object
+        related_versions = Version.objects.annotate(data=Cast('serialized_data', JSONField())).exclude(Q(content_type__model__iexact=model_name)&~Q(object_id=pk))
 
         paginated_queryset = Version.objects.filter(id__in=list(map(lambda i:i.pk,queryset_list)))
         self.lookup_getter.getVersionModelLookUpFieldValues(paginated_queryset,model)
@@ -271,7 +283,7 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
                     data[related_version.content_type.model] = related_version.data[0]
 
             #get lookup fields (for main model only)
-            if model._meta.model_name in data:       
+            if model._meta.model_name in data:
                 for i in self.lookup_getter.lookup_fields:
                     if i in data[model._meta.model_name]["fields"] and data[model._meta.model_name]["fields"][i] != None:
                         data[model._meta.model_name]["fields"][i] = self.lookup_getter.lookup_values[i][data[model._meta.model_name]["fields"][i]]

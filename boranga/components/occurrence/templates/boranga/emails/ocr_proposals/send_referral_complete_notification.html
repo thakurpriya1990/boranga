@@ -1,0 +1,11 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+    <p>A referral for Occurrence Report <strong>{{occurrence_report.occurrence_report_number}}</strong> has been completed:</p>
+
+    <p>Referral Comments: {{referral_comments}}</p>
+
+    <p>You can access this Occurrence Report using the following link:</p>
+
+    <a href="{{url}}">Access Occurrence Report</a>
+{%  endblock %}

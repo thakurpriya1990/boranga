@@ -318,6 +318,9 @@ export default {
 
                 columns: columns,
                 processing: true,
+                drawCallback: function() {
+                    helpers.enablePopovers();
+                },
                 initComplete: function() {
                     helpers.enablePopovers();
                 },
@@ -394,6 +397,9 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-meeting');
                 vm.discardMeeting(id);
+            });
+            vm.$refs.meetings_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         },
         exportData: function (format) {

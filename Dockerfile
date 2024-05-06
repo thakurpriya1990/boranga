@@ -47,6 +47,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     postgresql-client \
     python3 \
     python3-dev \
+    python3-gdal \
     python3-pil \
     python3-pip \
     python3-setuptools \
@@ -69,7 +70,6 @@ RUN mkdir -p /etc/apt/keyrings && \
     | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
     apt-get install -y nodejs
-
 
 FROM node_boranga as configure_boranga
 
@@ -106,6 +106,10 @@ ENV PATH=/app/.local/bin:$PATH
 COPY --chown=oim:oim requirements.txt gunicorn.ini.py manage.py ./
 COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim boranga ./boranga
+
+# Install newer version of GDAL
+RUN wget -O /tmp/GDAL-3.8.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl https://github.com/girder/large_image_wheels/raw/wheelhouse/GDAL-3.8.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=e2fe6cfbab02d535bc52c77cdbe1e860304347f16d30a4708dc342a231412c57 && \
+    pip install /tmp/GDAL-3.8.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN pip install --no-cache-dir -r requirements.txt && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*

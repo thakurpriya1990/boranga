@@ -142,9 +142,13 @@ export default {
                             mRender: function(data,type,full){
                                 let links='';
                                 if(full.visible){
-                                    links+='<a href="'+ full._file+'" target="_blank"><p>' + full.name + '</p></a>' ;
+                                    let value = full.name;
+                                    let result = helpers.dtPopoverSplit(value, 30, 'hover');
+                                    links+='<span><a href="'+ full._file+'" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
                                 }else{
-                                    links+='<s>'+ full.name +'</s>';
+                                    let value = full.name;
+                                    let result = helpers.dtPopover(value, 30, 'hover');
+                                    links+='<s>'+ type=='export' ? value : result +'</s>';
                                 }
                                 return links;
                             },
@@ -191,7 +195,10 @@ export default {
                         },
                     ],
                     processing:true,
-                    initComplete: function() {
+                    drawCallback: function() {
+                    helpers.enablePopovers();
+                },
+                initComplete: function() {
                         helpers.enablePopovers();
                         // another option to fix the responsive table overflow css on tab switch
                         setTimeout(function (){
@@ -244,9 +251,12 @@ export default {
                         vm.species_community.documents.splice(index,1);
                     }
                 });
+                vm.$refs.documents_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                    helpers.enablePopovers();
+                });
             },
             adjust_table_width: function(){
-                this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();
+                if (this.$refs.documents_datatable !== undefined) {this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();}
             },
         },
         mounted: function(){

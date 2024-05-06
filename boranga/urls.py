@@ -32,6 +32,11 @@ if settings.DEBUG is not True:
     router.include_root_view = False
 
 
+router.register(
+    r"external_species",
+    species_communities_api.ExternalSpeciesViewSet,
+    "external_species",
+)
 router.register(r"species", species_communities_api.SpeciesViewSet, "species")
 router.register(r"community", species_communities_api.CommunityViewSet, "community")
 router.register(
@@ -101,13 +106,21 @@ router.register(
     r"occurrence_report", occurrence_api.OccurrenceReportViewSet, "occurrence_report"
 )
 router.register(
+    r"occurrence_report_referrals",
+    occurrence_api.OccurrenceReportReferralViewSet,
+    "occurrence_report_referrals",
+)
+router.register(
     r"occurrence_paginated",
     occurrence_api.OccurrencePaginatedViewSet,
     "occurrence_paginated",
 )
 router.register(
-    r"occurrence_documents", occurrence_api.OccurrenceDocumentViewSet
+    r"occurrence",
+    occurrence_api.OccurrenceViewSet,
+    "occurrence",
 )
+router.register(r"occurrence_documents", occurrence_api.OccurrenceDocumentViewSet)
 router.register(
     r"occurrence_report_paginated",
     occurrence_api.OccurrenceReportPaginatedViewSet,
@@ -271,7 +284,7 @@ api_patterns = [
         name="get-versions",
     ),
     url(
-        r'^api/history/(?P<app_label>[\w-]+)/(?P<model_name>[\w-]+)/(?P<revision_id>\d+)/$',
+        r"^api/history/(?P<app_label>[\w-]+)/(?P<model_name>[\w-]+)/(?P<revision_id>\d+)/$",
         history_api.GetRevisionVersionsView.as_view(),
         name="get-revision",
     ),
@@ -289,6 +302,16 @@ urlpatterns = [
         name="ds_further_info",
     ),
     url(r"^internal/", views.InternalView.as_view(), name="internal"),
+    url(
+        r"^external/species-communities$",
+        views.PublicView.as_view(),
+        name="species-communities",
+    ),
+    url(
+        r"^external/species_communities/(?P<species_proposal_pk>\d+)",
+        views.SpeciesView.as_view(),
+        name="external-species-detail",
+    ),
     url(r"^external/", views.ExternalView.as_view(), name="external"),
     url(r"^account/$", views.ExternalView.as_view(), name="manage-account"),
     url(r"^profiles/", views.ExternalView.as_view(), name="manage-profiles"),
@@ -347,11 +370,22 @@ urlpatterns = [
         views.InternalOccurrenceReportView.as_view(),
         name="internal-occurrence-report-detail",
     ),
+    url(
+        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/ocr_referral/(?P<referral_pk>\d+)/$",
+        views.InternalOccurrenceReportReferralView.as_view(),
+        name="internal-occurrence-report-referral-detail",
+    ),
     urls.path("sentry-debug/", trigger_error),
 ] + ledger_patterns
 
 if settings.DEBUG:  # Serve media locally in development.
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    if "debug_toolbar" in settings.INSTALLED_APPS and settings.SHOW_DEBUG_TOOLBAR:
+        urlpatterns += [
+            # ...
+            path("__debug__/", include("debug_toolbar.urls")),
+        ]
 
 # DBCA Template URLs
 urlpatterns.append(
