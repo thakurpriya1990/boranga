@@ -29,7 +29,6 @@ from boranga.components.conservation_status.models import (
     ConservationStatus,
     ConservationStatusUserAction,
 )
-from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
 from boranga.components.occurrence.models import OCCConservationThreat, Occurrence
@@ -1756,7 +1755,6 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
-    @basic_exception_handler
     def get_related_items(self, request, *args, **kwargs):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
@@ -2000,7 +1998,6 @@ class CommunityViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
-    @basic_exception_handler
     def get_related_items(self, request, *args, **kwargs):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
