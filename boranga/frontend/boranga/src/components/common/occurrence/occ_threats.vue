@@ -246,14 +246,16 @@ export default {
                                 let links = '';
                                 if(full.visible){
                                     links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
-                                    links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                                    if (!vm.isReadOnly) {
+                                        links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                    }
                                 }
                                 else{
                                     links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
-                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                                    
                                 }
+                                links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                                 return links;
                             }
                         },
@@ -281,10 +283,12 @@ export default {
             ExistingThreat,
         },
         computed: {
-            isReadOnly: function(){
-                // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
-                if(this.is_readonly){
-                    return  this.is_readonly;
+            isReadOnly: function () {
+                if (this.$route.query.action == 'edit') {
+                    return this.occurrence && this.occurrence.can_user_edit ? false : true;
+                }
+                else {
+                    return true;
                 }
             },
         },

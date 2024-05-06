@@ -34,6 +34,7 @@
                 </div>
             </div>
             <RelatedReports 
+        :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
                     :section_type="'observation_detail'"
                     @copyUpdate="copyUpdate"
@@ -52,6 +53,7 @@
                 ref="plantCountDetail">
             </PlantCount>
             <RelatedReports 
+        :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
                     :section_type="'plant_count'"
                     @copyUpdate="copyUpdate"
@@ -70,6 +72,7 @@
                 ref="animalObservationDetail">
             </AnimalObservation>
             <RelatedReports 
+        :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
                     :section_type="'animal_observation'"
                     @copyUpdate="copyUpdate"
@@ -155,6 +158,7 @@
                 </div>
             </div>
             <RelatedReports 
+                    :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
                     :section_type="'identification'"
                     @copyUpdate="copyUpdate"
@@ -220,13 +224,12 @@ export default {
             RelatedReports,
         },
         computed: {
-            isReadOnly: function(){
-                let action = this.$route.query.action;
-                if(action === "edit" && this.occurrence_obj && this.occurrence_obj.assessor_mode.has_assessor_mode){
-                    return false;
+            isReadOnly: function () {
+                if (this.$route.query.action == 'edit') {
+                    return this.occurrence && this.occurrence.can_user_edit ? false : true;
                 }
-                else{
-                    return this.occurrence_obj.readonly;
+                else {
+                    return true;
                 }
             },
         },

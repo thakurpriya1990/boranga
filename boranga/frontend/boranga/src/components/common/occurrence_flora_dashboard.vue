@@ -298,18 +298,11 @@ export default {
                 'render': function (data, type, full) {
                     let links = "";
                     if (vm.is_internal) {
-                        if (full.internal_user_edit) {
-                            links += `<a href='/internal/occurrence/${full.id}'>Continue</a><br/>`;
-                            links += `<a href='#${full.id}' data-discard-occ-proposal='${full.id}'>Discard</a><br/>`;
-                            links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
+                        links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
+                        if (full.can_user_edit) {
+                            links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
                         }
-                        else {
-                            links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
-                            if (full.can_user_assess) {
-                                links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=process'>Process</a><br/>`;
-                            }
-                            links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
-                        }
+                        links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;                       
                     }
                     return links;
             }

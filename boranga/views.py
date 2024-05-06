@@ -31,6 +31,7 @@ from boranga.helpers import (
     is_django_admin,
     is_internal,
     is_species_processor,
+    is_occurrence_editor,
 )
 
 logger = logging.getLogger("payment_checkout")
@@ -263,6 +264,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             or is_django_admin(request)
             or is_assessor(request.user)
             or is_approver(request.user)
+            or is_occurrence_editor(request.user)
         )
     elif is_customer(request):
         user = request.user
@@ -284,6 +286,7 @@ def is_authorised_to_access_occurrence_document(request, document_id):
             or is_django_admin(request)
             or is_assessor(request.user)
             or is_approver(request.user)
+            or is_occurrence_editor(request.user)
         )
     else:
         return False

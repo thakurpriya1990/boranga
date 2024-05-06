@@ -69,7 +69,6 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
-    user_edit_mode = serializers.SerializerMethodField()
 
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
@@ -88,14 +87,8 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_can_user_edit(self, obj):
-        return obj.can_user_edit
-
-    def get_user_edit_mode(self, obj):
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
-        return obj.has_user_edit_mode(user)
+        return obj.can_user_edit(request.user)
 
     def get_habitat_composition(self, obj):
         try:
@@ -699,13 +692,13 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
         format="%Y-%m-%d %H:%M:%S", allow_null=True
     )
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
-    can_user_assess = serializers.SerializerMethodField()
     community_number = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
     wild_status = serializers.CharField(source="wild_status.name", allow_null=True)
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
@@ -728,7 +721,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "effective_from",
             "effective_to",
             "review_due_date",
-            "can_user_assess",
+            "can_user_edit",
         )
         datatables_always_serialize = (
             "id",
@@ -738,7 +731,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "number_of_reports",
             "processing_status",
             "processing_status_display",
-            "can_user_assess",
+            "can_user_edit",
         )
 
     def get_community_number(self, obj):
@@ -800,14 +793,10 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             return ""
 
         return conservation_status.conservation_category.code
-
-    def get_can_user_assess(self, obj):
+    
+    def get_can_user_edit(self, obj):
         request = self.context["request"]
-        return (
-            is_assessor(request.user)
-            and obj.processing_status
-            == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
-        )
+        return obj.can_user_edit(request.user)
 
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):

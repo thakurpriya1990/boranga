@@ -46,6 +46,7 @@ GROUP_NAME_APPROVER = "ProposalApproverGroup"
 GROUP_NAME_EDITOR = "ConservationStatusEditorGroup"
 GROUP_NAME_REFERRAL = "ProposalReferralGroup"
 GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR = "SpeciesCommunitiesProcessorGroup"
+GROUP_NAME_OCCURRENCE_EDITOR = "OccurrenceEditorGroup"
 
 GROUP_NAME_CHOICES = (
     (GROUP_NAME_DJANGO_ADMIN, "Django Admin"),
@@ -55,6 +56,7 @@ GROUP_NAME_CHOICES = (
     (GROUP_NAME_EDITOR, "Conservation Status Editor Group'"),
     (GROUP_NAME_REFERRAL, "Proposal Referral Group"),
     (GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR, "Species Communities Processor Group"),
+    (GROUP_NAME_OCCURRENCE_EDITOR, "OccurrenceEditorGroup"),
 )
 
 if env("CONSOLE_EMAIL_BACKEND", False):

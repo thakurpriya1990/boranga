@@ -50,7 +50,7 @@ from boranga.components.species_and_communities.models import (
 )
 from boranga.helpers import clone_model
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR
+from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR, GROUP_NAME_OCCURRENCE_EDITOR
 
 logger = logging.getLogger(__name__)
 
@@ -2647,26 +2647,22 @@ class Occurrence(RevisionedMixin):
     def number_of_reports(self):
         return self.occurrence_report_count
 
-    @property
-    def can_user_edit(self):
-        """
-        :return: True if the application is in one of the editable status.
-        """
+    def can_user_edit(self, user):
         user_editable_state = [
             "draft",
         ]
-        return self.processing_status in user_editable_state
-
-    def has_user_edit_mode(self, user):
-        officer_view_state = ["draft", "historical"]
-        if self.processing_status in officer_view_state:
+        if not self.processing_status in user_editable_state:
             return False
         else:
             return (
                 user.id
-                in self.get_species_processor_group().get_system_group_member_ids()
+                in self.get_occurrence_editor_group().get_system_group_member_ids()
                 # TODO determine which group this should be (maybe this one is fine?)
             )
+        
+    #TODO change this to use its own group
+    def get_occurrence_editor_group(self):
+        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_EDITOR)
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)

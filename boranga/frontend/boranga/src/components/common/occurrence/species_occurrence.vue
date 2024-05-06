@@ -5,7 +5,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Occurrence Name:</label>
                 <div class="col-sm-9">
-                    <textarea class="form-control" rows="1" id="occurrence_name" placeholder=""
+                    <textarea class="form-control" :disabled="isReadOnly" rows="1" id="occurrence_name" placeholder=""
                     v-model="occurrence_obj.occurrence_name"/>
                 </div>
             </div>
@@ -13,7 +13,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Scientific Name:</label>
                 <div class="col-sm-8" :id="select_scientific_name">
-                    <select :disabled="occurrence_obj.readonly"
+                    <select :disabled="isReadOnly"
                         :id="scientific_name_lookup"  
                         :name="scientific_name_lookup"  
                         :ref="scientific_name_lookup" 
@@ -32,7 +32,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Occurrence Source:</label>
                 <div class="col-sm-8" :id="select_occurrence_source">
-                    <select :disabled="occurrence_obj.readonly"
+                    <select :disabled="isReadOnly"
                         :id="occurrence_source_lookup"  
                         :name="occurrence_source_lookup"  
                         :ref="occurrence_source_lookup" 
@@ -43,7 +43,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Wild Status:</label>
                 <div class="col-sm-8" :id="select_wild_status">
-                    <select :disabled="occurrence_obj.readonly"
+                    <select :disabled="isReadOnly"
                         :id="wild_status_lookup"  
                         :name="wild_status_lookup"  
                         :ref="wild_status_lookup" 
@@ -58,12 +58,13 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Comments:</label>
                 <div class="col-sm-9">
-                    <textarea class="form-control" id="occurrence_comments" placeholder=""
+                    <textarea class="form-control" :disabled="isReadOnly" id="occurrence_comments" placeholder=""
                     v-model="occurrence_obj.comment"/>
                 </div>
             </div>
 
             <RelatedReports 
+        :isReadOnly="isReadOnly"
                 :occurrence_obj=occurrence_obj
             />
 
@@ -72,7 +73,7 @@
 </template>
 
 <script>
-import Vue from 'vue' ;
+import Vue, { isReadonly } from 'vue' ;
 import FormSection from '@/components/forms/section_toggle.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 import {
@@ -290,6 +291,16 @@ export default {
             },(error) => {
                 console.log(error);
             })
+        },
+        computed: {
+            isReadOnly: function () {
+                if (this.$route.query.action == 'edit') {
+                    return this.occurrence && this.occurrence.can_user_edit ? false : true;
+                }
+                else {
+                    return true;
+                }
+            },
         },
         mounted: function(){
             let vm = this;

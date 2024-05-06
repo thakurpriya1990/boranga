@@ -13,6 +13,7 @@ from boranga.settings import (
     GROUP_NAME_ASSESSOR,
     GROUP_NAME_EDITOR,
     GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR,
+    GROUP_NAME_OCCURRENCE_EDITOR,
 )
 
 logger = logging.getLogger(__name__)
@@ -120,6 +121,12 @@ def is_conservation_status_editor(user_id):
     if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
         user_id = user_id.id
     assessor_group = SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
+    return True if user_id in assessor_group.get_system_group_member_ids() else False
+
+def is_occurrence_editor(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_EDITOR)
     return True if user_id in assessor_group.get_system_group_member_ids() else False
 
 
