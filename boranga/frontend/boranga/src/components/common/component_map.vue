@@ -1152,6 +1152,8 @@ import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
 import DragAndDrop from 'ol/interaction/DragAndDrop.js';
+import DragBox from 'ol/interaction/DragBox.js';
+import { platformModifierKeyOnly } from 'ol/events/condition.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
@@ -2219,8 +2221,23 @@ export default {
                         });
                     }
 
+                    vm.dragbox = new DragBox({
+                        condition: platformModifierKeyOnly,
+                    });
+                    vm.dragbox.on('boxend', function () {
+                        const extent = vm.dragbox.getGeometry().getExtent();
+
+                        vm.modelQuerySource.forEachFeatureIntersectingExtent(
+                            extent,
+                            function (feature) {
+                                vm.selectFeature(feature);
+                            }
+                        );
+                    });
+
                     vm.map.addInteraction(vm.undoredo);
                     vm.map.addInteraction(vm.undoredo_forSketch);
+                    vm.map.addInteraction(vm.dragbox);
                 }
             });
 
