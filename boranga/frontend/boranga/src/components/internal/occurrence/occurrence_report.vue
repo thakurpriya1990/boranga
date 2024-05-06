@@ -294,7 +294,7 @@ export default {
             return this.with_approver && this.occurrence_report.proposed_decline_status && this.occurrence_report.declined_details
         },
         display_referral_actions: function () {
-            return this.occurrence_report && ['With Assessor', 'With Referrer'].includes(this.occurrence_report.processing_status) && this.isAssignedOfficer
+            return this.occurrence_report && ['With Assessor', 'With Referral'].includes(this.occurrence_report.processing_status) && this.isAssignedOfficer
         },
         submitter_first_name: function () {
             if (this.occurrence_report && this.occurrence_report.submitter) {
@@ -670,7 +670,7 @@ export default {
             let formData = new FormData(vm.form);
             vm.sendingReferral = true;
             let data = { 'email': vm.selected_referral, 'text': vm.referral_text };
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assessor_send_referral')), JSON.stringify(data), {
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/send_referral')), JSON.stringify(data), {
                 emulateJSON: true
             }).then((response) => {
                 vm.sendingReferral = false;
@@ -678,7 +678,7 @@ export default {
                 vm.occurrence_report = response.body;
                 swal.fire({
                     title: 'Referral Sent',
-                    text: 'The referral has been sent to ' + vm.department_users.find(d => d.email == vm.selected_referral).name,
+                    text: `The referral has been sent to ${vm.selected_referral}`,
                     icon: 'success',
                     confirmButtonColor: '#226fbb'
                 });
