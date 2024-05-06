@@ -414,6 +414,7 @@
                         v-if="!updatingLocationDetails"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateLocationDetails()"
+                        :disabled="isReadOnly"
                     >
                         Update
                     </button>

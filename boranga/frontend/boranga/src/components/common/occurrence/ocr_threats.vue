@@ -260,11 +260,6 @@ export default {
                 return this.is_readonly;
             }
             let action = this.$route.query.action;
-            console.log(action);
-            console.log(this.is_external);
-            //console.log(this.occurrence_report_obj.assessor_mode.has_assessor_mode);
-            console.log(this.occurrence_report_obj.internal_application);
-            console.log(this.occurrence_report_obj.can_user_edit);
             //if submitted or an internal application
             if(!this.is_external
                 && this.occurrence_report_obj 

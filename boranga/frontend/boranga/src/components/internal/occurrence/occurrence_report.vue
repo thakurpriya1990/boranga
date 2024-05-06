@@ -122,7 +122,7 @@
                         <input type='hidden' name="occurrence_report_id" :value="1" />
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="occurrence_report.internal_application && occurrence_report.processing_status == 'Draft'" class="container">
+                                <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
@@ -148,7 +148,7 @@
                                             :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
-                                <div v-else-if="occurrence_report.internal_application" class="container">
+                                <div v-else-if="$route.query.action == 'edit' && occurrence_report.assessor_mode.has_assessor_mode" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
