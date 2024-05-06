@@ -32,6 +32,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     cron \
     curl \
     gcc \
+    gdal-bin \
     git \
     graphviz \
     htop \
@@ -46,6 +47,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     postgresql-client \
     python3 \
     python3-dev \
+    python3-gdal \
     python3-pil \
     python3-pip \
     python3-setuptools \
