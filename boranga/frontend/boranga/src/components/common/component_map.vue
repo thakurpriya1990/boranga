@@ -192,21 +192,68 @@
                                             class="svg-icon"
                                             src="../../assets/draw-points.svg"
                                         />
-                                        <img
+                                        <svg
                                             v-else-if="
                                                 isPointLikeFeature(feature)
                                             "
-                                            class="svg-icon"
-                                            src="../../assets/draw-point.svg"
-                                        />
-                                        <img
+                                            class="svg-object"
+                                            width="24"
+                                            height="24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <!-- A circle -->
+                                            <circle
+                                                cx="12"
+                                                cy="12"
+                                                r="5"
+                                                :fill="
+                                                    feature.getProperties()
+                                                        .color
+                                                "
+                                                :stroke="
+                                                    selectedFeatureIds.includes(
+                                                        feature.getProperties()
+                                                            .id
+                                                    )
+                                                        ? 'red'
+                                                        : feature.getProperties()
+                                                              .stroke
+                                                "
+                                                stroke-width="2"
+                                            />
+                                        </svg>
+                                        <svg
                                             v-else
-                                            class="svg-icon"
-                                            src="../../assets/draw-polygon.svg"
-                                        />
+                                            class="svg-object"
+                                            width="24"
+                                            height="24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <!-- A rectangle -->
+                                            <polygon
+                                                points="2,2 22,2 22,22 2,22"
+                                                :fill="
+                                                    feature.getProperties()
+                                                        .color
+                                                "
+                                                :stroke="
+                                                    selectedFeatureIds.includes(
+                                                        feature.getProperties()
+                                                            .id
+                                                    )
+                                                        ? 'red'
+                                                        : feature.getProperties()
+                                                              .stroke
+                                                "
+                                                stroke-width="2"
+                                            />
+                                        </svg>
                                         <img
-                                            class="svg-icon hidden"
+                                            class="svg-icon hidden red"
                                             src="../../assets/map-zoom.svg"
+                                            style="
+                                                filter: url('data:image/svg+xml,<svg xmlns=`http://www.w3.org/2000/svg`><filter id=`makewhite`><feColorMatrix type=`matrix` values=`0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0`/></filter></svg>#makewhite');
+                                            "
                                         />
                                     </button>
                                     <!-- Latitude -->
@@ -3214,7 +3261,7 @@ export default {
         assignProposalFeatureColors: function (proposals) {
             let vm = this;
             proposals.forEach(function (proposal) {
-                proposal.color = vm.getRandomRGBAColor();
+                proposal.color = vm.getRandomColor();
                 console.log(proposal.lodgement_date);
                 console.log(typeof proposal.lodgement_date);
             });
@@ -3287,6 +3334,7 @@ export default {
                 this.featureColors['draw'] ||
                 this.featureColors['unknown'] ||
                 this.defaultColor;
+            const stroke = this.defaultColor;
 
             const label =
                 context.occurrence_report_number || context.label || 'Draw';
@@ -3299,6 +3347,7 @@ export default {
                 name: context.id || -1,
                 label: label,
                 color: color,
+                stroke: stroke,
                 locked: properties.locked || false,
                 copied_from: properties.report_copied_from || null,
                 srid: properties.srid || this.mapSrid,
@@ -3308,12 +3357,15 @@ export default {
 
             const type = feature.getGeometry().getType();
             if (!style) {
-                style = this.createStyle(color, this.defaultColor, type);
-                const rgba = this.colorHexToRgbaValues(color);
+                style = this.createStyle(color, stroke, type);
+                let rgba = color;
+                if (!Array.isArray(color)) {
+                    rgba = this.colorHexToRgbaValues(color);
+                }
                 if (['MultiPoint', 'Point'].includes(type)) {
                     style = this.createStyle(
                         color,
-                        this.defaultColor,
+                        stroke,
                         type,
                         null,
                         null,
@@ -3843,9 +3895,12 @@ export default {
             return array.every((entry) => !Array.isArray(entry));
         },
         toggleHidden: function (target) {
-            // target.innerHTML = label;
-            const hidden = $(target).find('img.svg-icon.hidden');
-            const notHidden = $(target).find('img.svg-icon').not('.hidden');
+            const hidden = $(target).find(
+                'img.svg-icon.hidden, svg.svg-object.hidden'
+            );
+            const notHidden = $(target)
+                .find('img.svg-icon, svg.svg-object')
+                .not('.hidden');
             hidden.removeClass('hidden');
             notHidden.addClass('hidden');
         },
