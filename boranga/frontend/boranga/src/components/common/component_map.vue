@@ -718,7 +718,6 @@
                                                 "
                                             >
                                                 <img
-                                                    class="svg-icon"
                                                     :src="
                                                         require(`../../assets/${
                                                             spatialOperationsAvailable.find(
@@ -1738,6 +1737,24 @@ export default {
                     id: 'convex_hull',
                     name: 'Convex Hull',
                     icon: 'convex-hull.svg',
+                    number_params: 0,
+                },
+                {
+                    id: 'intersection',
+                    name: 'Intersection',
+                    icon: 'intersect-geometries.svg',
+                    number_params: 0,
+                },
+                {
+                    id: 'union',
+                    name: 'Union',
+                    icon: 'union-geometries.svg',
+                    number_params: 0,
+                },
+                {
+                    id: 'voronoi',
+                    name: 'Voronoi',
+                    icon: 'voronoi.svg',
                     number_params: 0,
                 },
             ];
