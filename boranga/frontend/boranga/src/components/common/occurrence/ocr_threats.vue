@@ -51,6 +51,10 @@ export default {
             type: Boolean,
             default: false
         },
+        is_external: {
+            type: Boolean,
+            default: false,
+        }
     },
     data: function () {
         let vm = this;
@@ -210,14 +214,21 @@ export default {
                         data: "id",
                         mRender: function (data, type, full) {
                             let links = '';
-                            if (full.visible) {
-                                links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
-                                links += `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                            if (!vm.isReadOnly) {
+                                    if (full.visible) {
+                                        links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
+                                        links += `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                    }
+                                
+                                else {
+                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                                }
+                            } else {
+                                links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;                               
                             }
-                            else {
-                                links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                            if (!vm.is_external)
+                            {
                                 links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                             }
                             return links;
@@ -244,21 +255,42 @@ export default {
     },
     computed: {
         isReadOnly: function(){
-                // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
-                if(this.is_readonly){
-                    return  this.is_readonly;
-                }
-                let action = this.$route.query.action;
-                console.log(action)
-                console.log(this.occurrence_report_obj.assessor_mode.has_assessor_mode);
-                //otherwise, check the action and check the obj
-                if(action === "edit" && this.occurrence_report_obj && this.occurrence_report_obj.assessor_mode.has_assessor_mode){
-                    return false;
-                }
-                else{
-                    return true;
-                }
-            },
+            //override for split reports
+            if(this.is_readonly){
+                return this.is_readonly;
+            }
+            let action = this.$route.query.action;
+            console.log(action);
+            console.log(this.is_external);
+            //console.log(this.occurrence_report_obj.assessor_mode.has_assessor_mode);
+            console.log(this.occurrence_report_obj.internal_application);
+            console.log(this.occurrence_report_obj.can_user_edit);
+            //if submitted or an internal application
+            if(!this.is_external
+                && this.occurrence_report_obj 
+                //must have the edit action and be in assessor mode
+                && ((action === "edit" 
+                && this.occurrence_report_obj.assessor_mode.has_assessor_mode)
+                //or be internally created and in an editable status
+                || (this.occurrence_report_obj.internal_application && this.occurrence_report_obj.can_user_edit))
+            ) {
+                return false;
+            //if an external draft
+            } 
+            else if (this.is_external
+                && this.occurrence_report_obj 
+                //user can edit the record if a) they can access it and b) it is a draft
+                //an internal user could do this too by accessing it "externally" 
+                //the results of this should be controlled server-side 
+                //(whether an acceptable bypass or should be restricted for editing by a non-submitter until after submission)
+                && this.occurrence_report_obj.can_user_edit 
+            ) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        },
     },
     methods: {
         newThreat: function () {

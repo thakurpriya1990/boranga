@@ -114,7 +114,7 @@
                     <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
                         enctype="multipart/form-data">
                         <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
-                            id="OccurrenceReportStart" :canEditStatus="false" :is_external="true"
+                            id="OccurrenceReportStart" :canEditStatus="false" :is_external="false"
                             ref="occurrence_report" @refreshFromResponse="refreshFromResponse">
                         </ProposalOccurrenceReport>
 

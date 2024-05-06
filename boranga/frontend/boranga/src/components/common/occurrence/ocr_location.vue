@@ -550,15 +550,37 @@ export default {
             }
             return has_value;
         },
-        isReadOnly: function () {
-            let action = this.$route.query.action;
-            if(action === "edit" && this.occurrence_report_obj && this.occurrence_report_obj.assessor_mode.has_assessor_mode){
-                return false;
-            }
-            else{
-                return true;
-            }
-        },
+        isReadOnly: function(){
+                //override for split reports
+                if(this.is_readonly){
+                    return this.is_readonly;
+                }
+                let action = this.$route.query.action;
+                //if submitted or an internal application
+                if(!this.is_external
+                    && this.occurrence_report_obj 
+                    //must have the edit action and be in assessor mode
+                    && ((action === "edit" 
+                    && this.occurrence_report_obj.assessor_mode.has_assessor_mode)
+                    //or be internally created and in an editable status
+                    || (this.occurrence_report_obj.internal_application && this.occurrence_report_obj.can_user_edit))
+                ) {
+                    return false;
+                //if an external draft
+                } else if (this.is_external
+                    && this.occurrence_report_obj 
+                    //user can edit the record if a) they can access it and b) it is a draft
+                    //an internal user could do this too by accessing it "externally" 
+                    //the results of this should be controlled server-side 
+                    //(whether an acceptable bypass or should be restricted for editing by a non-submitter until after submission)
+                    && this.occurrence_report_obj.can_user_edit 
+                ) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            },
         componentMapKey: function () {
             return `component-map-${this.uuid}`;
         },

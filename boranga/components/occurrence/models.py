@@ -406,8 +406,6 @@ class OccurrenceReport(RevisionedMixin):
             "draft",
         ]
         if self.processing_status in status_without_assessor:
-            if self.internal_application: #TODO should assessors be able to edit external OCRs before submission?
-                return True
             return False
         else:
             if self.assigned_officer:

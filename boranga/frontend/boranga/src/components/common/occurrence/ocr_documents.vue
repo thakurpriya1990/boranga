@@ -5,7 +5,7 @@
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <div class="text-end">
-                        <button :disabled="isReadonly" type="button" class="btn btn-primary mb-2 "
+                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
                             @click.prevent="newDocument">
                             <i class="fa-solid fa-circle-plus"></i>
                             Add Document
@@ -51,6 +51,10 @@ export default {
             default: false
         },
         is_internal: {
+            type: Boolean,
+            default: false
+        },
+        is_readonly: {
             type: Boolean,
             default: false
         },
@@ -188,7 +192,7 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             // to restrict submitter to edit doc when the report is in workflow
-                            if (vm.can_user_edit_doc) {
+                            if (!vm.isReadOnly) {
                                 if (full.visible) {
                                     links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
                                     links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
@@ -196,9 +200,9 @@ export default {
                                 else {
                                     links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
                                 }
-                                links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             }
-                            else {
+                            if (!vm.is_external)
+                            {
                                 links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             }
                             return links;
@@ -227,10 +231,37 @@ export default {
         OccurenceReportDocumentHistory,
     },
     computed: {
-        // to restrict submitter to add doc when the report is in workflow
-        can_user_edit_doc: function () {
-            return this.is_external && this.occurrence_report_obj.customer_status == "Draft";
-        }
+        isReadOnly: function(){
+            //override for split reports
+            if(this.is_readonly){
+                return this.is_readonly;
+            }
+            let action = this.$route.query.action;
+            //if submitted or an internal application
+            if(!this.is_external
+                && this.occurrence_report_obj 
+                //must have the edit action and be in assessor mode
+                && ((action === "edit" 
+                && this.occurrence_report_obj.assessor_mode.has_assessor_mode)
+                //or be internally created and in an editable status
+                || (this.occurrence_report_obj.internal_application && this.occurrence_report_obj.can_user_edit))
+            ) {
+                return false;
+            //if an external draft
+            } else if (this.is_external
+                && this.occurrence_report_obj 
+                //user can edit the record if a) they can access it and b) it is a draft
+                //an internal user could do this too by accessing it "externally" 
+                //the results of this should be controlled server-side 
+                //(whether an acceptable bypass or should be restricted for editing by a non-submitter until after submission)
+                && this.occurrence_report_obj.can_user_edit 
+            ) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        },
     },
     watch: {},
     methods: {
