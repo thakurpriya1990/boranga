@@ -914,20 +914,12 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
+class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (SpeciesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = Species.objects.none()
+    queryset = Species.objects.all()
     serializer_class = ListSpeciesSerializer
     page_size = 10
-
-    def get_queryset(self):
-        qs = Species.objects.none()
-
-        if is_internal(self.request):
-            qs = Species.objects.all()
-
-        return qs
 
     @list_route(
         methods=[
@@ -936,6 +928,23 @@ class SpeciesPaginatedViewSet(viewsets.ModelViewSet):
         detail=False,
     )
     def species_internal(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListSpeciesSerializer(
+            result_page, context={"request": request}, many=True
+        )
+        return self.paginator.get_paginated_response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def species_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
@@ -1259,6 +1268,11 @@ class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
 
             else:
                 return Response(status=400, data="Format not valid")
+
+
+class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Species.objects.all()
+    serializer_class = SpeciesSerializer
 
 
 class SpeciesViewSet(viewsets.ModelViewSet):
