@@ -1,6 +1,6 @@
 <template id="more-referrals">
     <div>
-        <a v-if="!isFinalised" ref="showRef" @click.prevent="" class="mt-2 float-end">Show All Referrals</a>
+        <a v-if="!isFinalised" ref="showRef" @click.prevent="" role="button" class="mt-2 float-end">Show All Referrals</a>
     </div>
 </template>
 
