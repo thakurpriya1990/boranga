@@ -1772,6 +1772,12 @@ export default {
                     icon: 'mean-center.svg',
                     number_params: 0,
                 },
+                {
+                    id: 'standard_distance',
+                    name: 'Standard Distance',
+                    icon: 'standard-distance.svg',
+                    number_params: 0,
+                },
             ];
             return spatialOPerations;
         },

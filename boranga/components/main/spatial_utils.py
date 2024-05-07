@@ -8,6 +8,8 @@ import geojson
 from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, shape, mapping
 from shapely.ops import transform, unary_union, voronoi_diagram
 
+import numpy as np
+
 from itertools import combinations
 
 # Albers Equal Area projection string for Western Australia
@@ -155,6 +157,8 @@ def convex_hull(geoms, *args, **kwargs):
 
 
 def intersect_geometries(geoms, *args, **kwargs):
+    """Calculates the intersection of the input geometries."""
+
     if len(geoms) < 2:
         raise serializers.ValidationError(
             "Intersection operation requires more than one geometry"
@@ -174,6 +178,8 @@ def intersect_geometries(geoms, *args, **kwargs):
 
 
 def union_geometries(geoms, *args, **kwargs):
+    """Calculates the union of the input geometries."""
+
     mp = MultiPolygon(geoms)
     unary_union_geoms = unary_union(mp)
     union_geom = GEOSGeometry(unary_union_geoms.wkt)
@@ -182,8 +188,50 @@ def union_geometries(geoms, *args, **kwargs):
 
 
 def voronoi(geoms, *args, **kwargs):
+    """Calculates the Voronoi diagram of the input geometries."""
+
     mp = MultiPoint(geoms)
     voronoi = voronoi_diagram(mp)
     voronoi_geom = GEOSGeometry(MultiPolygon(voronoi).wkt)
 
     return json.dumps(feature_collection([voronoi_geom]))
+
+
+def centroid(geoms, *args, **kwargs):
+    """Calculates the centroid of the input geometries."""
+
+    centroid = MultiPolygon(geoms).centroid
+    geom = GEOSGeometry(centroid.wkt)
+
+    return json.dumps(feature_collection([geom]))
+
+
+def mean_center_point(geoms):
+    # the mean of the input coordinates (see: https://shapely.readthedocs.io/en/stable/reference/shapely.centroid.html)
+    return MultiPoint(geoms).centroid
+
+
+def mean_center(geoms, *args, **kwargs):
+    """Calculates the mean center point of the input geometries."""
+
+    geom = GEOSGeometry(mean_center_point(geoms).wkt)
+
+    return json.dumps(feature_collection([geom]))
+
+
+def standard_distance(geoms, *args, **kwargs):
+    """Calculates the standard distance deviation, the average distance all features
+    vary from the mean center point of the input geometries.
+    Returns a circle with the mean center point as center and the standard distance as radius,
+    indicating the compactness of the input geometries.
+    """
+
+    mean = mean_center_point(geoms)
+    n = len(geoms)
+
+    X = [np.power(p.x - mean.x, 2) for p in geoms]
+    Y = [np.power(p.y - mean.y, 2) for p in geoms]
+
+    std = np.sqrt(np.sum(X) / n + np.sum(Y) / n)
+
+    return buffer_geometries([GEOSGeometry(mean.wkt)], std, "deg")
