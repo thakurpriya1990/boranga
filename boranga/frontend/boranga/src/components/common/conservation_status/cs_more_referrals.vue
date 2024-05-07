@@ -1,6 +1,6 @@
 <template id="cs_more-referrals">
     <div>
-        <a v-if="!isFinalised" ref="showRef"  @click.prevent="" class="actionBtn top-buffer-s">Show Referrals</a>
+        <a v-if="!isFinalised" ref="showRef"  @click.prevent="" role="button" class="mt-2 float-end">Show All Referrals</a>
     </div>
 </template>
 
@@ -291,12 +291,3 @@ export default {
     },
 }
 </script>
-
-<style scoped>
-.top-buffer-s {
-    margin-top: 10px;
-}
-.actionBtn {
-    cursor: pointer;
-}
-</style>
