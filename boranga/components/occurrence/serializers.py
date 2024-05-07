@@ -1114,6 +1114,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "internal_application",
             "latest_referrals",
             "referrals",
+            "finalised",
         )
 
     def get_readonly(self, obj):
