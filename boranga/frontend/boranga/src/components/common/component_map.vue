@@ -179,6 +179,7 @@
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="top"
                                         data-bs-title="Zoom to feature"
+                                        :title="feature.getProperties().label"
                                         @mouseenter="
                                             toggleHidden($event.target)
                                         "
@@ -249,10 +250,10 @@
                                             />
                                         </svg>
                                         <img
-                                            class="svg-icon hidden red"
+                                            class="svg-icon hidden"
                                             src="../../assets/map-zoom.svg"
                                             style="
-                                                filter: url('data:image/svg+xml,<svg xmlns=`http://www.w3.org/2000/svg`><filter id=`makewhite`><feColorMatrix type=`matrix` values=`0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0`/></filter></svg>#makewhite');
+                                                filter: url('data:image/svg+xml,<svg xmlns=`http://www.w3.org/2000/svg`><filter id=`white`><feColorMatrix type=`matrix` values=`0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0`/></filter></svg>#white');
                                             "
                                         />
                                     </button>
