@@ -29,6 +29,7 @@ module.exports = {
     filtered_organisations: '/api/filtered_organisations',
     filtered_users: '/api/filtered_users',
     marine_treeview: "/api/marine_treeview",
+    ocr_referrals: "/api/ocr_referrals.json",
     organisation_access_group_members: '/api/organisation_access_group_members',
     organisation_contacts: '/api/organisation_contacts.json',
     organisation_requests: '/api/organisation_requests.json',
