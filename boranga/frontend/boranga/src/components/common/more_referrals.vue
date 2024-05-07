@@ -1,6 +1,6 @@
 <template id="more-referrals">
     <div>
-        <a v-if="!isFinalised" ref="showRef"  @click.prevent="" class="actionBtn top-buffer-s">Show Referrals</a>
+        <a v-if="!isFinalised" ref="showRef" @click.prevent="" class="mt-2 float-end">Show All Referrals</a>
     </div>
 </template>
 
@@ -9,7 +9,7 @@ import {
     constants,
     api_endpoints,
     helpers
-}from '@/utils/hooks'
+} from '@/utils/hooks'
 export default {
     name: 'MoreReferrals',
     props: {
@@ -30,7 +30,7 @@ export default {
             default: null
         }
     },
-    data(){
+    data() {
         let vm = this;
         return {
             table: null,
@@ -43,14 +43,12 @@ export default {
                 responsive: true,
                 deferRender: true,
                 autowidth: true,
-                //order: [[0, 'desc']],
-                processing:true,
+                processing: true,
                 ajax: {
-                    //"url": helpers.add_endpoint_json(api_endpoints.referrals,'datatable_list')+'?proposal='+vm.proposal.id,
                     "url": this.referral_url,
                     "dataSrc": '',
                 },
-                columns:[
+                columns: [
                     {
                         title: 'Sent On',
                         data: 'lodged_on',
@@ -61,7 +59,7 @@ export default {
                     {
                         title: 'Referral',
                         data: 'referral',
-                        render: function (data,type,full){
+                        render: function (data, type, full) {
                             return `<span>${data.first_name} ${data.last_name}</span>`;
                         }
                     },
@@ -72,16 +70,16 @@ export default {
                     {
                         title: 'Action',
                         data: 'id',
-                        render: function (data,type,full) {
+                        render: function (data, type, full) {
                             var result = '';
-                            if (!vm.canAction){
+                            if (!vm.canAction) {
                                 return result;
                             }
                             var user = full.referral.first_name + ' ' + full.referral.last_name;
-                            if (full.referral_status == 'Awaiting'){
+                            if (full.referral_status == 'Awaiting') {
                                 result = `<a href="" data-id="${data}" data-user="${user}" class="remindRef">Remind</a>/<a href="" data-id="${data}" data-user="${user}" class="recallRef">Recall</a>`;
                             }
-                            else{
+                            else {
                                 result = `<a href="" data-id="${data}" data-user="${user}" class="resendRef">Resend</a>`;
                             }
                             return result;
@@ -115,96 +113,91 @@ export default {
 
                             return result;
                         },
-                        //'createdCell': helpers.dtPopoverCellFn,
                     }
                 ]
             },
         }
     },
-    computed: {
-
-    },
     methods: {
-        remindReferral:function(_id,user){
+        remindReferral: function (_id, user) {
             let vm = this;
 
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,_id+'/remind')).then(response => {
-                vm.$emit('refreshFromResponse',response);
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals, _id + '/remind')).then(response => {
+                vm.$emit('refreshFromResponse', response);
                 vm.table.ajax.reload();
                 swal(
                     'Referral Reminder',
-                    'A reminder has been sent to '+user,
+                    'A reminder has been sent to ' + user,
                     'success'
                 )
             },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
+                error => {
+                    swal(
+                        'Proposal Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
+                });
         },
-        resendReferral:function(_id,user){
+        resendReferral: function (_id, user) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,_id+'/resend')).then(response => {
-                vm.$emit('refreshFromResponse',response);
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals, _id + '/resend')).then(response => {
+                vm.$emit('refreshFromResponse', response);
                 vm.table.ajax.reload();
                 swal(
                     'Referral Resent',
-                    'The referral has been resent to '+user,
+                    'The referral has been resent to ' + user,
                     'success'
                 )
             },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
+                error => {
+                    swal(
+                        'Proposal Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
+                });
         },
-        recallReferral:function(_id,user){
+        recallReferral: function (_id, user) {
             let vm = this;
             swal({
-                    title: "Loading...",
-                    //text: "Loading...",
-                    allowOutsideClick: false,
-                    allowEscapeKey:false,
-                    onOpen: () =>{
-                        swal.showLoading()
-                    }
+                title: "Loading...",
+                //text: "Loading...",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                onOpen: () => {
+                    swal.showLoading()
+                }
             })
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,_id+'/recall')).then(response => {
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals, _id + '/recall')).then(response => {
                 swal.hideLoading();
                 swal.close();
-                vm.$emit('refreshFromResponse',response);
+                vm.$emit('refreshFromResponse', response);
                 vm.table.ajax.reload();
                 swal(
                     'Referral Recall',
-                    'The referall has been recalled from '+user,
+                    'The referall has been recalled from ' + user,
                     'success'
                 )
             },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
+                error => {
+                    swal(
+                        'Proposal Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
+                });
         },
-        initialiseTable: function(){
-
+        initialiseTable: function () {
             // To allow table elements (ref: https://getbootstrap.com/docs/5.1/getting-started/javascript/#sanitizer)
             var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
             myDefaultAllowList.table = []
 
             let vm = this;
-            let table_id = 'more-referrals-table'+vm._uid;
-            let popover_name = 'popover-'+ vm._uid;
+            let table_id = 'more-referrals-table' + vm._uid;
+            let popover_name = 'popover-' + vm._uid;
             let my_content = '<table id="' + table_id + '" class="hover table table-striped table-bordered dt-responsive" cellspacing="0" width="100%"></table>'
-            let my_template = '<div class="popover ' + popover_name +'" role="tooltip"><div class="popover-arrow" style="top:110px;"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
+            let my_template = '<div class="popover ' + popover_name + '" role="tooltip"><div class="popover-arrow" style="top:110px;"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
             let popover_elem = $(vm.$refs.showRef)[0]
 
             new bootstrap.Popover(popover_elem, {
@@ -215,13 +208,9 @@ export default {
                 container: 'body',
                 placement: 'right',
                 trigger: "click focus",
-                //offset: '0 10',
             })
             popover_elem.addEventListener('inserted.bs.popover', function () {
-                console.log('in inserted.bs.popover')
-
-                let table_jelem = $('#'+table_id)
-                vm.table = $('#'+table_id).DataTable(vm.datatable_options);
+                vm.table = $('#' + table_id).DataTable(vm.datatable_options);
 
                 // activate popover when table is drawn.
                 vm.table.on('draw.dt', function () {
@@ -234,62 +223,49 @@ export default {
                             return true;
                         });
                     }
-                }).on('click','.resendRef',function(e){
+                }).on('click', '.resendRef', function (e) {
                     e.preventDefault();
                     var _id = $(this).data('id');
                     var user = $(this).data('user');
-                    vm.resendReferral(_id,user);
-                }).on('click','.recallRef',function(e){
+                    vm.resendReferral(_id, user);
+                }).on('click', '.recallRef', function (e) {
                     e.preventDefault();
                     var _id = $(this).data('id');
                     var user = $(this).data('user');
-                    vm.recallReferral(_id,user);
-                }).on('click','.remindRef',function(e){
+                    vm.recallReferral(_id, user);
+                }).on('click', '.remindRef', function (e) {
                     e.preventDefault();
                     var _id = $(this).data('id');
                     var user = $(this).data('user');
-                    vm.remindReferral(_id,user);
+                    vm.remindReferral(_id, user);
                 });
             })
             popover_elem.addEventListener('shown.bs.popover', function () {
                 console.log('in shown.bs.popover')
 
                 var el = vm.$refs.showRef;
-                var popoverheight = parseInt($('.'+popover_name).height());
+                var popoverheight = parseInt($('.' + popover_name).height());
 
-                var popover_bounding_top = parseInt($('.'+popover_name)[0].getBoundingClientRect().top);
-                var popover_bounding_bottom = parseInt($('.'+popover_name)[0].getBoundingClientRect().bottom);
+                var popover_bounding_top = parseInt($('.' + popover_name)[0].getBoundingClientRect().top);
+                var popover_bounding_bottom = parseInt($('.' + popover_name)[0].getBoundingClientRect().bottom);
 
                 var el_bounding_top = parseInt($(el)[0].getBoundingClientRect().top);
                 var el_bounding_bottom = parseInt($(el)[0].getBoundingClientRect().top);
 
                 var diff = el_bounding_top - popover_bounding_top;
 
-                var position = parseInt($('.'+popover_name).position().top);
+                var position = parseInt($('.' + popover_name).position().top);
                 var pos2 = parseInt($(el).position().top) - 5;
 
                 var x = diff + 5;
-                $('.'+popover_name).children('.arrow').css('top', x + 'px');
+                $('.' + popover_name).children('.arrow').css('top', x + 'px');
             })
         },
     },
-    created(){
-
-    },
-    mounted(){
+    mounted() {
         this.$nextTick(() => {
-            //popoverTriggerElhelpers.enablePopovers()
             this.initialiseTable()
         })
     },
 }
 </script>
-
-<style scoped>
-.top-buffer-s {
-    margin-top: 10px;
-}
-.actionBtn {
-    cursor: pointer;
-}
-</style>
