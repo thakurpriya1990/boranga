@@ -291,6 +291,7 @@ RECENT_REFERRAL_COUNT = env("RECENT_REFERRAL_COUNT", 5)
 NOMOS_URL = env("NOMOS_URL")
 NOMOS_USERNAME = env("NOMOS_USERNAME")
 NOMOS_PASSWORD = env("NOMOS_PASSWORD")
+NOMOS_BLOB_URL = env("NOMOS_BLOB_URL")
 KMI_SERVER_URL = env("KMI_SERVER_URL", "https://kmi.dbca.wa.gov.au")
 
 # ---------- Identifier fields for logging ----------

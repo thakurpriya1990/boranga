@@ -1049,6 +1049,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     latest_referrals = OccurrenceReportReferralSerializer(
         many=True, read_only=True, allow_null=True
     )
+    readonly = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -1102,6 +1103,13 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "assessor_mode",
             "latest_referrals",
         )
+
+    def get_readonly(self, obj):
+        if not obj.internal_application:
+            return True
+
+        request = self.context["request"]
+        return not request.user.id == obj.submitter
 
     def get_can_user_assess(self, obj):
         request = self.context["request"]
