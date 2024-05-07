@@ -92,6 +92,7 @@ router.register(
     occurrence_api.OccurrenceReportAmendmentRequestViewSet,
     "ocr_amendment_request",
 )
+router.register(r"ocr_referrals", occurrence_api.OccurrenceReportReferralViewSet)
 router.register(r"meeting", meeting_api.MeetingViewSet, "meeting")
 router.register(
     r"meeting_paginated", meeting_api.MeetingPaginatedViewSet, "meeting_paginated"

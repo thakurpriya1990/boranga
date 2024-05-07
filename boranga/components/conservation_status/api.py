@@ -57,7 +57,6 @@ from boranga.components.conservation_status.serializers import (
     SendReferralSerializer,
 )
 from boranga.components.conservation_status.utils import cs_proposal_submit
-from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.species_and_communities.models import (
     ClassificationSystem,
@@ -1701,7 +1700,6 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
-    @basic_exception_handler
     def get_related_items(self, request, *args, **kwargs):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")

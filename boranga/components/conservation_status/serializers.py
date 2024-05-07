@@ -705,9 +705,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     conservation_status_approval_document = serializers.SerializerMethodField()
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
     can_edit_recommended = serializers.SerializerMethodField(read_only=True)
-    # accessing_user_roles = (
-    #     serializers.SerializerMethodField()
-    # )
+    referrals = ConservationStatusProposalReferralSerializer(many=True)
 
     class Meta:
         model = ConservationStatus
@@ -741,6 +739,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "can_user_view",
             "current_assessor",
             "latest_referrals",
+            "referrals",
             "allowed_assessors",
             "assessor_mode",
             "deficiency_data",
@@ -754,25 +753,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "can_view_recommended",
             "can_edit_recommended",
         )
-
-    # def get_accessing_user_roles(self, conservation_status):
-    #     request = self.context.get("request")
-    #     accessing_user = request.user
-    #     roles = []
-    #     if (
-    #         accessing_user.id
-    #         in conservation_status.get_assessor_group().get_system_group_member_ids()
-    #     ):
-    #         roles.append("assessor")
-    #     if (
-    #         accessing_user.id
-    #         in conservation_status.get_approver_group().get_system_group_member_ids()
-    #     ):
-    #         roles.append("approver")
-    #     referral_ids = list(conservation_status.referrals.values_list("referral", flat=True))
-    #     if accessing_user.id in referral_ids:
-    #         roles.append("referral")
-    #     return roles
 
     def get_submitter(self, obj):
         if obj.submitter:
