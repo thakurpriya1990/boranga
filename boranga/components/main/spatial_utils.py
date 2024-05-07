@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+import sys
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -45,24 +46,15 @@ def transform_json_geometry(json_geom, from_srid, to_srid):
 def spatially_process_geometry(json_geom, operation, parameters=[], unit=None):
     geoms = features_json_to_geosgeometry(json_geom["features"])
 
-    if operation == "buffer":
-        res_json = buffer_json_geometry(geoms, *parameters, unit)
-    elif operation == "convex_hull":
-        res_json = convex_hull(geoms)
-    elif operation == "intersection":
-        res_json = intersect_geometries(geoms)
-    elif operation == "union":
-        raise serializers.ValidationError(
-            f"Spatial operation {operation} not supported"
-        )
-    elif operation == "voronoi":
+    try:
+        # Function from string
+        spatial_function = getattr(sys.modules[__name__], operation)
+    except AttributeError:
         raise serializers.ValidationError(
             f"Spatial operation {operation} not supported"
         )
     else:
-        raise serializers.ValidationError(
-            f"Spatial operation {operation} not supported"
-        )
+        res_json = spatial_function(geoms, *parameters, unit)
 
     return res_json
 
@@ -123,7 +115,7 @@ def buffer_polygon_m(polygon, distance):
     )
 
 
-def buffer_json_geometry(geoms, distance, unit):
+def buffer_geometries(geoms, distance, unit):
     if unit == "m":
         buffered_geoms = []
         for geom in geoms:
@@ -152,14 +144,14 @@ def buffer_json_geometry(geoms, distance, unit):
     return json.dumps(feature_collection(buffered_geoms))
 
 
-def convex_hull(geoms):
+def convex_hull(geoms, *args, **kwargs):
     convex_hull = MultiPoint(geoms).convex_hull
     geom = GEOSGeometry(convex_hull.wkt)
 
     return json.dumps(feature_collection([geom]))
 
 
-def intersect_geometries(geoms):
+def intersect_geometries(geoms, *args, **kwargs):
     if len(geoms) != 2:
         raise serializers.ValidationError(
             "Intersection operation requires exactly two geometries"

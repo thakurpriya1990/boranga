@@ -1557,7 +1557,7 @@ export default {
             shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
             userInputGeometryStack: [],
-            selectedSpatialOperation: 'buffer',
+            selectedSpatialOperation: 'buffer_geometries',
             selectedSpatialUnit: 'm',
             spatialOperationParameters: [1.0],
         };
@@ -1728,7 +1728,7 @@ export default {
         spatialOperationsAvailable: function () {
             const spatialOPerations = [
                 {
-                    id: 'buffer',
+                    id: 'buffer_geometries',
                     name: 'Buffer',
                     icon: 'buffer-geometries.svg',
                     number_params: 1,
@@ -1740,13 +1740,13 @@ export default {
                     number_params: 0,
                 },
                 {
-                    id: 'intersection',
+                    id: 'intersect_geometries',
                     name: 'Intersection',
                     icon: 'intersect-geometries.svg',
                     number_params: 0,
                 },
                 {
-                    id: 'union',
+                    id: 'union_geometries',
                     name: 'Union',
                     icon: 'union-geometries.svg',
                     number_params: 0,
