@@ -36,17 +36,15 @@ class Command(BaseCommand):
             taxon_res=requests.get(my_url)
             if taxon_res.status_code==200:
                 taxon=taxon_res.json()
-                
                 try:
                     for t in taxon:
-                        
                         kingdom_id = t['kingdom_id'] if 'kingdom_id' in t else None
                         kingdom_fk = None
                         if kingdom_id:
                             try:
                                 kingdom_obj, created=Kingdom.objects.update_or_create(kingdom_id=kingdom_id,
                                                                                         defaults={
-                                                                                          'kingdom_name' : t['kingdom_name']
+                                                                                        'kingdom_name' : t['kingdom_name']
                                                                                         })
                                 kingdom_fk = kingdom_obj
                             except Exception as e:
@@ -81,6 +79,26 @@ class Command(BaseCommand):
                                                                                                             'taxonomy_rank_fk' : taxon_rank_fk,
                                                                                                             })
                         updates.append(taxon_obj.id)
+
+                        # import ipdb; ipdb.set_trace()
+                        # check if the taxon has vernaculars and then create the TaxonVernacular records for taxon which will be the "common names"
+                        if taxon_obj:
+                            vernaculars = t["vernaculars"] if "vernaculars" in t else ""
+                            if vernaculars != None:
+                                try:
+                                    #A taxon can have more than one vernaculars(common names)
+                                    for v in vernaculars:
+                                        obj, created=TaxonVernacular.objects.update_or_create(vernacular_id=v["id"],
+                                                                                            defaults={
+                                                                                                "vernacular_name" : v["name"],
+                                                                                                "taxonomy": taxon_obj,
+                                                                                                "taxon_name_id" : taxon_obj.taxon_name_id,
+                                                                                            })
+
+                                except Exception as e:
+                                    err_msg = "Create Taxon Vernacular:"
+                                    logger.error('{}\n{}'.format(err_msg, str(e)))
+                                    errors.append(err_msg)
                 
                 except Exception as e:
                     err_msg = 'Create Taxon:'
