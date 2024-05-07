@@ -1759,6 +1759,19 @@ export default {
                     icon: 'voronoi.svg',
                     number_params: 0,
                 },
+                {
+                    id: 'centroid',
+                    name: 'Centroid',
+                    icon: 'centroid.svg',
+                    number_params: 0,
+                },
+                // Spatial statistics functions below
+                {
+                    id: 'mean_center',
+                    name: 'Mean Center',
+                    icon: 'mean-center.svg',
+                    number_params: 0,
+                },
             ];
             return spatialOPerations;
         },
