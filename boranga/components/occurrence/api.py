@@ -1076,7 +1076,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         instance = self.get_object()
         user = self.request.user
         if not ((instance.can_user_edit and (
-            user.id == instance.submitter_id or 
+            user.id == instance.submitter or 
             (instance.internal_application and is_internal(self.request))
         )) or (instance.has_assessor_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
@@ -1833,7 +1833,7 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
     def is_authorised_to_update(self,occurrence_report):
         user = self.request.user
         if not ((occurrence_report.can_user_edit and (
-            user.id == occurrence_report.submitter_id or 
+            user.id == occurrence_report.submitter or 
             (occurrence_report.internal_application and is_internal(self.request)) #TODO check if acceptable or should be in-group
         )) or (occurrence_report.has_assessor_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
@@ -1923,7 +1923,7 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
     def is_authorised_to_update(self,occurrence_report):
         user = self.request.user
         if not ((occurrence_report.can_user_edit and (
-            user.id == occurrence_report.submitter_id or 
+            user.id == occurrence_report.submitter or 
             (occurrence_report.internal_application and is_internal(self.request)) #TODO check if acceptable or should be in-group
         )) or (occurrence_report.has_assessor_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
@@ -2035,7 +2035,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
     def is_authorised_to_update(self,occurrence_report):
         user = self.request.user
         if not ((occurrence_report.can_user_edit and (
-            user.id == occurrence_report.submitter_id or 
+            user.id == occurrence_report.submitter or 
             (occurrence_report.internal_application and is_internal(self.request)) #TODO check if acceptable or should be in-group
         )) or (occurrence_report.has_assessor_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
