@@ -478,7 +478,6 @@
                                     : 'Select a drawing mode'
                             "
                             class="btn optional-layers-button"
-
                             @click="
                                 mode == 'draw'
                                     ? toggleElementVisibility('submenu-draw')
@@ -488,11 +487,6 @@
                                       )
                             "
                         >
-                        <!-- :class="[
-                                mode == 'draw'
-                                    ? 'optional-layers-button-active'
-                                    : '',
-                            ]" -->
                             <img
                                 class="svg-icon"
                                 src="../../assets/pen-icon.svg"
@@ -3214,6 +3208,15 @@ export default {
                         timerProgressBar: success,
                     }).then(() => {
                         if (success) {
+                            for (let feature of processedGeometry.features) {
+                                feature.properties.color =
+                                    this.getRandomColor();
+                                feature.properties.geometry_source =
+                                    this.spatialOperationsAvailable.filter(
+                                        (op) => op.id === operation
+                                    )[0].name;
+                            }
+
                             const features =
                                 this.addFeatureCollectionToMap(
                                     processedGeometry
@@ -3401,7 +3404,10 @@ export default {
             const stroke = this.defaultColor;
 
             const label =
-                context.occurrence_report_number || context.label || 'Draw';
+                properties.label ||
+                context.occurrence_report_number ||
+                context.label ||
+                'Draw';
 
             feature.setProperties({
                 id: this.newFeatureId,
@@ -3454,7 +3460,13 @@ export default {
                 model = vm.context || {};
             }
 
-            let color = vm.styleByColor(featureData, model);
+            if (!featureData.properties['color']) {
+                featureData.properties['color'] = vm.styleByColor(
+                    featureData,
+                    model
+                );
+            }
+
             const type = vm.getFeatureType(featureData);
             // let style = vm.createStyle(color, vm.defaultColor, type);
             let geometry;
@@ -3474,7 +3486,6 @@ export default {
                 console.error(`Unsupported geometry type ${type}`);
             }
 
-            featureData.properties['color'] = color;
             let feature = new Feature({
                 geometry: geometry,
             });
