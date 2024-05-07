@@ -470,13 +470,7 @@ def _log_occurrence_report_referral_email(email_message, referral, sender=None):
     else:
         text = smart_text(email_message)
         subject = ""
-        # TODO not sure if referral.occurrence_report.applicant.email will works here
-        # import ipdb; ipdb.set_trace()
-        to = (
-            referral.occurrence_report.applicant.email
-            if referral.occurrence_report.applicant.email
-            else ""
-        )
+        to = EmailUser.objects.get(id=referral.referral).email
         fromm = smart_text(sender) if sender else SYSTEM_NAME
         all_ccs = ""
 
