@@ -1,12 +1,18 @@
 from rest_framework import serializers
 
+import sys
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
 import geojson
-from shapely.geometry import Point, Polygon, shape, mapping
-from shapely.ops import transform
+from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, shape, mapping
+from shapely.ops import transform, unary_union, voronoi_diagram
 
+import numpy as np
+
+from itertools import combinations
+
+# Albers Equal Area projection string for Western Australia
 aea_wa_string = "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
@@ -43,19 +49,33 @@ def transform_json_geometry(json_geom, from_srid, to_srid):
 
 
 def spatially_process_geometry(json_geom, operation, parameters=[], unit=None):
-    if operation == "buffer":
-        res_json = buffer_json_geometry(json_geom, *parameters, unit)
-    else:
+    geoms = features_json_to_geosgeometry(json_geom["features"])
+
+    try:
+        # Function from string
+        spatial_operation = getattr(sys.modules[__name__], operation)
+    except AttributeError:
         raise serializers.ValidationError(
             f"Spatial operation {operation} not supported"
         )
+    else:
+        res_json = spatial_operation(geoms, *parameters, unit)
 
     return res_json
 
 
+def feature_collection(geoms):
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
+            for geom in geoms
+        ],
+    }
+
+
 def projection(crs_from, crs_to):
-    from functools import partial
-    from pyproj import Transformer, CRS, Proj
+    from pyproj import Transformer
 
     transformer = Transformer.from_crs(
         crs_from,
@@ -100,9 +120,7 @@ def buffer_polygon_m(polygon, distance):
     )
 
 
-def buffer_json_geometry(json_geom, distance, unit):
-    geoms = features_json_to_geosgeometry(json_geom["features"])
-
+def buffer_geometries(geoms, distance, unit):
     if unit == "m":
         buffered_geoms = []
         for geom in geoms:
@@ -128,12 +146,103 @@ def buffer_json_geometry(json_geom, distance, unit):
             f"Buffer operation requires unit parameter, got {unit}"
         )
 
-    feature_collection = {
-        "type": "FeatureCollection",
-        "features": [
-            {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
-            for geom in buffered_geoms
-        ],
-    }
+    return json.dumps(feature_collection(buffered_geoms))
 
-    return json.dumps(feature_collection)
+
+def convex_hull(geoms, *args, **kwargs):
+    convex_hull = MultiPoint(geoms).convex_hull
+    geom = GEOSGeometry(convex_hull.wkt)
+
+    return json.dumps(feature_collection([geom]))
+
+
+def intersect_geometries(geoms, *args, **kwargs):
+    """Calculates the intersection of the input geometries."""
+
+    if len(geoms) < 2:
+        raise serializers.ValidationError(
+            "Intersection operation requires more than one geometry"
+        )
+    if not geoms[0].intersects(geoms[1]):
+        raise serializers.ValidationError(
+            "Intersection operation requires intersecting geometries"
+        )
+
+    intersection = unary_union(
+        MultiPolygon([a.intersection(b) for a, b in combinations(geoms, 2)])
+    )
+
+    geom = GEOSGeometry(intersection.wkt)
+
+    return json.dumps(feature_collection([geom]))
+
+
+def union_geometries(geoms, *args, **kwargs):
+    """Calculates the union of the input geometries."""
+
+    mp = MultiPolygon(geoms)
+    unary_union_geoms = unary_union(mp)
+    union_geom = GEOSGeometry(unary_union_geoms.wkt)
+
+    return json.dumps(feature_collection([union_geom]))
+
+
+def voronoi(geoms, *args, **kwargs):
+    """Calculates the Voronoi diagram of the input geometries."""
+
+    mp = MultiPoint(geoms)
+    voronoi = voronoi_diagram(mp)
+    voronoi_geom = GEOSGeometry(MultiPolygon(voronoi).wkt)
+
+    return json.dumps(feature_collection([voronoi_geom]))
+
+
+def centroid(geoms, *args, **kwargs):
+    """Calculates the centroid of the input geometries."""
+
+    polygons = []
+    for geom in geoms:
+        if geom.geom_type == 'MultiPolygon':
+            polygons += list(geom)
+        elif geom.geom_type == 'Polygon':
+            polygons.append(geom)
+        else:
+            raise serializers.ValidationError(
+                "Centroid operation requires Polygon or MultiPolygon geometries"
+            )
+
+    centroid = MultiPolygon(polygons).centroid
+    geom = GEOSGeometry(centroid.wkt)
+
+    return json.dumps(feature_collection([geom]))
+
+
+def mean_center_point(geoms):
+    # the mean of the input coordinates (see: https://shapely.readthedocs.io/en/stable/reference/shapely.centroid.html)
+    return MultiPoint(geoms).centroid
+
+
+def mean_center(geoms, *args, **kwargs):
+    """Calculates the mean center point of the input geometries."""
+
+    geom = GEOSGeometry(mean_center_point(geoms).wkt)
+
+    return json.dumps(feature_collection([geom]))
+
+
+def standard_distance(geoms, *args, **kwargs):
+    """Calculates the standard distance deviation, the average distance all features
+    vary from the mean center point of the input geometries.
+    Returns a circle with the mean center point as center and the standard distance as radius,
+    indicating the compactness of the input geometries.
+    """
+
+    mean = mean_center_point(geoms)
+    n = len(geoms)
+
+    X = [np.power(p.x - mean.x, 2) for p in geoms]
+    Y = [np.power(p.y - mean.y, 2) for p in geoms]
+
+    std = np.sqrt(np.sum(X) / n + np.sum(Y) / n)
+
+    return buffer_geometries([GEOSGeometry(mean.wkt)], std, "deg")
