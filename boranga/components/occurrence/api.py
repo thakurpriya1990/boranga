@@ -1738,6 +1738,13 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         serializer = self.get_serializer(instance, context={"request": request})
         return Response(serializer.data)
 
+    @detail_route(methods=["get"], detail=True)
+    def referrals(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.referrals.all()
+        serializer = InternalOccurrenceReportReferralSerializer(qs, many=True)
+        return Response(serializer.data)
+
 
 class ObserverDetailViewSet(viewsets.ModelViewSet):
     queryset = OCRObserverDetail.objects.none()
