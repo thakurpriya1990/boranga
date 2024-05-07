@@ -151,6 +151,14 @@ class OccurrenceReport(RevisionedMixin):
         (PROCESSING_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
         (PROCESSING_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
+
+    FINALISED_STATUSES = [
+        PROCESSING_STATUS_APPROVED,
+        PROCESSING_STATUS_DECLINED,
+        PROCESSING_STATUS_DISCARDED,
+        PROCESSING_STATUS_CLOSED,
+    ]
+
     REVIEW_STATUS_CHOICES = (
         ("not_reviewed", "Not Reviewed"),
         ("awaiting_amendments", "Awaiting Amendments"),
@@ -369,6 +377,10 @@ class OccurrenceReport(RevisionedMixin):
         if self.group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             return True
         return False
+
+    @property
+    def finalised(self):
+        return self.processing_status in self.FINALISED_STATUSES
 
     @property
     def allowed_assessors(self):
