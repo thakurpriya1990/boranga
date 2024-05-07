@@ -2789,17 +2789,6 @@ class Occurrence(RevisionedMixin):
                 occ_doc.occurrence = occurrence
                 occ_doc.save()
 
-        # Clone the shapefiles
-        for shp_doc in occurrence_report.shapefile_documents.all():
-            occ_shp_doc = clone_model(
-                OccurrenceReportShapefileDocument,
-                OccurrenceReportShapefileDocument,
-                doc,
-            )
-            if occ_shp_doc:
-                occ_shp_doc.occurrence = occurrence
-                occ_shp_doc.save()
-
         # TODO: Once occurrence has it's own geometry field, clone the geometry here
 
         # TODO: Make sure everything else is cloned once OCR/OCC sections are finalised
