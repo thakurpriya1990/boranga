@@ -104,52 +104,52 @@
                                 <tbody>
                                     <tr v-for="r in occurrence_report.latest_referrals" :key="r.id">
                                         <td class="truncate-name">
-                                            {{ r.referral_obj.first_name }}
-                                            {{ r.referral_obj.last_name }}
+                                            {{ r.referral.first_name }}
+                                            {{ r.referral.last_name }}
                                         </td>
                                         <td>
-                                            {{ r.processing_status_display }}
+                                            {{ r.referral_status }}
                                         </td>
                                         <td class="text-center">
                                             <template v-if="'with_referral' == r.processing_status">
                                                 <a v-if="canAction" role="button" data-bs-toggle="popover"
                                                     data-bs-trigger="hover focus" :data-bs-content="'Send a reminder to ' +
-                                                        r.referral_obj['fullname']
+                                                        r.referral['fullname']
                                                         " data-bs-placement="bottom" @click.prevent="
-                                                                remindReferral.bind(this)(
-                                                                    referrals_api_endpoint,
-                                                                    r.id,
-                                                                    r.referral_obj['fullname']
-                                                                )
-                                                                "><i class="fa fa-bell text-warning"
+                                                            remindReferral.bind(this)(
+                                                                referrals_api_endpoint,
+                                                                r.id,
+                                                                r.referral['fullname']
+                                                            )
+                                                            "><i class="fa fa-bell text-warning"
                                                         aria-hidden="true"></i>
                                                 </a>
                                                 <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
                                                     :data-bs-content="'Recall the referral request sent to ' +
-                                                        r.referral_obj['fullname']
+                                                        r.referral['fullname']
                                                         " data-bs-placement="bottom" @click.prevent="
-                                                                recallReferral.bind(this)(
-                                                                    referrals_api_endpoint,
-                                                                    r.id,
-                                                                    r.referral_obj['fullname']
-                                                                )
-                                                                "><i class="fa fa-times-circle text-danger"
+                                                            recallReferral.bind(this)(
+                                                                referrals_api_endpoint,
+                                                                r.id,
+                                                                r.referral['fullname']
+                                                            )
+                                                            "><i class="fa fa-times-circle text-danger"
                                                         aria-hidden="true"></i>
                                                 </a>
                                             </template>
                                             <template v-else>
                                                 <small v-if="canAction"><a role="button" data-bs-toggle="popover"
                                                         data-bs-trigger="hover focus" :data-bs-content="'Resend this referral request to ' +
-                                                            r.referral_obj['fullname']
+                                                            r.referral['fullname']
                                                             " @click.prevent="
-                                                                    resendReferral.bind(this)(
-                                                                        referrals_api_endpoint,
-                                                                        r.id,
-                                                                        r.referral_obj[
-                                                                        'fullname'
-                                                                        ]
-                                                                    )
-                                                                    "><i class="fa fa-envelope text-primary"
+                                                                resendReferral.bind(this)(
+                                                                    referrals_api_endpoint,
+                                                                    r.id,
+                                                                    r.referral[
+                                                                    'fullname'
+                                                                    ]
+                                                                )
+                                                                "><i class="fa fa-envelope text-primary"
                                                             aria-hidden="true"></i>
                                                     </a></small>
                                             </template>
@@ -158,8 +158,7 @@
                                 </tbody>
                             </table>
                             <MoreReferrals @refreshFromResponse="refreshFromResponse" :proposal="occurrence_report"
-                                :canAction="canLimitedAction" :isFinalised="isFinalised"
-                                :referral_url="referralListURL" />
+                                :canAction="canAction" :isFinalised="occurrence_report.finalised" :referral_url="referralListURL" />
                         </div>
                     </div>
                     <div v-if="canAction" class="card-body border-top">
@@ -286,7 +285,7 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
-import MoreReferrals from '@common-utils/more_referrals.vue'
+import MoreReferrals from '@common-utils/occurrence/ocr_more_referrals.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import AmendmentRequest from './amendment_request.vue'
 import BackToAssessor from './back_to_assessor.vue'
@@ -330,6 +329,7 @@ export default {
         CommsLogs,
         Submission,
         Workflow,
+        MoreReferrals,
         ProposalOccurrenceReport,
         AmendmentRequest,
         BackToAssessor,
@@ -402,8 +402,7 @@ export default {
             return this.occurrence_report && this.occurrence_report.processing_status === 'With Approver'
         },
         canSeeSubmission: function () {
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
+            // TODO define condition
             return true
         },
         isAssignedOfficer: function () {
@@ -429,14 +428,11 @@ export default {
         },
         referralListURL: function () {
             return this.occurrence_report != null
-                ? helpers.add_endpoint_json(
-                    api_endpoints.referrals,
-                    'datatable_list'
-                ) +
-                '?occurrence_report=' +
-                this.occurrence_report.id
+                ?
+                api_endpoints.occurrence_report +
+                `/${this.occurrence_report.id}/referrals/`
                 : '';
-        },
+        }
     },
     methods: {
         discardSpeciesProposal: function () {
