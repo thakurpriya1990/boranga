@@ -5,7 +5,7 @@
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <div class="text-end">
-                        <button type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
+                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
                             <i class="fa-solid fa-circle-plus"></i>
                                 Add Document
                         </button>

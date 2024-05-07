@@ -1068,6 +1068,19 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
+    def is_authorised_to_update(self):
+        #To update an occurrence report, the user must be:
+        # - the original submitter and the OCR in draft
+        # - an internal assessor and the OCR under assessment
+        # - an internal user, the OCR created internally, and the OCR in draft (TODO review this - restrict to submitter or group?)
+        instance = self.get_object()
+        user = self.request.user
+        if not ((instance.can_user_edit and (
+            user.id == instance.submitter_id or 
+            (instance.internal_application and is_internal(self.request))
+        )) or (instance.has_assessor_mode(user))):
+            raise serializers.ValidationError("User not authorised to update Occurrence Report")
+
     @list_route(
         methods=[
             "POST",
@@ -1075,6 +1088,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def update_location_details(self, request, *args, **kwargs):
+        
+        self.is_authorised_to_update()
         ocr_instance = self.get_object()
 
         location_instance, created = Location.objects.get_or_create(
@@ -1119,6 +1134,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def update_habitat_composition_details(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()
         ocr_instance = self.get_object()
         habitat_instance, created = OCRHabitatComposition.objects.get_or_create(
             occurrence_report=ocr_instance
@@ -1138,6 +1155,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def update_habitat_condition_details(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()        
         ocr_instance = self.get_object()
         habitat_instance, created = OCRHabitatCondition.objects.get_or_create(
             occurrence_report=ocr_instance
@@ -1157,6 +1176,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def update_fire_history_details(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()
         ocr_instance = self.get_object()
         fire_instance, created = OCRFireHistory.objects.get_or_create(
             occurrence_report=ocr_instance
@@ -1176,6 +1197,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def update_associated_species_details(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()
         ocr_instance = self.get_object()
         assoc_species_instance, created = OCRAssociatedSpecies.objects.get_or_create(
             occurrence_report=ocr_instance
@@ -1195,6 +1218,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def update_observation_details(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()        
         ocr_instance = self.get_object()
         obs_det_instance, created = OCRObservationDetail.objects.get_or_create(
             occurrence_report=ocr_instance
@@ -1214,6 +1239,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def update_plant_count_details(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()        
         ocr_instance = self.get_object()
         plant_count_instance, created = OCRPlantCount.objects.get_or_create(
             occurrence_report=ocr_instance
@@ -1233,6 +1260,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def update_animal_observation_details(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()
         ocr_instance = self.get_object()
         animal_obs_instance, created = OCRAnimalObservation.objects.get_or_create(
             occurrence_report=ocr_instance
@@ -1252,6 +1281,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def update_identification_details(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()        
         ocr_instance = self.get_object()
         identification_instance, created = OCRIdentification.objects.get_or_create(
             occurrence_report=ocr_instance
@@ -1325,6 +1356,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def draft(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()
         instance = self.get_object()
         # request_data = request.data
         proposal_data = (
@@ -1457,6 +1490,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()        
         instance = self.get_object()
         # instance.submit(request,self)
         ocr_proposal_submit(instance, request)
@@ -1498,6 +1533,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def add_comms_log(self, request, *args, **kwargs):
+
+        if not is_internal(self):
+            raise serializers.ValidationError("User not authorised to add Communincation Logs to the Occurrence Report")
+
         instance = self.get_object()
         mutable = request.data._mutable
         request.data._mutable = True
@@ -1575,6 +1614,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
     def validate_map_files(self, request, *args, **kwargs):
+        self.is_authorised_to_update()        
         instance = self.get_object()
         validate_map_files(request, instance, "occurrence_report")
         instance.save()
@@ -1603,6 +1643,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def assign_to(self, request, *args, **kwargs):
+
+        #TODO who can assign and be assigned to?
+
         instance = self.get_object()
         user_id = request.data.get("assessor_id", None)
         user = None
@@ -1627,6 +1670,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def unassign(self, request, *args, **kwargs):
+
+        #TODO who can unassign?
+
         instance = self.get_object()
         instance.unassign(request)
         serializer = InternalOccurrenceReportSerializer(
@@ -1641,6 +1687,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def amendment_request(self, request, *args, **kwargs):
+
+        #TODO auth
+
         instance = self.get_object()
         qs = instance.amendment_requests
         qs = qs.filter(status="requested")
@@ -1654,6 +1703,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def propose_decline(self, request, *args, **kwargs):
+
+        #TODO auth
+
         instance = self.get_object()
         serializer = ProposeDeclineSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1670,6 +1722,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def decline(self, request, *args, **kwargs):
+
+        #TODO auth
+
         instance = self.get_object()
         serializer = ProposeDeclineSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1686,6 +1741,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def back_to_assessor(self, request, *args, **kwargs):
+
+        #TODO auth
+
         instance = self.get_object()
         serializer = BackToAssessorSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1702,6 +1760,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def propose_approve(self, request, *args, **kwargs):
+
+        #TODO auth
+
         instance = self.get_object()
         serializer = ProposeApproveSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1718,6 +1779,9 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def approve(self, request, *args, **kwargs):
+
+        #TODO auth
+
         instance = self.get_object()
         instance.approve(request)
         serializer = InternalOccurrenceReportSerializer(
@@ -1729,6 +1793,14 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 class ObserverDetailViewSet(viewsets.ModelViewSet):
     queryset = OCRObserverDetail.objects.none()
     serializer_class = OCRObserverDetailSerializer
+
+    def is_authorised_to_update(self,occurrence_report):
+        user = self.request.user
+        if not ((occurrence_report.can_user_edit and (
+            user.id == occurrence_report.submitter_id or 
+            (occurrence_report.internal_application and is_internal(self.request)) #TODO check if acceptable or should be in-group
+        )) or (occurrence_report.has_assessor_mode(user))):
+            raise serializers.ValidationError("User not authorised to update Occurrence Report")
 
     def get_queryset(self):
         qs = OCRObserverDetail.objects.none()
@@ -1743,6 +1815,7 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence_report)
         serializer = OCRObserverDetailSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -1756,6 +1829,8 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
             data=json.loads(request.data.get("data"))
         )
         serializer.is_valid(raise_exception=True)
+        occurrence_report = serializer.validated_data["occurrence_report"]
+        self.is_authorised_to_update(occurrence_report)
         serializer.save()
         return Response(serializer.data)
 
@@ -1771,6 +1846,9 @@ class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
         return OccurrenceReportAmendmentRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
+
+        #TODO auth
+
         serializer = self.get_serializer(data=json.loads(request.data.get("data")))
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -1787,6 +1865,9 @@ class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
     )
     @renderer_classes((JSONRenderer,))
     def delete_document(self, request, *args, **kwargs):
+
+        #TODO auth
+
         instance = self.get_object()
         OccurrenceReportAmendmentRequestDocument.objects.get(
             id=request.data.get("id")
@@ -1802,6 +1883,14 @@ class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
 class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
     queryset = OccurrenceReportDocument.objects.none()
     serializer_class = OccurrenceReportDocumentSerializer
+
+    def is_authorised_to_update(self,occurrence_report):
+        user = self.request.user
+        if not ((occurrence_report.can_user_edit and (
+            user.id == occurrence_report.submitter_id or 
+            (occurrence_report.internal_application and is_internal(self.request)) #TODO check if acceptable or should be in-group
+        )) or (occurrence_report.has_assessor_mode(user))):
+            raise serializers.ValidationError("User not authorised to update Occurrence Report")
 
     def get_queryset(self):
         request_user = self.request.user
@@ -1822,6 +1911,7 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence_report)
         instance.visible = False
         instance.save(version_user=request.user)
         if instance.occurrence_report:
@@ -1843,6 +1933,7 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence_report)
         instance.visible = True
         instance.save(version_user=request.user)
         if instance.occurrence_report:
@@ -1859,6 +1950,7 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence_report)
         serializer = SaveOccurrenceReportDocumentSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -1883,6 +1975,8 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
             data=json.loads(request.data.get("data"))
         )
         serializer.is_valid(raise_exception=True)
+        occurrence_report = serializer.validated_data["occurrence_report"]
+        self.is_authorised_to_update(occurrence_report)
         instance = serializer.save(no_revision=True)
         instance.add_documents(request, no_revision=True)
         instance.uploaded_by = request.user.id
@@ -1902,14 +1996,23 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
     queryset = OCRConservationThreat.objects.none()
     serializer_class = OCRConservationThreatSerializer
 
+    def is_authorised_to_update(self,occurrence_report):
+        user = self.request.user
+        if not ((occurrence_report.can_user_edit and (
+            user.id == occurrence_report.submitter_id or 
+            (occurrence_report.internal_application and is_internal(self.request)) #TODO check if acceptable or should be in-group
+        )) or (occurrence_report.has_assessor_mode(user))):
+            raise serializers.ValidationError("User not authorised to update Occurrence Report")
+
     def get_queryset(self):
+        request_user = self.request.user
         qs = OCRConservationThreat.objects.none()
 
         if is_internal(self.request):
             qs = OCRConservationThreat.objects.all().order_by("id")
         elif is_customer(self.request):
-            # TODO filter qs as per added_by
-            qs = OCRConservationThreat.objects.all().order_by("id")
+            # TODO filter qs as per added_by - using the OCR submitter for now
+            qs = OCRConservationThreat.objects.filter(occurrence_report__submitter_id=request_user).order_by("id")
             return qs
         return qs
 
@@ -1921,6 +2024,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence_report)
         instance.visible = False
         instance.save(version_user=request.user)
         if instance.occurrence_report:
@@ -1942,6 +2046,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence_report)
         instance.visible = True
         instance.save(version_user=request.user)
         if instance.occurrence_report:
@@ -1958,6 +2063,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence_report)
         serializer = SaveOCRConservationThreatSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -1982,6 +2088,8 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
         )
         validate_threat_request(request)
         serializer.is_valid(raise_exception=True)
+        occurrence_report = serializer.validated_data["occurrence_report"]
+        self.is_authorised_to_update(occurrence_report)
         instance = serializer.save(version_user=request.user)
         if instance.occurrence_report:
             instance.occurrence_report.log_user_action(
