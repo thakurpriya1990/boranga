@@ -1031,16 +1031,14 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
 
 
 class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
-    referral_obj = serializers.SerializerMethodField()
-    processing_status_display = serializers.CharField(
-        source="get_processing_status_display"
-    )
+    referral = serializers.SerializerMethodField()
+    referral_status = serializers.CharField(source="get_processing_status_display")
 
     class Meta:
         model = OccurrenceReportReferral
         fields = "__all__"
 
-    def get_referral_obj(self, obj):
+    def get_referral(self, obj):
         return EmailUserSerializer(retrieve_email_user(obj.referral)).data
 
 
