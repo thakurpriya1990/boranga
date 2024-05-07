@@ -6,7 +6,9 @@ import json
 from django.contrib.gis.geos import GEOSGeometry
 import geojson
 from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, shape, mapping
-from shapely.ops import transform, unary_union
+from shapely.ops import transform, unary_union, voronoi_diagram
+
+from itertools import combinations
 
 # Albers Equal Area projection string for Western Australia
 aea_wa_string = "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
@@ -153,17 +155,20 @@ def convex_hull(geoms, *args, **kwargs):
 
 
 def intersect_geometries(geoms, *args, **kwargs):
-    if len(geoms) != 2:
+    if len(geoms) < 2:
         raise serializers.ValidationError(
-            "Intersection operation requires exactly two geometries"
+            "Intersection operation requires more than one geometry"
         )
     if not geoms[0].intersects(geoms[1]):
         raise serializers.ValidationError(
             "Intersection operation requires intersecting geometries"
         )
 
-    geom = geoms[0].intersection(geoms[1])
-    geom = GEOSGeometry(geom.wkt)
+    intersection = unary_union(
+        MultiPolygon([a.intersection(b) for a, b in combinations(geoms, 2)])
+    )
+
+    geom = GEOSGeometry(intersection.wkt)
 
     return json.dumps(feature_collection([geom]))
 
@@ -174,3 +179,11 @@ def union_geometries(geoms, *args, **kwargs):
     union_geom = GEOSGeometry(unary_union_geoms.wkt)
 
     return json.dumps(feature_collection([union_geom]))
+
+
+def voronoi(geoms, *args, **kwargs):
+    mp = MultiPoint(geoms)
+    voronoi = voronoi_diagram(mp)
+    voronoi_geom = GEOSGeometry(MultiPolygon(voronoi).wkt)
+
+    return json.dumps(feature_collection([voronoi_geom]))
