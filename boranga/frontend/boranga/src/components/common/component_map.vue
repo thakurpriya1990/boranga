@@ -368,7 +368,8 @@
                             :class="featureCount ? '' : 'disabled'"
                             @click="
                                 toggleElementVisibility(
-                                    'submenu-geometries-list'
+                                    'submenu-geometries-list',
+                                    $event.target
                                 )
                             "
                         >
@@ -477,13 +478,21 @@
                                     : 'Select a drawing mode'
                             "
                             class="btn optional-layers-button"
-                            :class="[
+
+                            @click="
+                                mode == 'draw'
+                                    ? toggleElementVisibility('submenu-draw')
+                                    : toggleElementVisibility(
+                                          'submenu-draw',
+                                          $event.target
+                                      )
+                            "
+                        >
+                        <!-- :class="[
                                 mode == 'draw'
                                     ? 'optional-layers-button-active'
-                                    : 'optional-layers-button',
-                            ]"
-                            @click="toggleElementVisibility('submenu-draw')"
-                        >
+                                    : '',
+                            ]" -->
                             <img
                                 class="svg-icon"
                                 src="../../assets/pen-icon.svg"
@@ -753,7 +762,8 @@
                             title="Select a method to process selected features"
                             @click="
                                 toggleElementVisibility(
-                                    'submenu-spatial-operations'
+                                    'submenu-spatial-operations',
+                                    $event.target
                                 )
                             "
                         >
@@ -3757,12 +3767,25 @@ export default {
             }
             return 'last action';
         },
-        toggleElementVisibility: function (elementId) {
-            let element = document.getElementById(elementId);
+        /**
+         * Toggles a given element's visibility (like a submenu) on or off
+         * and highlights the respective menu button that toggles the submenu
+         * @param {String} elementId The id of the element to toggle visibility on or off
+         * @param {Object} button  The html element that was clicked to toggle the element
+         */
+        toggleElementVisibility: function (elementId, button) {
+            const element = document.getElementById(elementId);
+            // Must no necessarily be the button, can be an icon it
+            const btn = $(button).closest('.btn');
+
             if (element.style.display !== 'block') {
                 element.style.display = 'block';
+                btn.addClass('optional-layers-button-active');
             } else {
                 element.style.display = 'none';
+                if (btn.hasClass('optional-layers-button-active')) {
+                    btn.removeClass('optional-layers-button-active');
+                }
             }
         },
         shapeFilesUpdated: function () {
