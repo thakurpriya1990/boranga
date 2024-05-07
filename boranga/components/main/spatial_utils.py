@@ -5,9 +5,10 @@ import json
 
 from django.contrib.gis.geos import GEOSGeometry
 import geojson
-from shapely.geometry import Point, MultiPoint, Polygon, shape, mapping
-from shapely.ops import transform
+from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, shape, mapping
+from shapely.ops import transform, unary_union
 
+# Albers Equal Area projection string for Western Australia
 aea_wa_string = "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
@@ -48,13 +49,13 @@ def spatially_process_geometry(json_geom, operation, parameters=[], unit=None):
 
     try:
         # Function from string
-        spatial_function = getattr(sys.modules[__name__], operation)
+        spatial_operation = getattr(sys.modules[__name__], operation)
     except AttributeError:
         raise serializers.ValidationError(
             f"Spatial operation {operation} not supported"
         )
     else:
-        res_json = spatial_function(geoms, *parameters, unit)
+        res_json = spatial_operation(geoms, *parameters, unit)
 
     return res_json
 
@@ -165,3 +166,11 @@ def intersect_geometries(geoms, *args, **kwargs):
     geom = GEOSGeometry(geom.wkt)
 
     return json.dumps(feature_collection([geom]))
+
+
+def union_geometries(geoms, *args, **kwargs):
+    mp = MultiPolygon(geoms)
+    unary_union_geoms = unary_union(mp)
+    union_geom = GEOSGeometry(unary_union_geoms.wkt)
+
+    return json.dumps(feature_collection([union_geom]))
