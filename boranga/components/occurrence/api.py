@@ -1070,8 +1070,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
     def is_authorised_to_update(self):
         #To update an occurrence report, the user must be:
-        # - the original submitter and the OCR in draft
-        # - an internal assessor and the OCR under assessment
+        # - the original submitter and the OCR in draft or
+        # - an internal assessor and the OCR under assessment or
         # - an internal user, the OCR created internally, and the OCR in draft (TODO review this - restrict to submitter or group?)
         instance = self.get_object()
         user = self.request.user
@@ -1080,6 +1080,44 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             (instance.internal_application and is_internal(self.request))
         )) or (instance.has_assessor_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
+
+    def is_authorised_to_assign(self, assigner, assignee=None):
+        #To assign a report:
+        # - the report must be under assessment, the assigner must be in the assessment group, and the assignee must be in the assessment group or
+        # - the report must be under approval, the assigner must be in the approver group, and the assignee must be in the approval group
+        # AND the Assignee must be the proposed assignee, or already assigned
+        instance = self.get_object()
+
+        if (assigner == assignee or (not(assignee) and
+            instance.assigned_officer == assigner.id)) and \
+            instance.has_assessor_mode(assigner):
+            return
+        elif assignee and instance.assigned_officer == assigner.id and \
+            instance.has_assessor_mode(assigner) and \
+            assignee.id in instance.get_assessor_group().get_system_group_member_ids():
+            return
+        elif (assigner == assignee or (not(assignee) and
+            instance.assigned_approver == assigner.id)) and \
+            instance.has_approver_mode(assigner):
+            return
+        elif assignee and instance.assigned_approver == assigner.id and \
+            instance.has_approver_mode(assigner) and \
+            assignee.id in instance.get_approver_group().get_system_group_member_ids():
+            return
+
+        raise serializers.ValidationError("User not authorised to manage assignments for Occurrence Report")
+
+    def is_authorised_to_assess(self):
+        instance = self.get_object()
+        user = self.request.user
+        if not instance.has_assessor_mode(user):
+            raise serializers.ValidationError("User not authorised to make Assessment Actions for Occurrence Report")
+
+    def is_authorised_to_approve(self):
+        instance = self.get_object()
+        user = self.request.user
+        if not instance.has_approver_mode(user):
+            raise serializers.ValidationError("User not authorised to make Approval Actions for Occurrence Report")
 
     @list_route(
         methods=[
@@ -1535,7 +1573,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     def add_comms_log(self, request, *args, **kwargs):
 
         if not is_internal(self):
-            raise serializers.ValidationError("User not authorised to add Communincation Logs to the Occurrence Report")
+            raise serializers.ValidationError("User not authorised to add Communication Logs to the Occurrence Report")
 
         instance = self.get_object()
         mutable = request.data._mutable
@@ -1644,8 +1682,6 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def assign_to(self, request, *args, **kwargs):
 
-        #TODO who can assign and be assigned to?
-
         instance = self.get_object()
         user_id = request.data.get("assessor_id", None)
         user = None
@@ -1657,6 +1693,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             raise serializers.ValidationError(
                 "A user with the id passed in does not exist"
             )
+        assigner = self.request.user
+        self.is_authorised_to_assign(assigner,user)
         instance.assign_officer(request, user)
         serializer = InternalOccurrenceReportSerializer(
             instance, context={"request": request}
@@ -1671,7 +1709,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def unassign(self, request, *args, **kwargs):
 
-        #TODO who can unassign?
+        user = self.request.user
+        self.is_authorised_to_assign(user)
 
         instance = self.get_object()
         instance.unassign(request)
@@ -1687,9 +1726,6 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def amendment_request(self, request, *args, **kwargs):
-
-        #TODO auth
-
         instance = self.get_object()
         qs = instance.amendment_requests
         qs = qs.filter(status="requested")
@@ -1704,7 +1740,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def propose_decline(self, request, *args, **kwargs):
 
-        #TODO auth
+        self.is_authorised_to_assess()
 
         instance = self.get_object()
         serializer = ProposeDeclineSerializer(data=request.data)
@@ -1723,7 +1759,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def decline(self, request, *args, **kwargs):
 
-        #TODO auth
+        self.is_authorised_to_approve()
 
         instance = self.get_object()
         serializer = ProposeDeclineSerializer(data=request.data)
@@ -1742,7 +1778,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def back_to_assessor(self, request, *args, **kwargs):
 
-        #TODO auth
+        self.is_authorised_to_approve()
 
         instance = self.get_object()
         serializer = BackToAssessorSerializer(data=request.data)
@@ -1761,7 +1797,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def propose_approve(self, request, *args, **kwargs):
 
-        #TODO auth
+        self.is_authorised_to_assess()
 
         instance = self.get_object()
         serializer = ProposeApproveSerializer(data=request.data)
@@ -1780,7 +1816,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def approve(self, request, *args, **kwargs):
 
-        #TODO auth
+        self.is_authorised_to_approve()
 
         instance = self.get_object()
         instance.approve(request)

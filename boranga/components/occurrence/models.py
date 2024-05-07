@@ -404,6 +404,9 @@ class OccurrenceReport(RevisionedMixin):
             "closed",
             "declined",
             "draft",
+            "partially_approved",
+            "partially_declined",
+            "discarded",
         ]
         if self.processing_status in status_without_assessor:
             return False
@@ -419,6 +422,31 @@ class OccurrenceReport(RevisionedMixin):
             else:
                 return (
                     user.id in self.get_assessor_group().get_system_group_member_ids()
+                )
+
+    def has_approver_mode(self, user):
+        status_without_approver = [
+            "with_assessor",
+            "awaiting_applicant_response",
+            "closed",
+            "declined",
+            "draft",
+            "discarded",
+        ]
+        if self.processing_status in status_without_approver:
+            return False
+        else:
+            if self.assigned_approver:
+                if self.assigned_approver == user.id:
+                    return (
+                        user.id
+                        in self.get_approver_group().get_system_group_member_ids()
+                    )
+                else:
+                    return False
+            else:
+                return (
+                    user.id in self.get_approver_group().get_system_group_member_ids()
                 )
 
     def get_assessor_group(self):
