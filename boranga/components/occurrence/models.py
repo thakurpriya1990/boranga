@@ -1181,6 +1181,7 @@ class OccurrenceReportReferral(models.Model):
                 OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
                     self.id,
                     self.occurrence_report.occurrence_report_number,
+                    f"{self.referral_as_email_user.get_full_name()}",
                 ),
                 request,
             )
@@ -1250,9 +1251,13 @@ class OccurrenceReportReferral(models.Model):
         if self.occurrence_report.submitter:
             submitter = retrieve_email_user(self.occurrence_report.submitter)
             submitter.log_user_action(
-                OccurrenceReportUserAction.RESEND_REFERRAL.format(
+                OccurrenceReportUserAction.ACTION_RESEND_REFERRAL_TO.format(
                     self.id,
                     self.occurrence_report.occurrence_report_number,
+                    "{}({})".format(
+                        self.referral_as_email_user.get_full_name(),
+                        self.referral_as_email_user.email,
+                    ),
                 ),
                 request,
             )
