@@ -200,7 +200,18 @@ def voronoi(geoms, *args, **kwargs):
 def centroid(geoms, *args, **kwargs):
     """Calculates the centroid of the input geometries."""
 
-    centroid = MultiPolygon(geoms).centroid
+    polygons = []
+    for geom in geoms:
+        if geom.geom_type == 'MultiPolygon':
+            polygons += list(geom)
+        elif geom.geom_type == 'Polygon':
+            polygons.append(geom)
+        else:
+            raise serializers.ValidationError(
+                "Centroid operation requires Polygon or MultiPolygon geometries"
+            )
+
+    centroid = MultiPolygon(polygons).centroid
     geom = GEOSGeometry(centroid.wkt)
 
     return json.dumps(feature_collection([geom]))
