@@ -80,9 +80,8 @@ class Command(BaseCommand):
                                                                                                             })
                         updates.append(taxon_obj.id)
 
-                        # import ipdb; ipdb.set_trace()
-                        # check if the taxon has vernaculars and then create the TaxonVernacular records for taxon which will be the "common names"
                         if taxon_obj:
+                            # check if the taxon has vernaculars and then create the TaxonVernacular records for taxon which will be the "common names"
                             vernaculars = t["vernaculars"] if "vernaculars" in t else ""
                             if vernaculars != None:
                                 try:
@@ -99,6 +98,34 @@ class Command(BaseCommand):
                                     err_msg = "Create Taxon Vernacular:"
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
                                     errors.append(err_msg)
+
+                            # check if the taxon has classification_system_ids and then create the ClassificationSystem records for taxon which will be the "phylogenetic groups"
+                            classification_systems = t["class_desc"] if "class_desc" in t else ""
+                            if classification_systems != None:
+                                try:
+                                    for c in classification_systems:
+                                        class_system_obj, created=ClassificationSystem.objects.update_or_create(classification_system_id=c["id"],
+                                                                                            defaults={
+                                                                                                "class_desc" : c["name"],
+                                                                                            })
+                                        
+                                        if class_system_obj:
+                                            try:
+                                                obj, created=InformalGroup.objects.update_or_create(taxonomy=taxon_obj,classification_system_fk=class_system_obj,
+                                                                                        defaults={
+                                                                                            'classification_system_id': class_system_obj.classification_system_id,
+                                                                                            'taxon_name_id': taxon_obj.taxon_name_id,
+                                                                                        })
+                                            except Exception as e:
+                                                err_msg = 'Create informal group:'
+                                                logger.error('{}\n{}'.format(err_msg, str(e)))
+                                                errors.append(err_msg)
+
+                                except Exception as e:
+                                    err_msg = "Create Taxon Classification Systems:"
+                                    logger.error('{}\n{}'.format(err_msg, str(e)))
+                                    errors.append(err_msg)                            
+
                 
                 except Exception as e:
                     err_msg = 'Create Taxon:'
