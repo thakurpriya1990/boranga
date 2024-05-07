@@ -43,10 +43,22 @@ def transform_json_geometry(json_geom, from_srid, to_srid):
 
 
 def spatially_process_geometry(json_geom, operation, parameters=[], unit=None):
+    geoms = features_json_to_geosgeometry(json_geom["features"])
+
     if operation == "buffer":
-        res_json = buffer_json_geometry(json_geom, *parameters, unit)
+        res_json = buffer_json_geometry(geoms, *parameters, unit)
     elif operation == "convex_hull":
-        res_json = convex_hull(json_geom)
+        res_json = convex_hull(geoms)
+    elif operation == "intersection":
+        res_json = intersect_geometries(geoms)
+    elif operation == "union":
+        raise serializers.ValidationError(
+            f"Spatial operation {operation} not supported"
+        )
+    elif operation == "voronoi":
+        raise serializers.ValidationError(
+            f"Spatial operation {operation} not supported"
+        )
     else:
         raise serializers.ValidationError(
             f"Spatial operation {operation} not supported"
@@ -55,9 +67,18 @@ def spatially_process_geometry(json_geom, operation, parameters=[], unit=None):
     return res_json
 
 
+def feature_collection(geoms):
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
+            for geom in geoms
+        ],
+    }
+
+
 def projection(crs_from, crs_to):
-    from functools import partial
-    from pyproj import Transformer, CRS, Proj
+    from pyproj import Transformer
 
     transformer = Transformer.from_crs(
         crs_from,
@@ -102,9 +123,7 @@ def buffer_polygon_m(polygon, distance):
     )
 
 
-def buffer_json_geometry(json_geom, distance, unit):
-    geoms = features_json_to_geosgeometry(json_geom["features"])
-
+def buffer_json_geometry(geoms, distance, unit):
     if unit == "m":
         buffered_geoms = []
         for geom in geoms:
@@ -130,26 +149,27 @@ def buffer_json_geometry(json_geom, distance, unit):
             f"Buffer operation requires unit parameter, got {unit}"
         )
 
-    feature_collection = {
-        "type": "FeatureCollection",
-        "features": [
-            {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
-            for geom in buffered_geoms
-        ],
-    }
+    return json.dumps(feature_collection(buffered_geoms))
 
-    return json.dumps(feature_collection)
 
-def convex_hull(json_geom):
-    geoms = features_json_to_geosgeometry(json_geom["features"])
+def convex_hull(geoms):
     convex_hull = MultiPoint(geoms).convex_hull
     geom = GEOSGeometry(convex_hull.wkt)
 
-    feature_collection = {
-        "type": "FeatureCollection",
-        "features": [
-            {"type": "Feature", "geometry": json.loads(geom.json), "properties": {}}
-        ],
-    }
+    return json.dumps(feature_collection([geom]))
 
-    return json.dumps(feature_collection)
+
+def intersect_geometries(geoms):
+    if len(geoms) != 2:
+        raise serializers.ValidationError(
+            "Intersection operation requires exactly two geometries"
+        )
+    if not geoms[0].intersects(geoms[1]):
+        raise serializers.ValidationError(
+            "Intersection operation requires intersecting geometries"
+        )
+
+    geom = geoms[0].intersection(geoms[1])
+    geom = GEOSGeometry(geom.wkt)
+
+    return json.dumps(feature_collection([geom]))
