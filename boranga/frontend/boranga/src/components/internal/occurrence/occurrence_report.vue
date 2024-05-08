@@ -113,42 +113,28 @@
                                         <td class="text-center">
                                             <template v-if="'with_referral' == r.processing_status">
                                                 <a v-if="canAction" role="button" data-bs-toggle="popover"
-                                                    data-bs-trigger="hover focus" :data-bs-content="'Send a reminder to ' +
+                                                    data-bs-trigger="hover" :data-bs-content="'Send a reminder to ' +
                                                         r.referral['fullname']
                                                         " data-bs-placement="bottom" @click.prevent="
-                                                            remindReferral.bind(this)(
-                                                                referrals_api_endpoint,
-                                                                r.id,
-                                                                r.referral['fullname']
-                                                            )
+                                                            remindReferral(r)
                                                             "><i class="fa fa-bell text-warning"
                                                         aria-hidden="true"></i>
                                                 </a>
-                                                <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                <a role="button" data-bs-toggle="popover" data-bs-trigger="hover"
                                                     :data-bs-content="'Recall the referral request sent to ' +
                                                         r.referral['fullname']
                                                         " data-bs-placement="bottom" @click.prevent="
-                                                            recallReferral.bind(this)(
-                                                                referrals_api_endpoint,
-                                                                r.id,
-                                                                r.referral['fullname']
-                                                            )
+                                                            recallReferral(r)
                                                             "><i class="fa fa-times-circle text-danger"
                                                         aria-hidden="true"></i>
                                                 </a>
                                             </template>
                                             <template v-else>
                                                 <small v-if="canAction"><a role="button" data-bs-toggle="popover"
-                                                        data-bs-trigger="hover focus" :data-bs-content="'Resend this referral request to ' +
+                                                        data-bs-trigger="hover" :data-bs-content="'Resend this referral request to ' +
                                                             r.referral['fullname']
                                                             " @click.prevent="
-                                                                resendReferral.bind(this)(
-                                                                    referrals_api_endpoint,
-                                                                    r.id,
-                                                                    r.referral[
-                                                                    'fullname'
-                                                                    ]
-                                                                )
+                                                                resendReferral(r)
                                                                 "><i class="fa fa-envelope text-primary"
                                                             aria-hidden="true"></i>
                                                     </a></small>
@@ -157,8 +143,9 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <MoreReferrals @refreshFromResponse="refreshFromResponse" :proposal="occurrence_report"
-                                :canAction="canAction" :isFinalised="occurrence_report.finalised" :referral_url="referralListURL" />
+                            <ShowAllReferrals @refreshFromResponse="refreshFromResponse"
+                                :occurrence_report_obj="occurrence_report" :canAction="canAction"
+                                :isFinalised="occurrence_report.finalised" :referral_url="referralListURL" />
                         </div>
                     </div>
                     <div v-if="canAction" class="card-body border-top">
@@ -285,7 +272,7 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
-import MoreReferrals from '@common-utils/occurrence/ocr_more_referrals.vue'
+import ShowAllReferrals from '@common-utils/occurrence/ocr_more_referrals.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import AmendmentRequest from './amendment_request.vue'
 import BackToAssessor from './back_to_assessor.vue'
@@ -310,7 +297,7 @@ export default {
         return {
             occurrence_report: null,
             original_occurrence_report: null,
-            referrals_api_endpoint: api_endpoints.referrals,
+            referrals_api_endpoint: api_endpoints.ocr_referrals,
             initialisedSelects: false,
             form: null,
             selected_referral: '',
@@ -322,6 +309,7 @@ export default {
             imageURL: '',
             isSaved: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
+            department_users: null,
         }
     },
     components: {
@@ -329,7 +317,7 @@ export default {
         CommsLogs,
         Submission,
         Workflow,
-        MoreReferrals,
+        ShowAllReferrals,
         ProposalOccurrenceReport,
         AmendmentRequest,
         BackToAssessor,
@@ -789,12 +777,12 @@ export default {
         },
         remindReferral: function (r) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/remind')).then(response => {
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/remind')).then(response => {
                 vm.original_occurrence_report = helpers.copyObject(response.body);
                 vm.occurrence_report = response.body;
                 swal.fire({
                     title: 'Referral Reminder',
-                    text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral).name,
+                    text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral.id).name,
                     icon: 'success',
                     confirmButtonColor: '#226fbb'
                 });
@@ -810,24 +798,14 @@ export default {
         },
         recallReferral: function (r) {
             let vm = this;
-            swal.fire({
-                title: "Loading...",
-                //text: "Loading...",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                onOpen: () => {
-                    swal.showLoading()
-                }
-            })
-
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall')).then(response => {
-                swal.hideLoading();
-                swal.close();
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/recall')).then(response => {
                 vm.original_occurrence_report = helpers.copyObject(response.body);
                 vm.occurrence_report = response.body;
+                $('.popover').hide();
+                vm.enablePopovers();
                 swal.fire({
                     title: 'Referral Recall',
-                    text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral).name,
+                    text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral.id).name,
                     icon: 'success',
                     confirmButtonColor: '#226fbb'
                 });
@@ -843,13 +821,14 @@ export default {
         },
         resendReferral: function (r) {
             let vm = this;
-
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(response => {
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/resend')).then(response => {
                 vm.original_occurrence_report = helpers.copyObject(response.body);
                 vm.occurrence_report = response.body;
+                $('.popover').hide();
+                vm.enablePopovers();
                 swal.fire({
                     title: 'Referral Resent',
-                    text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral).name,
+                    text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral.id).name,
                     icon: 'success',
                     confirmButtonColor: '#226fbb'
                 });
@@ -862,6 +841,14 @@ export default {
                         confirmButtonColor: '#226fbb'
                     });
                 });
+        },
+        fetchDeparmentUsers: function () {
+            let vm = this;
+            vm.$http.get(api_endpoints.department_users).then((response) => {
+                vm.department_users = response.body
+            }, (error) => {
+                console.log(error);
+            })
         },
         initialiseReferreeSelect: function () {
             let vm = this;
@@ -1015,7 +1002,31 @@ export default {
         },
         proposeApprove: function () {
             this.$refs.propose_approve.isModalOpen = true;
+        },
+        enablePopovers: function () {
+            this.$nextTick(() => {
+                $(function () {
+                    $('[data-bs-toggle="popover"]').each(function () {
+                        new bootstrap.Popover(this);
+                    })
+                })
+            });
+        },
+    },
+    created: function () {
+        console.log(this.occurrence_report)
+        if (!this.occurrence_report) {
+            Vue.http.get(`/api/occurrence_report/${this.$route.params.occurrence_report_id}/`).then(res => {
+                this.occurrence_report = res.body;
+            },
+                err => {
+                    console.log(err);
+                });
         }
+    },
+    mounted: function () {
+        let vm = this;
+        vm.fetchDeparmentUsers();
     },
     updated: function () {
         let vm = this;

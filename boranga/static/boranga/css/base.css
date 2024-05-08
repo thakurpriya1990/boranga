@@ -212,3 +212,9 @@ table.dataTable a:hover {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* Make sure sweet alert 2 shows on top of all other elements including modals and popovers */
+
+.swal2-container {
+    z-index: 9999;
+}
