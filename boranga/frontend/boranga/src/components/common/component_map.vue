@@ -62,7 +62,7 @@
                     />
                 </div>
                 <div class="optional-layers-wrapper">
-                    <!-- <div style="position: relative">
+                    <div style="position: relative">
                         <transition>
                             <div
                                 class="optional-layers-button-wrapper"
@@ -118,7 +118,7 @@
                                 </div>
                             </div>
                         </transition>
-                    </div> -->
+                    </div>
                     <!-- <div style="position: relative"> -->
                     <!-- <transition> -->
                     <!-- <div
@@ -1224,7 +1224,7 @@ import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 //import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
 import {
-    // addOptionalLayers,
+    addOptionalLayers,
     set_mode,
     baselayer_name,
     // validateFeature,
@@ -2563,92 +2563,6 @@ export default {
             vm.drawPointsForModel = new Draw({
                 source: vm.modelQuerySource,
                 type: 'Point',
-                // geometryFunction: function (coordinates, geometry) {
-                //     if (geometry) {
-                //         if (coordinates[0].length) {
-                //             // Add a closing coordinate to match the first
-                //             geometry.setCoordinates(
-                //                 [coordinates[0].concat([coordinates[0][0]])],
-                //                 this.geometryLayout_
-                //             );
-                //         } else {
-                //             geometry.setCoordinates([], this.geometryLayout_);
-                //         }
-                //     } else {
-                //         geometry = new Polygon(
-                //             coordinates,
-                //             this.geometryLayout_
-                //         );
-                //     }
-
-                //     if (vm.unOrRedoing_sketchPoint) {
-                //         // Don't run below undo stack logic while executing an undo/redo of sketch points
-                //         return geometry;
-                //     }
-
-                //     // Current feature id list for undo stack
-                //     let before = [...vm.sketchCoordinates];
-                //     // Ignore the last coordinate that is the movable cursor point
-                //     let drawnVertexCoords = coordinates[0].toSpliced(-1);
-                //     if (before.length != drawnVertexCoords.length) {
-                //         // Sort out back-to-back duplicate coordinates
-                //         let sketchCoordinates = drawnVertexCoords
-                //             .slice()
-                //             .reduce((acc, cur) => {
-                //                 let prev = acc.slice(-1)[0] || [];
-                //                 if (prev[0] !== cur[0] && prev[1] !== cur[1]) {
-                //                     acc.push(cur);
-                //                 }
-                //                 return acc;
-                //             }, []);
-
-                //         // Return from calculation if the new sketch coordinates are the same as the previous
-                //         if (
-                //             before.length === sketchCoordinates.length &&
-                //             before
-                //                 .flat(1)
-                //                 .every(
-                //                     (coord, index) =>
-                //                         coord ===
-                //                         sketchCoordinates.flat(1)[index]
-                //                 )
-                //         ) {
-                //             return geometry;
-                //         }
-                //         // Set new sketch coordinates
-                //         vm.sketchCoordinates = sketchCoordinates;
-
-                //         // Add to undo stack
-                //         vm.undoredo_forSketch.push('add polygon point', {
-                //             before: before,
-                //             after: vm.sketchCoordinates,
-                //         });
-                //     }
-
-                //     return geometry;
-                // },
-                // condition: function (evt) {
-                //     if (evt.originalEvent.buttons === 1) {
-                //         // Only allow drawing when the left mouse button is pressed
-                //         return true;
-                //     } else if (evt.originalEvent.buttons === 2) {
-                //         // If the right mouse button is pressed, undo the last point
-                //         if (vm.canUndoDrawnVertex) {
-                //             vm.undoredo_forSketch.undo();
-                //         } else {
-                //             vm.set_mode('layer');
-                //         }
-                //     } else {
-                //         return false;
-                //     }
-                // },
-                // finishCondition: function () {
-                //     if (vm.lastPoint) {
-                //         // vm.$emit('validate-feature');
-                //         vm.finishDrawing();
-                //     }
-                //     return true;
-                // },
             });
 
             vm.drawPolygonsForModel.set('escKey', '');
