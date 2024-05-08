@@ -1229,7 +1229,6 @@ import DragAndDrop from 'ol/interaction/DragAndDrop.js';
 import DragBox from 'ol/interaction/DragBox.js';
 import { platformModifierKeyOnly } from 'ol/events/condition.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
-import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
 import {
     // addOptionalLayers,
@@ -1247,7 +1246,6 @@ export default {
         FileField,
         alert,
         SelectFilter,
-        RangeSlider,
     },
     props: {
         level: {
@@ -2176,20 +2174,10 @@ export default {
             vm.initialiseMeasurementLayer();
             vm.initialiseQueryLayer();
             vm.initialiseDrawLayer();
-
-            // Add control inside the map
-            const layerSwitcher = new LayerSwitcher({
-                target: $('#layer-control').get(0),
-                show_progress: true,
-                extent: true,
-                trash: false,
-                layerGroup: new LayerGroup({
-                    title: 'Layers',
-                    layers: [vm.modelQueryLayer, vm.measurementLayer],
-                }),
-            });
-
-            this.map.addControl(layerSwitcher);
+            vm.initialiseLayerSwitcher([
+                this.modelQueryLayer,
+                this.measurementLayer,
+            ]);
 
             // update map extent when new features added
             vm.map.on('rendercomplete', vm.displayAllFeatures());
@@ -2561,6 +2549,111 @@ export default {
 
             vm.map.addInteraction(vm.drawPolygonsForModel);
             vm.map.addInteraction(vm.drawPointsForModel);
+        },
+        initialiseBaseLayers: function () {
+            let satelliteTileWms = new TileWMS({
+                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                params: {
+                    FORMAT: 'image/png',
+                    VERSION: '1.1.1',
+                    tiled: true,
+                    STYLES: '',
+                    LAYERS: 'public:mapbox-satellite',
+                },
+            });
+
+            let streetsTileWMS = new TileWMS({
+                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                params: {
+                    FORMAT: 'image/png',
+                    VERSION: '1.1.1',
+                    tiled: true,
+                    STYLES: '',
+                    LAYERS: `public:${baselayer_name}`,
+                },
+            });
+            this.tileLayerMapbox = new TileLayer({
+                title: 'Mapbox Streets',
+                type: 'base',
+                visible: true,
+                source: streetsTileWMS,
+            });
+
+            this.tileLayerSat = new TileLayer({
+                title: 'Satellite Map',
+                type: 'base',
+                visible: true,
+                source: satelliteTileWms,
+            });
+
+            const baseLayers = new LayerGroup({
+                title: 'Background Maps',
+                layers: [this.tileLayerMapbox, this.tileLayerSat],
+            });
+            // Hack
+            if (!baseLayers.getSource) {
+                baseLayers.getSource = () => {
+                    return this.selectedBaseLayer;
+                };
+            }
+
+            return baseLayers;
+        },
+        initialiseLayerSwitcher: function (layers) {
+            // Add layer switcher control inside the map
+            const props = {
+                target: $('#layer-control').get(0),
+                show_progress: true,
+                extent: true,
+                trash: false,
+            };
+
+            if (layers) {
+                const layerGroup = new LayerGroup({
+                    title: 'Layers',
+                    layers: layers,
+                });
+                props['layerGroup'] = layerGroup;
+            }
+
+            this.layerSwitcher = new LayerSwitcher(props);
+
+            // Add a button to show/hide the layers
+            const button = $('<div class="toggleVisibility" title="show/hide">')
+                .text('Show/hide all')
+                .click(function () {
+                    const a = this.map.getLayers().getArray();
+                    const b = !a[0].getVisible();
+                    if (b) button.removeClass('show');
+                    else button.addClass('show');
+                    for (let i = 0; i < a.length; i++) {
+                        a[i].setVisible(b);
+                    }
+                });
+            this.layerSwitcher.setHeader($('<div>').append(button).get(0));
+
+            this.map.addControl(this.layerSwitcher);
+        },
+        createMap: function (baseLayers) {
+            let container = document.getElementById('popup');
+            let overlay = new Overlay({
+                element: container,
+                autoPan: true,
+                autoPanAnimation: {
+                    duration: 150,
+                },
+            });
+
+            this.map = new Map({
+                layers: [baseLayers],
+                overlays: [overlay],
+                target: this.elem_id,
+                view: new View({
+                    center: [115.95, -31.95],
+                    zoom: 7,
+                    projection: `EPSG:${this.mapSrid}`,
+                }),
+            });
         },
         initialisePointerMoveEvent: function () {
             let vm = this;
@@ -4180,76 +4273,6 @@ export default {
             }
 
             return type;
-        },
-        initialiseBaseLayers: function () {
-            let satelliteTileWms = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
-                params: {
-                    FORMAT: 'image/png',
-                    VERSION: '1.1.1',
-                    tiled: true,
-                    STYLES: '',
-                    LAYERS: 'public:mapbox-satellite',
-                },
-            });
-
-            let streetsTileWMS = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
-                params: {
-                    FORMAT: 'image/png',
-                    VERSION: '1.1.1',
-                    tiled: true,
-                    STYLES: '',
-                    LAYERS: `public:${baselayer_name}`,
-                },
-            });
-            this.tileLayerMapbox = new TileLayer({
-                title: 'Mapbox Streets',
-                type: 'base',
-                visible: true,
-                source: streetsTileWMS,
-            });
-
-            this.tileLayerSat = new TileLayer({
-                title: 'Satellite Map',
-                type: 'base',
-                visible: true,
-                source: satelliteTileWms,
-            });
-
-            const baseLayers = new LayerGroup({
-                title: 'Background Maps',
-                layers: [this.tileLayerMapbox, this.tileLayerSat],
-            });
-            // Hack
-            if (!baseLayers.getSource) {
-                baseLayers.getSource = () => {
-                    return this.selectedBaseLayer;
-                };
-            }
-
-            return baseLayers;
-        },
-        createMap: function (baseLayers) {
-            let container = document.getElementById('popup');
-            let overlay = new Overlay({
-                element: container,
-                autoPan: true,
-                autoPanAnimation: {
-                    duration: 150,
-                },
-            });
-
-            this.map = new Map({
-                layers: [baseLayers],
-                overlays: [overlay],
-                target: this.elem_id,
-                view: new View({
-                    center: [115.95, -31.95],
-                    zoom: 7,
-                    projection: `EPSG:${this.mapSrid}`,
-                }),
-            });
         },
     },
 };
