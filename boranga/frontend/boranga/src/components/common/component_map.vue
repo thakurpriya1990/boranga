@@ -1221,7 +1221,7 @@ import DragAndDrop from 'ol/interaction/DragAndDrop.js';
 import DragBox from 'ol/interaction/DragBox.js';
 import { platformModifierKeyOnly } from 'ol/events/condition.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
-//import RangeSlider from '@/components/forms/range_slider.vue';
+import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
 import {
     addOptionalLayers,
@@ -1239,6 +1239,7 @@ export default {
         FileField,
         alert,
         SelectFilter,
+        RangeSlider,
     },
     props: {
         level: {
@@ -1844,7 +1845,7 @@ export default {
             vm.initialiseMap();
             vm.set_mode('layer');
             vm.setBaseLayer('osm');
-            // addOptionalLayers(this);
+            addOptionalLayers(this);
             vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
