@@ -10,59 +10,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='complianceamendmentrequest',
-            name='comprequest_ptr',
-        ),
-        migrations.RemoveField(
-            model_name='complianceamendmentrequest',
-            name='reason',
-        ),
-        migrations.RemoveField(
-            model_name='compliancedocument',
-            name='compliance',
-        ),
-        migrations.RemoveField(
-            model_name='compliancelogdocument',
-            name='log_entry',
-        ),
-        migrations.RemoveField(
-            model_name='compliancelogentry',
-            name='communicationslogentry_ptr',
-        ),
-        migrations.RemoveField(
-            model_name='compliancelogentry',
-            name='compliance',
-        ),
-        migrations.RemoveField(
-            model_name='complianceuseraction',
-            name='compliance',
-        ),
-        migrations.RemoveField(
-            model_name='comprequest',
-            name='compliance',
-        ),
-        migrations.DeleteModel(
-            name='Compliance',
-        ),
-        migrations.DeleteModel(
-            name='ComplianceAmendmentReason',
-        ),
-        migrations.DeleteModel(
-            name='ComplianceAmendmentRequest',
-        ),
-        migrations.DeleteModel(
-            name='ComplianceDocument',
-        ),
-        migrations.DeleteModel(
-            name='ComplianceLogDocument',
-        ),
-        migrations.DeleteModel(
-            name='ComplianceLogEntry',
-        ),
-        migrations.DeleteModel(
-            name='ComplianceUserAction',
-        ),
+
         migrations.DeleteModel(
             name='CompRequest',
         ),

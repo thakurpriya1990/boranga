@@ -31,10 +31,6 @@ class Migration(migrations.Migration):
             name='application_type',
         ),
         migrations.RemoveField(
-            model_name='compliancerequest',
-            name='proposalrequest_ptr',
-        ),
-        migrations.RemoveField(
             model_name='onholddocument',
             name='proposal',
         ),
