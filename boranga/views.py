@@ -31,7 +31,8 @@ from boranga.helpers import (
     is_django_admin,
     is_internal,
     is_species_processor,
-    is_occurrence_editor,
+    is_occurrence_approver,
+    is_occurrence_assessor,
 )
 
 logger = logging.getLogger("payment_checkout")
@@ -232,6 +233,8 @@ def is_authorised_to_access_community_document(request, document_id):
             or is_django_admin(request)
             or is_assessor(request.user)
             or is_approver(request.user)
+            or is_occurrence_assessor(request.user)
+            or is_occurrence_approver(request.user)
             or is_community_processor(request.user)
         )
     else:
@@ -247,6 +250,8 @@ def is_authorised_to_access_species_document(request, document_id):
             or is_django_admin(request)
             or is_assessor(request.user)
             or is_approver(request.user)
+            or is_occurrence_assessor(request.user)
+            or is_occurrence_approver(request.user)
             or is_species_processor(request.user)
         )
     else:
@@ -278,9 +283,8 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             request.user.is_superuser
             or is_boranga_admin(request)
             or is_django_admin(request)
-            or is_assessor(request.user)
-            or is_approver(request.user)
-            or is_occurrence_editor(request.user)
+            or is_occurrence_assessor(request.user)
+            or is_occurrence_approver(request.user)
         )
     elif is_customer(request):
         user = request.user
@@ -300,9 +304,8 @@ def is_authorised_to_access_occurrence_document(request, document_id):
             request.user.is_superuser
             or is_boranga_admin(request)
             or is_django_admin(request)
-            or is_assessor(request.user)
-            or is_approver(request.user)
-            or is_occurrence_editor(request.user)
+            or is_occurrence_assessor(request.user)
+            or is_occurrence_approver(request.user)
         )
     else:
         return False

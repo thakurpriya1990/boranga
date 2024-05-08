@@ -14,7 +14,7 @@ from rest_framework_datatables.utils import get_param
 from boranga.helpers import (is_internal, is_customer,
 is_boranga_admin, is_django_admin, is_assessor, is_approver,
 is_species_processor, is_community_processor,
-is_conservation_status_editor, is_occurrence_editor)
+is_conservation_status_editor, is_occurrence_approver)
 from django.db.models.fields.json import KeyTransform
 
 #keeping it as an APIView to control how its handled
@@ -72,7 +72,7 @@ class InternalAuthorizationView(views.APIView):
                 return True
             if model_name in self.conservation_status_editor_models and is_conservation_status_editor(request.user):
                 return True
-            if model_name in self.occurrence_editor_models and is_occurrence_editor(request.user):
+            if model_name in self.occurrence_editor_models and is_occurrence_approver(request.user):
                 return True
 
             return False

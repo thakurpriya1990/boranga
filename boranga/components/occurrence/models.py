@@ -49,7 +49,7 @@ from boranga.components.species_and_communities.models import (
 )
 from boranga.helpers import clone_model, email_in_dept_domains
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR, GROUP_NAME_OCCURRENCE_EDITOR
+from boranga.settings import GROUP_NAME_OCCURRENCE_APPROVER, GROUP_NAME_OCCURRENCE_ASSESSOR
 
 logger = logging.getLogger(__name__)
 
@@ -461,12 +461,10 @@ class OccurrenceReport(RevisionedMixin):
                 )
 
     def get_assessor_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
+        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
 
     def get_approver_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
 
     # Group for editing the Approved CS(only specific fields)
     # def get_editor_group(self):
@@ -2705,7 +2703,7 @@ class Occurrence(RevisionedMixin):
             )
 
     def get_occurrence_editor_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_EDITOR)
+        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
