@@ -58,7 +58,7 @@
                     <img
                         id="basemap_osm"
                         src="../../assets/map_icon.png"
-                        @click="setBaseLayer('osm')"
+                        @click="setBaseLayer('street')"
                     />
                 </div>
                 <div class="optional-layers-wrapper">
@@ -68,11 +68,11 @@
                                 class="optional-layers-button-wrapper"
                                 :title="`There are ${optionalLayers.length} optional layers available}`"
                             >
+                                <!-- :class="
+                                    optionalLayers.length ? '' : 'disabled'
+                                " -->
                                 <div
                                     class="optional-layers-button btn"
-                                    :class="
-                                        optionalLayers.length ? '' : 'disabled'
-                                    "
                                     @mouseover="hover = true"
                                 >
                                     <img src="../../assets/layers.svg" />
@@ -82,7 +82,13 @@
                         <transition>
                             <div
                                 v-show="hover"
-                                div
+                                class="layer_options layer_menu"
+                                @mouseleave="hover = false"
+                            >
+                                <div id="layer-control"></div>
+                            </div>
+                            <!-- <div
+                                v-show="hover"
                                 class="layer_options layer_menu"
                                 @mouseleave="hover = false"
                             >
@@ -116,7 +122,7 @@
                                         />
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </transition>
                     </div>
                     <!-- <div style="position: relative"> -->
@@ -1208,9 +1214,11 @@ import { Draw, Select, Snap } from 'ol/interaction';
 import ModifyFeature from 'ol-ext/interaction/ModifyFeature';
 import UndoRedo from 'ol-ext/interaction/UndoRedo';
 import Transform from 'ol-ext/interaction/Transform';
+import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
 import Feature from 'ol/Feature';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
+import LayerGroup from 'ol/layer/Group';
 import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import { FullScreen as FullScreenControl } from 'ol/control';
 import { LineString, Point, MultiPoint, Polygon, MultiPolygon } from 'ol/geom';
@@ -1503,6 +1511,7 @@ export default {
             map: null,
             tileLayerMapbox: null,
             tileLayerSat: null,
+            selectedBaseLayer: null,
             optionalLayers: [],
             hover: false,
             mode: 'normal',
@@ -1843,9 +1852,6 @@ export default {
             var toastEl = document.getElementById('featureToast');
             $('#map-spinner').children().css('position', 'static'); // Position spinner in center of map
             vm.initialiseMap();
-            // vm.set_mode('layer');
-            // vm.setBaseLayer('osm');
-            // addOptionalLayers(this);
             vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
@@ -1944,11 +1950,13 @@ export default {
             if (selected_layer_name == 'sat') {
                 vm.tileLayerMapbox.setVisible(false);
                 vm.tileLayerSat.setVisible(true);
+                vm.selectedBaseLayer = vm.tileLayerSat;
                 $('#basemap_sat').hide();
                 $('#basemap_osm').show();
             } else {
                 vm.tileLayerMapbox.setVisible(true);
                 vm.tileLayerSat.setVisible(false);
+                vm.selectedBaseLayer = vm.tileLayerMapbox;
                 $('#basemap_osm').hide();
                 $('#basemap_sat').show();
             }
@@ -2158,18 +2166,8 @@ export default {
         initialiseMap: function () {
             let vm = this;
 
-            const overlay = vm.handleMapLayerFunction();
-
-            vm.map = new Map({
-                layers: [vm.tileLayerMapbox, vm.tileLayerSat],
-                overlays: [overlay],
-                target: vm.elem_id,
-                view: new View({
-                    center: [115.95, -31.95],
-                    zoom: 7,
-                    projection: `EPSG:${vm.mapSrid}`,
-                }),
-            });
+            const baseLayers = vm.initialiseBaseLayers();
+            vm.createMap(baseLayers);
 
             // Full screen toggle
             let fullScreenControl = new FullScreenControl();
@@ -2178,6 +2176,20 @@ export default {
             vm.initialiseMeasurementLayer();
             vm.initialiseQueryLayer();
             vm.initialiseDrawLayer();
+
+            // Add control inside the map
+            const layerSwitcher = new LayerSwitcher({
+                target: $('#layer-control').get(0),
+                show_progress: true,
+                extent: true,
+                trash: false,
+                layerGroup: new LayerGroup({
+                    title: 'Layers',
+                    layers: [vm.modelQueryLayer, vm.measurementLayer],
+                }),
+            });
+
+            this.map.addControl(layerSwitcher);
 
             // update map extent when new features added
             vm.map.on('rendercomplete', vm.displayAllFeatures());
@@ -2356,7 +2368,7 @@ export default {
             });
 
             vm.set_mode('layer');
-            vm.setBaseLayer('osm');
+            vm.setBaseLayer('street');
         },
         initialiseMeasurementLayer: function () {
             let vm = this;
@@ -2380,7 +2392,7 @@ export default {
 
             // Create a layer to retain the measurement
             vm.measurementLayer = new VectorLayer({
-                title: 'Measurement Layer',
+                title: 'Measurements',
                 source: draw_source,
                 style: function (feature, resolution) {
                     feature.set('for_layer', true);
@@ -2397,7 +2409,7 @@ export default {
             const polygonStyle = vm.createStyle(null, null, 'Polygon');
 
             vm.modelQueryLayer = new VectorLayer({
-                title: 'Model Occurrence Report',
+                title: 'Occurrence Reports',
                 name: 'query_layer',
                 source: vm.modelQuerySource,
                 style: function (feature) {
@@ -4169,8 +4181,7 @@ export default {
 
             return type;
         },
-        // TODO: Rename later
-        handleMapLayerFunction: function () {
+        initialiseBaseLayers: function () {
             let satelliteTileWms = new TileWMS({
                 url: env['kmi_server_url'] + '/geoserver/public/wms',
                 params: {
@@ -4193,19 +4204,33 @@ export default {
                 },
             });
             this.tileLayerMapbox = new TileLayer({
-                title: 'StreetsMap',
+                title: 'Mapbox Streets',
                 type: 'base',
                 visible: true,
                 source: streetsTileWMS,
             });
 
             this.tileLayerSat = new TileLayer({
-                title: 'Satellite',
+                title: 'Satellite Map',
                 type: 'base',
                 visible: true,
                 source: satelliteTileWms,
             });
 
+            const baseLayers = new LayerGroup({
+                title: 'Background Maps',
+                layers: [this.tileLayerMapbox, this.tileLayerSat],
+            });
+            // Hack
+            if (!baseLayers.getSource) {
+                baseLayers.getSource = () => {
+                    return this.selectedBaseLayer;
+                };
+            }
+
+            return baseLayers;
+        },
+        createMap: function (baseLayers) {
             let container = document.getElementById('popup');
             let overlay = new Overlay({
                 element: container,
@@ -4215,13 +4240,24 @@ export default {
                 },
             });
 
-            return overlay;
+            this.map = new Map({
+                layers: [baseLayers],
+                overlays: [overlay],
+                target: this.elem_id,
+                view: new View({
+                    center: [115.95, -31.95],
+                    zoom: 7,
+                    projection: `EPSG:${this.mapSrid}`,
+                }),
+            });
         },
     },
 };
 </script>
+
 <style scoped>
 @import '../../../../../static/boranga/css/map.css';
+@import 'ol-ext/dist/ol-ext.css';
 
 #featureToast {
     position: absolute;
