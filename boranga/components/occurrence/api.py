@@ -1902,11 +1902,12 @@ class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
         return OccurrenceReportAmendmentRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
-
-        #TODO auth
-
         serializer = self.get_serializer(data=json.loads(request.data.get("data")))
         serializer.is_valid(raise_exception=True)
+        user = self.request.user
+        occurrence_report = serializer.validated_data["occurrence_report"]
+        if not (occurrence_report.has_assessor_mode(user)):
+            raise serializers.ValidationError("User not authorised to update Occurrence Report")
         instance = serializer.save()
         instance.add_documents(request)
         instance.generate_amendment(request)
@@ -1921,10 +1922,13 @@ class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
     )
     @renderer_classes((JSONRenderer,))
     def delete_document(self, request, *args, **kwargs):
-
-        #TODO auth
-
         instance = self.get_object()
+
+        user = self.request.user
+        occurrence_report = instance.occurrence_report
+        if not (occurrence_report.has_assessor_mode(user)):
+            raise serializers.ValidationError("User not authorised to update Occurrence Report")
+
         OccurrenceReportAmendmentRequestDocument.objects.get(
             id=request.data.get("id")
         ).delete()
