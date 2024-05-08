@@ -425,9 +425,7 @@ class OccurrenceReport(RevisionedMixin):
                 else:
                     return False
             else:
-                return (
-                    user.id in self.get_assessor_group().get_system_group_member_ids()
-                )
+                return False
 
     def has_approver_mode(self, user):
         status_with_approver = [
@@ -445,9 +443,7 @@ class OccurrenceReport(RevisionedMixin):
                 else:
                     return False
             else:
-                return (
-                    user.id in self.get_approver_group().get_system_group_member_ids()
-                )
+                return False
 
     def get_assessor_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
