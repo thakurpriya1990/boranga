@@ -68,56 +68,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name="ChecklistQuestion",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("text", models.TextField()),
-                (
-                    "list_type",
-                    models.CharField(
-                        choices=[
-                            ("assessor_list", "Assessor Checklist"),
-                            ("referral_list", "Referral Checklist"),
-                        ],
-                        default="assessor_list",
-                        max_length=30,
-                        verbose_name="Checklist type",
-                    ),
-                ),
-                (
-                    "answer_type",
-                    models.CharField(
-                        choices=[
-                            ("yes_no", "Yes/No type"),
-                            ("free_text", "Free text type"),
-                        ],
-                        default="yes_no",
-                        max_length=30,
-                        verbose_name="Answer type",
-                    ),
-                ),
-                ("obsolete", models.BooleanField(default=False)),
-                ("order", models.PositiveSmallIntegerField(default=1)),
-                (
-                    "application_type",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        to="boranga.applicationtype",
-                    ),
-                ),
-            ],
-        ),
-        migrations.CreateModel(
             name="CommunicationsLogEntry",
             fields=[
                 (
@@ -418,101 +368,6 @@ class Migration(migrations.Migration):
                 ("code", models.CharField(blank=True, max_length=50)),
                 ("archive_date", models.DateField(blank=True, null=True)),
             ],
-        ),
-        migrations.CreateModel(
-            name="QAOfficerGroup",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("name", models.CharField(max_length=30, unique=True)),
-                (
-                    "members",
-                    django.contrib.postgres.fields.ArrayField(
-                        base_field=models.IntegerField(), blank=True, size=None
-                    ),
-                ),
-                ("default", models.BooleanField(default=False)),
-            ],
-            options={
-                "verbose_name": "QA group",
-                "verbose_name_plural": "QA group",
-            },
-        ),
-        migrations.CreateModel(
-            name="Referral",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("lodged_on", models.DateTimeField(auto_now_add=True)),
-                ("sent_by", models.IntegerField()),
-                ("referral", models.IntegerField()),
-                ("linked", models.BooleanField(default=False)),
-                (
-                    "sent_from",
-                    models.SmallIntegerField(
-                        choices=[(1, "Sent From Assessor"), (2, "Sent From Referral")],
-                        default=1,
-                    ),
-                ),
-                (
-                    "processing_status",
-                    models.CharField(
-                        choices=[
-                            ("with_referral", "Awaiting"),
-                            ("recalled", "Recalled"),
-                            ("completed", "Completed"),
-                        ],
-                        default="with_referral",
-                        max_length=30,
-                        verbose_name="Processing Status",
-                    ),
-                ),
-                ("text", models.TextField(blank=True)),
-                ("referral_text", models.TextField(blank=True)),
-                ("assigned_officer", models.IntegerField()),
-            ],
-            options={
-                "ordering": ("-lodged_on",),
-            },
-        ),
-        migrations.CreateModel(
-            name="ReferralRecipientGroup",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("name", models.CharField(max_length=30, unique=True)),
-                (
-                    "members",
-                    django.contrib.postgres.fields.ArrayField(
-                        base_field=models.IntegerField(), blank=True, size=None
-                    ),
-                ),
-            ],
-            options={
-                "verbose_name": "Referral group",
-                "verbose_name_plural": "Referral groups",
-            },
         ),
         migrations.CreateModel(
             name="Region",
@@ -867,28 +722,6 @@ class Migration(migrations.Migration):
             name="taxonomy",
             field=models.OneToOneField(
                 on_delete=django.db.models.deletion.CASCADE, to="boranga.taxonomy"
-            ),
-        ),
-        migrations.AddField(
-            model_name="referral",
-            name="document",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name="referral_document",
-                to="boranga.referraldocument",
-            ),
-        ),
-        migrations.AddField(
-            model_name="referral",
-            name="referral_group",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name="boranga_referral_groups",
-                to="boranga.referralrecipientgroup",
             ),
         ),
         migrations.CreateModel(

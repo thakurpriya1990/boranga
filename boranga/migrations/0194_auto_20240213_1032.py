@@ -9,9 +9,4 @@ class Migration(migrations.Migration):
         ('boranga', '0193_auto_20240213_0935'),
     ]
 
-    operations = [
-
-        migrations.DeleteModel(
-            name='CompRequest',
-        ),
-    ]
+    operations = []
