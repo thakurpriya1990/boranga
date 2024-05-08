@@ -10,6 +10,7 @@ from boranga.components.species_and_communities.models import(
     Kingdom,
     ClassificationSystem,
     InformalGroup,
+    TaxonPreviousName,
 )
 
 
@@ -124,9 +125,25 @@ class Command(BaseCommand):
                                 except Exception as e:
                                     err_msg = "Create Taxon Classification Systems:"
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
-                                    errors.append(err_msg)                            
+                                    errors.append(err_msg)
 
-                
+                            # check if the taxon has previous_names
+                            previous_names = t["previous_names"] if "previous_names" in t else ""
+                            if previous_names != None:
+                                try:
+                                    #A taxon can have more than one previous_names(at the moment only the latest given in blob)
+                                    for p in previous_names:
+                                        obj, created=TaxonPreviousName.objects.update_or_create(previous_name_id=p["id"],
+                                                                                            defaults={
+                                                                                                "previous_scientific_name" : p["name"],
+                                                                                                "taxonomy": taxon_obj,
+                                                                                            })
+
+                                except Exception as e:
+                                    err_msg = "Create Taxon Previous Name:"
+                                    logger.error('{}\n{}'.format(err_msg, str(e)))
+                                    errors.append(err_msg)
+
                 except Exception as e:
                     err_msg = 'Create Taxon:'
                     logger.error('{}\n{}'.format(err_msg, str(e)))
