@@ -13,7 +13,7 @@
             :editable="true"
             :file-upload-disabled="true"
             level="internal"
-            style-by="assessor"
+            style-by="model"
             :map-info-text="
                 isInternal ? '' : 'Some text to explain the map and its use.'
             "

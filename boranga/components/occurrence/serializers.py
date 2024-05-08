@@ -1029,9 +1029,15 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
 
 
 class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    referral = serializers.SerializerMethodField()
+    referral_status = serializers.CharField(source="get_processing_status_display")
+
     class Meta:
         model = OccurrenceReportReferral
         fields = "__all__"
+
+    def get_referral(self, obj):
+        return EmailUserSerializer(retrieve_email_user(obj.referral)).data
 
 
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
@@ -1046,7 +1052,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         read_only=True, allow_null=True
     )
     assessor_mode = serializers.SerializerMethodField()
-    latest_referrals = OccurrenceReportReferralSerializer(
+    latest_referrals = InternalOccurrenceReportReferralSerializer(
+        many=True, read_only=True, allow_null=True
+    )
+    referrals = InternalOccurrenceReportReferralSerializer(
         many=True, read_only=True, allow_null=True
     )
     readonly = serializers.SerializerMethodField(read_only=True)
@@ -1102,6 +1111,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "internal_application",
             "assessor_mode",
             "latest_referrals",
+            "referrals",
+            "finalised",
         )
 
     def get_readonly(self, obj):
@@ -1116,7 +1127,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         return (
             is_assessor(request.user)
             and obj.processing_status
-            == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            in [
+                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+                OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+            ]
             and obj.assigned_officer == request.user.id
         )
 
