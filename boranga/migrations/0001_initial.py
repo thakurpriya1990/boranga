@@ -36,38 +36,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name="ApplicationType",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("name", models.CharField(max_length=64, unique=True)),
-                ("order", models.PositiveSmallIntegerField(default=0)),
-                ("visible", models.BooleanField(default=True)),
-                (
-                    "application_fee",
-                    models.DecimalField(
-                        decimal_places=2,
-                        max_digits=6,
-                        null=True,
-                        verbose_name="Application Fee",
-                    ),
-                ),
-                ("oracle_code_application", models.CharField(max_length=50)),
-                ("oracle_code_licence", models.CharField(max_length=50)),
-                ("is_gst_exempt", models.BooleanField(default=True)),
-            ],
-            options={
-                "ordering": ["order", "name"],
-            },
-        ),
-        migrations.CreateModel(
             name="CommunicationsLogEntry",
             fields=[
                 (
@@ -338,35 +306,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("name", models.CharField(default="None", max_length=128)),
-            ],
-        ),
-        migrations.CreateModel(
-            name="OracleCode",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "code_type",
-                    models.CharField(
-                        choices=[
-                            ("Commercial operations", "Commercial operations"),
-                            ("Filming", "Filming"),
-                            ("Event", "Event"),
-                        ],
-                        default="Commercial operations",
-                        max_length=64,
-                        verbose_name="Application Type",
-                    ),
-                ),
-                ("code", models.CharField(blank=True, max_length=50)),
-                ("archive_date", models.DateField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
@@ -724,48 +663,6 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE, to="boranga.taxonomy"
             ),
         ),
-        migrations.CreateModel(
-            name="Question",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("question_text", models.TextField()),
-                ("answer_one", models.CharField(blank=True, max_length=200)),
-                ("answer_two", models.CharField(blank=True, max_length=200)),
-                ("answer_three", models.CharField(blank=True, max_length=200)),
-                ("answer_four", models.CharField(blank=True, max_length=200)),
-                (
-                    "correct_answer",
-                    models.CharField(
-                        choices=[
-                            ("answer_one", "Answer one"),
-                            ("answer_two", "Answer two"),
-                            ("answer_three", "Answer three"),
-                            ("answer_four", "Answer four"),
-                        ],
-                        default="answer_one",
-                        max_length=40,
-                        verbose_name="Correct Answer",
-                    ),
-                ),
-                (
-                    "application_type",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        to="boranga.applicationtype",
-                    ),
-                ),
-            ],
-        ),
         migrations.AddField(
             model_name="district",
             name="region",
@@ -867,45 +764,6 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 to="boranga.conservationstatus",
             ),
-        ),
-        migrations.CreateModel(
-            name="HelpPage",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("content", ckeditor.fields.RichTextField()),
-                (
-                    "description",
-                    models.CharField(blank=True, max_length=256, null=True),
-                ),
-                (
-                    "help_type",
-                    models.SmallIntegerField(
-                        choices=[(1, "External"), (2, "Internal")],
-                        default=1,
-                        verbose_name="Help Type",
-                    ),
-                ),
-                ("version", models.SmallIntegerField(default=1)),
-                (
-                    "application_type",
-                    models.ForeignKey(
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        to="boranga.applicationtype",
-                    ),
-                ),
-            ],
-            options={
-                "unique_together": {("application_type", "help_type", "version")},
-            },
         ),
         migrations.CreateModel(
             name="Community",
