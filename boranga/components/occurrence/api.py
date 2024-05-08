@@ -1824,6 +1824,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     # used on referral form
     @detail_route(methods=["post"], detail=True)
     def send_referral(self, request, *args, **kwargs):
+        self.is_authorised_to_assess()
         instance = self.get_object()
         serializer = SendReferralSerializer(
             data=request.data, context={"request": request}
@@ -3544,6 +3545,18 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
             qs.filter(occurrence_report__submitter=self.request.user)
         return qs
 
+    def is_authorised_to_refer(self):
+        instance = self.get_object()
+        user = self.request.user
+        if not instance.occurrence_report.has_assessor_mode(user):
+            raise serializers.ValidationError("User not authorised to manage Referrals for Occurrence Report")
+        
+    def is_authorised_to_referee(self):
+        instance = self.get_object()
+        user = self.request.user
+        if not instance.referral == user:
+            raise serializers.ValidationError("User is not the Referee for Occurrence Report Referral")
+
     @detail_route(
         methods=[
             "GET",
@@ -3560,6 +3573,9 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=["GET", "POST"], detail=True)
     def complete(self, request, *args, **kwargs):
+
+        self.is_authorised_to_referee()
+
         instance = self.get_object()
         instance.complete(request)
         serializer = self.get_serializer(instance, context={"request": request})
@@ -3572,6 +3588,9 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def remind(self, request, *args, **kwargs):
+
+        self.is_authorised_to_refer()
+
         instance = self.get_object()
         instance.remind(request)
         serializer = InternalOccurrenceReportSerializer(
@@ -3586,6 +3605,9 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def recall(self, request, *args, **kwargs):
+
+        self.is_authorised_to_refer()
+
         instance = self.get_object()
         instance.recall(request)
         serializer = InternalOccurrenceReportSerializer(
@@ -3600,6 +3622,9 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def resend(self, request, *args, **kwargs):
+
+        self.is_authorised_to_refer()
+
         instance = self.get_object()
         instance.resend(request)
         serializer = InternalOccurrenceReportSerializer(
@@ -3611,6 +3636,9 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def occurrence_report_referral_save(self, request, *args, **kwargs):
+
+        self.is_authorised_to_referee()
+
         instance = self.get_object()
         request_data = request.data
         instance.referral_comment = request_data.get("referral_comment")

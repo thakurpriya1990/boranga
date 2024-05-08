@@ -53,7 +53,7 @@
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="with_assessor && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
+                            <a v-if="(with_assessor || with_referral) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
                                 @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
                                 me</a>
                         </template>
@@ -385,6 +385,9 @@ export default {
         },
         with_assessor: function () {
             return this.occurrence_report && this.occurrence_report.processing_status === 'With Assessor'
+        },
+        with_referral: function () {
+            return this.occurrence_report && this.occurrence_report.processing_status === 'With Referral'
         },
         with_approver: function () {
             return this.occurrence_report && this.occurrence_report.processing_status === 'With Approver'
