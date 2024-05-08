@@ -29,7 +29,6 @@ from boranga.components.main.api import (
     UserActionLoggingViewset,
     search_datums,
 )
-from boranga.components.main.decorators import basic_exception_handler
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.spatial_utils import (
     spatially_process_geometry,
@@ -1561,7 +1560,6 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
     @detail_route(methods=["POST"], detail=True)
     @renderer_classes((JSONRenderer,))
-    @basic_exception_handler
     def process_shapefile_document(self, request, *args, **kwargs):
         instance = self.get_object()
         returned_data = None
@@ -1573,7 +1571,6 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
     @detail_route(methods=["POST"], detail=True)
     @renderer_classes((JSONRenderer,))
-    @basic_exception_handler
     def validate_map_files(self, request, *args, **kwargs):
         instance = self.get_object()
         validate_map_files(request, instance, "occurrence_report")
@@ -1723,6 +1720,29 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         serializer = InternalOccurrenceReportSerializer(
             instance, context={"request": request}
         )
+        return Response(serializer.data)
+
+    # used on referral form
+    @detail_route(methods=["post"], detail=True)
+    def send_referral(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = SendReferralSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        instance.send_referral(
+            request,
+            serializer.validated_data["email"],
+            serializer.validated_data["text"],
+        )
+        serializer = self.get_serializer(instance, context={"request": request})
+        return Response(serializer.data)
+
+    @detail_route(methods=["get"], detail=True)
+    def referrals(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.referrals.all()
+        serializer = InternalOccurrenceReportReferralSerializer(qs, many=True)
         return Response(serializer.data)
 
 
@@ -2374,7 +2394,6 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
-    @basic_exception_handler
     def get_related_items(self, request, *args, **kwargs):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
@@ -2836,7 +2855,6 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
-    @basic_exception_handler
     def get_related_items(self, request, *args, **kwargs):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
@@ -3404,22 +3422,6 @@ class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
         serializer = InternalOccurrenceReportSerializer(
             instance.occurrence_report, context={"request": request}
         )
-        return Response(serializer.data)
-
-    # used on referral form
-    @detail_route(methods=["post"], detail=True)
-    def send_referral(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = SendReferralSerializer(
-            data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        instance.send_referral(
-            request,
-            serializer.validated_data["email"],
-            serializer.validated_data["text"],
-        )
-        serializer = self.get_serializer(instance, context={"request": request})
         return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)

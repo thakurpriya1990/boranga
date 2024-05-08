@@ -194,3 +194,27 @@ table.dataTable a:hover {
 .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
     color: #505050 !important;
 }
+
+/* Styles for mini referrals tables */
+
+.table-referrals {
+    font-size: 0.8em;
+}
+
+.fa-bell:hover,
+.fa-times-circle:hover {
+    opacity: 0.7;
+}
+
+.truncate-name {
+    max-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Make sure sweet alert 2 shows on top of all other elements including modals and popovers */
+
+.swal2-container {
+    z-index: 9999;
+}

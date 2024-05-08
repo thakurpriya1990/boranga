@@ -1,4 +1,4 @@
-<template id="cs_more-referrals">
+<template id="ocr-more-referrals">
     <div>
         <a v-if="!isFinalised" ref="showRef" @click.prevent="" role="button" class="mt-2 float-end">Show All
             Referrals</a>
@@ -9,7 +9,7 @@
 import { constants, api_endpoints, helpers } from '@/utils/hooks'
 
 export default {
-    name: 'ConservationStatusMoreReferrals',
+    name: 'OccurrenceReportMoreReferrals',
     props: {
         isFinalised: {
             type: Boolean,
@@ -19,7 +19,7 @@ export default {
             type: Boolean,
             required: true
         },
-        conservation_status_obj: {
+        occurrence_report_obj: {
             type: Object,
             required: true
         },
@@ -122,14 +122,14 @@ export default {
         remindReferral: function (_id, user) {
             let vm = this;
 
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/remind')).then(response => {
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, _id + '/remind')).then(response => {
                 vm.$emit('refreshFromResponse', response);
                 vm.table.ajax.reload();
                 swal.fire({
                     title: 'Referral Reminder',
                     text: 'A reminder has been sent to ' + user,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    confirmButtonColor: '#226fbb',
                 });
             },
                 error => {
@@ -143,7 +143,7 @@ export default {
         },
         resendReferral: function (_id, user) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/resend')).then(response => {
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, _id + '/resend')).then(response => {
                 vm.$emit('refreshFromResponse', response);
                 vm.table.ajax.reload();
                 swal.fire({
@@ -164,17 +164,7 @@ export default {
         },
         recallReferral: function (_id, user) {
             let vm = this;
-            swal.fire({
-                title: "Loading...",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                onOpen: () => {
-                    swal.showLoading()
-                }
-            })
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/recall')).then(response => {
-                swal.hideLoading();
-                swal.close();
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, _id + '/recall')).then(response => {
                 vm.$emit('refreshFromResponse', response);
                 vm.table.ajax.reload();
                 swal.fire({

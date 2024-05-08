@@ -1,7 +1,8 @@
 <template lang="html">
     <div v-if="conservation_status_obj" class="container" id="internalConservationStatus">
         <div class="row" style="padding-bottom: 50px;">
-            <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
+            <h3><span class="text-capitalize">{{ conservation_status_obj.group_type }}</span> {{
+                conservation_status_obj.conservation_status_number }}</h3>
             <div class="col-md-3">
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="false" />
@@ -15,78 +16,114 @@
                         <div class="card-header">
                             Workflow
                         </div>
-                        <div class="card-body border-bottom">
+                        <div class="card-body">
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
                         </div>
-                        <div class="card-body border-bottom">
+                        <div v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'"
+                            class="card-body border-top">
                             <div class="row">
-                                <template
-                                    v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
-                                    <div class="col-sm-12 top-buffer-s">
-                                        <strong>Referrals</strong><br />
-                                        <div class="form-group mb-3">
-                                            <select :disabled="!canLimitedAction" ref="department_users"
-                                                class="form-control">
-                                            </select>
-                                            <template v-if='!sendingReferral'>
-                                                <template v-if="selected_referral">
-                                                    <label class="control-label pull-left" for="Name">Comments</label>
-                                                    <textarea class="form-control" name="name"
-                                                        v-model="referral_text"></textarea>
-                                                    <a v-if="canLimitedAction" @click.prevent="sendReferral()"
-                                                        class="actionBtn pull-right">Send</a>
-                                                </template>
+                                <div class="col-sm-12 top-buffer-s">
+                                    <strong>Referrals</strong><br />
+                                    <div class="form-group mb-3">
+                                        <select :disabled="!canLimitedAction" ref="department_users"
+                                            class="form-control">
+                                        </select>
+                                        <template v-if='!sendingReferral'>
+                                            <template v-if="selected_referral">
+                                                <label class="control-label mt-2" for="referral_text">Comments</label>
+                                                <textarea class="form-control" name="referral_text" ref="referral_text"
+                                                    v-model="referral_text"></textarea>
+                                                <a v-if="canLimitedAction" @click.prevent="sendReferral()"
+                                                    class="actionBtn float-end">Send</a>
                                             </template>
-                                            <template v-else>
-                                                <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
-                                                    class="actionBtn text-primary pull-right">
-                                                    Sending Referral&nbsp;
-                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                                </span>
-                                            </template>
-                                        </div>
-                                        <table class="table small-table">
-                                            <tr>
-                                                <th>Referral</th>
-                                                <th>Status/Action</th>
-                                            </tr>
-                                            <tr v-for="r in conservation_status_obj.latest_referrals">
-                                                <td>
-                                                    <small><strong>{{ r.referral_obj.first_name }} {{
-                                                        r.referral_obj.last_name }}</strong></small><br />
-                                                    <small><strong>{{ r.lodged_on | formatDate }}</strong></small>
-                                                </td>
-                                                <td>
-                                                    <small><strong>{{ r.processing_status }}</strong></small><br />
-                                                    <template v-if="r.processing_status == 'Awaiting'">
-                                                        <small v-if="canLimitedAction"><a
-                                                                @click.prevent="remindReferral(r)" href="#">Remind</a> /
-                                                            <a @click.prevent="recallReferral(r)"
-                                                                href="#">Recall</a></small>
-                                                    </template>
-                                                    <template v-else>
-                                                        <small v-if="canLimitedAction"><a
-                                                                @click.prevent="resendReferral(r)"
-                                                                href="#">Resend</a></small>
-                                                    </template>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        <template>
-
                                         </template>
-                                        <CSMoreReferrals @refreshFromResponse="refreshFromResponse"
-                                            :conservation_status_obj="conservation_status_obj"
-                                            :canAction="canLimitedAction" :isFinalised="isFinalised"
-                                            :referral_url="referralListURL" />
+                                        <template v-else>
+                                            <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
+                                                class="actionBtn text-primary float-end">
+                                                Sending Referral&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                            </span>
+                                        </template>
                                     </div>
-                                </template>
+                                    <template
+                                        v-if="conservation_status_obj.latest_referrals && conservation_status_obj.latest_referrals.length > 0">
+                                        <div>
+                                            <div class="fw-bold mb-1">
+                                                Recent Referrals
+                                                <small class="text-secondary fw-lighter">(Showing {{
+                                                    conservation_status_obj.latest_referrals.length }} of
+                                                    {{ conservation_status_obj.referrals.length }})</small>
+                                            </div>
+                                            <table class="table table-sm table-hover table-referrals">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Referee</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="r in conservation_status_obj.latest_referrals">
+                                                        <td class="truncate-name">
+                                                            {{ r.referral_obj.first_name }} {{
+                                                                r.referral_obj.last_name }}
+                                                        </td>
+                                                        <td>
+                                                            {{ r.processing_status }}
+                                                        </td>
+                                                        <td>
+                                                            <template v-if="r.processing_status == 'Awaiting'">
+                                                                <a v-if="canLimitedAction" role="button"
+                                                                    data-bs-toggle="popover" data-bs-trigger="hover"
+                                                                    :data-bs-content="'Send a reminder to ' +
+                                                                        r.referral_obj['fullname']
+                                                                        " data-bs-placement="bottom"
+                                                                    data-bs-container="body"
+                                                                    @click.prevent="remindReferral(r)"><i
+                                                                        class="fa fa-bell text-warning"
+                                                                        aria-hidden="true"></i>
+                                                                </a>
+                                                                <a role="button" data-bs-toggle="popover"
+                                                                    data-bs-trigger="hover" :data-bs-content="'Recall the referral request sent to ' +
+                                                                        r.referral_obj['fullname']
+                                                                        " data-bs-placement="bottom"
+                                                                    data-bs-container="body"
+                                                                    @click.prevent="recallReferral(r)"><i
+                                                                        class="fa fa-times-circle text-danger"
+                                                                        aria-hidden="true"></i>
+                                                                </a>
+                                                            </template>
+                                                            <template v-else>
+                                                                <template v-if="canLimitedAction"><a role="button"
+                                                                        data-bs-toggle="popover" data-bs-trigger="hover"
+                                                                        :data-bs-content="'Resend this referral request to ' +
+                                                                            r.referral_obj['fullname']
+                                                                            " data-bs-container="body"
+                                                                        @click.prevent="resendReferral(r)"><i
+                                                                            class="fa fa-envelope text-primary"
+                                                                            aria-hidden="true"></i>
+                                                                    </a>
+                                                                </template>
+                                                            </template>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+
+                                            <CSMoreReferrals @refreshFromResponse="refreshFromResponse"
+                                                :conservation_status_obj="conservation_status_obj"
+                                                :canAction="canLimitedAction" :isFinalised="isFinalised"
+                                                :referral_url="referralListURL" />
+                                        </div>
+                                    </template>
+
+                                </div>
                             </div>
                         </div>
-                        <div class="card-body border-bottom">
+                        <div v-if="!isFinalised" class="card-body border-top">
                             <div class="row">
-                                <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
+                                <div class="col-sm-12 top-buffer-s">
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
                                         <template v-if="conservation_status_obj.processing_status == 'With Approver'">
@@ -97,7 +134,7 @@
                                                 </option>
                                             </select>
                                             <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
-                                                @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign
+                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
                                                 to me</a>
                                         </template>
                                         <template v-else>
@@ -108,16 +145,16 @@
                                                 </option>
                                             </select>
                                             <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id"
-                                                @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign
+                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
                                                 to me</a>
                                         </template>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
+                        <div v-if="!isFinalised && canAction" class="card-body border-top">
                             <div class="row">
-                                <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
+                                <div class="col-sm-12 top-buffer-s">
                                     <template
                                         v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
                                         <div class="row">
@@ -259,28 +296,28 @@
                                             <div v-if="conservation_status_obj.internal_user_edit" class="container">
                                                 <div class="col-md-12 text-end">
                                                     <button v-if="savingConservationStatus"
-                                                        class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
+                                                        class="btn btn-primary me-2 float-end" style="margin-top:5px;"
                                                         disabled>Save and Continue&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary me-2 pull-right"
+                                                    <button v-else class="btn btn-primary me-2 float-end"
                                                         style="margin-top:5px;" @click.prevent="save()"
                                                         :disabled="saveExitConservationStatus || submitConservationStatus">Save
                                                         and Continue</button>
 
                                                     <button v-if="saveExitConservationStatus"
-                                                        class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
+                                                        class="btn btn-primary me-2 float-end" style="margin-top:5px;"
                                                         disabled>Save and Exit&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary me-2 pull-right"
+                                                    <button v-else class="btn btn-primary me-2 float-end"
                                                         style="margin-top:5px;" @click.prevent="save_exit()"
                                                         :disabled="savingConservationStatus || submitConservationStatus">Save
                                                         and Exit</button>
 
                                                     <button v-if="submitConservationStatus"
-                                                        class="btn btn-primary pull-right" style="margin-top:5px;"
+                                                        class="btn btn-primary float-end" style="margin-top:5px;"
                                                         disabled>Submit&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary pull-right"
+                                                    <button v-else class="btn btn-primary float-end"
                                                         style="margin-top:5px;" @click.prevent="submit()"
                                                         :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
                                                 </div>
@@ -289,10 +326,10 @@
                                             <div v-else-if="hasAssessorMode" class="container">
                                                 <div class="col-md-12 text-end">
                                                     <button v-if="savingConservationStatus"
-                                                        class="btn btn-primary pull-right" style="margin-top:5px;"
+                                                        class="btn btn-primary float-end" style="margin-top:5px;"
                                                         disabled>Save Changes&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary pull-right"
+                                                    <button v-else class="btn btn-primary float-end"
                                                         style="margin-top:5px;" @click.prevent="save()">Save
                                                         Changes</button>
                                                 </div>
@@ -396,19 +433,6 @@ export default {
             else {
                 return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
             }
-        },
-        display_group_type: function () {
-            let group_type_string = this.conservation_status_obj.group_type
-            // to Capitalize only first character
-            return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
-        },
-        display_number: function () {
-            return this.conservation_status_obj.conservation_status_number;
-        },
-        display_name: function () {
-            return (this.conservation_status_obj.group_type === "community") ?
-                this.conservation_status_obj.conservation_status_number :
-                this.conservation_status_obj.conservation_status_number;
         },
         submitter_first_name: function () {
             if (this.conservation_status_obj.submitter) {
@@ -915,6 +939,9 @@ export default {
                     .on("select2:select", function (e) {
                         let data = e.params.data.id;
                         vm.selected_referral = data;
+                        vm.$nextTick(() => {
+                            vm.$refs.referral_text.focus();
+                        });
                     })
                     .on("select2:unselect", function (e) {
                         var selected = $(e.currentTarget);
@@ -982,21 +1009,11 @@ export default {
         },
         recallReferral: function (r) {
             let vm = this;
-            swal.fire({
-                title: "Loading...",
-                //text: "Loading...",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                onOpen: () => {
-                    swal.showLoading()
-                }
-            })
-
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall')).then(response => {
-                swal.hideLoading();
-                swal.close();
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
+                $(".popover").hide()
+                vm.enablePopovers();
                 swal.fire({
                     title: 'Referral Recall',
                     text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral).name,
@@ -1019,6 +1036,8 @@ export default {
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(response => {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
+                $(".popover").hide()
+                vm.enablePopovers();
                 swal.fire({
                     title: 'Referral Resent',
                     text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral).name,
@@ -1087,6 +1106,15 @@ export default {
                         vm.changingStatus = false;
                     });
             }
+        },
+        enablePopovers: function () {
+            this.$nextTick(() => {
+                $(function () {
+                    $('[data-bs-toggle="popover"]').each(function () {
+                        new bootstrap.Popover(this);
+                    })
+                })
+            });
         },
     },
     mounted: function () {

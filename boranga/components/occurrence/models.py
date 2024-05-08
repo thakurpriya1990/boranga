@@ -24,7 +24,6 @@ from boranga.components.main.models import (
     RevisionedMixin,
     UserAction,
 )
-from boranga.components.main.utils import get_department_user
 from boranga.components.occurrence.email import (
     send_approve_email_notification,
     send_approver_approve_email_notification,
@@ -48,7 +47,7 @@ from boranga.components.species_and_communities.models import (
     ThreatAgent,
     ThreatCategory,
 )
-from boranga.helpers import clone_model
+from boranga.helpers import clone_model, email_in_dept_domains
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR
 
@@ -152,6 +151,14 @@ class OccurrenceReport(RevisionedMixin):
         (PROCESSING_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
         (PROCESSING_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
+
+    FINALISED_STATUSES = [
+        PROCESSING_STATUS_APPROVED,
+        PROCESSING_STATUS_DECLINED,
+        PROCESSING_STATUS_DISCARDED,
+        PROCESSING_STATUS_CLOSED,
+    ]
+
     REVIEW_STATUS_CHOICES = (
         ("not_reviewed", "Not Reviewed"),
         ("awaiting_amendments", "Awaiting Amendments"),
@@ -370,6 +377,10 @@ class OccurrenceReport(RevisionedMixin):
         if self.group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             return True
         return False
+
+    @property
+    def finalised(self):
+        return self.processing_status in self.FINALISED_STATUSES
 
     @property
     def allowed_assessors(self):
@@ -707,6 +718,75 @@ class OccurrenceReport(RevisionedMixin):
     @property
     def latest_referrals(self):
         return self.referrals.all()[: settings.RECENT_REFERRAL_COUNT]
+
+    @transaction.atomic
+    def send_referral(self, request, referral_email, referral_text):
+        referral_email = referral_email.lower()
+        if self.processing_status not in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+        ]:
+            raise exceptions.OccurrenceReportReferralCannotBeSent()
+
+        if (
+            not self.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+        ):
+            self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
+            self.save()
+
+        referral = None
+
+        # Check if the user is in ledger
+        try:
+            referee = EmailUser.objects.get(email__icontains=referral_email)
+        except EmailUser.DoesNotExist:
+            raise ValidationError(
+                "The user you want to send the referral to does not exist in the ledger database"
+            )
+
+        # Validate if it is a deparment user
+        if not email_in_dept_domains(referral_email):
+            raise ValidationError(
+                "The user you want to send the referral to is not a member of the department"
+            )
+
+        # Check if the referral has already been sent to this user
+        if OccurrenceReportReferral.objects.filter(
+            referral=referee.id, occurrence_report=self
+        ).exists():
+            raise ValidationError("A referral has already been sent to this user")
+
+        # Check if the user sending the referral is a referee themselves
+        sent_from = OccurrenceReportReferral.SENT_CHOICE_FROM_ASSESSOR
+        if OccurrenceReportReferral.objects.filter(
+            occurrence_report=self,
+            referral=request.user.id,
+        ).exists():
+            sent_from = OccurrenceReportReferral.SENT_CHOICE_FROM_REFERRAL
+
+        # Create Referral
+        referral = OccurrenceReportReferral.objects.create(
+            occurrence_report=self,
+            referral=referee.id,
+            sent_by=request.user.id,
+            sent_from=sent_from,
+            text=referral_text,
+            assigned_officer=request.user.id,  # TODO should'nt use assigned officer as per das
+        )
+
+        # Create a log entry for the proposal
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
+                referral.id,
+                self.occurrence_report_number,
+                f"{referee.get_full_name()}({referee.email})",
+            ),
+            request,
+        )
+
+        # send email
+        send_occurrence_report_referral_email_notification(referral, request)
 
 
 class OccurrenceReportDeclinedDetails(models.Model):
@@ -1101,6 +1181,7 @@ class OccurrenceReportReferral(models.Model):
                 OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
                     self.id,
                     self.occurrence_report.occurrence_report_number,
+                    f"{self.referral_as_email_user.get_full_name()}",
                 ),
                 request,
             )
@@ -1170,84 +1251,19 @@ class OccurrenceReportReferral(models.Model):
         if self.occurrence_report.submitter:
             submitter = retrieve_email_user(self.occurrence_report.submitter)
             submitter.log_user_action(
-                OccurrenceReportUserAction.RESEND_REFERRAL.format(
+                OccurrenceReportUserAction.ACTION_RESEND_REFERRAL_TO.format(
                     self.id,
                     self.occurrence_report.occurrence_report_number,
+                    "{}({})".format(
+                        self.referral_as_email_user.get_full_name(),
+                        self.referral_as_email_user.email,
+                    ),
                 ),
                 request,
             )
 
         # send email
         send_occurrence_report_referral_email_notification(self, request)
-
-    @transaction.atomic
-    def send_referral(self, request, referral_email, referral_text):
-        referral_email = referral_email.lower()
-        if self.processing_status not in [
-            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
-            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
-        ]:
-            raise exceptions.OccurrenceReportReferralCannotBeSent()
-
-        if (
-            not self.processing_status
-            == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
-        ):
-            self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
-            self.save()
-
-        referral = None
-
-        # Check if the user is in ledger
-        try:
-            referee = EmailUser.objects.get(email__icontains=referral_email)
-        except EmailUser.DoesNotExist:
-            raise ValidationError(
-                "The user you want to send the referral to does not exist in the ledger database"
-            )
-
-        # Validate if it is a deparment user
-        if not get_department_user(referral_email):
-            raise ValidationError(
-                "The user you want to send the referral to is not a member of the department"
-            )
-
-        # Check if the referral has already been sent to this user
-        if OccurrenceReportReferral.objects.filter(
-            referral=referee.id, occurrence_report=self
-        ).exists():
-            raise ValidationError("A referral has already been sent to this user")
-
-        # Check if the user sending the referral is a referee themselves
-        sent_from = self.SENT_CHOICE_FROM_ASSESSOR
-        if OccurrenceReportReferral.objects.filter(
-            occurrence_report=self,
-            referral=request.user.id,
-        ).exists():
-            sent_from = self.SENT_CHOICE_FROM_REFERRAL
-
-        # Create Referral
-        referral = OccurrenceReportReferral.objects.create(
-            occurrence_report=self,
-            referral=referee.id,
-            sent_by=request.user.id,
-            sent_from=sent_from,
-            text=referral_text,
-            assigned_officer=request.user.id,  # TODO should'nt use assigned officer as per das
-        )
-
-        # Create a log entry for the proposal
-        self.log_user_action(
-            OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
-                referral.id,
-                self.occurrence_report_number,
-                f"{referee.get_full_name()}({referee.email})",
-            ),
-            request,
-        )
-
-        # send email
-        send_occurrence_report_referral_email_notification(referral, request)
 
     @transaction.atomic
     def complete(self, request):
@@ -2789,17 +2805,6 @@ class Occurrence(RevisionedMixin):
             if occ_doc:
                 occ_doc.occurrence = occurrence
                 occ_doc.save()
-
-        # Clone the shapefiles
-        for shp_doc in occurrence_report.shapefile_documents.all():
-            occ_shp_doc = clone_model(
-                OccurrenceReportShapefileDocument,
-                OccurrenceReportShapefileDocument,
-                doc,
-            )
-            if occ_shp_doc:
-                occ_shp_doc.occurrence = occurrence
-                occ_shp_doc.save()
 
         # TODO: Once occurrence has it's own geometry field, clone the geometry here
 
