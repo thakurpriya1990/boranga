@@ -1535,6 +1535,8 @@ export default {
             proposals: [],
             modelQuerySource: null,
             modelQueryLayer: null,
+            processedGeometrySource: null,
+            processedGeometryLayer: null,
             selectedFeatureIds: [],
             lastPoint: null,
             sketchCoordinates: [[]],
@@ -2173,10 +2175,12 @@ export default {
 
             vm.initialiseMeasurementLayer();
             vm.initialiseQueryLayer();
+            vm.initialiseProcessingLayer();
             vm.initialiseDrawLayer();
             vm.initialiseLayerSwitcher([
-                this.modelQueryLayer,
                 this.measurementLayer,
+                this.processedGeometryLayer,
+                this.modelQueryLayer,
             ]);
 
             // update map extent when new features added
@@ -2424,6 +2428,41 @@ export default {
             vm.map.addLayer(vm.modelQueryLayer);
             // Set zIndex to some layers to be rendered over the other layers
             vm.modelQueryLayer.setZIndex(10);
+        },
+        initialiseProcessingLayer: function () {
+            let vm = this;
+
+            vm.processedGeometrySource = new VectorSource({});
+            const polygonStyle = vm.createStyle(null, null, 'Polygon');
+
+            vm.processedGeometryLayer = new VectorLayer({
+                title: 'Occurences',
+                name: 'processed_layer',
+                source: vm.processedGeometrySource,
+                style: function (feature) {
+                    const color = feature.get('color') || vm.defaultColor;
+                    let style = polygonStyle;
+                    if (vm.isPolygonLikeFeature(feature)) {
+                        style.getFill().setColor(color);
+                    } else if (vm.isPointLikeFeature(feature)) {
+                        const rgba = vm.colorHexToRgbaValues(color);
+                        style = vm.createStyle(
+                            color,
+                            null,
+                            'Point',
+                            null,
+                            null,
+                            require('../../assets/map-marker.svg'),
+                            rgba[3]
+                        );
+                    }
+                    return style;
+                },
+            });
+            // Add the layer
+            vm.map.addLayer(vm.processedGeometryLayer);
+            // Set zIndex to some layers to be rendered over the other layers
+            vm.processedGeometryLayer.setZIndex(20);
         },
         initialiseDrawLayer: function () {
             let vm = this;
