@@ -295,14 +295,15 @@ class Taxonomy(models.Model):
     name_currency = models.CharField(
         max_length=16, null=True, blank=True
     )  # is it the current name? yes or no
-    previous_name = models.CharField(
-        max_length=512, null=True, blank=True
-    )  # TODO this field is not used anymore
     name_authority = models.CharField(max_length=500, null=True, blank=True)
     name_comments = models.CharField(max_length=500, null=True, blank=True)
-    path = models.CharField(
-        max_length=512, null=True, blank=True
-    )  # hierarchy for given taxon
+    # storing the hierarchy id and scientific_names(class,family,genus) at the moment
+    family_id = models.IntegerField(null=True, blank=True)
+    family_name = models.CharField(max_length=512, null=True, blank=True)
+    class_id = models.IntegerField(null=True, blank=True)
+    class_name = models.CharField(max_length=512, null=True, blank=True)
+    genera_id = models.IntegerField(null=True, blank=True)
+    genera_name = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -369,7 +370,24 @@ class TaxonVernacular(models.Model):
     def __str__(self):
         return str(self.vernacular_name)  # TODO: is the most appropriate?
 
+class TaxonPreviousName(models.Model):
+    """
+    Previous Name(old name) of taxon
+    """
+    taxonomy = models.ForeignKey(
+        Taxonomy, on_delete=models.CASCADE, null=True, related_name="previous_names"
+    )
+    previous_name_id = models.IntegerField(null=True, blank=True)
+    previous_scientific_name = models.CharField(max_length=512, null=True, blank=True)
 
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.previous_scientific_name)  # TODO: is the most appropriate?
+
+
+# TODO will need to delete this model
 class CrossReference(models.Model):
     """
     Previous Name(old name) of taxon which is also derived from taxon
