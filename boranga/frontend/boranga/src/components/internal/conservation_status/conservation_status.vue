@@ -65,9 +65,9 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr v-for="r in conservation_status_obj.latest_referrals">
-                                                        <td>
-                                                            <strong>{{ r.referral_obj.first_name }} {{
-                                                                r.referral_obj.last_name }}</strong>
+                                                        <td class="truncate-name">
+                                                            {{ r.referral_obj.first_name }} {{
+                                                                r.referral_obj.last_name }}
                                                         </td>
                                                         <td>
                                                             {{ r.processing_status }}
@@ -75,29 +75,32 @@
                                                         <td>
                                                             <template v-if="r.processing_status == 'Awaiting'">
                                                                 <a v-if="canLimitedAction" role="button"
-                                                                    data-bs-toggle="popover"
-                                                                    data-bs-trigger="hover focus" :data-bs-content="'Send a reminder to ' +
+                                                                    data-bs-toggle="popover" data-bs-trigger="hover"
+                                                                    :data-bs-content="'Send a reminder to ' +
                                                                         r.referral_obj['fullname']
                                                                         " data-bs-placement="bottom"
+                                                                    data-bs-container="body"
                                                                     @click.prevent="remindReferral(r)"><i
                                                                         class="fa fa-bell text-warning"
                                                                         aria-hidden="true"></i>
                                                                 </a>
                                                                 <a role="button" data-bs-toggle="popover"
-                                                                    data-bs-trigger="hover focus" :data-bs-content="'Recall the referral request sent to ' +
+                                                                    data-bs-trigger="hover" :data-bs-content="'Recall the referral request sent to ' +
                                                                         r.referral_obj['fullname']
                                                                         " data-bs-placement="bottom"
+                                                                    data-bs-container="body"
                                                                     @click.prevent="recallReferral(r)"><i
                                                                         class="fa fa-times-circle text-danger"
                                                                         aria-hidden="true"></i>
                                                                 </a>
                                                             </template>
                                                             <template v-else>
-                                                                <template v-if="canAction"><a role="button"
-                                                                        data-bs-toggle="popover"
-                                                                        data-bs-trigger="hover focus" :data-bs-content="'Resend this referral request to ' +
+                                                                <template v-if="canLimitedAction"><a role="button"
+                                                                        data-bs-toggle="popover" data-bs-trigger="hover"
+                                                                        :data-bs-content="'Resend this referral request to ' +
                                                                             r.referral_obj['fullname']
-                                                                            " @click.prevent="resendReferral(r)"><i
+                                                                            " data-bs-container="body"
+                                                                        @click.prevent="resendReferral(r)"><i
                                                                             class="fa fa-envelope text-primary"
                                                                             aria-hidden="true"></i>
                                                                     </a>
@@ -1009,6 +1012,8 @@ export default {
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall')).then(response => {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
+                $(".popover").hide()
+                vm.enablePopovers();
                 swal.fire({
                     title: 'Referral Recall',
                     text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral).name,
@@ -1031,6 +1036,8 @@ export default {
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(response => {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
+                $(".popover").hide()
+                vm.enablePopovers();
                 swal.fire({
                     title: 'Referral Resent',
                     text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral).name,
@@ -1099,6 +1106,15 @@ export default {
                         vm.changingStatus = false;
                     });
             }
+        },
+        enablePopovers: function () {
+            this.$nextTick(() => {
+                $(function () {
+                    $('[data-bs-toggle="popover"]').each(function () {
+                        new bootstrap.Popover(this);
+                    })
+                })
+            });
         },
     },
     mounted: function () {
