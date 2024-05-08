@@ -65,7 +65,7 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr v-for="r in conservation_status_obj.latest_referrals">
-                                                        <td class="truncate-name fw-bold">
+                                                        <td class="truncate-name">
                                                             {{ r.referral_obj.first_name }} {{
                                                                 r.referral_obj.last_name }}
                                                         </td>
