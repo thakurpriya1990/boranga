@@ -409,17 +409,11 @@ class OccurrenceReport(RevisionedMixin):
         return users
 
     def has_assessor_mode(self, user):
-        status_without_assessor = [
-            "with_approver",
-            "approved",
-            "closed",
-            "declined",
-            "draft",
-            "partially_approved",
-            "partially_declined",
-            "discarded",
+        status_with_assessor = [
+            "with_assessor",
+            "with_referral",
         ]
-        if self.processing_status in status_without_assessor:
+        if not self.processing_status in status_with_assessor:
             return False
         else:
             if self.assigned_officer:
@@ -436,15 +430,10 @@ class OccurrenceReport(RevisionedMixin):
                 )
 
     def has_approver_mode(self, user):
-        status_without_approver = [
-            "with_assessor",
-            "awaiting_applicant_response",
-            "closed",
-            "declined",
-            "draft",
-            "discarded",
+        status_with_approver = [
+            "with_approver",            
         ]
-        if self.processing_status in status_without_approver:
+        if not self.processing_status in status_with_approver:
             return False
         else:
             if self.assigned_approver:
