@@ -2189,7 +2189,7 @@ export default {
                 if (evt.details.loaded == true) {
                     // Add undo/redo AFTER proposal geometries have been added to the map
                     vm.undoredo = new UndoRedo({
-                        layers: [vm.modelQueryLayer],
+                        layers: [vm.modelQueryLayer, vm.processedGeometryLayer],
                     });
                     vm.undoredo.clear();
 
@@ -2246,7 +2246,7 @@ export default {
 
                     // Setup a dedicated undo/redo for sketch points on the draw layer
                     vm.undoredo_forSketch = new UndoRedo({
-                        layers: [vm.modelQueryLayer],
+                        layers: [vm.modelQueryLayer, vm.processedGeometryLayer],
                     });
                     vm.undoredo_forSketch.clear();
 
