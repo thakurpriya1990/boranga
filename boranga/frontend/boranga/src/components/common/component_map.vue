@@ -2295,12 +2295,17 @@ export default {
                     vm.dragbox.on('boxend', function () {
                         const extent = vm.dragbox.getGeometry().getExtent();
 
-                        vm.modelQuerySource.forEachFeatureIntersectingExtent(
-                            extent,
-                            function (feature) {
-                                vm.selectFeature(feature);
-                            }
-                        );
+                        const layers = vm.getLayersWithFeatures();
+                        layers.forEach((layer) => {
+                            layer
+                                .getSource()
+                                .forEachFeatureIntersectingExtent(
+                                    extent,
+                                    function (feature) {
+                                        vm.selectFeature(feature);
+                                    }
+                                );
+                        });
                     });
 
                     vm.map.addInteraction(vm.undoredo);
