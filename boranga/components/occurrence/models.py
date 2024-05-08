@@ -2703,8 +2703,7 @@ class Occurrence(RevisionedMixin):
                 in self.get_occurrence_editor_group().get_system_group_member_ids()
                 # TODO determine which group this should be (maybe this one is fine?)
             )
-        
-    #TODO change this to use its own group
+
     def get_occurrence_editor_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_EDITOR)
 

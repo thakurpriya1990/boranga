@@ -1071,12 +1071,11 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         #To update an occurrence report, the user must be:
         # - the original submitter and the OCR in draft or
         # - an internal assessor and the OCR under assessment or
-        # - an internal user, the OCR created internally, and the OCR in draft (TODO review this - restrict to submitter or group?)
         instance = self.get_object()
         user = self.request.user
         if not ((instance.can_user_edit and (
-            user.id == instance.submitter or 
-            (instance.internal_application and is_internal(self.request))
+            user.id == instance.submitter #or 
+            #(instance.internal_application and is_internal(self.request))
         )) or (instance.has_assessor_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
 
@@ -1853,8 +1852,8 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
     def is_authorised_to_update(self,occurrence_report):
         user = self.request.user
         if not ((occurrence_report.can_user_edit and (
-            user.id == occurrence_report.submitter or 
-            (occurrence_report.internal_application and is_internal(self.request)) #TODO check if acceptable or should be in-group
+            user.id == occurrence_report.submitter #or 
+            #(occurrence_report.internal_application and is_internal(self.request))
         )) or (occurrence_report.has_assessor_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
 
@@ -1947,8 +1946,8 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
     def is_authorised_to_update(self,occurrence_report):
         user = self.request.user
         if not ((occurrence_report.can_user_edit and (
-            user.id == occurrence_report.submitter or 
-            (occurrence_report.internal_application and is_internal(self.request)) #TODO check if acceptable or should be in-group
+            user.id == occurrence_report.submitter #or 
+            #(occurrence_report.internal_application and is_internal(self.request))
         )) or (occurrence_report.has_assessor_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
 
@@ -2059,8 +2058,8 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
     def is_authorised_to_update(self,occurrence_report):
         user = self.request.user
         if not ((occurrence_report.can_user_edit and (
-            user.id == occurrence_report.submitter or 
-            (occurrence_report.internal_application and is_internal(self.request)) #TODO check if acceptable or should be in-group
+            user.id == occurrence_report.submitter #or 
+            #(occurrence_report.internal_application and is_internal(self.request))
         )) or (occurrence_report.has_assessor_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
 
@@ -2597,6 +2596,11 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
 
         return qs
 
+    def is_authorised_to_update(self, occurrence):
+        user = self.request.user
+        if not (user.id in occurrence.get_occurrence_editor_group().get_system_group_member_ids()):
+            raise serializers.ValidationError("User not authorised to update Occurrence")
+
     @detail_route(
         methods=[
             "GET",
@@ -2605,6 +2609,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
         instance.visible = False
         instance.save(version_user=request.user)
         if instance.occurrence:
@@ -2626,6 +2631,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
         instance.visible = True
         instance.save(version_user=request.user)
         if instance.occurrence:
@@ -2642,6 +2648,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
         serializer = SaveOccurrenceDocumentSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -2666,6 +2673,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
             data=json.loads(request.data.get("data"))
         )
         serializer.is_valid(raise_exception=True)
+        self.is_authorised_to_update(serializer.validated_data["occurrence"])
         instance = serializer.save(no_revision=True)
         instance.add_documents(request, no_revision=True)
         instance.uploaded_by = request.user.id
@@ -2693,6 +2701,11 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
 
         return qs
 
+    def is_authorised_to_update(self, occurrence):
+        user = self.request.user
+        if not (user.id in occurrence.get_occurrence_editor_group().get_system_group_member_ids()):
+            raise serializers.ValidationError("User not authorised to update Occurrence")
+
     @detail_route(
         methods=[
             "GET",
@@ -2701,6 +2714,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
         instance.visible = False
         instance.save(version_user=request.user)
         if instance.occurrence:
@@ -2722,6 +2736,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
         instance.visible = True
         instance.save(version_user=request.user)
         if instance.occurrence:
@@ -2738,6 +2753,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
         serializer = SaveOCCConservationThreatSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -2760,10 +2776,9 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
         serializer = SaveOCCConservationThreatSerializer(
             data=json.loads(request.data.get("data"))
         )
-        print(serializer)
         validate_threat_request(request)
         serializer.is_valid(raise_exception=True)
-
+        self.is_authorised_to_update(serializer.validated_data["occurrence"])
         instance = serializer.save(version_user=request.user)
         if instance.occurrence:
             instance.occurrence.log_user_action(
@@ -2817,15 +2832,29 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         if is_customer(self.request):
             qs = qs.filter(submitter=self.request.user.id)
         return qs
+    
+    def is_authorised_to_update(self):
+        user = self.request.user
+        instance = self.get_object()
+        if not (user.id in instance.get_occurrence_editor_group().get_system_group_member_ids()):
+            raise serializers.ValidationError("User not authorised to update Occurrence")
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
+
+        #auth - editor group (approvers can still create OCC via OCR) 
+        #TODO: do we a) want to create OCCs without OCRs? b) should OCR approvers be able to do this?
+
         group_type_id = GroupType.objects.get(id=request.data.get("group_type_id"))
 
         new_instance = Occurrence(
             submitter=request.user.id,
             group_type=group_type_id,
         )
+
+        if not (request.user.id in new_instance.get_occurrence_editor_group().get_system_group_member_ids()):
+            raise serializers.ValidationError("User not authorised to create Occurrence")
+
         new_instance.save(version_user=request.user)
         data = {"occurrence_id": new_instance.id}
 
@@ -3026,13 +3055,13 @@ class OccurrenceViewSet(UserActionLoggingViewset):
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def occurrence_save(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()
         instance = self.get_object()
         request_data = request.data
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        print(request_data)
-        print(serializer)
         if serializer.is_valid():
             serializer.save(version_user=request.user)
 
@@ -3048,6 +3077,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
     @detail_route(methods=["post"], detail=True)
     @transaction.atomic
     def copy_ocr_section(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
         instance = self.get_object()
         data = json.loads(request.data["data"])
 
@@ -3089,6 +3119,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def update_habitat_composition_details(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
         occ_instance = self.get_object()
         habitat_instance, created = OCCHabitatComposition.objects.get_or_create(
             occurrence=occ_instance
@@ -3108,6 +3139,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def update_habitat_condition_details(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
         occ_instance = self.get_object()
         habitat_instance, created = OCCHabitatCondition.objects.get_or_create(
             occurrence=occ_instance
@@ -3127,6 +3159,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def update_fire_history_details(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
         occ_instance = self.get_object()
         fire_instance, created = OCCFireHistory.objects.get_or_create(
             occurrence=occ_instance
@@ -3146,6 +3179,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def update_associated_species_details(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
         occ_instance = self.get_object()
         assoc_species_instance, created = OCCAssociatedSpecies.objects.get_or_create(
             occurrence=occ_instance
@@ -3165,6 +3199,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def update_observation_details(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
         occ_instance = self.get_object()
         obs_det_instance, created = OCCObservationDetail.objects.get_or_create(
             occurrence=occ_instance
@@ -3184,6 +3219,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def update_plant_count_details(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
         occ_instance = self.get_object()
         plant_count_instance, created = OCCPlantCount.objects.get_or_create(
             occurrence=occ_instance
@@ -3203,6 +3239,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def update_animal_observation_details(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
         occ_instance = self.get_object()
         animal_obs_instance, created = OCCAnimalObservation.objects.get_or_create(
             occurrence=occ_instance
@@ -3222,6 +3259,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def update_identification_details(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
         occ_instance = self.get_object()
         identification_instance, created = OCCIdentification.objects.get_or_create(
             occurrence=occ_instance
