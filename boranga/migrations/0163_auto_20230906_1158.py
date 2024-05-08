@@ -3,7 +3,6 @@
 import boranga.components.conservation_status.models
 import boranga.components.meetings.models
 import boranga.components.organisations.models
-import boranga.components.proposals.models
 import boranga.components.species_and_communities.models
 import django.core.files.storage
 import django.core.validators
@@ -217,18 +216,6 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AlterField(
-            model_name="onholddocument",
-            name="_file",
-            field=models.FileField(
-                max_length=512,
-                storage=django.core.files.storage.FileSystemStorage(
-                    base_url="/private-media/",
-                    location="/data/data/projects/boranga/private-media/",
-                ),
-                upload_to=boranga.components.proposals.models.update_onhold_doc_filename,
-            ),
-        ),
-        migrations.AlterField(
             model_name="organisationlogdocument",
             name="_file",
             field=models.FileField(
@@ -264,66 +251,6 @@ class Migration(migrations.Migration):
                     location="/data/data/projects/boranga/private-media/",
                 ),
                 upload_to=boranga.components.organisations.models.update_organisation_request_comms_log_filename,
-            ),
-        ),
-        migrations.AlterField(
-            model_name="proposaldocument",
-            name="_file",
-            field=models.FileField(
-                max_length=512,
-                storage=django.core.files.storage.FileSystemStorage(
-                    base_url="/private-media/",
-                    location="/data/data/projects/boranga/private-media/",
-                ),
-                upload_to=boranga.components.proposals.models.update_proposal_doc_filename,
-            ),
-        ),
-        migrations.AlterField(
-            model_name="proposallogdocument",
-            name="_file",
-            field=models.FileField(
-                max_length=512,
-                storage=django.core.files.storage.FileSystemStorage(
-                    base_url="/private-media/",
-                    location="/data/data/projects/boranga/private-media/",
-                ),
-                upload_to=boranga.components.proposals.models.update_proposal_comms_log_filename,
-            ),
-        ),
-        migrations.AlterField(
-            model_name="proposalrequireddocument",
-            name="_file",
-            field=models.FileField(
-                max_length=512,
-                storage=django.core.files.storage.FileSystemStorage(
-                    base_url="/private-media/",
-                    location="/data/data/projects/boranga/private-media/",
-                ),
-                upload_to=boranga.components.proposals.models.update_proposal_required_doc_filename,
-            ),
-        ),
-        migrations.AlterField(
-            model_name="qaofficerdocument",
-            name="_file",
-            field=models.FileField(
-                max_length=512,
-                storage=django.core.files.storage.FileSystemStorage(
-                    base_url="/private-media/",
-                    location="/data/data/projects/boranga/private-media/",
-                ),
-                upload_to=boranga.components.proposals.models.update_qaofficer_doc_filename,
-            ),
-        ),
-        migrations.AlterField(
-            model_name="requirementdocument",
-            name="_file",
-            field=models.FileField(
-                max_length=512,
-                storage=django.core.files.storage.FileSystemStorage(
-                    base_url="/private-media/",
-                    location="/data/data/projects/boranga/private-media/",
-                ),
-                upload_to=boranga.components.proposals.models.update_requirement_doc_filename,
             ),
         ),
         migrations.AlterField(

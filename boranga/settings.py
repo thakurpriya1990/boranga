@@ -88,7 +88,6 @@ INSTALLED_APPS += [
     "boranga.components.species_and_communities",
     "boranga.components.conservation_status",
     "boranga.components.users",
-    "boranga.components.proposals",
     "boranga.components.meetings",
     "boranga.components.conservation_plan",
     "boranga.components.occurrence",

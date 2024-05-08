@@ -10,14 +10,13 @@ from django.shortcuts import redirect, render
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 
+from boranga.components.conservation_status.mixins import ReferralOwnerMixin
 from boranga.components.conservation_status.models import (
     ConservationStatus,
     ConservationStatusReferral,
 )
 from boranga.components.meetings.models import Meeting
 from boranga.components.occurrence.models import OccurrenceReport
-from boranga.components.proposals.mixins import ReferralOwnerMixin
-from boranga.components.proposals.models import HelpPage
 from boranga.components.species_and_communities.models import Community, Species
 from boranga.forms import LoginForm
 from boranga.helpers import (
@@ -176,30 +175,6 @@ class BorangaContactView(TemplateView):
 
 class BorangaFurtherInformationView(TemplateView):
     template_name = "boranga/further_info.html"
-
-
-class HelpView(LoginRequiredMixin, TemplateView):
-    template_name = "boranga/help.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if self.request.user.is_authenticated:
-            application_type = kwargs.get("application_type", None)
-            if kwargs.get("help_type", None) == "assessor":
-                if is_internal(self.request):
-                    qs = HelpPage.objects.filter(
-                        application_type__name__icontains=application_type,
-                        help_type=HelpPage.HELP_TEXT_INTERNAL,
-                    ).order_by("-version")
-                    context["help"] = qs.first()
-            else:
-                qs = HelpPage.objects.filter(
-                    application_type__name__icontains=application_type,
-                    help_type=HelpPage.HELP_TEXT_EXTERNAL,
-                ).order_by("-version")
-                context["help"] = qs.first()
-        return context
 
 
 class ManagementCommandsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
