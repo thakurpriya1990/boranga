@@ -84,7 +84,6 @@ INSTALLED_APPS += [
     "webtemplate_dbca",
     "boranga",
     "boranga.components.main",
-    "boranga.components.organisations",
     "boranga.components.species_and_communities",
     "boranga.components.conservation_status",
     "boranga.components.users",

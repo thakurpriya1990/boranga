@@ -2,7 +2,6 @@
 
 import boranga.components.conservation_status.models
 import boranga.components.meetings.models
-import boranga.components.organisations.models
 import boranga.components.species_and_communities.models
 import django.core.files.storage
 from django.db import migrations, models
@@ -161,44 +160,6 @@ class Migration(migrations.Migration):
                     location="/home/oak/dev/boranga/private-media/",
                 ),
                 upload_to=boranga.components.meetings.models.update_meeting_doc_filename,
-            ),
-        ),
-        migrations.AlterField(
-            model_name="organisationlogdocument",
-            name="_file",
-            field=models.FileField(
-                max_length=512,
-                storage=django.core.files.storage.FileSystemStorage(
-                    base_url="/private-media/",
-                    location="/home/oak/dev/boranga/private-media/",
-                ),
-                upload_to=boranga.components.organisations.models.update_organisation_comms_log_filename,
-            ),
-        ),
-        migrations.AlterField(
-            model_name="organisationrequest",
-            name="identification",
-            field=models.FileField(
-                blank=True,
-                max_length=512,
-                null=True,
-                storage=django.core.files.storage.FileSystemStorage(
-                    base_url="/private-media/",
-                    location="/home/oak/dev/boranga/private-media/",
-                ),
-                upload_to="organisation/requests/%Y/%m/%d",
-            ),
-        ),
-        migrations.AlterField(
-            model_name="organisationrequestlogdocument",
-            name="_file",
-            field=models.FileField(
-                max_length=512,
-                storage=django.core.files.storage.FileSystemStorage(
-                    base_url="/private-media/",
-                    location="/home/oak/dev/boranga/private-media/",
-                ),
-                upload_to=boranga.components.organisations.models.update_organisation_request_comms_log_filename,
             ),
         ),
         migrations.AlterField(
