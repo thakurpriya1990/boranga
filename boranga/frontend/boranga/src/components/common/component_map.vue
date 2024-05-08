@@ -2152,15 +2152,20 @@ export default {
                     style = vm.basicSelectStyle;
                 }
             }
-            let features = vm.modelQuerySource.getFeatures();
-            features.forEach((feature) => {
-                if (
-                    vm.selectedFeatureIds.includes(feature.getProperties().id)
-                ) {
-                    feature.setStyle(style);
-                } else {
-                    feature.setStyle(undefined);
-                }
+            const layers = vm.getLayersWithFeatures();
+            layers.forEach((layer) => {
+                let features = layer.getSource().getFeatures();
+                features.forEach((feature) => {
+                    if (
+                        vm.selectedFeatureIds.includes(
+                            feature.getProperties().id
+                        )
+                    ) {
+                        feature.setStyle(style);
+                    } else {
+                        feature.setStyle(undefined);
+                    }
+                });
             });
         },
         initialiseMap: function () {
