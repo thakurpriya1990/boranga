@@ -1224,7 +1224,7 @@ import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
 import {
-    addOptionalLayers,
+    // addOptionalLayers,
     set_mode,
     baselayer_name,
     // validateFeature,
@@ -1843,9 +1843,9 @@ export default {
             var toastEl = document.getElementById('featureToast');
             $('#map-spinner').children().css('position', 'static'); // Position spinner in center of map
             vm.initialiseMap();
-            vm.set_mode('layer');
-            vm.setBaseLayer('osm');
-            addOptionalLayers(this);
+            // vm.set_mode('layer');
+            // vm.setBaseLayer('osm');
+            // addOptionalLayers(this);
             vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
@@ -2158,49 +2158,7 @@ export default {
         initialiseMap: function () {
             let vm = this;
 
-            let satelliteTileWms = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
-                params: {
-                    FORMAT: 'image/png',
-                    VERSION: '1.1.1',
-                    tiled: true,
-                    STYLES: '',
-                    LAYERS: 'public:mapbox-satellite',
-                },
-            });
-
-            let streetsTileWMS = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
-                params: {
-                    FORMAT: 'image/png',
-                    VERSION: '1.1.1',
-                    tiled: true,
-                    STYLES: '',
-                    LAYERS: `public:${baselayer_name}`,
-                },
-            });
-            vm.tileLayerMapbox = new TileLayer({
-                title: 'StreetsMap',
-                type: 'base',
-                visible: true,
-                source: streetsTileWMS,
-            });
-
-            vm.tileLayerSat = new TileLayer({
-                title: 'Satellite',
-                type: 'base',
-                visible: true,
-                source: satelliteTileWms,
-            });
-
-            let container = document.getElementById('popup');
-            let overlay = new Overlay({
-                element: container,
-                autoPan: true,
-                autoPanAnimation: {
-                    duration: 150,
-                },
-            });
+            const overlay = vm.handleMapLayerFunction();
 
             vm.map = new Map({
                 layers: [vm.tileLayerMapbox, vm.tileLayerSat],
@@ -2396,6 +2354,9 @@ export default {
                 evt.preventDefault();
                 vm.processDatatransferEvent(evt);
             });
+
+            vm.set_mode('layer');
+            vm.setBaseLayer('osm');
         },
         initialiseMeasurementLayer: function () {
             let vm = this;
@@ -4207,6 +4168,54 @@ export default {
             }
 
             return type;
+        },
+        // TODO: Rename later
+        handleMapLayerFunction: function () {
+            let satelliteTileWms = new TileWMS({
+                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                params: {
+                    FORMAT: 'image/png',
+                    VERSION: '1.1.1',
+                    tiled: true,
+                    STYLES: '',
+                    LAYERS: 'public:mapbox-satellite',
+                },
+            });
+
+            let streetsTileWMS = new TileWMS({
+                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                params: {
+                    FORMAT: 'image/png',
+                    VERSION: '1.1.1',
+                    tiled: true,
+                    STYLES: '',
+                    LAYERS: `public:${baselayer_name}`,
+                },
+            });
+            this.tileLayerMapbox = new TileLayer({
+                title: 'StreetsMap',
+                type: 'base',
+                visible: true,
+                source: streetsTileWMS,
+            });
+
+            this.tileLayerSat = new TileLayer({
+                title: 'Satellite',
+                type: 'base',
+                visible: true,
+                source: satelliteTileWms,
+            });
+
+            let container = document.getElementById('popup');
+            let overlay = new Overlay({
+                element: container,
+                autoPan: true,
+                autoPanAnimation: {
+                    duration: 150,
+                },
+            });
+
+            return overlay;
         },
     },
 };
