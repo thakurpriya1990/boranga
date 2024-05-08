@@ -576,13 +576,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='PreviewTempApproval',
-            fields=[
-                ('approval_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='boranga.approval')),
-            ],
-            bases=('boranga.approval',),
-        ),
-        migrations.CreateModel(
             name='Taxonomy',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -956,19 +949,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='ApprovalUserAction',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('who', models.IntegerField()),
-                ('when', models.DateTimeField(auto_now_add=True)),
-                ('what', models.TextField()),
-                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='boranga.approval')),
-            ],
-            options={
-                'ordering': ('-when',),
-            },
-        ),
-        migrations.CreateModel(
             name='ApplicationFeeDiscount',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -1125,18 +1105,6 @@ class Migration(migrations.Migration):
                 ('species', models.ManyToManyField(to='boranga.Species')),
                 ('conservation_status', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='boranga.conservationstatus')),
             ],
-        ),
-        migrations.CreateModel(
-            name='ApprovalLogEntry',
-            fields=[
-                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='boranga.communicationslogentry')),
-                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='boranga.approval')),
-            ],
-            bases=('boranga.communicationslogentry',),
-        ),
-        migrations.AlterUniqueTogether(
-            name='approval',
-            unique_together={('lodgement_number', 'issue_date')},
         ),
         migrations.CreateModel(
             name='AmendmentRequest',
