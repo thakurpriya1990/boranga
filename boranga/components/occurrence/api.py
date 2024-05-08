@@ -2842,9 +2842,6 @@ class OccurrenceViewSet(UserActionLoggingViewset):
     @transaction.atomic
     def create(self, request, *args, **kwargs):
 
-        #auth - editor group (approvers can still create OCC via OCR) 
-        #TODO: do we a) want to create OCCs without OCRs? b) should OCR approvers be able to do this?
-
         group_type_id = GroupType.objects.get(id=request.data.get("group_type_id"))
 
         new_instance = Occurrence(

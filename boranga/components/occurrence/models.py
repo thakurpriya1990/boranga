@@ -2642,13 +2642,13 @@ class Occurrence(RevisionedMixin):
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
 
-    PROCESSING_STATUS_DRAFT = "draft"
+    PROCESSING_STATUS_ACTIVE = "active"
     PROCESSING_STATUS_LOCKED = "locked"
     PROCESSING_STATUS_SPLIT = "split"
     PROCESSING_STATUS_COMBINE = "combine"
     PROCESSING_STATUS_HISTORICAL = "historical"
     PROCESSING_STATUS_CHOICES = (
-        (PROCESSING_STATUS_DRAFT, "Draft"),
+        (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_LOCKED, "Locked"),
         (PROCESSING_STATUS_SPLIT, "Split"),
         (PROCESSING_STATUS_COMBINE, "Combine"),
@@ -2658,7 +2658,7 @@ class Occurrence(RevisionedMixin):
         "Processing Status",
         max_length=30,
         choices=PROCESSING_STATUS_CHOICES,
-        default=PROCESSING_STATUS_DRAFT,
+        default=PROCESSING_STATUS_ACTIVE,
     )
 
     class Meta:
@@ -2691,7 +2691,7 @@ class Occurrence(RevisionedMixin):
 
     def can_user_edit(self, user):
         user_editable_state = [
-            "draft",
+            "active",
         ]
         if not self.processing_status in user_editable_state:
             return False
@@ -2699,7 +2699,6 @@ class Occurrence(RevisionedMixin):
             return (
                 user.id
                 in self.get_occurrence_editor_group().get_system_group_member_ids()
-                # TODO determine which group this should be (maybe this one is fine?)
             )
 
     def get_occurrence_editor_group(self):
