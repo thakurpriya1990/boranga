@@ -1007,7 +1007,6 @@ export default {
             this.$nextTick(() => {
                 $(function () {
                     $('[data-bs-toggle="popover"]').each(function () {
-                        console.log(this)
                         new bootstrap.Popover(this);
                     })
                 })
