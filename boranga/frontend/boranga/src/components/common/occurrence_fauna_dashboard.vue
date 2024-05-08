@@ -296,10 +296,11 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let links = "";
-                    if (vm.is_internal) {
-                        links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
+                    if (vm.is_internal) {                        
                         if (full.can_user_edit) {
                             links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
+                        } else {
+                            links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                         }
                         links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;                       
                     }

@@ -404,9 +404,6 @@ export default {
                                 links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Process</a><br/>`;
                             }
                             else {
-                                if (full.assessor_edit) {
-                                    links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Edit</a><br/>`;
-                                }
                                 links += `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
                             }
                             links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;

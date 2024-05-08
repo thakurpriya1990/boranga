@@ -308,8 +308,9 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         return False
 
     def get_internal_user_edit(self, obj):
+        request = self.context["request"]
         if obj.can_user_edit:
-            if obj.internal_application is True:
+            if obj.internal_application is True and obj.submitter == request.user.id:
                 return True
         else:
             return False
@@ -318,8 +319,10 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         request = self.context["request"]
         return (
             is_assessor(request.user)
-            and obj.processing_status
+            and (obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            or obj.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL)
         )
 
     def get_can_user_approve(self, obj):
