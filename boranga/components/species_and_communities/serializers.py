@@ -293,6 +293,8 @@ class TaxonomySerializer(serializers.ModelSerializer):
     text = serializers.SerializerMethodField()
     common_name = serializers.SerializerMethodField()
     phylogenetic_group = serializers.SerializerMethodField()
+    conservation_status = serializers.SerializerMethodField()
+    conservation_status_under_review = serializers.SerializerMethodField()
 
     class Meta:
         model = Taxonomy
@@ -310,6 +312,8 @@ class TaxonomySerializer(serializers.ModelSerializer):
             "phylogenetic_group",
             "name_authority",
             "name_comments",
+            "conservation_status",
+            "conservation_status_under_review",
         )
 
     def get_text(self, obj):
@@ -335,7 +339,30 @@ class TaxonomySerializer(serializers.ModelSerializer):
                 return ",".join(informal_groups)
         except InformalGroup.DoesNotExist:
             return ""
+        
+    def get_conservation_status(self, obj):
+        try:
+            taxonSpecies = Species.objects.get(taxonomy=obj)
+            qs = ConservationStatus.objects.get(
+                species=taxonSpecies,
+                conservation_list__applies_to_wa=True,
+                processing_status="approved",
+            )
+            return SpeciesConservationStatusSerializer(qs).data
+        except ConservationStatus.DoesNotExist:
+            return SpeciesConservationStatusSerializer().data
+            # return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
+    def get_conservation_status_under_review(self, obj):
+        try:
+            taxonSpecies = Species.objects.get(taxonomy=obj)
+            return ConservationStatus.objects.filter(
+                species=taxonSpecies,
+                conservation_list__applies_to_wa=True,
+                processing_status="ready_for_agenda",
+            ).exists()
+        except:
+            return False
 
 class SpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 
