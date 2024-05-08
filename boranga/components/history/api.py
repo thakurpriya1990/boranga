@@ -14,7 +14,7 @@ from rest_framework_datatables.utils import get_param
 from boranga.helpers import (is_internal, is_customer,
 is_boranga_admin, is_django_admin, is_assessor, is_approver,
 is_species_processor, is_community_processor,
-is_conservation_status_editor, is_occurrence_approver)
+is_conservation_status_editor, is_occurrence_approver, is_occurrence_assessor)
 from django.db.models.fields.json import KeyTransform
 
 #keeping it as an APIView to control how its handled
@@ -32,16 +32,10 @@ class InternalAuthorizationView(views.APIView):
     assessor_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport", 
-                       "OccurrenceDocument", "OccurrenceReportDocument",
-                       "OCRConservationThreat","OCCConservationThreat",
                        "Minutes", "ConservationThreat"]
     approver_models = ["Species","SpeciesDocument",
                        "Community","CommunityDocument",
                        "ConservationStatus","ConservationStatusDocument",
-                       "Occurrence", "OccurrenceReport", 
-                       "OccurrenceDocument", "OccurrenceReportDocument",
-                       "OCRConservationThreat","OCCConservationThreat",
                        "Minutes", "ConservationThreat"]
     species_processor_models = ["Species","SpeciesDocument", "ConservationThreat",
                        "Minutes"]
@@ -49,7 +43,10 @@ class InternalAuthorizationView(views.APIView):
                        "Minutes"]
     conservation_status_editor_models = ["ConservationStatus","ConservationStatusDocument",
                        "Minutes"]
-    occurrence_editor_models = ["Occurrence", "OccurrenceReport", 
+    occurrence_assessor_models = ["Occurrence", "OccurrenceReport", 
+                       "OccurrenceDocument", "OccurrenceReportDocument",
+                       "OCRConservationThreat","OCCConservationThreat"]
+    occurrence_approver_models = ["Occurrence", "OccurrenceReport", 
                        "OccurrenceDocument", "OccurrenceReportDocument",
                        "OCRConservationThreat","OCCConservationThreat"]
 
@@ -72,7 +69,9 @@ class InternalAuthorizationView(views.APIView):
                 return True
             if model_name in self.conservation_status_editor_models and is_conservation_status_editor(request.user):
                 return True
-            if model_name in self.occurrence_editor_models and is_occurrence_approver(request.user):
+            if model_name in self.occurrence_assessor_models and is_occurrence_assessor(request.user):
+                return True
+            if model_name in self.occurrence_approver_models and is_occurrence_approver(request.user):
                 return True
 
             return False
