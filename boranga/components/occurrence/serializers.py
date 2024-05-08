@@ -1116,11 +1116,21 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         )
 
     def get_readonly(self, obj):
-        if not obj.internal_application:
-            return True
+        # Assessor can edit the report in appropriate statuses
+        if self.get_can_user_assess(obj):
+            return False
 
+        # The only other case where an internal user can edit is
+        # if the application is internal, the user is the submitter and
+        # the report is in draft status
         request = self.context["request"]
-        return not request.user.id == obj.submitter
+        if (
+            obj.internal_application
+            and request.user.id == obj.submitter
+            and obj.processing_status == OccurrenceReport.PROCESSING_STATUS_DRAFT
+        ):
+            return False
+        return True
 
     def get_can_user_assess(self, obj):
         request = self.context["request"]
