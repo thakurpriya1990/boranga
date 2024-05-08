@@ -2660,7 +2660,7 @@ export default {
             // Add a button to show/hide the layers
             const button = $('<div class="toggleVisibility" title="show/hide">')
                 .text('Show/hide all')
-                .click(function () {
+                .click(() => {
                     const a = this.map.getLayers().getArray();
                     const b = !a[0].getVisible();
                     if (b) button.removeClass('show');
@@ -3237,10 +3237,10 @@ export default {
                                     )[0].name;
                             }
 
-                            const features =
-                                this.addFeatureCollectionToMap(
-                                    processedGeometry
-                                );
+                            const features = this.addFeatureCollectionToMap(
+                                processedGeometry,
+                                this.processedGeometrySource
+                            );
                             this.displayAllFeatures(features);
                         }
                         this.processingFeatures = false;
@@ -3277,10 +3277,16 @@ export default {
                 );
             }
 
-            for (let feature of features) {
-                vm.deletedFeaturesProperty(feature);
-                vm.modelQuerySource.removeFeature(feature);
-            }
+            const layersWithFeatures = vm.getLayersWithFeatures();
+            layersWithFeatures.map((layer) => {
+                const source = layer.getSource();
+                features.map((feature) => {
+                    if (source.hasFeature(feature)) {
+                        vm.deletedFeaturesProperty(feature);
+                        source.removeFeature(feature);
+                    }
+                });
+            });
             // Remove selected features (mapped by id) from `selectedFeatureIds`
             vm.selectedFeatureIds = vm.selectedFeatureIds.filter(
                 (id) =>
@@ -3325,8 +3331,16 @@ export default {
                     vm.fetchingProposals = false;
                 });
         },
-        addFeatureCollectionToMap: function (featureCollection) {
+        /**
+         * Adds a GeoJSON feature collection to the map
+         * @param {Object} featureCollection A GeoJSON feature collection object to add to the map
+         * @param {Object=} layerSource The layer source to add the features to, defaults to the query layer source
+         */
+        addFeatureCollectionToMap: function (featureCollection, layerSource) {
             let vm = this;
+            if (!layerSource) {
+                layerSource = vm.modelQuerySource;
+            }
             if (featureCollection == null) {
                 featureCollection = vm.featureCollection;
             }
@@ -3340,7 +3354,7 @@ export default {
                 );
 
                 features.push(feature);
-                vm.modelQuerySource.addFeature(feature);
+                layerSource.addFeature(feature);
             }
 
             return features;
@@ -3694,12 +3708,41 @@ export default {
                     vm.isValidating = false;
                 });
         },
+        getLayersWithFeatures: function () {
+            const layers = [];
+            this.map
+                .getLayers()
+                .getArray()
+                .map((layer) => {
+                    // Not all types of layer have a getSource method
+                    try {
+                        layer.getSource().getFeatures();
+                        layers.push(layer);
+                    } catch (error) {
+                        //
+                    }
+                }, layers);
+
+            return layers;
+        },
+        /**
+         * Returns all features across all layers
+         */
+        getMapFeatures: function () {
+            const features = [];
+            this.getLayersWithFeatures().map((layer) => {
+                features.push(...layer.getSource().getFeatures());
+            });
+
+            return features;
+        },
         /**
          * Returns the selected features
          */
         selectedFeatures: function () {
             let vm = this;
-            let features = vm.modelQuerySource.getFeatures();
+            const features = vm.getMapFeatures();
+
             return features.filter((feature) => {
                 return vm.selectedFeatureIds.includes(
                     feature.getProperties().id
