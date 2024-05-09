@@ -70,7 +70,8 @@
                             <input type='hidden' name="occurrence_id" :value="1"/>
                             <div class="row" style="margin-bottom: 50px">
                                 <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                    <div v-if="occurrence.can_user_edit" class="container">
+                                    <!--TODO check if it is a draft (if occ starting as draft is implemented)-->
+                                    <div v-if="occurrence.can_user_edit && this.$route.query.action == 'edit'" class="container">
                                         <div class="col-md-12 text-end">
                                             <button v-if="savingOccurrence"
                                                 class="btn btn-primary me-2 pull-right"
@@ -90,7 +91,8 @@
                                                 :disabled="savingOccurrence || submitOccurrence">Save
                                                 and Exit</button>
 
-                                            <!--<button v-if="submitOccurrence"
+                                            <!--TODO bring this back once OCC initial status confirmed
+                                                <button v-if="submitOccurrence"
                                                 class="btn btn-primary pull-right" style="margin-top:5px;"
                                                 disabled>Submit&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -221,7 +223,7 @@ export default {
         hasUserEditMode: function () {
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view
             if (this.$route.query.action == 'edit') {
-                return this.occurrence && this.occurrence.user_edit_mode ? true : false;
+                return this.occurrence && this.occurrence.can_user_edit ? true : false;
             }
             else {
                 return false;

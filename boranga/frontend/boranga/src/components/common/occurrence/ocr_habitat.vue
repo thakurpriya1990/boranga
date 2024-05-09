@@ -274,8 +274,24 @@ export default {
         },
         computed: {
             isReadOnly: function(){
-                return this.occurrence_report_obj.readonly;
+                //override for split reports
+                if(this.is_readonly){
+                    return this.is_readonly;
+                }
+                return this.occurrence_report_obj.readonly
             },
+        },
+        watch:{
+            // "occurrence_report_obj.distribution.noo_auto": function(newVal) {
+            //     let vm=this;
+            //     var selectedValue = newVal;
+            //         if(selectedValue === "true"){
+            //             vm.occurrence_report_obj.distribution.number_of_occurrences=vm.occurrence_report_obj.distribution.cal_number_of_occurrences;
+            //         }
+            //         else{
+            //             vm.occurrence_report_obj.distribution.number_of_occurrences=null;
+            //         }
+            // },
         },
         methods:{
             eventListeners:function (){

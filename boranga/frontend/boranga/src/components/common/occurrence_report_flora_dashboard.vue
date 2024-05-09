@@ -389,21 +389,19 @@ export default {
                     let links = "";
                     if (!vm.is_external) {
                         if (full.internal_user_edit) {
-                            links += `<a href='/internal/occurrence_report/${full.id}'>Continue</a><br/>`;
+                            links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Continue</a><br/>`;
                             links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
+                            links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                         }
                         else {
                             if (full.can_user_assess || full.can_user_approve) {
-                                links += `<a href='/internal/occurrence_report/${full.id}'>Process</a><br/>`;
+                                links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Process</a><br/>`;
                             }
                             else {
-                                if (full.assessor_edit) {
-                                    links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Edit</a><br/>`;
-                                }
                                 links += `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
                             }
+                            links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                         }
-                        links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                     }
                     return links;
                 }

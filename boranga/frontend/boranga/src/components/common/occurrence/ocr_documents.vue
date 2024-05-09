@@ -5,7 +5,7 @@
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <div class="text-end">
-                        <button :disabled="isReadonly" type="button" class="btn btn-primary mb-2 "
+                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
                             @click.prevent="newDocument">
                             <i class="fa-solid fa-circle-plus"></i>
                             Add Document
@@ -51,6 +51,10 @@ export default {
             default: false
         },
         is_internal: {
+            type: Boolean,
+            default: false
+        },
+        is_readonly: {
             type: Boolean,
             default: false
         },
@@ -188,7 +192,7 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             // to restrict submitter to edit doc when the report is in workflow
-                            if (vm.can_user_edit_doc) {
+                            if (!vm.isReadOnly) {
                                 if (full.visible) {
                                     links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
                                     links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
@@ -196,9 +200,9 @@ export default {
                                 else {
                                     links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
                                 }
-                                links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             }
-                            else {
+                            if (!vm.is_external)
+                            {
                                 links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             }
                             return links;
@@ -227,12 +231,13 @@ export default {
         OccurenceReportDocumentHistory,
     },
     computed: {
-        isReadonly: function () {
-            return this.occurrence_report_obj.readonly;
+        isReadOnly: function(){
+            //override for split reports
+            if(this.is_readonly){
+                return this.is_readonly;
+            }
+            return this.occurrence_report_obj.readonly
         },
-        can_user_edit_doc: function () {
-            return this.is_external && this.occurrence_report_obj.customer_status == "Draft";
-        }
     },
     watch: {},
     methods: {

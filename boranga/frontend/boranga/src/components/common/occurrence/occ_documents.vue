@@ -5,7 +5,7 @@
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <div class="text-end">
-                        <button type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
+                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
                             <i class="fa-solid fa-circle-plus"></i>
                                 Add Document
                         </button>
@@ -196,12 +196,14 @@ export default {
                             mRender:function (data,type,full){
                                 let links = '';
 
-                                if(full.visible){
-                                    links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
-                                }
-                                else{
-                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                if (!vm.isReadOnly) {
+                                    if(full.visible){
+                                        links +=  `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                    }
+                                    else{
+                                        links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                    }
                                 }
                                 links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
 
@@ -367,6 +369,11 @@ export default {
             },
             adjust_table_width: function(){
                 if (this.$refs.documents_datatable !== undefined) {this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();}
+            },
+        },
+        computed: {
+            isReadOnly: function () {
+                return !(this.occurrence_obj.can_user_edit);
             },
         },
         mounted: function(){
