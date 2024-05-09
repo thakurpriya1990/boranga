@@ -54,7 +54,11 @@ export default {
             type: String,
             required: false,
             default: "",
-        }
+        },
+        isReadOnly:{
+            type: Boolean,
+            default: false
+        },
     },
     data() {
         let vm = this;
@@ -127,7 +131,7 @@ export default {
             let vm = this
 
             let action = vm.column_action
-            if (vm.section_type !== "")
+            if (vm.section_type !== "" && !vm.isReadOnly)
             {
                 action = vm.column_copy_action
             }

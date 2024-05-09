@@ -69,7 +69,6 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
-    user_edit_mode = serializers.SerializerMethodField()
 
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
@@ -88,14 +87,8 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_can_user_edit(self, obj):
-        return obj.can_user_edit
-
-    def get_user_edit_mode(self, obj):
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
-        return obj.has_user_edit_mode(user)
+        return obj.can_user_edit(request.user)
 
     def get_habitat_composition(self, obj):
         try:
@@ -234,6 +227,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     )
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField()
     can_user_approve = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
@@ -260,6 +254,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "can_user_view",
             "can_user_assess",
             "can_user_approve",
+            "assessor_edit",
             "internal_user_edit",
             "occurrence",
             "occurrence_name",
@@ -303,10 +298,19 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             return email_user.get_full_name()
         else:
             return None
+        
+    def get_assessor_edit(self, obj):
+        request = self.context["request"]
+        user = request.user
+        if obj.can_user_edit:
+            if user in obj.allowed_assessors:
+                return True
+        return False
 
     def get_internal_user_edit(self, obj):
+        request = self.context["request"]
         if obj.can_user_edit:
-            if obj.internal_application is True:
+            if obj.internal_application is True and obj.submitter == request.user.id:
                 return True
         else:
             return False
@@ -315,8 +319,10 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         request = self.context["request"]
         return (
             is_assessor(request.user)
-            and obj.processing_status
+            and (obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            or obj.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL)
         )
 
     def get_can_user_approve(self, obj):
@@ -326,7 +332,6 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             and obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         )
-
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
 
@@ -690,13 +695,13 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
         format="%Y-%m-%d %H:%M:%S", allow_null=True
     )
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
-    can_user_assess = serializers.SerializerMethodField()
     community_number = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
     wild_status = serializers.CharField(source="wild_status.name", allow_null=True)
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
@@ -719,7 +724,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "effective_from",
             "effective_to",
             "review_due_date",
-            "can_user_assess",
+            "can_user_edit",
         )
         datatables_always_serialize = (
             "id",
@@ -729,7 +734,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "number_of_reports",
             "processing_status",
             "processing_status_display",
-            "can_user_assess",
+            "can_user_edit",
         )
 
     def get_community_number(self, obj):
@@ -791,14 +796,10 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             return ""
 
         return conservation_status.conservation_category.code
-
-    def get_can_user_assess(self, obj):
+    
+    def get_can_user_edit(self, obj):
         request = self.context["request"]
-        return (
-            is_assessor(request.user)
-            and obj.processing_status
-            == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
-        )
+        return obj.can_user_edit(request.user)
 
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -1053,6 +1054,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     declined_details = OccurrenceReportDeclinedDetailsSerializer(
         read_only=True, allow_null=True
     )
+    assessor_mode = serializers.SerializerMethodField()
     latest_referrals = InternalOccurrenceReportReferralSerializer(
         many=True, read_only=True, allow_null=True
     )
@@ -1110,6 +1112,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "declined_details",
             "approval_details",
             "internal_application",
+            "assessor_mode",
             "latest_referrals",
             "referrals",
             "finalised",
@@ -1163,6 +1166,17 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "email": user.email,
         }
 
+    def get_assessor_mode(self, obj):
+        request = self.context["request"]
+        user = (
+            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
+        )
+        return {
+            "assessor_mode": True,
+            "has_assessor_mode": obj.has_assessor_mode(user),
+            "assessor_can_assess": obj.can_assess(user),
+            "assessor_level": "assessor",
+        }
 
 class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data

@@ -49,7 +49,7 @@ from boranga.components.species_and_communities.models import (
 )
 from boranga.helpers import clone_model, email_in_dept_domains
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR
+from boranga.settings import GROUP_NAME_OCCURRENCE_APPROVER, GROUP_NAME_OCCURRENCE_ASSESSOR
 
 logger = logging.getLogger(__name__)
 
@@ -408,13 +408,48 @@ class OccurrenceReport(RevisionedMixin):
         )
         return users
 
+    def has_assessor_mode(self, user):
+        status_with_assessor = [
+            "with_assessor",
+            "with_referral",
+        ]
+        if not self.processing_status in status_with_assessor:
+            return False
+        else:
+            if self.assigned_officer:
+                if self.assigned_officer == user.id:
+                    return (
+                        user.id
+                        in self.get_assessor_group().get_system_group_member_ids()
+                    )
+                else:
+                    return False
+            else:
+                return False
+
+    def has_approver_mode(self, user):
+        status_with_approver = [
+            "with_approver",            
+        ]
+        if not self.processing_status in status_with_approver:
+            return False
+        else:
+            if self.assigned_approver:
+                if self.assigned_approver == user.id:
+                    return (
+                        user.id
+                        in self.get_approver_group().get_system_group_member_ids()
+                    )
+                else:
+                    return False
+            else:
+                return False
+
     def get_assessor_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
+        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
 
     def get_approver_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
 
     # Group for editing the Approved CS(only specific fields)
     # def get_editor_group(self):
@@ -2592,13 +2627,13 @@ class Occurrence(RevisionedMixin):
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
 
-    PROCESSING_STATUS_DRAFT = "draft"
+    PROCESSING_STATUS_ACTIVE = "active"
     PROCESSING_STATUS_LOCKED = "locked"
     PROCESSING_STATUS_SPLIT = "split"
     PROCESSING_STATUS_COMBINE = "combine"
     PROCESSING_STATUS_HISTORICAL = "historical"
     PROCESSING_STATUS_CHOICES = (
-        (PROCESSING_STATUS_DRAFT, "Draft"),
+        (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_LOCKED, "Locked"),
         (PROCESSING_STATUS_SPLIT, "Split"),
         (PROCESSING_STATUS_COMBINE, "Combine"),
@@ -2608,7 +2643,7 @@ class Occurrence(RevisionedMixin):
         "Processing Status",
         max_length=30,
         choices=PROCESSING_STATUS_CHOICES,
-        default=PROCESSING_STATUS_DRAFT,
+        default=PROCESSING_STATUS_ACTIVE,
     )
 
     class Meta:
@@ -2639,26 +2674,20 @@ class Occurrence(RevisionedMixin):
     def number_of_reports(self):
         return self.occurrence_report_count
 
-    @property
-    def can_user_edit(self):
-        """
-        :return: True if the application is in one of the editable status.
-        """
+    def can_user_edit(self, user):
         user_editable_state = [
-            "draft",
+            "active",
         ]
-        return self.processing_status in user_editable_state
-
-    def has_user_edit_mode(self, user):
-        officer_view_state = ["draft", "historical"]
-        if self.processing_status in officer_view_state:
+        if not self.processing_status in user_editable_state:
             return False
         else:
             return (
                 user.id
-                in self.get_species_processor_group().get_system_group_member_ids()
-                # TODO determine which group this should be (maybe this one is fine?)
+                in self.get_occurrence_editor_group().get_system_group_member_ids()
             )
+
+    def get_occurrence_editor_group(self):
+        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)

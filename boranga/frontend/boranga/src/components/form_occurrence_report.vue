@@ -113,6 +113,7 @@
                         :key="reloadcount"
                         ref="ocr_habitat"
                         :is_internal="is_internal"
+                        :is_external="is_external"
                         :occurrence_report_obj="occurrence_report_obj"
                     >
                     </OCRHabitat>
@@ -128,6 +129,7 @@
                         :key="reloadcount"
                         ref="ocr_observation"
                         :is_internal="is_internal"
+                        :is_external="is_external"
                         :occurrence_report_obj="occurrence_report_obj"
                     >
                     </OCRObservation>
@@ -159,6 +161,7 @@
                         :key="reloadcount"
                         ref="ocr_threats"
                         :is_internal="is_internal"
+                        :is_external="is_external"
                         :occurrence_report_obj="occurrence_report_obj"
                     >
                     </OCRThreats>

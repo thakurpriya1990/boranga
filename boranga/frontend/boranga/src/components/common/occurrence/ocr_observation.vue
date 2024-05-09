@@ -199,7 +199,11 @@ export default {
         },
         computed: {
             isReadOnly: function(){
-                return this.occurrence_report_obj.readonly;
+                //override for split reports
+                if(this.is_readonly){
+                    return this.is_readonly;
+                }
+                return this.occurrence_report_obj.readonly
             },
         },
         watch:{

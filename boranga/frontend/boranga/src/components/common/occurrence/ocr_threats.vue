@@ -51,6 +51,10 @@ export default {
             type: Boolean,
             default: false
         },
+        is_external: {
+            type: Boolean,
+            default: false,
+        }
     },
     data: function () {
         let vm = this;
@@ -210,14 +214,21 @@ export default {
                         data: "id",
                         mRender: function (data, type, full) {
                             let links = '';
-                            if (full.visible) {
-                                links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
-                                links += `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                            if (!vm.isReadOnly) {
+                                    if (full.visible) {
+                                        links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
+                                        links += `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                    }
+                                
+                                else {
+                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                                }
+                            } else {
+                                links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;                               
                             }
-                            else {
-                                links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                            if (!vm.is_external)
+                            {
                                 links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                             }
                             return links;
@@ -243,7 +254,11 @@ export default {
         ConservationThreatHistory,
     },
     computed: {
-        isReadOnly: function () {
+        isReadOnly: function(){
+            //override for split reports
+            if(this.is_readonly){
+                return this.is_readonly;
+            }
             return this.occurrence_report_obj.readonly
         },
     },

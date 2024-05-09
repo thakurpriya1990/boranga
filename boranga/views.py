@@ -10,14 +10,13 @@ from django.shortcuts import redirect, render
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 
+from boranga.components.conservation_status.mixins import ReferralOwnerMixin
 from boranga.components.conservation_status.models import (
     ConservationStatus,
     ConservationStatusReferral,
 )
 from boranga.components.meetings.models import Meeting
 from boranga.components.occurrence.models import OccurrenceReport
-from boranga.components.proposals.mixins import ReferralOwnerMixin
-from boranga.components.proposals.models import HelpPage
 from boranga.components.species_and_communities.models import Community, Species
 from boranga.forms import LoginForm
 from boranga.helpers import (
@@ -31,6 +30,8 @@ from boranga.helpers import (
     is_django_admin,
     is_internal,
     is_species_processor,
+    is_occurrence_approver,
+    is_occurrence_assessor,
 )
 
 logger = logging.getLogger("payment_checkout")
@@ -178,30 +179,6 @@ class BorangaFurtherInformationView(TemplateView):
     template_name = "boranga/further_info.html"
 
 
-class HelpView(LoginRequiredMixin, TemplateView):
-    template_name = "boranga/help.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if self.request.user.is_authenticated:
-            application_type = kwargs.get("application_type", None)
-            if kwargs.get("help_type", None) == "assessor":
-                if is_internal(self.request):
-                    qs = HelpPage.objects.filter(
-                        application_type__name__icontains=application_type,
-                        help_type=HelpPage.HELP_TEXT_INTERNAL,
-                    ).order_by("-version")
-                    context["help"] = qs.first()
-            else:
-                qs = HelpPage.objects.filter(
-                    application_type__name__icontains=application_type,
-                    help_type=HelpPage.HELP_TEXT_EXTERNAL,
-                ).order_by("-version")
-                context["help"] = qs.first()
-        return context
-
-
 class ManagementCommandsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "boranga/mgt-commands.html"
 
@@ -231,6 +208,8 @@ def is_authorised_to_access_community_document(request, document_id):
             or is_django_admin(request)
             or is_assessor(request.user)
             or is_approver(request.user)
+            or is_occurrence_assessor(request.user)
+            or is_occurrence_approver(request.user)
             or is_community_processor(request.user)
         )
     else:
@@ -246,6 +225,8 @@ def is_authorised_to_access_species_document(request, document_id):
             or is_django_admin(request)
             or is_assessor(request.user)
             or is_approver(request.user)
+            or is_occurrence_assessor(request.user)
+            or is_occurrence_approver(request.user)
             or is_species_processor(request.user)
         )
     else:
@@ -269,6 +250,18 @@ def is_authorised_to_access_meeting_document(request, document_id):
     else:
         return False
 
+def check_allowed_path(document_id, path, allowed_paths):
+    try:
+        file_name_path_split = path.split("/")
+        print(file_name_path_split)
+        id_index = file_name_path_split.index(str(document_id))
+        #take all after the id_index, except the last (the file name) - join and check if in allowed_paths 
+        check_str = "/".join(file_name_path_split[id_index+1:-1])
+        print(check_str)
+        return check_str in allowed_paths
+    except Exception as e:
+        print(e)
+        return False
 
 def is_authorised_to_access_occurrence_report_document(request, document_id):
     if is_internal(request):
@@ -277,15 +270,18 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             request.user.is_superuser
             or is_boranga_admin(request)
             or is_django_admin(request)
-            or is_assessor(request.user)
-            or is_approver(request.user)
+            or is_occurrence_assessor(request.user)
+            or is_occurrence_approver(request.user)
         )
     elif is_customer(request):
+        allowed_paths = ["documents"]
+        path = request.path
         user = request.user
         return (
             OccurrenceReport.objects.filter(internal_application=False, id=document_id)
             .filter(submitter=user.id)
             .exists()
+            and check_allowed_path(document_id, path, allowed_paths)
         )
     else:
         return False
@@ -298,8 +294,8 @@ def is_authorised_to_access_occurrence_document(request, document_id):
             request.user.is_superuser
             or is_boranga_admin(request)
             or is_django_admin(request)
-            or is_assessor(request.user)
-            or is_approver(request.user)
+            or is_occurrence_assessor(request.user)
+            or is_occurrence_approver(request.user)
         )
     else:
         return False
@@ -316,15 +312,16 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             or is_approver(request.user)
             or is_conservation_status_editor(request.user)
         )
-    elif is_customer(request):
-        user = request.user
-        return (
-            ConservationStatus.objects.filter(
-                internal_application=False, id=document_id
-            )
-            .filter(submitter=user.id)
-            .exists()
-        )
+    # there are no externally submissable documents for Conservation Status
+    #elif is_customer(request):
+    #    user = request.user
+    #    return (
+    #        ConservationStatus.objects.filter(
+    #            internal_application=False, id=document_id
+    #        )
+    #        .filter(submitter=user.id)
+    #        .exists()
+    #    )
     else:
         return False
 

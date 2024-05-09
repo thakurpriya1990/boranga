@@ -14,7 +14,6 @@ from boranga.components.history import api as history_api
 from boranga.components.main import api as main_api
 from boranga.components.meetings import api as meeting_api
 from boranga.components.occurrence import api as occurrence_api
-from boranga.components.proposals import api as proposal_api
 from boranga.components.species_and_communities import api as species_communities_api
 from boranga.components.users import api as users_api
 from boranga.management.default_data_manager import DefaultDataManager
@@ -149,14 +148,6 @@ api_patterns = [
         r"^api/filtered_users$",
         users_api.UserListFilterView.as_view(),
         name="filtered_users",
-    ),
-    url(
-        r"^api/proposal_type$",
-        proposal_api.GetProposalType.as_view(),
-        name="get-proposal-type",
-    ),
-    url(
-        r"^api/empty_list$", proposal_api.GetEmptyList.as_view(), name="get-empty-list"
     ),
     url(r"^api/", include(router.urls)),
     url(
@@ -316,11 +307,6 @@ urlpatterns = [
     url(r"^external/", views.ExternalView.as_view(), name="external"),
     url(r"^account/$", views.ExternalView.as_view(), name="manage-account"),
     url(r"^profiles/", views.ExternalView.as_view(), name="manage-profiles"),
-    url(
-        r"^help/(?P<application_type>[^/]+)/(?P<help_type>[^/]+)/$",
-        views.HelpView.as_view(),
-        name="help",
-    ),
     url(
         r"^mgt-commands/$", views.ManagementCommandsView.as_view(), name="mgt-commands"
     ),

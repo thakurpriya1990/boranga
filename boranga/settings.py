@@ -46,6 +46,8 @@ GROUP_NAME_APPROVER = "ProposalApproverGroup"
 GROUP_NAME_EDITOR = "ConservationStatusEditorGroup"
 GROUP_NAME_REFERRAL = "ProposalReferralGroup"
 GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR = "SpeciesCommunitiesProcessorGroup"
+GROUP_NAME_OCCURRENCE_ASSESSOR = "Occurrence Assessor Group"
+GROUP_NAME_OCCURRENCE_APPROVER = "Occurrence Approver Group"
 
 GROUP_NAME_CHOICES = (
     (GROUP_NAME_DJANGO_ADMIN, "Django Admin"),
@@ -55,6 +57,8 @@ GROUP_NAME_CHOICES = (
     (GROUP_NAME_EDITOR, "Conservation Status Editor Group'"),
     (GROUP_NAME_REFERRAL, "Proposal Referral Group"),
     (GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR, "Species Communities Processor Group"),
+    (GROUP_NAME_OCCURRENCE_ASSESSOR, "Occurrence Assessor Group"),
+    (GROUP_NAME_OCCURRENCE_APPROVER, "Occurrence Approver Group"),
 )
 
 if env("CONSOLE_EMAIL_BACKEND", False):
@@ -84,13 +88,9 @@ INSTALLED_APPS += [
     "webtemplate_dbca",
     "boranga",
     "boranga.components.main",
-    "boranga.components.organisations",
     "boranga.components.species_and_communities",
     "boranga.components.conservation_status",
     "boranga.components.users",
-    "boranga.components.proposals",
-    "boranga.components.approvals",
-    "boranga.components.compliances",
     "boranga.components.meetings",
     "boranga.components.conservation_plan",
     "boranga.components.occurrence",
