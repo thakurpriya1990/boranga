@@ -250,6 +250,18 @@ def is_authorised_to_access_meeting_document(request, document_id):
     else:
         return False
 
+def check_allowed_path(document_id, path, allowed_paths):
+    try:
+        file_name_path_split = path.split("/")
+        print(file_name_path_split)
+        id_index = file_name_path_split.index(str(document_id))
+        #take all after the id_index, except the last (the file name) - join and check if in allowed_paths 
+        check_str = "/".join(file_name_path_split[id_index+1:-1])
+        print(check_str)
+        return check_str in allowed_paths
+    except Exception as e:
+        print(e)
+        return False
 
 def is_authorised_to_access_occurrence_report_document(request, document_id):
     if is_internal(request):
@@ -262,11 +274,14 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             or is_occurrence_approver(request.user)
         )
     elif is_customer(request):
+        allowed_paths = ["documents"]
+        path = request.path
         user = request.user
         return (
             OccurrenceReport.objects.filter(internal_application=False, id=document_id)
             .filter(submitter=user.id)
             .exists()
+            and check_allowed_path(document_id, path, allowed_paths)
         )
     else:
         return False
@@ -297,15 +312,16 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             or is_approver(request.user)
             or is_conservation_status_editor(request.user)
         )
-    elif is_customer(request):
-        user = request.user
-        return (
-            ConservationStatus.objects.filter(
-                internal_application=False, id=document_id
-            )
-            .filter(submitter=user.id)
-            .exists()
-        )
+    # there are no externally submissable documents for Conservation Status
+    #elif is_customer(request):
+    #    user = request.user
+    #    return (
+    #        ConservationStatus.objects.filter(
+    #            internal_application=False, id=document_id
+    #        )
+    #        .filter(submitter=user.id)
+    #        .exists()
+    #    )
     else:
         return False
 
