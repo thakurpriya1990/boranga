@@ -60,7 +60,7 @@ logger = logging.getLogger("boranga")
 
 
 class OccurrenceSerializer(serializers.ModelSerializer):
-    processing_status_display = serializers.CharField(
+    processing_status = serializers.CharField(
         source="get_processing_status_display"
     )
     scientific_name = serializers.CharField(
@@ -85,6 +85,9 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Occurrence
         fields = "__all__"
+
+    def get_processing_status(self, obj):
+        return obj.get_processing_status_display()
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -688,6 +691,10 @@ class OccurrenceLogEntrySerializer(CommunicationLogEntrySerializer):
 
 
 class ListOccurrenceSerializer(OccurrenceSerializer):
+    processing_status = serializers.CharField()
+    processing_status_display = serializers.CharField(
+        source="get_processing_status_display"
+    )
     effective_from = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", allow_null=True
     )
