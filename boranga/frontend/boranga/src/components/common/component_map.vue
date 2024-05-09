@@ -2432,6 +2432,8 @@ export default {
                 title: 'Occurrence Reports',
                 name: 'query_layer',
                 source: vm.modelQuerySource,
+                can_edit: true,
+                editing: false,
                 style: function (feature) {
                     const color = feature.get('color') || vm.defaultColor;
                     let style = polygonStyle;
@@ -2466,6 +2468,8 @@ export default {
             vm.processedGeometryLayer = new VectorLayer({
                 title: 'Occurences',
                 name: 'processed_layer',
+                can_edit: true,
+                editing: false,
                 source: vm.processedGeometrySource,
                 style: function (feature) {
                     const color = feature.get('color') || vm.defaultColor;
@@ -2684,6 +2688,81 @@ export default {
             }
 
             this.layerSwitcher = new LayerSwitcher(props);
+
+            if (this.editable || this.drawable) {
+                // Add a new button to the list if the component allows for editing or drawing
+                this.layerSwitcher.on('drawlist', function (e) {
+                    const layer = e.layer;
+                    const divWrapper = $('<div>');
+
+                    divWrapper.addClass([
+                        'optional-layers-button-wrapper',
+                        'optional-layers-button-fit',
+                    ]);
+                    divWrapper.attr('title', 'Toggle Layer Editing');
+
+                    const divDraw = $('<div>');
+                    divDraw.addClass([
+                        'btn',
+                        'btn-danger',
+                        'optional-layers-button',
+                    ]);
+
+                    const img = $('<img>');
+                    img.addClass('svg-object');
+                    img.attr('src', require('../../assets/pen-icon.svg'));
+
+                    divDraw.append(img);
+                    divWrapper.append(divDraw);
+
+                    // <div v-if="drawable" class="optional-layers-button-wrapper">
+                    //     <div
+                    //         :title="
+                    //             mode == 'draw'
+                    //                 ? 'Drawing mode active'
+                    //                 : 'Select a drawing mode'
+                    //         "
+                    //         class="btn optional-layers-button"
+                    //         @click="
+                    //             mode == 'draw'
+                    //                 ? toggleElementVisibility('submenu-draw')
+                    //                 : toggleElementVisibility(
+                    //                         'submenu-draw',
+                    //                         $event.target
+                    //                     )
+                    //         "
+                    //     >
+                    //         <img
+                    //             class="svg-icon"
+                    //             src="../../assets/pen-icon.svg"
+                    //         />
+                    //     </div>
+                    // </div>
+
+                    if (layer.get('can_edit')) {
+                        // divWrapper.text('?').click(function () {
+                        divWrapper.click(function () {
+                            const toggle_editing = !layer.get('toggle_editing');
+                            layer.set('toggle_editing', toggle_editing);
+                            const btn = $(this).find('.btn');
+                            const img = $(this).find('img');
+                            if (toggle_editing) {
+                                img.addClass('svg-green');
+                                btn.removeClass('btn-danger');
+                            } else {
+                                btn.addClass('btn-danger');
+                                img.removeClass('svg-green');
+                            }
+                            // toggle_editing ? btn.addClass('btn-danger') : btn.removeClass('btn-danger')
+                            console.log(toggle_editing);
+                        });
+
+                        divWrapper.appendTo(
+                            $('> .ol-layerswitcher-buttons', e.li)
+                        );
+                    }
+                });
+            }
 
             // Add a button to show/hide the layers
             const button = $('<div class="toggleVisibility" title="show/hide">')
@@ -4524,5 +4603,9 @@ export default {
 }
 .min-width-210 {
     min-width: 210px !important;
+}
+.svg-green {
+    filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg)
+        brightness(119%) contrast(119%);
 }
 </style>
