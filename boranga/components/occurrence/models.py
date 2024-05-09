@@ -507,7 +507,7 @@ class OccurrenceReport(RevisionedMixin):
         if self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
             if officer.id != self.assigned_approver:
                 self.assigned_approver = officer.id
-                self.save()
+                self.save(version_user=request.user)
 
                 # Create a log entry for the proposal
                 self.log_user_action(
@@ -520,7 +520,7 @@ class OccurrenceReport(RevisionedMixin):
         else:
             if officer.id != self.assigned_officer:
                 self.assigned_officer = officer.id
-                self.save()
+                self.save(version_user=request.user)
 
                 # Create a log entry for the proposal
                 self.log_user_action(
@@ -538,7 +538,7 @@ class OccurrenceReport(RevisionedMixin):
         if self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
             if self.assigned_approver:
                 self.assigned_approver = None
-                self.save()
+                self.save(version_user=request.user)
 
                 # Create a log entry for the proposal
                 self.log_user_action(
@@ -550,7 +550,7 @@ class OccurrenceReport(RevisionedMixin):
         else:
             if self.assigned_officer:
                 self.assigned_officer = None
-                self.save()
+                self.save(version_user=request.user)
 
                 # Create a log entry for the proposal
                 self.log_user_action(
@@ -588,7 +588,7 @@ class OccurrenceReport(RevisionedMixin):
         self.approver_comment = ""
         OccurrenceReportApprovalDetails.objects.filter(occurrence_report=self).delete()
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
-        self.save()
+        self.save(version_user=request.user)
 
         # Log proposal action
         self.log_user_action(
@@ -615,7 +615,7 @@ class OccurrenceReport(RevisionedMixin):
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_DECLINED
         self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DECLINED
-        self.save()
+        self.save(version_user=request.user)
 
         # Log proposal action
         self.log_user_action(
@@ -669,7 +669,7 @@ class OccurrenceReport(RevisionedMixin):
         self.proposed_decline_status = False
         OccurrenceReportDeclinedDetails.objects.filter(occurrence_report=self).delete()
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
-        self.save()
+        self.save(version_user=request.user)
 
         # Log proposal action
         self.log_user_action(
@@ -709,10 +709,10 @@ class OccurrenceReport(RevisionedMixin):
                 )
             occurrence = Occurrence.clone_from_occurrence_report(self)
             occurrence.occurrence_name = self.approval_details.new_occurrence_name
-            occurrence.save()
+            occurrence.save(version_user=request.user)
 
         self.occurrence = occurrence
-        self.save()
+        self.save(version_user=request.user)
 
         # Log proposal action
         self.log_user_action(
@@ -735,7 +735,7 @@ class OccurrenceReport(RevisionedMixin):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
-        self.save()
+        self.save(version_user=request.user)
 
         reason = validated_data.get("reason", "")
 
@@ -768,7 +768,7 @@ class OccurrenceReport(RevisionedMixin):
             == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
         ):
             self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
-            self.save()
+            self.save(version_user=request.user)
 
         referral = None
 
@@ -1019,7 +1019,7 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
             if occurrence_report.processing_status != "draft":
                 occurrence_report.processing_status = "draft"
                 occurrence_report.customer_status = "draft"
-                occurrence_report.save()
+                occurrence_report.save(version_user=request.user)
 
             # Create a log entry for the occurrence report
             occurrence_report.log_user_action(
@@ -2753,7 +2753,7 @@ class Occurrence(RevisionedMixin):
         occurrence.reviewed_by = occurrence_report.reviewed_by
         occurrence.review_status = occurrence_report.review_status
 
-        occurrence.save()
+        occurrence.save(no_revision=True)
 
         # Clone all the associated models
         habitat_composition = clone_model(

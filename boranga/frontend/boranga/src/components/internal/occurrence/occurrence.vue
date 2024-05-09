@@ -35,17 +35,29 @@
                                                 </div>
                                             </div>
                                             <div class="row">
+                                                <div v-if="canLock" class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="lockOccurrence()">Lock</button><br />
+                                                </div>
+                                                <div v-if="canUnlock" class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="unlockOccurrence()">Unlock</button><br />
+                                                </div>
                                                 <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="splitOccurrence()">Split</button><br />
                                                 </div>
                                                 <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="combineOccurrence()">Combine</button><br />
                                                 </div>
                                                 <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="renameOccurrence()">Rename</button><br />
+                                                </div>
+                                                <div v-if="canClose" class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="closeOccurrence()">Close</button><br />
                                                 </div>
                                             </div>
                                         </template>
@@ -229,8 +241,15 @@ export default {
                 return false;
             }
         },
-        canDiscard: function () {
-            return this.occurrence && this.occurrence.processing_status === "Draft" ? true : false;
+        canLock: function () {
+            return this.occurrence && this.occurrence.processing_status === "Active" ? true : false;
+        },
+        canUnlock: function () {
+            return this.occurrence && this.occurrence.processing_status === "Locked" ? true : false;
+        },
+        //TODO: can we close locked? should we only close locked?
+        canClose: function () {
+            return this.occurrence && this.occurrence.processing_status === "Active" ? true : false;
         },
         comms_url: function () {
             return helpers.add_endpoint_json(api_endpoints.occurrence, this.$route.params.occurrence_id + '/comms_log')
@@ -405,6 +424,15 @@ export default {
             let vm = this;
             vm.original_occurrence = helpers.copyObject(response.body);
             vm.occurrence = helpers.copyObject(response.body);
+        },
+        lockOccurrence: async function () {
+
+        },
+        unlockOccurrence: async function () {
+
+        },
+        closeOccurrence: async function () {
+
         },
         splitOccurrence: async function () {
             this.$refs.occurrence_split.occurrence_original = this.occurrence;

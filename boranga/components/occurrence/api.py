@@ -2814,7 +2814,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
     def is_authorised_to_update(self):
         user = self.request.user
         instance = self.get_object()
-        if not (user.id in instance.get_occurrence_editor_group().get_system_group_member_ids() and instance.processing_status == "active"):
+        if not (user.id in instance.get_occurrence_editor_group().get_system_group_member_ids() and instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
             raise serializers.ValidationError("User not authorised to update Occurrence")
 
     @transaction.atomic
@@ -2889,7 +2889,11 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def lock_occurrence(self):
-        pass
+        self.is_authorised_to_update()
+        instance = self.get_object()
+        instance.processing_status = Occurrence.PROCESSING_STATUS_LOCKED
+        instance.save(version_user=self.request.user)
+        return redirect(reverse("internal"))
 
     @detail_route(
         methods=[
@@ -2898,7 +2902,13 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def unlock_occurrence(self):
-        pass
+        user = self.request.user
+        instance = self.get_object()
+        if not (user.id in instance.get_occurrence_editor_group().get_system_group_member_ids() and instance.processing_status == Occurrence.PROCESSING_STATUS_LOCKED):
+            raise serializers.ValidationError("User not authorised to update Occurrence")
+        instance.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
+        instance.save(version_user=user)
+        return redirect(reverse("internal"))
 
     @detail_route(
         methods=[
@@ -2907,7 +2917,11 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         detail=True,
     )
     def close_occurrence(self):
-        pass
+        self.is_authorised_to_update()
+        instance = self.get_object()
+        instance.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
+        instance.save(version_user=self.request.user)
+        return redirect(reverse("internal"))
     
     @detail_route(
         methods=[
