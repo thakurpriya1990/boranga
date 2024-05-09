@@ -198,35 +198,7 @@ export default {
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.taxonomy !== undefined) {
-                        //list not dict
-                        if (full.data.taxonomy.fields === undefined) {
-                            var current_name_pk = '';
-                            //get the crossreference new_tax and compare to pk
-                            if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
-                                current_name_pk = full.data.crossreference.fields.new_taxonomy
-                            } else if (full.data.crossreference.length > 0) {
-                                //get new taxon of highest pk
-                                var highest_pk_index = 0;
-                                for (var i = 0; i < full.data.crossreference.length; i++) {
-                                    if (full.data.crossreference[i].pk > full.data.crossreference[highest_pk_index].pk)
-                                    {
-                                        highest_pk_index = i;
-                                    }
-                                }
-                                current_name_pk = full.data.crossreference[highest_pk_index].fields.new_taxonomy
-                            }
-                            for (var i = 0; i < full.data.taxonomy.length; i++) {
-                                if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    //return full.data.taxonomy[i].fields.scientific_name
-                                    let value = full.data.taxonomy[i].fields.scientific_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                }
-                            }                               
-                            return '';
-                        }
-
+                    if (full.data.taxonomy !== undefined && full.data.taxonomy.fields !== undefined) {
                         //return full.data.taxonomy.fields.scientific_name;
                         let value = full.data.taxonomy.fields.scientific_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
@@ -240,46 +212,29 @@ export default {
         },
         column_non_current_name: function () {
             return {
-                data: 'data.data.taxonomy.fields.non_current_name', 
+                data: 'data.data.taxonpreviousname.fields.previous_scientific_name', 
                 defaultContent: '',
                 orderable: false,
                 searchable: true,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.taxonomy !== undefined) {
-                        //list not dict
-                        if (full.data.taxonomy.fields === undefined) {
-                            var current_name_pk = '';
-                            //get the crossreference old_tax and compare to pk
-                            if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
-                                current_name_pk = full.data.crossreference.fields.old_taxonomy
-                            } else if (full.data.crossreference.length > 0) {
-                                //get new taxon of highest pk
-                                var highest_pk_index = 0;
-                                for (var i = 0; i < full.data.crossreference.length; i++) {
-                                    if (full.data.crossreference[i].pk > full.data.crossreference[highest_pk_index].pk)
-                                    {
-                                        highest_pk_index = i;
-                                    }
-                                }
-                                current_name_pk = full.data.crossreference[highest_pk_index].fields.old_taxonomy
-                            }
-                            for (var i = 0; i < full.data.taxonomy.length; i++) {
-                                if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    //return full.data.taxonomy[i].fields.scientific_name
-                                    let value = full.data.taxonomy[i].fields.scientific_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                }
-                            }                               
-                            return '';
-                        }
-                        return '';
-                    } else {
+                    if (full.data.taxonpreviousname !== undefined && full.data.taxonpreviousname.fields !== undefined) {
+                        let value = full.data.taxonpreviousname.fields.previous_scientific_name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type=='export' ? value : result;
+                    }
+                    else if (full.data.taxonpreviousname !== undefined && 
+                        full.data.taxonpreviousname.fields === undefined &&
+                        full.data.taxonpreviousname.length > 0) {                    
+                        let value = full.data.taxonpreviousname[0].fields.previous_scientific_name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type=='export' ? value : result;
+                    }                                   
+                    else {
                         return ''
                     }
                 },
-                name: 'non_current_name', //_name',
+                name: 'previous_scientific_name', //_name',
             };
         },
         column_common_name: function () {
