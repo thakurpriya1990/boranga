@@ -2561,29 +2561,6 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         res_json = json.dumps(related_type)
         return HttpResponse(res_json, content_type="application/json")
 
-    @detail_route(methods=["post"], detail=True)
-    @renderer_classes((JSONRenderer,))
-    @transaction.atomic
-    def occurrence_save(self, request, *args, **kwargs):
-        instance = self.get_object()
-        request_data = request.data
-        serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
-        serializer.is_valid(raise_exception=True)
-
-        print(request_data)
-        print(serializer)
-        if serializer.is_valid():
-            serializer.save(version_user=request.user)
-
-            instance.log_user_action(
-                OccurrenceUserAction.ACTION_SAVE_OCCURRENCE.format(
-                    instance.occurrence_number
-                ),
-                request,
-            )
-
-        return redirect(reverse("internal"))
-
 
 class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
     queryset = OccurrenceDocument.objects.none()
@@ -2837,7 +2814,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
     def is_authorised_to_update(self):
         user = self.request.user
         instance = self.get_object()
-        if not (user.id in instance.get_occurrence_editor_group().get_system_group_member_ids()):
+        if not (user.id in instance.get_occurrence_editor_group().get_system_group_member_ids() and instance.processing_status == "active"):
             raise serializers.ValidationError("User not authorised to update Occurrence")
 
     @transaction.atomic
@@ -2904,6 +2881,34 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         serialized_obj = CreateOccurrenceSerializer(new_instance)
         return Response(serialized_obj.data)
 
+    
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def lock_occurrence(self):
+        pass
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def unlock_occurrence(self):
+        pass
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def close_occurrence(self):
+        pass
+    
     @detail_route(
         methods=[
             "GET",
@@ -3057,6 +3062,119 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         self.is_authorised_to_update()
         instance = self.get_object()
         request_data = request.data
+
+        if request_data.get("habitat_composition"):
+            habitat_instance, created = OCCHabitatComposition.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCHabitatCompositionSerializer(
+                habitat_instance, data=request_data.get("habitat_composition")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        if request_data.get("habitat_condition"):
+            hab_cond_instance, created = OCCHabitatCondition.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCHabitatConditionSerializer(
+                hab_cond_instance, data=request_data.get("habitat_condition")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        if request_data.get("fire_history"):
+            fire_instance, created = OCCFireHistory.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCFireHistorySerializer(
+                fire_instance, data=request_data.get("fire_history")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        if request_data.get("associated_species"):
+            assoc_species_instance, created = (
+                OCCAssociatedSpecies.objects.get_or_create(occurrence=instance)
+            )
+            serializer = SaveOCCAssociatedSpeciesSerializer(
+                assoc_species_instance,
+                data=request_data.get("associated_species"),
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        if request_data.get("observation_detail"):
+            obs_det_instance, created = OCCObservationDetail.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCObservationDetailSerializer(
+                obs_det_instance, data=request_data.get("observation_detail")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        if request_data.get("plant_count"):
+            plant_count_instance, created = OCCPlantCount.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCPlantCountSerializer(
+                plant_count_instance, data=request_data.get("plant_count")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        if request_data.get("animal_observation"):
+            animal_obs_instance, created = OCCAnimalObservation.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCAnimalObservationSerializer(
+                animal_obs_instance,
+                data=request_data.get("animal_observation"),
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        if request_data.get("identification"):
+            identification_instance, created = OCCIdentification.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCIdentificationSerializer(
+                identification_instance,
+                data=request_data.get("identification"),
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        #TODO: adjust and enable when OCC location ready
+        #if request_data.get("location"):
+        #    location_instance, created = Location.objects.get_or_create(
+        #        occurrence=instance
+        #    )
+        #    serializer = SaveLocationSerializer(
+        #        location_instance, data=request_data.get("location")
+        #    )
+        #    serializer.is_valid(raise_exception=True)
+        #    if serializer.is_valid():
+        #        serializer.save()
+
+        # occ geometry data to save seperately TODO: determine what is need here
+        #geometry_data = request_data.get("occ_geometry", None)
+        #if geometry_data:
+        #    save_geometry(request, instance, geometry_data)
+
+        serializer = SaveOccurrenceReportSerializer(
+            instance, data=request_data, partial=True
+        )
+
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
 
