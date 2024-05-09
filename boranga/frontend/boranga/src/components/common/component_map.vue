@@ -1537,7 +1537,6 @@ export default {
             modelQueryLayer: null,
             processedGeometrySource: null,
             processedGeometryLayer: null,
-            selectedFeatureIds: [],
             selectedFeatureCollection: new Collection([], { unique: true }),
             lastPoint: null,
             sketchCoordinates: [[]],
@@ -1831,6 +1830,11 @@ export default {
         },
         unitDependentStep: function () {
             return this.selectedSpatialUnit === 'deg' ? 0.0001 : 1;
+        },
+        selectedFeatureIds: function () {
+            return this.selectedFeatureCollection.getArray().map((feature) => {
+                return feature.getProperties().id;
+            });
         },
     },
     watch: {
@@ -2205,23 +2209,25 @@ export default {
                     vm.undoredo.define(
                         'select feature',
                         function (s) {
-                            // Undo fn: set to the previous id list and styles
-                            console.log('undo selected', s.before, s.after);
-                            // Set the collection of selected features to the before value
-                            vm.setSelectedFeatureCollection(
-                                s.asCollectionBefore
+                            // Undo fn: set to the previous feature collection and styles
+                            console.log(
+                                'undo selected',
+                                s.before.getArray(),
+                                s.after.getArray()
                             );
-                            vm.selectedFeatureIds = s.before;
+                            // Set the collection of selected features to the before value
+                            vm.setSelectedFeatureCollection(s.before);
                             vm.setStyleForUnAndSelectedFeatures();
                         },
                         function (s) {
-                            // Redo fn: reset the ids list and styles
-                            console.log('redo selected', s.before, s.after);
-                            // Set the collection of selected features to the after value
-                            vm.setSelectedFeatureCollection(
-                                s.asCollectionAfter
+                            // Redo fn: reset the feature collection and styles
+                            console.log(
+                                'redo selected',
+                                s.before.getArray(),
+                                s.after.getArray()
                             );
-                            vm.selectedFeatureIds = s.after;
+                            // Set the collection of selected features to the after value
+                            vm.setSelectedFeatureCollection(s.after);
                             vm.setStyleForUnAndSelectedFeatures();
                         }
                     );
@@ -3018,24 +3024,19 @@ export default {
                         `Selected feature ${feature.getProperties().id}`,
                         toRaw(feature)
                     );
-                    // Current feature id list for undo stack
-                    let before = [...vm.selectedFeatureIds];
                     // Current features
                     let beforeFeatures = [
                         ...vm.selectedFeatureCollection.getArray(),
                     ];
                     feature.setStyle(vm.basicSelectStyle);
-                    vm.selectedFeatureIds.push(feature.getProperties().id);
                     // Add to the collection for the purpose of controlling which features can be modified (ModifyFeature)
                     vm.selectedFeatureCollection.push(feature);
                     // Add to undo stack
                     vm.undoredo.push('select feature', {
-                        before: before,
-                        after: [...vm.selectedFeatureIds],
-                        asCollectionBefore: new Collection(beforeFeatures, {
+                        before: new Collection(beforeFeatures, {
                             unique: true,
                         }),
-                        asCollectionAfter: new Collection(
+                        after: new Collection(
                             [...vm.selectedFeatureCollection.getArray()],
                             { unique: true }
                         ),
@@ -3046,26 +3047,19 @@ export default {
                     console.log(
                         `Unselected feature ${feature.getProperties().id}`
                     );
-                    // Current feature id list for undo stack
-                    let before = [...vm.selectedFeatureIds];
                     // Current features
                     let beforeFeatures = [
                         ...vm.selectedFeatureCollection.getArray(),
                     ];
                     feature.setStyle(undefined);
-                    vm.selectedFeatureIds = vm.selectedFeatureIds.filter(
-                        (id) => id != feature.getProperties().id
-                    );
                     // Remove from the collection for the purpose of controlling which features can be modified (ModifyFeature)
                     vm.selectedFeatureCollection.remove(feature);
                     // Add to undo stack
                     vm.undoredo.push('select feature', {
-                        before: before,
-                        after: [...vm.selectedFeatureIds],
-                        asCollectionBefore: new Collection(beforeFeatures, {
+                        before: new Collection(beforeFeatures, {
                             unique: true,
                         }),
-                        asCollectionAfter: new Collection(
+                        after: new Collection(
                             [...vm.selectedFeatureCollection.getArray()],
                             { unique: true }
                         ),
@@ -3363,13 +3357,6 @@ export default {
                     }
                 });
             });
-            // Remove selected features (mapped by id) from `selectedFeatureIds`
-            vm.selectedFeatureIds = vm.selectedFeatureIds.filter(
-                (id) =>
-                    !features
-                        .map((feature) => feature.getProperties().id)
-                        .includes(id)
-            );
             // Remove selected features from `selectedFeatureCollection`
             vm.selectedFeatureCollection.forEach((feature) => {
                 if (features.includes(feature)) {
