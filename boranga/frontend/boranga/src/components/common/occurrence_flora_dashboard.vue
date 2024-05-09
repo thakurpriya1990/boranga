@@ -133,12 +133,10 @@ export default {
             submissions_to_list: [],
 
             // filtering options
-            internal_status: [
-                { value: 'draft', name: 'Draft' },
-                { value: 'locked', name: 'Locked' },
-                { value: 'split', name: 'Split' },
-                { value: 'combine', name: 'Combine' },
-                { value: 'historical', name: 'Historical' },
+            internal_status:[
+                {value: 'active', name: 'Active'},
+                {value: 'locked', name: 'Locked'},
+                {value: 'historical', name: 'Historical'},
             ],
 
             proposal_status: [],
@@ -474,21 +472,18 @@ methods: {
     fetchFilterLists: function () {
         let vm = this;
         //large FilterList of Species Values object
-
-        //TODO occurrence status filters...
-
         vm.$http.get(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then((response) => {
             vm.filterListsSpecies = response.body;
             vm.occurrence_list = vm.filterListsSpecies.occurrence_list;
             vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
-            //vm.status_list = vm.filterListsSpecies.status_list;
+            vm.status_list = vm.filterListsSpecies.status_list;
             vm.submissions_from_list = vm.filterListsSpecies.submissions_from_list;
             vm.submissions_to_list = vm.filterListsSpecies.submissions_to_list;
             // vm.filterConservationCategory();
             // vm.filterDistrict();
-            //vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
-            //    return a.name.trim().localeCompare(b.name.trim());
-            //});
+            vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
+                return a.name.trim().localeCompare(b.name.trim());
+            });
         }, (error) => {
             console.log(error);
         })

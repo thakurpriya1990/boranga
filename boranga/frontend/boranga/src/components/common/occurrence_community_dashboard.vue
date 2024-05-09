@@ -136,12 +136,9 @@ export default {
             // external_status refers to CUSTOMER_STATUS_CHOICES
             // internal_status referes to PROCESSING_STATUS_CHOICES
             internal_status:[
-                {value: 'draft', name: 'Draft'},
-                {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'with_referral', name: 'With Referral'},
-                {value: 'with_approver', name: 'With Approver'},
-                {value: 'approved', name: 'Approved'},
-                {value: 'declined', name: 'Declined'},
+                {value: 'active', name: 'Active'},
+                {value: 'locked', name: 'Locked'},
+                {value: 'historical', name: 'Historical'},
             ],
 
             proposal_status: [],
@@ -498,17 +495,17 @@ export default {
             //large FilterList of Community Values object
 
             //TODO occurrence status filters...
-            
+
             vm.$http.get(api_endpoints.community_filter_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunity = response.body;
                 vm.occurrence_list = vm.filterListsCommunity.occurrence_list;
                 vm.community_name_list = vm.filterListsCommunity.community_name_list;
-                //vm.status_list = vm.filterListsCommunity.status_list;
+                vm.status_list = vm.filterListsCommunity.status_list;
                 vm.submissions_from_list = vm.filterListsCommunity.submissions_from_list;
                 vm.submissions_to_list = vm.filterListsCommunity.submissions_to_list;
-                //vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
-                //        return a.name.trim().localeCompare(b.name.trim());
-                //    });
+                vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
+                        return a.name.trim().localeCompare(b.name.trim());
+                    });
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
