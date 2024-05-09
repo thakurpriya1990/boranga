@@ -1219,6 +1219,7 @@ import Feature from 'ol/Feature';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import LayerGroup from 'ol/layer/Group';
+import Collection from 'ol/Collection';
 import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import { FullScreen as FullScreenControl } from 'ol/control';
 import { LineString, Point, MultiPoint, Polygon, MultiPolygon } from 'ol/geom';
@@ -1498,7 +1499,6 @@ export default {
             default: 4326,
         },
     },
-    // emits: ['filter-appied', 'validate-feature', 'refreshFromResponse'],
     emits: ['validate-feature', 'refreshFromResponse'],
     data() {
         // eslint-disable-next-line no-unused-vars
@@ -1538,6 +1538,7 @@ export default {
             processedGeometrySource: null,
             processedGeometryLayer: null,
             selectedFeatureIds: [],
+            selectedFeatureCollection: new Collection([], { unique: true }),
             lastPoint: null,
             sketchCoordinates: [[]],
             defaultColor: '#eeeeee',
@@ -2206,12 +2207,20 @@ export default {
                         function (s) {
                             // Undo fn: set to the previous id list and styles
                             console.log('undo selected', s.before, s.after);
+                            // Set the collection of selected features to the before value
+                            vm.setSelectedFeatureCollection(
+                                s.asCollectionBefore
+                            );
                             vm.selectedFeatureIds = s.before;
                             vm.setStyleForUnAndSelectedFeatures();
                         },
                         function (s) {
                             // Redo fn: reset the ids list and styles
                             console.log('redo selected', s.before, s.after);
+                            // Set the collection of selected features to the after value
+                            vm.setSelectedFeatureCollection(
+                                s.asCollectionAfter
+                            );
                             vm.selectedFeatureIds = s.after;
                             vm.setStyleForUnAndSelectedFeatures();
                         }
@@ -2320,7 +2329,10 @@ export default {
             });
 
             vm.initialisePointerMoveEvent();
-            vm.snap = new Snap({ source: vm.modelQuerySource });
+            vm.snap = vm.initialiseSnap([
+                this.modelQueryLayer,
+                this.processedGeometryLayer,
+            ]);
             vm.dragAndDrop = new DragAndDrop({
                 projection: `EPSG:${vm.mapSrid}`,
                 formatConstructors: [GeoJSON],
@@ -2683,6 +2695,30 @@ export default {
 
             this.map.addControl(this.layerSwitcher);
         },
+        initialiseSnap: function (snapLayers) {
+            var snapCollection = new Collection([], {
+                unique: true,
+            });
+
+            snapLayers.forEach(function (layer) {
+                layer.getSource().on('addfeature', function (evt) {
+                    snapCollection.push(evt.feature);
+                });
+                layer.getSource().on('removefeature', function (evt) {
+                    snapCollection.remove(evt.feature);
+                });
+            });
+
+            const snap = new Snap({
+                features: snapCollection,
+            });
+
+            snap.on('change', function (event) {
+                console.log('Snap change event', this.target);
+            });
+
+            return snap;
+        },
         createMap: function (baseLayers) {
             let container = document.getElementById('popup');
             let overlay = new Overlay({
@@ -2984,12 +3020,25 @@ export default {
                     );
                     // Current feature id list for undo stack
                     let before = [...vm.selectedFeatureIds];
+                    // Current features
+                    let beforeFeatures = [
+                        ...vm.selectedFeatureCollection.getArray(),
+                    ];
                     feature.setStyle(vm.basicSelectStyle);
                     vm.selectedFeatureIds.push(feature.getProperties().id);
+                    // Add to the collection for the purpose of controlling which features can be modified (ModifyFeature)
+                    vm.selectedFeatureCollection.push(feature);
                     // Add to undo stack
                     vm.undoredo.push('select feature', {
                         before: before,
-                        after: vm.selectedFeatureIds,
+                        after: [...vm.selectedFeatureIds],
+                        asCollectionBefore: new Collection(beforeFeatures, {
+                            unique: true,
+                        }),
+                        asCollectionAfter: new Collection(
+                            [...vm.selectedFeatureCollection.getArray()],
+                            { unique: true }
+                        ),
                     });
                 });
 
@@ -2999,14 +3048,27 @@ export default {
                     );
                     // Current feature id list for undo stack
                     let before = [...vm.selectedFeatureIds];
+                    // Current features
+                    let beforeFeatures = [
+                        ...vm.selectedFeatureCollection.getArray(),
+                    ];
                     feature.setStyle(undefined);
                     vm.selectedFeatureIds = vm.selectedFeatureIds.filter(
                         (id) => id != feature.getProperties().id
                     );
+                    // Remove from the collection for the purpose of controlling which features can be modified (ModifyFeature)
+                    vm.selectedFeatureCollection.remove(feature);
                     // Add to undo stack
                     vm.undoredo.push('select feature', {
                         before: before,
-                        after: vm.selectedFeatureIds,
+                        after: [...vm.selectedFeatureIds],
+                        asCollectionBefore: new Collection(beforeFeatures, {
+                            unique: true,
+                        }),
+                        asCollectionAfter: new Collection(
+                            [...vm.selectedFeatureCollection.getArray()],
+                            { unique: true }
+                        ),
                     });
                 });
             });
@@ -3028,8 +3090,7 @@ export default {
         initialiseModifyFeatureEvent: function () {
             let vm = this;
             const modify = new ModifyFeature({
-                sources: [vm.modelQuerySource, vm.processedGeometrySource],
-                // features: vm.select.getFeatures(), // Either need to provide source or features, but features doesn't seem to work
+                features: vm.selectedFeatureCollection,
                 pixelTolerance: vm.pixelTolerance,
                 deleteCondition: function (evt) {
                     if (
@@ -3083,6 +3144,10 @@ export default {
                             }
                         }
                     });
+                },
+                // eslint-disable-next-line no-unused-vars
+                insertVertexCondition: function (evt) {
+                    return true;
                 },
             });
 
@@ -3305,6 +3370,12 @@ export default {
                         .map((feature) => feature.getProperties().id)
                         .includes(id)
             );
+            // Remove selected features from `selectedFeatureCollection`
+            vm.selectedFeatureCollection.forEach((feature) => {
+                if (features.includes(feature)) {
+                    vm.selectedFeatureCollection.remove(feature);
+                }
+            });
         },
         fetchProposals: async function () {
             let vm = this;
@@ -3721,18 +3792,20 @@ export default {
         },
         getLayersWithFeatures: function () {
             const layers = [];
-            this.map
-                .getLayers()
-                .getArray()
-                .map((layer) => {
-                    // Not all types of layer have a getSource method
-                    try {
-                        layer.getSource().getFeatures();
-                        layers.push(layer);
-                    } catch (error) {
-                        //
-                    }
-                }, layers);
+            if (!this.map) {
+                return layers;
+            }
+
+            const mapLayers = this.map.getLayers();
+            mapLayers.getArray().map((layer) => {
+                // Not all types of layer have a getSource method
+                try {
+                    layer.getSource().getFeatures();
+                    layers.push(layer);
+                } catch (error) {
+                    //
+                }
+            }, layers);
 
             return layers;
         },
@@ -3758,6 +3831,12 @@ export default {
                 return vm.selectedFeatureIds.includes(
                     feature.getProperties().id
                 );
+            });
+        },
+        setSelectedFeatureCollection: function (collection) {
+            this.selectedFeatureCollection.clear();
+            collection.forEach((feature) => {
+                this.selectedFeatureCollection.push(feature);
             });
         },
         /**
