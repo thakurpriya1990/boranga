@@ -327,12 +327,12 @@ class Taxonomy(models.Model):
     @property
     def taxon_previous_queryset(self):
         if self.new_taxon.all():
-            previous_queryset = CrossReference.objects.filter(
-                ~Q(old_taxonomy__scientific_name=None), new_taxonomy=self.id
-            ).order_by("-cross_reference_id")
+            previous_queryset = TaxonPreviousName.objects.filter(
+                taxonomy=self.id
+                ).order_by("-id")
             return previous_queryset
         else:
-            return CrossReference.objects.none()
+            return TaxonPreviousName.objects.none()
 
     @property
     def taxon_vernacular_name(self):

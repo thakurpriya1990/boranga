@@ -349,7 +349,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
                 processing_status="approved",
             )
             return SpeciesConservationStatusSerializer(qs).data
-        except ConservationStatus.DoesNotExist:
+        except (ConservationStatus.DoesNotExist,Species.DoesNotExist):
             return SpeciesConservationStatusSerializer().data
             # return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
