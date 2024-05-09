@@ -2831,7 +2831,9 @@ export default {
                     },
                     {
                         layerFilter: function (layer) {
-                            return layer.get('name') === 'query_layer';
+                            return ['query_layer', 'processed_layer'].includes(
+                                layer.get('name')
+                            );
                         },
                     }
                 );
@@ -2961,11 +2963,10 @@ export default {
                     vm.createStyle(color, vm.clickSelectStroke, 'Polygon'),
                 ];
             };
-
             // select interaction working on "singleclick"
             const selectSingleClick = new Select({
                 style: vm.basicSelectStyle,
-                layers: [vm.modelQueryLayer],
+                layers: [vm.modelQueryLayer, vm.processedGeometryLayer],
                 wrapX: false,
                 condition: function () {
                     // Prevent the interaction's standard select event
@@ -3027,7 +3028,7 @@ export default {
         initialiseModifyFeatureEvent: function () {
             let vm = this;
             const modify = new ModifyFeature({
-                source: vm.modelQuerySource, // Same source as the draw interaction
+                sources: [vm.modelQuerySource, vm.processedGeometrySource],
                 // features: vm.select.getFeatures(), // Either need to provide source or features, but features doesn't seem to work
                 pixelTolerance: vm.pixelTolerance,
                 deleteCondition: function (evt) {
