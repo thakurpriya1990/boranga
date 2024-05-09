@@ -30,6 +30,13 @@
                 </div>
             </div>
         </CollapsibleFilters>
+
+        <div class="col-md-12">
+            <div class="text-end">
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaOccurrence"><i class="fa-solid fa-circle-plus"></i> Add Fauna Occurrence</button>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-lg-12">
                 <datatable ref="fauna_occ_datatable" :id="datatable_id" :dtOptions="datatable_options"
@@ -493,7 +500,7 @@ export default {
         createFaunaOccurrence: async function () {
             let newFaunaOCRId = null
             try {
-                const createUrl = api_endpoints.occurrence + "/";
+                const createUrl = api_endpoints.occurrence;
                 let payload = new Object();
                 payload.group_type_id = this.group_type_id
                 payload.internal_application = true
@@ -509,7 +516,7 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-occurrence',
+                name: 'internal-occurrence-detail',
                 params: { occurrence_id: newFaunaOCRId },
             });
         },

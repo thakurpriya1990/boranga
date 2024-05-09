@@ -27,7 +27,7 @@
                                     <div class="col-sm-12">
                                         <div class="separator"></div>
                                     </div>
-                                    <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
+                                    <div class="col-sm-12 top-buffer-s">
                                         <template v-if="hasUserEditMode">
                                             <div class="row">
                                                 <div class="col-sm-12">
@@ -38,10 +38,6 @@
                                                 <div v-if="canLock" class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="lockOccurrence()">Lock</button><br />
-                                                </div>
-                                                <div v-if="canUnlock" class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="unlockOccurrence()">Unlock</button><br />
                                                 </div>
                                                 <div class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
@@ -60,6 +56,17 @@
                                                         @click.prevent="closeOccurrence()">Close</button><br />
                                                 </div>
                                             </div>
+                                        </template>
+                                        <template v-else-if="canUnlock">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Action</strong><br />
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="unlockOccurrence()">Unlock</button><br />
+                                                </div>
                                         </template>
                                     </div>
                                 </div>
@@ -234,12 +241,7 @@ export default {
         },
         hasUserEditMode: function () {
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (this.$route.query.action == 'edit') {
-                return this.occurrence && this.occurrence.can_user_edit ? true : false;
-            }
-            else {
-                return false;
-            }
+            return this.occurrence && this.occurrence.can_user_edit ? true : false;
         },
         canLock: function () {
             return this.occurrence && this.occurrence.processing_status === "Active" ? true : false;
@@ -426,13 +428,80 @@ export default {
             vm.occurrence = helpers.copyObject(response.body);
         },
         lockOccurrence: async function () {
-
+            let vm = this;
+            await vm.$http.post(`/api/occurrence/${this.occurrence.id}/lock_occurrence.json`).then(res => {
+                swal.fire({
+                    title: "Locked",
+                    text: "Occurrence has been Locked",
+                    icon: "success",
+                    confirmButtonColor: '#226fbb'
+                }).then(async (swalresult) => {
+                    this.$router.go(this.$router.currentRoute);
+                });
+            }, err => {
+                var errorText = helpers.apiVueResourceError(err);
+                swal.fire({
+                    title: 'Lock Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
+                });
+            });
         },
         unlockOccurrence: async function () {
-
+            let vm = this;
+            await vm.$http.post(`/api/occurrence/${this.occurrence.id}/unlock_occurrence.json`).then(res => {
+                swal.fire({
+                    title: "Unlocked",
+                    text: "Occurrence has been Unlocked",
+                    icon: "success",
+                    confirmButtonColor: '#226fbb'
+                }).then(async (swalresult) => {
+                    this.$router.go(this.$router.currentRoute);
+                });
+            }, err => {
+                var errorText = helpers.apiVueResourceError(err);
+                swal.fire({
+                    title: 'Unlock Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
+                });
+            });
         },
         closeOccurrence: async function () {
-
+            let vm = this;
+            swal.fire({
+                title: "Close",
+                text: "Are you sure you want to close this Occurrence? This cannot be undone.",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Close Occurrence",
+                confirmButtonColor: '#226fbb'
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    await vm.$http.post(`/api/occurrence/${this.occurrence.id}/close_occurrence.json`).then(res => {
+                        swal.fire({
+                            title: "Closed",
+                            text: "Occurrence has been Closed",
+                            icon: "success",
+                            confirmButtonColor: '#226fbb'
+                        }).then(async (swalresult) => {
+                            vm.$router.push({
+                                name: 'occurrence-dashboard'
+                            });
+                        });
+                    }, err => {
+                        var errorText = helpers.apiVueResourceError(err);
+                        swal.fire({
+                            title: 'Close Error',
+                            text: errorText,
+                            icon: 'error',
+                            confirmButtonColor: '#226fbb'
+                        });
+                    });
+                }
+            });
         },
         splitOccurrence: async function () {
             this.$refs.occurrence_split.occurrence_original = this.occurrence;

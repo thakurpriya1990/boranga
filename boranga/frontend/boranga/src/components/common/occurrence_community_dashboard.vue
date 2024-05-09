@@ -32,6 +32,12 @@
             </div>
         </CollapsibleFilters>
 
+        <div class="col-md-12">
+            <div class="text-end">
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrence"><i class="fa-solid fa-circle-plus"></i> Add Community Occurrence</button>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-lg-12">
                 <datatable
@@ -512,11 +518,12 @@ export default {
                 console.log(error);
             })
         },
-        createCommunityOccurrenceReport: async function () {
+        createCommunityOccurrence: async function () {
             let newCommunityOCCId = null
             try {
-                    const createUrl = api_endpoints.occurrence+"/";
+                    const createUrl = api_endpoints.occurrence;
                     let payload = new Object();
+                    payload.group_type_id = this.group_type_id
                     payload.internal_application = true
                     let savedCommunityOCC = await Vue.http.post(createUrl, payload);
                     if (savedCommunityOCC) {
