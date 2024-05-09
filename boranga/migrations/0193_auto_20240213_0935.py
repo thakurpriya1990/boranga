@@ -9,11 +9,4 @@ class Migration(migrations.Migration):
         ('boranga', '0192_auto_20240212_1118'),
     ]
 
-    operations = [
-        migrations.DeleteModel(
-            name='OracleCode',
-        ),
-        migrations.DeleteModel(
-            name='Question',
-        ),
-    ]
+    operations = []

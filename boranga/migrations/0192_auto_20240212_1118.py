@@ -10,11 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='proposalrequireddocument',
-            name='required_doc',
-        ),
-        migrations.DeleteModel(
-            name='RequiredDocument',
-        ),
+
     ]

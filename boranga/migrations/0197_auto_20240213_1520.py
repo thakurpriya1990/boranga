@@ -9,16 +9,4 @@ class Migration(migrations.Migration):
         ('boranga', '0196_auto_20240213_1406'),
     ]
 
-    operations = [
-        migrations.AlterUniqueTogether(
-            name='helppage',
-            unique_together={('help_type', 'version')},
-        ),
-        migrations.RemoveField(
-            model_name='helppage',
-            name='application_type',
-        ),
-        migrations.DeleteModel(
-            name='ApplicationType',
-        ),
-    ]
+    operations = []
