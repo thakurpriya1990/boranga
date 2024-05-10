@@ -673,29 +673,6 @@ class Species(RevisionedMixin):
 
     @property
     def allowed_assessors(self):
-        group = None
-        # TODO: Take application_type into account
-        # if self.processing_status in [
-        #     Species.PROCESSING_STATUS_WITH_APPROVER,
-        # ]:
-        #     group = self.get_approver_group()
-        # elif self.processing_status in [
-        #     Species.PROCESSING_STATUS_WITH_REFERRAL,
-        #     Species.PROCESSING_STATUS_WITH_ASSESSOR,
-        # ]:
-        #     group = self.get_assessor_group()
-        # users = (
-        #     list(
-        #         map(
-        #             lambda id: retrieve_email_user(id),
-        #             group.get_system_group_member_ids(),
-        #         )
-        #     )
-        #     if group
-        #     else []
-        # )
-        # return users
-        # TODO We need specific species processing SystemGroup
         group = self.get_assessor_group()
         users = (
             list(
@@ -730,28 +707,7 @@ class Species(RevisionedMixin):
         return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
     @property
-    def species_processor_recipients(self):
-        logger.info("species_processor_recipients")
-        recipients = []
-        group_ids = self.get_species_processor_group().get_system_group_member_ids()
-        for id in group_ids:
-            logger.info(id)
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
-    def assessor_recipients(self):
-        logger.info("assessor_recipients")
-        recipients = []
-        group_ids = self.get_assessor_group().get_system_group_member_ids()
-        for id in group_ids:
-            logger.info(id)
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
     def approver_recipients(self):
-        logger.info("assessor_recipients")
         recipients = []
         group_ids = self.get_approver_group().get_system_group_member_ids()
         for id in group_ids:
@@ -1307,30 +1263,9 @@ class Community(RevisionedMixin):
         return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
     @property
-    def assessor_recipients(self):
-        logger.info("assessor_recipients")
-        recipients = []
-        group_ids = self.get_assessor_group().get_system_group_member_ids()
-        for id in group_ids:
-            logger.info(id)
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
     def approver_recipients(self):
-        logger.info("assessor_recipients")
         recipients = []
         group_ids = self.get_approver_group().get_system_group_member_ids()
-        for id in group_ids:
-            logger.info(id)
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
-    def community_processor_recipients(self):
-        logger.info("acommunity_processor_recipients")
-        recipients = []
-        group_ids = self.get_community_processor_group().get_system_group_member_ids()
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
