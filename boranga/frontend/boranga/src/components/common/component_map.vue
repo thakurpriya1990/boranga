@@ -58,21 +58,22 @@
                     <img
                         id="basemap_osm"
                         src="../../assets/map_icon.png"
-                        @click="setBaseLayer('osm')"
+                        @click="setBaseLayer('street')"
                     />
                 </div>
                 <div class="optional-layers-wrapper">
-                    <!-- <div style="position: relative">
+                    <div style="position: relative">
                         <transition>
                             <div
                                 class="optional-layers-button-wrapper"
                                 :title="`There are ${optionalLayers.length} optional layers available}`"
                             >
+                                <!-- :class="
+                                    optionalLayers.length ? '' : 'disabled'
+                                " -->
                                 <div
                                     class="optional-layers-button btn"
-                                    :class="
-                                        optionalLayers.length ? '' : 'disabled'
-                                    "
+                                    :class="isEditingALayer ? 'btn-danger' : ''"
                                     @mouseover="hover = true"
                                 >
                                     <img src="../../assets/layers.svg" />
@@ -82,7 +83,13 @@
                         <transition>
                             <div
                                 v-show="hover"
-                                div
+                                class="layer_options layer_menu"
+                                @mouseleave="hover = false"
+                            >
+                                <div id="layer-control"></div>
+                            </div>
+                            <!-- <div
+                                v-show="hover"
                                 class="layer_options layer_menu"
                                 @mouseleave="hover = false"
                             >
@@ -116,9 +123,9 @@
                                         />
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </transition>
-                    </div> -->
+                    </div>
                     <!-- <div style="position: relative"> -->
                     <!-- <transition> -->
                     <!-- <div
@@ -470,7 +477,11 @@
                         </div>
                     </div>
 
-                    <div v-if="drawable" class="optional-layers-button-wrapper">
+                    <div
+                        v-if="drawable"
+                        class="optional-layers-button-wrapper"
+                        title="To draw features first toggle on layer editing"
+                    >
                         <div
                             :title="
                                 mode == 'draw'
@@ -478,6 +489,7 @@
                                     : 'Select a drawing mode'
                             "
                             class="btn optional-layers-button"
+                            :class="isEditingALayer ? '' : 'disabled'"
                             @click="
                                 mode == 'draw'
                                     ? toggleElementVisibility('submenu-draw')
@@ -496,7 +508,7 @@
                     <div
                         v-if="editable"
                         class="optional-layers-button-wrapper"
-                        title="Transform a drawn feature"
+                        title="To transform features first toggle on layer editing"
                     >
                         <div
                             :title="
@@ -509,7 +521,9 @@
                                 mode == 'transform'
                                     ? 'optional-layers-button-active'
                                     : 'optional-layers-button',
-                                drawable && featureCount ? '' : 'disabled',
+                                drawable && featureCount && isEditingALayer
+                                    ? ''
+                                    : 'disabled',
                             ]"
                             @click="set_mode('transform')"
                         >
@@ -1208,9 +1222,12 @@ import { Draw, Select, Snap } from 'ol/interaction';
 import ModifyFeature from 'ol-ext/interaction/ModifyFeature';
 import UndoRedo from 'ol-ext/interaction/UndoRedo';
 import Transform from 'ol-ext/interaction/Transform';
+import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
 import Feature from 'ol/Feature';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
+import LayerGroup from 'ol/layer/Group';
+import Collection from 'ol/Collection';
 import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import { FullScreen as FullScreenControl } from 'ol/control';
 import { LineString, Point, MultiPoint, Polygon, MultiPolygon } from 'ol/geom';
@@ -1221,7 +1238,6 @@ import DragAndDrop from 'ol/interaction/DragAndDrop.js';
 import DragBox from 'ol/interaction/DragBox.js';
 import { platformModifierKeyOnly } from 'ol/events/condition.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
-//import RangeSlider from '@/components/forms/range_slider.vue';
 import FileField from '@/components/forms/filefield_immediate.vue';
 import {
     // addOptionalLayers,
@@ -1491,7 +1507,6 @@ export default {
             default: 4326,
         },
     },
-    // emits: ['filter-appied', 'validate-feature', 'refreshFromResponse'],
     emits: ['validate-feature', 'refreshFromResponse'],
     data() {
         // eslint-disable-next-line no-unused-vars
@@ -1502,6 +1517,7 @@ export default {
             map: null,
             tileLayerMapbox: null,
             tileLayerSat: null,
+            selectedBaseLayer: null,
             optionalLayers: [],
             hover: false,
             mode: 'normal',
@@ -1527,7 +1543,10 @@ export default {
             proposals: [],
             modelQuerySource: null,
             modelQueryLayer: null,
-            selectedFeatureIds: [],
+            editableFeatureCollection: new Collection([], { unique: true }),
+            processedGeometrySource: null,
+            processedGeometryLayer: null,
+            selectedFeatureCollection: new Collection([], { unique: true }),
             lastPoint: null,
             sketchCoordinates: [[]],
             defaultColor: '#eeeeee',
@@ -1821,6 +1840,18 @@ export default {
         unitDependentStep: function () {
             return this.selectedSpatialUnit === 'deg' ? 0.0001 : 1;
         },
+        selectedFeatureIds: function () {
+            return this.selectedFeatureCollection.getArray().map((feature) => {
+                return feature.getProperties().id;
+            });
+        },
+        isEditingALayer: function () {
+            const editableLayers = this.editableLayers().filter((layer) => {
+                return layer.get('editing') === true;
+            });
+
+            return editableLayers.length > 0;
+        },
     },
     watch: {
         selectedFeatureIds: function () {
@@ -1842,9 +1873,6 @@ export default {
             var toastEl = document.getElementById('featureToast');
             $('#map-spinner').children().css('position', 'static'); // Position spinner in center of map
             vm.initialiseMap();
-            vm.set_mode('layer');
-            vm.setBaseLayer('osm');
-            // addOptionalLayers(this);
             vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
@@ -1943,11 +1971,13 @@ export default {
             if (selected_layer_name == 'sat') {
                 vm.tileLayerMapbox.setVisible(false);
                 vm.tileLayerSat.setVisible(true);
+                vm.selectedBaseLayer = vm.tileLayerSat;
                 $('#basemap_sat').hide();
                 $('#basemap_osm').show();
             } else {
                 vm.tileLayerMapbox.setVisible(true);
                 vm.tileLayerSat.setVisible(false);
+                vm.selectedBaseLayer = vm.tileLayerMapbox;
                 $('#basemap_osm').hide();
                 $('#basemap_sat').show();
             }
@@ -2143,74 +2173,27 @@ export default {
                     style = vm.basicSelectStyle;
                 }
             }
-            let features = vm.modelQuerySource.getFeatures();
-            features.forEach((feature) => {
-                if (
-                    vm.selectedFeatureIds.includes(feature.getProperties().id)
-                ) {
-                    feature.setStyle(style);
-                } else {
-                    feature.setStyle(undefined);
-                }
+            const layers = vm.getLayersWithFeatures();
+            layers.forEach((layer) => {
+                let features = layer.getSource().getFeatures();
+                features.forEach((feature) => {
+                    if (
+                        vm.selectedFeatureIds.includes(
+                            feature.getProperties().id
+                        )
+                    ) {
+                        feature.setStyle(style);
+                    } else {
+                        feature.setStyle(undefined);
+                    }
+                });
             });
         },
         initialiseMap: function () {
             let vm = this;
 
-            let satelliteTileWms = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
-                params: {
-                    FORMAT: 'image/png',
-                    VERSION: '1.1.1',
-                    tiled: true,
-                    STYLES: '',
-                    LAYERS: 'public:mapbox-satellite',
-                },
-            });
-
-            let streetsTileWMS = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
-                params: {
-                    FORMAT: 'image/png',
-                    VERSION: '1.1.1',
-                    tiled: true,
-                    STYLES: '',
-                    LAYERS: `public:${baselayer_name}`,
-                },
-            });
-            vm.tileLayerMapbox = new TileLayer({
-                title: 'StreetsMap',
-                type: 'base',
-                visible: true,
-                source: streetsTileWMS,
-            });
-
-            vm.tileLayerSat = new TileLayer({
-                title: 'Satellite',
-                type: 'base',
-                visible: true,
-                source: satelliteTileWms,
-            });
-
-            let container = document.getElementById('popup');
-            let overlay = new Overlay({
-                element: container,
-                autoPan: true,
-                autoPanAnimation: {
-                    duration: 150,
-                },
-            });
-
-            vm.map = new Map({
-                layers: [vm.tileLayerMapbox, vm.tileLayerSat],
-                overlays: [overlay],
-                target: vm.elem_id,
-                view: new View({
-                    center: [115.95, -31.95],
-                    zoom: 7,
-                    projection: `EPSG:${vm.mapSrid}`,
-                }),
-            });
+            const baseLayers = vm.initialiseBaseLayers();
+            vm.createMap(baseLayers);
 
             // Full screen toggle
             let fullScreenControl = new FullScreenControl();
@@ -2218,7 +2201,14 @@ export default {
 
             vm.initialiseMeasurementLayer();
             vm.initialiseQueryLayer();
+            vm.initialiseProcessingLayer();
             vm.initialiseDrawLayer();
+            vm.initialiseLayerSwitcher([
+                this.measurementLayer,
+                this.processedGeometryLayer,
+                this.modelQueryLayer,
+            ]);
+            vm.initialiseLayerEvents();
 
             // update map extent when new features added
             vm.map.on('rendercomplete', vm.displayAllFeatures());
@@ -2226,7 +2216,7 @@ export default {
                 if (evt.details.loaded == true) {
                     // Add undo/redo AFTER proposal geometries have been added to the map
                     vm.undoredo = new UndoRedo({
-                        layers: [vm.modelQueryLayer],
+                        layers: [vm.modelQueryLayer, vm.processedGeometryLayer],
                     });
                     vm.undoredo.clear();
 
@@ -2236,15 +2226,25 @@ export default {
                     vm.undoredo.define(
                         'select feature',
                         function (s) {
-                            // Undo fn: set to the previous id list and styles
-                            console.log('undo selected', s.before, s.after);
-                            vm.selectedFeatureIds = s.before;
+                            // Undo fn: set to the previous feature collection and styles
+                            console.log(
+                                'undo selected',
+                                s.before.getArray(),
+                                s.after.getArray()
+                            );
+                            // Set the collection of selected features to the before value
+                            vm.setSelectedFeatureCollection(s.before);
                             vm.setStyleForUnAndSelectedFeatures();
                         },
                         function (s) {
-                            // Redo fn: reset the ids list and styles
-                            console.log('redo selected', s.before, s.after);
-                            vm.selectedFeatureIds = s.after;
+                            // Redo fn: reset the feature collection and styles
+                            console.log(
+                                'redo selected',
+                                s.before.getArray(),
+                                s.after.getArray()
+                            );
+                            // Set the collection of selected features to the after value
+                            vm.setSelectedFeatureCollection(s.after);
                             vm.setStyleForUnAndSelectedFeatures();
                         }
                     );
@@ -2283,7 +2283,7 @@ export default {
 
                     // Setup a dedicated undo/redo for sketch points on the draw layer
                     vm.undoredo_forSketch = new UndoRedo({
-                        layers: [vm.modelQueryLayer],
+                        layers: [vm.modelQueryLayer, vm.processedGeometryLayer],
                     });
                     vm.undoredo_forSketch.clear();
 
@@ -2332,12 +2332,17 @@ export default {
                     vm.dragbox.on('boxend', function () {
                         const extent = vm.dragbox.getGeometry().getExtent();
 
-                        vm.modelQuerySource.forEachFeatureIntersectingExtent(
-                            extent,
-                            function (feature) {
-                                vm.selectFeature(feature);
-                            }
-                        );
+                        const layers = vm.getLayersWithFeatures();
+                        layers.forEach((layer) => {
+                            layer
+                                .getSource()
+                                .forEachFeatureIntersectingExtent(
+                                    extent,
+                                    function (feature) {
+                                        vm.selectFeature(feature);
+                                    }
+                                );
+                        });
                     });
 
                     vm.map.addInteraction(vm.undoredo);
@@ -2347,7 +2352,10 @@ export default {
             });
 
             vm.initialisePointerMoveEvent();
-            vm.snap = new Snap({ source: vm.modelQuerySource });
+            vm.snap = vm.initialiseSnap([
+                this.modelQueryLayer,
+                this.processedGeometryLayer,
+            ]);
             vm.dragAndDrop = new DragAndDrop({
                 projection: `EPSG:${vm.mapSrid}`,
                 formatConstructors: [GeoJSON],
@@ -2395,6 +2403,9 @@ export default {
                 evt.preventDefault();
                 vm.processDatatransferEvent(evt);
             });
+
+            vm.set_mode('layer');
+            vm.setBaseLayer('street');
         },
         initialiseMeasurementLayer: function () {
             let vm = this;
@@ -2418,7 +2429,7 @@ export default {
 
             // Create a layer to retain the measurement
             vm.measurementLayer = new VectorLayer({
-                title: 'Measurement Layer',
+                title: 'Measurements',
                 source: draw_source,
                 style: function (feature, resolution) {
                     feature.set('for_layer', true);
@@ -2435,9 +2446,11 @@ export default {
             const polygonStyle = vm.createStyle(null, null, 'Polygon');
 
             vm.modelQueryLayer = new VectorLayer({
-                title: 'Model Occurrence Report',
+                title: 'Occurrence Reports',
                 name: 'query_layer',
                 source: vm.modelQuerySource,
+                can_edit: true,
+                editing: false,
                 style: function (feature) {
                     const color = feature.get('color') || vm.defaultColor;
                     let style = polygonStyle;
@@ -2462,6 +2475,43 @@ export default {
             vm.map.addLayer(vm.modelQueryLayer);
             // Set zIndex to some layers to be rendered over the other layers
             vm.modelQueryLayer.setZIndex(10);
+        },
+        initialiseProcessingLayer: function () {
+            let vm = this;
+
+            vm.processedGeometrySource = new VectorSource({});
+            const polygonStyle = vm.createStyle(null, null, 'Polygon');
+
+            vm.processedGeometryLayer = new VectorLayer({
+                title: 'Occurences',
+                name: 'processed_layer',
+                can_edit: true,
+                editing: false,
+                source: vm.processedGeometrySource,
+                style: function (feature) {
+                    const color = feature.get('color') || vm.defaultColor;
+                    let style = polygonStyle;
+                    if (vm.isPolygonLikeFeature(feature)) {
+                        style.getFill().setColor(color);
+                    } else if (vm.isPointLikeFeature(feature)) {
+                        const rgba = vm.colorHexToRgbaValues(color);
+                        style = vm.createStyle(
+                            color,
+                            null,
+                            'Point',
+                            null,
+                            null,
+                            require('../../assets/map-marker.svg'),
+                            rgba[3]
+                        );
+                    }
+                    return style;
+                },
+            });
+            // Add the layer
+            vm.map.addLayer(vm.processedGeometryLayer);
+            // Set zIndex to some layers to be rendered over the other layers
+            vm.processedGeometryLayer.setZIndex(20);
         },
         initialiseDrawLayer: function () {
             let vm = this;
@@ -2563,92 +2613,6 @@ export default {
             vm.drawPointsForModel = new Draw({
                 source: vm.modelQuerySource,
                 type: 'Point',
-                // geometryFunction: function (coordinates, geometry) {
-                //     if (geometry) {
-                //         if (coordinates[0].length) {
-                //             // Add a closing coordinate to match the first
-                //             geometry.setCoordinates(
-                //                 [coordinates[0].concat([coordinates[0][0]])],
-                //                 this.geometryLayout_
-                //             );
-                //         } else {
-                //             geometry.setCoordinates([], this.geometryLayout_);
-                //         }
-                //     } else {
-                //         geometry = new Polygon(
-                //             coordinates,
-                //             this.geometryLayout_
-                //         );
-                //     }
-
-                //     if (vm.unOrRedoing_sketchPoint) {
-                //         // Don't run below undo stack logic while executing an undo/redo of sketch points
-                //         return geometry;
-                //     }
-
-                //     // Current feature id list for undo stack
-                //     let before = [...vm.sketchCoordinates];
-                //     // Ignore the last coordinate that is the movable cursor point
-                //     let drawnVertexCoords = coordinates[0].toSpliced(-1);
-                //     if (before.length != drawnVertexCoords.length) {
-                //         // Sort out back-to-back duplicate coordinates
-                //         let sketchCoordinates = drawnVertexCoords
-                //             .slice()
-                //             .reduce((acc, cur) => {
-                //                 let prev = acc.slice(-1)[0] || [];
-                //                 if (prev[0] !== cur[0] && prev[1] !== cur[1]) {
-                //                     acc.push(cur);
-                //                 }
-                //                 return acc;
-                //             }, []);
-
-                //         // Return from calculation if the new sketch coordinates are the same as the previous
-                //         if (
-                //             before.length === sketchCoordinates.length &&
-                //             before
-                //                 .flat(1)
-                //                 .every(
-                //                     (coord, index) =>
-                //                         coord ===
-                //                         sketchCoordinates.flat(1)[index]
-                //                 )
-                //         ) {
-                //             return geometry;
-                //         }
-                //         // Set new sketch coordinates
-                //         vm.sketchCoordinates = sketchCoordinates;
-
-                //         // Add to undo stack
-                //         vm.undoredo_forSketch.push('add polygon point', {
-                //             before: before,
-                //             after: vm.sketchCoordinates,
-                //         });
-                //     }
-
-                //     return geometry;
-                // },
-                // condition: function (evt) {
-                //     if (evt.originalEvent.buttons === 1) {
-                //         // Only allow drawing when the left mouse button is pressed
-                //         return true;
-                //     } else if (evt.originalEvent.buttons === 2) {
-                //         // If the right mouse button is pressed, undo the last point
-                //         if (vm.canUndoDrawnVertex) {
-                //             vm.undoredo_forSketch.undo();
-                //         } else {
-                //             vm.set_mode('layer');
-                //         }
-                //     } else {
-                //         return false;
-                //     }
-                // },
-                // finishCondition: function () {
-                //     if (vm.lastPoint) {
-                //         // vm.$emit('validate-feature');
-                //         vm.finishDrawing();
-                //     }
-                //     return true;
-                // },
             });
 
             vm.drawPolygonsForModel.set('escKey', '');
@@ -2673,6 +2637,235 @@ export default {
 
             vm.map.addInteraction(vm.drawPolygonsForModel);
             vm.map.addInteraction(vm.drawPointsForModel);
+        },
+        initialiseBaseLayers: function () {
+            let satelliteTileWms = new TileWMS({
+                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                params: {
+                    FORMAT: 'image/png',
+                    VERSION: '1.1.1',
+                    tiled: true,
+                    STYLES: '',
+                    LAYERS: 'public:mapbox-satellite',
+                },
+            });
+
+            let streetsTileWMS = new TileWMS({
+                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                params: {
+                    FORMAT: 'image/png',
+                    VERSION: '1.1.1',
+                    tiled: true,
+                    STYLES: '',
+                    LAYERS: `public:${baselayer_name}`,
+                },
+            });
+            this.tileLayerMapbox = new TileLayer({
+                title: 'Mapbox Streets',
+                type: 'base',
+                visible: true,
+                source: streetsTileWMS,
+            });
+
+            this.tileLayerSat = new TileLayer({
+                title: 'Satellite Map',
+                type: 'base',
+                visible: true,
+                source: satelliteTileWms,
+            });
+
+            const baseLayers = new LayerGroup({
+                title: 'Background Maps',
+                layers: [this.tileLayerMapbox, this.tileLayerSat],
+            });
+            // Hack
+            if (!baseLayers.getSource) {
+                baseLayers.getSource = () => {
+                    return this.selectedBaseLayer;
+                };
+            }
+
+            return baseLayers;
+        },
+        initialiseLayerSwitcher: function (layers) {
+            // Add layer switcher control inside the map
+            const props = {
+                target: $('#layer-control').get(0),
+                show_progress: true,
+                extent: true,
+                trash: false,
+                displayInLayerSwitcher: function (l) {
+                    return l.get('displayInLayerSwitcher');
+                },
+                editableLayers: function () {
+                    return this.editableLayers();
+                },
+            };
+
+            if (layers) {
+                layers.forEach((layer) => {
+                    layer.set('displayInLayerSwitcher', true);
+                });
+                const layerGroup = new LayerGroup({
+                    title: 'Layers',
+                    layers: layers,
+                });
+                props['layerGroup'] = layerGroup;
+            }
+
+            this.layerSwitcher = new LayerSwitcher(props);
+
+            if (this.editable || this.drawable) {
+                // Add a new button to the list if the component allows for editing or drawing
+                this.layerSwitcher.on('drawlist', (e) => {
+                    const layer = e.layer;
+                    const divWrapper = $('<div>');
+
+                    divWrapper.addClass([
+                        'optional-layers-button-wrapper',
+                        'optional-layers-button-fit',
+                    ]);
+                    divWrapper.attr('title', 'Layer Editing: Off');
+                    divWrapper.attr(
+                        'id',
+                        `layer-editing-button-${layer.ol_uid}`
+                    );
+
+                    const divDraw = $('<div>');
+                    divDraw.addClass(['btn', 'optional-layers-button']);
+
+                    const img = $('<img>');
+                    img.addClass('svg-object');
+                    img.attr('src', require('../../assets/pen-icon.svg'));
+
+                    divDraw.append(img);
+                    divWrapper.append(divDraw);
+
+                    if (layer.get('can_edit')) {
+                        divWrapper.click((e) => {
+                            const target = e.originalEvent.currentTarget;
+                            const toggle_editing = !layer.get('toggle_editing');
+                            // Clear the collection of editable features
+                            this.editableFeatureCollection.clear();
+
+                            if (toggle_editing) {
+                                // Get the other editable layers
+                                const otherEditableLayers =
+                                    this.editableLayers().filter(
+                                        (l) => l.ol_uid != layer.ol_uid
+                                    );
+                                // Turn off editing for all other layers if toggling on for this layer
+                                otherEditableLayers.forEach((l) => {
+                                    const b = $(
+                                        `#layer-editing-button-${l.ol_uid}`
+                                    );
+                                    this.layerToggleEditing(l, b, false);
+                                });
+
+                                // Populate the collection of editable features
+                                layer
+                                    .getSource()
+                                    .getFeatures()
+                                    .forEach((f) => {
+                                        this.editableFeatureCollection.push(f);
+                                    });
+                            } else {
+                                this.set_mode('layer');
+                            }
+
+                            // Toggle on this layer's editing
+                            this.layerToggleEditing(
+                                layer,
+                                target,
+                                toggle_editing
+                            );
+                        });
+
+                        divWrapper.appendTo(
+                            $('> .ol-layerswitcher-buttons', e.li)
+                        );
+                    }
+                });
+            }
+
+            // Add a button to show/hide the layers
+            const button = $('<div class="toggleVisibility" title="show/hide">')
+                .text('Show/hide all')
+                .click(() => {
+                    const a = this.map
+                        .getLayers()
+                        .getArray()
+                        .filter((l) =>
+                            this.layerSwitcher.displayInLayerSwitcher(l)
+                        );
+
+                    const b = !a[0].getVisible();
+                    if (b) button.removeClass('show');
+                    else button.addClass('show');
+                    for (let i = 0; i < a.length; i++) {
+                        a[i].setVisible(b);
+                    }
+                });
+            this.layerSwitcher.setHeader($('<div>').append(button).get(0));
+
+            this.map.addControl(this.layerSwitcher);
+        },
+        initialiseLayerEvents: function () {
+            const editableLayers = this.editableLayers();
+            editableLayers.forEach((layer) => {
+                layer.getSource().on('addfeature', (evt) => {
+                    this.editableFeatureCollection.push(evt.feature);
+                });
+                layer.getSource().on('removefeature', (evt) => {
+                    this.editableFeatureCollection.remove(evt.feature);
+                });
+            });
+        },
+        initialiseSnap: function (snapLayers) {
+            const snapCollection = new Collection([], {
+                unique: true,
+            });
+
+            snapLayers.forEach(function (layer) {
+                layer.getSource().on('addfeature', function (evt) {
+                    snapCollection.push(evt.feature);
+                });
+                layer.getSource().on('removefeature', function (evt) {
+                    snapCollection.remove(evt.feature);
+                });
+            });
+
+            const snap = new Snap({
+                features: snapCollection,
+            });
+
+            // eslint-disable-next-line no-unused-vars
+            snap.on('change', function (event) {
+                console.log('Snap change event', this.target);
+            });
+
+            return snap;
+        },
+        createMap: function (baseLayers) {
+            let container = document.getElementById('popup');
+            let overlay = new Overlay({
+                element: container,
+                autoPan: true,
+                autoPanAnimation: {
+                    duration: 150,
+                },
+            });
+
+            this.map = new Map({
+                layers: [baseLayers],
+                overlays: [overlay],
+                target: this.elem_id,
+                view: new View({
+                    center: [115.95, -31.95],
+                    zoom: 7,
+                    projection: `EPSG:${this.mapSrid}`,
+                }),
+            });
         },
         initialisePointerMoveEvent: function () {
             let vm = this;
@@ -2801,7 +2994,9 @@ export default {
                     },
                     {
                         layerFilter: function (layer) {
-                            return layer.get('name') === 'query_layer';
+                            return ['query_layer', 'processed_layer'].includes(
+                                layer.get('name')
+                            );
                         },
                     }
                 );
@@ -2931,11 +3126,10 @@ export default {
                     vm.createStyle(color, vm.clickSelectStroke, 'Polygon'),
                 ];
             };
-
             // select interaction working on "singleclick"
             const selectSingleClick = new Select({
                 style: vm.basicSelectStyle,
-                layers: [vm.modelQueryLayer],
+                layers: [vm.modelQueryLayer, vm.processedGeometryLayer],
                 wrapX: false,
                 condition: function () {
                     // Prevent the interaction's standard select event
@@ -2951,14 +3145,22 @@ export default {
                         `Selected feature ${feature.getProperties().id}`,
                         toRaw(feature)
                     );
-                    // Current feature id list for undo stack
-                    let before = [...vm.selectedFeatureIds];
+                    // Current features
+                    let beforeFeatures = [
+                        ...vm.selectedFeatureCollection.getArray(),
+                    ];
                     feature.setStyle(vm.basicSelectStyle);
-                    vm.selectedFeatureIds.push(feature.getProperties().id);
+                    // Add to the collection for the purpose of controlling which features can be modified (ModifyFeature)
+                    vm.selectedFeatureCollection.push(feature);
                     // Add to undo stack
                     vm.undoredo.push('select feature', {
-                        before: before,
-                        after: vm.selectedFeatureIds,
+                        before: new Collection(beforeFeatures, {
+                            unique: true,
+                        }),
+                        after: new Collection(
+                            [...vm.selectedFeatureCollection.getArray()],
+                            { unique: true }
+                        ),
                     });
                 });
 
@@ -2966,16 +3168,22 @@ export default {
                     console.log(
                         `Unselected feature ${feature.getProperties().id}`
                     );
-                    // Current feature id list for undo stack
-                    let before = [...vm.selectedFeatureIds];
+                    // Current features
+                    let beforeFeatures = [
+                        ...vm.selectedFeatureCollection.getArray(),
+                    ];
                     feature.setStyle(undefined);
-                    vm.selectedFeatureIds = vm.selectedFeatureIds.filter(
-                        (id) => id != feature.getProperties().id
-                    );
+                    // Remove from the collection for the purpose of controlling which features can be modified (ModifyFeature)
+                    vm.selectedFeatureCollection.remove(feature);
                     // Add to undo stack
                     vm.undoredo.push('select feature', {
-                        before: before,
-                        after: vm.selectedFeatureIds,
+                        before: new Collection(beforeFeatures, {
+                            unique: true,
+                        }),
+                        after: new Collection(
+                            [...vm.selectedFeatureCollection.getArray()],
+                            { unique: true }
+                        ),
                     });
                 });
             });
@@ -2997,8 +3205,7 @@ export default {
         initialiseModifyFeatureEvent: function () {
             let vm = this;
             const modify = new ModifyFeature({
-                source: vm.modelQuerySource, // Same source as the draw interaction
-                // features: vm.select.getFeatures(), // Either need to provide source or features, but features doesn't seem to work
+                features: vm.selectedFeatureCollection,
                 pixelTolerance: vm.pixelTolerance,
                 deleteCondition: function (evt) {
                     if (
@@ -3053,6 +3260,10 @@ export default {
                         }
                     });
                 },
+                // eslint-disable-next-line no-unused-vars
+                insertVertexCondition: function (evt) {
+                    return true;
+                },
             });
 
             modify.addEventListener('modifyend', function (evt) {
@@ -3070,7 +3281,7 @@ export default {
             let vm = this;
 
             const transform = new Transform({
-                source: vm.modelQuerySource,
+                features: vm.editableFeatureCollection,
                 hitTolerance: vm.hitTolerance,
             });
 
@@ -3217,10 +3428,10 @@ export default {
                                     )[0].name;
                             }
 
-                            const features =
-                                this.addFeatureCollectionToMap(
-                                    processedGeometry
-                                );
+                            const features = this.addFeatureCollectionToMap(
+                                processedGeometry,
+                                this.processedGeometrySource
+                            );
                             this.displayAllFeatures(features);
                         }
                         this.processingFeatures = false;
@@ -3257,17 +3468,22 @@ export default {
                 );
             }
 
-            for (let feature of features) {
-                vm.deletedFeaturesProperty(feature);
-                vm.modelQuerySource.removeFeature(feature);
-            }
-            // Remove selected features (mapped by id) from `selectedFeatureIds`
-            vm.selectedFeatureIds = vm.selectedFeatureIds.filter(
-                (id) =>
-                    !features
-                        .map((feature) => feature.getProperties().id)
-                        .includes(id)
-            );
+            const layersWithFeatures = vm.getLayersWithFeatures();
+            layersWithFeatures.map((layer) => {
+                const source = layer.getSource();
+                features.map((feature) => {
+                    if (source.hasFeature(feature)) {
+                        vm.deletedFeaturesProperty(feature);
+                        source.removeFeature(feature);
+                    }
+                });
+            });
+            // Remove selected features from `selectedFeatureCollection`
+            vm.selectedFeatureCollection.forEach((feature) => {
+                if (features.includes(feature)) {
+                    vm.selectedFeatureCollection.remove(feature);
+                }
+            });
         },
         fetchProposals: async function () {
             let vm = this;
@@ -3305,8 +3521,16 @@ export default {
                     vm.fetchingProposals = false;
                 });
         },
-        addFeatureCollectionToMap: function (featureCollection) {
+        /**
+         * Adds a GeoJSON feature collection to the map
+         * @param {Object} featureCollection A GeoJSON feature collection object to add to the map
+         * @param {Object=} layerSource The layer source to add the features to, defaults to the query layer source
+         */
+        addFeatureCollectionToMap: function (featureCollection, layerSource) {
             let vm = this;
+            if (!layerSource) {
+                layerSource = vm.modelQuerySource;
+            }
             if (featureCollection == null) {
                 featureCollection = vm.featureCollection;
             }
@@ -3320,7 +3544,7 @@ export default {
                 );
 
                 features.push(feature);
-                vm.modelQuerySource.addFeature(feature);
+                layerSource.addFeature(feature);
             }
 
             return features;
@@ -3674,16 +3898,53 @@ export default {
                     vm.isValidating = false;
                 });
         },
+        getLayersWithFeatures: function () {
+            const layers = [];
+            if (!this.map) {
+                return layers;
+            }
+
+            const mapLayers = this.map.getLayers();
+            mapLayers.getArray().map((layer) => {
+                // Not all types of layer have a getSource method
+                try {
+                    layer.getSource().getFeatures();
+                    layers.push(layer);
+                } catch (error) {
+                    //
+                }
+            }, layers);
+
+            return layers;
+        },
+        /**
+         * Returns all features across all layers
+         */
+        getMapFeatures: function () {
+            const features = [];
+            this.getLayersWithFeatures().map((layer) => {
+                features.push(...layer.getSource().getFeatures());
+            });
+
+            return features;
+        },
         /**
          * Returns the selected features
          */
         selectedFeatures: function () {
             let vm = this;
-            let features = vm.modelQuerySource.getFeatures();
+            const features = vm.getMapFeatures();
+
             return features.filter((feature) => {
                 return vm.selectedFeatureIds.includes(
                     feature.getProperties().id
                 );
+            });
+        },
+        setSelectedFeatureCollection: function (collection) {
+            this.selectedFeatureCollection.clear();
+            collection.forEach((feature) => {
+                this.selectedFeatureCollection.push(feature);
             });
         },
         /**
@@ -4293,11 +4554,43 @@ export default {
 
             return type;
         },
+        editableLayers: function () {
+            const layers = this.getLayersWithFeatures();
+            return layers.filter((layer) => {
+                return layer.get('can_edit');
+            });
+        },
+        /**
+         * Toggles editing for a layer on or off and updates the respective layerSwitcher button
+         * @param {Object} layer A layer object
+         * @param {Object} toggleButton A jQuery HTML button from the layerSwitcher
+         * @param {Boolean} editing Whether to toggle editing for this button/layer on or off
+         */
+        layerToggleEditing: function (layer, toggleButton, editing) {
+            layer.set('toggle_editing', editing);
+            const btn = $(toggleButton).find('.btn');
+            const img = $(toggleButton).find('img');
+            if (editing) {
+                img.addClass('svg-green');
+                btn.addClass('btn-success');
+                btn.addClass('btn-danger');
+                $(toggleButton).attr('title', 'Layer Editing: On');
+                layer.set('editing', true);
+            } else {
+                btn.removeClass('btn-danger');
+                btn.removeClass('btn-success');
+                img.removeClass('svg-green');
+                $(toggleButton).attr('title', 'Layer Editing: Off');
+                layer.set('editing', false);
+            }
+        },
     },
 };
 </script>
+
 <style scoped>
 @import '../../../../../static/boranga/css/map.css';
+@import 'ol-ext/dist/ol-ext.css';
 
 #featureToast {
     position: absolute;
@@ -4382,5 +4675,9 @@ export default {
 }
 .min-width-210 {
     min-width: 210px !important;
+}
+.svg-green {
+    filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg)
+        brightness(119%) contrast(119%);
 }
 </style>
