@@ -329,7 +329,7 @@ class Taxonomy(models.Model):
         if self.new_taxon.all():
             previous_queryset = TaxonPreviousName.objects.filter(
                 taxonomy=self.id
-                ).order_by("-id")
+                ).order_by("id")
             return previous_queryset
         else:
             return TaxonPreviousName.objects.none()
@@ -2289,7 +2289,8 @@ reversion.register(
     follow=["taxonomy", "species_distribution", "species_conservation_attributes"],
 )
 reversion.register(Taxonomy, follow=["taxon_previous_queryset", "vernaculars"])
-reversion.register(CrossReference, follow=["old_taxonomy"])
+#reversion.register(CrossReference, follow=["old_taxonomy"])
+reversion.register(TaxonPreviousName)
 reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)
 reversion.register(TaxonVernacular)

@@ -198,35 +198,7 @@ export default {
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.taxonomy !== undefined) {
-                        //list not dict
-                        if (full.data.taxonomy.fields === undefined) {
-                            var current_name_pk = '';
-                            //get the crossreference new_tax and compare to pk
-                            if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
-                                current_name_pk = full.data.crossreference.fields.new_taxonomy
-                            } else if (full.data.crossreference.length > 0) {
-                                //get new taxon of highest pk
-                                var highest_pk_index = 0;
-                                for (var i = 0; i < full.data.crossreference.length; i++) {
-                                    if (full.data.crossreference[i].pk > full.data.crossreference[highest_pk_index].pk)
-                                    {
-                                        highest_pk_index = i;
-                                    }
-                                }
-                                current_name_pk = full.data.crossreference[highest_pk_index].fields.new_taxonomy
-                            }
-                            for (var i = 0; i < full.data.taxonomy.length; i++) {
-                                if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    //return full.data.taxonomy[i].fields.scientific_name
-                                    let value = full.data.taxonomy[i].fields.scientific_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                }
-                            }                               
-                            return '';
-                        }
-
+                    if (full.data.taxonomy !== undefined && full.data.taxonomy.fields !== undefined) {
                         //return full.data.taxonomy.fields.scientific_name;
                         let value = full.data.taxonomy.fields.scientific_name;
                         let result = helpers.dtPopover(value, 30, 'hover');

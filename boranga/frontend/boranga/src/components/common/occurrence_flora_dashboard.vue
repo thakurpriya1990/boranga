@@ -30,6 +30,13 @@
                 </div>
             </div>
         </CollapsibleFilters>
+
+        <div class="col-md-12">
+            <div class="text-end">
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraOccurrence"><i class="fa-solid fa-circle-plus"></i> Add Flora Occurrence</button>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-lg-12">
                 <datatable ref="flora_occ_datatable" :id="datatable_id" :dtOptions="datatable_options"
@@ -133,12 +140,10 @@ export default {
             submissions_to_list: [],
 
             // filtering options
-            internal_status: [
-                { value: 'draft', name: 'Draft' },
-                { value: 'locked', name: 'Locked' },
-                { value: 'split', name: 'Split' },
-                { value: 'combine', name: 'Combine' },
-                { value: 'historical', name: 'Historical' },
+            internal_status:[
+                {value: 'active', name: 'Active'},
+                {value: 'locked', name: 'Locked'},
+                {value: 'historical', name: 'Historical'},
             ],
 
             proposal_status: [],
@@ -493,7 +498,7 @@ methods: {
     createFloraOccurrence: async function () {
         let newFloraOCRId = null
         try {
-            const createUrl = api_endpoints.occurrence + "/";
+            const createUrl = api_endpoints.occurrence;
             let payload = new Object();
             payload.group_type_id = this.group_type_id
             payload.internal_application = true
@@ -509,7 +514,7 @@ methods: {
             }
         }
         this.$router.push({
-            name: 'internal-occurrence',
+            name: 'internal-occurrence-detail',
             params: { occurrence_id: newFloraOCRId },
         });
     },

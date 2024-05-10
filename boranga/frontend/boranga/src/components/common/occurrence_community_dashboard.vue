@@ -32,6 +32,12 @@
             </div>
         </CollapsibleFilters>
 
+        <div class="col-md-12">
+            <div class="text-end">
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrence"><i class="fa-solid fa-circle-plus"></i> Add Community Occurrence</button>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-lg-12">
                 <datatable
@@ -136,12 +142,9 @@ export default {
             // external_status refers to CUSTOMER_STATUS_CHOICES
             // internal_status referes to PROCESSING_STATUS_CHOICES
             internal_status:[
-                {value: 'draft', name: 'Draft'},
-                {value: 'with_assessor', name: 'With Assessor'},
-                {value: 'with_referral', name: 'With Referral'},
-                {value: 'with_approver', name: 'With Approver'},
-                {value: 'approved', name: 'Approved'},
-                {value: 'declined', name: 'Declined'},
+                {value: 'active', name: 'Active'},
+                {value: 'locked', name: 'Locked'},
+                {value: 'historical', name: 'Historical'},
             ],
 
             proposal_status: [],
@@ -496,6 +499,9 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
             //large FilterList of Community Values object
+
+            //TODO occurrence status filters...
+
             vm.$http.get(api_endpoints.community_filter_dict+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunity = response.body;
                 vm.occurrence_list = vm.filterListsCommunity.occurrence_list;
@@ -512,11 +518,12 @@ export default {
                 console.log(error);
             })
         },
-        createCommunityOccurrenceReport: async function () {
+        createCommunityOccurrence: async function () {
             let newCommunityOCCId = null
             try {
-                    const createUrl = api_endpoints.occurrence+"/";
+                    const createUrl = api_endpoints.occurrence;
                     let payload = new Object();
+                    payload.group_type_id = this.group_type_id
                     payload.internal_application = true
                     let savedCommunityOCC = await Vue.http.post(createUrl, payload);
                     if (savedCommunityOCC) {
