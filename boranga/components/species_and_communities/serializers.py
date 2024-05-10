@@ -279,12 +279,13 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
         return ""
 
     def get_user_process(self, obj):
-        # Check if currently logged in user has access to process the Species
+        # Check if currently logged in user has access to process the Community
         request = self.context["request"]
-        user = request.user
         if obj.can_user_action:
-            # TODO user should be SystemGroup SpeciesProcessGroup?
-            if user in obj.allowed_community_processors:
+            if (
+                request.user.id
+                in obj.get_approver_group().get_system_group_member_ids()
+            ):
                 return True
         return False
 
@@ -972,7 +973,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
     conservation_attributes = serializers.SerializerMethodField()
     readonly = serializers.SerializerMethodField(read_only=True)
     image_doc = serializers.SerializerMethodField()
-    allowed_community_processors = EmailUserSerializer(many=True)
 
     class Meta:
         model = Community
@@ -997,7 +997,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             "can_user_edit",
             "can_user_view",
             "applicant_details",
-            "allowed_community_processors",
             "comment",
         )
 
@@ -1106,7 +1105,6 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
     current_assessor = serializers.SerializerMethodField()
-    allowed_community_processors = EmailUserSerializer(many=True)
     user_edit_mode = serializers.SerializerMethodField()
 
     class Meta:
@@ -1132,7 +1130,6 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "can_user_edit",
             "can_user_view",
             "current_assessor",
-            "allowed_community_processors",
             "user_edit_mode",
             "comment",
             "conservation_plan_exists",
