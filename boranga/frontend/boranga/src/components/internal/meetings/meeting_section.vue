@@ -5,8 +5,8 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Title:</label>
                 <div class="col-sm-8">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="title" placeholder=""
-                    v-model="meeting_obj.title"/>
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="title" ref="title" placeholder=""
+                    v-model="meeting_obj.title" autofocus/>
                 </div>
             </div>
             <div class="row mb-3">
