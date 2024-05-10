@@ -53,16 +53,14 @@ from boranga.components.occurrence.models import (
     SecondarySign,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
-from boranga.helpers import is_approver, is_assessor, is_internal
+from boranga.helpers import is_internal, is_occurrence_approver, is_occurrence_assessor
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
 
 
 class OccurrenceSerializer(serializers.ModelSerializer):
-    processing_status = serializers.CharField(
-        source="get_processing_status_display"
-    )
+    processing_status = serializers.CharField(source="get_processing_status_display")
     scientific_name = serializers.CharField(
         source="species.taxonomy.scientific_name", allow_null=True
     )
@@ -301,7 +299,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             return email_user.get_full_name()
         else:
             return None
-        
+
     def get_assessor_edit(self, obj):
         request = self.context["request"]
         user = request.user
@@ -320,21 +318,19 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_can_user_assess(self, obj):
         request = self.context["request"]
-        return (
-            is_assessor(request.user)
-            and (obj.processing_status
-            == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
-            or obj.processing_status
-            == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL)
+        return is_occurrence_assessor(request.user) and (
+            obj.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            or obj.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
         )
 
     def get_can_user_approve(self, obj):
         request = self.context["request"]
         return (
-            is_assessor(request.user)
+            is_occurrence_assessor(request.user)
             and obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         )
+
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
 
@@ -803,7 +799,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             return ""
 
         return conservation_status.conservation_category.code
-    
+
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         return obj.can_user_edit(request.user)
@@ -1145,7 +1141,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     def get_can_user_assess(self, obj):
         request = self.context["request"]
         return (
-            is_assessor(request.user)
+            is_occurrence_assessor(request.user)
             and obj.processing_status
             in [
                 OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
@@ -1157,7 +1153,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     def get_can_user_approve(self, obj):
         request = self.context["request"]
         return (
-            is_approver(request.user)
+            is_occurrence_approver(request.user)
             and obj.processing_status == OccurrenceReport.CUSTOMER_STATUS_WITH_APPROVER
             and obj.assigned_approver == request.user.id
         )
@@ -1184,6 +1180,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "assessor_can_assess": obj.can_assess(user),
             "assessor_level": "assessor",
         }
+
 
 class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data

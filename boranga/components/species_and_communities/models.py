@@ -22,7 +22,7 @@ from boranga.components.main.models import (
 )
 from boranga.components.main.related_item import RelatedItem
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR, GROUP_NAME_EDITOR
+from boranga.settings import GROUP_NAME_SPECIES_COMMUNITIES_APPROVER
 
 logger = logging.getLogger(__name__)
 
@@ -726,13 +726,8 @@ class Species(RevisionedMixin):
         )
         return users
 
-    def get_assessor_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
-
     def get_approver_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
+        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
     @property
     def species_processor_recipients(self):
@@ -1279,17 +1274,6 @@ class Community(RevisionedMixin):
 
     @property
     def allowed_assessors(self):
-        group = None
-        # # TODO: Take application_type into account
-        # if self.processing_status in [
-        #     Community.PROCESSING_STATUS_WITH_APPROVER,
-        # ]:
-        #     group = self.get_approver_group()
-        # elif self.processing_status in [
-        #     Community.PROCESSING_STATUS_WITH_REFERRAL,
-        #     Community.PROCESSING_STATUS_WITH_ASSESSOR,
-        # ]:
-        #     group = self.get_assessor_group()
         group = self.get_assessor_group()
         users = (
             list(
@@ -1319,17 +1303,8 @@ class Community(RevisionedMixin):
         )
         return users
 
-    def get_assessor_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
-
     def get_approver_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
-
-    # Group for editing the Approved CS(only specific fields)
-    def get_editor_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
+        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
     @property
     def assessor_recipients(self):

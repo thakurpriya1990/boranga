@@ -20,18 +20,15 @@ from boranga.components.occurrence.models import OccurrenceReport
 from boranga.components.species_and_communities.models import Community, Species
 from boranga.forms import LoginForm
 from boranga.helpers import (
-    is_approver,
-    is_assessor,
     is_boranga_admin,
-    is_community_processor,
-    is_conservation_status_editor,
+    is_conservation_status_assessor,
     is_conservation_status_referee,
     is_customer,
     is_django_admin,
     is_internal,
-    is_species_processor,
     is_occurrence_approver,
     is_occurrence_assessor,
+    is_species_communities_approver,
 )
 
 logger = logging.getLogger("payment_checkout")
@@ -206,11 +203,9 @@ def is_authorised_to_access_community_document(request, document_id):
             request.user.is_superuser
             or is_boranga_admin(request)
             or is_django_admin(request)
-            or is_assessor(request.user)
-            or is_approver(request.user)
+            or is_species_communities_approver(request.user)
             or is_occurrence_assessor(request.user)
             or is_occurrence_approver(request.user)
-            or is_community_processor(request.user)
         )
     else:
         return False
@@ -223,11 +218,9 @@ def is_authorised_to_access_species_document(request, document_id):
             request.user.is_superuser
             or is_boranga_admin(request)
             or is_django_admin(request)
-            or is_assessor(request.user)
-            or is_approver(request.user)
+            or is_species_communities_approver(request.user)
             or is_occurrence_assessor(request.user)
             or is_occurrence_approver(request.user)
-            or is_species_processor(request.user)
         )
     else:
         return False
@@ -240,28 +233,27 @@ def is_authorised_to_access_meeting_document(request, document_id):
             request.user.is_superuser
             or is_boranga_admin(request)
             or is_django_admin(request)
-            or is_assessor(request)
-            or is_approver(request)
-            or is_species_processor(request.user)
-            or is_community_processor(request.user)
-            or is_conservation_status_editor(request.user)
+            or is_species_communities_approver(request)
+            or is_conservation_status_assessor(request.user)
             or is_conservation_status_referee(request)
         )
     else:
         return False
+
 
 def check_allowed_path(document_id, path, allowed_paths):
     try:
         file_name_path_split = path.split("/")
         print(file_name_path_split)
         id_index = file_name_path_split.index(str(document_id))
-        #take all after the id_index, except the last (the file name) - join and check if in allowed_paths 
-        check_str = "/".join(file_name_path_split[id_index+1:-1])
+        # take all after the id_index, except the last (the file name) - join and check if in allowed_paths
+        check_str = "/".join(file_name_path_split[id_index + 1 : -1])
         print(check_str)
         return check_str in allowed_paths
     except Exception as e:
         print(e)
         return False
+
 
 def is_authorised_to_access_occurrence_report_document(request, document_id):
     if is_internal(request):
@@ -277,11 +269,10 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         allowed_paths = ["documents"]
         path = request.path
         user = request.user
-        return (
-            OccurrenceReport.objects.filter(internal_application=False, id=document_id)
-            .filter(submitter=user.id)
-            .exists()
-            and check_allowed_path(document_id, path, allowed_paths)
+        return OccurrenceReport.objects.filter(
+            internal_application=False, id=document_id
+        ).filter(submitter=user.id).exists() and check_allowed_path(
+            document_id, path, allowed_paths
         )
     else:
         return False
@@ -308,22 +299,11 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             request.user.is_superuser
             or is_boranga_admin(request)
             or is_django_admin(request)
-            or is_assessor(request.user)
-            or is_approver(request.user)
-            or is_conservation_status_editor(request.user)
+            or is_species_communities_approver(request.user)
+            or is_conservation_status_assessor(request.user)
         )
-    # there are no externally submissable documents for Conservation Status
-    #elif is_customer(request):
-    #    user = request.user
-    #    return (
-    #        ConservationStatus.objects.filter(
-    #            internal_application=False, id=document_id
-    #        )
-    #        .filter(submitter=user.id)
-    #        .exists()
-    #    )
-    else:
-        return False
+
+    return False
 
 
 def get_file_path_id(check_str, file_path):
