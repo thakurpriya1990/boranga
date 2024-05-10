@@ -1718,10 +1718,6 @@ class ConservationStatusReferral(models.Model):
         #        return False
         # return False
 
-    # def get_referral_group(self):
-    #     # TODO: Take application_type into account
-    #     return SystemGroup.objects.get(name=GROUP_NAME_REFERRAL)
-
     # @property
     # def referral_recipients(self):
     #     logger.info("referral_recipients")

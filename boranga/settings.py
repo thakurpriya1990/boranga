@@ -49,7 +49,6 @@ GROUP_NAME_INTERNAL_CONTRIBUTOR = "Internal Contributor"
 GROUP_NAME_OCCURRENCE_APPROVER = "Occurrence Approver"
 GROUP_NAME_OCCURRENCE_ASSESSOR = "Occurrence Assessor"
 GROUP_NAME_READONLY = "Read Only"
-GROUP_NAME_REFERRAL = "Proposal Referral"
 
 GROUP_NAME_CHOICES = (
     (GROUP_NAME_APPROVER, "Proposal Approver Group"),
@@ -59,7 +58,6 @@ GROUP_NAME_CHOICES = (
     (GROUP_NAME_EDITOR, "Conservation Status Editor Group"),
     (GROUP_NAME_OCCURRENCE_APPROVER, "Occurrence Approver Group"),
     (GROUP_NAME_OCCURRENCE_ASSESSOR, "Occurrence Assessor Group"),
-    (GROUP_NAME_REFERRAL, "Proposal Referral Group"),
 )
 
 if env("CONSOLE_EMAIL_BACKEND", False):
