@@ -2,6 +2,7 @@ import json
 from io import BytesIO
 
 import pandas as pd
+from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -18,7 +19,9 @@ from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
+from boranga import helpers
 from boranga.components.conservation_status.models import ConservationStatus
+from boranga.components.main.api import UserActionLoggingViewset
 from boranga.components.meetings.models import (
     AgendaItem,
     Committee,
@@ -84,7 +87,7 @@ class MeetingFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class MeetingPaginatedViewSet(viewsets.ModelViewSet):
+class MeetingPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (MeetingFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     queryset = Meeting.objects.none()
@@ -198,7 +201,7 @@ class MeetingPaginatedViewSet(viewsets.ModelViewSet):
                 return Response(status=400, data="Format not valid")
 
 
-class MeetingViewSet(viewsets.ModelViewSet):
+class MeetingViewSet(UserActionLoggingViewset):
     queryset = Meeting.objects.none()
     serializer_class = MeetingSerializer
 
@@ -227,6 +230,13 @@ class MeetingViewSet(viewsets.ModelViewSet):
     )
     def internal_meeting(self, request, *args, **kwargs):
         instance = self.get_object()
+        instance.log_user_action(
+            settings.ACTION_VIEW.format(
+                instance._meta.verbose_name.title(),
+                helpers.get_instance_identifier(instance),
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
