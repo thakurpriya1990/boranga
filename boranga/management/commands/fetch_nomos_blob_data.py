@@ -39,110 +39,115 @@ class Command(BaseCommand):
                 taxon=taxon_res.json()
                 try:
                     for t in taxon:
-                        kingdom_id = t['kingdom_id'] if 'kingdom_id' in t else None
-                        kingdom_fk = None
-                        if kingdom_id:
-                            try:
-                                kingdom_obj, created=Kingdom.objects.update_or_create(kingdom_id=kingdom_id,
-                                                                                        defaults={
-                                                                                        'kingdom_name' : t['kingdom_name']
-                                                                                        })
-                                kingdom_fk = kingdom_obj
-                            except Exception as e:
-                                err_msg = 'Create kingdom:'
-                                logger.error('{}\n{}'.format(err_msg, str(e)))
-                                errors.append(err_msg)
-                        
-                        rank_id = t['rank_id'] if 'rank_id' in t else None
-                        taxon_rank_fk = None
-                        if rank_id and kingdom_id:
-                            try:
-                                rank_obj, created=TaxonomyRank.objects.update_or_create(taxon_rank_id=rank_id,
-                                                                                        defaults={
-                                                                                            'kingdom_id': kingdom_id,
-                                                                                            'kingdom_fk': kingdom_fk,
-                                                                                            'rank_name' : t['rank_name']
-                                                                                        })
-                                taxon_rank_fk = rank_obj
-                            except Exception as e:
-                                err_msg = 'Create rank:'
-                                logger.error('{}\n{}'.format(err_msg, str(e)))
-                                errors.append(err_msg)
-
-                        taxon_obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t["taxon_name_id"], defaults={"scientific_name" : t["canonical_name"],
-                                                                                                            "kingdom_id" : t["kingdom_id"],
-                                                                                                            "kingdom_fk" : kingdom_fk,
-                                                                                                            "kingdom_name" : t["kingdom_name"],
-                                                                                                            "name_authority" : t["author"],
-                                                                                                            "name_comments" : t["notes"],
-                                                                                                            "name_currency" : t["is_current"],
-                                                                                                            'taxon_rank_id' : t["rank_id"],
-                                                                                                            'taxonomy_rank_fk' : taxon_rank_fk,
-                                                                                                            })
-                        updates.append(taxon_obj.id)
-
-                        if taxon_obj:
-                            # check if the taxon has vernaculars and then create the TaxonVernacular records for taxon which will be the "common names"
-                            vernaculars = t["vernaculars"] if "vernaculars" in t else ""
-                            if vernaculars != None:
+                        if t["taxon_name_id"]==27062:
+                            kingdom_id = t['kingdom_id'] if 'kingdom_id' in t else None
+                            kingdom_fk = None
+                            if kingdom_id:
                                 try:
-                                    #A taxon can have more than one vernaculars(common names)
-                                    for v in vernaculars:
-                                        obj, created=TaxonVernacular.objects.update_or_create(vernacular_id=v["id"],
+                                    kingdom_obj, created=Kingdom.objects.update_or_create(kingdom_id=kingdom_id,
                                                                                             defaults={
-                                                                                                "vernacular_name" : v["name"],
-                                                                                                "taxonomy": taxon_obj,
-                                                                                                "taxon_name_id" : taxon_obj.taxon_name_id,
+                                                                                            'kingdom_name' : t['kingdom_name']
                                                                                             })
-
+                                    kingdom_fk = kingdom_obj
                                 except Exception as e:
-                                    err_msg = "Create Taxon Vernacular:"
+                                    err_msg = 'Create kingdom:'
+                                    logger.error('{}\n{}'.format(err_msg, str(e)))
+                                    errors.append(err_msg)
+                            
+                            rank_id = t['rank_id'] if 'rank_id' in t else None
+                            taxon_rank_fk = None
+                            if rank_id and kingdom_id:
+                                try:
+                                    rank_obj, created=TaxonomyRank.objects.update_or_create(taxon_rank_id=rank_id,
+                                                                                            defaults={
+                                                                                                'kingdom_id': kingdom_id,
+                                                                                                'kingdom_fk': kingdom_fk,
+                                                                                                'rank_name' : t['rank_name']
+                                                                                            })
+                                    taxon_rank_fk = rank_obj
+                                except Exception as e:
+                                    err_msg = 'Create rank:'
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
                                     errors.append(err_msg)
 
-                            # check if the taxon has classification_system_ids and then create the ClassificationSystem records for taxon which will be the "phylogenetic groups"
-                            classification_systems = t["class_desc"] if "class_desc" in t else ""
-                            if classification_systems != None:
-                                try:
-                                    for c in classification_systems:
-                                        class_system_obj, created=ClassificationSystem.objects.update_or_create(classification_system_id=c["id"],
+                            taxon_obj, created=Taxonomy.objects.update_or_create(taxon_name_id=t["taxon_name_id"], defaults={"scientific_name" : t["canonical_name"],
+                                                                                                                "kingdom_id" : t["kingdom_id"],
+                                                                                                                "kingdom_fk" : kingdom_fk,
+                                                                                                                "kingdom_name" : t["kingdom_name"],
+                                                                                                                "name_authority" : t["author"],
+                                                                                                                "name_comments" : t["notes"],
+                                                                                                                "name_currency" : t["is_current"],
+                                                                                                                "taxon_rank_id" : t["rank_id"],
+                                                                                                                "taxonomy_rank_fk" : taxon_rank_fk,
+                                                                                                                "family_id" : t["family_id"],
+                                                                                                                "family_name" : t["family"],
+                                                                                                                "genera_id" : t["genus_id"],
+                                                                                                                "genera_name" : t["genus"],
+                                                                                                                })
+                            updates.append(taxon_obj.id)
+
+                            if taxon_obj:
+                                # check if the taxon has vernaculars and then create the TaxonVernacular records for taxon which will be the "common names"
+                                vernaculars = t["vernaculars"] if "vernaculars" in t else ""
+                                if vernaculars != None:
+                                    try:
+                                        #A taxon can have more than one vernaculars(common names)
+                                        for v in vernaculars:
+                                            obj, created=TaxonVernacular.objects.update_or_create(vernacular_id=v["id"],
+                                                                                                defaults={
+                                                                                                    "vernacular_name" : v["name"],
+                                                                                                    "taxonomy": taxon_obj,
+                                                                                                    "taxon_name_id" : taxon_obj.taxon_name_id,
+                                                                                                })
+
+                                    except Exception as e:
+                                        err_msg = "Create Taxon Vernacular:"
+                                        logger.error('{}\n{}'.format(err_msg, str(e)))
+                                        errors.append(err_msg)
+
+                                # check if the taxon has classification_system_ids and then create the ClassificationSystem records for taxon which will be the "phylogenetic groups"
+                                classification_systems = t["class_desc"] if "class_desc" in t else ""
+                                if classification_systems != None:
+                                    try:
+                                        for c in classification_systems:
+                                            class_system_obj, created=ClassificationSystem.objects.update_or_create(classification_system_id=c["id"],
+                                                                                                defaults={
+                                                                                                    "class_desc" : c["name"],
+                                                                                                })
+                                            
+                                            if class_system_obj:
+                                                try:
+                                                    obj, created=InformalGroup.objects.update_or_create(taxonomy=taxon_obj,classification_system_fk=class_system_obj,
                                                                                             defaults={
-                                                                                                "class_desc" : c["name"],
+                                                                                                'classification_system_id': class_system_obj.classification_system_id,
+                                                                                                'taxon_name_id': taxon_obj.taxon_name_id,
                                                                                             })
-                                        
-                                        if class_system_obj:
-                                            try:
-                                                obj, created=InformalGroup.objects.update_or_create(taxonomy=taxon_obj,classification_system_fk=class_system_obj,
-                                                                                        defaults={
-                                                                                            'classification_system_id': class_system_obj.classification_system_id,
-                                                                                            'taxon_name_id': taxon_obj.taxon_name_id,
-                                                                                        })
-                                            except Exception as e:
-                                                err_msg = 'Create informal group:'
-                                                logger.error('{}\n{}'.format(err_msg, str(e)))
-                                                errors.append(err_msg)
+                                                except Exception as e:
+                                                    err_msg = 'Create informal group:'
+                                                    logger.error('{}\n{}'.format(err_msg, str(e)))
+                                                    errors.append(err_msg)
 
-                                except Exception as e:
-                                    err_msg = "Create Taxon Classification Systems:"
-                                    logger.error('{}\n{}'.format(err_msg, str(e)))
-                                    errors.append(err_msg)
+                                    except Exception as e:
+                                        err_msg = "Create Taxon Classification Systems:"
+                                        logger.error('{}\n{}'.format(err_msg, str(e)))
+                                        errors.append(err_msg)
 
-                            # check if the taxon has previous_names
-                            previous_names = t["previous_names"] if "previous_names" in t else ""
-                            if previous_names != None:
-                                try:
-                                    #A taxon can have more than one previous_names(at the moment only the latest given in blob)
-                                    for p in previous_names:
-                                        obj, created=TaxonPreviousName.objects.update_or_create(previous_name_id=p["id"],
-                                                                                            defaults={
-                                                                                                "previous_scientific_name" : p["name"],
-                                                                                                "taxonomy": taxon_obj,
-                                                                                            })
+                                # check if the taxon has previous_names
+                                previous_names = t["previous_names"] if "previous_names" in t else ""
+                                if previous_names != None:
+                                    try:
+                                        #A taxon can have more than one previous_names(at the moment only the latest given in blob)
+                                        for p in previous_names:
+                                            obj, created=TaxonPreviousName.objects.update_or_create(previous_name_id=p["id"],
+                                                                                                defaults={
+                                                                                                    "previous_scientific_name" : p["name"],
+                                                                                                    "taxonomy": taxon_obj,
+                                                                                                })
 
-                                except Exception as e:
-                                    err_msg = "Create Taxon Previous Name:"
-                                    logger.error('{}\n{}'.format(err_msg, str(e)))
-                                    errors.append(err_msg)
+                                    except Exception as e:
+                                        err_msg = "Create Taxon Previous Name:"
+                                        logger.error('{}\n{}'.format(err_msg, str(e)))
+                                        errors.append(err_msg)
 
                 except Exception as e:
                     err_msg = 'Create Taxon:'

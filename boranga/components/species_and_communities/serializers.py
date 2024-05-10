@@ -314,6 +314,8 @@ class TaxonomySerializer(serializers.ModelSerializer):
             "name_comments",
             "conservation_status",
             "conservation_status_under_review",
+            "family_name",
+            "genera_name",
         )
 
     def get_text(self, obj):
