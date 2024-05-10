@@ -212,6 +212,10 @@ class MeetingViewSet(viewsets.ModelViewSet):
         serializer = CreateMeetingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
+        instance.log_user_action(
+            MeetingUserAction.ACTION_CREATE_MEETING.format(instance.meeting_number),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
