@@ -2839,6 +2839,7 @@ export default {
                 features: snapCollection,
             });
 
+            // eslint-disable-next-line no-unused-vars
             snap.on('change', function (event) {
                 console.log('Snap change event', this.target);
             });
