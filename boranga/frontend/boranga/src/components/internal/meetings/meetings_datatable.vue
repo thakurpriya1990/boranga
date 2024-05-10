@@ -90,6 +90,7 @@ export default {
             internal_status: [
                 { value: 'draft', name: 'Draft' },
                 { value: 'scheduled', name: 'Scheduled' },
+                { value: 'completed', name: 'Completed' },
             ],
 
             meeting_status: [],
