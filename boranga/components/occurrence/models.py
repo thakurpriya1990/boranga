@@ -49,7 +49,10 @@ from boranga.components.species_and_communities.models import (
 )
 from boranga.helpers import clone_model, email_in_dept_domains
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.settings import GROUP_NAME_OCCURRENCE_APPROVER, GROUP_NAME_OCCURRENCE_ASSESSOR
+from boranga.settings import (
+    GROUP_NAME_OCCURRENCE_APPROVER,
+    GROUP_NAME_OCCURRENCE_ASSESSOR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -413,7 +416,7 @@ class OccurrenceReport(RevisionedMixin):
             "with_assessor",
             "with_referral",
         ]
-        if not self.processing_status in status_with_assessor:
+        if self.processing_status not in status_with_assessor:
             return False
         else:
             if self.assigned_officer:
@@ -429,9 +432,9 @@ class OccurrenceReport(RevisionedMixin):
 
     def has_approver_mode(self, user):
         status_with_approver = [
-            "with_approver",            
+            "with_approver",
         ]
-        if not self.processing_status in status_with_approver:
+        if self.processing_status not in status_with_approver:
             return False
         else:
             if self.assigned_approver:
@@ -450,10 +453,6 @@ class OccurrenceReport(RevisionedMixin):
 
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
-
-    # Group for editing the Approved CS(only specific fields)
-    # def get_editor_group(self):
-    #     return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
 
     @property
     def assessor_recipients(self):
@@ -2673,7 +2672,7 @@ class Occurrence(RevisionedMixin):
         user_editable_state = [
             "active",
         ]
-        if not self.processing_status in user_editable_state:
+        if self.processing_status not in user_editable_state:
             return False
         else:
             return (
