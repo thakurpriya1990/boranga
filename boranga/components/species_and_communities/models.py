@@ -22,12 +22,7 @@ from boranga.components.main.models import (
 )
 from boranga.components.main.related_item import RelatedItem
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.settings import (
-    GROUP_NAME_APPROVER,
-    GROUP_NAME_ASSESSOR,
-    GROUP_NAME_EDITOR,
-    GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR,
-)
+from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR, GROUP_NAME_EDITOR
 
 logger = logging.getLogger(__name__)
 
@@ -320,7 +315,8 @@ class Taxonomy(models.Model):
     @property
     def taxon_previous_name(self):
         if self.previous_names.all():
-            previous_names_list = TaxonPreviousName.objects.filter(taxonomy=self.id
+            previous_names_list = TaxonPreviousName.objects.filter(
+                taxonomy=self.id
             ).values_list("previous_scientific_name", flat=True)
             return ",".join(previous_names_list)
 
@@ -329,7 +325,7 @@ class Taxonomy(models.Model):
         if self.new_taxon.all():
             previous_queryset = TaxonPreviousName.objects.filter(
                 taxonomy=self.id
-                ).order_by("id")
+            ).order_by("id")
             return previous_queryset
         else:
             return TaxonPreviousName.objects.none()
@@ -364,10 +360,12 @@ class TaxonVernacular(models.Model):
     def __str__(self):
         return str(self.vernacular_name)  # TODO: is the most appropriate?
 
+
 class TaxonPreviousName(models.Model):
     """
     Previous Name(old name) of taxon
     """
+
     taxonomy = models.ForeignKey(
         Taxonomy, on_delete=models.CASCADE, null=True, related_name="previous_names"
     )
@@ -735,9 +733,6 @@ class Species(RevisionedMixin):
     def get_approver_group(self):
         # TODO: Take application_type into account
         return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
-
-    def get_species_processor_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
 
     @property
     def species_processor_recipients(self):
@@ -1335,10 +1330,6 @@ class Community(RevisionedMixin):
     # Group for editing the Approved CS(only specific fields)
     def get_editor_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
-
-    def get_community_processor_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
 
     @property
     def assessor_recipients(self):
@@ -2289,7 +2280,7 @@ reversion.register(
     follow=["taxonomy", "species_distribution", "species_conservation_attributes"],
 )
 reversion.register(Taxonomy, follow=["taxon_previous_queryset", "vernaculars"])
-#reversion.register(CrossReference, follow=["old_taxonomy"])
+# reversion.register(CrossReference, follow=["old_taxonomy"])
 reversion.register(TaxonPreviousName)
 reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)

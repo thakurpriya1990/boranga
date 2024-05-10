@@ -12,7 +12,6 @@ from boranga.settings import (
     GROUP_NAME_APPROVER,
     GROUP_NAME_ASSESSOR,
     GROUP_NAME_EDITOR,
-    GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR,
     GROUP_NAME_OCCURRENCE_APPROVER,
     GROUP_NAME_OCCURRENCE_ASSESSOR,
 )
@@ -90,24 +89,6 @@ def is_approver(user_id):
     return True if user_id in assessor_group.get_system_group_member_ids() else False
 
 
-def is_species_processor(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    species_group = SystemGroup.objects.get(
-        name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR
-    )
-    return True if user_id in species_group.get_system_group_member_ids() else False
-
-
-def is_community_processor(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    community_group = SystemGroup.objects.get(
-        name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR
-    )
-    return True if user_id in community_group.get_system_group_member_ids() else False
-
-
 def is_conservation_status_referee(request, cs_proposal=None):
     from boranga.components.conservation_status.models import ConservationStatusReferral
 
@@ -124,11 +105,13 @@ def is_conservation_status_editor(user_id):
     assessor_group = SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
     return True if user_id in assessor_group.get_system_group_member_ids() else False
 
+
 def is_occurrence_assessor(user_id):
     if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
         user_id = user_id.id
     assessor_group = SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
     return True if user_id in assessor_group.get_system_group_member_ids() else False
+
 
 def is_occurrence_approver(user_id):
     if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):

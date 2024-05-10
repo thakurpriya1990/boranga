@@ -39,26 +39,27 @@ LEDGER_TEMPLATE = "bootstrap5"
 EMAIL_DELIVERY = env("EMAIL_DELIVERY", "off")
 EMAIL_INSTANCE = env("EMAIL_INSTANCE", "DEV")
 
-GROUP_NAME_DJANGO_ADMIN = "Django Admin"
+GROUP_NAME_APPROVER = "Proposal Approver"
+GROUP_NAME_ASSESSOR = "Proposal Assessor"
 GROUP_NAME_BORANGA_ADMIN = "Boranga Admin"
-GROUP_NAME_ASSESSOR = "ProposalAssessorGroup"
-GROUP_NAME_APPROVER = "ProposalApproverGroup"
-GROUP_NAME_EDITOR = "ConservationStatusEditorGroup"
-GROUP_NAME_REFERRAL = "ProposalReferralGroup"
-GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR = "SpeciesCommunitiesProcessorGroup"
-GROUP_NAME_OCCURRENCE_ASSESSOR = "Occurrence Assessor Group"
-GROUP_NAME_OCCURRENCE_APPROVER = "Occurrence Approver Group"
+GROUP_NAME_DJANGO_ADMIN = "Django Admin"
+GROUP_NAME_EDITOR = "Conservation Status Editor"
+GROUP_NAME_EXTERNAL_CONTRIBUTOR = "External Contributor"
+GROUP_NAME_INTERNAL_CONTRIBUTOR = "Internal Contributor"
+GROUP_NAME_OCCURRENCE_APPROVER = "Occurrence Approver"
+GROUP_NAME_OCCURRENCE_ASSESSOR = "Occurrence Assessor"
+GROUP_NAME_READONLY = "Read Only"
+GROUP_NAME_REFERRAL = "Proposal Referral"
 
 GROUP_NAME_CHOICES = (
-    (GROUP_NAME_DJANGO_ADMIN, "Django Admin"),
-    (GROUP_NAME_BORANGA_ADMIN, "Boranga Admin"),
-    (GROUP_NAME_ASSESSOR, "Proposal Assessor Group"),
     (GROUP_NAME_APPROVER, "Proposal Approver Group"),
-    (GROUP_NAME_EDITOR, "Conservation Status Editor Group'"),
-    (GROUP_NAME_REFERRAL, "Proposal Referral Group"),
-    (GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR, "Species Communities Processor Group"),
-    (GROUP_NAME_OCCURRENCE_ASSESSOR, "Occurrence Assessor Group"),
+    (GROUP_NAME_ASSESSOR, "Proposal Assessor Group"),
+    (GROUP_NAME_BORANGA_ADMIN, "Boranga Admin"),
+    (GROUP_NAME_DJANGO_ADMIN, "Django Admin"),
+    (GROUP_NAME_EDITOR, "Conservation Status Editor Group"),
     (GROUP_NAME_OCCURRENCE_APPROVER, "Occurrence Approver Group"),
+    (GROUP_NAME_OCCURRENCE_ASSESSOR, "Occurrence Assessor Group"),
+    (GROUP_NAME_REFERRAL, "Proposal Referral Group"),
 )
 
 if env("CONSOLE_EMAIL_BACKEND", False):
