@@ -654,18 +654,10 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def allowed_assessors(self):
-        # if self.processing_status == 'with_approver':
-        #     group = self.__approver_group()
-        # elif self.processing_status =='with_qa_officer':
-        #     group = QAOfficerGroup.objects.get(default=True)
-        # else:
-        #     group = self.__assessor_group()
-        # return group.members.all() if group else []
-
         group = None
-        # TODO: Take application_type into account
         if self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
         ]:
             group = self.get_approver_group()
         elif self.processing_status in [
@@ -674,11 +666,6 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
         ]:
             group = self.get_assessor_group()
-        # for tO SHOW edit action on dashoard of CS
-        elif self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_APPROVED,
-        ]:
-            group = self.get_editor_group()
         users = (
             list(
                 map(
@@ -726,27 +713,17 @@ class ConservationStatus(RevisionedMixin):
         return user.id in self.get_assessor_group().get_system_group_member_ids()
 
     def can_assess(self, user):
-        logger.info("can assess")
-        logger.info("user")
-        logger.info(type(user))
-        logger.info(user)
-        logger.info(user.id)
         if self.processing_status in [
-            # "on_hold",
-            "ready_for_agenda",
-            "with_assessor",
-            "with_referral",
-            "with_assessor_conditions",
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
         ]:
-            logger.info("self.__assessor_group().get_system_group_member_ids()")
-            logger.info(self.get_assessor_group().get_system_group_member_ids())
             return user.id in self.get_assessor_group().get_system_group_member_ids()
-        elif (
-            self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_APPROVER
-        ):
+        elif self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+        ]:
             return user.id in self.get_approver_group().get_system_group_member_ids()
-        elif self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
-            return user.id in self.get_editor_group().get_system_group_member_ids()
         else:
             return False
 
@@ -799,7 +776,9 @@ class ConservationStatus(RevisionedMixin):
         if self.processing_status in status_without_assessor:
             # For Editing the 'Approved' conservation status for authorised group
             if self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
-                return user.id in self.get_editor_group().get_system_group_member_ids()
+                return (
+                    user.id in self.get_approver_group().get_system_group_member_ids()
+                )
             else:
                 return False
 
