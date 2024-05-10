@@ -690,57 +690,6 @@ class TaxonomyViewSet(viewsets.ModelViewSet):
 
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
-        family_list = []
-        # filter taxons that are having family_id and the fetch distinct family_id
-        families_dict = (
-            Taxonomy.objects.filter(~Q(family_fk=None))
-            .order_by()
-            .values_list("family_fk", flat=True)
-            .distinct()
-        )
-        families = Taxonomy.objects.filter(id__in=families_dict)
-        if families:
-            for family in families:
-                family_list.append(
-                    {
-                        "id": family.id,
-                        "name": family.scientific_name,
-                    }
-                )
-        phylo_group_list = []
-        phylo_groups = ClassificationSystem.objects.all()
-        if phylo_groups:
-            for group in phylo_groups:
-                phylo_group_list.append(
-                    {
-                        "id": group.id,
-                        "name": group.class_desc,
-                    }
-                )
-        genus_list = []
-        generas = Genus.objects.all()
-        if generas:
-            for genus in generas:
-                genus_list.append(
-                    {
-                        "id": genus.id,
-                        "name": genus.name,
-                    }
-                )
-        flowering_period_list = []
-        # periods = FloweringPeriod.objects.all()
-        # if periods:
-        #     for option in periods:
-        #         flowering_period_list.append({'id': option.id,
-        #             'name':option.period,
-        #             });
-        fruiting_period_list = []
-        # periods = FruitingPeriod.objects.all()
-        # if periods:
-        #     for option in periods:
-        #         fruiting_period_list.append({'id': option.id,
-        #             'name':option.period,
-        #             });
         flora_recruitment_type_list = []
         types = FloraRecruitmentType.objects.all()
         if types:
@@ -771,23 +720,10 @@ class GetSpeciesProfileDict(views.APIView):
                         "name": option.name,
                     }
                 )
-        breeding_period_list = []
-        # periods = BreedingPeriod.objects.all()
-        # if periods:
-        #     for option in periods:
-        #         breeding_period_list.append({'id': option.id,
-        #             'name':option.period,
-        #             });
         res_json = {
-            "family_list": family_list,
-            "genus_list": genus_list,
-            "phylo_group_list": phylo_group_list,
-            "flowering_period_list": flowering_period_list,
-            "fruiting_period_list": fruiting_period_list,
             "flora_recruitment_type_list": flora_recruitment_type_list,
             "root_morphology_list": root_morphology_list,
             "post_fire_habitatat_interactions_list": post_fire_habitatat_interactions_list,
-            "breeding_period_list": breeding_period_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
