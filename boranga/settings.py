@@ -39,12 +39,13 @@ LEDGER_TEMPLATE = "bootstrap5"
 EMAIL_DELIVERY = env("EMAIL_DELIVERY", "off")
 EMAIL_INSTANCE = env("EMAIL_INSTANCE", "DEV")
 
-GROUP_NAME_BORANGA_ADMIN = "Boranga Administrators"
+# Use these two admin group names as they are referred to in dbca templates
+ADMIN_GROUP = env("ADMIN_GROUP", "Boranga Administrators")
+DJANGO_ADMIN_GROUP = env("DJANGO_ADMIN_GROUP", "Django Administrators")
+# ----------------------------------------------
 
 GROUP_NAME_CONSERVATION_STATUS_ASSESSOR = "Conservation Status Assessors"
 GROUP_NAME_CONSERVATION_STATUS_APPROVER = "Conservation Status Approvers"
-
-GROUP_NAME_DJANGO_ADMIN = "Django Administrators"
 
 GROUP_NAME_EXTERNAL_CONTRIBUTOR = "External Contributors"
 GROUP_NAME_INTERNAL_CONTRIBUTOR = "Internal Contributors"
@@ -57,12 +58,12 @@ GROUP_NAME_READONLY_USER = "Read Only Users"
 GROUP_NAME_SPECIES_COMMUNITIES_APPROVER = "Species and Communities Approvers"
 
 GROUP_NAME_CHOICES = (
-    GROUP_NAME_BORANGA_ADMIN,
+    ADMIN_GROUP,
+    DJANGO_ADMIN_GROUP,
     GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
     GROUP_NAME_CONSERVATION_STATUS_APPROVER,
     GROUP_NAME_EXTERNAL_CONTRIBUTOR,
     GROUP_NAME_INTERNAL_CONTRIBUTOR,
-    GROUP_NAME_DJANGO_ADMIN,
     GROUP_NAME_OCCURRENCE_APPROVER,
     GROUP_NAME_OCCURRENCE_ASSESSOR,
     GROUP_NAME_READONLY_USER,
@@ -185,8 +186,6 @@ SITE_URL = env("SITE_URL", "https://" + SITE_PREFIX + "." + SITE_DOMAIN)
 PUBLIC_URL = env("PUBLIC_URL", SITE_URL)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "no-reply@" + SITE_DOMAIN).lower()
 MEDIA_APP_DIR = env("MEDIA_APP_DIR", "boranga")
-ADMIN_GROUP = env("ADMIN_GROUP", "Boranga Admin")
-DJANGO_ADMIN_GROUP = env("DJANGO_ADMIN_GROUP", "Django Admin")
 CRON_RUN_AT_TIMES = env("CRON_RUN_AT_TIMES", "04:05")
 CRON_EMAIL = env("CRON_EMAIL", "cron@" + SITE_DOMAIN).lower()
 # for ORACLE Job Notification - override settings_base.py
