@@ -171,13 +171,11 @@ class Meeting(models.Model):
 
     def save(self, *args, **kwargs):
         # Prefix "M" char to meeting_number.
+        super().save(*args, **kwargs)
         if self.meeting_number == "":
-            super().save(*args, **kwargs)
             new_meeting_id = f"M{str(self.pk)}"
             self.meeting_number = new_meeting_id
-            self.save(*args, **kwargs)
-        else:
-            super().save(*args, **kwargs)
+            self.save()
 
     @property
     def reference(self):
@@ -234,27 +232,20 @@ class Meeting(models.Model):
         self.submitter = request.user.id
         self.lodgement_date = timezone.now()
 
-        # Create a log entry for the proposal
+        # Create a log entry for the meeting
         self.log_user_action(
-            MeetingUserAction.ACTION_CREATE_MEETING.format(self.id), request
+            MeetingUserAction.ACTION_CREATE_MEETING.format(self.meeting_number), request
         )
 
         # Create a log entry for the submitter
         if self.submitter:
             submitter = retrieve_email_user(self.submitter)
             submitter.log_user_action(
-                MeetingUserAction.CONCLUDE_REFERRAL.format(
-                    self.id,
+                MeetingUserAction.ACTION_CREATE_MEETING.format(
                     self.meeting_number,
-                    "{}({})".format(
-                        submitter.get_full_name(),
-                        submitter.email,
-                    ),
                 ),
                 request,
             )
-
-        # TODO: Confirm if any emails need to be sent at this point
 
         self.processing_status = self.PROCESSING_STATUS_SCHEDULED
         self.save()
