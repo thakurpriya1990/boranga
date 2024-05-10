@@ -23,7 +23,7 @@
                         :href="'#' + locationBody"
                         role="tab"
                         :aria-controls="locationBody"
-                        aria-selected="true"
+                        aria-selected="false"
                         @click="tabClicked()"
                     >
                         Location

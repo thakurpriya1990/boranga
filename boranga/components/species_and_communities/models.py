@@ -295,14 +295,15 @@ class Taxonomy(models.Model):
     name_currency = models.CharField(
         max_length=16, null=True, blank=True
     )  # is it the current name? yes or no
-    previous_name = models.CharField(
-        max_length=512, null=True, blank=True
-    )  # TODO this field is not used anymore
     name_authority = models.CharField(max_length=500, null=True, blank=True)
     name_comments = models.CharField(max_length=500, null=True, blank=True)
-    path = models.CharField(
-        max_length=512, null=True, blank=True
-    )  # hierarchy for given taxon
+    # storing the hierarchy id and scientific_names(class,family,genus) at the moment
+    family_id = models.IntegerField(null=True, blank=True)
+    family_name = models.CharField(max_length=512, null=True, blank=True)
+    class_id = models.IntegerField(null=True, blank=True)
+    class_name = models.CharField(max_length=512, null=True, blank=True)
+    genera_id = models.IntegerField(null=True, blank=True)
+    genera_name = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -318,26 +319,20 @@ class Taxonomy(models.Model):
 
     @property
     def taxon_previous_name(self):
-        if self.new_taxon.all():
-            # cross_ref = CrossReference.objects.get(new_taxonomy_id=self.id)
-            # return cross_ref.old_taxonomy.scientific_name
-            # if taxon has more than one previous names
-            # previous_names_list=self.new_taxon.all().values_list('old_taxonomy__scientific_name', flat=True)
-            # commented the above as gives None scientific_name if there is no old_taxon instance in Taxonomy api data
-            previous_names_list = CrossReference.objects.filter(
-                ~Q(old_taxonomy__scientific_name=None), new_taxonomy=self.id
-            ).values_list("old_taxonomy__scientific_name", flat=True)
+        if self.previous_names.all():
+            previous_names_list = TaxonPreviousName.objects.filter(taxonomy=self.id
+            ).values_list("previous_scientific_name", flat=True)
             return ",".join(previous_names_list)
 
     @property
     def taxon_previous_queryset(self):
         if self.new_taxon.all():
-            previous_queryset = CrossReference.objects.filter(
-                ~Q(old_taxonomy__scientific_name=None), new_taxonomy=self.id
-            ).order_by("-cross_reference_id")
+            previous_queryset = TaxonPreviousName.objects.filter(
+                taxonomy=self.id
+                ).order_by("id")
             return previous_queryset
         else:
-            return CrossReference.objects.none()
+            return TaxonPreviousName.objects.none()
 
     @property
     def taxon_vernacular_name(self):
@@ -369,7 +364,24 @@ class TaxonVernacular(models.Model):
     def __str__(self):
         return str(self.vernacular_name)  # TODO: is the most appropriate?
 
+class TaxonPreviousName(models.Model):
+    """
+    Previous Name(old name) of taxon
+    """
+    taxonomy = models.ForeignKey(
+        Taxonomy, on_delete=models.CASCADE, null=True, related_name="previous_names"
+    )
+    previous_name_id = models.IntegerField(null=True, blank=True)
+    previous_scientific_name = models.CharField(max_length=512, null=True, blank=True)
 
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.previous_scientific_name)  # TODO: is the most appropriate?
+
+
+# TODO will need to delete this model
 class CrossReference(models.Model):
     """
     Previous Name(old name) of taxon which is also derived from taxon
@@ -2277,7 +2289,8 @@ reversion.register(
     follow=["taxonomy", "species_distribution", "species_conservation_attributes"],
 )
 reversion.register(Taxonomy, follow=["taxon_previous_queryset", "vernaculars"])
-reversion.register(CrossReference, follow=["old_taxonomy"])
+#reversion.register(CrossReference, follow=["old_taxonomy"])
+reversion.register(TaxonPreviousName)
 reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)
 reversion.register(TaxonVernacular)

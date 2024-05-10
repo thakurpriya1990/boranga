@@ -53,7 +53,7 @@
                                 <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="with_assessor && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
+                            <a v-if="(with_assessor || with_referral) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
                                 @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
                                 me</a>
                         </template>
@@ -182,7 +182,7 @@
                     <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
                         enctype="multipart/form-data">
                         <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
-                            id="OccurrenceReportStart" :canEditStatus="false" :is_external="true"
+                            id="OccurrenceReportStart" :canEditStatus="false" :is_external="false"
                             ref="occurrence_report" @refreshFromResponse="refreshFromResponse">
                         </ProposalOccurrenceReport>
 
@@ -190,7 +190,7 @@
                         <input type='hidden' name="occurrence_report_id" :value="1" />
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="occurrence_report.internal_application" class="container">
+                                <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
@@ -213,10 +213,10 @@
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <button v-else class="btn btn-primary" style="margin-top:5px;"
                                             @click.prevent="submit()"
-                                            :disbaled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
+                                            :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
-                                <div v-else-if="occurrence_report.internal_application" class="container">
+                                <div v-else-if="$route.query.action == 'edit' && occurrence_report.assessor_mode.has_assessor_mode" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
@@ -385,6 +385,9 @@ export default {
         },
         with_assessor: function () {
             return this.occurrence_report && this.occurrence_report.processing_status === 'With Assessor'
+        },
+        with_referral: function () {
+            return this.occurrence_report && this.occurrence_report.processing_status === 'With Referral'
         },
         with_approver: function () {
             return this.occurrence_report && this.occurrence_report.processing_status === 'With Approver'

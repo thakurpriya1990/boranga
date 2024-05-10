@@ -414,6 +414,7 @@
                         v-if="!updatingLocationDetails"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateLocationDetails()"
+                        :disabled="isReadOnly"
                     >
                         Update
                     </button>
@@ -550,9 +551,13 @@ export default {
             }
             return has_value;
         },
-        isReadOnly: function () {
-            return this.occurrence_report_obj.readonly;
-        },
+        isReadOnly: function(){
+                //override for split reports
+                if(this.is_readonly){
+                    return this.is_readonly;
+                }
+                return this.occurrence_report_obj.readonly
+            },
         componentMapKey: function () {
             return `component-map-${this.uuid}`;
         },

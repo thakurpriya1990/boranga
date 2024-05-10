@@ -27,7 +27,7 @@
                                     <div class="col-sm-12">
                                         <div class="separator"></div>
                                     </div>
-                                    <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
+                                    <div class="col-sm-12 top-buffer-s">
                                         <template v-if="hasUserEditMode">
                                             <div class="row">
                                                 <div class="col-sm-12">
@@ -35,19 +35,38 @@
                                                 </div>
                                             </div>
                                             <div class="row">
+                                                <div v-if="canLock" class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="lockOccurrence()">Lock</button><br />
+                                                </div>
                                                 <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="splitOccurrence()">Split</button><br />
                                                 </div>
                                                 <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="combineOccurrence()">Combine</button><br />
                                                 </div>
                                                 <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="renameOccurrence()">Rename</button><br />
                                                 </div>
+                                                <div v-if="canClose" class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="closeOccurrence()">Close</button><br />
+                                                </div>
                                             </div>
+                                        </template>
+                                        <template v-else-if="canUnlock">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Action</strong><br />
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="unlockOccurrence()">Unlock</button><br />
+                                                </div>
                                         </template>
                                     </div>
                                 </div>
@@ -70,7 +89,8 @@
                             <input type='hidden' name="occurrence_id" :value="1"/>
                             <div class="row" style="margin-bottom: 50px">
                                 <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                    <div v-if="occurrence.can_user_edit" class="container">
+                                    <!--TODO check if it is a draft (if occ starting as draft is implemented)-->
+                                    <div v-if="occurrence.can_user_edit && this.$route.query.action == 'edit'" class="container">
                                         <div class="col-md-12 text-end">
                                             <button v-if="savingOccurrence"
                                                 class="btn btn-primary me-2 pull-right"
@@ -90,7 +110,8 @@
                                                 :disabled="savingOccurrence || submitOccurrence">Save
                                                 and Exit</button>
 
-                                            <!--<button v-if="submitOccurrence"
+                                            <!--TODO bring this back once OCC initial status confirmed
+                                                <button v-if="submitOccurrence"
                                                 class="btn btn-primary pull-right" style="margin-top:5px;"
                                                 disabled>Submit&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -220,15 +241,17 @@ export default {
         },
         hasUserEditMode: function () {
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (this.$route.query.action == 'edit') {
-                return this.occurrence && this.occurrence.user_edit_mode ? true : false;
-            }
-            else {
-                return false;
-            }
+            return this.occurrence && this.occurrence.can_user_edit ? true : false;
         },
-        canDiscard: function () {
-            return this.occurrence && this.occurrence.processing_status === "Draft" ? true : false;
+        canLock: function () {
+            return this.occurrence && this.occurrence.processing_status === "Active" ? true : false;
+        },
+        canUnlock: function () {
+            return this.occurrence && this.occurrence.processing_status === "Locked" ? true : false;
+        },
+        //TODO: can we close locked? should we only close locked?
+        canClose: function () {
+            return this.occurrence && this.occurrence.processing_status === "Active" ? true : false;
         },
         comms_url: function () {
             return helpers.add_endpoint_json(api_endpoints.occurrence, this.$route.params.occurrence_id + '/comms_log')
@@ -403,6 +426,82 @@ export default {
             let vm = this;
             vm.original_occurrence = helpers.copyObject(response.body);
             vm.occurrence = helpers.copyObject(response.body);
+        },
+        lockOccurrence: async function () {
+            let vm = this;
+            await vm.$http.post(`/api/occurrence/${this.occurrence.id}/lock_occurrence.json`).then(res => {
+                swal.fire({
+                    title: "Locked",
+                    text: "Occurrence has been Locked",
+                    icon: "success",
+                    confirmButtonColor: '#226fbb'
+                }).then(async (swalresult) => {
+                    this.$router.go(this.$router.currentRoute);
+                });
+            }, err => {
+                var errorText = helpers.apiVueResourceError(err);
+                swal.fire({
+                    title: 'Lock Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
+                });
+            });
+        },
+        unlockOccurrence: async function () {
+            let vm = this;
+            await vm.$http.post(`/api/occurrence/${this.occurrence.id}/unlock_occurrence.json`).then(res => {
+                swal.fire({
+                    title: "Unlocked",
+                    text: "Occurrence has been Unlocked",
+                    icon: "success",
+                    confirmButtonColor: '#226fbb'
+                }).then(async (swalresult) => {
+                    this.$router.go(this.$router.currentRoute);
+                });
+            }, err => {
+                var errorText = helpers.apiVueResourceError(err);
+                swal.fire({
+                    title: 'Unlock Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
+                });
+            });
+        },
+        closeOccurrence: async function () {
+            let vm = this;
+            swal.fire({
+                title: "Close",
+                text: "Are you sure you want to close this Occurrence? This cannot be undone.",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Close Occurrence",
+                confirmButtonColor: '#226fbb'
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    await vm.$http.post(`/api/occurrence/${this.occurrence.id}/close_occurrence.json`).then(res => {
+                        swal.fire({
+                            title: "Closed",
+                            text: "Occurrence has been Closed",
+                            icon: "success",
+                            confirmButtonColor: '#226fbb'
+                        }).then(async (swalresult) => {
+                            vm.$router.push({
+                                name: 'occurrence-dashboard'
+                            });
+                        });
+                    }, err => {
+                        var errorText = helpers.apiVueResourceError(err);
+                        swal.fire({
+                            title: 'Close Error',
+                            text: errorText,
+                            icon: 'error',
+                            confirmButtonColor: '#226fbb'
+                        });
+                    });
+                }
+            });
         },
         splitOccurrence: async function () {
             this.$refs.occurrence_split.occurrence_original = this.occurrence;

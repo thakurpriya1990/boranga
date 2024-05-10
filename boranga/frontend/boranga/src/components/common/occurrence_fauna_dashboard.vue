@@ -30,6 +30,13 @@
                 </div>
             </div>
         </CollapsibleFilters>
+
+        <div class="col-md-12">
+            <div class="text-end">
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaOccurrence"><i class="fa-solid fa-circle-plus"></i> Add Fauna Occurrence</button>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-lg-12">
                 <datatable ref="fauna_occ_datatable" :id="datatable_id" :dtOptions="datatable_options"
@@ -133,12 +140,10 @@ export default {
             submissions_to_list: [],
 
             // filtering options
-            internal_status: [
-                { value: 'draft', name: 'Draft' },
-                { value: 'locked', name: 'Locked' },
-                { value: 'split', name: 'Split' },
-                { value: 'combine', name: 'Combine' },
-                { value: 'historical', name: 'Historical' },
+            internal_status:[
+                {value: 'active', name: 'Active'},
+                {value: 'locked', name: 'Locked'},
+                {value: 'historical', name: 'Historical'},
             ],
 
             proposal_status: [],
@@ -296,24 +301,13 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let links = "";
-                    if (!vm.is_external) {
-                        if (full.internal_user_edit) {
-                            links += `<a href='/internal/occurrence/${full.id}'>Continue</a><br/>`;
-                            links += `<a href='#${full.id}' data-discard-occ-proposal='${full.id}'>Discard</a><br/>`;
-                            links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
+                    if (vm.is_internal) {                        
+                        if (full.can_user_edit) {
+                            links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
+                        } else {
+                            links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                         }
-                        else {
-                            if (full.assessor_process) {
-                                links += `<a href='/internal/occurrence/${full.id}'>Process</a><br/>`;
-                            }
-                            else {
-                                if (full.assessor_edit) {
-                                    links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
-                                }
-                                links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
-                            }
-                            links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
-                        }
+                        links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;                       
                     }
                     return links;
                 }
@@ -484,6 +478,9 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
             //large FilterList of Species Values object
+
+            //TODO occurrence status filters...
+
             vm.$http.get(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.occurrence_list = vm.filterListsSpecies.occurrence_list;
@@ -503,7 +500,7 @@ export default {
         createFaunaOccurrence: async function () {
             let newFaunaOCRId = null
             try {
-                const createUrl = api_endpoints.occurrence + "/";
+                const createUrl = api_endpoints.occurrence;
                 let payload = new Object();
                 payload.group_type_id = this.group_type_id
                 payload.internal_application = true
@@ -519,7 +516,7 @@ export default {
                 }
             }
             this.$router.push({
-                name: 'internal-occurrence',
+                name: 'internal-occurrence-detail',
                 params: { occurrence_id: newFaunaOCRId },
             });
         },

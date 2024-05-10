@@ -42,7 +42,7 @@ export default {
             },
             isReadOnly:{
               type: Boolean,
-              default: false
+              default: true
             },
         },
         data:function () {
@@ -133,11 +133,13 @@ export default {
                         {
                             data: "id",
                             mRender:function (data,type,full){
-                                let links = '';
-                                links +=  `<a href='#${full.id}' data-view-observer_det='${full.id}'>View</a><br/>`;
-                                links +=  `<a href='#${full.id}' data-edit-observer_det='${full.id}'>Edit</a><br/>`;
-                                links += `<a href='#' data-delete-observer_det='${full.id}'>Delete</a><br>`;
-
+                                let links = '';                                
+                                if (!vm.isReadOnly) {
+                                    links +=  `<a href='#${full.id}' data-edit-observer_det='${full.id}'>Edit</a><br/>`;
+                                    links += `<a href='#' data-delete-observer_det='${full.id}'>Delete</a><br>`;
+                                } else {
+                                    links +=  `<a href='#${full.id}' data-view-observer_det='${full.id}'>View</a><br/>`;
+                                }
                                 return links;
                             }
                         },
@@ -163,7 +165,10 @@ export default {
         },
         computed: {
         },
-        watch:{
+        watch: { 
+            isReadOnly: function(newVal, oldVal) { 
+                this.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+            }
         },
         methods:{
             eventListeners:function (){
