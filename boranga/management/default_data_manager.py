@@ -17,6 +17,8 @@ class DefaultDataManager:
                 logger.error(f"{e}, SystemGroup: {group_name[0]}")
 
         # Delete any groups that are not in the settings.GROUP_NAME_CHOICES
-        SystemGroup.objects.exclude(
+        for sg in SystemGroup.objects.exclude(
             name__in=[group_name[0] for group_name in settings.GROUP_NAME_CHOICES]
-        ).delete()
+        ):
+            sg.systemgrouppermission_set.all().delete()
+            sg.delete()
