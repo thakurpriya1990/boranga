@@ -1543,7 +1543,7 @@ export default {
             proposals: [],
             modelQuerySource: null,
             modelQueryLayer: null,
-            selectedEditLayer: null,
+            editableFeatureCollection: new Collection([], { unique: true }),
             processedGeometrySource: null,
             processedGeometryLayer: null,
             selectedFeatureCollection: new Collection([], { unique: true }),
@@ -1846,7 +1846,11 @@ export default {
             });
         },
         isEditingALayer: function () {
-            return this.selectedEditLayer !== null;
+            const editableLayers = this.editableLayers().filter((layer) => {
+                return layer.get('editing') === true;
+            });
+
+            return editableLayers.length > 0;
         },
     },
     watch: {
@@ -2204,6 +2208,7 @@ export default {
                 this.processedGeometryLayer,
                 this.modelQueryLayer,
             ]);
+            vm.initialiseLayerEvents();
 
             // update map extent when new features added
             vm.map.on('rendercomplete', vm.displayAllFeatures());
@@ -2740,12 +2745,15 @@ export default {
                         divWrapper.click((e) => {
                             const target = e.originalEvent.currentTarget;
                             const toggle_editing = !layer.get('toggle_editing');
-                            // Get the other editable layers
-                            const otherEditableLayers =
-                                this.editableLayers().filter(
-                                    (l) => l.ol_uid != layer.ol_uid
-                                );
+                            // Clear the collection of editable features
+                            this.editableFeatureCollection.clear();
+
                             if (toggle_editing) {
+                                // Get the other editable layers
+                                const otherEditableLayers =
+                                    this.editableLayers().filter(
+                                        (l) => l.ol_uid != layer.ol_uid
+                                    );
                                 // Turn off editing for all other layers if toggling on for this layer
                                 otherEditableLayers.forEach((l) => {
                                     const b = $(
@@ -2753,10 +2761,18 @@ export default {
                                     );
                                     this.layerToggleEditing(l, b, false);
                                 });
-                                this.selectedEditLayer = layer;
+
+                                // Populate the collection of editable features
+                                layer
+                                    .getSource()
+                                    .getFeatures()
+                                    .forEach((f) => {
+                                        this.editableFeatureCollection.push(f);
+                                    });
                             } else {
-                                this.selectedEditLayer = null;
+                                this.set_mode('layer');
                             }
+
                             // Toggle on this layer's editing
                             this.layerToggleEditing(
                                 layer,
@@ -2794,8 +2810,19 @@ export default {
 
             this.map.addControl(this.layerSwitcher);
         },
+        initialiseLayerEvents: function () {
+            const editableLayers = this.editableLayers();
+            editableLayers.forEach((layer) => {
+                layer.getSource().on('addfeature', (evt) => {
+                    this.editableFeatureCollection.push(evt.feature);
+                });
+                layer.getSource().on('removefeature', (evt) => {
+                    this.editableFeatureCollection.remove(evt.feature);
+                });
+            });
+        },
         initialiseSnap: function (snapLayers) {
-            var snapCollection = new Collection([], {
+            const snapCollection = new Collection([], {
                 unique: true,
             });
 
@@ -3253,7 +3280,7 @@ export default {
             let vm = this;
 
             const transform = new Transform({
-                source: vm.modelQuerySource,
+                features: vm.editableFeatureCollection,
                 hitTolerance: vm.hitTolerance,
             });
 
