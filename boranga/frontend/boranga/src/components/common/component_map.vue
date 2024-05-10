@@ -1836,6 +1836,7 @@ export default {
                 return feature.getProperties().id;
             });
         },
+
     },
     watch: {
         selectedFeatureIds: function () {
@@ -2699,7 +2700,7 @@ export default {
                         'optional-layers-button-wrapper',
                         'optional-layers-button-fit',
                     ]);
-                    divWrapper.attr('title', 'Toggle Layer Editing');
+                    divWrapper.attr('title', 'Layer Editing: Off');
 
                     const divDraw = $('<div>');
                     divDraw.addClass([
@@ -2715,30 +2716,6 @@ export default {
                     divDraw.append(img);
                     divWrapper.append(divDraw);
 
-                    // <div v-if="drawable" class="optional-layers-button-wrapper">
-                    //     <div
-                    //         :title="
-                    //             mode == 'draw'
-                    //                 ? 'Drawing mode active'
-                    //                 : 'Select a drawing mode'
-                    //         "
-                    //         class="btn optional-layers-button"
-                    //         @click="
-                    //             mode == 'draw'
-                    //                 ? toggleElementVisibility('submenu-draw')
-                    //                 : toggleElementVisibility(
-                    //                         'submenu-draw',
-                    //                         $event.target
-                    //                     )
-                    //         "
-                    //     >
-                    //         <img
-                    //             class="svg-icon"
-                    //             src="../../assets/pen-icon.svg"
-                    //         />
-                    //     </div>
-                    // </div>
-
                     if (layer.get('can_edit')) {
                         // divWrapper.text('?').click(function () {
                         divWrapper.click(function () {
@@ -2748,10 +2725,14 @@ export default {
                             const img = $(this).find('img');
                             if (toggle_editing) {
                                 img.addClass('svg-green');
+                                btn.addClass('btn-success');
                                 btn.removeClass('btn-danger');
+                                $(this).attr('title', 'Layer Editing: On');
                             } else {
                                 btn.addClass('btn-danger');
+                                btn.removeClass('btn-success');
                                 img.removeClass('svg-green');
+                                $(this).attr('title', 'Layer Editing: Off');
                             }
                             // toggle_editing ? btn.addClass('btn-danger') : btn.removeClass('btn-danger')
                             console.log(toggle_editing);
@@ -4511,6 +4492,12 @@ export default {
             }
 
             return type;
+        },
+        editableLayers: function () {
+            const layers = this.getLayersWithFeatures();
+            return layers.filter((layer) => {
+                return layer.get('can_edit');
+            });
         },
     },
 };
