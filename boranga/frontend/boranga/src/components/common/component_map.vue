@@ -73,6 +73,7 @@
                                 " -->
                                 <div
                                     class="optional-layers-button btn"
+                                    :class="isEditingALayer ? 'btn-danger' : ''"
                                     @mouseover="hover = true"
                                 >
                                     <img src="../../assets/layers.svg" />
@@ -476,7 +477,11 @@
                         </div>
                     </div>
 
-                    <div v-if="drawable" class="optional-layers-button-wrapper">
+                    <div
+                        v-if="drawable"
+                        class="optional-layers-button-wrapper"
+                        title="To draw features first toggle on layer editing"
+                    >
                         <div
                             :title="
                                 mode == 'draw'
@@ -484,6 +489,7 @@
                                     : 'Select a drawing mode'
                             "
                             class="btn optional-layers-button"
+                            :class="isEditingALayer ? '' : 'disabled'"
                             @click="
                                 mode == 'draw'
                                     ? toggleElementVisibility('submenu-draw')
@@ -502,7 +508,7 @@
                     <div
                         v-if="editable"
                         class="optional-layers-button-wrapper"
-                        title="Transform a drawn feature"
+                        title="To transform features first toggle on layer editing"
                     >
                         <div
                             :title="
@@ -515,7 +521,9 @@
                                 mode == 'transform'
                                     ? 'optional-layers-button-active'
                                     : 'optional-layers-button',
-                                drawable && featureCount ? '' : 'disabled',
+                                drawable && featureCount && isEditingALayer
+                                    ? ''
+                                    : 'disabled',
                             ]"
                             @click="set_mode('transform')"
                         >
@@ -1535,6 +1543,7 @@ export default {
             proposals: [],
             modelQuerySource: null,
             modelQueryLayer: null,
+            selectedEditLayer: null,
             processedGeometrySource: null,
             processedGeometryLayer: null,
             selectedFeatureCollection: new Collection([], { unique: true }),
@@ -1835,6 +1844,9 @@ export default {
             return this.selectedFeatureCollection.getArray().map((feature) => {
                 return feature.getProperties().id;
             });
+        },
+        isEditingALayer: function () {
+            return this.selectedEditLayer !== null;
         },
     },
     watch: {
@@ -2715,11 +2727,7 @@ export default {
                     );
 
                     const divDraw = $('<div>');
-                    divDraw.addClass([
-                        'btn',
-                        'btn-danger',
-                        'optional-layers-button',
-                    ]);
+                    divDraw.addClass(['btn', 'optional-layers-button']);
 
                     const img = $('<img>');
                     img.addClass('svg-object');
@@ -2745,6 +2753,9 @@ export default {
                                     );
                                     this.layerToggleEditing(l, b, false);
                                 });
+                                this.selectedEditLayer = layer;
+                            } else {
+                                this.selectedEditLayer = null;
                             }
                             // Toggle on this layer's editing
                             this.layerToggleEditing(
@@ -4534,11 +4545,11 @@ export default {
             if (editing) {
                 img.addClass('svg-green');
                 btn.addClass('btn-success');
-                btn.removeClass('btn-danger');
+                btn.addClass('btn-danger');
                 $(toggleButton).attr('title', 'Layer Editing: On');
                 layer.set('editing', true);
             } else {
-                btn.addClass('btn-danger');
+                btn.removeClass('btn-danger');
                 btn.removeClass('btn-success');
                 img.removeClass('svg-green');
                 $(toggleButton).attr('title', 'Layer Editing: Off');
