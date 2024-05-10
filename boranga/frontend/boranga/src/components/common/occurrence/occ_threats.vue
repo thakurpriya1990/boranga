@@ -1,6 +1,20 @@
 <template lang="html">
     <div id="occ_threats">
         <FormSection :formCollapse="false" label="Threats" :Index="threatBody">
+            <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Threat Source:</label>
+                            <select class="form-select" v-model="filterThreatSource">
+                                <option value="all">All</option>
+                                <option v-for="option in threat_source_filter_list" :value="option">{{option}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </CollapsibleFilters>
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <div class="text-end">
@@ -41,6 +55,7 @@ import ThreatDetail from '@/components/common/species_communities/add_threat.vue
 import ExistingThreat from '@/components/common/occurrence/occ_ocr_existing_threats.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import ConservationThreatHistory from '../../internal/occurrence/occ_conservation_threat_history.vue';
+import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import {
     constants,
     api_endpoints,
@@ -72,6 +87,11 @@ export default {
                 panelBody: "species-threats-"+ vm._uid,
                 values:null,
                 occ_threat_url: api_endpoints.occ_threat,
+
+                filterThreatSource: 'all',
+
+                threat_source_filter_list: [],
+
                 threats_headers:['Number', 'Original Report','Category','Date Observed', 'Threat Agent', 'Comments', 'Threat Source',
                                 'Current Impact', 'Potential Impact','Action'],
                 threats_options:{
@@ -80,6 +100,7 @@ export default {
                         processing: constants.DATATABLE_PROCESSING_HTML
                     },
                     responsive: true,
+                    serverSide: false,
                     searching: true,
                     //  to show the "workflow Status","Action" columns always in the last position
                     columnDefs: [
@@ -88,7 +109,10 @@ export default {
                     ],
                     ajax:{
                         "url": helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+'/threats'),
-                        "dataSrc": ''
+                        "dataSrc": '',
+                        "data": function ( d ) {
+                            d.filter_threat_source = vm.filterThreatSource
+                        },
                     },
                     order: [[0, 'desc']],
                     dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
@@ -262,7 +286,7 @@ export default {
                     ],
                     processing:true,
                     drawCallback: function() {
-                    helpers.enablePopovers();
+                    helpers.enablePopovers(); 
                 },
                 initComplete: function() {
                         helpers.enablePopovers();
@@ -281,16 +305,50 @@ export default {
             ThreatDetail,
             ConservationThreatHistory,
             ExistingThreat,
+            CollapsibleFilters,
         },
         computed: {
             isReadOnly: function () {
                 return !(this.occurrence_obj.can_user_edit);
             },
+            filterApplied: function(){
+                if(this.filterThreatSource === 'all'){
+                    return false
+                } else {
+                    return true
+                }
+            },
         },
         watch:{
-
+            filterApplied: function(){
+                if (this.$refs.collapsible_filters){
+                    // Collapsible component exists
+                    this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+                }
+            },
+            filterThreatSource: function(){
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
         },
         methods:{
+            collapsible_component_mounted: function(){
+                this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+            },
+
+            fetchFilterLists: function(){
+            let vm = this;
+
+                //Threat Source filter list (specific to instance)
+                vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+'/threat_source_list')).then((response) => {
+                    vm.threat_source_filter_list = response.body;
+                },(error) => {
+                    console.log(error);
+                })
+
+                //Category, Current Impact, Potential Impact (generic to all threats)
+
+            },
             newThreat: function(){
                 let vm=this;
                 this.$refs.threat_detail.threat_id = '';
@@ -450,6 +508,7 @@ export default {
             },
         },
         mounted: function(){
+            this.fetchFilterLists();
             let vm = this;
             this.$nextTick(() => {
                 vm.addEventListeners();
