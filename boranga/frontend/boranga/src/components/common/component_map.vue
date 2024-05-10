@@ -1836,7 +1836,6 @@ export default {
                 return feature.getProperties().id;
             });
         },
-
     },
     watch: {
         selectedFeatureIds: function () {
@@ -2681,6 +2680,9 @@ export default {
                 displayInLayerSwitcher: function (l) {
                     return l.get('displayInLayerSwitcher');
                 },
+                editableLayers: function () {
+                    return this.editableLayers();
+                },
             };
 
             if (layers) {
@@ -2698,7 +2700,7 @@ export default {
 
             if (this.editable || this.drawable) {
                 // Add a new button to the list if the component allows for editing or drawing
-                this.layerSwitcher.on('drawlist', function (e) {
+                this.layerSwitcher.on('drawlist', (e) => {
                     const layer = e.layer;
                     const divWrapper = $('<div>');
 
@@ -2707,6 +2709,10 @@ export default {
                         'optional-layers-button-fit',
                     ]);
                     divWrapper.attr('title', 'Layer Editing: Off');
+                    divWrapper.attr(
+                        'id',
+                        `layer-editing-button-${layer.ol_uid}`
+                    );
 
                     const divDraw = $('<div>');
                     divDraw.addClass([
@@ -2723,25 +2729,29 @@ export default {
                     divWrapper.append(divDraw);
 
                     if (layer.get('can_edit')) {
-                        // divWrapper.text('?').click(function () {
-                        divWrapper.click(function () {
+                        divWrapper.click((e) => {
+                            const target = e.originalEvent.currentTarget;
                             const toggle_editing = !layer.get('toggle_editing');
-                            layer.set('toggle_editing', toggle_editing);
-                            const btn = $(this).find('.btn');
-                            const img = $(this).find('img');
+                            // Get the other editable layers
+                            const otherEditableLayers =
+                                this.editableLayers().filter(
+                                    (l) => l.ol_uid != layer.ol_uid
+                                );
                             if (toggle_editing) {
-                                img.addClass('svg-green');
-                                btn.addClass('btn-success');
-                                btn.removeClass('btn-danger');
-                                $(this).attr('title', 'Layer Editing: On');
-                            } else {
-                                btn.addClass('btn-danger');
-                                btn.removeClass('btn-success');
-                                img.removeClass('svg-green');
-                                $(this).attr('title', 'Layer Editing: Off');
+                                // Turn off editing for all other layers if toggling on for this layer
+                                otherEditableLayers.forEach((l) => {
+                                    const b = $(
+                                        `#layer-editing-button-${l.ol_uid}`
+                                    );
+                                    this.layerToggleEditing(l, b, false);
+                                });
                             }
-                            // toggle_editing ? btn.addClass('btn-danger') : btn.removeClass('btn-danger')
-                            console.log(toggle_editing);
+                            // Toggle on this layer's editing
+                            this.layerToggleEditing(
+                                layer,
+                                target,
+                                toggle_editing
+                            );
                         });
 
                         divWrapper.appendTo(
@@ -4510,6 +4520,30 @@ export default {
             return layers.filter((layer) => {
                 return layer.get('can_edit');
             });
+        },
+        /**
+         * Toggles editing for a layer on or off and updates the respective layerSwitcher button
+         * @param {Object} layer A layer object
+         * @param {Object} toggleButton A jQuery HTML button from the layerSwitcher
+         * @param {Boolean} editing Whether to toggle editing for this button/layer on or off
+         */
+        layerToggleEditing: function (layer, toggleButton, editing) {
+            layer.set('toggle_editing', editing);
+            const btn = $(toggleButton).find('.btn');
+            const img = $(toggleButton).find('img');
+            if (editing) {
+                img.addClass('svg-green');
+                btn.addClass('btn-success');
+                btn.removeClass('btn-danger');
+                $(toggleButton).attr('title', 'Layer Editing: On');
+                layer.set('editing', true);
+            } else {
+                btn.addClass('btn-danger');
+                btn.removeClass('btn-success');
+                img.removeClass('svg-green');
+                $(toggleButton).attr('title', 'Layer Editing: Off');
+                layer.set('editing', false);
+            }
         },
     },
 };
