@@ -1223,27 +1223,6 @@ class Community(RevisionedMixin):
             in self.get_community_processor_group().get_system_group_member_ids()
         )
 
-    # def can_assess(self,user):
-    #     logger.info("can assess")
-    #     logger.info("user")
-    #     logger.info(type(user))
-    #     logger.info(user)
-    #     logger.info(user.id)
-    #     if self.processing_status in [
-    #         # "on_hold",
-    #         # "with_qa_officer",
-    #         "with_assessor",
-    #         "with_referral",
-    #         "with_assessor_conditions",
-    #     ]:
-    #         logger.info("self.__assessor_group().get_system_group_member_ids()")
-    #         logger.info(self.get_assessor_group().get_system_group_member_ids())
-    #         return user.id in self.get_assessor_group().get_system_group_member_ids()
-    #     elif self.processing_status == Community.PROCESSING_STATUS_WITH_APPROVER:
-    #         return user.id in self.get_approver_group().get_system_group_member_ids()
-    #     else:
-    #         return False
-
     @property
     def status_without_assessor(self):
         status_without_assessor = [
