@@ -234,14 +234,14 @@ class Meeting(models.Model):
 
         # Create a log entry for the meeting
         self.log_user_action(
-            MeetingUserAction.ACTION_CREATE_MEETING.format(self.meeting_number), request
+            MeetingUserAction.ACTION_SUBMIT_MEETING.format(self.meeting_number), request
         )
 
         # Create a log entry for the submitter
         if self.submitter:
             submitter = retrieve_email_user(self.submitter)
             submitter.log_user_action(
-                MeetingUserAction.ACTION_CREATE_MEETING.format(
+                MeetingUserAction.ACTION_SUBMIT_MEETING.format(
                     self.meeting_number,
                 ),
                 request,
@@ -284,10 +284,9 @@ class MeetingLogEntry(CommunicationsLogEntry):
 
 
 class MeetingUserAction(UserAction):
-
-    ACTION_EDIT_SPECIES = "Edit Species {}"
-    ACTION_CREATE_MEETING = "Create new meeting {}"
+    ACTION_CREATE_MEETING = "Create meeting {}"
     ACTION_SAVE_MEETING = "Save Meeting {}"
+    ACTION_SUBMIT_MEETING = "Submit Meeting {}"
 
     # Minutes Document
     ACTION_ADD_MINUTE = "Minutes {} added for Meeting {}"
