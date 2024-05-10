@@ -686,7 +686,6 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def assessor_recipients(self):
-        logger.info("assessor_recipients")
         recipients = []
         group_ids = self.get_assessor_group().get_system_group_member_ids()
         for id in group_ids:
@@ -696,7 +695,6 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def approver_recipients(self):
-        logger.info("approver_recipients")
         recipients = []
         group_ids = self.get_approver_group().get_system_group_member_ids()
         for id in group_ids:
