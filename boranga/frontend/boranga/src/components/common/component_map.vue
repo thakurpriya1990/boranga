@@ -2678,9 +2678,15 @@ export default {
                 show_progress: true,
                 extent: true,
                 trash: false,
+                displayInLayerSwitcher: function (l) {
+                    return l.get('displayInLayerSwitcher');
+                },
             };
 
             if (layers) {
+                layers.forEach((layer) => {
+                    layer.set('displayInLayerSwitcher', true);
+                });
                 const layerGroup = new LayerGroup({
                     title: 'Layers',
                     layers: layers,
@@ -2749,7 +2755,13 @@ export default {
             const button = $('<div class="toggleVisibility" title="show/hide">')
                 .text('Show/hide all')
                 .click(() => {
-                    const a = this.map.getLayers().getArray();
+                    const a = this.map
+                        .getLayers()
+                        .getArray()
+                        .filter((l) =>
+                            this.layerSwitcher.displayInLayerSwitcher(l)
+                        );
+
                     const b = !a[0].getVisible();
                     if (b) button.removeClass('show');
                     else button.addClass('show');
