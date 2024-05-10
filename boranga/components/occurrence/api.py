@@ -1628,7 +1628,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             # TODO Do we need to sort the threats for external user (similar like documents)
             # qs = qs.filter(Q(uploaded_by=request.user.id))
             qs = instance.ocr_threats.all()
-        qs = qs.order_by("-date_observed")
+        filter_backend = OCCConservationThreatFilterBackend()
+        qs = filter_backend.filter_queryset(self.request,qs,self)
         serializer = OCRConservationThreatSerializer(
             qs, many=True, context={"request": request}
         )
@@ -2050,6 +2051,51 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 request,
             )
         return Response(serializer.data)
+
+
+class OCRConservationThreatFilterBackend(DatatablesFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+
+        total_count = queryset.count()
+
+        filter_threat_category = request.GET.get("filter_threat_category")
+        if filter_threat_category and not filter_threat_category.lower() == "all":
+            queryset = queryset.filter(threat_category_id=filter_threat_category)
+
+        filter_threat_current_impact = request.GET.get("filter_threat_current_impact")
+        if filter_threat_current_impact and not filter_threat_current_impact.lower() == "all":
+            queryset = queryset.filter(current_impact=filter_threat_current_impact)
+
+        filter_threat_potential_impact = request.GET.get("filter_threat_potential_impact")
+        if filter_threat_potential_impact and not filter_threat_potential_impact.lower() == "all":
+            queryset = queryset.filter(potential_impact=filter_threat_potential_impact)
+
+        def get_date(filter_date):
+            date = request.GET.get(filter_date)
+            if date:
+                date = datetime.strptime(date, "%Y-%m-%d")
+            return date
+        
+        filter_observed_from_date = get_date("filter_observed_from_date")
+        if filter_observed_from_date:
+            queryset = queryset.filter(date_observed__gte=filter_observed_from_date)
+
+        filter_observed_to_date = get_date("filter_observed_to_date")
+        if filter_observed_to_date:
+            queryset = queryset.filter(date_observed__lte=filter_observed_to_date)
+
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
+        queryset = queryset.order_by(*ordering)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        try:
+            queryset = super().filter_queryset(request, queryset, view)
+        except Exception as e:
+            print(e)
+        setattr(view, "_datatables_total_count", total_count)
+        return queryset
 
 
 class OCRConservationThreatViewSet(viewsets.ModelViewSet):
@@ -3074,7 +3120,7 @@ class OccurrenceViewSet(UserActionLoggingViewset):
         instance = self.get_object()
         data = []
         if is_internal(self.request):
-            #distint on OCR
+            #distinct on OCR
             qs = instance.occ_threats.distinct("occurrence_report_threat__occurrence_report").exclude(occurrence_report_threat=None)
             #format
             data = [threat.occurrence_report_threat.occurrence_report.occurrence_report_number for threat in qs]

@@ -418,7 +418,7 @@ export default {
             },
 
             fetchFilterLists: function(){
-            let vm = this;
+                let vm = this;
 
                 //Threat Source filter list (specific to instance)
                 vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+'/threat_source_list')).then((response) => {
