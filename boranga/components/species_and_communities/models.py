@@ -671,38 +671,6 @@ class Species(RevisionedMixin):
         parent_species = self.parent_species.all()
         return parent_species
 
-    @property
-    def allowed_assessors(self):
-        group = self.get_assessor_group()
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
-
-    @property
-    def allowed_species_processors(self):
-        group = None
-        # TODO We need specific species processing SystemGroup
-        group = self.get_species_processor_group()
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
-
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
@@ -1227,37 +1195,6 @@ class Community(RevisionedMixin):
         if self.group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             return True
         return False
-
-    @property
-    def allowed_assessors(self):
-        group = self.get_assessor_group()
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
-
-    @property
-    def allowed_community_processors(self):
-        group = None
-        group = self.get_community_processor_group()
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
 
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
