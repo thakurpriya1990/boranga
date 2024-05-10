@@ -860,21 +860,17 @@ class OccurrenceReportLogDocument(Document):
 class OccurrenceReportUserAction(UserAction):
     # OccurrenceReport Proposal
     ACTION_EDIT_OCCURRENCE_REPORT = "Edit occurrence report {}"
-    ACTION_LODGE_PROPOSAL = "Lodge proposal for occurrence report {}"
-    ACTION_SAVE_APPLICATION = "Save proposal {}"
-    ACTION_EDIT_APPLICATION = "Edit proposal {}"
-    ACTION_ASSIGN_TO_ASSESSOR = (
-        "Assign occurrence report proposal {} to {} as the assessor"
-    )
-    ACTION_UNASSIGN_ASSESSOR = "Unassign assessor from occurrence report proposal {}"
-    ACTION_ASSIGN_TO_APPROVER = (
-        "Assign occurrence report proposal {} to {} as the approver"
-    )
-    ACTION_UNASSIGN_APPROVER = "Unassign approver from occurrence report proposal {}"
+    ACTION_LODGE_PROPOSAL = "Lodge occurrence report {}"
+    ACTION_SAVE_APPLICATION = "Save occurrence report {}"
+    ACTION_EDIT_APPLICATION = "Edit occurrence report {}"
+    ACTION_ASSIGN_TO_ASSESSOR = "Assign occurrence report {} to {} as the assessor"
+    ACTION_UNASSIGN_ASSESSOR = "Unassign assessor from occurrence report {}"
+    ACTION_ASSIGN_TO_APPROVER = "Assign occurrence report {} to {} as the approver"
+    ACTION_UNASSIGN_APPROVER = "Unassign approver from occurrence report {}"
     ACTION_DECLINE = "Occurrence Report {} has been declined. Reason: {}"
     ACTION_APPROVE = "Occurrence Report {} has been approved by {}"
     ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
-    ACTION_DISCARD_PROPOSAL = "Discard occurrence report proposal {}"
+    ACTION_DISCARD_PROPOSAL = "Discard occurrence report {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
 
     # Amendment
@@ -884,31 +880,23 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_SAVE_ASSESSMENT_ = "Save assessment {}"
     ACTION_CONCLUDE_ASSESSMENT_ = "Conclude assessment {}"
     ACTION_PROPOSED_READY_FOR_AGENDA = (
-        "Occurrence report proposal {} has been proposed for ready for agenda"
+        "Occurrence report {} has been proposed as 'ready for agenda'"
     )
     ACTION_PROPOSED_APPROVAL = (
-        "Occurrence report proposal {} has been proposed for approval"
+        "Occurrence report {} has been proposed as 'for approval'"
     )
-    ACTION_PROPOSED_DECLINE = (
-        "Occurrence report proposal {} has been proposed for decline"
-    )
+    ACTION_PROPOSED_DECLINE = "Occurrence report {} has been proposed as 'for decline'"
 
     # Referrals
-    ACTION_SEND_REFERRAL_TO = "Send referral {} for occurrence report proposal {} to {}"
-    ACTION_RESEND_REFERRAL_TO = (
-        "Resend referral {} for occurrence report proposal {} to {}"
-    )
+    ACTION_SEND_REFERRAL_TO = "Send referral {} for occurrence report {} to {}"
+    ACTION_RESEND_REFERRAL_TO = "Resend referral {} for occurrence report {} to {}"
     ACTION_REMIND_REFERRAL = (
-        "Send reminder for referral {} for occurrence report proposal {} to {}"
+        "Send reminder for referral {} for occurrence report {} to {}"
     )
     ACTION_BACK_TO_ASSESSOR = "{} sent back to assessor. Reason: {}"
-    RECALL_REFERRAL = "Referral {} for occurrence report proposal {} has been recalled"
-    COMMENT_REFERRAL = (
-        "Referral {} for occurrence report proposal {} has been commented by {}"
-    )
-    CONCLUDE_REFERRAL = (
-        "Referral {} for occurrence report proposal {} has been concluded by {}"
-    )
+    RECALL_REFERRAL = "Referral {} for occurrence report {} has been recalled by {}"
+    COMMENT_REFERRAL = "Referral {} for occurrence report {} has been commented by {}"
+    CONCLUDE_REFERRAL = "Referral {} for occurrence report {} has been concluded by {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for occurrence report {}"
@@ -1181,7 +1169,7 @@ class OccurrenceReportReferral(models.Model):
                 OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
                     self.id,
                     self.occurrence_report.occurrence_report_number,
-                    f"{self.referral_as_email_user.get_full_name()}",
+                    f"{submitter.get_full_name()}",
                 ),
                 request,
             )
@@ -1208,6 +1196,7 @@ class OccurrenceReportReferral(models.Model):
             OccurrenceReportUserAction.RECALL_REFERRAL.format(
                 self.id,
                 self.occurrence_report.occurrence_report_number,
+                request.user.get_full_name(),
             ),
             request,
         )
@@ -1219,6 +1208,7 @@ class OccurrenceReportReferral(models.Model):
                 OccurrenceReportUserAction.RECALL_REFERRAL.format(
                     self.id,
                     self.occurrence_report.occurrence_report_number,
+                    request.user.get_full_name(),
                 ),
                 request,
             )
@@ -1295,15 +1285,20 @@ class OccurrenceReportReferral(models.Model):
             request,
         )
 
-        # TODO log organisation action
-        self.proposal.applicant.log_user_action(
-            OccurrenceReportUserAction.CONCLUDE_REFERRAL.format(
-                self.id,
-                self.proposal.lodgement_number,
-                f"{self.referral.get_full_name()}({self.referral.email})",
-            ),
-            request,
-        )
+        # Create a log entry for the submitter
+        if self.occurrence_report.submitter:
+            submitter = retrieve_email_user(self.occurrence_report.submitter)
+            submitter.log_user_action(
+                OccurrenceReportUserAction.CONCLUDE_REFERRAL.format(
+                    self.id,
+                    self.occurrence_report.occurrence_report_number,
+                    "{}({})".format(
+                        submitter.get_full_name(),
+                        submitter.email,
+                    ),
+                ),
+                request,
+            )
 
         send_occurrence_report_referral_complete_email_notification(self, request)
 
