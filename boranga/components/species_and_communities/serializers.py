@@ -109,14 +109,14 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
     def get_family(self, obj):
         if obj.taxonomy:
-            if obj.taxonomy.family_fk:
-                return obj.taxonomy.family_fk.scientific_name
+            if obj.taxonomy.family_id:
+                return obj.taxonomy.family_name
         return ""
 
     def get_genus(self, obj):
         if obj.taxonomy:
-            if obj.taxonomy.genus:
-                return obj.taxonomy.genus.name
+            if obj.taxonomy.genera_id:
+                return obj.taxonomy.genera_name
         return ""
 
     def get_phylogenetic_group(self, obj):
