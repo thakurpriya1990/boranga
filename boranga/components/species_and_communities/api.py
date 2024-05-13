@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 from io import BytesIO
+from datetime import datetime
 
 import pandas as pd
 from django.core.cache import cache
@@ -31,6 +32,7 @@ from boranga.components.conservation_status.models import (
 )
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
+from boranga.components.occurrence.api import OCCConservationThreatFilterBackend
 from boranga.components.occurrence.models import OCCConservationThreat, Occurrence
 from boranga.components.occurrence.serializers import OCCConservationThreatSerializer
 from boranga.components.species_and_communities.email import (
@@ -1258,15 +1260,44 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def occurrence_threats(self, request, *args, **kwargs):
-        instance = self.get_object()
-        occurrences = Occurrence.objects.filter(species=instance).values_list(
-            "id", flat=True
-        )
-        threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
-        serializer = OCCConservationThreatSerializer(
-            threats, many=True, context={"request": request}
-        )
-        return Response(serializer.data)
+        if is_internal(self.request):
+            instance = self.get_object()
+            occurrences = Occurrence.objects.filter(species=instance).values_list(
+                "id", flat=True
+            )
+            threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
+            filter_backend = OCCConservationThreatFilterBackend()
+            threats = filter_backend.filter_queryset(self.request,threats,self)
+            serializer = OCCConservationThreatSerializer(
+                threats, many=True, context={"request": request}
+            )
+            return Response(serializer.data)
+        return Response()
+    
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    #gets all distinct threat sources for threats pertaining to a specific OCC
+    def occurrence_threat_source_list(self, request, *args, **kwargs):
+        data = []
+        if is_internal(self.request):
+            instance = self.get_object()
+            occurrences = Occurrence.objects.filter(species=instance).values_list(
+                "id", flat=True
+            )
+
+            threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
+            distinct_occ = threats.filter(occurrence_report_threat=None).distinct("occurrence")
+            distinct_ocr = threats.exclude(occurrence_report_threat=None).distinct("occurrence_report_threat__occurrence_report")
+
+            #format
+            data = data + [threat.occurrence.occurrence_number for threat in distinct_occ]
+            data = data + [threat.occurrence_report_threat.occurrence_report.occurrence_report_number for threat in distinct_ocr]
+
+        return Response(data)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -1626,6 +1657,10 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         qs = instance.species_threats.all()
         qs = qs.order_by("-date_observed")
+
+        filter_backend = ConservationThreatFilterBackend()
+        qs = filter_backend.filter_queryset(self.request,qs,self)
+
         serializer = ConservationThreatSerializer(
             qs, many=True, context={"request": request}
         )
@@ -1786,10 +1821,37 @@ class CommunityViewSet(viewsets.ModelViewSet):
             "id", flat=True
         )
         threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
+        filter_backend = OCCConservationThreatFilterBackend()
+        threats = filter_backend.filter_queryset(self.request,threats,self)
         serializer = OCCConservationThreatSerializer(
             threats, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    #gets all distinct threat sources for threats pertaining to a specific OCC
+    def occurrence_threat_source_list(self, request, *args, **kwargs):
+        data = []
+        if is_internal(self.request):
+            instance = self.get_object()
+            occurrences = Occurrence.objects.filter(community=instance).values_list(
+                "id", flat=True
+            )
+
+            threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
+            distinct_occ = threats.filter(occurrence_report_threat=None).distinct("occurrence")
+            distinct_ocr = threats.exclude(occurrence_report_threat=None).distinct("occurrence_report_threat__occurrence_report")
+
+            #format
+            data = data + [threat.occurrence.occurrence_number for threat in distinct_occ]
+            data = data + [threat.occurrence_report_threat.occurrence_report.occurrence_report_number for threat in distinct_ocr]
+
+        return Response(data)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -1921,6 +1983,8 @@ class CommunityViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         qs = instance.community_threats.all()
         qs = qs.order_by("-date_observed")
+        filter_backend = ConservationThreatFilterBackend()
+        qs = filter_backend.filter_queryset(self.request,qs,self)
         serializer = ConservationThreatSerializer(
             qs, many=True, context={"request": request}
         )
@@ -2195,10 +2259,55 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
         )
         return Response(serializer.data)
 
+class ConservationThreatFilterBackend(DatatablesFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+
+        total_count = queryset.count()
+
+        filter_threat_category = request.GET.get("filter_threat_category")
+        if filter_threat_category and not filter_threat_category.lower() == "all":
+            queryset = queryset.filter(threat_category_id=filter_threat_category)
+
+        filter_threat_current_impact = request.GET.get("filter_threat_current_impact")
+        if filter_threat_current_impact and not filter_threat_current_impact.lower() == "all":
+            queryset = queryset.filter(current_impact=filter_threat_current_impact)
+
+        filter_threat_potential_impact = request.GET.get("filter_threat_potential_impact")
+        if filter_threat_potential_impact and not filter_threat_potential_impact.lower() == "all":
+            queryset = queryset.filter(potential_impact=filter_threat_potential_impact)
+
+        def get_date(filter_date):
+            date = request.GET.get(filter_date)
+            if date:
+                date = datetime.strptime(date, "%Y-%m-%d")
+            return date
+        
+        filter_observed_from_date = get_date("filter_observed_from_date")
+        if filter_observed_from_date:
+            queryset = queryset.filter(date_observed__gte=filter_observed_from_date)
+
+        filter_observed_to_date = get_date("filter_observed_to_date")
+        if filter_observed_to_date:
+            queryset = queryset.filter(date_observed__lte=filter_observed_to_date)
+
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
+        queryset = queryset.order_by(*ordering)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        try:
+            queryset = super().filter_queryset(request, queryset, view)
+        except Exception as e:
+            print(e)
+        setattr(view, "_datatables_total_count", total_count)
+        return queryset
+
 
 class ConservationThreatViewSet(viewsets.ModelViewSet):
     queryset = ConservationThreat.objects.none()
     serializer_class = ConservationThreatSerializer
+    filter_backends = (ConservationThreatFilterBackend,)
 
     def get_queryset(self):
         if is_internal(self.request):  # user.is_authenticated():

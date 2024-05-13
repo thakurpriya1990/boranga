@@ -540,7 +540,8 @@ class Species(RevisionedMixin):
         self.full_clean()
         # Prefix "S" char to species_number.
         if self.species_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop('force_insert', False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_species_id = f"S{str(self.pk)}"
             self.species_number = new_species_id
             self.save(*args, **kwargs)
@@ -1170,7 +1171,8 @@ class Community(RevisionedMixin):
     def save(self, *args, **kwargs):
         # Prefix "C" char to community_number.
         if self.community_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop('force_insert', False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_community_id = f"C{str(self.pk)}"
             self.community_number = new_community_id
             self.save(*args, **kwargs)
@@ -1772,7 +1774,8 @@ class SpeciesDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop('force_insert', False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
             self.save(*args, **kwargs)
@@ -1868,7 +1871,8 @@ class CommunityDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop('force_insert', False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
             self.save(*args, **kwargs)
@@ -2051,7 +2055,8 @@ class ConservationThreat(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop('force_insert', False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
             self.save(*args, **kwargs)
