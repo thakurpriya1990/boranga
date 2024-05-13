@@ -280,22 +280,22 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         if queryset.model is ConservationStatus:
             if filter_family and not filter_family.lower() == "all":
                 queryset = queryset.filter(
-                    species__taxonomy__family_fk_id=filter_family
+                    species__taxonomy__family_id=filter_family
                 )
         elif queryset.model is ConservationStatusReferral:
             if filter_family and not filter_family.lower() == "all":
                 queryset = queryset.filter(
-                    conservation_status__species__taxonomy__family_fk_id=filter_family
+                    conservation_status__species__taxonomy__family_id=filter_family
                 )
 
         filter_genus = request.GET.get("filter_genus")
         if queryset.model is ConservationStatus:
             if filter_genus and not filter_genus.lower() == "all":
-                queryset = queryset.filter(species__taxonomy__genus__id=filter_genus)
+                queryset = queryset.filter(species__taxonomy__genera_id=filter_genus)
         elif queryset.model is ConservationStatusReferral:
             if filter_genus and not filter_genus.lower() == "all":
                 queryset = queryset.filter(
-                    conservation_status__species__taxonomy__genus__id=filter_genus
+                    conservation_status__species__taxonomy__genera_id=filter_genus
                 )
 
         filter_conservation_list = request.GET.get("filter_conservation_list")

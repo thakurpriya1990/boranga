@@ -349,30 +349,30 @@ class GetFamily(views.APIView):
             if cs_referral != "":
                 # TODO may need to change the query for referral
                 family_ids = (
-                    Taxonomy.objects.filter(~Q(family_fk=None))
+                    Taxonomy.objects.filter(~Q(family_id=None))
                     .order_by()
-                    .values_list("family_fk", flat=True)
+                    .values_list("family_id", flat=True)
                     .distinct()
                 )  # fetch all distinct the family_nid(taxon_name_id) for each taxon
                 data = Taxonomy.objects.filter(
-                    id__in=family_ids,
-                    scientific_name__icontains=search_term,
+                    family_id__in=family_ids,
+                    family_name__icontains=search_term,
                     kingdom_fk__grouptype=group_type_id,
-                ).values("id", "scientific_name")[:10]
+                ).values("family_id", "family_name")[:10]
             else:
                 family_ids = (
-                    Taxonomy.objects.filter(~Q(family_fk=None))
+                    Taxonomy.objects.filter(~Q(family_id=None))
                     .order_by()
-                    .values_list("family_fk", flat=True)
+                    .values_list("family_id", flat=True)
                     .distinct()
-                )  # fetch all distinct the family_nid(taxon_name_id) for each taxon
+                )  # fetch all distinct the family_id for each taxon
                 data = Taxonomy.objects.filter(
-                    id__in=family_ids,
-                    scientific_name__icontains=search_term,
+                    family_id__in=family_ids,
+                    family_name__icontains=search_term,
                     kingdom_fk__grouptype=group_type_id,
-                ).values("id", "scientific_name")[:10]
+                ).values("family_id", "family_name")[:10]
             data_transform = [
-                {"id": taxon["id"], "text": taxon["scientific_name"]} for taxon in data
+                {"id": taxon["family_id"], "text": taxon["family_name"]} for taxon in data
             ]
             return Response({"results": data_transform})
         return Response()
@@ -380,20 +380,37 @@ class GetFamily(views.APIView):
 
 class GetGenera(views.APIView):
     def get(self, request, format=None):
+        group_type_id = request.GET.get("group_type_id", "")
         search_term = request.GET.get("term", "")
         cs_referral = request.GET.get("cs_referral", "")
         if search_term:
             if cs_referral != "":
                 # TODO may need to change the query for referral
-                data = Genus.objects.filter(name__icontains=search_term).values(
-                    "id", "name"
-                )[:10]
+                genera_ids = (
+                    Taxonomy.objects.filter(~Q(genera_id=None))
+                    .order_by()
+                    .values_list("genera_id", flat=True)
+                    .distinct()
+                )  # fetch all distinct the genera_id for each taxon
+                data = Taxonomy.objects.filter(
+                    genera_id__in=genera_ids,
+                    genera_name__icontains=search_term,
+                    kingdom_fk__grouptype=group_type_id,
+                ).values("genera_id", "genera_name")[:10]
             else:
-                data = Genus.objects.filter(name__icontains=search_term).values(
-                    "id", "name"
-                )[:10]
+                genera_ids = (
+                    Taxonomy.objects.filter(~Q(genera_id=None))
+                    .order_by()
+                    .values_list("genera_id", flat=True)
+                    .distinct()
+                )  # fetch all distinct the genera_id for each taxon
+                data = Taxonomy.objects.filter(
+                    genera_id__in=genera_ids,
+                    genera_name__icontains=search_term,
+                    kingdom_fk__grouptype=group_type_id,
+                ).values("genera_id", "genera_name")[:10]
             data_transform = [
-                {"id": taxon["id"], "text": taxon["name"]} for taxon in data
+                {"id": taxon["genera_id"], "text": taxon["genera_name"]} for taxon in data
             ]
             return Response({"results": data_transform})
         return Response()
@@ -798,11 +815,11 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
 
         filter_family = request.GET.get("filter_family")
         if filter_family and not filter_family.lower() == "all":
-            queryset = queryset.filter(taxonomy__family_fk_id=filter_family)
+            queryset = queryset.filter(taxonomy__family_id=filter_family)
 
         filter_genus = request.GET.get("filter_genus")
         if filter_genus and not filter_genus.lower() == "all":
-            queryset = queryset.filter(taxonomy__genus__id=filter_genus)
+            queryset = queryset.filter(taxonomy__genera_id=filter_genus)
 
         filter_name_status = request.GET.get("filter_name_status")
         if filter_name_status and not filter_name_status.lower() == "all":
