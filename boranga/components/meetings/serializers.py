@@ -14,6 +14,7 @@ from boranga.components.meetings.models import (
     MeetingUserAction,
     Minutes,
 )
+from boranga.helpers import is_conservation_status_approver
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,8 @@ logger = logging.getLogger(__name__)
 class ListMeetingSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
+    can_user_edit = serializers.SerializerMethodField()
+    is_meeting_editable = serializers.SerializerMethodField()
 
     class Meta:
         model = Meeting
@@ -52,6 +55,18 @@ class ListMeetingSerializer(serializers.ModelSerializer):
         if obj.location:
             return obj.location.room_name
         return ""
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        if not is_conservation_status_approver(request.user):
+            return False
+        return obj.can_user_edit
+
+    def get_is_meeting_editable(self, obj):
+        request = self.context["request"]
+        if not is_conservation_status_approver(request.user):
+            return False
+        return obj.can_user_edit
 
 
 class CreateMeetingSerializer(serializers.ModelSerializer):
