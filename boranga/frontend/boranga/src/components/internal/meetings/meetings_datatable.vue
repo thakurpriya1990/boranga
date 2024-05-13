@@ -28,7 +28,7 @@
                 </div>
             </div>
         </CollapsibleFilters>
-        <div class="col-md-12">
+        <div v-if="profile && profile.groups.includes(constants.GROUPS.CONSERVATION_STATUS_APPROVERS)" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createMeeting"><i
                         class="fa-solid fa-circle-plus"></i> Add Meeting</button>
@@ -94,6 +94,9 @@ export default {
             ],
 
             meeting_status: [],
+
+            profile: null,
+            constants: constants,
         }
     },
     components: {
@@ -548,6 +551,12 @@ export default {
                 }
             }
         },
+        fetchProfile: function(){
+            let vm = this;
+            Vue.http.get(api_endpoints.profile).then((response) => {
+                vm.profile = response.body;
+            })
+        },
     },
     mounted: function () {
         let vm = this;
@@ -555,6 +564,7 @@ export default {
     },
     created: function () {
         let vm = this;
+        vm.fetchProfile();
         this.$nextTick(() => {
             vm.addEventListeners();
         });
