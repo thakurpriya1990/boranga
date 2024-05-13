@@ -368,7 +368,11 @@
                     </div>
                     <div
                         class="optional-layers-button-wrapper"
-                        :title="`Open table for ${featureCount} geometries`"
+                        :title="
+                            featureCount
+                                ? `Open table for ${featureCount} geometries`
+                                : 'No geometries available'
+                        "
                     >
                         <div
                             class="optional-layers-button btn"
@@ -508,7 +512,11 @@
                     <div
                         v-if="editable"
                         class="optional-layers-button-wrapper"
-                        title="To transform features first toggle on layer editing"
+                        :title="
+                            isEditingALayer
+                                ? 'No geometries to transform'
+                                : 'To transform features first toggle on layer editing'
+                        "
                     >
                         <div
                             :title="
@@ -533,7 +541,10 @@
                             />
                         </div>
                     </div>
-                    <div class="optional-layers-button-wrapper">
+                    <div
+                        class="optional-layers-button-wrapper"
+                        title="Zoom map to layer(s)"
+                    >
                         <div
                             title="Zoom map to layer(s)"
                             class="optional-layers-button btn"
