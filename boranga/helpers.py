@@ -11,6 +11,8 @@ from ledger_api_client.managed_models import SystemGroup
 from boranga.settings import (
     GROUP_NAME_CONSERVATION_STATUS_APPROVER,
     GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
+    GROUP_NAME_EXTERNAL_CONTRIBUTOR,
+    GROUP_NAME_INTERNAL_CONTRIBUTOR,
     GROUP_NAME_OCCURRENCE_APPROVER,
     GROUP_NAME_OCCURRENCE_ASSESSOR,
     GROUP_NAME_SPECIES_COMMUNITIES_APPROVER,
@@ -102,6 +104,20 @@ def is_conservation_status_approver(user_id):
     assessor_group = SystemGroup.objects.get(
         name=GROUP_NAME_CONSERVATION_STATUS_APPROVER
     )
+    return True if user_id in assessor_group.get_system_group_member_ids() else False
+
+
+def is_external_contributor(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_EXTERNAL_CONTRIBUTOR)
+    return True if user_id in assessor_group.get_system_group_member_ids() else False
+
+
+def is_internal_contributor(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_INTERNAL_CONTRIBUTOR)
     return True if user_id in assessor_group.get_system_group_member_ids() else False
 
 
