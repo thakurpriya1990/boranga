@@ -602,7 +602,6 @@ class Species(RevisionedMixin):
         """
         :return: True if the application is in one of the editable status.
         """
-        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
         user_editable_state = [
             "draft",
         ]
@@ -683,36 +682,8 @@ class Species(RevisionedMixin):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
-    # Check if the user is member of assessor group
-    def is_assessor(self, user):
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
-
-    # Check if the user is member of assessor group for the CS Proposal
     def is_approver(self, user):
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
-
-    def is_species_processor(self, user):
-        return (
-            user.id in self.get_species_processor_group().get_system_group_member_ids()
-        )
-
-    # def can_assess(self,user):
-    #     logger.info("can assess")
-    #     logger.info("user")
-    #     logger.info(type(user))
-    #     logger.info(user)
-    #     logger.info(user.id)
-    #     if self.processing_status in [
-    #         "with_assessor",
-    #         "with_referral",
-    #     ]:
-    #         logger.info("self.__assessor_group().get_system_group_member_ids()")
-    #         logger.info(self.get_assessor_group().get_system_group_member_ids())
-    #         return user.id in self.get_assessor_group().get_system_group_member_ids()
-    #     elif self.processing_status == Species.PROCESSING_STATUS_WITH_APPROVER:
-    #         return user.id in self.get_approver_group().get_system_group_member_ids()
-    #     else:
-    #         return False
+        return user.id in self.get_approver_group().get_system_group_member_ids()
 
     @property
     def status_without_assessor(self):
@@ -733,10 +704,7 @@ class Species(RevisionedMixin):
         if self.processing_status in officer_view_state:
             return False
         else:
-            return (
-                user.id
-                in self.get_species_processor_group().get_system_group_member_ids()
-            )
+            return self.is_approver(user)
 
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
