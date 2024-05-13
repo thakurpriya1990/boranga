@@ -348,29 +348,17 @@ class GetFamily(views.APIView):
         if search_term:
             if cs_referral != "":
                 # TODO may need to change the query for referral
-                family_ids = (
-                    Taxonomy.objects.filter(~Q(family_id=None))
-                    .order_by()
-                    .values_list("family_id", flat=True)
-                    .distinct()
-                )  # fetch all distinct the family_nid(taxon_name_id) for each taxon
                 data = Taxonomy.objects.filter(
-                    family_id__in=family_ids,
+                    ~Q(family_id=None),
                     family_name__icontains=search_term,
                     kingdom_fk__grouptype=group_type_id,
-                ).values("family_id", "family_name")[:10]
+                ).order_by("family_name").values("family_id", "family_name").distinct()[:10]
             else:
-                family_ids = (
-                    Taxonomy.objects.filter(~Q(family_id=None))
-                    .order_by()
-                    .values_list("family_id", flat=True)
-                    .distinct()
-                )  # fetch all distinct the family_id for each taxon
                 data = Taxonomy.objects.filter(
-                    family_id__in=family_ids,
+                    ~Q(family_id=None),
                     family_name__icontains=search_term,
                     kingdom_fk__grouptype=group_type_id,
-                ).values("family_id", "family_name")[:10]
+                ).order_by("family_name").values("family_id", "family_name").distinct()[:10]
             data_transform = [
                 {"id": taxon["family_id"], "text": taxon["family_name"]} for taxon in data
             ]
@@ -386,29 +374,17 @@ class GetGenera(views.APIView):
         if search_term:
             if cs_referral != "":
                 # TODO may need to change the query for referral
-                genera_ids = (
-                    Taxonomy.objects.filter(~Q(genera_id=None))
-                    .order_by()
-                    .values_list("genera_id", flat=True)
-                    .distinct()
-                )  # fetch all distinct the genera_id for each taxon
                 data = Taxonomy.objects.filter(
-                    genera_id__in=genera_ids,
+                    ~Q(genera_id=None),
                     genera_name__icontains=search_term,
                     kingdom_fk__grouptype=group_type_id,
-                ).values("genera_id", "genera_name")[:10]
+                ).order_by("genera_name").values("genera_id", "genera_name").distinct()[:10]
             else:
-                genera_ids = (
-                    Taxonomy.objects.filter(~Q(genera_id=None))
-                    .order_by()
-                    .values_list("genera_id", flat=True)
-                    .distinct()
-                )  # fetch all distinct the genera_id for each taxon
                 data = Taxonomy.objects.filter(
-                    genera_id__in=genera_ids,
+                    ~Q(genera_id=None),
                     genera_name__icontains=search_term,
                     kingdom_fk__grouptype=group_type_id,
-                ).values("genera_id", "genera_name")[:10]
+                ).order_by("genera_name").values("genera_id", "genera_name").distinct()[:10]
             data_transform = [
                 {"id": taxon["genera_id"], "text": taxon["genera_name"]} for taxon in data
             ]
