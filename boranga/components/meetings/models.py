@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.utils import timezone
+from ledger_api_client.managed_models import SystemGroup
 
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.models import CommunicationsLogEntry, Document, UserAction
@@ -218,11 +219,12 @@ class Meeting(models.Model):
         if self.processing_status in officer_view_state:
             return False
         else:
-            # TODO do we need meeting_processing_group in SystemGroup
-            # return (
-            #     user.id in self.get_species_processor_group().get_system_group_member_ids()
-            # )
-            return True
+            return (
+                user.id
+                in SystemGroup.objects.get(
+                    name=settings.GROUP_NAME_CONSERVATION_STATUS_APPROVER
+                ).get_system_group_member_ids()
+            )
 
     @transaction.atomic
     def submit(self, request, viewset):
