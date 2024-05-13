@@ -920,6 +920,12 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ListSpeciesSerializer
     page_size = 10
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE)
+        return qs
+
     @list_route(
         methods=[
             "GET",
@@ -1139,12 +1145,18 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
+class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (CommunitiesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     queryset = Community.objects.all()
     serializer_class = ListCommunitiesSerializer
     page_size = 10
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE)
+        return qs
 
     @list_route(
         methods=[
