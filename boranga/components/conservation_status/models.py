@@ -488,7 +488,8 @@ class ConservationStatus(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.conservation_status_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop('force_insert', False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_conservation_status_id = f"CS{str(self.pk)}"
             self.conservation_status_number = new_conservation_status_id
             self.save(*args, **kwargs)
@@ -1546,7 +1547,8 @@ class ConservationStatusDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop('force_insert', False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
             self.save(*args, **kwargs)
