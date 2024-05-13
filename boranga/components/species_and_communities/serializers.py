@@ -30,6 +30,7 @@ from boranga.components.species_and_communities.models import (
     Taxonomy,
     TaxonVernacular,
 )
+from boranga.helpers import is_species_communities_approver
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -48,6 +49,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     district = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -182,6 +184,12 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
                 return True
         return False
 
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        if not is_species_communities_approver(request.user.id):
+            return False
+        return obj.can_user_edit
+
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
@@ -193,6 +201,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     district = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = Community
@@ -288,6 +297,12 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             ):
                 return True
         return False
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        if not is_species_communities_approver(request.user.id):
+            return False
+        return obj.can_user_edit
 
 
 class TaxonomySerializer(serializers.ModelSerializer):
