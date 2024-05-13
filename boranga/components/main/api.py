@@ -80,6 +80,7 @@ class UserActionLoggingViewset(viewsets.ModelViewSet):
         )
         return super().destroy(request, *args, **kwargs)
 
+
 def proj4_string_from_epsg_code(code):
     # Function meant to provide ellipsoid parameters in proj4 string for proj4.js
     # Don't think this function will be used going forward,
@@ -99,28 +100,30 @@ def proj4_string_from_epsg_code(code):
     ellps_params = ellipsoids.get(ellps, None)
 
     # Don't need description value
-    ellps_params = {k: v for k, v in ellps_params.items() if k not in ['description']}
+    ellps_params = {k: v for k, v in ellps_params.items() if k not in ["description"]}
 
     prj_additional_params = []
     for k, v in ellps_params.items():
-        if any(f'{k}=' in p for p in prj.split("+")):
+        if any(f"{k}=" in p for p in prj.split("+")):
             # Ellipsoid parameter already exists in proj4 string
             continue
         prj_additional_params.append(f"{k}={v} ")
 
-    ellps_pos = [i for i, p in enumerate(prj_split) if 'ellps' in p][0]
+    ellps_pos = [i for i, p in enumerate(prj_split) if "ellps" in p][0]
     # Insert ellps parameters after ellps name
-    prj_split = prj_split[:ellps_pos+1] + prj_additional_params + prj_split[ellps_pos+1:]
+    prj_split = (
+        prj_split[: ellps_pos + 1] + prj_additional_params + prj_split[ellps_pos + 1 :]
+    )
 
     return "+".join(prj_split)
 
 
 def get_cached_epsg_codes(auth_name="EPSG", pj_type="GEODETIC_CRS"):
     # TODO: This is a temporary solution to get the geodetic datums for australia
-    cool_codes = ["4203", "4202", "7844", "4283", "4326"]
+    cool_codes = ["4203", "4202", "7842", "7844", "4283", "4326"]
 
     cache_key = settings.CACHE_KEY_EPSG_CODES.format(
-        **{"auth_name": auth_name, "pj_type": pj_type}
+        **{"auth_name": auth_name, "pj_type": pj_type, "codes": "-".join(cool_codes)}
     )
 
     if cache.get(cache_key):
@@ -132,7 +135,7 @@ def get_cached_epsg_codes(auth_name="EPSG", pj_type="GEODETIC_CRS"):
     return codes
 
 
-def search_datums(search, codes = None):
+def search_datums(search, codes=None):
     """Searches search-term in CRS names and returns those that match
     Can provide codes list to control which epsg codes to search in
     """
