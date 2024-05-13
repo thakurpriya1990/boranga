@@ -144,7 +144,7 @@
                     <!-- </transition> -->
 
                     <div
-                        v-if="modelQuerySource"
+                        v-if="modelQuerySource && featureCount"
                         id="submenu-geometries-list"
                         class="map-menu-submenu moved-menu-vertical"
                     >
@@ -3489,9 +3489,18 @@ export default {
                     }
                 });
             });
+
+            // A list of selected features ol uids
+            const featuresOlUids = features.map((feature) => {
+                return Number(feature.ol_uid);
+            }, []);
             // Remove selected features from `selectedFeatureCollection`
-            vm.selectedFeatureCollection.forEach((feature) => {
-                if (features.includes(feature)) {
+            [...vm.selectedFeatureCollection.getArray()].forEach((feature) => {
+                if (
+                    feature &&
+                    featuresOlUids.includes(Number(feature.ol_uid))
+                ) {
+                    console.log(feature.ol_uid, feature);
                     vm.selectedFeatureCollection.remove(feature);
                 }
             });
