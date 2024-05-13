@@ -101,14 +101,28 @@
                 </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
-                        <label for="">Effective From Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveFromDate">
+                        <label for="">Effective From Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterCSFromFaunaEffectiveFromDate">
                     </div>
                 </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
-                        <label for="">Effective To Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSFaunaEffectiveToDate">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterCSToFaunaEffectiveFromDate">
+                    </div>
+                </div>
+                
+                <div class="col-md-3" v-show="!is_for_agenda">
+                    <div class="form-group">
+                        <label for="">Effective To Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterCSFromFaunaEffectiveToDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" v-show="!is_for_agenda">
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterCSToFaunaEffectiveToDate">
                     </div>
                 </div>
             </div>
@@ -243,15 +257,25 @@ export default {
             required: false,
             default: 'filterCSFaunaApplicationStatus',
         },
-        filterCSFaunaEffectiveFromDate_cache: {
+        filterCSFromFaunaEffectiveFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaEffectiveFromDate',
+            default: 'filterCSFromFaunaEffectiveFromDate',
         },
-        filterCSFaunaEffectiveToDate_cache: {
+        filterCSToFaunaEffectiveFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaEffectiveToDate',
+            default: 'filterCSToFaunaEffectiveFromDate',
+        },
+        filterCSFromFaunaEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFromFaunaEffectiveToDate',
+        },
+        filterCSToFaunaEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSToFaunaEffectiveToDate',
         },
     },
     data() {
@@ -296,11 +320,15 @@ export default {
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'all',
 
-            filterCSFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFaunaEffectiveFromDate_cache) ?
-            sessionStorage.getItem(this.filterCSFaunaEffectiveFromDate_cache) : '',
+            filterCSFromFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) : '',
+            filterCSToFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSToFaunaEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCSToFaunaEffectiveFromDate_cache) : '',
 
-            filterCSFaunaEffectiveToDate: sessionStorage.getItem(this.filterCSFaunaEffectiveToDate_cache) ?
-            sessionStorage.getItem(this.filterCSFaunaEffectiveToDate_cache) : '',
+            filterCSFromFaunaEffectiveToDate: sessionStorage.getItem(this.filterCSFromFaunaEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCSFromFaunaEffectiveToDate_cache) : '',
+            filterCSToFaunaEffectiveToDate: sessionStorage.getItem(this.filterCSToFaunaEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCSToFaunaEffectiveToDate_cache) : '',
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
@@ -393,15 +421,25 @@ export default {
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaDistrict_cache, vm.filterCSFaunaDistrict);
         },
-        filterCSFaunaEffectiveFromDate: function(){
+        filterCSFromFaunaEffectiveFromDate: function(){
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaEffectiveFromDate_cache, vm.filterCSFaunaEffectiveFromDate);
+            sessionStorage.setItem(vm.filterCSFromFaunaEffectiveFromDate_cache, vm.filterCSFromFaunaEffectiveFromDate);
         },
-        filterCSFaunaEffectiveToDate: function(){
+        filterCSToFaunaEffectiveFromDate: function(){
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaEffectiveToDate_cache, vm.filterCSFaunaEffectiveToDate);
+            sessionStorage.setItem(vm.filterCSToFaunaEffectiveFromDate_cache, vm.filterCSToFaunaEffectiveFromDate);
+        },
+        filterCSFromFaunaEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFromFaunaEffectiveToDate_cache, vm.filterCSFromFaunaEffectiveToDate);
+        },
+        filterCSToFaunaEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSToFaunaEffectiveToDate_cache, vm.filterCSToFaunaEffectiveToDate);
         },
         filterCSFaunaApplicationStatus: function() {
             let vm = this;
@@ -427,8 +465,10 @@ export default {
                 this.filterCSFaunaRegion === 'all' &&
                 this.filterCSFaunaDistrict === 'all' &&
                 this.filterCSFaunaApplicationStatus === 'all' &&
-                this.filterCSFaunaEffectiveFromDate === '' &&
-                this.filterCSFaunaEffectiveToDate === ''){
+                this.filterCSFromFaunaEffectiveFromDate === '' &&
+                this.filterCSToFaunaEffectiveFromDate === '' &&
+                this.filterCSFromFaunaEffectiveToDate === '' &&
+                this.filterCSToFaunaEffectiveToDate === ''){
                 return false
             } else {
                 return true
@@ -811,8 +851,10 @@ export default {
                         d.filter_region = vm.filterCSFaunaRegion;
                         d.filter_district = vm.filterCSFaunaDistrict;
                         d.filter_application_status = vm.filterCSFaunaApplicationStatus;
-                        d.filter_effective_from_date = vm.filterCSFaunaEffectiveFromDate;
-                        d.filter_effective_to_date = vm.filterCSFaunaEffectiveToDate;
+                        d.filter_from_effective_from_date = vm.filterCSFromFaunaEffectiveFromDate;
+                        d.filter_to_effective_from_date = vm.filterCSToFaunaEffectiveFromDate;
+                        d.filter_from_effective_to_date = vm.filterCSFromFaunaEffectiveToDate;
+                        d.filter_to_effective_to_date = vm.filterCSToFaunaEffectiveToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -1380,8 +1422,10 @@ export default {
                 filter_application_status: vm.filterCSFaunaApplicationStatus,
                 filter_region: vm.filterCSFaunaRegion,
                 filter_district: vm.filterCSFaunaDistrict,
-                filter_effective_from_date: vm.filterCSFaunaEffectiveFromDate,
-                filter_effective_to_date: vm.filterCSFaunaEffectiveToDate,
+                filter_from_effective_from_date: vm.filterCSFromFaunaEffectiveFromDate,
+                filter_to_effective_from_date: vm.filterCSToFaunaEffectiveFromDate,
+                filter_effective_to_date: vm.filterCSFromFaunaEffectiveToDate,
+                filter_effective_to_date: vm.filterCSToFaunaEffectiveToDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };
