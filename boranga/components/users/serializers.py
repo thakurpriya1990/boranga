@@ -1,6 +1,7 @@
 from django.conf import settings
 from ledger_api_client.ledger_models import Address
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.managed_models import SystemGroup
 from rest_framework import serializers
 
 from boranga.components.main.models import (
@@ -9,7 +10,7 @@ from boranga.components.main.models import (
     UserSystemSettings,
 )
 from boranga.components.users.models import EmailUserAction, EmailUserLogEntry
-from boranga.helpers import in_dbca_domain, is_boranga_admin
+from boranga.helpers import is_boranga_admin
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -31,62 +32,6 @@ class UserSystemSettingsSerializer(serializers.ModelSerializer):
         fields = ("one_row_per_park",)
 
 
-# class UserOrganisationSerializer(serializers.ModelSerializer):
-#     name = serializers.CharField(source='organisation.name')
-#     abn = serializers.CharField(source='organisation.abn')
-#     email = serializers.SerializerMethodField()
-#     is_consultant = serializers.SerializerMethodField(read_only=True)
-#     is_admin = serializers.SerializerMethodField(read_only=True)
-#     active_proposals = serializers.SerializerMethodField(read_only=True)
-#     current_event_proposals = serializers.SerializerMethodField(read_only=True)
-
-#     class Meta:
-#         model = Organisation
-#         fields = (
-#             'id',
-#             'name',
-#             'abn',
-#             'email',
-#             'is_consultant',
-#             'is_admin',
-#             'active_proposals',
-#             'current_event_proposals',
-#         )
-
-#     def get_is_admin(self, obj):
-#         user = EmailUser.objects.get(id=self.context.get('user_id'))
-#         return can_admin_org(obj, user)
-
-#     def get_is_consultant(self, obj):
-#         user = EmailUser.objects.get(id=self.context.get('user_id'))
-#         return is_consultant(obj, user)
-
-#     def get_email(self, obj):
-#         email = EmailUser.objects.get(id=self.context.get('user_id')).email
-#         return email
-
-#     def get_active_proposals(self, obj):
-#         _list = []
-#         #for application_type in ['T Class', 'Filming', 'Event']:
-#         for application_type in [ApplicationType.TCLASS, ApplicationType.FILMING, ApplicationType.EVENT ]:
-#             qs = Proposal.objects.filter(application_type__name=application_type, org_applicant=obj)
-# .exclude(processing_status__in=['approved', 'declined', 'discarded']).values_list('lodgement_number', flat=True)
-#             _list.append( dict(application_type=application_type, proposals=qs) )
-#         return _list
-
-#     def get_current_event_proposals(self, obj):
-#         today = timezone.localtime(timezone.now()).date()
-#         #Only return the Approvals in last 12 months
-#         year_date = today - timedelta(days=365)
-#         _list = []
-#         #for application_type in ['T Class', 'Filming', 'Event']:
-#         qs = Approval.objects.filter(expiry_date__lte=today, expiry_date__gte=year_date,
-# current_proposal__application_type__name=ApplicationType.EVENT, current_proposal__org_applicant=obj)
-# .values('id','current_proposal','current_proposal__event_activity__event_name').order_by('id')
-#         _list.append( dict(application_type=ApplicationType.EVENT, proposals=qs) )
-#         return _list
-
-
 class UserFilterSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
 
@@ -104,9 +49,9 @@ class UserSerializer(serializers.ModelSerializer):
     address_details = serializers.SerializerMethodField()
     contact_details = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
-    is_department_user = serializers.SerializerMethodField()
     system_settings = serializers.SerializerMethodField()
-    is_boranga_admin = serializers.SerializerMethodField()
+
+    groups = serializers.SerializerMethodField()
 
     class Meta:
         model = EmailUser
@@ -122,10 +67,9 @@ class UserSerializer(serializers.ModelSerializer):
             "address_details",
             "contact_details",
             "full_name",
-            "is_department_user",
             "is_staff",
             "system_settings",
-            "is_boranga_admin",
+            "groups",
         )
 
     def get_personal_details(self, obj):
@@ -147,23 +91,6 @@ class UserSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return obj.get_full_name()
 
-    def get_is_department_user(self, obj):
-        request = self.context["request"] if self.context else None
-        if request:
-            return in_dbca_domain(request)
-        else:
-            return False
-
-    # def get_is_payment_admin(self, obj):
-    #   return is_payment_admin(obj)
-
-    # def get_boranga_organisations(self, obj):
-    #     boranga_organisations = obj.boranga_organisations
-    #     serialized_orgs = UserOrganisationSerializer(
-    #         boranga_organisations, many=True, context={
-    #             'user_id': obj.id}).data
-    #     return serialized_orgs
-
     def get_system_settings(self, obj):
         try:
             user_system_settings = obj.system_settings.first()
@@ -179,6 +106,11 @@ class UserSerializer(serializers.ModelSerializer):
         if request:
             return is_boranga_admin(request)
         return False
+
+    def get_groups(self, obj):
+        return SystemGroup.objects.filter(
+            systemgrouppermission__emailuser=86575
+        ).values_list("name", flat=True)
 
 
 class PersonalSerializer(serializers.ModelSerializer):
