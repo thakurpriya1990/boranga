@@ -1,34 +1,21 @@
 {% load users %}
 {% load utils %}
 {% load static %}
+
 {% is_internal as is_internal_login %}
-{% is_internal_contributor as is_internal_contributor %}
-{% is_external_contributor as is_external_contributor %}
-{% is_boranga_admin as is_boranga_admin %}
-{% is_readonly_user as is_readonly_user %}
-{% is_species_communities_approver as is_species_communities_approver %}
-{% is_conservation_status_assessor as is_conservation_status_assessor %}
-{% is_conservation_status_approver as is_conservation_status_approver %}
-{% is_occurrence_assessor as is_occurrence_assessor %}
-{% is_occurrence_approver as is_occurrence_approver %}
+{% show_internal_primary_menu_items as show_internal_primary_menu_items %}
 
 {% if is_internal_login %}
-  {% if is_species_communities_approver or is_conservation_status_assessor  or is_readonly_user or is_internal_contributor or is_boranga_admin or request.user.is_superuser %}
+  {% if show_internal_primary_menu_items %}
     <li class="nav-item">
       <a class="nav-link{% if 'species-communities' in request.path %} active{% endif %}" href="/internal/species-communities">Species &amp; Communities</a>
     </li>
-  {% endif %}
-  {% if is_species_communities_approver or is_conservation_status_assessor or is_conservation_status_approver or is_readonly_user or is_internal_contributor or is_boranga_admin or request.user.is_superuser %}
     <li class="nav-item">
       <a class="nav-link{% if 'conservation-status' in request.path %} active{% endif %}" href="/internal/conservation-status">Conservation Status</a>
     </li>
-  {% endif %}
-  {% if is_species_communities_approver or is_conservation_status_assessor  or is_conservation_status_approver or is_readonly_user or is_boranga_admin or request.user.is_superuser %}
     <li class="nav-item">
       <a class="nav-link{% if 'meetings' in request.path %} active{% endif %}" href="/internal/meetings">Meetings</a>
     </li>
-  {% endif %}
-  {% if is_species_communities_approver or is_conservation_status_assessor or is_occurrence_assessor or is_occurrence_approver or is_readonly_user or is_internal_contributor or is_boranga_admin or request.user.is_superuser %}
     <li class="nav-item">
       <a class="nav-link{% if 'occurrence' in request.path %} active{% endif %}" href="/internal/occurrence">Occurrences</a>
     </li>
