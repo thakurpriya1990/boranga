@@ -318,16 +318,11 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
         request = self.context["request"]
-        user = request.user
-        # if obj.can_officer_process and template_group == 'apiary':
-        # TODO if internal user proposal then check condition that he is not able to process
-        if obj.can_officer_process:
-            if obj.assigned_officer:
-                if obj.assigned_officer == user.id:
-                    return True
-            elif user in obj.allowed_assessors:
-                return True
-        return False
+        return (
+            obj.can_officer_process
+            and request.user.id
+            in obj.get_assessor_group().get_system_group_member_ids()
+        )
 
     def get_assessor_edit(self, obj):
         request = self.context["request"]
@@ -492,15 +487,11 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
         request = self.context["request"]
-        user = request.user
-        # if obj.can_officer_process and template_group == 'apiary':
-        if obj.can_officer_process:
-            if obj.assigned_officer:
-                if obj.assigned_officer == user.id:
-                    return True
-            elif user in obj.allowed_assessors:
-                return True
-        return False
+        return (
+            obj.can_officer_process
+            and request.user.id
+            in obj.get_assessor_group().get_system_group_member_ids()
+        )
 
     def get_assessor_edit(self, obj):
         request = self.context["request"]
