@@ -86,7 +86,7 @@
 
         <div v-if="addCommunityCSVisibility && is_for_agenda==false" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityConservationStatus"><i class="fa-solid fa-circle-plus"></i> Add Conservation Satus</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityConservationStatus"><i class="fa-solid fa-circle-plus"></i> Propose Conservation Satus</button>
             </div>
         </div>
 
@@ -147,6 +147,10 @@ export default {
         url:{
             type: String,
             required: true
+        },
+        profile:{
+            type: Object,
+            default: null
         },
         // when the datable need to be shown for agenda_items in meeting check this variable is true
         is_for_agenda:{
@@ -211,8 +215,6 @@ export default {
             communityConservationStatusHistoryId: null,
             communityHistoryId: null,
             listHistoryId: null,
-            //Profile to check if user has access to process Proposal
-            profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
@@ -364,11 +366,7 @@ export default {
             return this.level == 'referral';
         },
         addCommunityCSVisibility: function() {
-            let visibility = false;
-            if (this.is_internal) {
-                visibility = true;
-            }
-            return visibility;
+            return this.profile && this.profile.groups.includes(constants.GROUPS.CONSERVATION_STATUS_ASSESSORS)
         },
         datatable_headers: function(){
             if (this.is_external){
@@ -959,41 +957,6 @@ export default {
                 }
             );
         },
-        fetchProfile: function(){
-            let vm = this;
-            /*Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-                vm.is_payment_admin=response.body.is_payment_admin;
-
-            },(error) => {
-                console.log(error);
-
-            })*/
-        },
-
-        check_assessor: function(proposal){
-            let vm = this;
-            if (proposal.assigned_officer)
-                {
-                    { if(proposal.assigned_officer== vm.profile.full_name)
-                        return true;
-                    else
-                        return false;
-                }
-            }
-            else{
-                 var assessor = proposal.allowed_assessors.filter(function(elem){
-                    return(elem.id=vm.profile.id)
-                });
-
-                if (assessor.length > 0)
-                    return true;
-                else
-                    return false;
-
-            }
-
-        },
         exportData: function (format) {
             let vm = this;
             const columns_new = {
@@ -1206,11 +1169,8 @@ export default {
             }
         },
     },
-
-
     mounted: function(){
         this.fetchFilterLists();
-        this.fetchProfile();
         let vm = this;
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];

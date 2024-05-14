@@ -21,7 +21,7 @@
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
                 <FormSection :formCollapse="false" label="Conservation Status - Flora" Index="flora">
                     <ConservationStatusFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url" :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Conservation Status - Flora Applications Referred To Me"
                     Index="flora_cs">
@@ -32,7 +32,7 @@
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
                 <FormSection :formCollapse="false" label="Conservation Status - Fauna" Index="fauna">
                     <ConservationStatusFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url" :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Conservation Status - Fauna Applications Referred To Me"
                     Index="fauna_cs">
@@ -43,7 +43,7 @@
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
                 <FormSection :formCollapse="false" label="Conservation Status - Community" Index="community">
                     <ConservationStatusCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_cs_url" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_cs_url" :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Conservation Status - Community Applications Referred To Me"
                     Index="community_cs">
@@ -79,6 +79,7 @@ export default {
             species_cs_referrals_url: api_endpoints.species_conservation_status_referrals_paginated_internal,
             community_cs_url: api_endpoints.community_conservation_status_paginated_internal,
             community_cs_referrals_url: api_endpoints.community_conservation_status_referrals_paginated_internal,
+            profile: null,
         }
     },
     components: {
@@ -132,6 +133,13 @@ export default {
                 tab = new bootstrap.Tab(elem)
             tab.show()
         },
+        fetchProfile: function () {
+            this.$http.get(api_endpoints.profile).then((response) => {
+                this.profile = response.body;
+            }, (error) => {
+                console.log(error);
+            });
+        },
     },
     created: function () {
         this.$http.get(api_endpoints.group_types_dict).then((response) => {
@@ -139,6 +147,7 @@ export default {
         }, (error) => {
             console.log(error);
         });
+        this.fetchProfile();
     },
     mounted: function () {
         let vm = this;
