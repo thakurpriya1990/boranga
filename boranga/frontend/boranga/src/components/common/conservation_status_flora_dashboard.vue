@@ -433,7 +433,6 @@ export default {
         addFloraCSVisibility: function () {
             return this.profile && this.profile.groups.find(
                 (i) => [
-                    constants.GROUPS.CONSERVATION_STATUS_ASSESSORS,
                     constants.GROUPS.INTERNAL_CONTRIBUTORS
                 ].includes(i)
             );
