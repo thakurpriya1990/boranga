@@ -1533,14 +1533,7 @@ export default {
             type: Array,
             required: false,
             default: function () {
-                return [
-                    {
-                        name: 'processed_layer',
-                        title: 'Occurrences',
-                        default: false,
-                        can_edit: true,
-                    },
-                ];
+                return [];
             },
         },
     },
@@ -3020,7 +3013,7 @@ export default {
                     },
                     {
                         layerFilter: function (layer) {
-                            return ['query_layer', 'processed_layer'].includes(
+                            return Object.keys(vm.vectorLayers).includes(
                                 layer.get('name')
                             );
                         },

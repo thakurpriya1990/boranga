@@ -19,6 +19,20 @@
             "
             :selectable="true"
             :coordinate-reference-systems="coordinateReferenceSystems"
+            :query-layer-definition="{
+                name: 'query_layer',
+                title: 'Occurrence Reports',
+                default: false,
+                can_edit: true,
+            }"
+            :additional-layers-definitions="[
+                {
+                    name: 'processed_layer',
+                    title: 'Occurrence',
+                    default: true,
+                    can_edit: true,
+                },
+            ]"
         ></MapComponent>
         <!-- @refreshFromResponse="refreshFromResponse" -->
         <!-- @validate-feature="validateFeature.bind(this)()" -->
