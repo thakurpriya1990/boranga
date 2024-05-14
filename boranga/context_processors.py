@@ -7,6 +7,6 @@ def config(request):
         "template_title": settings.TEMPLATE_TITLE,
         "build_tag": settings.BUILD_TAG,
         "GIT_COMMIT_HASH": settings.GIT_COMMIT_HASH,
-        "KMI_SERVER_URL": settings.KMI_SERVER_URL,
+        "GIS_SERVER_URL": settings.GIS_SERVER_URL,
         "app_build_url": settings.DEV_APP_BUILD_URL,
     }
