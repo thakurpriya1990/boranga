@@ -318,7 +318,7 @@ export default {
             await vm.save().then(() => {
                 if (vm.isSaved === true) {
                     vm.$router.push({
-                        name: 'occurrence-dashboard'
+                        name: 'internal-occurrence-dash'
                     });
                 }
                 else {
@@ -406,7 +406,7 @@ export default {
                         vm.$http.post(submit_url, payload).then(res => {
                             vm.occurrence = res.body;
                             vm.$router.push({
-                                name: 'occurrence-dashboard'
+                                name: 'internal-occurrence-dash'
                             });
                         }, err => {
                             swal.fire({
@@ -488,7 +488,7 @@ export default {
                             confirmButtonColor: '#226fbb'
                         }).then(async (swalresult) => {
                             vm.$router.push({
-                                name: 'occurrence-dashboard'
+                                name: 'internal-occurrence-dash'
                             });
                         });
                     }, err => {

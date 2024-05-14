@@ -59,14 +59,21 @@ class MeetingFilterBackend(DatatablesFilterBackend):
                 # changed to application_type (ie group_type)
                 queryset = queryset
 
-        filter_start_date = request.GET.get("filter_start_date")
-        filter_end_date = request.GET.get("filter_end_date")
+        filter_from_start_date = request.GET.get("filter_from_start_date")
+        filter_to_start_date = request.GET.get("filter_to_start_date")
+        print(filter_to_start_date)
+        filter_from_end_date = request.GET.get("filter_from_end_date")
+        filter_to_end_date = request.GET.get("filter_to_end_date")
         if queryset.model is Meeting:
-            if filter_start_date:
-                queryset = queryset.filter(start_date__gte=filter_start_date)
+            if filter_from_start_date:
+                queryset = queryset.filter(start_date__gte=filter_from_start_date)
+            if filter_to_start_date:
+                queryset = queryset.filter(start_date__lte=filter_to_start_date)
 
-            if filter_end_date:
-                queryset = queryset.filter(end_date__lte=filter_end_date)
+            if filter_from_end_date:
+                queryset = queryset.filter(end_date__gte=filter_from_end_date)
+            if filter_to_end_date:
+                queryset = queryset.filter(end_date__lte=filter_to_end_date)
 
         filter_meeting_status = request.GET.get("filter_meeting_status")
         if filter_meeting_status and not filter_meeting_status.lower() == "all":
