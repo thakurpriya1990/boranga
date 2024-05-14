@@ -18,33 +18,39 @@
 
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-                <FormSection :formCollapse="false" label="Occurrences - Flora" Index="occurrence-flora">
+                <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Flora" Index="occurrence-flora">
                     <OccurrenceFloraDashboard v-if="isFlora" ref="occ_flora_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_occ_url" :profile="profile" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_occ_url"
+                        :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Occurrence Report - Flora" Index="occurrence-report-flora">
                     <OccurrenceReportFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url" :profile="profile" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
+                        :profile="profile" />
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-                <FormSection :formCollapse="false" label="Occurrences - Fauna" Index="occurrence-fauna">
+                <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Fauna" Index="occurrence-fauna">
                     <OccurrenceFaunaDashboard v-if="isFauna" ref="occ_fauna_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_occ_url" :profile="profile" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_occ_url"
+                        :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Occurrence Report - Fauna" Index="fauna">
                     <OccurrenceReportFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url" :profile="profile" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
+                        :profile="profile" />
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-                <FormSection :formCollapse="false" label="Occurrences - Community" Index="occurrence-community">
+                <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Community" Index="occurrence-community">
                     <OccurrenceCommunityDashboard v-if="isCommunity" ref="occ_community_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_occ_url" :profile="profile" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_occ_url"
+                        :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Occurrence Report - Community" Index="community">
                     <OccurrenceReportCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_ocr_url" :profile="profile" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_ocr_url"
+                        :profile="profile" />
                 </FormSection>
             </div>
         </div>
@@ -64,7 +70,7 @@ import FormSection from '@/components/forms/section_toggle.vue'
 
 import {
     api_endpoints,
-    helpers
+    constants
 }
     from '@/utils/hooks'
 export default {
@@ -82,7 +88,6 @@ export default {
             profile: null,
         }
     },
-    watch: {},
     components: {
         OccurrenceFloraDashboard,
         OccurrenceFaunaDashboard,
@@ -94,6 +99,9 @@ export default {
     },
     computed: {
         /*------properties to show the user authenticated Tabs only-----------*/
+        show_occurrences: function () {
+            return this.profile && this.profile.groups.find((i) => [constants.GROUPS.OCCURRENCE_APPROVERS, constants.GROUPS.OCCURRENCE_ASSESSORS].includes(i));
+        },
         showFloraTab: function () {
             return this.group_types.includes('flora');
         },
