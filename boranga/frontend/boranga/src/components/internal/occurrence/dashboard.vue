@@ -100,7 +100,11 @@ export default {
     computed: {
         /*------properties to show the user authenticated Tabs only-----------*/
         show_occurrences: function () {
-            return this.profile && this.profile.groups.find((i) => [constants.GROUPS.OCCURRENCE_APPROVERS, constants.GROUPS.OCCURRENCE_ASSESSORS].includes(i));
+            return this.profile && this.profile.groups.find((i) => [
+                constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS,
+                constants.GROUPS.OCCURRENCE_APPROVERS,
+                constants.GROUPS.OCCURRENCE_ASSESSORS
+            ].includes(i));
         },
         showFloraTab: function () {
             return this.group_types.includes('flora');
