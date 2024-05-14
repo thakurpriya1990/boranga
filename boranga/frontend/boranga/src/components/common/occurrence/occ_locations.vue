@@ -77,7 +77,7 @@ export default {
     data() {
         return {
             uuid: uuid(),
-            datum_list: [],
+            crs: [],
         };
     },
     computed: {
@@ -85,7 +85,7 @@ export default {
             return `component-map-${this.uuid}`;
         },
         coordinateReferenceSystems() {
-            return this.datum_list;
+            return this.crs;
         },
         occurrenceReportIds() {
             return this.occurrence.occurrence_reports.map(
@@ -94,9 +94,6 @@ export default {
         },
     },
     created() {
-        // this.datum_list
-        // this.occurrence.occurrence_reports.map((report) => report.id)
-
         fetch(
             helpers.add_endpoint_join(
                 api_endpoints.occurrence,
@@ -110,7 +107,7 @@ export default {
                 return response.json();
             })
             .then((data) => {
-                this.datum_list = data.crs;
+                this.crs = data.crs;
             })
             .catch((error) => {
                 console.error(
@@ -144,11 +141,11 @@ export default {
                 })
                 .then((data) => {
                     console.log('New search data return:', data);
-                    // Append to existing list of datum rather than overwrite and potentially lose prior search results which might create issues when setting a pre-selected value
-                    const datum_ids = vm.datum_list.map((datum) => datum.id);
-                    data.forEach((datum) => {
-                        if (!datum_ids.includes(datum.id)) {
-                            vm.datum_list.push(datum);
+                    // Append to existing list of crs rather than overwrite and potentially lose prior search results which might create issues when setting a pre-selected value
+                    const crs_ids = vm.crs.map((crs) => crs.id);
+                    data.forEach((crs) => {
+                        if (!crs_ids.includes(crs.id)) {
+                            vm.crs.push(crs);
                         }
                     });
                 })
