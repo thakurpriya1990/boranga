@@ -144,7 +144,9 @@
                     <!-- </transition> -->
 
                     <div
-                        v-if="modelQuerySource"
+                        v-if="
+                            layerSources[defaultQueryLayerName] && featureCount
+                        "
                         id="submenu-geometries-list"
                         class="map-menu-submenu moved-menu-vertical"
                     >
@@ -368,7 +370,11 @@
                     </div>
                     <div
                         class="optional-layers-button-wrapper"
-                        :title="`Open table for ${featureCount} geometries`"
+                        :title="
+                            featureCount
+                                ? `Open table for ${featureCount} geometries`
+                                : 'No geometries available'
+                        "
                     >
                         <div
                             class="optional-layers-button btn"
@@ -508,7 +514,11 @@
                     <div
                         v-if="editable"
                         class="optional-layers-button-wrapper"
-                        title="To transform features first toggle on layer editing"
+                        :title="
+                            isEditingALayer
+                                ? 'No geometries to transform'
+                                : 'To transform features first toggle on layer editing'
+                        "
                     >
                         <div
                             :title="
@@ -533,7 +543,10 @@
                             />
                         </div>
                     </div>
-                    <div class="optional-layers-button-wrapper">
+                    <div
+                        class="optional-layers-button-wrapper"
+                        title="Zoom map to layer(s)"
+                    >
                         <div
                             title="Zoom map to layer(s)"
                             class="optional-layers-button btn"
@@ -1276,7 +1289,7 @@ export default {
             default: null,
         },
         /**
-         * Ids of porposals to be fetched by the map componment and displayed on the map.
+         * Ids of proposals to be fetched by the map component and displayed on the map.
          * Negative values fetch no proposals
          * Positive values fetch proposals with those ids
          * Empty list `[]` fetches all proposals
@@ -1287,6 +1300,14 @@ export default {
             default() {
                 return [];
             },
+        },
+        /**
+         * The string name of the layer to add proposalId's proposals to
+         */
+        proposalIdsLayer: {
+            type: String,
+            required: false,
+            default: null,
         },
         /**
          * A geojson feature collection of features (possibvly related to the context) to display on the map.
@@ -1506,6 +1527,25 @@ export default {
             required: false,
             default: 4326,
         },
+        queryLayerDefinition: {
+            type: Object,
+            required: false,
+            default: function () {
+                return {
+                    name: 'query_layer',
+                    title: 'Query Layer',
+                    default: true,
+                    can_edit: true,
+                };
+            },
+        },
+        additionalLayersDefinitions: {
+            type: Array,
+            required: false,
+            default: function () {
+                return [];
+            },
+        },
     },
     emits: ['validate-feature', 'refreshFromResponse'],
     data() {
@@ -1541,12 +1581,12 @@ export default {
             fetchingProposals: false,
             processingFeatures: false,
             proposals: [],
-            modelQuerySource: null,
-            modelQueryLayer: null,
+            layerSources: {},
+            vectorLayers: {},
+            defaultQueryLayerName: null, // The layer where e.g. dropped geometries are added to
             editableFeatureCollection: new Collection([], { unique: true }),
-            processedGeometrySource: null,
-            processedGeometryLayer: null,
             selectedFeatureCollection: new Collection([], { unique: true }),
+            zIndex: 10, // Incrementing Z-index for overlays
             lastPoint: null,
             sketchCoordinates: [[]],
             defaultColor: '#eeeeee',
@@ -1646,11 +1686,11 @@ export default {
             return visible_layers.length > 0;
         },
         featureCount: function () {
-            let vm = this;
-            if (!this.modelQuerySource) {
+            if (!this.layerSources[this.defaultQueryLayerName]) {
                 return 0;
             }
-            return vm.modelQuerySource.getFeatures().length;
+            return this.layerSources[this.defaultQueryLayerName].getFeatures()
+                .length;
         },
         hasErrorMessage: function () {
             let vm = this;
@@ -1821,7 +1861,7 @@ export default {
          * Returns the features in the modelQuerySource sorted by their id
          */
         mapFeaturesSorted: function () {
-            return this.modelQuerySource
+            return this.layerSources[this.defaultQueryLayerName]
                 .getFeatures()
                 .toSorted(function (a, b) {
                     return a.getProperties().id - b.getProperties().id;
@@ -1845,12 +1885,21 @@ export default {
                 return feature.getProperties().id;
             });
         },
+        activeEditLayerName: function () {
+            const layer = this.editableLayers().find((layer) => {
+                return layer.get('editing') === true;
+            });
+            return layer?.getProperties().name;
+        },
         isEditingALayer: function () {
             const editableLayers = this.editableLayers().filter((layer) => {
                 return layer.get('editing') === true;
             });
 
             return editableLayers.length > 0;
+        },
+        vectorLayersArray: function () {
+            return Object.values(this.vectorLayers);
         },
     },
     watch: {
@@ -1913,7 +1962,7 @@ export default {
         geoJsonButtonClicked: function () {
             let vm = this;
             let json = new GeoJSON().writeFeatures(
-                vm.modelQuerySource.getFeatures(),
+                vm.layerSources[this.defaultQueryLayerName].getFeatures(),
                 {}
             );
             vm.download_content(json, 'boranga_layers.geojson', 'text/plain');
@@ -1922,14 +1971,20 @@ export default {
             console.log('in displayAllFeatures()');
             let vm = this;
             if (vm.map) {
-                if (vm.modelQuerySource.getFeatures().length > 0) {
+                if (
+                    vm.layerSources[this.defaultQueryLayerName].getFeatures()
+                        .length > 0
+                ) {
                     let view = vm.map.getView();
 
                     let ext;
                     if (features) {
                         ext = vm.getFeaturesExtent(features);
                     } else {
-                        ext = vm.modelQuerySource.getExtent();
+                        ext =
+                            vm.layerSources[
+                                vm.defaultQueryLayerName
+                            ].getExtent();
                     }
 
                     let centre = [
@@ -2200,14 +2255,15 @@ export default {
             vm.map.addControl(fullScreenControl);
 
             vm.initialiseMeasurementLayer();
+            // Init vector layers
             vm.initialiseQueryLayer();
             vm.initialiseProcessingLayer();
+            vm.defaultQueryLayerName = vm.getDefaultQueryLayerName();
+
             vm.initialiseDrawLayer();
-            vm.initialiseLayerSwitcher([
-                this.measurementLayer,
-                this.processedGeometryLayer,
-                this.modelQueryLayer,
-            ]);
+            vm.initialiseLayerSwitcher(
+                [vm.measurementLayer].concat(vm.vectorLayersArray)
+            );
             vm.initialiseLayerEvents();
 
             // update map extent when new features added
@@ -2216,7 +2272,7 @@ export default {
                 if (evt.details.loaded == true) {
                     // Add undo/redo AFTER proposal geometries have been added to the map
                     vm.undoredo = new UndoRedo({
-                        layers: [vm.modelQueryLayer, vm.processedGeometryLayer],
+                        layers: vm.vectorLayersArray,
                     });
                     vm.undoredo.clear();
 
@@ -2283,7 +2339,7 @@ export default {
 
                     // Setup a dedicated undo/redo for sketch points on the draw layer
                     vm.undoredo_forSketch = new UndoRedo({
-                        layers: [vm.modelQueryLayer, vm.processedGeometryLayer],
+                        layers: vm.vectorLayersArray,
                     });
                     vm.undoredo_forSketch.clear();
 
@@ -2352,10 +2408,7 @@ export default {
             });
 
             vm.initialisePointerMoveEvent();
-            vm.snap = vm.initialiseSnap([
-                this.modelQueryLayer,
-                this.processedGeometryLayer,
-            ]);
+            vm.snap = vm.initialiseSnap(vm.vectorLayersArray);
             vm.dragAndDrop = new DragAndDrop({
                 projection: `EPSG:${vm.mapSrid}`,
                 formatConstructors: [GeoJSON],
@@ -2363,7 +2416,7 @@ export default {
             vm.dragAndDrop.on('addfeatures', function (event) {
                 console.log('dragAndDrop addfeatures', event);
                 let features = event.features;
-                let source = vm.modelQuerySource;
+                let source = vm.layerSources[vm.defaultQueryLayerName];
                 for (let i = 0, ii = features.length; i < ii; i++) {
                     let feature = features[i];
                     let color = vm.styleByColor(feature, vm.context, 'draw');
@@ -2439,26 +2492,25 @@ export default {
             vm.map.addInteraction(vm.drawForMeasure);
             vm.map.addLayer(vm.measurementLayer);
         },
-        initialiseQueryLayer: function () {
-            let vm = this;
+        initialiseFeatureQueryLayer: function (title, name, can_edit) {
+            const modelQuerySource = new VectorSource({});
+            const polygonStyle = this.createStyle(null, null, 'Polygon');
+            this.layerSources[name] = modelQuerySource;
 
-            vm.modelQuerySource = new VectorSource({});
-            const polygonStyle = vm.createStyle(null, null, 'Polygon');
-
-            vm.modelQueryLayer = new VectorLayer({
-                title: 'Occurrence Reports',
-                name: 'query_layer',
-                source: vm.modelQuerySource,
-                can_edit: true,
+            this.vectorLayers[name] = new VectorLayer({
+                title: title,
+                name: name,
+                source: modelQuerySource,
+                can_edit: can_edit,
                 editing: false,
-                style: function (feature) {
-                    const color = feature.get('color') || vm.defaultColor;
+                style: (feature) => {
+                    const color = feature.get('color') || this.defaultColor;
                     let style = polygonStyle;
-                    if (vm.isPolygonLikeFeature(feature)) {
+                    if (this.isPolygonLikeFeature(feature)) {
                         style.getFill().setColor(color);
-                    } else if (vm.isPointLikeFeature(feature)) {
-                        const rgba = vm.colorHexToRgbaValues(color);
-                        style = vm.createStyle(
+                    } else if (this.isPointLikeFeature(feature)) {
+                        const rgba = this.colorHexToRgbaValues(color);
+                        style = this.createStyle(
                             color,
                             null,
                             'Point',
@@ -2472,46 +2524,26 @@ export default {
                 },
             });
             // Add the layer
-            vm.map.addLayer(vm.modelQueryLayer);
+            this.map.addLayer(this.vectorLayers[name]);
             // Set zIndex to some layers to be rendered over the other layers
-            vm.modelQueryLayer.setZIndex(10);
+            this.vectorLayers[name].setZIndex(this.zIndex);
+            this.zIndex += 10;
+        },
+        initialiseQueryLayer: function () {
+            this.initialiseFeatureQueryLayer(
+                this.queryLayerDefinition.title,
+                this.queryLayerDefinition.name,
+                this.queryLayerDefinition.can_edit
+            );
         },
         initialiseProcessingLayer: function () {
-            let vm = this;
-
-            vm.processedGeometrySource = new VectorSource({});
-            const polygonStyle = vm.createStyle(null, null, 'Polygon');
-
-            vm.processedGeometryLayer = new VectorLayer({
-                title: 'Occurences',
-                name: 'processed_layer',
-                can_edit: true,
-                editing: false,
-                source: vm.processedGeometrySource,
-                style: function (feature) {
-                    const color = feature.get('color') || vm.defaultColor;
-                    let style = polygonStyle;
-                    if (vm.isPolygonLikeFeature(feature)) {
-                        style.getFill().setColor(color);
-                    } else if (vm.isPointLikeFeature(feature)) {
-                        const rgba = vm.colorHexToRgbaValues(color);
-                        style = vm.createStyle(
-                            color,
-                            null,
-                            'Point',
-                            null,
-                            null,
-                            require('../../assets/map-marker.svg'),
-                            rgba[3]
-                        );
-                    }
-                    return style;
-                },
-            });
-            // Add the layer
-            vm.map.addLayer(vm.processedGeometryLayer);
-            // Set zIndex to some layers to be rendered over the other layers
-            vm.processedGeometryLayer.setZIndex(20);
+            for (let def of this.additionalLayersDefinitions) {
+                this.initialiseFeatureQueryLayer(
+                    def.title,
+                    def.name,
+                    def.can_edit
+                );
+            }
         },
         initialiseDrawLayer: function () {
             let vm = this;
@@ -2520,7 +2552,7 @@ export default {
             }
 
             vm.drawPolygonsForModel = new Draw({
-                source: vm.modelQuerySource,
+                source: vm.layerSources[vm.defaultQueryLayerName],
                 type: 'Polygon',
                 geometryFunction: function (coordinates, geometry) {
                     if (geometry) {
@@ -2611,7 +2643,7 @@ export default {
             });
 
             vm.drawPointsForModel = new Draw({
-                source: vm.modelQuerySource,
+                source: vm.layerSources[vm.defaultQueryLayerName],
                 type: 'Point',
             });
 
@@ -2994,7 +3026,7 @@ export default {
                     },
                     {
                         layerFilter: function (layer) {
-                            return ['query_layer', 'processed_layer'].includes(
+                            return Object.keys(vm.vectorLayers).includes(
                                 layer.get('name')
                             );
                         },
@@ -3129,7 +3161,7 @@ export default {
             // select interaction working on "singleclick"
             const selectSingleClick = new Select({
                 style: vm.basicSelectStyle,
-                layers: [vm.modelQueryLayer, vm.processedGeometryLayer],
+                layers: vm.additionLayersArray,
                 wrapX: false,
                 condition: function () {
                     // Prevent the interaction's standard select event
@@ -3304,10 +3336,12 @@ export default {
         undoLeaseLicensePoint: function () {
             let vm = this;
             if (vm.lastPoint) {
-                vm.modelQuerySource.removeFeature(vm.lastPoint);
+                vm.layerSources[vm.defaultQueryLayerName].removeFeature(
+                    vm.lastPoint
+                );
                 vm.lastPoint = null;
                 vm.sketchCoordinates = [[]];
-                this.selectedFeatureId = null;
+                vm.selectedFeatureId = null;
             } else {
                 vm.drawPolygonsForModel.removeLastPoint();
             }
@@ -3428,9 +3462,13 @@ export default {
                                     )[0].name;
                             }
 
+                            // TODO:
                             const features = this.addFeatureCollectionToMap(
                                 processedGeometry,
-                                this.processedGeometrySource
+                                // this.processedGeometrySource
+                                this.layerSources[
+                                    this.additionalLayersDefinitions[0].name
+                                ]
                             );
                             this.displayAllFeatures(features);
                         }
@@ -3478,9 +3516,18 @@ export default {
                     }
                 });
             });
+
+            // A list of selected features ol uids
+            const featuresOlUids = features.map((feature) => {
+                return Number(feature.ol_uid);
+            }, []);
             // Remove selected features from `selectedFeatureCollection`
-            vm.selectedFeatureCollection.forEach((feature) => {
-                if (features.includes(feature)) {
+            [...vm.selectedFeatureCollection.getArray()].forEach((feature) => {
+                if (
+                    feature &&
+                    featuresOlUids.includes(Number(feature.ol_uid))
+                ) {
+                    console.log(`Removing feature ${feature.ol_uid}`);
                     vm.selectedFeatureCollection.remove(feature);
                 }
             });
@@ -3508,7 +3555,7 @@ export default {
                     vm.proposals = data;
                     let initialisers = [
                         vm.assignProposalFeatureColors(vm.proposals),
-                        vm.loadFeatures(vm.proposals),
+                        vm.loadFeatures(vm.proposals, vm.proposalIdsLayer),
                     ];
                     Promise.all(initialisers).then(() => {
                         console.log('Done loading features');
@@ -3529,7 +3576,7 @@ export default {
         addFeatureCollectionToMap: function (featureCollection, layerSource) {
             let vm = this;
             if (!layerSource) {
-                layerSource = vm.modelQuerySource;
+                layerSource = vm.layerSources[vm.defaultQueryLayerName];
             }
             if (featureCollection == null) {
                 featureCollection = vm.featureCollection;
@@ -3557,11 +3604,16 @@ export default {
                 console.log(typeof proposal.lodgement_date);
             });
         },
-        loadFeatures: function (proposals) {
+        /**
+         * Loads a list of proposals as new map features
+         * @param {Object} proposals The proposals to load as new map features
+         * @param {String=} toSource The layer source to load the features to
+         */
+        loadFeatures: function (proposals, toSource = null) {
             let vm = this;
             console.log(proposals);
             // Remove all features from the layer
-            vm.modelQuerySource.clear();
+            vm.layerSources[vm.defaultQueryLayerName].clear();
             proposals.forEach(function (proposal) {
                 proposal.ocr_geometry.features.forEach(function (featureData) {
                     if (!featureData.geometry) {
@@ -3571,13 +3623,20 @@ export default {
                         return;
                     }
                     let feature = vm.featureFromDict(featureData, proposal);
-                    if (vm.modelQuerySource.getFeatureById(feature.getId())) {
+                    if (
+                        vm.layerSources[
+                            vm.defaultQueryLayerName
+                        ].getFeatureById(feature.getId())
+                    ) {
                         console.warn(
                             `Feature ${feature.getId()} already exists in the source. Skipping...`
                         );
                         return;
                     }
-                    vm.modelQuerySource.addFeature(feature);
+                    const source =
+                        vm.layerSources[toSource] ||
+                        vm.layerSources[vm.defaultQueryLayerName];
+                    source.addFeature(feature);
                 });
             });
             // vm.addFeatureCollectionToMap();
@@ -3754,7 +3813,8 @@ export default {
         //priya this function is used to get modelqueryjson to submit the geometry data in parent component
         getJSONFeatures: function () {
             const format = new GeoJSON();
-            const features = this.modelQuerySource.getFeatures();
+            const features =
+                this.layerSources[this.defaultQueryLayerName].getFeatures();
 
             features.forEach(function (feature) {
                 console.log(feature.getProperties());
@@ -4487,27 +4547,29 @@ export default {
         },
         unOrRedoFeatureUserInputGeoData: function (ol_uid, original_geometry) {
             // Find the respective feature on the map by ol_uid
-            this.modelQuerySource.getFeatures().forEach((feature) => {
-                if (feature.ol_uid == ol_uid) {
-                    // Revert to the last user input geometry on the feature instance
-                    const clone = structuredClone(original_geometry);
-                    Object.assign(
-                        feature.getProperties().original_geometry,
-                        clone
-                    );
-                    // Revert to the last user input geometry for that feature in the list of geometries
-                    this.featureInputCoordinates(
-                        feature,
-                        original_geometry.coordinates,
-                        original_geometry.properties.srid
-                    );
-                    // Finally perform a transformation of the feature on the map
-                    this.transformToMapCrs(
-                        feature,
-                        original_geometry.properties.srid
-                    );
-                }
-            });
+            this.layerSources[this.defaultQueryLayerName]
+                .getFeatures()
+                .forEach((feature) => {
+                    if (feature.ol_uid == ol_uid) {
+                        // Revert to the last user input geometry on the feature instance
+                        const clone = structuredClone(original_geometry);
+                        Object.assign(
+                            feature.getProperties().original_geometry,
+                            clone
+                        );
+                        // Revert to the last user input geometry for that feature in the list of geometries
+                        this.featureInputCoordinates(
+                            feature,
+                            original_geometry.coordinates,
+                            original_geometry.properties.srid
+                        );
+                        // Finally perform a transformation of the feature on the map
+                        this.transformToMapCrs(
+                            feature,
+                            original_geometry.properties.srid
+                        );
+                    }
+                });
         },
         addNewPoint: function (lat, lon) {
             console.log(lat, lon);
@@ -4519,7 +4581,7 @@ export default {
                 color: color,
             });
 
-            this.modelQuerySource.addFeature(feature);
+            this.layerSources[this.defaultQueryLayerName].addFeature(feature);
             this.userInputGeometryStackAdd(feature);
 
             // this.bootstrapTooltipTrigger();
@@ -4559,6 +4621,23 @@ export default {
             return layers.filter((layer) => {
                 return layer.get('can_edit');
             });
+        },
+        getDefaultQueryLayerName: function () {
+            const layerDefs = this.additionalLayersDefinitions.concat(
+                this.queryLayerDefinition
+            );
+            const defaultLayerDef = layerDefs.filter((layer) => {
+                return layer.default == true;
+            });
+
+            if (defaultLayerDef.length > 1) {
+                throw new Error('Cannot have more than one default layer.');
+            } else {
+                return defaultLayerDef.length > 0
+                    ? (this.defaultQueryLayerName = defaultLayerDef[0].name)
+                    : (this.defaultQueryLayerName =
+                          this.queryLayerDefinition.name);
+            }
         },
         /**
          * Toggles editing for a layer on or off and updates the respective layerSwitcher button
