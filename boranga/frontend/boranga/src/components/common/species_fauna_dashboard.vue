@@ -647,8 +647,8 @@ export default {
                             if(full.user_process){
                                 links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;
                             }
-                            links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
+                            links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
                     }
                     return links;
