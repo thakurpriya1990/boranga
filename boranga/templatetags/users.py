@@ -69,12 +69,13 @@ def is_species_communities_approver(context):
 @register.simple_tag(takes_context=True)
 def is_external_contributor(context):
     request = context["request"]
-    return boranga_helpers.is_external_contributor(request)
+    return boranga_helpers.is_external_contributor(request.user)
 
 
 @register.simple_tag(takes_context=True)
-def is_internal_contributor(user_id):
-    return boranga_helpers.is_internal_contributor(user_id)
+def is_internal_contributor(context):
+    request = context["request"]
+    return boranga_helpers.is_internal_contributor(request.user)
 
 
 @register.simple_tag()
