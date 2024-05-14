@@ -144,7 +144,9 @@
                     <!-- </transition> -->
 
                     <div
-                        v-if="layerSources[defaultQueryLayer] && featureCount"
+                        v-if="
+                            layerSources[defaultQueryLayerName] && featureCount
+                        "
                         id="submenu-geometries-list"
                         class="map-menu-submenu moved-menu-vertical"
                     >
@@ -1573,7 +1575,7 @@ export default {
             proposals: [],
             layerSources: {},
             vectorLayers: {},
-            defaultQueryLayer: null, // The layer where e.g. dropped geometries are added to
+            defaultQueryLayerName: null, // The layer where e.g. dropped geometries are added to
             editableFeatureCollection: new Collection([], { unique: true }),
             selectedFeatureCollection: new Collection([], { unique: true }),
             zIndex: 10, // Incrementing Z-index for overlays
@@ -1676,10 +1678,10 @@ export default {
             return visible_layers.length > 0;
         },
         featureCount: function () {
-            if (!this.layerSources[this.defaultQueryLayer]) {
+            if (!this.layerSources[this.defaultQueryLayerName]) {
                 return 0;
             }
-            return this.layerSources[this.defaultQueryLayer].getFeatures()
+            return this.layerSources[this.defaultQueryLayerName].getFeatures()
                 .length;
         },
         hasErrorMessage: function () {
@@ -1851,7 +1853,7 @@ export default {
          * Returns the features in the modelQuerySource sorted by their id
          */
         mapFeaturesSorted: function () {
-            return this.layerSources[this.defaultQueryLayer]
+            return this.layerSources[this.defaultQueryLayerName]
                 .getFeatures()
                 .toSorted(function (a, b) {
                     return a.getProperties().id - b.getProperties().id;
@@ -1875,7 +1877,7 @@ export default {
                 return feature.getProperties().id;
             });
         },
-        activeEditLayer: function () {
+        activeEditLayerName: function () {
             const layer = this.editableLayers().find((layer) => {
                 return layer.get('editing') === true;
             });
@@ -1952,7 +1954,7 @@ export default {
         geoJsonButtonClicked: function () {
             let vm = this;
             let json = new GeoJSON().writeFeatures(
-                vm.layerSources[this.defaultQueryLayer].getFeatures(),
+                vm.layerSources[this.defaultQueryLayerName].getFeatures(),
                 {}
             );
             vm.download_content(json, 'boranga_layers.geojson', 'text/plain');
@@ -1962,7 +1964,7 @@ export default {
             let vm = this;
             if (vm.map) {
                 if (
-                    vm.layerSources[this.defaultQueryLayer].getFeatures()
+                    vm.layerSources[this.defaultQueryLayerName].getFeatures()
                         .length > 0
                 ) {
                     let view = vm.map.getView();
@@ -1971,7 +1973,10 @@ export default {
                     if (features) {
                         ext = vm.getFeaturesExtent(features);
                     } else {
-                        ext = vm.layerSources[vm.defaultQueryLayer].getExtent();
+                        ext =
+                            vm.layerSources[
+                                vm.defaultQueryLayerName
+                            ].getExtent();
                     }
 
                     let centre = [
@@ -2245,7 +2250,7 @@ export default {
             // Init vector layers
             vm.initialiseQueryLayer();
             vm.initialiseProcessingLayer();
-            vm.defaultQueryLayer = this.queryLayerDefinition.name;
+            vm.defaultQueryLayerName = vm.getDefaultQueryLayerName();
 
             vm.initialiseDrawLayer();
             vm.initialiseLayerSwitcher(
@@ -2403,7 +2408,7 @@ export default {
             vm.dragAndDrop.on('addfeatures', function (event) {
                 console.log('dragAndDrop addfeatures', event);
                 let features = event.features;
-                let source = vm.layerSources[vm.defaultQueryLayer];
+                let source = vm.layerSources[vm.defaultQueryLayerName];
                 for (let i = 0, ii = features.length; i < ii; i++) {
                     let feature = features[i];
                     let color = vm.styleByColor(feature, vm.context, 'draw');
@@ -2539,7 +2544,7 @@ export default {
             }
 
             vm.drawPolygonsForModel = new Draw({
-                source: vm.layerSources[vm.defaultQueryLayer],
+                source: vm.layerSources[vm.defaultQueryLayerName],
                 type: 'Polygon',
                 geometryFunction: function (coordinates, geometry) {
                     if (geometry) {
@@ -2630,7 +2635,7 @@ export default {
             });
 
             vm.drawPointsForModel = new Draw({
-                source: vm.layerSources[vm.defaultQueryLayer],
+                source: vm.layerSources[vm.defaultQueryLayerName],
                 type: 'Point',
             });
 
@@ -3323,7 +3328,7 @@ export default {
         undoLeaseLicensePoint: function () {
             let vm = this;
             if (vm.lastPoint) {
-                vm.layerSources[vm.defaultQueryLayer].removeFeature(
+                vm.layerSources[vm.defaultQueryLayerName].removeFeature(
                     vm.lastPoint
                 );
                 vm.lastPoint = null;
@@ -3563,7 +3568,7 @@ export default {
         addFeatureCollectionToMap: function (featureCollection, layerSource) {
             let vm = this;
             if (!layerSource) {
-                layerSource = vm.layerSources[vm.defaultQueryLayer];
+                layerSource = vm.layerSources[vm.defaultQueryLayerName];
             }
             if (featureCollection == null) {
                 featureCollection = vm.featureCollection;
@@ -3595,7 +3600,7 @@ export default {
             let vm = this;
             console.log(proposals);
             // Remove all features from the layer
-            vm.layerSources[vm.defaultQueryLayer].clear();
+            vm.layerSources[vm.defaultQueryLayerName].clear();
             proposals.forEach(function (proposal) {
                 proposal.ocr_geometry.features.forEach(function (featureData) {
                     if (!featureData.geometry) {
@@ -3606,16 +3611,18 @@ export default {
                     }
                     let feature = vm.featureFromDict(featureData, proposal);
                     if (
-                        vm.layerSources[vm.defaultQueryLayer].getFeatureById(
-                            feature.getId()
-                        )
+                        vm.layerSources[
+                            vm.defaultQueryLayerName
+                        ].getFeatureById(feature.getId())
                     ) {
                         console.warn(
                             `Feature ${feature.getId()} already exists in the source. Skipping...`
                         );
                         return;
                     }
-                    vm.layerSources[vm.defaultQueryLayer].addFeature(feature);
+                    vm.layerSources[vm.defaultQueryLayerName].addFeature(
+                        feature
+                    );
                 });
             });
             // vm.addFeatureCollectionToMap();
@@ -3793,7 +3800,7 @@ export default {
         getJSONFeatures: function () {
             const format = new GeoJSON();
             const features =
-                this.layerSources[this.defaultQueryLayer].getFeatures();
+                this.layerSources[this.defaultQueryLayerName].getFeatures();
 
             features.forEach(function (feature) {
                 console.log(feature.getProperties());
@@ -4526,7 +4533,7 @@ export default {
         },
         unOrRedoFeatureUserInputGeoData: function (ol_uid, original_geometry) {
             // Find the respective feature on the map by ol_uid
-            this.layerSources[this.defaultQueryLayer]
+            this.layerSources[this.defaultQueryLayerName]
                 .getFeatures()
                 .forEach((feature) => {
                     if (feature.ol_uid == ol_uid) {
@@ -4560,7 +4567,7 @@ export default {
                 color: color,
             });
 
-            this.layerSources[this.defaultQueryLayer].addFeature(feature);
+            this.layerSources[this.defaultQueryLayerName].addFeature(feature);
             this.userInputGeometryStackAdd(feature);
 
             // this.bootstrapTooltipTrigger();
@@ -4600,6 +4607,23 @@ export default {
             return layers.filter((layer) => {
                 return layer.get('can_edit');
             });
+        },
+        getDefaultQueryLayerName: function () {
+            const layerDefs = this.additionalLayersDefinitions.concat(
+                this.queryLayerDefinition
+            );
+            const defaultLayerDef = layerDefs.filter((layer) => {
+                return layer.default == true;
+            });
+
+            if (defaultLayerDef.length > 1) {
+                throw new Error('Cannot have more than one default layer.');
+            } else {
+                return defaultLayerDef.length > 0
+                    ? (this.defaultQueryLayerName = defaultLayerDef[0].name)
+                    : (this.defaultQueryLayerName =
+                          this.queryLayerDefinition.name);
+            }
         },
         /**
          * Toggles editing for a layer on or off and updates the respective layerSwitcher button
