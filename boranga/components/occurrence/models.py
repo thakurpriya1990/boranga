@@ -49,7 +49,10 @@ from boranga.components.species_and_communities.models import (
 )
 from boranga.helpers import clone_model, email_in_dept_domains
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.settings import GROUP_NAME_OCCURRENCE_APPROVER, GROUP_NAME_OCCURRENCE_ASSESSOR
+from boranga.settings import (
+    GROUP_NAME_OCCURRENCE_APPROVER,
+    GROUP_NAME_OCCURRENCE_ASSESSOR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -270,7 +273,7 @@ class OccurrenceReport(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.occurrence_report_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_occurrence_report_id = f"OCR{str(self.pk)}"
             self.occurrence_report_number = new_occurrence_report_id
@@ -414,7 +417,7 @@ class OccurrenceReport(RevisionedMixin):
             "with_assessor",
             "with_referral",
         ]
-        if not self.processing_status in status_with_assessor:
+        if self.processing_status not in status_with_assessor:
             return False
         else:
             if self.assigned_officer:
@@ -430,9 +433,9 @@ class OccurrenceReport(RevisionedMixin):
 
     def has_approver_mode(self, user):
         status_with_approver = [
-            "with_approver",            
+            "with_approver",
         ]
-        if not self.processing_status in status_with_approver:
+        if self.processing_status not in status_with_approver:
             return False
         else:
             if self.assigned_approver:
@@ -451,10 +454,6 @@ class OccurrenceReport(RevisionedMixin):
 
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
-
-    # Group for editing the Approved CS(only specific fields)
-    # def get_editor_group(self):
-    #     return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
 
     @property
     def assessor_recipients(self):
@@ -2393,7 +2392,7 @@ class OccurrenceReportDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
@@ -2521,7 +2520,7 @@ class OCRConservationThreat(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
@@ -2654,7 +2653,7 @@ class Occurrence(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.occurrence_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             self.occurrence_number = f"OCC{str(self.pk)}"
             self.save(*args, **kwargs)
@@ -2677,7 +2676,7 @@ class Occurrence(RevisionedMixin):
         user_editable_state = [
             "active",
         ]
-        if not self.processing_status in user_editable_state:
+        if self.processing_status not in user_editable_state:
             return False
         else:
             return (
@@ -2947,7 +2946,7 @@ class OccurrenceDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
@@ -3076,7 +3075,7 @@ class OCCConservationThreat(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id

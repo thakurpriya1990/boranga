@@ -15,28 +15,26 @@
                     @click="set_active_tab('community')">Communities</a>
             </li>
         </ul>
-
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
                 <FormSection :formCollapse="false" label="Flora" Index="flora">
                     <SpeciesFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_url" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_url" :profile="profile" />
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
                 <FormSection :formCollapse="false" label="Fauna" Index="fauna">
                     <SpeciesFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_url" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_url" :profile="profile" />
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
                 <FormSection :formCollapse="false" label="Community" Index="community">
                     <CommunitiesDashTable v-if="isCommunity" ref="community_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_url" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_url" :profile="profile" />
                 </FormSection>
             </div>
         </div>
-
     </div>
 </template>
 <script>
@@ -58,6 +56,7 @@ export default {
             group_name: null,
             species_url: api_endpoints.species_paginated_internal,
             community_url: api_endpoints.communities_paginated_internal,
+            profile: null,
         }
     },
     components: {
@@ -120,6 +119,14 @@ export default {
                 tab = new bootstrap.Tab(elem)
             tab.show()
         },
+        fetchProfile: function(){
+            let vm = this;
+            vm.$http.get(api_endpoints.profile).then((response) => {
+                vm.profile = response.body;
+            },(error) => {
+                console.log(error);
+            })
+        },
     },
     created: function () {
         this.$http.get(api_endpoints.group_types_dict).then((response) => {
@@ -127,6 +134,7 @@ export default {
         }, (error) => {
             console.log(error);
         });
+        this.fetchProfile();
     },
     mounted: function () {
         let vm = this;

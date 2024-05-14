@@ -9,11 +9,4 @@ class Migration(migrations.Migration):
         ('boranga', '0243_merge_0242_auto_20240508_1348_0242_auto_20240508_1431'),
     ]
 
-    operations = [
-        migrations.DeleteModel(
-            name='AmendmentReason',
-        ),
-        migrations.DeleteModel(
-            name='RequiredDocument',
-        ),
-    ]
+    operations = []

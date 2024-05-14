@@ -10,6 +10,27 @@ private_storage = FileSystemStorage(
 )
 
 
+class UserCategory(models.Model):
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name_plural = "User Categories"
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Profile(models.Model):
+    email_user = models.IntegerField()
+    organisation = models.CharField(max_length=100, blank=True, null=True)
+    position = models.CharField(max_length=100, blank=True, null=True)
+    user_category = models.ForeignKey(UserCategory, on_delete=models.PROTECT)
+
+    class Meta:
+        app_label = "boranga"
+
+
 class EmailUserLogEntry(CommunicationsLogEntry):
     email_user = models.IntegerField()
 

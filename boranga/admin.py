@@ -2,16 +2,16 @@ from copy import deepcopy
 
 from django.contrib.gis import admin
 from ledger_api_client.admin import SystemGroupAdmin
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 
 from boranga import helpers as boranga_helpers
-from boranga.components.main import models
 
 admin.site.index_template = "admin-index.html"
 admin.autodiscover()
 
 
-@admin.register(models.EmailUser)
+@admin.register(EmailUser)
 class EmailUserAdmin(admin.ModelAdmin):
     list_display = (
         "email",
