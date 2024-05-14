@@ -1,8 +1,6 @@
 import logging
 
-import ledger_api_client
 from django.conf import settings
-from django.core.cache import cache
 from django.db import models
 from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -21,46 +19,26 @@ from boranga.settings import (
 logger = logging.getLogger(__name__)
 
 
-def belongs_to(user, group_name):
-    """
-    Check if the user belongs to the given group.
-    :param user:
-    :param group_name:
-    :return:
-    """
-    belongs_to_value = cache.get(
-        "User-belongs_to" + str(user.id) + "group_name:" + group_name
-    )
-    if belongs_to_value:
-        print(
-            "From Cache - User-belongs_to" + str(user.id) + "group_name:" + group_name
-        )
-    if belongs_to_value is None:
-        belongs_to_value = False
-        system_group = ledger_api_client.managed_models.SystemGroup.objects.get(
-            name=group_name
-        )
-        if user.id in system_group.get_system_group_member_ids():
-            belongs_to_value = True
-        cache.set(
-            "User-belongs_to" + str(user.id) + "group_name:" + group_name,
-            belongs_to_value,
-            3600,
-        )
-    return belongs_to_value
+def belongs_to_by_user_id(user_id, group_name):
+    system_group = SystemGroup.objects.filter(name=group_name).first()
+    return system_group and user_id in system_group.get_system_group_member_ids()
+
+
+def belongs_to(request, group_name):
+    if not request.user.is_authenticated:
+        return False
+    if request.user.is_superuser:
+        return True
+
+    return belongs_to_by_user_id(request.user.id, group_name)
 
 
 def is_boranga_admin(request):
-    return request.user.is_authenticated and (
-        belongs_to(request.user, settings.ADMIN_GROUP) or request.user.is_superuser
-    )
+    return belongs_to(request, settings.ADMIN_GROUP)
 
 
 def is_django_admin(request):
-    return request.user.is_authenticated and (
-        belongs_to(request.user, settings.DJANGO_ADMIN_GROUP)
-        or request.user.is_superuser
-    )
+    return belongs_to(request, settings.DJANGO_ADMIN_GROUP)
 
 
 def is_readonly_user(user_id):
