@@ -108,8 +108,11 @@ class UserSerializer(serializers.ModelSerializer):
         return False
 
     def get_groups(self, obj):
+        groups = SystemGroup.objects.all().values_list("name", flat=True)
         request = self.context["request"] if self.context else None
-        return SystemGroup.objects.filter(
+        if request.user.is_superuser:
+            return groups
+        return groups.filter(
             systemgrouppermission__emailuser=request.user.id
         ).values_list("name", flat=True)
 
