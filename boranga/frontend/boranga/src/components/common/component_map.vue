@@ -1580,7 +1580,7 @@ export default {
             proposals: [],
             layerSources: {},
             vectorLayers: {},
-            defaultQueryLayer: null,
+            defaultQueryLayer: null, // The layer where e.g. dropped geometries are added to
             editableFeatureCollection: new Collection([], { unique: true }),
             selectedFeatureCollection: new Collection([], { unique: true }),
             zIndex: 10, // Incrementing Z-index for overlays
@@ -1881,6 +1881,12 @@ export default {
             return this.selectedFeatureCollection.getArray().map((feature) => {
                 return feature.getProperties().id;
             });
+        },
+        activeEditLayer: function () {
+            const layer = this.editableLayers().find((layer) => {
+                return layer.get('editing') === true;
+            });
+            return layer?.getProperties().name;
         },
         isEditingALayer: function () {
             const editableLayers = this.editableLayers().filter((layer) => {
