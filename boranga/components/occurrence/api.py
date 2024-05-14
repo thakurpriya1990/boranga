@@ -62,6 +62,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportDocument,
+    OccurrenceReportGeometry,
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
     OccurrenceSource,
@@ -2969,7 +2970,7 @@ class GetOccurrenceSource(views.APIView):
         return Response()
 
 
-class OccurrenceViewSet(UserActionLoggingViewset):
+class OccurrenceViewSet(UserActionLoggingViewset, DatumSearchMixing):
     queryset = Occurrence.objects.none()
     serializer_class = OccurrenceSerializer
     lookup_field = "id"
@@ -3849,6 +3850,52 @@ class OccurrenceViewSet(UserActionLoggingViewset):
             "sample_type_list": sample_type_list,
             "sample_dest_list": sample_dest_list,
             "permit_type_list": permit_type_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        url_path="available-occurrence-reports-crs",
+    )
+    def available_occurrence_reports_crs(self, request, *args, **kwargs):
+        """used for Occurrence Report external form"""
+        qs = self.get_queryset()
+        crs = []
+
+        id = request.GET.get("id", None)
+        try:
+            qs = qs.get(id=id)
+        except Occurrence.DoesNotExist:
+            logger.error(f"Occurrence with id {id} not found")
+        else:
+            ocr_geometries_ids = (
+                qs.occurrence_reports.all()
+                .values_list("ocr_geometry", flat=True)
+                .distinct()
+            )
+            ocr_geometries = OccurrenceReportGeometry.objects.filter(
+                id__in=ocr_geometries_ids
+            ).exclude(**{"geometry": None})
+
+            epsg_codes = [
+                str(g.srid)
+                for g in ocr_geometries.values_list("geometry", flat=True).distinct()
+            ]
+            # Add the srids of the original geometries to epsg_codes
+            original_geometry_srids = [
+                str(g.original_geometry_srid) for g in ocr_geometries
+            ]
+            epsg_codes += [g for g in original_geometry_srids if g.isnumeric()]
+            epsg_codes = list(set(epsg_codes))
+            crs = search_datums("", codes=epsg_codes)
+
+        res_json = {
+            "crs": crs,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
