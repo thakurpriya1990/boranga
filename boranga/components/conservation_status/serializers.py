@@ -18,6 +18,7 @@ from boranga.components.main.serializers import (
     EmailUserSerializer,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.helpers import is_internal_contributor
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -333,11 +334,13 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         return False
 
     def get_internal_user_edit(self, obj):
-        if obj.can_user_edit:
-            if obj.internal_application is True:
-                return True
-        else:
-            return False
+        request = self.context["request"]
+        return (
+            obj.can_user_edit
+            and obj.internal_application
+            and is_internal_contributor(request.user)
+            and obj.submitter == request.user.id
+        )
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
@@ -411,13 +414,6 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             return (
                 obj.application_type.name
             )  # if user haven't filled up the form yet(ie. species not selected)
-
-    # def get_conservation_status(self,obj):
-    #   try:
-    #       conservation_status = ConservationStatus.objects.get(community=obj)
-    #       return conservation_status.conservation_list.code
-    #   except ConservationStatus.DoesNotExist:
-    #       return None
 
     def get_community_number(self, obj):
         if obj.community:
@@ -502,11 +498,13 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
         return False
 
     def get_internal_user_edit(self, obj):
-        if obj.can_user_edit:
-            if obj.internal_application is True:
-                return True
-        else:
-            return False
+        request = self.context["request"]
+        return (
+            obj.can_user_edit
+            and obj.internal_application
+            and is_internal_contributor(request.user)
+            and obj.submitter == request.user.id
+        )
 
 
 class BaseConservationStatusSerializer(serializers.ModelSerializer):
@@ -788,11 +786,13 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         }
 
     def get_internal_user_edit(self, obj):
-        if obj.can_user_edit:
-            if obj.internal_application is True:
-                return True
-        else:
-            return False
+        request = self.context["request"]
+        return (
+            obj.can_user_edit
+            and obj.internal_application
+            and is_internal_contributor(request.user)
+            and obj.submitter == request.user.id
+        )
 
     def get_conservation_status_approval_document(self, obj):
         try:
