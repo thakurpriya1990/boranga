@@ -1286,7 +1286,6 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Species.objects.all()
     serializer_class = SpeciesSerializer
 
-
 class SpeciesViewSet(viewsets.ModelViewSet):
     queryset = Species.objects.none()
     serializer_class = InternalSpeciesSerializer

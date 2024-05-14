@@ -579,6 +579,9 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     if (full.processing_status){
+                        if (full.processing_status === "Active" && full.publishing_status) {
+                            return full.processing_status +" - "+ full.publishing_status.public_status;
+                        }
                         return full.processing_status;
                     }
                     // Should not reach here
@@ -684,7 +687,7 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_status,
+                    //vm.column_status,
                     vm.column_action,
                 ]
                 search = false

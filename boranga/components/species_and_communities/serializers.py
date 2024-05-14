@@ -50,6 +50,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     district = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
+    publishing_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -71,6 +72,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "can_user_view",
             "user_process",
             "comment",
+            "publishing_status",
         )
         datatables_always_serialize = (
             "id",
@@ -90,6 +92,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "can_user_view",
             "user_process",
             "comment",
+            "publishing_status",
         )
 
     def get_group_type(self, obj):
@@ -183,6 +186,16 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
                 return True
         return False
 
+    def get_publishing_status(self, obj):
+        try:
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = SpeciesPublishingStatus.objects.get_or_create(
+                species=obj
+            )
+            return SpeciesPublishingStatusSerializer(ps_instance).data
+        except SpeciesPublishingStatus.DoesNotExist:
+            return SpeciesPublishingStatusSerializer().data
+
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
@@ -194,6 +207,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     district = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
+    publishing_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Community
@@ -212,6 +226,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "can_user_view",
             "user_process",
             "comment",
+            "publishing_status",
         )
         datatables_always_serialize = (
             "id",
@@ -228,6 +243,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "can_user_view",
             "user_process",
             "comment",
+            "publishing_status",
         )
 
     def get_group_type(self, obj):
@@ -288,6 +304,16 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             if user in obj.allowed_community_processors:
                 return True
         return False
+    
+    def get_publishing_status(self, obj):
+        try:
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = CommunityPublishingStatus.objects.get_or_create(
+                community=obj
+            )
+            return CommunityPublishingStatusSerializer(ps_instance).data
+        except CommunityPublishingStatus.DoesNotExist:
+            return CommunityPublishingStatusSerializer().data
 
 
 class TaxonomySerializer(serializers.ModelSerializer):
