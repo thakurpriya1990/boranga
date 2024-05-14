@@ -48,7 +48,7 @@
                             <div class="row">
                                 <div class="col-sm-12">
                                     <strong>Status</strong><br />
-                                    {{ species_community.processing_status }}
+                                    {{ species_community.processing_status }} <span v-if="isActive"> - {{species_community.publishing_status.public_status}}</span>
                                 </div>
                             </div>
                         </div>
@@ -56,14 +56,14 @@
                             <div class="row">
                                 <div class="col-sm-12">
                                     <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction"> -->
-                                    <div v-if='!isCommunity' class="col-sm-12 top-buffer-s">
+                                    <div class="col-sm-12 top-buffer-s">
                                         <template v-if="hasUserEditMode">
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <strong>Action</strong><br />
                                                 </div>
                                             </div>
-                                            <div class="row">
+                                            <div class="row" v-if="!isCommunity">
                                                 <div class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                         @click.prevent="splitSpecies()">Split</button><br />
@@ -77,8 +77,18 @@
                                                         @click.prevent="renameSpecies()">Rename</button><br />
                                                 </div>
                                             </div>
+                                            <div class="row" v-if="isActive">
+                                                <div class="col-sm-12" v-if="!isPublic">
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="makePublic()">Make Public</button><br />
+                                                </div>
+                                                <div class="col-sm-12" v-else>
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="makePrivate()">Make Private</button><br />
+                                                </div>
+                                            </div>
                                         </template>
-                                        <template v-if="canDiscard">
+                                        <template v-else-if="canDiscard">
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <strong>Action</strong><br />
@@ -286,6 +296,12 @@ export default {
             else {
                 return false;
             }
+        },
+        isPublic: function() {
+            return this.species_community.publishing_status.species_public ? true : false;
+        },
+        isActive: function () {
+            return this.species_community.processing_status === "Active" ? true : false;
         },
         canDiscard: function () {
             return this.species_community && this.species_community.processing_status === "Draft" ? true : false;

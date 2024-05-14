@@ -45,6 +45,7 @@ from boranga.components.species_and_communities.models import (
     CommunityConservationAttributes,
     CommunityDistribution,
     CommunityDocument,
+    CommunityPublishingStatus,
     CommunityTaxonomy,
     CommunityUserAction,
     ConservationThreat,
@@ -66,6 +67,7 @@ from boranga.components.species_and_communities.models import (
     SpeciesConservationAttributes,
     SpeciesDistribution,
     SpeciesDocument,
+    SpeciesPublishingStatus,
     SpeciesUserAction,
     Taxonomy,
     TaxonVernacular,
@@ -89,12 +91,14 @@ from boranga.components.species_and_communities.serializers import (
     SaveCommunityConservationAttributesSerializer,
     SaveCommunityDistributionSerializer,
     SaveCommunityDocumentSerializer,
+    SaveCommunityPublishingStatusSerializer,
     SaveCommunitySerializer,
     SaveCommunityTaxonomySerializer,
     SaveConservationThreatSerializer,
     SaveSpeciesConservationAttributesSerializer,
     SaveSpeciesDistributionSerializer,
     SaveSpeciesDocumentSerializer,
+    SaveSpeciesPublishingStatusSerializer,
     SaveSpeciesSerializer,
     SpeciesDistributionSerializer,
     SpeciesDocumentSerializer,
@@ -1401,6 +1405,19 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
 
+        #TODO - move this to dedicated save and replace with setting to private
+        if request_data.get("publishing_status"):
+            publishing_status_instance, created = (
+                SpeciesPublishingStatus.objects.get_or_create(species=instance)
+            )
+            serializer = SaveSpeciesPublishingStatusSerializer(
+                publishing_status_instance,
+                data=request_data.get("publishing_status"),
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
         serializer = SaveSpeciesSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
@@ -1439,6 +1456,19 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             serializer = SaveSpeciesConservationAttributesSerializer(
                 conservation_attributes_instance,
                 data=request_data.get("conservation_attributes"),
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        #TODO - move this to dedicated save and replace with setting to private
+        if request_data.get("publishing_status"):
+            publishing_status_instance, created = (
+                SpeciesPublishingStatus.objects.get_or_create(species=instance)
+            )
+            serializer = SaveSpeciesPublishingStatusSerializer(
+                publishing_status_instance,
+                data=request_data.get("publishing_status"),
             )
             serializer.is_valid(raise_exception=True)
             if serializer.is_valid():
@@ -1694,6 +1724,11 @@ class SpeciesViewSet(viewsets.ModelViewSet):
 
             # create SpeciesDistribution for new instance
             serializer = SaveSpeciesDistributionSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            # create SpeciesPublishingStatus for new instance
+            serializer = SaveSpeciesPublishingStatusSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
@@ -1975,6 +2010,19 @@ class CommunityViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
 
+        #TODO - move this to dedicated save and replace with setting to private
+        if request_data.get("publishing_status"):
+            publishing_status_instance, created = (
+                CommunityPublishingStatus.objects.get_or_create(community=instance)
+            )
+            serializer = SaveCommunityPublishingStatusSerializer(
+                publishing_status_instance,
+                data=request_data.get("publishing_status"),
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
         serializer = SaveCommunitySerializer(instance, data=request_data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
@@ -2021,6 +2069,11 @@ class CommunityViewSet(viewsets.ModelViewSet):
 
             # create CommunityConservationAttributes for new instance
             serializer = SaveCommunityConservationAttributesSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            # create CommunityPublishingStatus for new instance
+            serializer = SaveCommunityPublishingStatusSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 

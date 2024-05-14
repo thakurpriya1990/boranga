@@ -667,6 +667,54 @@
                         v-model="species_community.comment" />
                 </div>
             </div>
+
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label"><strong>Publishing</strong></label>
+            </div>
+            <div class="row mb-3">
+                <label for="distribution_publishing" class="col-sm-3 control-label">Distribution: </label>
+                <div class="col-sm-9">
+                    <label for="distribution_publishing" class="me-2">Private</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
+                        id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
+                    <label for="distribution_publishing" class="me-2">Public</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
+                        id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="conservation_status_publishing" class="col-sm-3 control-label">Conservation Status: </label>
+                <div class="col-sm-9">
+                    <label for="conservation_status_publishing" class="me-2">Private</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
+                        id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
+                    <label for="conservation_status_publishing" class="me-2">Public</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
+                        id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="conservation_attributes_publishing" class="col-sm-3 control-label">Conservation Attributes: </label>
+                <div class="col-sm-9">
+                    <label for="conservation_attributes_publishing" class="me-2">Private</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
+                        id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
+                    <label for="conservation_attributes_publishing" class="me-2">Public</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
+                        id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="threats_publishing" class="col-sm-3 control-label">Threats: </label>
+                <div class="col-sm-9">
+                    <label for="threats_publishing" class="me-2">Private</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
+                        id="threats_publishing" v-model="species_community.publishing_status.threats_public">
+                    <label for="threats_publishing" class="me-2">Public</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
+                        id="threats_publishing" v-model="species_community.publishing_status.threats_public">
+                </div>
+            </div>
         </FormSection>
     </div>
 </template>
@@ -795,6 +843,12 @@ export default {
                     return this.species_community.readonly;
                 }
             }
+        },
+        isActive: function () {
+            return this.species_community.processing_status === "Active" ? true : false;
+        },
+        isPublic: function () {
+            return this.species_community.publishing_status.species_public ? true : false;
         },
         isNOOReadOnly: function () {
             let vm = this;

@@ -19,6 +19,7 @@ from boranga.components.species_and_communities.models import (
     CommunityLogEntry,
     CommunityTaxonomy,
     CommunityUserAction,
+    CommunityPublishingStatus,
     ConservationThreat,
     InformalGroup,
     Species,
@@ -27,6 +28,7 @@ from boranga.components.species_and_communities.models import (
     SpeciesDocument,
     SpeciesLogEntry,
     SpeciesUserAction,
+    SpeciesPublishingStatus,
     Taxonomy,
     TaxonVernacular,
 )
@@ -571,6 +573,43 @@ class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
         )
 
 
+class SpeciesPublishingStatusSerializer(serializers.ModelSerializer):
+    public_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SpeciesPublishingStatus
+        fields = (
+            "public_status",
+            "species_id",
+            "species_public",
+            "distribution_public",
+            "conservation_status_public",
+            "conservation_attributes_public",
+            "threats_public",
+        )
+
+    def get_public_status(self,obj):
+        if obj.species_public:
+            return "Public"
+        return "Private"
+
+class SaveSpeciesPublishingStatusSerializer(serializers.ModelSerializer):
+    
+    species_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+
+    class Meta:
+        model = SpeciesPublishingStatus
+        fields = (
+            "species_id",
+            "species_public",
+            "distribution_public",
+            "conservation_status_public",
+            "conservation_attributes_public",
+            "threats_public",
+        )
+
 class BaseSpeciesSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
@@ -579,6 +618,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     taxonomy_details = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
     distribution = serializers.SerializerMethodField()
+    publishing_status = serializers.SerializerMethodField()
     image_doc = serializers.SerializerMethodField()
     allowed_species_processors = EmailUserSerializer(many=True)
 
@@ -609,6 +649,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             "applicant_details",
             "allowed_species_processors",
             "comment",
+            "publishing_status",
         )
 
     def get_readonly(self, obj):
@@ -662,6 +703,16 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             return SpeciesDistributionSerializer(distribution_instance).data
         except SpeciesDistribution.DoesNotExist:
             return SpeciesDistributionSerializer().data
+        
+    def get_publishing_status(self, obj):
+        try:
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = SpeciesPublishingStatus.objects.get_or_create(
+                species=obj
+            )
+            return SpeciesPublishingStatusSerializer(ps_instance).data
+        except SpeciesPublishingStatus.DoesNotExist:
+            return SpeciesPublishingStatusSerializer().data
 
     def get_image_doc(self, obj):
         if obj.image_doc and obj.image_doc._file:
@@ -744,6 +795,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
+            "publishing_status",
             "region_id",
             "district_id",
             "last_data_curration_date",
@@ -964,6 +1016,42 @@ class SaveCommunityTaxonomySerializer(serializers.ModelSerializer):
             "name_comments",
         )
 
+class CommunityPublishingStatusSerializer(serializers.ModelSerializer):
+    public_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CommunityPublishingStatus
+        fields = (
+            "public_status",
+            "community_id",
+            "community_public",
+            "distribution_public",
+            "conservation_status_public",
+            "conservation_attributes_public",
+            "threats_public",
+        )
+
+    def get_public_status(self,obj):
+        if obj.community_public:
+            return "Public"
+        return "Private"
+
+class SaveCommunityPublishingStatusSerializer(serializers.ModelSerializer):
+    
+    community_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+
+    class Meta:
+        model = CommunityPublishingStatus
+        fields = (
+            "community_id",
+            "community_public",
+            "distribution_public",
+            "conservation_status_public",
+            "conservation_attributes_public",
+            "threats_public",
+        )
 
 class BaseCommunitySerializer(serializers.ModelSerializer):
     species = serializers.SerializerMethodField()
@@ -972,6 +1060,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
     conservation_status = serializers.SerializerMethodField()
     conservation_status_under_review = serializers.SerializerMethodField()
     distribution = serializers.SerializerMethodField()
+    publishing_status = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
     readonly = serializers.SerializerMethodField(read_only=True)
     image_doc = serializers.SerializerMethodField()
@@ -990,6 +1079,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             "conservation_status",
             "conservation_status_under_review",
             "distribution",
+            "publishing_status",
             "conservation_attributes",
             "last_data_curration_date",
             "image_doc",
@@ -1055,6 +1145,16 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
         except CommunityDistribution.MultipleObjectsReturned:
             qs = None
         return CommunityDistributionSerializer(qs).data
+
+    def get_publishing_status(self, obj):
+        try:
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = CommunityPublishingStatus.objects.get_or_create(
+                community=obj
+            )
+            return CommunityPublishingStatusSerializer(ps_instance).data
+        except CommunityPublishingStatus.DoesNotExist:
+            return CommunityPublishingStatusSerializer().data
 
     def get_conservation_attributes(self, obj):
         try:
@@ -1125,6 +1225,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "conservation_status",
             "conservation_status_under_review",
             "distribution",
+            "publishing_status",
             "conservation_attributes",
             "last_data_curration_date",
             "image_doc",

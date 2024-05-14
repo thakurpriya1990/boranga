@@ -2070,6 +2070,69 @@ class ConservationThreat(RevisionedMixin):
         elif self.community:
             return self.community.community_number
 
+class SpeciesPublishingStatus(models.Model):
+    """
+    The public publishing status of a species instance and its sections.
+
+    Has a:
+    - species
+    Used for:
+    - Species
+    Is:
+    - Table
+    """
+
+    species = models.OneToOneField(
+        Species,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="species_publishing_status",
+    )
+
+    species_public = models.BooleanField(default=False)
+
+    distribution_public = models.BooleanField(default=False)
+    conservation_status_public = models.BooleanField(default=False)
+    conservation_attributes_public = models.BooleanField(default=False)
+    threats_public = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.species) 
+
+class CommunityPublishingStatus(models.Model):
+    """
+    The public publishing status of a community instance and its sections.
+    
+    Has a:
+    - community
+    Used for:
+    - Community
+    Is:
+    - Table
+    """
+
+    community = models.OneToOneField(
+        Community,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="community_publishing_status",
+    )
+
+    community_public = models.BooleanField(default=False)
+
+    distribution_public = models.BooleanField(default=False)
+    conservation_status_public = models.BooleanField(default=False)
+    conservation_attributes_public = models.BooleanField(default=False)
+    threats_public = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.community) 
 
 class FloraRecruitmentType(models.Model):
     """
