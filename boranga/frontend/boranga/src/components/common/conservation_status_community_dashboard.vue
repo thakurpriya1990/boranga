@@ -71,14 +71,28 @@
                 </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
-                        <label for="">Effective From Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveFromDate">
+                        <label for="">Effective From Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterCSFromCommunityEffectiveFromDate">
                     </div>
                 </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
-                        <label for="">Effective To Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date" v-model="filterCSCommunityEffectiveToDate">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterCSToCommunityEffectiveFromDate">
+                    </div>
+                </div>
+                
+                <div class="col-md-3" v-show="!is_for_agenda">
+                    <div class="form-group">
+                        <label for="">Effective To Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterCSFromCommunityEffectiveToDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" v-show="!is_for_agenda">
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterCSToCommunityEffectiveToDate">
                     </div>
                 </div>
             </div>
@@ -193,15 +207,25 @@ export default {
             required: false,
             default: 'filterCSCommunityApplicationStatus',
         },
-        filterCSCommunityEffectiveFromDate_cache: {
+        filterCSFromCommunityEffectiveFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSCommunityEffectiveFromDate',
+            default: 'filterCSFromCommunityEffectiveFromDate',
         },
-        filterCSCommunityEffectiveToDate_cache: {
+        filterCSToCommunityEffectiveFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSCommunityEffectiveToDate',
+            default: 'filterCSToCommunityEffectiveFromDate',
+        },
+        filterCSFromCommunityEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFromCommunityEffectiveToDate',
+        },
+        filterCSToCommunityEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSToCommunityEffectiveToDate',
         },
     },
     data() {
@@ -237,11 +261,15 @@ export default {
             filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'all',
 
-            filterCSCommunityEffectiveFromDate: sessionStorage.getItem(this.filterCSCommunityEffectiveFromDate_cache) ?
-                                    sessionStorage.getItem(this.filterCSCommunityEffectiveFromDate_cache) : '',
+            filterCSFromCommunityEffectiveFromDate: sessionStorage.getItem(this.filterCSFromCommunityEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCSFromCommunityEffectiveFromDate_cache) : '',
+            filterCSToCommunityEffectiveFromDate: sessionStorage.getItem(this.filterCSToCommunityEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCSToCommunityEffectiveFromDate_cache) : '',
 
-            filterCSCommunityEffectiveToDate: sessionStorage.getItem(this.filterCSCommunityEffectiveToDate_cache) ?
-                                    sessionStorage.getItem(this.filterCSCommunityEffectiveToDate_cache) : '',
+            filterCSFromCommunityEffectiveToDate: sessionStorage.getItem(this.filterCSFromCommunityEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCSFromCommunityEffectiveToDate_cache) : '',
+            filterCSToCommunityEffectiveToDate: sessionStorage.getItem(this.filterCSToCommunityEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCSToCommunityEffectiveToDate_cache) : '',
 
             //Filter list for Community select box
             filterListsCommunities: {},
@@ -316,15 +344,25 @@ export default {
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityDistrict_cache, vm.filterCSCommunityDistrict);
         },
-        filterCSCommunityEffectiveFromDate: function(){
+        filterCSFromCommunityEffectiveFromDate: function(){
             let vm = this;
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityEffectiveFromDate_cache, vm.filterCSCommunityEffectiveFromDate);
+            sessionStorage.setItem(vm.filterCSFromCommunityEffectiveFromDate_cache, vm.filterCSFromCommunityEffectiveFromDate);
         },
-        filterCSCommunityEffectiveToDate: function(){
+        filterCSToCommunityEffectiveFromDate: function(){
             let vm = this;
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityEffectiveToDate_cache, vm.filterCSCommunityEffectiveToDate);
+            sessionStorage.setItem(vm.filterCSToCommunityEffectiveFromDate_cache, vm.filterCSToCommunityEffectiveFromDate);
+        },
+        filterCSFromCommunityEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFromCommunityEffectiveToDate_cache, vm.filterCSFromCommunityEffectiveToDate);
+        },
+        filterCSToCommunityEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSToCommunityEffectiveToDate_cache, vm.filterCSToCommunityEffectiveToDate);
         },
         filterCSCommunityApplicationStatus: function() {
             let vm = this;
@@ -347,8 +385,10 @@ export default {
                 this.filterCSCommunityRegion === 'all' &&
                 this.filterCSCommunityDistrict === 'all' &&
                 this.filterCSCommunityApplicationStatus === 'all' &&
-                this.filterCSCommunityEffectiveFromDate === '' &&
-                this.filterCSCommunityEffectiveToDate === ''){
+                this.filterCSFromCommunityEffectiveFromDate === '' &&
+                this.filterCSToCommunityEffectiveFromDate === '' &&
+                this.filterCSFromCommunityEffectiveToDate === '' &&
+                this.filterCSToCommunityEffectiveToDate === ''){
                 return false
             } else {
                 return true
@@ -689,8 +729,10 @@ export default {
                         d.filter_region = vm.filterCSCommunityRegion;
                         d.filter_district = vm.filterCSCommunityDistrict;
                         d.filter_application_status = vm.filterCSCommunityApplicationStatus;
-                        d.filter_effective_from_date = vm.filterCSCommunityEffectiveFromDate;
-                        d.filter_effective_to_date = vm.filterCSCommunityEffectiveToDate;
+                        d.filter_from_effective_from_date = vm.filterCSFromCommunityEffectiveFromDate;
+                        d.filter_to_effective_from_date = vm.filterCSToCommunityEffectiveFromDate;
+                        d.filter_from_effective_to_date = vm.filterCSFromCommunityEffectiveToDate;
+                        d.filter_to_effective_to_date = vm.filterCSToCommunityEffectiveToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -1119,8 +1161,10 @@ export default {
                 filter_application_status: vm.filterCSCommunityApplicationStatus,
                 filter_region: vm.filterCSCommunityRegion,
                 filter_district: vm.filterCSCommunityDistrict,
-                filter_effective_from_date: vm.filterCSCommunityEffectiveFromDate,
-                filter_effective_to_date: vm.filterCSCommunityEffectiveToDate,
+                filter_from_effective_from_date: vm.filterCSFromCommunityEffectiveFromDate,
+                filter_to_effective_from_date: vm.filterCSToCommunityEffectiveFromDate,
+                filter_effective_to_date: vm.filterCSFromCommunityEffectiveToDate,
+                filter_effective_to_date: vm.filterCSToCommunityEffectiveToDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };

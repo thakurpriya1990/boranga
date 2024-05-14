@@ -352,28 +352,49 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__species__district=filter_district
                 )
 
-        filter_effective_from_date = request.GET.get("filter_effective_from_date")
-        filter_effective_to_date = request.GET.get("filter_effective_to_date")
+        filter_from_effective_from_date = request.GET.get("filter_from_effective_from_date")
+        filter_to_effective_from_date = request.GET.get("filter_to_effective_from_date")
+
+        filter_from_effective_to_date = request.GET.get("filter_from_effective_to_date")
+        filter_to_effective_to_date = request.GET.get("filter_to_effective_to_date")
+        
         if queryset.model is ConservationStatus:
-            if filter_effective_from_date:
+            if filter_from_effective_from_date:
                 queryset = queryset.filter(
-                    conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date
+                    conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_from_date
+                )
+            if filter_to_effective_from_date:
+                queryset = queryset.filter(
+                    conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_from_date
                 )
 
-            if filter_effective_to_date:
+            if filter_from_effective_to_date:
                 queryset = queryset.filter(
-                    conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date
+                    conservationstatusissuanceapprovaldetails__effective_to_date__gte=filter_from_effective_to_date
+                )
+            if filter_to_effective_to_date:
+                queryset = queryset.filter(
+                    conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_to_effective_to_date
                 )
 
         elif queryset.model is ConservationStatusReferral:
-            if filter_effective_from_date:
+
+            if filter_from_effective_from_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date  # noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_from_date #noqa
+                )
+            if filter_to_effective_from_date:
+                queryset = queryset.filter(
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_from_date #noqa
                 )
 
-            if filter_effective_to_date:
+            if filter_from_effective_to_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date  # noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_to_date #noqa
+                )
+            if filter_to_effective_to_date:
+                queryset = queryset.filter(
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_to_date #noqa
                 )
 
         filter_application_status = request.GET.get("filter_application_status")
@@ -804,28 +825,48 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__community__district=filter_district
                 )
 
-        filter_effective_from_date = request.GET.get("filter_effective_from_date")
-        filter_effective_to_date = request.GET.get("filter_effective_to_date")
+        filter_from_effective_from_date = request.GET.get("filter_from_effective_from_date")
+        filter_to_effective_from_date = request.GET.get("filter_to_effective_from_date")
+
+        filter_from_effective_to_date = request.GET.get("filter_from_effective_to_date")
+        filter_to_effective_to_date = request.GET.get("filter_to_effective_to_date")
         if queryset.model is ConservationStatus:
-            if filter_effective_from_date:
+            if filter_from_effective_from_date:
                 queryset = queryset.filter(
-                    conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date
+                    conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_from_date
+                )
+            if filter_to_effective_from_date:
+                queryset = queryset.filter(
+                    conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_from_date
                 )
 
-            if filter_effective_to_date:
+            if filter_from_effective_to_date:
                 queryset = queryset.filter(
-                    conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date
+                    conservationstatusissuanceapprovaldetails__effective_to_date__gte=filter_from_effective_to_date
+                )
+            if filter_to_effective_to_date:
+                queryset = queryset.filter(
+                    conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_to_effective_to_date
                 )
 
         elif queryset.model is ConservationStatusReferral:
-            if filter_effective_from_date:
+
+            if filter_from_effective_from_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_effective_from_date  # noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_from_date #noqa
+                )
+            if filter_to_effective_from_date:
+                queryset = queryset.filter(
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_from_date #noqa
                 )
 
-            if filter_effective_to_date:
+            if filter_from_effective_to_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_to_date__lte=filter_effective_to_date  # noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_to_date #noqa
+                )
+            if filter_to_effective_to_date:
+                queryset = queryset.filter(
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_to_date #noqa
                 )
 
         filter_application_status = request.GET.get("filter_application_status")

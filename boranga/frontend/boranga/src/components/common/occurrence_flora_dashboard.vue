@@ -29,6 +29,48 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Effective From Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterOCCFromFloraEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterOCCToFloraEffectiveFromDate">
+                    </div>
+                </div>
+                
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Effective To Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterOCCFromFloraEffectiveToDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterOCCToFloraEffectiveToDate">
+                    </div>
+                </div>
+
+                <!--<div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Due Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_due_date" v-model="filterOCCFromFloraDueDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_due_date" v-model="filterOCCToFloraDueDate">
+                    </div>
+                </div>-->
+            </div>
         </CollapsibleFilters>
 
         <div class="col-md-12">
@@ -110,6 +152,36 @@ export default {
             required: false,
             default: 'filterOCCFloraStatus',
         },
+        filterOCCFromFloraEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCFromFloraEffectiveFromDate',
+        },
+        filterOCCToFloraEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCToFloraEffectiveFromDate',
+        },
+        filterOCCFromFloraEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCFromFloraEffectiveToDate',
+        },
+        filterOCCToFloraEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCToFloraEffectiveToDate',
+        },
+        filterOCCFromFloraDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCFromFloraDueDate',
+        },
+        filterOCCToFloraDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCToFloraDueDate',
+        },
     },
     data() {
         let vm = this;
@@ -131,6 +203,21 @@ export default {
 
             filterOCCFloraStatus: sessionStorage.getItem(this.filterOCCFloraStatus_cache) ?
                 sessionStorage.getItem(this.filterOCCFloraStatus_cache) : 'all',
+
+            filterOCCFromFloraEffectiveFromDate: sessionStorage.getItem(this.filterOCCFromFloraEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterOCCFromFloraEffectiveFromDate_cache) : '',
+            filterOCCToFloraEffectiveFromDate: sessionStorage.getItem(this.filterOCCToFloraEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterOCCToFloraEffectiveFromDate_cache) : '',
+
+            filterOCCFromFloraEffectiveToDate: sessionStorage.getItem(this.filterOCCFromFloraEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterOCCFromFloraEffectiveToDate_cache) : '',
+            filterOCCToFloraEffectiveToDate: sessionStorage.getItem(this.filterOCCToFloraEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterOCCToFloraEffectiveToDate_cache) : '',
+
+            filterOCCFromFloraDueDate: sessionStorage.getItem(this.filterOCCFromFloraDueDate_cache) ?
+            sessionStorage.getItem(this.filterOCCFromFloraDueDate_cache) : '',
+            filterOCCToFloraDueDate: sessionStorage.getItem(this.filterOCCToFloraDueDate_cache) ?
+            sessionStorage.getItem(this.filterOCCToFloraDueDate_cache) : '',
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -177,12 +264,48 @@ export default {
                 this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
             }
         },
+        filterOCCFromFloraEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFromFloraEffectiveFromDate_cache, vm.filterOCCFromFloraEffectiveFromDate);
+        },
+        filterOCCToFloraEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCToFloraEffectiveFromDate_cache, vm.filterOCCToFloraEffectiveFromDate);
+        },
+        filterOCCFromFloraEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFromFloraEffectiveToDate_cache, vm.filterOCCFromFloraEffectiveToDate);
+        },
+        filterOCCToFloraEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCToFloraEffectiveToDate_cache, vm.filterOCCToFloraEffectiveToDate);
+        },
+        filterOCCFromFloraDueDate: function(){
+            let vm = this;
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFromFloraDueDate_cache, vm.filterOCCFromFloraDueDate);
+        },
+        filterOCCToFloraDueDate: function(){
+            let vm = this;
+            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCToFloraDueDate_cache, vm.filterOCCToFloraDueDate);
+        },
     },
     computed: {
         filterApplied: function () {
             if (this.filterOCCFloraOccurrenceName === 'all' &&
                 this.filterOCCFloraScientificName === 'all' &&
-                this.filterOCCFloraStatus === 'all') {
+                this.filterOCCFloraStatus === 'all' &&
+                this.filterOCCFromFloraEffectiveFromDate === '' &&
+                this.filterOCCToFloraEffectiveFromDate === '' &&
+                this.filterOCCFromFloraEffectiveToDate === '' &&
+                this.filterOCCToFloraEffectiveToDate === '' &&
+                this.filterOCCFromFloraDueDate === '' &&
+                this.filterOCCToFloraDueDate === '') {
                 return false
             } else {
                 return true
@@ -375,6 +498,12 @@ export default {
                     d.filter_occurrence_name = vm.filterOCCFloraOccurrenceName;
                     d.filter_scientific_name = vm.filterOCCFloraScientificName;
                     d.filter_status = vm.filterOCCFloraStatus;
+                    d.filter_from_effective_from_date = vm.filterOCCFromFloraEffectiveFromDate;
+                    d.filter_to_effective_from_date = vm.filterOCCToFloraEffectiveFromDate;
+                    d.filter_from_effective_to_date = vm.filterOCCFromFloraEffectiveToDate;
+                    d.filter_to_effective_to_date = vm.filterOCCToFloraEffectiveToDate;
+                    d.filter_from_due_date = vm.filterOCCFromFloraDueDate;
+                    d.filter_to_due_date = vm.filterOCCToFloraDueDate;
                     d.is_internal = vm.is_internal;
                 }
             },
@@ -646,6 +775,12 @@ methods: {
             filter_occurrence_name: vm.filterOCCFloraOccurrenceName,
             filter_scientific_name: vm.filterOCCFloraScientificName,
             filter_status: vm.filterOCCFloraStatus,
+            filter_from_effective_from_date: vm.filterOCCFromFloraEffectiveFromDate,
+            filter_to_effective_from_date: vm.filterOCCToFloraEffectiveFromDate,
+            filter_from_effective_to_date: vm.filterOCCFromFloraEffectiveToDate,
+            filter_to_effective_to_date: vm.filterOCCToFloraEffectiveToDate,
+            filter_from_due_date: vm.filterOCCFromFloraDueDate,
+            filter_to_due_date: vm.filterOCCToFloraDueDate,
             is_internal: vm.is_internal,
             export_format: format
         };

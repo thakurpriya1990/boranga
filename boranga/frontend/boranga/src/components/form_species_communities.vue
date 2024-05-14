@@ -8,7 +8,7 @@
                         Profile
                     </a>
                 </li>
-                <li class="nav-item" v-if="is_int">
+                <li class="nav-item" v-if="is_internal">
                     <a class="nav-link" id="pills-documents-tab" data-bs-toggle="pill" :href="'#' + documentBody"
                         role="tab" aria-controls="pills-documents" :aria-selected="documentBody" @click="tabClicked()">
                         Documents
