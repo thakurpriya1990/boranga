@@ -183,6 +183,10 @@ export default {
             type: String,
             required: true
         },
+        profile:{
+            type: Object,
+            default: null
+        },
         filterFaunaScientificName_cache: {
             type: String,
             required: false,
@@ -247,7 +251,6 @@ export default {
             datatable_fauna_id: 'species_fauna-datatable-'+vm._uid,
 
             //Profile to check if user has access to process Proposal
-            profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
@@ -416,11 +419,7 @@ export default {
             return this.level == 'referral';
         },
         newFaunaVisibility: function() {
-            let visibility = false;
-            if (this.is_internal) {
-                visibility = true;
-            }
-            return visibility;
+            return this.profile && this.profile.groups.includes(constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS)
         },
         datatable_headers: function(){
             if (this.is_external){
@@ -1343,23 +1342,9 @@ export default {
                 }
             );
         },
-        fetchProfile: function(){
-            let vm = this;
-            /*Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-                vm.is_payment_admin=response.body.is_payment_admin;
-
-            },(error) => {
-                console.log(error);
-
-            })*/
-        },
     },
-
-
     mounted: function(){
         this.fetchFilterLists();
-        this.fetchProfile();
         let vm = this;
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];

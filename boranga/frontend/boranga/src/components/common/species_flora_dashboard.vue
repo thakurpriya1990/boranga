@@ -175,6 +175,10 @@ export default {
             type: String,
             required: true
         },
+        profile:{
+            type: Object,
+            default: null
+        },
         filterFloraScientificName_cache: {
             type: String,
             required: false,
@@ -237,9 +241,6 @@ export default {
             uuid:0,
             speciesHistoryId: null,
             datatable_id: 'species_flora-datatable-'+vm._uid,
-
-            //Profile to check if user has access to process Proposal
-            profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
@@ -406,11 +407,7 @@ export default {
             return this.level == 'referral';
         },
         newFloraVisibility: function() {
-            let visibility = false;
-            if (this.is_internal) {
-                visibility = true;
-            }
-            return visibility;
+            return this.profile && this.profile.groups.includes(constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS)
         },
         datatable_headers: function(){
             if (this.is_external){
@@ -1351,17 +1348,6 @@ export default {
                 }
             );
         },
-        fetchProfile: function(){
-            let vm = this;
-            /*Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-                vm.is_payment_admin=response.body.is_payment_admin;
-
-            },(error) => {
-                console.log(error);
-
-            })*/
-        },
         delay(callback, ms) {
             var timer = 0;
 
@@ -1384,7 +1370,6 @@ export default {
     mounted: function(){
         let vm = this;
         vm.fetchFilterLists();
-        vm.fetchProfile();
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {
