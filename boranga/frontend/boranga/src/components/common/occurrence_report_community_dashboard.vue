@@ -56,7 +56,7 @@
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterOCRToCommunityEffectiveFromDate">
                     </div>
                 </div>
-                
+
                 <div class="col-md-3" >
                     <div class="form-group">
                         <label for="">Effective To Date Range:</label>
@@ -148,6 +148,10 @@ export default {
             type: String,
             required: true
         },
+        profile: {
+            type: Object,
+            default: null
+        },
         filterOCRCommunityOccurrence_cache: {
             type: String,
             required: false,
@@ -210,9 +214,6 @@ export default {
             uuid:0,
             occurrenceReportHistoryId: null,
             datatable_id: 'community_ocr-datatable-'+vm._uid,
-
-            //Profile to check if user has access to process Proposal
-            profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
@@ -368,11 +369,7 @@ export default {
             return this.level == 'referral';
         },
         addCommunityOCRVisibility: function() {
-            let visibility = false;
-            if (this.is_internal) {
-                visibility = true;
-            }
-            return visibility;
+            return this.profile && this.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS);
         },
         datatable_headers: function(){
             if (this.is_internal){

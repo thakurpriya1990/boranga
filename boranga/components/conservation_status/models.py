@@ -38,7 +38,10 @@ from boranga.components.species_and_communities.models import (
     Species,
 )
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.settings import GROUP_NAME_APPROVER, GROUP_NAME_ASSESSOR, GROUP_NAME_EDITOR
+from boranga.settings import (
+    GROUP_NAME_CONSERVATION_STATUS_APPROVER,
+    GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -488,7 +491,7 @@ class ConservationStatus(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.conservation_status_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_conservation_status_id = f"CS{str(self.pk)}"
             self.conservation_status_number = new_conservation_status_id
@@ -652,18 +655,10 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def allowed_assessors(self):
-        # if self.processing_status == 'with_approver':
-        #     group = self.__approver_group()
-        # elif self.processing_status =='with_qa_officer':
-        #     group = QAOfficerGroup.objects.get(default=True)
-        # else:
-        #     group = self.__assessor_group()
-        # return group.members.all() if group else []
-
         group = None
-        # TODO: Take application_type into account
         if self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
         ]:
             group = self.get_approver_group()
         elif self.processing_status in [
@@ -672,11 +667,6 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
         ]:
             group = self.get_assessor_group()
-        # for tO SHOW edit action on dashoard of CS
-        elif self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_APPROVED,
-        ]:
-            group = self.get_editor_group()
         users = (
             list(
                 map(
@@ -690,20 +680,13 @@ class ConservationStatus(RevisionedMixin):
         return users
 
     def get_assessor_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
+        return SystemGroup.objects.get(name=GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
 
     def get_approver_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
-
-    # Group for editing the Approved CS(only specific fields)
-    def get_editor_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
+        return SystemGroup.objects.get(name=GROUP_NAME_CONSERVATION_STATUS_APPROVER)
 
     @property
     def assessor_recipients(self):
-        logger.info("assessor_recipients")
         recipients = []
         group_ids = self.get_assessor_group().get_system_group_member_ids()
         for id in group_ids:
@@ -713,7 +696,6 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def approver_recipients(self):
-        logger.info("approver_recipients")
         recipients = []
         group_ids = self.get_approver_group().get_system_group_member_ids()
         for id in group_ids:
@@ -730,27 +712,17 @@ class ConservationStatus(RevisionedMixin):
         return user.id in self.get_assessor_group().get_system_group_member_ids()
 
     def can_assess(self, user):
-        logger.info("can assess")
-        logger.info("user")
-        logger.info(type(user))
-        logger.info(user)
-        logger.info(user.id)
         if self.processing_status in [
-            # "on_hold",
-            "ready_for_agenda",
-            "with_assessor",
-            "with_referral",
-            "with_assessor_conditions",
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
         ]:
-            logger.info("self.__assessor_group().get_system_group_member_ids()")
-            logger.info(self.get_assessor_group().get_system_group_member_ids())
             return user.id in self.get_assessor_group().get_system_group_member_ids()
-        elif (
-            self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_APPROVER
-        ):
+        elif self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+        ]:
             return user.id in self.get_approver_group().get_system_group_member_ids()
-        elif self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
-            return user.id in self.get_editor_group().get_system_group_member_ids()
         else:
             return False
 
@@ -803,7 +775,9 @@ class ConservationStatus(RevisionedMixin):
         if self.processing_status in status_without_assessor:
             # For Editing the 'Approved' conservation status for authorised group
             if self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
-                return user.id in self.get_editor_group().get_system_group_member_ids()
+                return (
+                    user.id in self.get_approver_group().get_system_group_member_ids()
+                )
             else:
                 return False
 
@@ -1547,7 +1521,7 @@ class ConservationStatusDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
@@ -1719,10 +1693,6 @@ class ConservationStatusReferral(models.Model):
         #    else:
         #        return False
         # return False
-
-    # def get_referral_group(self):
-    #     # TODO: Take application_type into account
-    #     return SystemGroup.objects.get(name=GROUP_NAME_REFERRAL)
 
     # @property
     # def referral_recipients(self):

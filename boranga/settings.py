@@ -39,26 +39,35 @@ LEDGER_TEMPLATE = "bootstrap5"
 EMAIL_DELIVERY = env("EMAIL_DELIVERY", "off")
 EMAIL_INSTANCE = env("EMAIL_INSTANCE", "DEV")
 
-GROUP_NAME_DJANGO_ADMIN = "Django Admin"
-GROUP_NAME_BORANGA_ADMIN = "Boranga Admin"
-GROUP_NAME_ASSESSOR = "ProposalAssessorGroup"
-GROUP_NAME_APPROVER = "ProposalApproverGroup"
-GROUP_NAME_EDITOR = "ConservationStatusEditorGroup"
-GROUP_NAME_REFERRAL = "ProposalReferralGroup"
-GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR = "SpeciesCommunitiesProcessorGroup"
-GROUP_NAME_OCCURRENCE_ASSESSOR = "Occurrence Assessor Group"
-GROUP_NAME_OCCURRENCE_APPROVER = "Occurrence Approver Group"
+# Use these two admin group names as they are referred to in dbca templates
+ADMIN_GROUP = env("ADMIN_GROUP", "Boranga Admin")
+DJANGO_ADMIN_GROUP = env("DJANGO_ADMIN_GROUP", "Django Admin")
+# ----------------------------------------------
+
+GROUP_NAME_CONSERVATION_STATUS_ASSESSOR = "Conservation Status Assessors"
+GROUP_NAME_CONSERVATION_STATUS_APPROVER = "Conservation Status Approvers"
+
+GROUP_NAME_EXTERNAL_CONTRIBUTOR = "External Contributors"
+GROUP_NAME_INTERNAL_CONTRIBUTOR = "Internal Contributors"
+
+GROUP_NAME_OCCURRENCE_APPROVER = "Occurrence Approvers"
+GROUP_NAME_OCCURRENCE_ASSESSOR = "Occurrence Assessors"
+
+GROUP_NAME_READONLY_USER = "Read Only Users"
+
+GROUP_NAME_SPECIES_COMMUNITIES_APPROVER = "Species and Communities Approvers"
 
 GROUP_NAME_CHOICES = (
-    (GROUP_NAME_DJANGO_ADMIN, "Django Admin"),
-    (GROUP_NAME_BORANGA_ADMIN, "Boranga Admin"),
-    (GROUP_NAME_ASSESSOR, "Proposal Assessor Group"),
-    (GROUP_NAME_APPROVER, "Proposal Approver Group"),
-    (GROUP_NAME_EDITOR, "Conservation Status Editor Group'"),
-    (GROUP_NAME_REFERRAL, "Proposal Referral Group"),
-    (GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR, "Species Communities Processor Group"),
-    (GROUP_NAME_OCCURRENCE_ASSESSOR, "Occurrence Assessor Group"),
-    (GROUP_NAME_OCCURRENCE_APPROVER, "Occurrence Approver Group"),
+    ADMIN_GROUP,
+    DJANGO_ADMIN_GROUP,
+    GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
+    GROUP_NAME_CONSERVATION_STATUS_APPROVER,
+    GROUP_NAME_EXTERNAL_CONTRIBUTOR,
+    GROUP_NAME_INTERNAL_CONTRIBUTOR,
+    GROUP_NAME_OCCURRENCE_APPROVER,
+    GROUP_NAME_OCCURRENCE_ASSESSOR,
+    GROUP_NAME_READONLY_USER,
+    GROUP_NAME_SPECIES_COMMUNITIES_APPROVER,
 )
 
 if env("CONSOLE_EMAIL_BACKEND", False):
@@ -177,8 +186,6 @@ SITE_URL = env("SITE_URL", "https://" + SITE_PREFIX + "." + SITE_DOMAIN)
 PUBLIC_URL = env("PUBLIC_URL", SITE_URL)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "no-reply@" + SITE_DOMAIN).lower()
 MEDIA_APP_DIR = env("MEDIA_APP_DIR", "boranga")
-ADMIN_GROUP = env("ADMIN_GROUP", "Boranga Admin")
-DJANGO_ADMIN_GROUP = env("DJANGO_ADMIN_GROUP", "Django Admin")
 CRON_RUN_AT_TIMES = env("CRON_RUN_AT_TIMES", "04:05")
 CRON_EMAIL = env("CRON_EMAIL", "cron@" + SITE_DOMAIN).lower()
 # for ORACLE Job Notification - override settings_base.py
@@ -290,7 +297,7 @@ NOMOS_URL = env("NOMOS_URL")
 NOMOS_USERNAME = env("NOMOS_USERNAME")
 NOMOS_PASSWORD = env("NOMOS_PASSWORD")
 NOMOS_BLOB_URL = env("NOMOS_BLOB_URL")
-KMI_SERVER_URL = env("KMI_SERVER_URL", "https://kmi.dbca.wa.gov.au")
+GIS_SERVER_URL = env("GIS_SERVER_URL", "https://kmi.dbca.wa.gov.au")
 
 # ---------- Identifier fields for logging ----------
 

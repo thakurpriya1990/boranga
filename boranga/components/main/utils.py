@@ -98,7 +98,7 @@ def get_geometry_source(geometry_obj):
     else:
         # System group names, e.g. boranga_assessor
         system_groups = SystemGroup.objects.filter(
-            name__in=[x for x in zip(*GROUP_NAME_CHOICES)][0]
+            name__in=[x for x in GROUP_NAME_CHOICES]
         )
         # System groups member ids
         system_group_member = list(

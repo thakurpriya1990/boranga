@@ -29,7 +29,7 @@ from boranga.components.users.serializers import (
     UserSerializer,
     UserSystemSettingsSerializer,
 )
-from boranga.permissions import IsApprover, IsAssessor, IsConservationStatusEditor
+from boranga.permissions import IsApprover, IsAssessor
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +85,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = EmailUser.objects.all()
     serializer_class = UserSerializer
     # Add permission groups that can access the userviewset, can add more group later as required
-    permission_classes = [IsAssessor | IsApprover | IsConservationStatusEditor]
+    permission_classes = [IsAssessor | IsApprover]
 
     @list_route(
         methods=[
