@@ -1343,7 +1343,7 @@ export default {
                 },
                 "5": {
                     "data": "family",
-                    "name": "species__taxonomy__family__name",
+                    "name": "species__taxonomy__family_name",
                     "searchable": "true",
                     "orderable": "true",
                     "search": {
@@ -1353,7 +1353,7 @@ export default {
                 },
                 "6": {
                     "data": "genus",
-                    "name": "species__taxonomy__genus__name",
+                    "name": "species__taxonomy__genera_name",
                     "searchable": "true",
                     "orderable": "true",
                     "search": {

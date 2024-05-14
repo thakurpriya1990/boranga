@@ -507,7 +507,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "taxonomy__family_fk__scientific_name",
+                name: "taxonomy__family_name",
             }
         },
         column_phylogenetic_group: function(){
@@ -535,7 +535,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "taxonomy__genus__name",
+                name: "taxonomy__genera_name",
             }
         },
         column_conservation_list: function(){
@@ -1149,7 +1149,7 @@ export default {
                 },
                 "5": {
                     "data": "family",
-                    "name": "taxonomy__family_fk__scientific_name",
+                    "name": "taxonomy__family_name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -1159,7 +1159,7 @@ export default {
                 },
                 "6": {
                     "data": "genus",
-                    "name": "taxonomy__genus__name",
+                    "name": "taxonomy__genera_name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
