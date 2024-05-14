@@ -104,6 +104,10 @@ export default {
             type: String,
             required: true
         },
+        profile: {
+            type: Object,
+            default: null
+        },
         // for adding agendaitems for the meeting_obj.id
         meeting_obj: {
             type: Object,
@@ -134,7 +138,6 @@ export default {
             required: false,
             default: 'filterOCRFloraSubmittedToDate',
         },
-
     },
     data() {
         let vm = this;
@@ -142,9 +145,6 @@ export default {
             uuid: 0,
             occurrenceReportHistoryId: null,
             datatable_id: 'species_flora_or-datatable-' + vm._uid,
-
-            //Profile to check if user has access to process Proposal
-            profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
@@ -241,11 +241,7 @@ export default {
             return this.level == 'internal'
         },
         addFloraOCRVisibility: function () {
-            let visibility = false;
-            if (this.is_internal) {
-                visibility = true;
-            }
-            return visibility;
+            return this.profile && this.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS);
         },
         datatable_headers: function () {
             if (this.is_internal) {

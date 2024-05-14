@@ -32,7 +32,7 @@
             </div>
         </CollapsibleFilters>
 
-        <div class="col-md-12">
+        <div v-if="show_add_button" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrence"><i class="fa-solid fa-circle-plus"></i> Add Community Occurrence</button>
             </div>
@@ -93,6 +93,10 @@ export default {
             type: String,
             required: true
         },
+        profile:{
+            type: Object,
+            default: null
+        },
         filterOCCCommunityOccurrenceName_cache: {
             type: String,
             required: false,
@@ -115,9 +119,6 @@ export default {
             uuid:0,
             occurrenceHistoryId: null,
             datatable_id: 'community_ocr-datatable-'+vm._uid,
-
-            //Profile to check if user has access to process Proposal
-            profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
@@ -148,9 +149,6 @@ export default {
             ],
 
             proposal_status: [],
-
-            proposal_status: [],
-
         }
     },
     components:{
@@ -183,6 +181,9 @@ export default {
         },
     },
     computed: {
+        show_add_button: function(){
+            return this.profile && this.profile.groups.includes(constants.GROUPS.OCCURRENCE_APPROVERS);
+        },
         filterApplied: function(){
             if(this.filterOCCCommunityOccurrenceName === 'all' &&
                 this.filterOCCCommunityName === 'all' &&
@@ -320,13 +321,13 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     let links = "";
-                    if (vm.is_internal) {                        
+                    if (vm.is_internal) {
                         if (full.can_user_edit) {
                             links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
                         } else {
                             links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                         }
-                        links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;                       
+                        links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
                     }
                     return links;
                 }
