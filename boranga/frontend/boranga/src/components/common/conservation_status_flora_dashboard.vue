@@ -679,7 +679,6 @@ export default {
                     let links = "";
                     if(vm.is_for_agenda==false){
                         if (!vm.is_external){
-                            /*if(vm.check_assessor(full) && full.can_officer_process)*/
                             if(full.internal_user_edit)
                             {
                                 links +=  `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
