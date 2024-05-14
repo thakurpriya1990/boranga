@@ -6,6 +6,7 @@
             class="me-3"
             :context="occurrence"
             :proposal-ids="occurrenceReportIds"
+            :proposal-ids-layer="'query_layer'"
             :is_external="false"
             :point-features-supported="true"
             :polygon-features-supported="true"

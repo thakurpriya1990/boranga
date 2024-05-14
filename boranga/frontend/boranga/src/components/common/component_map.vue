@@ -1289,7 +1289,7 @@ export default {
             default: null,
         },
         /**
-         * Ids of porposals to be fetched by the map componment and displayed on the map.
+         * Ids of proposals to be fetched by the map component and displayed on the map.
          * Negative values fetch no proposals
          * Positive values fetch proposals with those ids
          * Empty list `[]` fetches all proposals
@@ -1300,6 +1300,14 @@ export default {
             default() {
                 return [];
             },
+        },
+        /**
+         * The string name of the layer to add proposalId's proposals to
+         */
+        proposalIdsLayer: {
+            type: String,
+            required: false,
+            default: null,
         },
         /**
          * A geojson feature collection of features (possibvly related to the context) to display on the map.
@@ -3547,7 +3555,7 @@ export default {
                     vm.proposals = data;
                     let initialisers = [
                         vm.assignProposalFeatureColors(vm.proposals),
-                        vm.loadFeatures(vm.proposals),
+                        vm.loadFeatures(vm.proposals, vm.proposalIdsLayer),
                     ];
                     Promise.all(initialisers).then(() => {
                         console.log('Done loading features');
@@ -3596,7 +3604,12 @@ export default {
                 console.log(typeof proposal.lodgement_date);
             });
         },
-        loadFeatures: function (proposals) {
+        /**
+         * Loads a list of proposals as new map features
+         * @param {Object} proposals The proposals to load as new map features
+         * @param {String=} toSource The layer source to load the features to
+         */
+        loadFeatures: function (proposals, toSource = null) {
             let vm = this;
             console.log(proposals);
             // Remove all features from the layer
@@ -3620,9 +3633,10 @@ export default {
                         );
                         return;
                     }
-                    vm.layerSources[vm.defaultQueryLayerName].addFeature(
-                        feature
-                    );
+                    const source =
+                        vm.layerSources[toSource] ||
+                        vm.layerSources[vm.defaultQueryLayerName];
+                    source.addFeature(feature);
                 });
             });
             // vm.addFeatureCollectionToMap();
