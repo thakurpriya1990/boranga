@@ -9,7 +9,7 @@
 
                 <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="conservation_status_obj.lodgement_date"
-                    class="mt-3" />
+                    :is_new_contributor="conservation_status_obj.is_new_contributor" class="mt-3" />
 
                 <div class="mt-3">
                     <div class="card card-default">
@@ -295,12 +295,11 @@
                                             <!--the below as internal proposal submission ELSE just saving proposal changes -->
                                             <div v-if="conservation_status_obj.internal_user_edit" class="container">
                                                 <div class="col-md-12 text-end">
-                                                    <button v-if="savingConservationStatus"
-                                                        class="btn btn-primary me-2" style="margin-top:5px;"
-                                                        disabled>Save and Continue&nbsp;
+                                                    <button v-if="savingConservationStatus" class="btn btn-primary me-2"
+                                                        style="margin-top:5px;" disabled>Save and Continue&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary me-2"
-                                                        style="margin-top:5px;" @click.prevent="save()"
+                                                    <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                                        @click.prevent="save()"
                                                         :disabled="saveExitConservationStatus || submitConservationStatus">Save
                                                         and Continue</button>
 
@@ -308,29 +307,27 @@
                                                         class="btn btn-primary me-2" style="margin-top:5px;"
                                                         disabled>Save and Exit&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary me-2"
-                                                        style="margin-top:5px;" @click.prevent="save_exit()"
+                                                    <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                                        @click.prevent="save_exit()"
                                                         :disabled="savingConservationStatus || submitConservationStatus">Save
                                                         and Exit</button>
 
-                                                    <button v-if="submitConservationStatus"
-                                                        class="btn btn-primary" style="margin-top:5px;"
-                                                        disabled>Submit&nbsp;
+                                                    <button v-if="submitConservationStatus" class="btn btn-primary"
+                                                        style="margin-top:5px;" disabled>Submit&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary"
-                                                        style="margin-top:5px;" @click.prevent="submit()"
+                                                    <button v-else class="btn btn-primary" style="margin-top:5px;"
+                                                        @click.prevent="submit()"
                                                         :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
                                                 </div>
                                             </div>
 
                                             <div v-else-if="hasAssessorMode" class="container">
                                                 <div class="col-md-12 text-end">
-                                                    <button v-if="savingConservationStatus"
-                                                        class="btn btn-primary" style="margin-top:5px;"
-                                                        disabled>Save Changes&nbsp;
+                                                    <button v-if="savingConservationStatus" class="btn btn-primary"
+                                                        style="margin-top:5px;" disabled>Save Changes&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary"
-                                                        style="margin-top:5px;" @click.prevent="save()">Save
+                                                    <button v-else class="btn btn-primary" style="margin-top:5px;"
+                                                        @click.prevent="save()">Save
                                                         Changes</button>
                                                 </div>
                                             </div>
@@ -501,12 +498,9 @@ export default {
                     )
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
-            else {
+            else if (this.conservation_status_obj.processing_status == 'With Assessor'
+                || this.conservation_status_obj.processing_status == 'Ready For Agenda') {
                 return this.conservation_status_obj
-                    && (
-                        this.conservation_status_obj.processing_status == 'With Assessor'
-                        || this.conservation_status_obj.processing_status == 'Ready For Agenda'
-                    )
                     && !this.isFinalised &&
                     !this.conservation_status_obj.can_user_edit
                     && (
@@ -514,6 +508,11 @@ export default {
                         || this.conservation_status_obj.assigned_officer == null
                     )
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
+            } else {
+                return this.conservation_status_obj
+                    && this.conservation_status_obj.processing_status == 'Draft'
+                    && this.conservation_status_obj.internal_application
+                    && this.conservation_status_obj.internal_user_edit
             }
         },
         canAssess: function () {
