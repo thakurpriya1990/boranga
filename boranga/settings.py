@@ -209,6 +209,7 @@ if not VALID_SYSTEMS:
 
 CRON_CLASSES = [
     "appmonitor_client.cron.CronJobAppMonitorClient",
+    "boranga.cron.CronJobFetchNomosTaxonDataDaily",
 ]
 
 
