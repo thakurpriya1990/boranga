@@ -757,6 +757,10 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     def get_readonly(self, obj):
         # Check if in 'draft' shouldn't be editable internal(if application is external)
         # but should be editable(if internal_application)
+        request = self.context["request"]
+        if request.user.is_superuser:
+            return False
+
         if obj.can_user_edit:
             if obj.internal_application:
                 return False
@@ -906,6 +910,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
+        if request.user.is_superuser:
+            return True
+
         if not is_internal(request) or is_internal_contributor(request.user):
             return obj.can_user_edit and request.user.id == obj.submitter
 
