@@ -684,6 +684,8 @@ class Species(RevisionedMixin):
         return recipients
 
     def is_approver(self, user):
+        if user.is_superuser:
+            return True
         return user.id in self.get_approver_group().get_system_group_member_ids()
 
     @property
@@ -1179,6 +1181,8 @@ class Community(RevisionedMixin):
         return recipients
 
     def is_approver(self, user):
+        if user.is_superuser:
+            return True
         return user.id in self.get_approver_group().get_system_group_member_ids()
 
     @property
