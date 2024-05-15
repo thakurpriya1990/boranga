@@ -1,7 +1,7 @@
 <template lang="html">
     <div>
         <div class="col-md-12">
-            <ul class="nav nav-pills" id="pills-tab" role="tablist">
+            <ul class="nav nav-pills" id="pills-tab" role="tablist" v-if="is_internal || is_public">
                 <li class="nav-item">
                     <a class="nav-link active" id="pills-profile-tab" data-bs-toggle="pill" :href="'#' + profileBody"
                         role="tab" :aria-controls="profileBody" aria-selected="true">
@@ -14,7 +14,7 @@
                         Documents
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" v-if="is_internal || threats_public">
                     <a class="nav-link" id="pills-threats-tab" data-bs-toggle="pill" :href="'#' + threatBody"
                         role="tab" :aria-controls="threatBody" aria-selected="false" @click="tabClicked()">
                         Threats
@@ -28,7 +28,7 @@
                 </li>
             </ul>
             <div class="tab-content" id="pills-tabContent">
-                <div class="tab-pane fade show active" :id="profileBody" role="tabpanel"
+                <div v-if="is_internal || is_public" class="tab-pane fade show active" :id="profileBody" role="tabpanel"
                     aria-labelledby="pills-profile-tab">
                     <Community v-if="isCommunity" ref="community_information" id="communityInformation"
                         :is_internal="is_internal" :species_community="species_community">
@@ -47,7 +47,7 @@
                         :is_internal="is_internal" :species_community="species_community" :is_readonly="is_readonly">
                     </SpeciesDocuments>
                 </div>
-                <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
+                <div v-if="is_internal || threats_public" class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
                     <CommunityThreats v-if="isCommunity" :key="reloadcount" ref="community_threats"
                         id="communityThreats" :is_internal="is_internal" :species_community="species_community"
                         :is_readonly="is_readonly">
@@ -124,6 +124,19 @@ export default {
     computed: {
         isCommunity: function () {
             return this.species_community.group_type == "community";
+        },
+        is_public: function() {
+            if (this.isCommunity) {
+                return this.species_community.publishing_status.community_public
+            }
+            return this.species_community.publishing_status.species_public
+
+        },
+        threats_public: function() {
+            if (this.isCommunity) {
+                return this.species_community.publishing_status.threats_public
+            }
+            return this.is_public && this.species_community.publishing_status.threats_public
         },
         related_items_ajax_url: function () {
             if (this.isCommunity) {

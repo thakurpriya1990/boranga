@@ -112,6 +112,12 @@ export default {
         },
         data:function () {
             let vm = this;
+            let url = '';
+            if (vm.is_internal) {
+                url = helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/threats')
+            } else {
+                url = helpers.add_endpoint_json("/api/external_community/",vm.species_community.id+'/threats')
+            }
             return{
                 uuid:0,
                 conservationThreatHistoryId: null,
@@ -145,7 +151,7 @@ export default {
                         { responsivePriority: 2, targets: -1 },
                     ],
                     ajax:{
-                        "url": helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/threats'),
+                        "url": url,
                         "dataSrc": '',
                         "data": function ( d ) {
                                 d.filter_threat_category = vm.filterThreatCategory
@@ -300,11 +306,11 @@ export default {
                                     else{
                                         links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
                                         links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
-                                    }
-                                    return links;
+                                    }                            
                                 } else {
                                     links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
                                 }
+                                return links;
                             }
                         },
                     ],

@@ -1184,14 +1184,7 @@ class Community(RevisionedMixin):
 
     # Check if the user is member of assessor group for the CS Proposal
     def is_approver(self, user):
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
-
-    # Check if the user is member of processor group
-    def is_community_processor(self, user):
-        return (
-            user.id
-            in self.get_community_processor_group().get_system_group_member_ids()
-        )
+        return user.id in self.get_approver_group().get_system_group_member_ids()
 
     @property
     def status_without_assessor(self):
@@ -1212,10 +1205,7 @@ class Community(RevisionedMixin):
         if self.processing_status in officer_view_state:
             return False
         else:
-            return (
-                user.id
-                in self.get_community_processor_group().get_system_group_member_ids()
-            )
+            return self.is_approver(user)
 
     @property
     def reference(self):

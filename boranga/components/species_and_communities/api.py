@@ -1266,7 +1266,9 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def threats(self, request, *args, **kwargs):
         instance = self.get_object()
-        qs = instance.species_threats.all()
+        if not instance.community_publishing_status.threats_public:
+            raise serializer.ValidationError("Threats are not publicly visible for this record")
+        qs = instance.community_threats.all()
         qs = qs.order_by("-date_observed")
 
         filter_backend = ConservationThreatFilterBackend()
@@ -1300,6 +1302,8 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def threats(self, request, *args, **kwargs):
         instance = self.get_object()
+        if not instance.species_publishing_status.threats_public:
+            raise serializer.ValidationError("Threats are not publicly visible for this record")
         qs = instance.species_threats.all()
         qs = qs.order_by("-date_observed")
 
@@ -1322,8 +1326,8 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             return qs
         return Species.objects.none()
 
-    def get_serializer_class(self):
-        return SpeciesSerializer
+    #def get_serializer_class(self):
+    #    return SpeciesSerializer
 
     @detail_route(
         methods=[
@@ -1922,8 +1926,8 @@ class CommunityViewSet(viewsets.ModelViewSet):
             return qs
         return Community.objects.none()
 
-    def get_serializer_class(self):
-        return CommunitySerializer
+    #def get_serializer_class(self):
+    #    return CommunitySerializer
 
     @detail_route(
         methods=[
@@ -2496,8 +2500,14 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
             return qs
         elif is_customer(self.request):
             qs = ConservationThreat.objects.filter(
-                Q(species__species_publishing_status__species_public=True) |
-                Q(community__community_publishing_status__community_public=True)
+                (
+                Q(species__species_publishing_status__species_public=True) &
+                Q(species__species_publishing_status__threats_public=True)
+                ) |
+                (
+                Q(community__community_publishing_status__community_public=True) &
+                Q(community__community_publishing_status__threats_public=True)
+                )
             ).order_by("id")
             return qs
         return ConservationThreat.objects.none()

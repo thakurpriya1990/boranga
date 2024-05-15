@@ -71,7 +71,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Distribution" :Index="distributionBody">
+        <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution" :Index="distributionBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Distribution:</label>
                 <div class="col-sm-9">
@@ -178,7 +178,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Conservation Status" :Index="conservationStatusBody">
+        <FormSection v-if="conservation_status_public || is_internal" :formCollapse="false" label="Conservation Status" :Index="conservationStatusBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Conservation List</label>
                 <div class="col-sm-9">
@@ -205,7 +205,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Conservation Attributes" :Index="conservationBody">
+        <FormSection v-if="conservation_attributes_public || is_internal" :formCollapse="false" label="Conservation Attributes" :Index="conservationBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Habitat/Growth Form:</label>
                 <div class="col-sm-9">
@@ -622,7 +622,7 @@
         <FormSection :formCollapse="false" label="General" :Index="generalBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
-                <div class="col-sm-9">
+                <div v-if="distribution_public" class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="department_file_numbers"
                         placeholder="" v-model="species_community.distribution.department_file_numbers" />
                 </div>
@@ -737,7 +737,11 @@ export default {
         rename_species: {
             type: Boolean,
             default: false
-        }
+        },
+        is_internal: {
+            type: Boolean,
+            default: false
+        },
     },
     data: function () {
         let vm = this;
@@ -814,6 +818,15 @@ export default {
         FormSection,
     },
     computed: {
+        distribution_public: function () {
+            return this.isPublic && this.species_community.publishing_status.distribution_public;
+        },
+        conservation_status_public: function() {
+            return this.isPublic && this.species_community.publishing_status.conservation_status_public;
+        },
+        conservation_attributes_public: function() {
+            return this.isPublic && this.species_community.publishing_status.conservation_attributes_public;
+        },
         isReadOnly: function () {
             // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
             if (this.is_readonly) {
@@ -834,11 +847,11 @@ export default {
             return this.species_community.processing_status === "Active" ? true : false;
         },
         isPublic: function () {
-            return this.species_community.publishing_status.species_public ? true : false;
+            return this.isActive && this.species_community.publishing_status.species_public ? true : false;
         },
         isNOOReadOnly: function () {
             let vm = this;
-            if (vm.species_community.distribution.noo_auto === true) {
+            if (vm.species_community.distribution.noo_auto === true && vm.distribtion_public) {
                 return true;
             }
             else {
@@ -1116,10 +1129,12 @@ export default {
                     let data = e.params.data.id;
                     vm.species_community.taxonomy_id = data
                     vm.species_display = e.params.data.scientific_name;
-                    vm.conservation_category = e.params.data.conservation_status.conservation_category;
-                    vm.conservation_list = e.params.data.conservation_status.conservation_list;
-                    vm.conservation_criteria = e.params.data.conservation_status.conservation_criteria;
-                    vm.conservation_status_under_review = e.params.data.conservation_status_under_review;
+                    if (e.params.data.conservation_status) {
+                        vm.conservation_category = e.params.data.conservation_status.conservation_category;
+                        vm.conservation_list = e.params.data.conservation_status.conservation_list;
+                        vm.conservation_criteria = e.params.data.conservation_status.conservation_criteria;
+                        vm.conservation_status_under_review = e.params.data.conservation_status_under_review;
+                    }
                     vm.common_name = e.params.data.common_name;
                     vm.taxon_name_id = e.params.data.taxon_name_id;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
@@ -1163,9 +1178,11 @@ export default {
                 // newOption.setAttribute('data-select2-id', '2');
                 $('#' + vm.scientific_name_lookup).append(newOption);
                 vm.species_display = vm.species_community.taxonomy_details.scientific_name;
-                vm.conservation_category = vm.species_community.conservation_status.conservation_category
-                vm.conservation_list = vm.species_community.conservation_status.conservation_list
-                vm.conservation_status_under_review = vm.species_community.conservation_status_under_review;
+                if (vm.species_community.conservation_status) {
+                    vm.conservation_category = vm.species_community.conservation_status.conservation_category;
+                    vm.conservation_list = vm.species_community.conservation_status.conservation_list;
+                    vm.conservation_status_under_review = vm.species_community.conservation_status_under_review;
+                }
                 vm.common_name = vm.species_community.taxonomy_details.common_name;
                 vm.taxon_name_id = vm.species_community.taxonomy_details.taxon_name_id;
                 vm.taxon_previous_name = vm.species_community.taxonomy_details.taxon_previous_name;
@@ -1278,37 +1295,41 @@ export default {
     created: async function () {
         let vm = this;
         //----set the distribution field values if auto onload
-        if (vm.species_community.distribution.noo_auto == true) {
-            vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
+        if (vm.species_community.distribution) {
+            if (vm.species_community.distribution.noo_auto == true) {
+                vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
+            }
+            if (vm.species_community.distribution.eoo_auto == true) {
+                vm.species_community.distribution.extent_of_occurrences = vm.species_community.distribution.cal_extent_of_occurrences;
+            }
+            if (vm.species_community.distribution.aoo_actual_auto == true) {
+                vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
+            }
+            if (vm.species_community.distribution.aoo_auto == true) {
+                vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
+            }
         }
-        if (vm.species_community.distribution.eoo_auto == true) {
-            vm.species_community.distribution.extent_of_occurrences = vm.species_community.distribution.cal_extent_of_occurrences;
-        }
-        if (vm.species_community.distribution.aoo_actual_auto == true) {
-            vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
-        }
-        if (vm.species_community.distribution.aoo_auto == true) {
-            vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
-        }
-        if (vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
-            vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&
-            vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined) {
-            vm.minimum_fire_interval_range = true;
-        }
-        if (vm.species_community.conservation_attributes.average_lifespan_to != null &&
-            vm.species_community.conservation_attributes.average_lifespan_to != "" &&
-            vm.species_community.conservation_attributes.average_lifespan_to != undefined) {
-            vm.average_lifespan_range = true;
-        }
-        if (vm.species_community.conservation_attributes.generation_length_to != null &&
-            vm.species_community.conservation_attributes.generation_length_to != "" &&
-            vm.species_community.conservation_attributes.generation_length_to != undefined) {
-            vm.generation_length_range = true;
-        }
-        if (vm.species_community.conservation_attributes.time_to_maturity_to != null &&
-            vm.species_community.conservation_attributes.time_to_maturity_to != "" &&
-            vm.species_community.conservation_attributes.time_to_maturity_to != undefined) {
-            vm.time_to_maturity_range = true;
+        if (vm.species_community.conservation_attributes) { 
+            if (vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
+                vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&
+                vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined) {
+                vm.minimum_fire_interval_range = true;
+            }
+            if (vm.species_community.conservation_attributes.average_lifespan_to != null &&
+                vm.species_community.conservation_attributes.average_lifespan_to != "" &&
+                vm.species_community.conservation_attributes.average_lifespan_to != undefined) {
+                vm.average_lifespan_range = true;
+            }
+            if (vm.species_community.conservation_attributes.generation_length_to != null &&
+                vm.species_community.conservation_attributes.generation_length_to != "" &&
+                vm.species_community.conservation_attributes.generation_length_to != undefined) {
+                vm.generation_length_range = true;
+            }
+            if (vm.species_community.conservation_attributes.time_to_maturity_to != null &&
+                vm.species_community.conservation_attributes.time_to_maturity_to != "" &&
+                vm.species_community.conservation_attributes.time_to_maturity_to != undefined) {
+                vm.time_to_maturity_range = true;
+            }
         }
         //------fetch list of values
         const res = await Vue.http.get('/api/species_profile_dict/');
