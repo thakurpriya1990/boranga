@@ -10,7 +10,6 @@ from boranga.components.main.models import (
     UserSystemSettings,
 )
 from boranga.components.users.models import EmailUserAction, EmailUserLogEntry
-from boranga.helpers import is_boranga_admin
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -100,12 +99,6 @@ class UserSerializer(serializers.ModelSerializer):
             return serialized_settings
         except Exception:
             return None
-
-    def get_is_boranga_admin(self, obj):
-        request = self.context["request"] if self.context else None
-        if request:
-            return is_boranga_admin(request)
-        return False
 
     def get_groups(self, obj):
         groups = SystemGroup.objects.all().values_list("name", flat=True)

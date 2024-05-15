@@ -1,12 +1,16 @@
 import logging
 
+from django.conf import settings
 from django.contrib.auth.signals import user_logged_in
 from django.db import transaction
+from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
 
 from boranga.components.occurrence.models import (
     OccurrenceReportReferral,
     OCRExternalRefereeInvite,
 )
+from boranga.components.users.models import ExternalContributorBlacklist
+from boranga.helpers import is_internal
 
 logger = logging.getLogger(__name__)
 
@@ -45,4 +49,44 @@ def ocr_process_ocr_external_referee_invite(sender, user, request, **kwargs):
     )
 
 
-user_logged_in.connect(ocr_process_ocr_external_referee_invite)
+def add_external_user_to_external_contributors_group(sender, user, request, **kwargs):
+    logger.info(
+        "user_logged_in_signal running add_external_user_to_external_contributors_group function"
+    )
+
+    # Only add external users to the external contributors group
+    if is_internal(request):
+        return
+
+    # If user is blacklisted, don't add them to the external contributors group
+    if ExternalContributorBlacklist.objects.filter(email=user.email).exists():
+        logger.info(
+            f"User with email {user} has logged in but is blacklisted. Not adding to external contributors group."
+        )
+        return
+
+    # If user is already in the external contributors group, don't add them again
+    external_contributor_group = SystemGroup.objects.get(
+        name=settings.GROUP_NAME_EXTERNAL_CONTRIBUTOR
+    )
+    if SystemGroupPermission.objects.filter(
+        system_group=external_contributor_group, emailuser=user
+    ).exists():
+        return
+
+    # Add user to the external contributors group
+    logger.info(
+        f"User with email {user} has logged in for the first time. Adding them to the external contributors group."
+    )
+
+    SystemGroupPermission.objects.create(
+        system_group=external_contributor_group, emailuser=user
+    )
+    # Have to save the group to flush the member cache
+    external_contributor_group.save()
+
+
+user_logged_in.connect(add_external_user_to_external_contributors_group)
+
+# Disabled for boranga phase 1
+# user_logged_in.connect(ocr_process_ocr_external_referee_invite)
