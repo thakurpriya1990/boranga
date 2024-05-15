@@ -1,13 +1,12 @@
 {% load users %}
 {% load utils %}
-{% is_boranga_admin as is_boranga_admin_user %}
 {% can_show_tests as can_show_tests %}
 {% is_django_admin as is_django_admin_user %}
 
-{% if is_boranga_admin_user or request.user.is_superuser %}
+{% if request.user.is_superuser %}
     <li role="separator" class="divider"></li>
 {% endif %}
-{% if is_boranga_admin_user or is_django_admin_user or request.user.is_superuser %}
+{% if is_django_admin_user or request.user.is_superuser %}
     <li><a class="dropdown-item" href="{% url 'mgt-commands' %}">Management Commands</a></li>
 {% endif %}
 {% if can_show_tests and request.user.is_superuser %}

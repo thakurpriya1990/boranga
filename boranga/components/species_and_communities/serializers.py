@@ -742,6 +742,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     processing_status = serializers.SerializerMethodField(read_only=True)
     current_assessor = serializers.SerializerMethodField()
     user_edit_mode = serializers.SerializerMethodField()
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -782,14 +783,23 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             return None
 
     def get_readonly(self, obj):
-        # for internal add new conservation status change the below readonly
-        # return True
-        # Check if in 'draft' shouldn't be editable internal(if application is external)
-        # but should be editable(if internal_application)
-        if obj.can_user_edit:
+        request = self.context["request"]
+        if request.user.is_superuser:
             return False
-        else:
-            return obj.can_user_view
+        return not (
+            obj.can_user_edit
+            and request.user.id
+            in obj.get_approver_group().get_system_group_member_ids()
+        )
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        if request.user.is_superuser:
+            return True
+
+        if not is_species_communities_approver(request.user.id):
+            return False
+        return obj.can_user_edit
 
     def get_current_assessor(self, obj):
         return {
@@ -1119,6 +1129,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
     processing_status = serializers.SerializerMethodField(read_only=True)
     current_assessor = serializers.SerializerMethodField()
     user_edit_mode = serializers.SerializerMethodField()
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = Community
@@ -1157,12 +1168,24 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             return None
 
     def get_readonly(self, obj):
-        # Check if in 'draft' shouldn't be editable internal(if application is external)
-        # but should be editable(if internal_application)
-        if obj.can_user_edit:
+        request = self.context["request"]
+        if request.user.is_superuser:
             return False
-        else:
-            return obj.can_user_view
+
+        return not (
+            obj.can_user_edit
+            and request.user.id
+            in obj.get_approver_group().get_system_group_member_ids()
+        )
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        if request.user.is_superuser:
+            return True
+
+        if not is_species_communities_approver(request.user.id):
+            return False
+        return obj.can_user_edit
 
     def get_current_assessor(self, obj):
         return {

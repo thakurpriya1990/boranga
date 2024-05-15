@@ -18,7 +18,11 @@ from boranga.components.main.serializers import (
     EmailUserSerializer,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
-from boranga.helpers import is_internal_contributor
+from boranga.helpers import (
+    is_internal,
+    is_internal_contributor,
+    is_new_external_contributor,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -98,6 +102,7 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
     conservation_list = serializers.SerializerMethodField()
     conservation_category = serializers.SerializerMethodField()
     customer_status = serializers.CharField(source="get_customer_status_display")
+    is_new_contributor = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
@@ -113,6 +118,7 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
             "customer_status",
             "can_user_edit",
             "can_user_view",
+            "is_new_contributor",
         )
         datatables_always_serialize = (
             "id",
@@ -126,6 +132,7 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
             "customer_status",
             "can_user_edit",
             "can_user_view",
+            "is_new_contributor",
         )
 
     def get_scientific_name(self, obj):
@@ -153,6 +160,9 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
             return obj.conservation_category.code
         return ""
 
+    def get_is_new_contributor(self, obj):
+        return is_new_external_contributor(obj.submitter)
+
 
 class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
@@ -172,6 +182,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
     effective_from_date = serializers.SerializerMethodField()
     effective_to_date = serializers.SerializerMethodField()
+    is_new_contributor = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
@@ -199,6 +210,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "internal_user_edit",
             "effective_from_date",
             "effective_to_date",
+            "is_new_contributor",
         )
         datatables_always_serialize = (
             "id",
@@ -224,6 +236,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "internal_user_edit",
             "effective_from_date",
             "effective_to_date",
+            "is_new_contributor",
         )
 
     def get_group_type(self, obj):
@@ -341,6 +354,9 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             and is_internal_contributor(request.user)
             and obj.submitter == request.user.id
         )
+
+    def get_is_new_contributor(self, obj):
+        return is_new_external_contributor(obj.submitter)
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
@@ -695,6 +711,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
     can_edit_recommended = serializers.SerializerMethodField(read_only=True)
     referrals = ConservationStatusProposalReferralSerializer(many=True)
+    can_user_edit = serializers.SerializerMethodField(read_only=True)
+    is_new_contributor = serializers.SerializerMethodField(read_only=True)
+    internal_application = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -741,6 +760,8 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "list_approval_level",
             "can_view_recommended",
             "can_edit_recommended",
+            "internal_application",
+            "is_new_contributor",
         )
 
     def get_submitter(self, obj):
@@ -756,6 +777,10 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     def get_readonly(self, obj):
         # Check if in 'draft' shouldn't be editable internal(if application is external)
         # but should be editable(if internal_application)
+        request = self.context["request"]
+        if request.user.is_superuser:
+            return False
+
         if obj.can_user_edit:
             if obj.internal_application:
                 return False
@@ -903,8 +928,24 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         )
         return obj.can_edit_recommended(user)
 
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        if request.user.is_superuser:
+            return True
 
-# Not used at the moment
+        if not is_internal(request) or is_internal_contributor(request.user):
+            return obj.can_user_edit and request.user.id == obj.submitter
+
+        return (
+            obj.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
+            and request.user.id
+            in obj.get_assessor_group().get_system_group_member_ids()
+        )
+
+    def get_is_new_contributor(self, obj):
+        return is_new_external_contributor(obj.submitter)
+
+
 class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
@@ -914,9 +955,6 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
     allowed_assessors = EmailUserSerializer(many=True)
     assessor_mode = serializers.SerializerMethodField()
     conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer()
-    # accessing_user_roles = (
-    #     serializers.SerializerMethodField()
-    # )
 
     class Meta:
         model = ConservationStatus
@@ -950,25 +988,6 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
             "conservationstatusdeclineddetails",
             "can_view_recommended",
         )
-
-    # def get_accessing_user_roles(self, conservation_status):
-    #     request = self.context.get("request")
-    #     accessing_user = request.user
-    #     roles = []
-    #     if (
-    #         accessing_user.id
-    #         in conservation_status.get_assessor_group().get_system_group_member_ids()
-    #     ):
-    #         roles.append("assessor")
-    #     if (
-    #         accessing_user.id
-    #         in conservation_status.get_approver_group().get_system_group_member_ids()
-    #     ):
-    #         roles.append("approver")
-    #     referral_ids = list(conservation_status.referrals.values_list("referral", flat=True))
-    #     if accessing_user.id in referral_ids:
-    #         roles.append("referral")
-    #     return roles
 
     def get_submitter(self, obj):
         if obj.submitter:

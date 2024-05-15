@@ -36,7 +36,7 @@
                                 <form :action="meeting_form_url" method="post" name="new_meeting"
                                     enctype="multipart/form-data">
                                     <MeetingSection ref="meeting" :meeting_obj="meeting_obj"
-                                        :canEditStatus="canEditStatus" id="MeetingStart" :is_internal="true">
+                                        :userCanEdit="userCanEdit" id="MeetingStart" :is_internal="true">
                                         <!-- TODO add hasAssessorMode props to ProposalMeeting -->
                                     </MeetingSection>
                                     <CSQueue ref="cs_queue" :meeting_obj="meeting_obj" id="CSQueue" :is_internal="true">
@@ -78,7 +78,7 @@
                                                 </div>
                                             </div>
 
-                                            <div v-else-if="hasUserEditMode" class="container">
+                                            <div v-else-if="userCanEdit" class="container">
                                                 <div class="col-md-12 text-end">
                                                     <button v-if="savingMeeting" class="btn btn-primary pull-right"
                                                         style="margin-top:5px;" disabled>Save Changes&nbsp;
@@ -148,8 +148,6 @@ export default {
             return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
         }
     },
-    watch: {
-    },
     computed: {
         csrf_token: function () {
             return helpers.getCookie('csrftoken')
@@ -195,18 +193,8 @@ export default {
             //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
             return true
         },
-        canEditStatus: function () {
-            return this.meeting_obj ? this.meeting_obj.can_user_edit : 'false';
-        },
-        hasUserEditMode: function () {
-            // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (this.$route.query.action == 'edit') {
-                //return this.meeting && this.meeting.user_edit_mode ? true : false;
-                return true;
-            }
-            else {
-                return false;
-            }
+        userCanEdit: function () {
+            return this.meeting_obj.can_user_edit;
         },
     },
     methods: {
