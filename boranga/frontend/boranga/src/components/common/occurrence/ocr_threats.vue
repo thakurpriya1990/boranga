@@ -1,6 +1,52 @@
 <template lang="html">
     <div id="ocr_threats">
         <FormSection :formCollapse="false" label="Threats" :Index="threatBody">
+            <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Category:</label>
+                            <select class="form-select" v-model="filterThreatCategory">
+                                <option value="all">All</option>
+                                <option v-for="option in threat_category_filter_list" :value="option.id">{{option.name}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Current Impact:</label>
+                            <select class="form-select" v-model="filterThreatCurrentImpact">
+                                <option value="all">All</option>
+                                <option v-for="option in threat_current_impact_filter_list" :value="option.id">{{option.name}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Potential Impact:</label>
+                            <select class="form-select" v-model="filterThreatPotentialImpact">
+                                <option value="all">All</option>
+                                <option v-for="option in threat_potential_impact_filter_list" :value="option.id">{{option.name}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Date Observed From:</label>
+                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_from_date" v-model="filterObservedFromDate">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Date Observed To:</label>
+                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_to_date" v-model="filterObservedToDate">
+                        </div>
+                    </div>
+                </div>
+            </CollapsibleFilters>
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <div class="text-end">
@@ -31,6 +77,7 @@ import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from '@/components/common/species_communities/add_threat.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import ConservationThreatHistory from '../../internal/occurrence/ocr_conservation_threat_history.vue';
+import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import {
     constants,
     api_endpoints,
@@ -65,6 +112,17 @@ export default {
             panelBody: "species-threats-" + vm._uid,
             values: null,
             ocr_threat_url: api_endpoints.ocr_threat,
+
+            filterThreatCategory: 'all',
+            filterThreatCurrentImpact: 'all',
+            filterThreatPotentialImpact: 'all',
+            filterObservedFromDate: '',
+            filterObservedToDate: '',
+
+            threat_category_filter_list: [],
+            threat_current_impact_filter_list: [],
+            threat_potential_impact_filter_list: [],
+
             threats_headers: ['Number', 'Category', 'Date Observed', 'Threat Agent', 'Comments', 'Threat Source',
                 'Current Impact', 'Potential Impact', 'Action'],
             threats_options: {
@@ -81,7 +139,14 @@ export default {
                 ],
                 ajax: {
                     "url": helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report_obj.id + '/threats'),
-                    "dataSrc": ''
+                    "dataSrc": '',
+                    "data": function ( d ) {
+                            d.filter_threat_category = vm.filterThreatCategory
+                            d.filter_threat_current_impact = vm.filterThreatCurrentImpact
+                            d.filter_threat_potential_impact = vm.filterThreatPotentialImpact
+                            d.filter_observed_from_date = vm.filterObservedFromDate
+                            d.filter_observed_to_date = vm.filterObservedToDate
+                        },
                 },
                 order: [[0, 'desc']],
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
@@ -112,10 +177,10 @@ export default {
                         searchable: true,
                         mRender: function (data, type, full) {
                             if (full.visible) {
-                                return "OCR" + full.occurrence_report.id + " - " + full.threat_number;
+                                return "OCR" + full.occurrence_report + " - " + full.threat_number;
                             }
                             else {
-                                return '<s>' + "OCR" + full.occurrence_report.id + " - " + full.threat_number + '</s>'
+                                return '<s>' + "OCR" + full.occurrence_report + " - " + full.threat_number + '</s>'
                             }
                         },
                     },
@@ -252,6 +317,7 @@ export default {
         datatable,
         ThreatDetail,
         ConservationThreatHistory,
+        CollapsibleFilters,
     },
     computed: {
         isReadOnly: function(){
@@ -261,8 +327,63 @@ export default {
             }
             return this.occurrence_report_obj.readonly
         },
+        filterApplied: function(){
+                if(this.filterThreatCategory === 'all' &&
+                this.filterThreatCurrentImpact === 'all' &&
+                this.filterThreatPotentialImpact === 'all' &&
+                this.filterObservedFromDate === '' &&
+                this.filterObservedToDate === ''
+                ){
+                    return false
+                } else {
+                    return true
+                }
+            },
+    },
+    watch: {
+        filterApplied: function(){
+            if (this.$refs.collapsible_filters){
+                // Collapsible component exists
+                this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+            }
+        },
+        filterThreatCategory: function(){
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterThreatCurrentImpact: function(){
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterThreatPotentialImpact: function(){
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterObservedFromDate: function(){
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterObservedToDate: function(){
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
     },
     methods: {
+        collapsible_component_mounted: function(){
+                this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+        },
+
+        fetchFilterLists: function(){
+                let vm = this;
+                //Category, Current Impact, Potential Impact (generic to all threats)
+                vm.$http.get('/api/threat/threat_list_of_values/').then((response) => {
+                    vm.threat_category_filter_list= response.body["threat_category_lists"];
+                    vm.threat_current_impact_filter_list = response.body["current_impact_lists"];
+                    vm.threat_potential_impact_filter_list = response.body["potential_impact_lists"];
+                },(error) => {
+                    console.log(error);
+                })
+        },
         newThreat: function () {
             let vm = this;
             this.$refs.threat_detail.threat_id = '';
@@ -410,6 +531,7 @@ export default {
         },
     },
     mounted: function () {
+        this.fetchFilterLists();
         let vm = this;
         this.$nextTick(() => {
             vm.addEventListeners();

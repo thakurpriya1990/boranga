@@ -5,16 +5,30 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Start Date:</label>
-                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="start_date"
-                            v-model="filterMeetingStartDate">
+                        <label for="">Start Date Range:</label>
+                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="from_start_date"
+                            v-model="filterFromMeetingStartDate">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">End Date:</label>
-                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="end_date"
-                            v-model="filterMeetingEndDate">
+                        <label for=""></label>
+                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="to_start_date"
+                            v-model="filterToMeetingStartDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">End Date :</label>
+                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="from_end_date"
+                            v-model="filterFromMeetingEndDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="datetime-local" class="form-control" placeholder="DD/MM/YYYY" id="to_end_date"
+                            v-model="filterToMeetingEndDate">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -62,15 +76,25 @@ export default {
             type: String,
             required: true
         },
-        filterMeetingStartDate_cache: {
+        filterFromMeetingStartDate_cache: {
             type: String,
             required: false,
-            default: 'filterMeetingStartDate',
+            default: 'filterFromMeetingStartDate',
         },
-        filterMeetingEndDate_cache: {
+        filterToMeetingStartDate_cache: {
             type: String,
             required: false,
-            default: 'filterMeetingEndDate',
+            default: 'filterToMeetingStartDate',
+        },
+        filterFromMeetingEndDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterFromMeetingEndDate',
+        },
+        filterToMeetingEndDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterToMeetingEndDate',
         },
         filterMeetingStatus_cache: {
             type: String,
@@ -83,8 +107,12 @@ export default {
         return {
             datatable_id: 'meetings-datatable-' + vm._uid,
 
-            filterMeetingStartDate: sessionStorage.getItem(this.filterMeetingStartDate_cache) ? sessionStorage.getItem(this.filterMeetingStartDate_cache) : '',
-            filterMeetingEndDate: sessionStorage.getItem(this.filterMeetingEndDate_cache) ? sessionStorage.getItem(this.filterMeetingEndDate_cache) : '',
+            filterFromMeetingStartDate: sessionStorage.getItem(this.filterFromMeetingStartDate_cache) ? sessionStorage.getItem(this.filterFromMeetingStartDate_cache) : '',
+            filterToMeetingStartDate: sessionStorage.getItem(this.filterToMeetingStartDate_cache) ? sessionStorage.getItem(this.filterToMeetingStartDate_cache) : '',
+
+            filterFromMeetingEndDate: sessionStorage.getItem(this.filterFromMeetingEndDate_cache) ? sessionStorage.getItem(this.filterFromMeetingEndDate_cache) : '',
+            filterToMeetingEndDate: sessionStorage.getItem(this.filterToMeetingEndDate_cache) ? sessionStorage.getItem(this.filterToMeetingEndDate_cache) : '',
+
             filterMeetingStatus: sessionStorage.getItem(this.filterMeetingStatus_cache) ? sessionStorage.getItem(this.filterMeetingStatus_cache) : 'all',
 
             internal_status: [
@@ -104,15 +132,25 @@ export default {
         CollapsibleFilters,
     },
     watch: {
-        filterMeetingStartDate: function () {
+        filterFromMeetingStartDate: function () {
             let vm = this;
             vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterMeetingStartDate_cache, vm.filterMeetingStartDate);
+            sessionStorage.setItem(vm.filterFromMeetingStartDate_cache, vm.filterFromMeetingStartDate);
         },
-        filterMeetingEndDate: function () {
+        filterToMeetingStartDate: function () {
             let vm = this;
             vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterMeetingEndDate_cache, vm.filterMeetingEndDate);
+            sessionStorage.setItem(vm.filterToMeetingStartDate_cache, vm.filterToMeetingStartDate);
+        },
+        filterFromMeetingEndDate: function () {
+            let vm = this;
+            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFromMeetingEndDate_cache, vm.filterFromMeetingEndDate);
+        },
+        filterToMeetingEndDate: function () {
+            let vm = this;
+            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterToMeetingEndDate_cache, vm.filterToMeetingEndDate);
         },
         filterMeetingStatus: function () {
             let vm = this;
@@ -127,8 +165,10 @@ export default {
     },
     computed: {
         filterApplied: function () {
-            if (this.filterMeetingStartDate === '' &&
-                this.filterMeetingEndDate === '' &&
+            if (this.filterFromMeetingStartDate === '' &&
+                this.filterToMeetingStartDate === '' &&
+                this.filterFromMeetingEndDate === '' &&
+                this.filterToMeetingEndDate === '' &&
                 this.filterMeetingStatus === 'all') {
                 return false
             } else {
@@ -305,8 +345,10 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function (d) {
-                        d.filter_start_date = vm.filterMeetingStartDate;
-                        d.filter_end_date = vm.filterMeetingEndDate;
+                        d.filter_to_start_date = vm.filterToMeetingStartDate;
+                        d.filter_from_start_date = vm.filterFromMeetingStartDate;
+                        d.filter_to_end_date = vm.filterToMeetingEndDate;
+                        d.filter_from_end_date = vm.filterFromMeetingEndDate;
                         d.filter_meeting_status = vm.filterMeetingStatus;
                     }
                 },
@@ -464,8 +506,10 @@ export default {
 
             const object_load = {
                 columns: columns_new,
-                filter_start_date: vm.filterMeetingStartDate,
-                filter_end_date: vm.filterMeetingEndDate,
+                filter_from_start_date: vm.filterFromMeetingStartDate,
+                filter_to_start_date: vm.filterToMeetingStartDate,
+                filter_from_end_date: vm.filterFromMeetingEndDate,
+                filter_to_end_date: vm.filterToMeetingEndDate,
                 filter_meeting_status: vm.filterMeetingStatus,
                 is_internal: vm.is_internal,
                 export_format: format

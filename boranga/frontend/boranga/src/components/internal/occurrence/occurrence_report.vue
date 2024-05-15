@@ -527,7 +527,7 @@ export default {
             await vm.save().then(() => {
                 if (vm.isSaved === true) {
                     vm.$router.push({
-                        name: 'internal-species-communities-dash'
+                        name: 'internal-occurrence-dash'
                     });
                 }
                 else {

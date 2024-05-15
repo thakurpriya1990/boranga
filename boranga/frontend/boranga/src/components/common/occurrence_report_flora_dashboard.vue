@@ -41,6 +41,46 @@
                             v-model="filterOCRFloraSubmittedToDate">
                     </div>
                 </div>
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Effective From Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterOCRFromFloraEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterOCRToFloraEffectiveFromDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Effective To Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterOCRFromFloraEffectiveToDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterOCRToFloraEffectiveToDate">
+                    </div>
+                </div>
+
+                <!--<div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Due Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_due_date" v-model="filterOCRFromFloraDueDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_due_date" v-model="filterOCRToFloraDueDate">
+                    </div>
+                </div>-->
             </div>
         </CollapsibleFilters>
         <div v-if="addFloraOCRVisibility" class="col-md-12">
@@ -138,6 +178,36 @@ export default {
             required: false,
             default: 'filterOCRFloraSubmittedToDate',
         },
+        filterOCRFromFloraEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRFromFloraEffectiveFromDate',
+        },
+        filterOCRToFloraEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRToFloraEffectiveFromDate',
+        },
+        filterOCRFromFloraEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRFromFloraEffectiveToDate',
+        },
+        filterOCRToFloraEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRToFloraEffectiveToDate',
+        },
+        filterOCRFromFloraDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRFromFloraDueDate',
+        },
+        filterOCRToFloraDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRToFloraDueDate',
+        },
     },
     data() {
         let vm = this;
@@ -162,6 +232,22 @@ export default {
 
             filterOCRFloraSubmittedToDate: sessionStorage.getItem(this.filterOCRFloraSubmittedToDate_cache) ?
                 sessionStorage.getItem(this.filterOCRFloraSubmittedToDate_cache) : '',
+
+            filterOCRFromFloraEffectiveFromDate: sessionStorage.getItem(this.filterOCRFromFloraEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterOCRFromFloraEffectiveFromDate_cache) : '',
+            filterOCRToFloraEffectiveFromDate: sessionStorage.getItem(this.filterOCRToFloraEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterOCRToFloraEffectiveFromDate_cache) : '',
+
+            filterOCRFromFloraEffectiveToDate: sessionStorage.getItem(this.filterOCRFromFloraEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterOCRFromFloraEffectiveToDate_cache) : '',
+            filterOCRToFloraEffectiveToDate: sessionStorage.getItem(this.filterOCRToFloraEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterOCRToFloraEffectiveToDate_cache) : '',
+
+            filterOCRFromFloraDueDate: sessionStorage.getItem(this.filterOCRFromFloraDueDate_cache) ?
+            sessionStorage.getItem(this.filterOCRFromFloraDueDate_cache) : '',
+            filterOCRToFloraDueDate: sessionStorage.getItem(this.filterOCRToFloraDueDate_cache) ?
+            sessionStorage.getItem(this.filterOCRToFloraDueDate_cache) : '',
+
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -215,6 +301,36 @@ export default {
             vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRFloraSubmittedToDate_cache, vm.filterOCRFloraSubmittedToDate);
         },
+        filterOCRFromFloraEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRFromFloraEffectiveFromDate_cache, vm.filterOCRFromFloraEffectiveFromDate);
+        },
+        filterOCRToFloraEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRToFloraEffectiveFromDate_cache, vm.filterOCRToFloraEffectiveFromDate);
+        },
+        filterOCRFromFloraEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRFromFloraEffectiveToDate_cache, vm.filterOCRFromFloraEffectiveToDate);
+        },
+        filterOCRToFloraEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRToFloraEffectiveToDate_cache, vm.filterOCRToFloraEffectiveToDate);
+        },
+        filterOCRFromFloraDueDate: function(){
+            let vm = this;
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRFromFloraDueDate_cache, vm.filterOCRFromFloraDueDate);
+        },
+        filterOCRToFloraDueDate: function(){
+            let vm = this;
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRToFloraDueDate_cache, vm.filterOCRToFloraDueDate);
+        },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
                 // Collapsible component exists
@@ -228,7 +344,13 @@ export default {
                 this.filterOCRFloraScientificName === 'all' &&
                 this.filterOCRFloraStatus === 'all' &&
                 this.filterOCRFloraSubmittedFromDate === '' &&
-                this.filterOCRFloraSubmittedToDate === '') {
+                this.filterOCRFloraSubmittedToDate === '' &&
+                this.filterOCRFromFloraEffectiveFromDate === '' &&
+                this.filterOCRToFloraEffectiveFromDate === '' &&
+                this.filterOCRFromFloraEffectiveToDate === '' &&
+                this.filterOCRToFloraEffectiveToDate === '' &&
+                this.filterOCRFromFloraDueDate === '' &&
+                this.filterOCRToFloraDueDate === '') {
                 return false
             } else {
                 return true
@@ -470,6 +592,12 @@ export default {
                         d.filter_status = vm.filterOCRFloraStatus;
                         d.filter_submitted_from_date = vm.filterOCRFloraSubmittedFromDate;
                         d.filter_submitted_to_date = vm.filterOCRFloraSubmittedToDate;
+                        d.filter_from_effective_from_date = vm.filterOCRFromFloraEffectiveFromDate;
+                        d.filter_to_effective_from_date = vm.filterOCRToFloraEffectiveFromDate;
+                        d.filter_from_effective_to_date = vm.filterOCRFromFloraEffectiveToDate;
+                        d.filter_to_effective_to_date = vm.filterOCRToFloraEffectiveToDate;
+                        d.filter_from_due_date = vm.filterOCRFromFloraDueDate;
+                        d.filter_to_due_date = vm.filterOCRToFloraDueDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -759,6 +887,12 @@ export default {
                 filter_status: vm.filterOCRFloraStatus,
                 filter_submitted_from_date: vm.filterOCRFloraSubmittedFromDate,
                 filter_submitted_to_date: vm.filterOCRFloraSubmittedToDate,
+                filter_from_effective_from_date: vm.filterOCRFromFloraEffectiveFromDate,
+                filter_to_effective_from_date: vm.filterOCRToFloraEffectiveFromDate,
+                filter_from_effective_to_date: vm.filterOCRFromFloraEffectiveToDate,
+                filter_to_effective_to_date: vm.filterOCRToFloraEffectiveToDate,
+                filter_from_due_date: vm.filterOCRFromFloraDueDate,
+                filter_to_due_date: vm.filterOCRToFloraDueDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };

@@ -89,18 +89,31 @@
                 </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
-                        <label for="">Effective From Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date"
-                            v-model="filterCSFloraEffectiveFromDate">
+                        <label for="">Effective From Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterCSFromFloraEffectiveFromDate">
                     </div>
                 </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
-                        <label for="">Effective To Date:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="effective_from_date"
-                            v-model="filterCSFloraEffectiveToDate">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterCSToFloraEffectiveFromDate">
                     </div>
                 </div>
+
+                <div class="col-md-3" v-show="!is_for_agenda">
+                    <div class="form-group">
+                        <label for="">Effective To Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterCSFromFloraEffectiveToDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" v-show="!is_for_agenda">
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterCSToFloraEffectiveToDate">
+                    </div>
+                </div>
+
             </div>
         </CollapsibleFilters>
 
@@ -233,15 +246,25 @@ export default {
             required: false,
             default: 'filterCSFloraApplicationStatus',
         },
-        filterCSFloraEffectiveFromDate_cache: {
+        filterCSFromFloraEffectiveFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSFloraEffectiveFromDate',
+            default: 'filterCSFromFloraEffectiveFromDate',
         },
-        filterCSFloraEffectiveToDate_cache: {
+        filterCSToFloraEffectiveFromDate_cache: {
             type: String,
             required: false,
-            default: 'filterCSFloraEffectiveToDate',
+            default: 'filterCSToFloraEffectiveFromDate',
+        },
+        filterCSFromFloraEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFromFloraEffectiveToDate',
+        },
+        filterCSToFloraEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSToFloraEffectiveToDate',
         },
     },
     data() {
@@ -284,11 +307,15 @@ export default {
             filterCSFloraApplicationStatus: sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) ?
                 sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : 'all',
 
-            filterCSFloraEffectiveFromDate: sessionStorage.getItem(this.filterCSFloraEffectiveFromDate_cache) ?
-                sessionStorage.getItem(this.filterCSFloraEffectiveFromDate_cache) : '',
+            filterCSFromFloraEffectiveFromDate: sessionStorage.getItem(this.filterCSFromFloraEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCSFromFloraEffectiveFromDate_cache) : '',
+            filterCSToFloraEffectiveFromDate: sessionStorage.getItem(this.filterCSToFloraEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterCSToFloraEffectiveFromDate_cache) : '',
 
-            filterCSFloraEffectiveToDate: sessionStorage.getItem(this.filterCSFloraEffectiveToDate_cache) ?
-                sessionStorage.getItem(this.filterCSFloraEffectiveToDate_cache) : '',
+            filterCSFromFloraEffectiveToDate: sessionStorage.getItem(this.filterCSFromFloraEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCSFromFloraEffectiveToDate_cache) : '',
+            filterCSToFloraEffectiveToDate: sessionStorage.getItem(this.filterCSToFloraEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterCSToFloraEffectiveToDate_cache) : '',
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
@@ -380,15 +407,25 @@ export default {
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraDistrict_cache, vm.filterCSFloraDistrict);
         },
-        filterCSFloraEffectiveFromDate: function () {
+        filterCSFromFloraEffectiveFromDate: function(){
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFloraEffectiveFromDate_cache, vm.filterCSFloraEffectiveFromDate);
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFromFloraEffectiveFromDate_cache, vm.filterCSFromFloraEffectiveFromDate);
         },
-        filterCSFloraEffectiveToDate: function () {
+        filterCSToFloraEffectiveFromDate: function(){
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFloraEffectiveToDate_cache, vm.filterCSFloraEffectiveToDate);
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSToFloraEffectiveFromDate_cache, vm.filterCSToFloraEffectiveFromDate);
+        },
+        filterCSFromFloraEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFromFloraEffectiveToDate_cache, vm.filterCSFromFloraEffectiveToDate);
+        },
+        filterCSToFloraEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSToFloraEffectiveToDate_cache, vm.filterCSToFloraEffectiveToDate);
         },
         filterCSFloraApplicationStatus: function () {
             let vm = this;
@@ -414,8 +451,10 @@ export default {
                 this.filterCSFloraRegion === 'all' &&
                 this.filterCSFloraDistrict === 'all' &&
                 this.filterCSFloraApplicationStatus === 'all' &&
-                this.filterCSFloraEffectiveFromDate === '' &&
-                this.filterCSFloraEffectiveToDate === '') {
+                this.filterCSFromFloraEffectiveFromDate === '' &&
+                this.filterCSToFloraEffectiveFromDate === '' &&
+                this.filterCSFromFloraEffectiveToDate === '' &&
+                this.filterCSToFloraEffectiveToDate === ''){
                 return false
             } else {
                 return true
@@ -796,8 +835,10 @@ export default {
                         d.filter_region = vm.filterCSFloraRegion;
                         d.filter_district = vm.filterCSFloraDistrict;
                         d.filter_application_status = vm.filterCSFloraApplicationStatus;
-                        d.filter_effective_from_date = vm.filterCSFloraEffectiveFromDate;
-                        d.filter_effective_to_date = vm.filterCSFloraEffectiveToDate;
+                        d.filter_from_effective_from_date = vm.filterCSFromFloraEffectiveFromDate;
+                        d.filter_to_effective_from_date = vm.filterCSToFloraEffectiveFromDate;
+                        d.filter_from_effective_to_date = vm.filterCSFromFloraEffectiveToDate;
+                        d.filter_to_effective_to_date = vm.filterCSToFloraEffectiveToDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -1245,7 +1286,7 @@ export default {
                 },
                 "5": {
                     "data": "family",
-                    "name": "species__taxonomy__family__name",
+                    "name": "species__taxonomy__family_name",
                     "searchable": "true",
                     "orderable": "true",
                     "search": {
@@ -1255,7 +1296,7 @@ export default {
                 },
                 "6": {
                     "data": "genus",
-                    "name": "species__taxonomy__genus__name",
+                    "name": "species__taxonomy__genera_name",
                     "searchable": "true",
                     "orderable": "true",
                     "search": {
@@ -1327,8 +1368,10 @@ export default {
                 filter_application_status: vm.filterCSFloraApplicationStatus,
                 filter_region: vm.filterCSFloraRegion,
                 filter_district: vm.filterCSFloraDistrict,
-                filter_effective_from_date: vm.filterCSFloraEffectiveFromDate,
-                filter_effective_to_date: vm.filterCSFloraEffectiveToDate,
+                filter_from_effective_from_date: vm.filterCSFromFloraEffectiveFromDate,
+                filter_to_effective_from_date: vm.filterCSToFloraEffectiveFromDate,
+                filter_effective_to_date: vm.filterCSFromFloraEffectiveToDate,
+                filter_effective_to_date: vm.filterCSToFloraEffectiveToDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };

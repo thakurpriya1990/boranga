@@ -319,4 +319,4 @@ ACTION_DESTROY = "Destroy {} {}"
 
 # ---------- Cache keys ----------
 
-CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}"
+CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}-{codes}"

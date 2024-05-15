@@ -31,18 +31,59 @@
                             </select>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Submitted From Date:</label>
+                        <label for="">Submitted Date Range:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterOCRCommunitySubmittedFromDate">
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Submitted To Date:</label>
+                        <label for=""></label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterOCRCommunitySubmittedToDate">
                     </div>
                 </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Effective From Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterOCRFromCommunityEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterOCRToCommunityEffectiveFromDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Effective To Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterOCRFromCommunityEffectiveToDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterOCRToCommunityEffectiveToDate">
+                    </div>
+                </div>
+
+                <!--<div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Due Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_due_date" v-model="filterOCRFromCommunityDueDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_due_date" v-model="filterOCRToCommunityDueDate">
+                    </div>
+                </div>-->
             </div>
         </CollapsibleFilters>
 
@@ -136,6 +177,36 @@ export default {
             required: false,
             default: 'filterOCRCommunitySubmittedToDate',
         },
+        filterOCRFromCommunityEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRFromCommunityEffectiveFromDate',
+        },
+        filterOCRToCommunityEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRToCommunityEffectiveFromDate',
+        },
+        filterOCRFromCommunityEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRFromCommunityEffectiveToDate',
+        },
+        filterOCRToCommunityEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRToCommunityEffectiveToDate',
+        },
+        filterOCRFromCommunityDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRFromCommunityDueDate',
+        },
+        filterOCRToCommunityDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRToCommunityDueDate',
+        },
     },
     data() {
         let vm = this;
@@ -160,6 +231,21 @@ export default {
 
             filterOCRCommunitySubmittedToDate: sessionStorage.getItem(this.filterOCRCommunitySubmittedToDate_cache) ?
                                 sessionStorage.getItem(this.filterOCRCommunitySubmittedToDate_cache) : '',
+
+            filterOCRFromCommunityEffectiveFromDate: sessionStorage.getItem(this.filterOCRFromCommunityEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterOCRFromCommunityEffectiveFromDate_cache) : '',
+            filterOCRToCommunityEffectiveFromDate: sessionStorage.getItem(this.filterOCRToCommunityEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterOCRToCommunityEffectiveFromDate_cache) : '',
+
+            filterOCRFromCommunityEffectiveToDate: sessionStorage.getItem(this.filterOCRFromCommunityEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterOCRFromCommunityEffectiveToDate_cache) : '',
+            filterOCRToCommunityEffectiveToDate: sessionStorage.getItem(this.filterOCRToCommunityEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterOCRToCommunityEffectiveToDate_cache) : '',
+
+            filterOCRFromCommunityDueDate: sessionStorage.getItem(this.filterOCRFromCommunityDueDate_cache) ?
+            sessionStorage.getItem(this.filterOCRFromCommunityDueDate_cache) : '',
+            filterOCRToCommunityDueDate: sessionStorage.getItem(this.filterOCRToCommunityDueDate_cache) ?
+            sessionStorage.getItem(this.filterOCRToCommunityDueDate_cache) : '',
 
             filterListsCommunity: {},
             occurrence_list: [],
@@ -218,6 +304,36 @@ export default {
             vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRCommunitySubmittedToDate_cache, vm.filterOCRCommunitySubmittedToDate);
         },
+        filterOCRFromCommunityEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRFromCommunityEffectiveFromDate_cache, vm.filterOCRFromCommunityEffectiveFromDate);
+        },
+        filterOCRToCommunityEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRToCommunityEffectiveFromDate_cache, vm.filterOCRToCommunityEffectiveFromDate);
+        },
+        filterOCRFromCommunityEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRFromCommunityEffectiveToDate_cache, vm.filterOCRFromCommunityEffectiveToDate);
+        },
+        filterOCRToCommunityEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRToCommunityEffectiveToDate_cache, vm.filterOCRToCommunityEffectiveToDate);
+        },
+        filterOCRFromCommunityDueDate: function(){
+            let vm = this;
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRFromCommunityDueDate_cache, vm.filterOCRFromCommunityDueDate);
+        },
+        filterOCRToCommunityDueDate: function(){
+            let vm = this;
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRToCommunityDueDate_cache, vm.filterOCRToCommunityDueDate);
+        },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
                 // Collapsible component exists
@@ -231,7 +347,13 @@ export default {
                 this.filterOCRCommunityName === 'all' &&
                 this.filterOCRCommunityStatus === 'all' &&
                 this.filterOCRCommunitySubmittedFromDate === '' &&
-                this.filterOCRCommunitySubmittedToDate === ''){
+                this.filterOCRCommunitySubmittedToDate === ''&&
+                this.filterOCRFromCommunityEffectiveFromDate === '' &&
+                this.filterOCRToCommunityEffectiveFromDate === '' &&
+                this.filterOCRFromCommunityEffectiveToDate === '' &&
+                this.filterOCRToCommunityEffectiveToDate === '' &&
+                this.filterOCRFromCommunityDueDate === '' &&
+                this.filterOCRToCommunityDueDate === ''){
                 return false
             } else {
                 return true
@@ -477,6 +599,12 @@ export default {
                         d.filter_status = vm.filterOCRCommunityStatus;
                         d.filter_submitted_from_date = vm.filterOCRCommunitySubmittedFromDate;
                         d.filter_submitted_to_date = vm.filterOCRCommunitySubmittedToDate;
+                        d.filter_from_effective_from_date = vm.filterOCRFromCommunityEffectiveFromDate;
+                        d.filter_to_effective_from_date = vm.filterOCRToCommunityEffectiveFromDate;
+                        d.filter_from_effective_to_date = vm.filterOCRFromCommunityEffectiveToDate;
+                        d.filter_to_effective_to_date = vm.filterOCRToCommunityEffectiveToDate;
+                        d.filter_from_due_date = vm.filterOCRFromCommunityDueDate;
+                        d.filter_to_due_date = vm.filterOCRToCommunityDueDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -768,6 +896,12 @@ export default {
                 filter_status: vm.filterOCRCommunityStatus,
                 filter_submitted_from_date: vm.filterOCRCommunitySubmittedFromDate,
                 filter_submitted_to_date: vm.filterOCRCommunitySubmittedToDate,
+                filter_from_effective_from_date: vm.filterOCRFromCommunityEffectiveFromDate,
+                filter_to_effective_from_date: vm.filterOCRToCommunityEffectiveFromDate,
+                filter_from_effective_to_date: vm.filterOCRFromCommunityEffectiveToDate,
+                filter_to_effective_to_date: vm.filterOCRToCommunityEffectiveToDate,
+                filter_from_due_date: vm.filterOCRFromCommunityDueDate,
+                filter_to_due_date: vm.filterOCRToCommunityDueDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };

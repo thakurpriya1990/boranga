@@ -29,6 +29,48 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Effective From Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterOCCFromFaunaEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterOCCToFaunaEffectiveFromDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Effective To Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterOCCFromFaunaEffectiveToDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterOCCToFaunaEffectiveToDate">
+                    </div>
+                </div>
+
+                <!--<div class="col-md-3" >
+                    <div class="form-group">
+                        <label for="">Due Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_due_date" v-model="filterOCCFromFaunaDueDate">
+                    </div>
+                </div>
+
+                <div class="col-md-3" >
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_due_date" v-model="filterOCCToFaunaDueDate">
+                    </div>
+                </div>-->
+            </div>
         </CollapsibleFilters>
 
         <div v-if="show_add_button" class="col-md-12">
@@ -114,6 +156,36 @@ export default {
             required: false,
             default: 'filterOCCFaunaStatus',
         },
+        filterOCCFromFaunaEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCFromFaunaEffectiveFromDate',
+        },
+        filterOCCToFaunaEffectiveFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCToFaunaEffectiveFromDate',
+        },
+        filterOCCFromFaunaEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCFromFaunaEffectiveToDate',
+        },
+        filterOCCToFaunaEffectiveToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCToFaunaEffectiveToDate',
+        },
+        filterOCCFromFaunaDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCFromFaunaDueDate',
+        },
+        filterOCCToFaunaDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCCToFaunaDueDate',
+        },
     },
     data() {
         let vm = this;
@@ -131,6 +203,21 @@ export default {
 
             filterOCCFaunaStatus: sessionStorage.getItem(this.filterOCCFaunaStatus_cache) ?
                 sessionStorage.getItem(this.filterOCCFaunaStatus_cache) : 'all',
+
+            filterOCCFromFaunaEffectiveFromDate: sessionStorage.getItem(this.filterOCCFromFaunaEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterOCCFromFaunaEffectiveFromDate_cache) : '',
+            filterOCCToFaunaEffectiveFromDate: sessionStorage.getItem(this.filterOCCToFaunaEffectiveFromDate_cache) ?
+            sessionStorage.getItem(this.filterOCCToFaunaEffectiveFromDate_cache) : '',
+
+            filterOCCFromFaunaEffectiveToDate: sessionStorage.getItem(this.filterOCCFromFaunaEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterOCCFromFaunaEffectiveToDate_cache) : '',
+            filterOCCToFaunaEffectiveToDate: sessionStorage.getItem(this.filterOCCToFaunaEffectiveToDate_cache) ?
+            sessionStorage.getItem(this.filterOCCToFaunaEffectiveToDate_cache) : '',
+
+            filterOCCFromFaunaDueDate: sessionStorage.getItem(this.filterOCCFromFaunaDueDate_cache) ?
+            sessionStorage.getItem(this.filterOCCFromFaunaDueDate_cache) : '',
+            filterOCCToFaunaDueDate: sessionStorage.getItem(this.filterOCCToFaunaDueDate_cache) ?
+            sessionStorage.getItem(this.filterOCCToFaunaDueDate_cache) : '',
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -177,6 +264,36 @@ export default {
                 this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
             }
         },
+        filterOCCFromFaunaEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFromFaunaEffectiveFromDate_cache, vm.filterOCCFromFaunaEffectiveFromDate);
+        },
+        filterOCCToFaunaEffectiveFromDate: function(){
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCToFaunaEffectiveFromDate_cache, vm.filterOCCToFaunaEffectiveFromDate);
+        },
+        filterOCCFromFaunaEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFromFaunaEffectiveToDate_cache, vm.filterOCCFromFaunaEffectiveToDate);
+        },
+        filterOCCToFaunaEffectiveToDate: function(){
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCToFaunaEffectiveToDate_cache, vm.filterOCCToFaunaEffectiveToDate);
+        },
+        filterOCCFromFaunaDueDate: function(){
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCFromFaunaDueDate_cache, vm.filterOCCFromFaunaDueDate);
+        },
+        filterOCCToFaunaDueDate: function(){
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCCToFaunaDueDate_cache, vm.filterOCCToFaunaDueDate);
+        },
     },
     computed: {
         show_add_button: function () {
@@ -185,7 +302,13 @@ export default {
         filterApplied: function () {
             if (this.filterOCCFaunaOccurrenceName === 'all' &&
                 this.filterOCCFaunaScientificName === 'all' &&
-                this.filterOCCFaunaStatus === 'all') {
+                this.filterOCCFaunaStatus === 'all' &&
+                this.filterOCCFromFaunaEffectiveFromDate === '' &&
+                this.filterOCCToFaunaEffectiveFromDate === '' &&
+                this.filterOCCFromFaunaEffectiveToDate === '' &&
+                this.filterOCCToFaunaEffectiveToDate === '' &&
+                this.filterOCCFromFaunaDueDate === '' &&
+                this.filterOCCToFaunaDueDate === '') {
                 return false
             } else {
                 return true
@@ -377,6 +500,12 @@ export default {
                         d.filter_occurrence_name = vm.filterOCCFaunaOccurrenceName;
                         d.filter_scientific_name = vm.filterOCCFaunaScientificName;
                         d.filter_status = vm.filterOCCFaunaStatus;
+                        d.filter_from_effective_from_date = vm.filterOCCFromFaunaEffectiveFromDate;
+                        d.filter_to_effective_from_date = vm.filterOCCToFaunaEffectiveFromDate;
+                        d.filter_from_effective_to_date = vm.filterOCCFromFaunaEffectiveToDate;
+                        d.filter_to_effective_to_date = vm.filterOCCToFaunaEffectiveToDate;
+                        d.filter_from_due_date = vm.filterOCCFromFaunaDueDate;
+                        d.filter_to_due_date = vm.filterOCCToFaunaDueDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -651,6 +780,12 @@ export default {
                 filter_occurrence_name: vm.filterOCCFaunaOccurrenceName,
                 filter_scientific_name: vm.filterOCCFaunaScientificName,
                 filter_status: vm.filterOCCFaunaStatus,
+                filter_from_effective_from_date: vm.filterOCCFromFaunaEffectiveFromDate,
+                filter_to_effective_from_date: vm.filterOCCToFaunaEffectiveFromDate,
+                filter_from_effective_to_date: vm.filterOCCFromFaunaEffectiveToDate,
+                filter_to_effective_to_date: vm.filterOCCToFaunaEffectiveToDate,
+                filter_from_due_date: vm.filterOCCFromFaunaDueDate,
+                filter_to_due_date: vm.filterOCCToFaunaDueDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };

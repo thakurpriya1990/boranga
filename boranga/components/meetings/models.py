@@ -360,7 +360,8 @@ class Minutes(Document):
     def save(self, *args, **kwargs):
         # Prefix "MN" char to minutes_number.
         if self.minutes_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_minute_id = f"MN{str(self.pk)}"
             self.minutes_number = new_minute_id
             self.save(*args, **kwargs)

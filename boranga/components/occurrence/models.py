@@ -273,7 +273,8 @@ class OccurrenceReport(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.occurrence_report_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_occurrence_report_id = f"OCR{str(self.pk)}"
             self.occurrence_report_number = new_occurrence_report_id
             self.save(*args, **kwargs)
@@ -2391,7 +2392,8 @@ class OccurrenceReportDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
             self.save(*args, **kwargs)
@@ -2518,7 +2520,8 @@ class OCRConservationThreat(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
             self.save(*args, **kwargs)
@@ -2650,7 +2653,8 @@ class Occurrence(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.occurrence_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(no_revision=True, force_insert=force_insert)
             self.occurrence_number = f"OCC{str(self.pk)}"
             self.save(*args, **kwargs)
         else:
@@ -2942,7 +2946,8 @@ class OccurrenceDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
             self.save(*args, **kwargs)
@@ -3070,7 +3075,8 @@ class OCCConservationThreat(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
-            super().save(no_revision=True)
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(no_revision=True, force_insert=force_insert)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
             self.save(*args, **kwargs)
