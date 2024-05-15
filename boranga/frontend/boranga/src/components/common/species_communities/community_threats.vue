@@ -48,7 +48,7 @@
                 </div>
             </CollapsibleFilters>
             <form class="form-horizontal" action="index.html" method="post">
-                <div class="col-sm-12">
+                <div v-if="is_internal" class="col-sm-12">
                     <div class="text-end">
                         <button type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
                             <i class="fa-solid fa-circle-plus"></i>
@@ -62,7 +62,7 @@
                 </div>
             </form>
         </FormSection>
-        <FormSection :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
+        <FormSection v-if="is_internal" :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
             <CommunityOCCThreats
             :community_obj="species_community"
             />
@@ -100,6 +100,14 @@ export default {
             species_community:{
                 type: Object,
                 required:true
+            },
+            is_readonly:{
+              type: Boolean,
+              default: false
+            },
+            is_internal:{
+              type: Boolean,
+              default: false
             },
         },
         data:function () {
@@ -282,17 +290,21 @@ export default {
                             data: "id",
                             mRender:function (data,type,full){
                                 let links = '';
-                                if(full.visible){
+                                if (vm.is_internal) {
+                                    if(full.visible){
+                                        links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
+                                        links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                        links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                                    }
+                                    else{
+                                        links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                                        links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                                    }
+                                    return links;
+                                } else {
                                     links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
-                                    links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                                 }
-                                else{
-                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
-                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
-                                }
-                                return links;
                             }
                         },
                     ],

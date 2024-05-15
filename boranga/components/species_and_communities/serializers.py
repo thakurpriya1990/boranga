@@ -805,6 +805,7 @@ class SpeciesSerializer(BaseSpeciesSerializer):
             "can_user_view",
             "applicant_details",
             "comment",
+            "publishing_status",
         )
 
     def get_readonly(self, obj):
@@ -1284,6 +1285,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "comment",
             "conservation_plan_exists",
             "conservation_plan_reference",
+            "publishing_status",
         )
 
     def get_submitter(self, obj):

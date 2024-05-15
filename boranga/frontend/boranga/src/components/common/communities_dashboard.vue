@@ -293,7 +293,7 @@ export default {
         datatable_headers: function () {
             if (this.is_external) {
                 return ['Id', 'Number', 'Community Id', 'Community Name', 'Conservation List',
-                    'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                    'Conservation Category', 'Region', 'District', 'Action']
             }
             if (this.is_internal) {
                 return ['Id', 'Number', 'Community Id', 'Community Name', 'Conservation List',
@@ -453,6 +453,8 @@ export default {
                             links += `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                             links += `<a href='#' data-history-community='${full.id}'>History</a><br>`;
                         }
+                    } else {
+                        links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                     }
                     return links;
                 }

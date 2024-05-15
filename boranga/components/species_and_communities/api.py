@@ -111,7 +111,7 @@ from boranga.components.species_and_communities.utils import (
     rename_species_original_submit,
     species_form_submit,
 )
-from boranga.helpers import is_internal
+from boranga.helpers import is_internal, is_customer
 
 
 class GetGroupTypeDict(views.APIView):
@@ -878,7 +878,7 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if not is_internal(self.request):
-            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE)
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(species_publishing_status__species_public=True)
         return qs
 
     @list_route(
@@ -1110,7 +1110,7 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if not is_internal(self.request):
-            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE)
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(community_publishing_status__community_public=True)
         return qs
 
     @list_route(
@@ -1243,9 +1243,73 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response(status=400, data="Format not valid")
 
 
+class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Community.objects.none()
+    serializer_class = CommunitySerializer
+
+    def get_queryset(self):
+        if is_internal(self.request):  # user.is_authenticated():
+            qs = Community.objects.all()
+            return qs
+        elif is_customer(self.request):
+            qs = Community.objects \
+            .filter(processing_status=Species.PROCESSING_STATUS_ACTIVE) \
+            .filter(community_publishing_status__community_public=True)
+            return qs
+        return Community.objects.none()
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def threats(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.species_threats.all()
+        qs = qs.order_by("-date_observed")
+
+        filter_backend = ConservationThreatFilterBackend()
+        qs = filter_backend.filter_queryset(self.request, qs, self)
+
+        serializer = ConservationThreatSerializer(
+            qs, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
 class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Species.objects.all()
+    queryset = Species.objects.none()
     serializer_class = SpeciesSerializer
+
+    def get_queryset(self):
+        if is_internal(self.request):  # user.is_authenticated():
+            qs = Species.objects.all()
+            return qs
+        elif is_customer(self.request):
+            qs = Species.objects \
+            .filter(processing_status=Species.PROCESSING_STATUS_ACTIVE) \
+            .filter(species_publishing_status__species_public=True)
+            return qs
+        return Species.objects.none()
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def threats(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.species_threats.all()
+        qs = qs.order_by("-date_observed")
+
+        filter_backend = ConservationThreatFilterBackend()
+        qs = filter_backend.filter_queryset(self.request, qs, self)
+
+        serializer = ConservationThreatSerializer(
+            qs, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
 
 class SpeciesViewSet(viewsets.ModelViewSet):
     queryset = Species.objects.none()
@@ -2430,6 +2494,12 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
         if is_internal(self.request):  # user.is_authenticated():
             qs = ConservationThreat.objects.all().order_by("id")
             return qs
+        elif is_customer(self.request):
+            qs = ConservationThreat.objects.filter(
+                Q(species__species_publishing_status__species_public=True) |
+                Q(community__community_publishing_status__community_public=True)
+            ).order_by("id")
+            return qs
         return ConservationThreat.objects.none()
 
     # used for Threat Form dropdown lists
@@ -2509,6 +2579,8 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def discard(self, request, *args, **kwargs):
+        if not is_internal(self.request): #TODO group checks
+            raise serializer.ValidationError("user not authorised to discard threat")
         instance = self.get_object()
         instance.visible = False
         instance.save(version_user=request.user)
@@ -2536,6 +2608,8 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def reinstate(self, request, *args, **kwargs):
+        if not is_internal(self.request): #TODO group checks
+            raise serializer.ValidationError("user not authorised to reinstate threat")
         instance = self.get_object()
         instance.visible = True
         instance.save(version_user=request.user)
@@ -2558,6 +2632,8 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
+        if not is_internal(self.request): #TODO group checks
+            raise serializer.ValidationError("user not authorised to update threat")
         instance = self.get_object()
         serializer = SaveConservationThreatSerializer(
             instance, data=json.loads(request.data.get("data"))
@@ -2584,6 +2660,8 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
+        if not is_internal(self.request): #TODO group checks
+            raise serializer.ValidationError("user not authorised to create threat")
         serializer = SaveConservationThreatSerializer(
             data=json.loads(request.data.get("data"))
         )

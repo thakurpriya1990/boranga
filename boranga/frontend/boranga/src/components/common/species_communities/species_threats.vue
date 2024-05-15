@@ -48,7 +48,7 @@
                 </div>
             </CollapsibleFilters>
             <form class="form-horizontal" action="index.html" method="post">
-                <div class="col-sm-12">
+                <div v-if="is_internal" class="col-sm-12">
                     <div class="text-end">
                         <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
                             <i class="fa-solid fa-circle-plus"></i>
@@ -62,7 +62,7 @@
                 </div>
             </form>
         </FormSection>
-        <FormSection :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
+        <FormSection v-if="is_internal" :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
             <SpeciesOCCThreats
             :species_obj="species_community"
             />
@@ -106,9 +106,19 @@ export default {
               type: Boolean,
               default: false
             },
+            is_internal:{
+              type: Boolean,
+              default: false
+            },
         },
         data:function () {
             let vm = this;
+            let url = '';
+            if (vm.is_internal) {
+                url = helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/threats')
+            } else {
+                url = helpers.add_endpoint_json("/api/external_species/",vm.species_community.id+'/threats')
+            }
             return{
                 uuid:0,
                 conservationThreatHistoryId: null,
@@ -143,7 +153,7 @@ export default {
                         { responsivePriority: 2, targets: -1 },
                     ],
                     ajax:{
-                        "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_community.id+'/threats'),
+                        "url": url,
                         "dataSrc": '',
                         "data": function ( d ) {
                                 d.filter_threat_category = vm.filterThreatCategory
@@ -288,15 +298,19 @@ export default {
                             data: "id",
                             mRender:function (data,type,full){
                                 let links = '';
-                                if(full.visible){
+                                if (vm.is_internal) {
+                                    if(full.visible){
+                                        links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
+                                        links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                        links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                                    }
+                                    else{
+                                        links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                                        links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                                    }
+                                } else {
                                     links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
-                                    links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
-                                }
-                                else{
-                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
-                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                                 }
                                 return links;
                             }
@@ -427,7 +441,7 @@ export default {
                 this.$refs.threat_detail.threat_action='view';
                 Vue.http.get(helpers.add_endpoint_json(api_endpoints.threat,id)).then((response) => {
                       this.$refs.threat_detail.threatObj=response.body;
-                      this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
+                      this.$refs.threat_detail.threatObj.date_observed = response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
                     },
                   err => {
                             console.log(err);

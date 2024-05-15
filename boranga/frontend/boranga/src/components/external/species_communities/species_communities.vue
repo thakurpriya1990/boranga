@@ -38,7 +38,7 @@
                                     enctype="multipart/form-data">
                                     <ProposalSpeciesCommunities ref="species_communities"
                                         :species_community="species_community" id="speciesCommunityStart"
-                                        :is_internal="false">
+                                        :is_internal="false" :is_readonly="true">
                                     </ProposalSpeciesCommunities>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="species_community_id" :value="1" />

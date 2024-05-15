@@ -1,7 +1,7 @@
 <template lang="html">
     <div>
         <div class="col-md-12">
-            <ul v-if="is_internal" class="nav nav-pills" id="pills-tab" role="tablist">
+            <ul class="nav nav-pills" id="pills-tab" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link active" id="pills-profile-tab" data-bs-toggle="pill" :href="'#' + profileBody"
                         role="tab" :aria-controls="profileBody" aria-selected="true">
@@ -20,7 +20,7 @@
                         Threats
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" v-if="is_internal">
                     <a class="nav-link" id="pills-related-items-tab" data-bs-toggle="pill" :href="'#' + relatedItemBody"
                         role="tab" :aria-controls="relatedItemBody" aria-selected="false" @click="tabClicked()">
                         Related Items
@@ -47,7 +47,7 @@
                         :is_internal="is_internal" :species_community="species_community" :is_readonly="is_readonly">
                     </SpeciesDocuments>
                 </div>
-                <div v-if="is_internal" class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
+                <div class="tab-pane fade" :id="threatBody" role="tabpanel" aria-labelledby="pills-threats-tab">
                     <CommunityThreats v-if="isCommunity" :key="reloadcount" ref="community_threats"
                         id="communityThreats" :is_internal="is_internal" :species_community="species_community"
                         :is_readonly="is_readonly">

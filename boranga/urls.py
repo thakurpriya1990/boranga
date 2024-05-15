@@ -36,6 +36,12 @@ router.register(
     species_communities_api.ExternalSpeciesViewSet,
     "external_species",
 )
+
+router.register(
+    r"external_community",
+    species_communities_api.ExternalCommunityViewSet,
+    "external_community",
+)
 router.register(r"species", species_communities_api.SpeciesViewSet, "species")
 router.register(r"community", species_communities_api.CommunityViewSet, "community")
 router.register(
