@@ -31,6 +31,20 @@ class Profile(models.Model):
         app_label = "boranga"
 
 
+class ExternalContributorBlacklist(models.Model):
+    email = models.EmailField(unique=True)
+    reason = models.TextField()
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name_plural = "External Contributor Blacklist"
+
+    def __str__(self):
+        return self.email
+
+
 class EmailUserLogEntry(CommunicationsLogEntry):
     email_user = models.IntegerField()
 
