@@ -239,6 +239,12 @@ LOGGING["loggers"]["payment_checkout"] = {
 LOGGING["loggers"]["boranga"] = {"handlers": ["file"], "level": "INFO"}
 if DEBUG:
     LOGGING["loggers"]["boranga"] = {"handlers": ["console"], "level": "DEBUG"}
+
+    # Get rid of the annoying asyncio info log message
+    LOGGING["loggers"]["asyncio"] = {
+        "level": "WARNING",
+    }
+
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 DEV_APP_BUILD_URL = env(
     "DEV_APP_BUILD_URL"
@@ -281,9 +287,6 @@ if not RUNNING_DEVSERVER and SENTRY_DSN and EMAIL_INSTANCE:
 LEDGER_UI_ACCOUNTS_MANAGEMENT = [
     {"first_name": {"options": {"view": True, "edit": True}}},
     {"last_name": {"options": {"view": True, "edit": True}}},
-    {"residential_address": {"options": {"view": True, "edit": True}}},
-    {"postal_same_as_residential": {"options": {"view": True, "edit": True}}},
-    {"postal_address": {"options": {"view": True, "edit": True}}},
     {"phone_number": {"options": {"view": True, "edit": True}}},
     {"mobile_number": {"options": {"view": True, "edit": True}}},
 ]
