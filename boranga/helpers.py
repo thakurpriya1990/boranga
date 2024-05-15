@@ -33,10 +33,6 @@ def belongs_to(request, group_name):
     return belongs_to_by_user_id(request.user.id, group_name)
 
 
-def is_boranga_admin(request):
-    return belongs_to(request, settings.ADMIN_GROUP)
-
-
 def is_django_admin(request):
     return belongs_to(request, settings.DJANGO_ADMIN_GROUP)
 
