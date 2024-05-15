@@ -99,6 +99,12 @@
                     "
                     :selectable="true"
                     :coordinate-reference-systems="coordinateReferenceSystems"
+                    :query-layer-definition="{
+                        name: 'query_layer',
+                        title: 'Occurrence Report',
+                        default: true,
+                        can_edit: true,
+                    }"
                     @validate-feature="validateFeature.bind(this)()"
                     @refreshFromResponse="refreshFromResponse"
                     @crs-select-search="searchForCRS"

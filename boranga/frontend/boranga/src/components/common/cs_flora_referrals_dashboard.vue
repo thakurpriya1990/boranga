@@ -523,7 +523,10 @@ export default {
                 ajax: {
                     "url": this.url,
                     "dataSrc": 'data',
-
+                    "method": 'post',
+                    headers: {
+                        'X-CSRFToken': helpers.getCookie('csrftoken'),
+                    },
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
                         d.filter_group_type = vm.group_type_name;
@@ -954,9 +957,13 @@ export default {
             try {
                 if (format === "excel") {
                     $.ajax({
-                        type: "GET",
-                        url: fullUrl,
-                        contentType: "application/vnd.ms-excel",
+                        type: "POST",
+                        headers: {
+                            'X-CSRFToken': helpers.getCookie('csrftoken'),
+                        },
+                        url: url+"/",
+                        data: object_load,
+                        //contentType: "application/vnd.ms-excel",
                         dataType: "binary",
                         xhrFields: {
                             responseType: 'blob'
@@ -983,8 +990,12 @@ export default {
                 }
                 else if (format === "csv") {
                     $.ajax({
-                        type: "GET",
-                        url: fullUrl,
+                        type: "POST",
+                        headers: {
+                            'X-CSRFToken': helpers.getCookie('csrftoken'),
+                        },
+                        url: url+"/",
+                        data: object_load,
                         success: function (response, status, request) {
                             var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
                             var filename = contentDispositionHeader.split('filename=')[1];

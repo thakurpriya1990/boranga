@@ -42,7 +42,7 @@
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterOCCToFloraEffectiveFromDate">
                     </div>
                 </div>
-                
+
                 <div class="col-md-3" >
                     <div class="form-group">
                         <label for="">Effective To Date Range:</label>
@@ -73,7 +73,7 @@
             </div>
         </CollapsibleFilters>
 
-        <div class="col-md-12">
+        <div v-if="show_add_button" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraOccurrence"><i class="fa-solid fa-circle-plus"></i> Add Flora Occurrence</button>
             </div>
@@ -132,6 +132,10 @@ export default {
             type: String,
             required: true
         },
+        profile: {
+            type: Object,
+            default: null
+        },
         // for adding agendaitems for the meeting_obj.id
         meeting_obj: {
             type: Object,
@@ -189,10 +193,6 @@ export default {
             uuid:0,
             occurrenceHistoryId: null,
             datatable_id: 'occurrence-flora-datatable-' + vm._uid,
-
-            //Profile to check if user has access to process Proposal
-            profile: {},
-            is_payment_admin: false,
 
             // selected values for filtering
             filterOCCFloraOccurrenceName: sessionStorage.getItem(this.filterOCCFloraOccurrenceName_cache) ?
@@ -296,6 +296,9 @@ export default {
         },
     },
     computed: {
+        show_add_button: function () {
+            return this.profile && this.profile.groups.includes(constants.GROUPS.OCCURRENCE_APPROVERS);
+        },
         filterApplied: function () {
             if (this.filterOCCFloraOccurrenceName === 'all' &&
                 this.filterOCCFloraScientificName === 'all' &&
@@ -425,13 +428,13 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let links = "";
-                    if (vm.is_internal) {                        
+                    if (vm.is_internal) {
                         if (full.can_user_edit) {
                             links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
                         } else {
                             links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                         }
-                        links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;                       
+                        links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
                     }
                     return links;
             }

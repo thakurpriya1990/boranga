@@ -17,25 +17,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="AmendmentReason",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("reason", models.CharField(max_length=125, verbose_name="Reason")),
-            ],
-            options={
-                "verbose_name": "Application Amendment Reason",
-                "verbose_name_plural": "Application Amendment Reasons",
-            },
-        ),
-        migrations.CreateModel(
             name="CommunicationsLogEntry",
             fields=[
                 (
@@ -339,21 +320,6 @@ class Migration(migrations.Migration):
                         unique=True,
                     ),
                 ),
-            ],
-        ),
-        migrations.CreateModel(
-            name="RequiredDocument",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("question", models.TextField()),
             ],
         ),
         migrations.CreateModel(

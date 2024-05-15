@@ -3,16 +3,16 @@ import logging
 from rest_framework.permissions import BasePermission
 
 from boranga.helpers import (
-    is_approver,
-    is_assessor,
-    is_species_processor,
-    is_conservation_status_editor,
-    is_customer,
+    is_conservation_status_approver,
+    is_conservation_status_assessor,
     is_conservation_status_referee,
-    is_internal,
+    is_occurrence_approver,
+    is_occurrence_assessor,
+    is_species_communities_approver,
 )
 
 logger = logging.getLogger(__name__)
+
 
 class IsAssessor(BasePermission):
     def has_permission(self, request, view):
@@ -22,7 +22,9 @@ class IsAssessor(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_assessor(request.user)
+        return is_conservation_status_assessor(request.user) or is_occurrence_assessor(
+            request.user
+        )
 
 
 class IsApprover(BasePermission):
@@ -33,10 +35,14 @@ class IsApprover(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_approver(request.user)
-    
+        return (
+            is_species_communities_approver(request.user)
+            or is_conservation_status_approver(request.user)
+            or is_occurrence_approver(request.user)
+        )
 
-class IsConservationStatusEditor(BasePermission):
+
+class IsConservationStatusAssessor(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
@@ -44,7 +50,7 @@ class IsConservationStatusEditor(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_conservation_status_editor(request.user)
+        return is_conservation_status_assessor(request.user)
 
 
 class IsConservationStatusReferee(BasePermission):

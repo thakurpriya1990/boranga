@@ -115,11 +115,11 @@
                                         </tr>
                                     </table>
 
-                                    <MoreReferrals 
-                                        @refreshFromResponse="refreshFromResponse" 
-                                        :proposal="proposal" 
-                                        :canAction="canLimitedAction" 
-                                        :isFinalised="isFinalised" 
+                                    <MoreReferrals
+                                        @refreshFromResponse="refreshFromResponse"
+                                        :proposal="proposal"
+                                        :canAction="canLimitedAction"
+                                        :isFinalised="isFinalised"
                                         :referral_url="referralListURL"
                                     />
                                 </div>
@@ -255,18 +255,16 @@ export default {
                     'roles_allowed': [ROLES.ASSESSOR,]
                 },
                 'propose_decline': {
-                    'registration_of_interest': [PS.WITH_ASSESSOR, PS.WITH_ASSESSOR_CONDITIONS,], // There should not be with_assessor_conditions status for registration_of_interest
+                    'registration_of_interest': [PS.WITH_ASSESSOR,], // There should not be with_assessor_conditions status for registration_of_interest
                     'lease_licence': [PS.WITH_ASSESSOR,],
                     'roles_allowed': [ROLES.ASSESSOR,]
                 },
                 'back_to_application': {
                     'registration_of_interest': [],  // No conditions for the registration_of_interest
-                    'lease_licence': [PS.WITH_ASSESSOR_CONDITIONS,],
                     'roles_allowed': [ROLES.ASSESSOR, ROLES.REFERRAL,]
                 },
                 'propose_approve': {
-                    'registration_of_interest': [PS.WITH_ASSESSOR, PS.WITH_ASSESSOR_CONDITIONS,], // There should not be with_assessor_conditions status for registration_of_interest
-                    'lease_licence': [PS.WITH_ASSESSOR_CONDITIONS,],
+                    'registration_of_interest': [PS.WITH_ASSESSOR,], // There should not be with_assessor_conditions status for registration_of_interest
                     'roles_allowed': [ROLES.ASSESSOR,]
                 },
                 'back_to_assessor': {
@@ -420,7 +418,7 @@ export default {
             return true
         },
         show_toggle_proposal: function(){
-            if(this.proposal.processing_status == constants.WITH_ASSESSOR_CONDITIONS || this.proposal.processing_status == constants.WITH_APPROVER || this.isFinalised){
+            if(this.proposal.processing_status == constants.WITH_APPROVER || this.isFinalised){
                 return true
             } else {
                 return false
