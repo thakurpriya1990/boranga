@@ -3329,7 +3329,8 @@ export default {
                         return false;
                     }
 
-                    let features = vm.selectedFeatures();
+                    // Get the selected features that are also editable
+                    const features = vm.editableSelectedFeatures();
 
                     features.forEach((feature) => {
                         let coords = feature.getGeometry().getCoordinates();
@@ -3366,9 +3367,30 @@ export default {
                         }
                     });
                 },
-                // eslint-disable-next-line no-unused-vars
+                // A filter that takes a feature and return true if it can be modified
+                filter: function (feature) {
+                    return vm.editableSelectedFeatures().includes(feature);
+                },
                 insertVertexCondition: function (evt) {
-                    return true;
+                    evt.stopPropagation();
+
+                    const f = vm.map.getFeaturesAtPixel(evt.pixel, {
+                        hitTolerance: vm.hitTolerance,
+                    });
+                    if (!f) {
+                        return false;
+                    }
+
+                    const features = vm
+                        .editableSelectedFeatures()
+                        .filter((feature) => {
+                            return f.includes(feature);
+                        });
+
+                    if (features.length > 0) {
+                        return true;
+                    }
+                    return false;
                 },
             });
 
@@ -4064,6 +4086,22 @@ export default {
             return features;
         },
         /**
+         * Returns the editable features
+         */
+        editableFeatures: function () {
+            let vm = this;
+            const features = vm.getMapFeatures();
+            const editableFeaturesIds = vm.editableFeatureCollection
+                .getArray()
+                .map((feature) => {
+                    return feature.getProperties().id;
+                });
+
+            return features.filter((feature) => {
+                return editableFeaturesIds.includes(feature.getProperties().id);
+            });
+        },
+        /**
          * Returns the selected features
          */
         selectedFeatures: function () {
@@ -4074,6 +4112,16 @@ export default {
                 return vm.selectedFeatureIds.includes(
                     feature.getProperties().id
                 );
+            });
+        },
+        /**
+         * Returns features that are both selectable and editable
+         */
+        editableSelectedFeatures: function () {
+            const selectedFeatures = this.selectedFeatures();
+            const editableFeatures = this.editableFeatures();
+            return selectedFeatures.filter((feature) => {
+                return editableFeatures.includes(feature);
             });
         },
         setSelectedFeatureCollection: function (collection) {
