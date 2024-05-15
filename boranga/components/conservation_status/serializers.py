@@ -18,7 +18,7 @@ from boranga.components.main.serializers import (
     EmailUserSerializer,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
-from boranga.helpers import is_internal_contributor
+from boranga.helpers import is_internal, is_internal_contributor
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -695,6 +695,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
     can_edit_recommended = serializers.SerializerMethodField(read_only=True)
     referrals = ConservationStatusProposalReferralSerializer(many=True)
+    can_user_edit = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -903,8 +904,18 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         )
         return obj.can_edit_recommended(user)
 
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        if not is_internal(request) or is_internal_contributor(request.user):
+            return obj.can_user_edit and request.user.id == obj.submitter
 
-# Not used at the moment
+        return (
+            obj.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
+            and request.user.id
+            in obj.get_assessor_group().get_system_group_member_ids()
+        )
+
+
 class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
@@ -914,9 +925,6 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
     allowed_assessors = EmailUserSerializer(many=True)
     assessor_mode = serializers.SerializerMethodField()
     conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer()
-    # accessing_user_roles = (
-    #     serializers.SerializerMethodField()
-    # )
 
     class Meta:
         model = ConservationStatus
@@ -950,25 +958,6 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
             "conservationstatusdeclineddetails",
             "can_view_recommended",
         )
-
-    # def get_accessing_user_roles(self, conservation_status):
-    #     request = self.context.get("request")
-    #     accessing_user = request.user
-    #     roles = []
-    #     if (
-    #         accessing_user.id
-    #         in conservation_status.get_assessor_group().get_system_group_member_ids()
-    #     ):
-    #         roles.append("assessor")
-    #     if (
-    #         accessing_user.id
-    #         in conservation_status.get_approver_group().get_system_group_member_ids()
-    #     ):
-    #         roles.append("approver")
-    #     referral_ids = list(conservation_status.referrals.values_list("referral", flat=True))
-    #     if accessing_user.id in referral_ids:
-    #         roles.append("referral")
-    #     return roles
 
     def get_submitter(self, obj):
         if obj.submitter:
