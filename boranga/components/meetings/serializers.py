@@ -58,9 +58,14 @@ class ListMeetingSerializer(serializers.ModelSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
+
+        if obj.can_user_edit and request.user.is_superuser:
+            return True
+
         if not is_conservation_status_approver(request.user):
             return False
-        return obj.can_user_edit
+
+        return obj.can_user_edit or request.user.is_superuser
 
     def get_is_meeting_editable(self, obj):
         request = self.context["request"]
@@ -184,6 +189,11 @@ class MeetingSerializer(serializers.ModelSerializer):
         return [cs.conservation_status_id for cs in obj.agenda_items.all()]
 
     def get_readonly(self, obj):
+        request = self.context["request"]
+
+        if obj.can_user_edit and request.user.is_superuser:
+            return True
+
         return obj.can_user_view
 
     def get_user_edit_mode(self, obj):
@@ -196,6 +206,9 @@ class MeetingSerializer(serializers.ModelSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
+        if request.user.is_superuser:
+            return True
+
         if not is_conservation_status_approver(request.user):
             return False
         return obj.can_user_edit
