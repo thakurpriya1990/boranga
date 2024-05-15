@@ -53,7 +53,12 @@ from boranga.components.occurrence.models import (
     SecondarySign,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
-from boranga.helpers import is_internal, is_occurrence_approver, is_occurrence_assessor
+from boranga.helpers import (
+    is_internal,
+    is_new_external_contributor,
+    is_occurrence_approver,
+    is_occurrence_assessor,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -236,6 +241,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     occurrence_name = serializers.CharField(
         source="occurrence.occurrence_number", allow_null=True
     )
+    is_new_contributor = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -262,6 +268,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "effective_from",
             "effective_to",
             "review_due_date",
+            "is_new_contributor",
         )
         datatables_always_serialize = (
             "id",
@@ -279,6 +286,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "can_user_approve",
             "can_user_assess",
             "internal_user_edit",
+            "is_new_contributor",
         )
 
     def get_scientific_name(self, obj):
@@ -330,6 +338,9 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             and obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         )
+
+    def get_is_new_contributor(self, obj):
+        return is_new_external_contributor(obj.submitter)
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
