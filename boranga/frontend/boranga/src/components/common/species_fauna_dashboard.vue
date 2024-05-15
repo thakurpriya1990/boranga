@@ -183,6 +183,10 @@ export default {
             type: String,
             required: true
         },
+        profile:{
+            type: Object,
+            default: null
+        },
         filterFaunaScientificName_cache: {
             type: String,
             required: false,
@@ -247,7 +251,6 @@ export default {
             datatable_fauna_id: 'species_fauna-datatable-'+vm._uid,
 
             //Profile to check if user has access to process Proposal
-            profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
@@ -416,11 +419,7 @@ export default {
             return this.level == 'referral';
         },
         newFaunaVisibility: function() {
-            let visibility = false;
-            if (this.is_internal) {
-                visibility = true;
-            }
-            return visibility;
+            return this.profile && this.profile.groups.includes(constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS)
         },
         datatable_headers: function(){
             if (this.is_external){
@@ -529,7 +528,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "taxonomy__family_fk__scientific_name",
+                name: "taxonomy__family_name",
             }
         },
         column_genera: function(){
@@ -545,7 +544,7 @@ export default {
                     // Should not reach here
                     return ''
                 },
-                name: "taxonomy__genus__name",
+                name: "taxonomy__genera_name",
             }
         },
         column_conservation_list: function(){
@@ -650,8 +649,8 @@ export default {
                             if(full.user_process){
                                 links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;
                             }
-                            links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
+                            links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
                     }
                     return links;
@@ -1140,7 +1139,7 @@ export default {
                 },
                 "5": {
                     "data": "family",
-                    "name": "taxonomy__family_fk__scientific_name",
+                    "name": "taxonomy__family_name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -1150,7 +1149,7 @@ export default {
                 },
                 "6": {
                     "data": "genus",
-                    "name": "taxonomy__genus__name",
+                    "name": "taxonomy__genera_name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -1346,23 +1345,9 @@ export default {
                 }
             );
         },
-        fetchProfile: function(){
-            let vm = this;
-            /*Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-                vm.is_payment_admin=response.body.is_payment_admin;
-
-            },(error) => {
-                console.log(error);
-
-            })*/
-        },
     },
-
-
     mounted: function(){
         this.fetchFilterLists();
-        this.fetchProfile();
         let vm = this;
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];

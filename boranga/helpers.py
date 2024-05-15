@@ -1,111 +1,60 @@
 import logging
 
-import ledger_api_client
 from django.conf import settings
-from django.core.cache import cache
 from django.db import models
 from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 
 from boranga.settings import (
-    GROUP_NAME_APPROVER,
-    GROUP_NAME_ASSESSOR,
-    GROUP_NAME_EDITOR,
-    GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR,
+    GROUP_NAME_CONSERVATION_STATUS_APPROVER,
+    GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
+    GROUP_NAME_EXTERNAL_CONTRIBUTOR,
+    GROUP_NAME_INTERNAL_CONTRIBUTOR,
     GROUP_NAME_OCCURRENCE_APPROVER,
     GROUP_NAME_OCCURRENCE_ASSESSOR,
+    GROUP_NAME_SPECIES_COMMUNITIES_APPROVER,
 )
 
 logger = logging.getLogger(__name__)
 
 
-def belongs_to(user, group_name):
-    """
-    Check if the user belongs to the given group.
-    :param user:
-    :param group_name:
-    :return:
-    """
-    # import ipdb; ipdb.set_trace()
-    belongs_to_value = cache.get(
-        "User-belongs_to" + str(user.id) + "group_name:" + group_name
-    )
-    if belongs_to_value:
-        print(
-            "From Cache - User-belongs_to" + str(user.id) + "group_name:" + group_name
-        )
-    if belongs_to_value is None:
-        belongs_to_value = False
-        system_group = ledger_api_client.managed_models.SystemGroup.objects.get(
-            name=group_name
-        )
-        if user.id in system_group.get_system_group_member_ids():
-            belongs_to_value = True
-        cache.set(
-            "User-belongs_to" + str(user.id) + "group_name:" + group_name,
-            belongs_to_value,
-            3600,
-        )
-    return belongs_to_value
-
-    # return user.groups.filter(name=group_name).exists()
+def belongs_to_by_user_id(user_id, group_name):
+    system_group = SystemGroup.objects.filter(name=group_name).first()
+    return system_group and user_id in system_group.get_system_group_member_ids()
 
 
-# def is_model_backend(request):
-#    # Return True if user logged in via single sign-on (i.e. an internal)
-#    return 'ModelBackend' in request.session.get('_auth_user_backend')
-#
-# def is_email_auth_backend(request):
-#    # Return True if user logged in via social_auth (i.e. an external user signing in with a login-token)
-#    return 'EmailAuth' in request.session.get('_auth_user_backend')
+def belongs_to(request, group_name):
+    if not request.user.is_authenticated:
+        return False
+    if request.user.is_superuser:
+        return True
+
+    return belongs_to_by_user_id(request.user.id, group_name)
 
 
 def is_boranga_admin(request):
-    # import ipdb; ipdb.set_trace()
-    # logger.info('settings.ADMIN_GROUP: {}'.format(settings.ADMIN_GROUP))
-    return request.user.is_authenticated and (
-        belongs_to(request.user, settings.ADMIN_GROUP) or request.user.is_superuser
-    )
+    return belongs_to(request, settings.ADMIN_GROUP)
 
 
 def is_django_admin(request):
-    return request.user.is_authenticated and (
-        belongs_to(request.user, settings.DJANGO_ADMIN_GROUP)
-        or request.user.is_superuser
-    )
+    return belongs_to(request, settings.DJANGO_ADMIN_GROUP)
 
 
-def is_assessor(user_id):
+def is_readonly_user(user_id):
     if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
         user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
+    readonly_group = SystemGroup.objects.get(name=settings.GROUP_NAME_READONLY_USER)
+    return True if user_id in readonly_group.get_system_group_member_ids() else False
+
+
+def is_species_communities_approver(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(
+        name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER
+    )
     return True if user_id in assessor_group.get_system_group_member_ids() else False
-
-
-def is_approver(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
-    return True if user_id in assessor_group.get_system_group_member_ids() else False
-
-
-def is_species_processor(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    species_group = SystemGroup.objects.get(
-        name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR
-    )
-    return True if user_id in species_group.get_system_group_member_ids() else False
-
-
-def is_community_processor(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    community_group = SystemGroup.objects.get(
-        name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR
-    )
-    return True if user_id in community_group.get_system_group_member_ids() else False
 
 
 def is_conservation_status_referee(request, cs_proposal=None):
@@ -118,17 +67,44 @@ def is_conservation_status_referee(request, cs_proposal=None):
     return qs.exists()
 
 
-def is_conservation_status_editor(user_id):
+def is_conservation_status_assessor(user_id):
     if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
         user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
+    assessor_group = SystemGroup.objects.get(
+        name=GROUP_NAME_CONSERVATION_STATUS_ASSESSOR
+    )
     return True if user_id in assessor_group.get_system_group_member_ids() else False
+
+
+def is_conservation_status_approver(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(
+        name=GROUP_NAME_CONSERVATION_STATUS_APPROVER
+    )
+    return True if user_id in assessor_group.get_system_group_member_ids() else False
+
+
+def is_external_contributor(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_EXTERNAL_CONTRIBUTOR)
+    return True if user_id in assessor_group.get_system_group_member_ids() else False
+
+
+def is_internal_contributor(user_id):
+    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
+        user_id = user_id.id
+    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_INTERNAL_CONTRIBUTOR)
+    return True if user_id in assessor_group.get_system_group_member_ids() else False
+
 
 def is_occurrence_assessor(user_id):
     if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
         user_id = user_id.id
     assessor_group = SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
     return True if user_id in assessor_group.get_system_group_member_ids() else False
+
 
 def is_occurrence_approver(user_id):
     if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
@@ -161,7 +137,6 @@ def is_in_organisation_contacts(request, organisation):
 
 
 def is_departmentUser(request):
-    # return request.user.is_authenticated and is_model_backend(request) and in_dbca_domain(request)
     return request.user.is_authenticated and in_dbca_domain(request)
 
 

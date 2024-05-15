@@ -1,21 +1,35 @@
 {% load users %}
 {% load utils %}
 {% load static %}
+
 {% is_internal as is_internal_login %}
+{% show_internal_primary_menu_items as show_internal_primary_menu_items %}
 
 {% if is_internal_login %}
-    <li class="nav-item"><a class="nav-link {% if page_status.species_and_communities is True %} active {% endif %}" href="/internal/species-communities">
-        <div style="inline">Species &amp; Communities</div></a>
+  {% if show_internal_primary_menu_items %}
+    <li class="nav-item">
+      <a class="nav-link{% if 'species-communities' in request.path %} active{% endif %}" href="/internal/species-communities">Species &amp; Communities</a>
     </li>
-    <li class="nav-item"><a class="nav-link {% if page_status.conservation_status is True %} active {% endif %}" href="/internal/conservation-status">Conservation Status</a></li>
-    <li class="nav-item"><a class="nav-link {% if page_status.meetings is True %} active {% endif %}" href="/internal/meetings">Meetings</a></li>
-    <li class="nav-item"><a class="nav-link {% if page_status.occurrence is True %} active {% endif %}" href="/internal/occurrence">Occurrences</a></li>
+    <li class="nav-item">
+      <a class="nav-link{% if 'conservation-status' in request.path %} active{% endif %}" href="/internal/conservation-status">Conservation Status</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if 'meetings' in request.path %} active{% endif %}" href="/internal/meetings">Meetings</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if 'occurrence' in request.path %} active{% endif %}" href="/internal/occurrence">Occurrences</a>
+    </li>
+  {% endif %}
 {% else %}
-    <li class="nav-item"><a class="nav-link {% if page_status.species_and_communities is True %} active {% endif %}" href="/external/species-communities">
-        <div style="inline">Species &amp; Communities</div></a>
-    </li>
+  <li class="nav-item">
+    <a class="nav-link{% if 'species-communities' in request.path %} active{% endif %}" href="/external/species-communities">Species &amp; Communities</a>
+  </li>
 {% endif %}
-{% if not is_internal_login and request.user.is_authenticated %}
-    <li class="nav-item"><a class="nav-link {% if page_status.conservation_status is True %} active {% endif %}" href="/external/conservation-status">Conservation Status</a></li>
-    <li class="nav-item"><a class="nav-link {% if page_status.occurrence_report is True %} active {% endif %}" href="/external/occurrence-report">Occurrence Reports</a></li>
+{% if not is_internal_login and request.user.is_authenticated and is_external_contributor %}
+  <li class="nav-item">
+    <a class="nav-link{% if 'conservation-status' in request.path %} active{% endif %}" href="/external/conservation-status">Conservation Status</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link{% if 'occurrence' in request.path %} active{% endif %}" href="/external/occurrence-report">Occurrence Reports</a>
+  </li>
 {% endif %}

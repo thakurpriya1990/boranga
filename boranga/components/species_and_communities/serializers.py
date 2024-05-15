@@ -32,6 +32,7 @@ from boranga.components.species_and_communities.models import (
     Taxonomy,
     TaxonVernacular,
 )
+from boranga.helpers import is_species_communities_approver
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -50,6 +51,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     district = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
+    can_user_edit = serializers.SerializerMethodField()
     publishing_status = serializers.SerializerMethodField()
 
     class Meta:
@@ -114,14 +116,14 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
     def get_family(self, obj):
         if obj.taxonomy:
-            if obj.taxonomy.family_fk:
-                return obj.taxonomy.family_fk.scientific_name
+            if obj.taxonomy.family_id:
+                return obj.taxonomy.family_name
         return ""
 
     def get_genus(self, obj):
         if obj.taxonomy:
-            if obj.taxonomy.genus:
-                return obj.taxonomy.genus.name
+            if obj.taxonomy.genera_id:
+                return obj.taxonomy.genera_name
         return ""
 
     def get_phylogenetic_group(self, obj):
@@ -179,12 +181,27 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     def get_user_process(self, obj):
         # Check if currently logged in user has access to process the Species
         request = self.context["request"]
-        user = request.user
-        if obj.can_user_action:
-            # TODO user should be SystemGroup SpeciesProcessGroup?
-            if user in obj.allowed_species_processors:
-                return True
-        return False
+        return (
+            obj.can_user_action
+            and request.user.id
+            in obj.get_approver_group().get_system_group_member_ids()
+        )
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        if not is_species_communities_approver(request.user.id):
+            return False
+        return obj.can_user_edit
+
+    def get_publishing_status(self, obj):
+        try:
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = SpeciesPublishingStatus.objects.get_or_create(
+                species=obj
+            )
+            return SpeciesPublishingStatusSerializer(ps_instance).data
+        except SpeciesPublishingStatus.DoesNotExist:
+            return SpeciesPublishingStatusSerializer().data
 
     def get_publishing_status(self, obj):
         try:
@@ -207,6 +224,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     district = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
+    can_user_edit = serializers.SerializerMethodField()
     publishing_status = serializers.SerializerMethodField()
 
     class Meta:
@@ -296,14 +314,19 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
         return ""
 
     def get_user_process(self, obj):
-        # Check if currently logged in user has access to process the Species
+        # Check if currently logged in user has access to process the Community
         request = self.context["request"]
-        user = request.user
-        if obj.can_user_action:
-            # TODO user should be SystemGroup SpeciesProcessGroup?
-            if user in obj.allowed_community_processors:
-                return True
-        return False
+        return (
+            obj.can_user_action
+            and request.user.id
+            in obj.get_approver_group().get_system_group_member_ids()
+        )
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        if not is_species_communities_approver(request.user.id):
+            return False
+        return obj.can_user_edit
     
     def get_publishing_status(self, obj):
         try:
@@ -342,6 +365,8 @@ class TaxonomySerializer(serializers.ModelSerializer):
             "name_comments",
             "conservation_status",
             "conservation_status_under_review",
+            "family_name",
+            "genera_name",
         )
 
     def get_text(self, obj):
@@ -367,7 +392,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
                 return ",".join(informal_groups)
         except InformalGroup.DoesNotExist:
             return ""
-        
+
     def get_conservation_status(self, obj):
         try:
             taxonSpecies = Species.objects.get(taxonomy=obj)
@@ -377,7 +402,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
                 processing_status="approved",
             )
             return SpeciesConservationStatusSerializer(qs).data
-        except (ConservationStatus.DoesNotExist,Species.DoesNotExist):
+        except (ConservationStatus.DoesNotExist, Species.DoesNotExist):
             return SpeciesConservationStatusSerializer().data
             # return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
@@ -389,8 +414,9 @@ class TaxonomySerializer(serializers.ModelSerializer):
                 conservation_list__applies_to_wa=True,
                 processing_status="ready_for_agenda",
             ).exists()
-        except:
+        except (ConservationStatus.DoesNotExist, Species.DoesNotExist):
             return False
+
 
 class SpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 
@@ -646,7 +672,6 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     distribution = serializers.SerializerMethodField()
     publishing_status = serializers.SerializerMethodField()
     image_doc = serializers.SerializerMethodField()
-    allowed_species_processors = EmailUserSerializer(many=True)
 
     class Meta:
         model = Species
@@ -673,7 +698,6 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             "can_user_edit",
             "can_user_view",
             "applicant_details",
-            "allowed_species_processors",
             "comment",
             "publishing_status",
         )
@@ -780,7 +804,6 @@ class SpeciesSerializer(BaseSpeciesSerializer):
             "can_user_edit",
             "can_user_view",
             "applicant_details",
-            "allowed_species_processors",
             "comment",
         )
 
@@ -805,7 +828,6 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
     current_assessor = serializers.SerializerMethodField()
-    allowed_species_processors = EmailUserSerializer(many=True)
     user_edit_mode = serializers.SerializerMethodField()
 
     class Meta:
@@ -833,7 +855,6 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "submitter",
             "lodgement_date",
             "current_assessor",
-            "allowed_species_processors",
             "user_edit_mode",
             "comment",
             "conservation_plan_exists",
@@ -1090,7 +1111,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
     conservation_attributes = serializers.SerializerMethodField()
     readonly = serializers.SerializerMethodField(read_only=True)
     image_doc = serializers.SerializerMethodField()
-    allowed_community_processors = EmailUserSerializer(many=True)
 
     class Meta:
         model = Community
@@ -1116,7 +1136,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             "can_user_edit",
             "can_user_view",
             "applicant_details",
-            "allowed_community_processors",
             "comment",
         )
 
@@ -1235,7 +1254,6 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
     current_assessor = serializers.SerializerMethodField()
-    allowed_community_processors = EmailUserSerializer(many=True)
     user_edit_mode = serializers.SerializerMethodField()
 
     class Meta:
@@ -1262,7 +1280,6 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "can_user_edit",
             "can_user_view",
             "current_assessor",
-            "allowed_community_processors",
             "user_edit_mode",
             "comment",
             "conservation_plan_exists",

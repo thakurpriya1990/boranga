@@ -22,12 +22,7 @@ from boranga.components.main.models import (
 )
 from boranga.components.main.related_item import RelatedItem
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.settings import (
-    GROUP_NAME_APPROVER,
-    GROUP_NAME_ASSESSOR,
-    GROUP_NAME_EDITOR,
-    GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR,
-)
+from boranga.settings import GROUP_NAME_SPECIES_COMMUNITIES_APPROVER
 
 logger = logging.getLogger(__name__)
 
@@ -320,7 +315,8 @@ class Taxonomy(models.Model):
     @property
     def taxon_previous_name(self):
         if self.previous_names.all():
-            previous_names_list = TaxonPreviousName.objects.filter(taxonomy=self.id
+            previous_names_list = TaxonPreviousName.objects.filter(
+                taxonomy=self.id
             ).values_list("previous_scientific_name", flat=True)
             return ",".join(previous_names_list)
 
@@ -329,7 +325,7 @@ class Taxonomy(models.Model):
         if self.new_taxon.all():
             previous_queryset = TaxonPreviousName.objects.filter(
                 taxonomy=self.id
-                ).order_by("id")
+            ).order_by("id")
             return previous_queryset
         else:
             return TaxonPreviousName.objects.none()
@@ -364,10 +360,12 @@ class TaxonVernacular(models.Model):
     def __str__(self):
         return str(self.vernacular_name)  # TODO: is the most appropriate?
 
+
 class TaxonPreviousName(models.Model):
     """
     Previous Name(old name) of taxon
     """
+
     taxonomy = models.ForeignKey(
         Taxonomy, on_delete=models.CASCADE, null=True, related_name="previous_names"
     )
@@ -540,7 +538,7 @@ class Species(RevisionedMixin):
         self.full_clean()
         # Prefix "S" char to species_number.
         if self.species_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_species_id = f"S{str(self.pk)}"
             self.species_number = new_species_id
@@ -605,7 +603,6 @@ class Species(RevisionedMixin):
         """
         :return: True if the application is in one of the editable status.
         """
-        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
         user_editable_state = [
             "draft",
         ]
@@ -674,95 +671,11 @@ class Species(RevisionedMixin):
         parent_species = self.parent_species.all()
         return parent_species
 
-    @property
-    def allowed_assessors(self):
-        group = None
-        # TODO: Take application_type into account
-        # if self.processing_status in [
-        #     Species.PROCESSING_STATUS_WITH_APPROVER,
-        # ]:
-        #     group = self.get_approver_group()
-        # elif self.processing_status in [
-        #     Species.PROCESSING_STATUS_WITH_REFERRAL,
-        #     Species.PROCESSING_STATUS_WITH_ASSESSOR,
-        # ]:
-        #     group = self.get_assessor_group()
-        # users = (
-        #     list(
-        #         map(
-        #             lambda id: retrieve_email_user(id),
-        #             group.get_system_group_member_ids(),
-        #         )
-        #     )
-        #     if group
-        #     else []
-        # )
-        # return users
-        # TODO We need specific species processing SystemGroup
-        group = self.get_assessor_group()
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
-
-    @property
-    def allowed_species_processors(self):
-        group = None
-        # TODO We need specific species processing SystemGroup
-        group = self.get_species_processor_group()
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
-
-    def get_assessor_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
-
     def get_approver_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
-
-    def get_species_processor_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
-
-    @property
-    def species_processor_recipients(self):
-        logger.info("species_processor_recipients")
-        recipients = []
-        group_ids = self.get_species_processor_group().get_system_group_member_ids()
-        for id in group_ids:
-            logger.info(id)
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
-    def assessor_recipients(self):
-        logger.info("assessor_recipients")
-        recipients = []
-        group_ids = self.get_assessor_group().get_system_group_member_ids()
-        for id in group_ids:
-            logger.info(id)
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
+        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
     @property
     def approver_recipients(self):
-        logger.info("assessor_recipients")
         recipients = []
         group_ids = self.get_approver_group().get_system_group_member_ids()
         for id in group_ids:
@@ -770,36 +683,8 @@ class Species(RevisionedMixin):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
-    # Check if the user is member of assessor group
-    def is_assessor(self, user):
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
-
-    # Check if the user is member of assessor group for the CS Proposal
     def is_approver(self, user):
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
-
-    def is_species_processor(self, user):
-        return (
-            user.id in self.get_species_processor_group().get_system_group_member_ids()
-        )
-
-    # def can_assess(self,user):
-    #     logger.info("can assess")
-    #     logger.info("user")
-    #     logger.info(type(user))
-    #     logger.info(user)
-    #     logger.info(user.id)
-    #     if self.processing_status in [
-    #         "with_assessor",
-    #         "with_referral",
-    #     ]:
-    #         logger.info("self.__assessor_group().get_system_group_member_ids()")
-    #         logger.info(self.get_assessor_group().get_system_group_member_ids())
-    #         return user.id in self.get_assessor_group().get_system_group_member_ids()
-    #     elif self.processing_status == Species.PROCESSING_STATUS_WITH_APPROVER:
-    #         return user.id in self.get_approver_group().get_system_group_member_ids()
-    #     else:
-    #         return False
+        return user.id in self.get_approver_group().get_system_group_member_ids()
 
     @property
     def status_without_assessor(self):
@@ -820,10 +705,7 @@ class Species(RevisionedMixin):
         if self.processing_status in officer_view_state:
             return False
         else:
-            return (
-                user.id
-                in self.get_species_processor_group().get_system_group_member_ids()
-            )
+            return self.is_approver(user)
 
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
@@ -1171,7 +1053,7 @@ class Community(RevisionedMixin):
     def save(self, *args, **kwargs):
         # Prefix "C" char to community_number.
         if self.community_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_community_id = f"C{str(self.pk)}"
             self.community_number = new_community_id
@@ -1284,89 +1166,13 @@ class Community(RevisionedMixin):
             return True
         return False
 
-    @property
-    def allowed_assessors(self):
-        group = None
-        # # TODO: Take application_type into account
-        # if self.processing_status in [
-        #     Community.PROCESSING_STATUS_WITH_APPROVER,
-        # ]:
-        #     group = self.get_approver_group()
-        # elif self.processing_status in [
-        #     Community.PROCESSING_STATUS_WITH_REFERRAL,
-        #     Community.PROCESSING_STATUS_WITH_ASSESSOR,
-        # ]:
-        #     group = self.get_assessor_group()
-        group = self.get_assessor_group()
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
-
-    @property
-    def allowed_community_processors(self):
-        group = None
-        group = self.get_community_processor_group()
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
-
-    def get_assessor_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_ASSESSOR)
-
     def get_approver_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_APPROVER)
-
-    # Group for editing the Approved CS(only specific fields)
-    def get_editor_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_EDITOR)
-
-    def get_community_processor_group(self):
-        # TODO: Take application_type into account
-        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_PROCESSOR)
-
-    @property
-    def assessor_recipients(self):
-        logger.info("assessor_recipients")
-        recipients = []
-        group_ids = self.get_assessor_group().get_system_group_member_ids()
-        for id in group_ids:
-            logger.info(id)
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
+        return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
     @property
     def approver_recipients(self):
-        logger.info("assessor_recipients")
         recipients = []
         group_ids = self.get_approver_group().get_system_group_member_ids()
-        for id in group_ids:
-            logger.info(id)
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
-    def community_processor_recipients(self):
-        logger.info("acommunity_processor_recipients")
-        recipients = []
-        group_ids = self.get_community_processor_group().get_system_group_member_ids()
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
@@ -1386,27 +1192,6 @@ class Community(RevisionedMixin):
             user.id
             in self.get_community_processor_group().get_system_group_member_ids()
         )
-
-    # def can_assess(self,user):
-    #     logger.info("can assess")
-    #     logger.info("user")
-    #     logger.info(type(user))
-    #     logger.info(user)
-    #     logger.info(user.id)
-    #     if self.processing_status in [
-    #         # "on_hold",
-    #         # "with_qa_officer",
-    #         "with_assessor",
-    #         "with_referral",
-    #         "with_assessor_conditions",
-    #     ]:
-    #         logger.info("self.__assessor_group().get_system_group_member_ids()")
-    #         logger.info(self.get_assessor_group().get_system_group_member_ids())
-    #         return user.id in self.get_assessor_group().get_system_group_member_ids()
-    #     elif self.processing_status == Community.PROCESSING_STATUS_WITH_APPROVER:
-    #         return user.id in self.get_approver_group().get_system_group_member_ids()
-    #     else:
-    #         return False
 
     @property
     def status_without_assessor(self):
@@ -1774,7 +1559,7 @@ class SpeciesDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
@@ -1871,7 +1656,7 @@ class CommunityDocument(Document):
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
         if self.document_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_document_id = f"D{str(self.pk)}"
             self.document_number = new_document_id
@@ -2055,7 +1840,7 @@ class ConservationThreat(RevisionedMixin):
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
-            force_insert = kwargs.pop('force_insert', False)
+            force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
             new_threat_id = f"T{str(self.pk)}"
             self.threat_number = new_threat_id
@@ -2357,7 +2142,7 @@ reversion.register(
     follow=["taxonomy", "species_distribution", "species_conservation_attributes"],
 )
 reversion.register(Taxonomy, follow=["taxon_previous_queryset", "vernaculars"])
-#reversion.register(CrossReference, follow=["old_taxonomy"])
+# reversion.register(CrossReference, follow=["old_taxonomy"])
 reversion.register(TaxonPreviousName)
 reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)

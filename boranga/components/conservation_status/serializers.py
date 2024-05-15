@@ -18,6 +18,7 @@ from boranga.components.main.serializers import (
     EmailUserSerializer,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.helpers import is_internal_contributor
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -255,14 +256,14 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_family(self, obj):
         if obj.species:
-            if obj.species.taxonomy.family_fk:
-                return obj.species.taxonomy.family_fk.scientific_name
+            if obj.species.taxonomy.family_id:
+                return obj.species.taxonomy.family_name
         return ""
 
     def get_genus(self, obj):
         if obj.species:
-            if obj.species.taxonomy.genus:
-                return obj.species.taxonomy.genus.name
+            if obj.species.taxonomy.genera_id:
+                return obj.species.taxonomy.genera_name
         return ""
 
     def get_phylogenetic_group(self, obj):
@@ -318,16 +319,11 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
         request = self.context["request"]
-        user = request.user
-        # if obj.can_officer_process and template_group == 'apiary':
-        # TODO if internal user proposal then check condition that he is not able to process
-        if obj.can_officer_process:
-            if obj.assigned_officer:
-                if obj.assigned_officer == user.id:
-                    return True
-            elif user in obj.allowed_assessors:
-                return True
-        return False
+        return (
+            obj.can_officer_process
+            and request.user.id
+            in obj.get_assessor_group().get_system_group_member_ids()
+        )
 
     def get_assessor_edit(self, obj):
         request = self.context["request"]
@@ -338,11 +334,13 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         return False
 
     def get_internal_user_edit(self, obj):
-        if obj.can_user_edit:
-            if obj.internal_application is True:
-                return True
-        else:
-            return False
+        request = self.context["request"]
+        return (
+            obj.can_user_edit
+            and obj.internal_application
+            and is_internal_contributor(request.user)
+            and obj.submitter == request.user.id
+        )
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
@@ -417,13 +415,6 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 obj.application_type.name
             )  # if user haven't filled up the form yet(ie. species not selected)
 
-    # def get_conservation_status(self,obj):
-    #   try:
-    #       conservation_status = ConservationStatus.objects.get(community=obj)
-    #       return conservation_status.conservation_list.code
-    #   except ConservationStatus.DoesNotExist:
-    #       return None
-
     def get_community_number(self, obj):
         if obj.community:
             return obj.community.community_number
@@ -492,15 +483,11 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
         request = self.context["request"]
-        user = request.user
-        # if obj.can_officer_process and template_group == 'apiary':
-        if obj.can_officer_process:
-            if obj.assigned_officer:
-                if obj.assigned_officer == user.id:
-                    return True
-            elif user in obj.allowed_assessors:
-                return True
-        return False
+        return (
+            obj.can_officer_process
+            and request.user.id
+            in obj.get_assessor_group().get_system_group_member_ids()
+        )
 
     def get_assessor_edit(self, obj):
         request = self.context["request"]
@@ -511,11 +498,13 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
         return False
 
     def get_internal_user_edit(self, obj):
-        if obj.can_user_edit:
-            if obj.internal_application is True:
-                return True
-        else:
-            return False
+        request = self.context["request"]
+        return (
+            obj.can_user_edit
+            and obj.internal_application
+            and is_internal_contributor(request.user)
+            and obj.submitter == request.user.id
+        )
 
 
 class BaseConservationStatusSerializer(serializers.ModelSerializer):
@@ -797,11 +786,13 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         }
 
     def get_internal_user_edit(self, obj):
-        if obj.can_user_edit:
-            if obj.internal_application is True:
-                return True
-        else:
-            return False
+        request = self.context["request"]
+        return (
+            obj.can_user_edit
+            and obj.internal_application
+            and is_internal_contributor(request.user)
+            and obj.submitter == request.user.id
+        )
 
     def get_conservation_status_approval_document(self, obj):
         try:

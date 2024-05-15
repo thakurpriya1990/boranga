@@ -175,6 +175,10 @@ export default {
             type: String,
             required: true
         },
+        profile:{
+            type: Object,
+            default: null
+        },
         filterFloraScientificName_cache: {
             type: String,
             required: false,
@@ -237,9 +241,6 @@ export default {
             uuid:0,
             speciesHistoryId: null,
             datatable_id: 'species_flora-datatable-'+vm._uid,
-
-            //Profile to check if user has access to process Proposal
-            profile: {},
             is_payment_admin: false,
 
             // selected values for filtering
@@ -406,11 +407,7 @@ export default {
             return this.level == 'referral';
         },
         newFloraVisibility: function() {
-            let visibility = false;
-            if (this.is_internal) {
-                visibility = true;
-            }
-            return visibility;
+            return this.profile && this.profile.groups.includes(constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS)
         },
         datatable_headers: function(){
             if (this.is_external){
@@ -507,7 +504,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "taxonomy__family_fk__scientific_name",
+                name: "taxonomy__family_name",
             }
         },
         column_phylogenetic_group: function(){
@@ -535,7 +532,7 @@ export default {
                     return type=='export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "taxonomy__genus__name",
+                name: "taxonomy__genera_name",
             }
         },
         column_conservation_list: function(){
@@ -639,12 +636,8 @@ export default {
                             links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
                         else{
-                            if(full.user_process){
-
-                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;
-                            }
-                            links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
+                            links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
                     } else {
                         links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
@@ -1152,7 +1145,7 @@ export default {
                 },
                 "5": {
                     "data": "family",
-                    "name": "taxonomy__family_fk__scientific_name",
+                    "name": "taxonomy__family_name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -1162,7 +1155,7 @@ export default {
                 },
                 "6": {
                     "data": "genus",
-                    "name": "taxonomy__genus__name",
+                    "name": "taxonomy__genera_name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -1358,17 +1351,6 @@ export default {
                 }
             );
         },
-        fetchProfile: function(){
-            let vm = this;
-            /*Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-                vm.is_payment_admin=response.body.is_payment_admin;
-
-            },(error) => {
-                console.log(error);
-
-            })*/
-        },
         delay(callback, ms) {
             var timer = 0;
 
@@ -1391,7 +1373,6 @@ export default {
     mounted: function(){
         let vm = this;
         vm.fetchFilterLists();
-        vm.fetchProfile();
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {

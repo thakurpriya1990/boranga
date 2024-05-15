@@ -76,8 +76,12 @@ class Command(BaseCommand):
                                                                                                             "name_authority" : t["author"],
                                                                                                             "name_comments" : t["notes"],
                                                                                                             "name_currency" : t["is_current"],
-                                                                                                            'taxon_rank_id' : t["rank_id"],
-                                                                                                            'taxonomy_rank_fk' : taxon_rank_fk,
+                                                                                                            "taxon_rank_id" : t["rank_id"],
+                                                                                                            "taxonomy_rank_fk" : taxon_rank_fk,
+                                                                                                            "family_id" : t["family_id"],
+                                                                                                            "family_name" : t["family"],
+                                                                                                            "genera_id" : t["genus_id"],
+                                                                                                            "genera_name" : t["genus"],
                                                                                                             })
                         updates.append(taxon_obj.id)
 

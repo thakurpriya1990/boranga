@@ -11,7 +11,6 @@
 {% dept_name as department_name %}
 {% system_name_short as system_name_short %}
 {% support_email as support_email %}
-{% is_payment_officer as is_payment_officer %}
 {% is_django_admin as is_django_admin_user %}
 {% build_tag as build_tag %}
 
@@ -28,7 +27,7 @@
 {% block custom_js %}
     <script language="javascript">
             var env = {
-                "kmi_server_url": "{{ KMI_SERVER_URL }}"
+                "kmi_server_url": "{{ GIS_SERVER_URL }}"
             }
     </script>
     <script type="text/javascript" src="{% static 'boranga_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
@@ -40,7 +39,7 @@
     <div class="nav-item">
         <a class="nav-link{% if request.path == '/' %} active{% endif %}" href="{% url 'home'%}"><img src="/static/img/pwl_icon.png">Home</a>
     </div>
-</div>        
+</div>
 {% endblock %}
 
 {% block menu_items2_right %}

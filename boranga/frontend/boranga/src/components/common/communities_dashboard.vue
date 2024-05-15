@@ -121,6 +121,10 @@ export default {
             type: String,
             required: true
         },
+        profile:{
+            type: Object,
+            default: null
+        },
         filterCommunityMigratedId_cache: {
             type: String,
             required: false,
@@ -284,11 +288,7 @@ export default {
             return this.level == 'referral';
         },
         newCommunityVisibility: function () {
-            let visibility = false;
-            if (this.is_internal) {
-                visibility = true;
-            }
-            return visibility;
+            return this.profile && this.profile.groups.includes(constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS)
         },
         datatable_headers: function () {
             if (this.is_external) {

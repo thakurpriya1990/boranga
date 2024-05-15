@@ -1,13 +1,9 @@
 {% load users %}
 {% load utils %}
 {% is_boranga_admin as is_boranga_admin_user %}
-{% is_payment_officer as is_payment_officer %}
 {% can_show_tests as can_show_tests %}
 {% is_django_admin as is_django_admin_user %}
-    
-{% comment %} {% if is_boranga_admin or request.user.is_superuser or is_payment_officer %}
-    <li><a class="dropdown-item" href="/internal/reports">Reports</a></li>
-{% endif %} {% endcomment %}
+
 {% if is_boranga_admin_user or request.user.is_superuser %}
     <li role="separator" class="divider"></li>
 {% endif %}

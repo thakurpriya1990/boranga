@@ -1,8 +1,8 @@
 import json
 import os
 import subprocess
-from io import BytesIO
 from datetime import datetime
+from io import BytesIO
 
 import pandas as pd
 from django.core.cache import cache
@@ -40,7 +40,6 @@ from boranga.components.species_and_communities.email import (
     send_species_split_email_notification,
 )
 from boranga.components.species_and_communities.models import (
-    ClassificationSystem,
     Community,
     CommunityConservationAttributes,
     CommunityDistribution,
@@ -54,7 +53,6 @@ from boranga.components.species_and_communities.models import (
     DocumentCategory,
     DocumentSubCategory,
     FloraRecruitmentType,
-    Genus,
     GroupType,
     InformalGroup,
     Kingdom,
@@ -354,31 +352,30 @@ class GetFamily(views.APIView):
         if search_term:
             if cs_referral != "":
                 # TODO may need to change the query for referral
-                family_ids = (
-                    Taxonomy.objects.filter(~Q(family_fk=None))
-                    .order_by()
-                    .values_list("family_fk", flat=True)
-                    .distinct()
-                )  # fetch all distinct the family_nid(taxon_name_id) for each taxon
-                data = Taxonomy.objects.filter(
-                    id__in=family_ids,
-                    scientific_name__icontains=search_term,
-                    kingdom_fk__grouptype=group_type_id,
-                ).values("id", "scientific_name")[:10]
+                data = (
+                    Taxonomy.objects.filter(
+                        ~Q(family_id=None),
+                        family_name__icontains=search_term,
+                        kingdom_fk__grouptype=group_type_id,
+                    )
+                    .order_by("family_name")
+                    .values("family_id", "family_name")
+                    .distinct()[:10]
+                )
             else:
-                family_ids = (
-                    Taxonomy.objects.filter(~Q(family_fk=None))
-                    .order_by()
-                    .values_list("family_fk", flat=True)
-                    .distinct()
-                )  # fetch all distinct the family_nid(taxon_name_id) for each taxon
-                data = Taxonomy.objects.filter(
-                    id__in=family_ids,
-                    scientific_name__icontains=search_term,
-                    kingdom_fk__grouptype=group_type_id,
-                ).values("id", "scientific_name")[:10]
+                data = (
+                    Taxonomy.objects.filter(
+                        ~Q(family_id=None),
+                        family_name__icontains=search_term,
+                        kingdom_fk__grouptype=group_type_id,
+                    )
+                    .order_by("family_name")
+                    .values("family_id", "family_name")
+                    .distinct()[:10]
+                )
             data_transform = [
-                {"id": taxon["id"], "text": taxon["scientific_name"]} for taxon in data
+                {"id": taxon["family_id"], "text": taxon["family_name"]}
+                for taxon in data
             ]
             return Response({"results": data_transform})
         return Response()
@@ -386,20 +383,36 @@ class GetFamily(views.APIView):
 
 class GetGenera(views.APIView):
     def get(self, request, format=None):
+        group_type_id = request.GET.get("group_type_id", "")
         search_term = request.GET.get("term", "")
         cs_referral = request.GET.get("cs_referral", "")
         if search_term:
             if cs_referral != "":
                 # TODO may need to change the query for referral
-                data = Genus.objects.filter(name__icontains=search_term).values(
-                    "id", "name"
-                )[:10]
+                data = (
+                    Taxonomy.objects.filter(
+                        ~Q(genera_id=None),
+                        genera_name__icontains=search_term,
+                        kingdom_fk__grouptype=group_type_id,
+                    )
+                    .order_by("genera_name")
+                    .values("genera_id", "genera_name")
+                    .distinct()[:10]
+                )
             else:
-                data = Genus.objects.filter(name__icontains=search_term).values(
-                    "id", "name"
-                )[:10]
+                data = (
+                    Taxonomy.objects.filter(
+                        ~Q(genera_id=None),
+                        genera_name__icontains=search_term,
+                        kingdom_fk__grouptype=group_type_id,
+                    )
+                    .order_by("genera_name")
+                    .values("genera_id", "genera_name")
+                    .distinct()[:10]
+                )
             data_transform = [
-                {"id": taxon["id"], "text": taxon["name"]} for taxon in data
+                {"id": taxon["genera_id"], "text": taxon["genera_name"]}
+                for taxon in data
             ]
             return Response({"results": data_transform})
         return Response()
@@ -696,57 +709,6 @@ class TaxonomyViewSet(viewsets.ModelViewSet):
 
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
-        family_list = []
-        # filter taxons that are having family_id and the fetch distinct family_id
-        families_dict = (
-            Taxonomy.objects.filter(~Q(family_fk=None))
-            .order_by()
-            .values_list("family_fk", flat=True)
-            .distinct()
-        )
-        families = Taxonomy.objects.filter(id__in=families_dict)
-        if families:
-            for family in families:
-                family_list.append(
-                    {
-                        "id": family.id,
-                        "name": family.scientific_name,
-                    }
-                )
-        phylo_group_list = []
-        phylo_groups = ClassificationSystem.objects.all()
-        if phylo_groups:
-            for group in phylo_groups:
-                phylo_group_list.append(
-                    {
-                        "id": group.id,
-                        "name": group.class_desc,
-                    }
-                )
-        genus_list = []
-        generas = Genus.objects.all()
-        if generas:
-            for genus in generas:
-                genus_list.append(
-                    {
-                        "id": genus.id,
-                        "name": genus.name,
-                    }
-                )
-        flowering_period_list = []
-        # periods = FloweringPeriod.objects.all()
-        # if periods:
-        #     for option in periods:
-        #         flowering_period_list.append({'id': option.id,
-        #             'name':option.period,
-        #             });
-        fruiting_period_list = []
-        # periods = FruitingPeriod.objects.all()
-        # if periods:
-        #     for option in periods:
-        #         fruiting_period_list.append({'id': option.id,
-        #             'name':option.period,
-        #             });
         flora_recruitment_type_list = []
         types = FloraRecruitmentType.objects.all()
         if types:
@@ -777,23 +739,10 @@ class GetSpeciesProfileDict(views.APIView):
                         "name": option.name,
                     }
                 )
-        breeding_period_list = []
-        # periods = BreedingPeriod.objects.all()
-        # if periods:
-        #     for option in periods:
-        #         breeding_period_list.append({'id': option.id,
-        #             'name':option.period,
-        #             });
         res_json = {
-            "family_list": family_list,
-            "genus_list": genus_list,
-            "phylo_group_list": phylo_group_list,
-            "flowering_period_list": flowering_period_list,
-            "fruiting_period_list": fruiting_period_list,
             "flora_recruitment_type_list": flora_recruitment_type_list,
             "root_morphology_list": root_morphology_list,
             "post_fire_habitatat_interactions_list": post_fire_habitatat_interactions_list,
-            "breeding_period_list": breeding_period_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
@@ -868,11 +817,11 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
 
         filter_family = request.GET.get("filter_family")
         if filter_family and not filter_family.lower() == "all":
-            queryset = queryset.filter(taxonomy__family_fk_id=filter_family)
+            queryset = queryset.filter(taxonomy__family_id=filter_family)
 
         filter_genus = request.GET.get("filter_genus")
         if filter_genus and not filter_genus.lower() == "all":
-            queryset = queryset.filter(taxonomy__genus__id=filter_genus)
+            queryset = queryset.filter(taxonomy__genera_id=filter_genus)
 
         filter_name_status = request.GET.get("filter_name_status")
         if filter_name_status and not filter_name_status.lower() == "all":
@@ -925,6 +874,12 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Species.objects.all()
     serializer_class = ListSpeciesSerializer
     page_size = 10
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE)
+        return qs
 
     @list_route(
         methods=[
@@ -1145,12 +1100,18 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class CommunitiesPaginatedViewSet(viewsets.ModelViewSet):
+class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (CommunitiesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     queryset = Community.objects.all()
     serializer_class = ListCommunitiesSerializer
     page_size = 10
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE)
+        return qs
 
     @list_route(
         methods=[
@@ -1339,22 +1300,24 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             occurrences = Occurrence.objects.filter(species=instance).values_list(
                 "id", flat=True
             )
-            threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
+            threats = OCCConservationThreat.objects.filter(
+                occurrence_id__in=occurrences
+            )
             filter_backend = OCCConservationThreatFilterBackend()
-            threats = filter_backend.filter_queryset(self.request,threats,self)
+            threats = filter_backend.filter_queryset(self.request, threats, self)
             serializer = OCCConservationThreatSerializer(
                 threats, many=True, context={"request": request}
             )
             return Response(serializer.data)
         return Response()
-    
+
     @detail_route(
         methods=[
             "GET",
         ],
         detail=True,
     )
-    #gets all distinct threat sources for threats pertaining to a specific OCC
+    # gets all distinct threat sources for threats pertaining to a specific OCC
     def occurrence_threat_source_list(self, request, *args, **kwargs):
         data = []
         if is_internal(self.request):
@@ -1363,13 +1326,24 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 "id", flat=True
             )
 
-            threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
-            distinct_occ = threats.filter(occurrence_report_threat=None).distinct("occurrence")
-            distinct_ocr = threats.exclude(occurrence_report_threat=None).distinct("occurrence_report_threat__occurrence_report")
+            threats = OCCConservationThreat.objects.filter(
+                occurrence_id__in=occurrences
+            )
+            distinct_occ = threats.filter(occurrence_report_threat=None).distinct(
+                "occurrence"
+            )
+            distinct_ocr = threats.exclude(occurrence_report_threat=None).distinct(
+                "occurrence_report_threat__occurrence_report"
+            )
 
-            #format
-            data = data + [threat.occurrence.occurrence_number for threat in distinct_occ]
-            data = data + [threat.occurrence_report_threat.occurrence_report.occurrence_report_number for threat in distinct_ocr]
+            # format
+            data = data + [
+                threat.occurrence.occurrence_number for threat in distinct_occ
+            ]
+            data = data + [
+                threat.occurrence_report_threat.occurrence_report.occurrence_report_number
+                for threat in distinct_ocr
+            ]
 
         return Response(data)
 
@@ -1764,7 +1738,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         qs = qs.order_by("-date_observed")
 
         filter_backend = ConservationThreatFilterBackend()
-        qs = filter_backend.filter_queryset(self.request,qs,self)
+        qs = filter_backend.filter_queryset(self.request, qs, self)
 
         serializer = ConservationThreatSerializer(
             qs, many=True, context={"request": request}
@@ -1927,7 +1901,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
         )
         threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
         filter_backend = OCCConservationThreatFilterBackend()
-        threats = filter_backend.filter_queryset(self.request,threats,self)
+        threats = filter_backend.filter_queryset(self.request, threats, self)
         serializer = OCCConservationThreatSerializer(
             threats, many=True, context={"request": request}
         )
@@ -1939,7 +1913,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
         ],
         detail=True,
     )
-    #gets all distinct threat sources for threats pertaining to a specific OCC
+    # gets all distinct threat sources for threats pertaining to a specific OCC
     def occurrence_threat_source_list(self, request, *args, **kwargs):
         data = []
         if is_internal(self.request):
@@ -1948,13 +1922,24 @@ class CommunityViewSet(viewsets.ModelViewSet):
                 "id", flat=True
             )
 
-            threats = OCCConservationThreat.objects.filter(occurrence_id__in=occurrences)
-            distinct_occ = threats.filter(occurrence_report_threat=None).distinct("occurrence")
-            distinct_ocr = threats.exclude(occurrence_report_threat=None).distinct("occurrence_report_threat__occurrence_report")
+            threats = OCCConservationThreat.objects.filter(
+                occurrence_id__in=occurrences
+            )
+            distinct_occ = threats.filter(occurrence_report_threat=None).distinct(
+                "occurrence"
+            )
+            distinct_ocr = threats.exclude(occurrence_report_threat=None).distinct(
+                "occurrence_report_threat__occurrence_report"
+            )
 
-            #format
-            data = data + [threat.occurrence.occurrence_number for threat in distinct_occ]
-            data = data + [threat.occurrence_report_threat.occurrence_report.occurrence_report_number for threat in distinct_ocr]
+            # format
+            data = data + [
+                threat.occurrence.occurrence_number for threat in distinct_occ
+            ]
+            data = data + [
+                threat.occurrence_report_threat.occurrence_report.occurrence_report_number
+                for threat in distinct_ocr
+            ]
 
         return Response(data)
 
@@ -2107,7 +2092,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
         qs = instance.community_threats.all()
         qs = qs.order_by("-date_observed")
         filter_backend = ConservationThreatFilterBackend()
-        qs = filter_backend.filter_queryset(self.request,qs,self)
+        qs = filter_backend.filter_queryset(self.request, qs, self)
         serializer = ConservationThreatSerializer(
             qs, many=True, context={"request": request}
         )
@@ -2382,6 +2367,7 @@ class CommunityDocumentViewSet(viewsets.ModelViewSet):
         )
         return Response(serializer.data)
 
+
 class ConservationThreatFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
 
@@ -2392,11 +2378,19 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
             queryset = queryset.filter(threat_category_id=filter_threat_category)
 
         filter_threat_current_impact = request.GET.get("filter_threat_current_impact")
-        if filter_threat_current_impact and not filter_threat_current_impact.lower() == "all":
+        if (
+            filter_threat_current_impact
+            and not filter_threat_current_impact.lower() == "all"
+        ):
             queryset = queryset.filter(current_impact=filter_threat_current_impact)
 
-        filter_threat_potential_impact = request.GET.get("filter_threat_potential_impact")
-        if filter_threat_potential_impact and not filter_threat_potential_impact.lower() == "all":
+        filter_threat_potential_impact = request.GET.get(
+            "filter_threat_potential_impact"
+        )
+        if (
+            filter_threat_potential_impact
+            and not filter_threat_potential_impact.lower() == "all"
+        ):
             queryset = queryset.filter(potential_impact=filter_threat_potential_impact)
 
         def get_date(filter_date):
@@ -2404,7 +2398,7 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
             if date:
                 date = datetime.strptime(date, "%Y-%m-%d")
             return date
-        
+
         filter_observed_from_date = get_date("filter_observed_from_date")
         if filter_observed_from_date:
             queryset = queryset.filter(date_observed__gte=filter_observed_from_date)
