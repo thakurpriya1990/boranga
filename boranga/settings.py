@@ -40,7 +40,6 @@ EMAIL_DELIVERY = env("EMAIL_DELIVERY", "off")
 EMAIL_INSTANCE = env("EMAIL_INSTANCE", "DEV")
 
 # Use these two admin group names as they are referred to in dbca templates
-ADMIN_GROUP = env("ADMIN_GROUP", "Boranga Admin")
 DJANGO_ADMIN_GROUP = env("DJANGO_ADMIN_GROUP", "Django Admin")
 # ----------------------------------------------
 
@@ -58,7 +57,6 @@ GROUP_NAME_READONLY_USER = "Read Only Users"
 GROUP_NAME_SPECIES_COMMUNITIES_APPROVER = "Species and Communities Approvers"
 
 GROUP_NAME_CHOICES = (
-    ADMIN_GROUP,
     DJANGO_ADMIN_GROUP,
     GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
     GROUP_NAME_CONSERVATION_STATUS_APPROVER,
