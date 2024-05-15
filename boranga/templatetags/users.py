@@ -1,69 +1,128 @@
-from django.template import Library
-#from wildlifelicensing.apps.main import helpers
-#from boranga import helpers
+from datetime import timedelta
+
+import pytz
 from django.conf import settings
+from django.template import Library
+from django.utils import timezone
+
 from boranga import helpers as boranga_helpers
 from boranga.components.main.models import SystemMaintenance
-#from ledger.payments.helpers import is_payment_admin
-from datetime import datetime, timedelta
-from django.utils import timezone
-import pytz
 
 register = Library()
 
 
 @register.simple_tag(takes_context=True)
 def is_boranga_admin(context):
-    # checks if user is an AdminUser
-    request = context['request']
+    request = context["request"]
     return boranga_helpers.is_boranga_admin(request)
+
 
 @register.simple_tag(takes_context=True)
 def is_django_admin(context):
-    # checks if user is an AdminUser
-    request = context['request']
+    request = context["request"]
     return boranga_helpers.is_django_admin(request)
+
 
 @register.simple_tag(takes_context=True)
 def is_internal(context):
     # checks if user is a departmentuser and logged in via single sign-on
-    request = context['request']
+    request = context["request"]
     return boranga_helpers.is_internal(request)
 
 
 @register.simple_tag(takes_context=True)
-def is_model_backend(context):
-    # Return True if user logged in via single sign-on (or False via social_auth i.e. an external user signing in with a login-token)
-    request = context['request']
-    return boranga_helpers.is_model_backend(request)
+def is_conservation_status_assessor(context):
+    request = context["request"]
+    return boranga_helpers.is_conservation_status_assessor(request.user)
+
 
 @register.simple_tag(takes_context=True)
-def is_payment_officer(context):
-    request = context['request']
-    #TODO: fix this
-    return False #is_payment_admin(request.user)
+def is_conservation_status_approver(context):
+    request = context["request"]
+    return boranga_helpers.is_conservation_status_approver(request.user)
+
+
+@register.simple_tag(takes_context=True)
+def is_occurrence_assessor(context):
+    request = context["request"]
+    return boranga_helpers.is_occurrence_assessor(request.user)
+
+
+@register.simple_tag(takes_context=True)
+def is_occurrence_approver(context):
+    request = context["request"]
+    return boranga_helpers.is_occurrence_approver(request.user)
+
+
+@register.simple_tag(takes_context=True)
+def is_readonly_user(context):
+    request = context["request"]
+    return boranga_helpers.is_readonly_user(request.user)
+
+
+@register.simple_tag(takes_context=True)
+def is_species_communities_approver(context):
+    request = context["request"]
+    return boranga_helpers.is_species_communities_approver(request.user)
+
+
+@register.simple_tag(takes_context=True)
+def is_external_contributor(context):
+    request = context["request"]
+    return boranga_helpers.is_external_contributor(request.user)
+
+
+@register.simple_tag(takes_context=True)
+def is_internal_contributor(context):
+    request = context["request"]
+    return boranga_helpers.is_internal_contributor(request.user)
+
+
+@register.simple_tag(takes_context=True)
+def show_internal_primary_menu_items(context):
+    request = context["request"]
+    if not request.user.is_authenticated:
+        return False
+    return (
+        request.user.is_superuser
+        or boranga_helpers.is_boranga_admin(request)
+        or boranga_helpers.is_conservation_status_approver(request.user)
+        or boranga_helpers.is_conservation_status_assessor(request.user)
+        or boranga_helpers.is_internal_contributor(request.user)
+        or boranga_helpers.is_occurrence_approver(request.user)
+        or boranga_helpers.is_occurrence_assessor(request.user)
+        or boranga_helpers.is_readonly_user(request.user)
+        or boranga_helpers.is_species_communities_approver(request.user)
+    )
+
 
 @register.simple_tag()
 def system_maintenance_due():
-    """ Returns True (actually a time str), if within <timedelta hours> of system maintenance due datetime """
+    """Returns True (actually a time str), if within <timedelta hours> of system maintenance due datetime"""
     tz = pytz.timezone(settings.TIME_ZONE)
     now = timezone.now()  # returns UTC time
     qs = SystemMaintenance.objects.filter(start_date__gte=now - timedelta(minutes=1))
     if qs:
-        obj = qs.earliest('start_date')
-        if now >= obj.start_date - timedelta(hours=settings.SYSTEM_MAINTENANCE_WARNING) and now <= obj.start_date + timedelta(minutes=1):
+        obj = qs.earliest("start_date")
+        if now >= obj.start_date - timedelta(
+            hours=settings.SYSTEM_MAINTENANCE_WARNING
+        ) and now <= obj.start_date + timedelta(minutes=1):
             # display time in local timezone
-            return '{0} - {1} (Duration: {2} mins)'.format(obj.start_date.astimezone(tz=tz).ctime(), obj.end_date.astimezone(tz=tz).ctime(), obj.duration())
+            return "{} - {} (Duration: {} mins)".format(
+                obj.start_date.astimezone(tz=tz).ctime(),
+                obj.end_date.astimezone(tz=tz).ctime(),
+                obj.duration(),
+            )
     return False
 
 
 @register.simple_tag()
 def system_maintenance_can_start():
-    """ Returns True if current datetime is within 1 minute past scheduled start_date """
-    now = timezone.now() # returns UTC time
+    """Returns True if current datetime is within 1 minute past scheduled start_date"""
+    now = timezone.now()  # returns UTC time
     qs = SystemMaintenance.objects.filter(start_date__gte=now - timedelta(minutes=1))
     if qs:
-        obj = qs.earliest('start_date')
+        obj = qs.earliest("start_date")
         if now >= obj.start_date and now <= obj.start_date + timedelta(minutes=1):
             return True
     return False
@@ -72,4 +131,3 @@ def system_maintenance_can_start():
 @register.simple_tag()
 def dept_support_phone2():
     return settings.DEPT_NAME
-
