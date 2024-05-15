@@ -516,7 +516,6 @@
                                     : 'Select a drawing mode'
                             "
                             class="btn optional-layers-button"
-                            :class="isEditingALayer ? '' : 'disabled'"
                             @click="
                                 mode == 'draw'
                                     ? toggleElementVisibility('submenu-draw')
@@ -2301,15 +2300,15 @@ export default {
                 }
             }
             const layers = vm.getLayersWithFeatures();
+            const selectedFeatures = vm.selectedFeatures();
+            const editableSelectedFeatures = vm.editableSelectedFeatures();
             layers.forEach((layer) => {
-                let features = layer.getSource().getFeatures();
+                const features = layer.getSource().getFeatures();
                 features.forEach((feature) => {
-                    if (
-                        vm.selectedFeatureIds.includes(
-                            feature.getProperties().id
-                        )
-                    ) {
+                    if (editableSelectedFeatures.includes(feature)) {
                         feature.setStyle(style);
+                    } else if (selectedFeatures.includes(feature)) {
+                        feature.setStyle(vm.basicSelectStyle);
                     } else {
                         feature.setStyle(undefined);
                     }
@@ -2875,6 +2874,12 @@ export default {
                                     .forEach((f) => {
                                         this.editableFeatureCollection.push(f);
                                     });
+
+                                // A bit clunky but this makes it so when switching editing modes the feature selection styles get properly set
+                                const mode = this.mode;
+                                const subMode = this.submode;
+                                this.set_mode('layer');
+                                this.set_mode(mode, subMode);
                             } else {
                                 this.set_mode('layer');
                             }
