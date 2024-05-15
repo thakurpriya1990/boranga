@@ -3,7 +3,7 @@
         <FormSection :formCollapse="false" label="Documents" Index="documents">
             <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
             <form class="form-horizontal" action="index.html" method="post">
-                <div class="col-sm-12">
+                <div v-if="conservation_status_obj.can_user_edit" class="col-sm-12">
                     <div class="text-end">
                         <button type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
                             <i class="fa-solid fa-circle-plus"></i>
