@@ -88,6 +88,31 @@ def is_external_contributor(user_id):
     return True if user_id in assessor_group.get_system_group_member_ids() else False
 
 
+def is_new_external_contributor(user_id):
+    from boranga.components.conservation_status.models import ConservationStatus
+    from boranga.components.occurrence.models import OccurrenceReport
+
+    if not is_external_contributor(user_id):
+        return False
+
+    finalised_cs = ConservationStatus.objects.filter(
+        submitter=user_id,
+        processing_status__in=[
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+        ],
+    ).exists()
+    finalised_ocr = OccurrenceReport.objects.filter(
+        submitter=user_id,
+        processing_status__in=[
+            OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            OccurrenceReport.PROCESSING_STATUS_DECLINED,
+        ],
+    ).exists()
+
+    return not finalised_cs and not finalised_ocr
+
+
 def is_internal_contributor(user_id):
     if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
         user_id = user_id.id
