@@ -770,7 +770,10 @@
 
                     <!-- Spatially process Features -->
                     <div
-                        v-if="defaultProcessedGeometryLayerName"
+                        v-if="
+                            defaultProcessedGeometryLayerName &&
+                            spatialOperationsAvailable.length
+                        "
                         class="optional-layers-button-wrapper"
                         :title="
                             featureCount
@@ -1527,6 +1530,13 @@ export default {
             required: false,
             default: 4326,
         },
+        spatialOperationsAllowed: {
+            type: Array,
+            required: false,
+            default: function () {
+                return ['__all__'];
+            },
+        },
         /**
          * The default layer definition for the query layer
          * This layer is always available and it will be used to add new features to
@@ -1630,7 +1640,7 @@ export default {
             shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
             userInputGeometryStack: [],
-            selectedSpatialOperation: 'buffer_geometries',
+            selectedSpatialOperation: null,
             selectedSpatialUnit: 'm',
             spatialOperationParameters: [1.0],
         };
@@ -1799,7 +1809,7 @@ export default {
             });
         },
         spatialOperationsAvailable: function () {
-            const spatialOPerations = [
+            let spatialOperations = [
                 {
                     id: 'buffer_geometries',
                     name: 'Buffer',
@@ -1850,7 +1860,15 @@ export default {
                     number_params: 0,
                 },
             ];
-            return spatialOPerations;
+
+            if (this.spatialOperationsAllowed.includes('__all__')) {
+                return spatialOperations;
+            }
+            spatialOperations = spatialOperations.filter((operation) => {
+                return this.spatialOperationsAllowed.includes(operation.id);
+            });
+
+            return spatialOperations;
         },
         spatialUnitsAvailable: function () {
             const units = [
@@ -1920,6 +1938,10 @@ export default {
     created: function () {
         console.log('created()');
         this.fetchProposals();
+        this.selectedSpatialOperation =
+            this.spatialOperationsAvailable.length == 0
+                ? null
+                : this.spatialOperationsAvailable[0].id;
     },
     mounted: function () {
         console.log('mounted()');

@@ -20,6 +20,7 @@
             "
             :selectable="true"
             :coordinate-reference-systems="coordinateReferenceSystems"
+            :spatial-operations-allowed="['__all__']"
             :query-layer-definition="{
                 name: 'query_layer',
                 title: 'Occurrence Reports',
