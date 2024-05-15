@@ -770,7 +770,7 @@
 
                     <!-- Spatially process Features -->
                     <div
-                        v-if="editable"
+                        v-if="defaultProcessedGeometryLayerName"
                         class="optional-layers-button-wrapper"
                         :title="
                             featureCount
@@ -1527,6 +1527,12 @@ export default {
             required: false,
             default: 4326,
         },
+        /**
+         * The default layer definition for the query layer
+         * This layer is always available and it will be used to add new features to
+         * even if no default-layer is specified.
+         * On the contrary, specifying no processed-layer disables the processing of features
+         */
         queryLayerDefinition: {
             type: Object,
             required: false,
@@ -1534,7 +1540,8 @@ export default {
                 return {
                     name: 'query_layer',
                     title: 'Query Layer',
-                    default: true,
+                    default: true, // The default layer where in most cases features are added to
+                    processed: true, // The layer where processed geometries are added to
                     can_edit: true,
                 };
             },
@@ -1584,6 +1591,7 @@ export default {
             layerSources: {},
             vectorLayers: {},
             defaultQueryLayerName: null, // The layer where e.g. dropped geometries are added to
+            defaultProcessedGeometryLayerName: null, // The layer to which processed geometries are added to
             editableFeatureCollection: new Collection([], { unique: true }),
             selectedFeatureCollection: new Collection([], { unique: true }),
             zIndex: 10, // Incrementing Z-index for overlays
@@ -2259,6 +2267,8 @@ export default {
             vm.initialiseQueryLayer();
             vm.initialiseProcessingLayer();
             vm.defaultQueryLayerName = vm.getDefaultQueryLayerName();
+            vm.defaultProcessedGeometryLayerName =
+                vm.getDefaultProcessedGeometryLayerName();
 
             vm.initialiseDrawLayer();
             vm.initialiseLayerSwitcher(
@@ -3462,12 +3472,13 @@ export default {
                                     )[0].name;
                             }
 
-                            // TODO:
+                            if (!this.defaultProcessedGeometryLayerName) {
+                                return;
+                            }
                             const features = this.addFeatureCollectionToMap(
                                 processedGeometry,
-                                // this.processedGeometrySource
                                 this.layerSources[
-                                    this.additionalLayersDefinitions[0].name
+                                    this.defaultProcessedGeometryLayerName
                                 ]
                             );
                             this.displayAllFeatures(features);
@@ -4637,6 +4648,22 @@ export default {
                     ? (this.defaultQueryLayerName = defaultLayerDef[0].name)
                     : (this.defaultQueryLayerName =
                           this.queryLayerDefinition.name);
+            }
+        },
+        getDefaultProcessedGeometryLayerName: function () {
+            const layerDefs = this.additionalLayersDefinitions.concat(
+                this.queryLayerDefinition
+            );
+            const processedLayerDef = layerDefs.filter((layer) => {
+                return layer.processed == true;
+            });
+            if (processedLayerDef.length > 1) {
+                throw new Error('Cannot have more than one processed layer.');
+            } else {
+                return processedLayerDef.length > 0
+                    ? (this.defaultProcessedGeometryLayerName =
+                          processedLayerDef[0].name)
+                    : (this.defaultProcessedGeometryLayerName = null);
             }
         },
         /**

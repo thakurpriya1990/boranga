@@ -31,6 +31,7 @@
                     name: 'processed_layer',
                     title: 'Occurrence',
                     default: true,
+                    processed: true,
                     can_edit: true,
                 },
             ]"
