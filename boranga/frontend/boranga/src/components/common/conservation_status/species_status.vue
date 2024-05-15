@@ -1,12 +1,6 @@
 <template lang="html">
     <div id="speciesStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status" :isShowComment="isShowComment" :has_comment_value="has_comment_value" v-on:toggleComment="toggleComment($event)" :displayCommentSection="!is_external">
-             <!-- <template v-if="!isShowComment">
-                <a v-if="has_comment_value" href="" @click.prevent="toggleComment"><i style="color:red" class="far fa-comment">&nbsp;</i></a>
-                <a v-else href="" @click.prevent="toggleComment"><i class="far fa-comment">&nbsp;</i></a>
-            </template>
-            <a href="" v-else @click.prevent="toggleComment"><i class="fa fa-ban">&nbsp;</i></a> -->
-            
             <div v-if="!is_external">
                 <div v-show="isShowComment">
                     <!-- Assessor Deficiencies and comment box -->
@@ -24,7 +18,6 @@
                             v-model="conservation_status_obj.assessor_data"/>
                         </div>
                     </div>
-                    <!-- --- -->
 
                     <!-- Assessor Deficiencies and comment box -->
                     <div v-if="referral_comments_boxes.length >0">
@@ -33,36 +26,34 @@
                                 <label for="" class="col-sm-4 control-label">{{ref.label}}:</label>
                                 <div class="col-sm-8">
                                     <textarea v-if='!ref.readonly'
-                                        :disabled="ref.readonly" 
-                                        :name="ref.name" 
-                                        class="form-control" 
-                                        rows="3" 
-                                        placeholder="" 
+                                        :disabled="ref.readonly"
+                                        :name="ref.name"
+                                        class="form-control"
+                                        rows="3"
+                                        placeholder=""
                                         v-model="referral.referral_comment"
                                         />
                                     <textarea v-else
-                                        :disabled="ref.readonly" 
-                                        :name="ref.name" 
-                                        :value="ref.value" 
-                                        class="form-control" 
-                                        rows="" 
-                                        placeholder="" 
+                                        :disabled="ref.readonly"
+                                        :name="ref.name"
+                                        :value="ref.value"
+                                        class="form-control"
+                                        rows=""
+                                        placeholder=""
                                         />
                                 </div>
-                            </div> 
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <!--  -->
-
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Scientific Name:</label>
                 <div class="col-sm-8" :id="select_scientific_name">
-                    <select :disabled="conservation_status_obj.readonly"
-                        :id="scientific_name_lookup"  
-                        :name="scientific_name_lookup"  
-                        :ref="scientific_name_lookup" 
+                    <select :disabled="isReadOnly"
+                        :id="scientific_name_lookup"
+                        :name="scientific_name_lookup"
+                        :ref="scientific_name_lookup"
                         class="form-control" />
                 </div>
             </div>
@@ -75,18 +66,18 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Previous Name:</label>
                 <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="previous_name" placeholder="" 
+                    <input readonly type="text" class="form-control" id="previous_name" placeholder=""
                     v-model="taxon_previous_name"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">{{ conservation_list_label }}:</label>
                 <div class="col-sm-8">
-                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
-                        v-model="conservation_status_obj.conservation_list_id" id="conservation_list" 
+                    <select :disabled="isReadOnly" class="form-select"
+                        v-model="conservation_status_obj.conservation_list_id" id="conservation_list"
                         @change="filterConservationCategoryCriteria($event)">
                         <option v-for="option in conservation_list_values" :value="option.id" v-bind:key="option.id">
-                            {{ option.code }}                            
+                            {{ option.code }}
                         </option>
                     </select>
                 </div>
@@ -94,11 +85,11 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">{{ conservation_category_label }}:</label>
                 <div class="col-sm-8">
-                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
-                        v-model="conservation_status_obj.conservation_category_id" 
+                    <select :disabled="isReadOnly" class="form-select"
+                        v-model="conservation_status_obj.conservation_category_id"
                         id="conservation_category">
                         <option v-for="option in filtered_conservation_category_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.code }}                            
+                            {{ option.code }}
                         </option>
                     </select>
                 </div>
@@ -106,48 +97,40 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">{{ conservation_criteria_label }}:</label>
                 <div class="col-sm-8">
-                    <!-- <select :disabled="isReadOnly" 
-                        style="width:100%;" class="form-select input-sm" multiple 
-                        ref="conservation_criteria_select" 
-                        v-model="conservation_status_obj.conservation_criteria" >
-                        <option v-for="c in filtered_conservation_criteria_list" :value="c.id" :key="c.id">
-                            {{c.code}}
-                        </option>
-                    </select> -->
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="conservation_criteria" placeholder="" 
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="conservation_criteria" placeholder=""
                     v-model="conservation_status_obj.conservation_criteria"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="canViewCurrentList">
                 <label for="" class="col-sm-4 control-label">Current Conservation List:</label>
                 <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="curr_cons_list" placeholder="" 
+                    <input readonly type="text" class="form-control" id="curr_cons_list" placeholder=""
                     v-model="conservation_status_obj.curr_conservation_list"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="canViewCurrentList">
                 <label for="" class="col-sm-4 control-label">Current Conservation Category:</label>
                 <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="curr_cons_category" placeholder="" 
+                    <input readonly type="text" class="form-control" id="curr_cons_category" placeholder=""
                         v-model="conservation_status_obj.curr_conservation_category"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="canViewCurrentList">
                 <label for="" class="col-sm-4 control-label">Current Conservation Criteria:</label>
                 <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder="" 
+                    <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder=""
                     v-model="conservation_status_obj.curr_conservation_criteria"/>
                 </div>
             </div>
-            
+
             <div class="row mb-3" v-show="conservation_status_obj.can_view_recommended">
                 <label for="" class="col-sm-4 control-label">Recommended Conservation List:</label>
                 <div class="col-sm-8">
-                    <select :disabled="!conservation_status_obj.can_edit_recommended" class="form-select" 
-                        v-model="conservation_status_obj.recommended_conservation_list_id" id="rec_conservation_list" 
+                    <select :disabled="!conservation_status_obj.can_edit_recommended" class="form-select"
+                        v-model="conservation_status_obj.recommended_conservation_list_id" id="rec_conservation_list"
                         @change="filterRecomConservationCategoryCriteria($event)">
                         <option v-for="option in conservation_list_values" :value="option.id" v-bind:key="option.id">
-                            {{ option.code }}                            
+                            {{ option.code }}
                         </option>
                     </select>
                 </div>
@@ -155,11 +138,11 @@
             <div class="row mb-3" v-show="conservation_status_obj.can_view_recommended">
                 <label for="" class="col-sm-4 control-label">Recommended Conservation Category:</label>
                 <div class="col-sm-8">
-                    <select :disabled="!conservation_status_obj.can_edit_recommended" class="form-select" 
-                        v-model="conservation_status_obj.recommended_conservation_category_id" 
+                    <select :disabled="!conservation_status_obj.can_edit_recommended" class="form-select"
+                        v-model="conservation_status_obj.recommended_conservation_category_id"
                         id="recom_conservation_category">
                         <option v-for="option in filtered_recom_conservation_category_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.code }}                            
+                            {{ option.code }}
                         </option>
                     </select>
                 </div>
@@ -168,14 +151,14 @@
                 <label for="" class="col-sm-4 control-label">Recommended Conservation Criteria:</label>
                 <div class="col-sm-8">
                     <!-- <select :disabled="!conservation_status_obj.can_edit_recommended"
-                        style="width:100%;" class="form-select input-sm" multiple 
-                        ref="recom_conservation_criteria_select" 
+                        style="width:100%;" class="form-select input-sm" multiple
+                        ref="recom_conservation_criteria_select"
                         v-model="conservation_status_obj.recommended_conservation_criteria" >
                         <option v-for="c in filtered_recom_conservation_criteria_list" :value="c.id" :key="c.id">
                             {{c.code}}
                         </option>
                     </select> -->
-                    <input :disabled="!conservation_status_obj.can_edit_recommended" type="text" class="form-control" id="rec_conservation_criteria" placeholder="" 
+                    <input :disabled="!conservation_status_obj.can_edit_recommended" type="text" class="form-control" id="rec_conservation_criteria" placeholder=""
                         v-model="conservation_status_obj.recommended_conservation_criteria"/>
                 </div>
             </div>
@@ -264,14 +247,14 @@ export default {
                 filtered_recom_conservation_category_list: [],
                 // filtered_recom_conservation_criteria_list: [],
                 referral_comments_boxes: [],
-                // to display the species selected 
+                // to display the species selected
                 species_display: '',
                 taxon_previous_name:'',
                 //---Comment box attributes
 
                 deficiency_readonly : !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? false : true,
                 assessor_comment_readonly: !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? false : true,
-                
+
             }
         },
         components: {
@@ -292,7 +275,7 @@ export default {
                         if(this.referral_comments_boxes[i].value!=null && this.referral_comments_boxes[i].value!=undefined && this.referral_comments_boxes[i].value!= '' ){
                             has_value=true;
                         }
-                    } 
+                    }
                 }
                 return has_value;
             },
@@ -300,13 +283,7 @@ export default {
                 return this.conservation_status_obj.processing_status=="Approved" ? true : false;
             },
             isReadOnly: function(){
-                let action = this.$route.query.action;
-                if(action === "edit" && this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode){
-                    return false;
-                }
-                else{
-                    return this.conservation_status_obj.readonly;
-                }
+                return !this.conservation_status_obj.can_user_edit;
             },
             conservation_list_label: function(){
                 if(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed"){
@@ -474,7 +451,7 @@ export default {
                 if (!this.conservation_status_obj.can_user_edit){
                     var current_referral_present = false;
                     $.each(this.conservation_status_obj.latest_referrals,(i,v)=> {
-                        var referral_name = `comment-field-Referral-${v.referral_obj.email}`; 
+                        var referral_name = `comment-field-Referral-${v.referral_obj.email}`;
                         var referral_visibility =  assessor_mode == 'referral' && this.conservation_status_obj.assessor_mode.assessor_can_assess && this.referral.referral == v.referral_obj.id ? false : true ;
                         var referral_label = `${v.referral_obj.fullname}`;
                         var referral_comment_val = `${v.referral_comment}`;
@@ -508,7 +485,7 @@ export default {
                 //     var selected = $(e.currentTarget);
                 //     vm.conservation_status_obj.conservation_criteria = selected.val();
                 // });
-                
+
                 // Initialise select2 for recommended Conservation Criteria
                 // $(vm.$refs.recom_conservation_criteria_select).select2({
                 //     "theme": "bootstrap-5",
@@ -534,13 +511,13 @@ export default {
             let vm=this;
             //------fetch list of values according to action
             let action = this.$route.query.action;
-            let dict_url= action == "view"? api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type+ '&action=' + action : 
+            let dict_url= action == "view"? api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type+ '&action=' + action :
                                             api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type
             vm.$http.get(dict_url).then((response) => {
                 vm.cs_profile_dict = response.body;
                 vm.species_list = vm.cs_profile_dict.species_list;
                 vm.conservation_list_values = vm.cs_profile_dict.conservation_list_values;
-                
+
                 vm.conservation_list_values.splice(0,0,
                 {
                     id: null,
@@ -595,4 +572,3 @@ export default {
         width: 50%;
     }
 </style>
-
