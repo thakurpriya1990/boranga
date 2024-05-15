@@ -784,6 +784,8 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
     def get_readonly(self, obj):
         request = self.context["request"]
+        if request.user.is_superuser:
+            return False
         return not (
             obj.can_user_edit
             and request.user.id
@@ -792,6 +794,9 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
+        if request.user.is_superuser:
+            return True
+
         if not is_species_communities_approver(request.user.id):
             return False
         return obj.can_user_edit
@@ -1164,6 +1169,9 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 
     def get_readonly(self, obj):
         request = self.context["request"]
+        if request.user.is_superuser:
+            return False
+
         return not (
             obj.can_user_edit
             and request.user.id
@@ -1172,6 +1180,9 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
+        if request.user.is_superuser:
+            return True
+
         if not is_species_communities_approver(request.user.id):
             return False
         return obj.can_user_edit
