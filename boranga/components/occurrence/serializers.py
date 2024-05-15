@@ -1076,6 +1076,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         many=True, read_only=True, allow_null=True
     )
     readonly = serializers.SerializerMethodField(read_only=True)
+    is_new_contributor = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -1130,6 +1131,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "latest_referrals",
             "referrals",
             "finalised",
+            "is_new_contributor",
         )
 
     def get_readonly(self, obj):
@@ -1191,6 +1193,9 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "assessor_can_assess": obj.can_assess(user),
             "assessor_level": "assessor",
         }
+
+    def get_is_new_contributor(self, obj):
+        return is_new_external_contributor(obj.submitter)
 
 
 class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
