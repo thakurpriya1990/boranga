@@ -82,31 +82,6 @@ def update_conservation_status_doc_filename(instance, filename):
 
 
 class ConservationList(models.Model):
-    """
-
-    NB: Can have multiple lists per species
-    WAPEC       WA Priority Ecological Community List
-    DBCA_RLE    Pre-BCA DBCA precursor to IUCN RLE
-    WAPS        WA Priority Species List
-    SPFN        Wildlife Conservation (Specially Protected Fauna) Notice, Schedules
-    IUCN_RLE    IUCN Red List of Ecosystems
-    IUCN2012    IUCN Red List Categories and Criteria v3.1(2001) 2nd edition (2012)
-    IUCN2001    IUCN Red List Categories and Criteria v3.1(2001)
-    EPBC        Environment Protection and Biodiversity Conservation Act 1999
-    IUCN1994    IUCN Red List Categories v2.3 (1994)
-    WAWCA       Wildlife Conservation Act 1950, Gazettal notice listing
-
-    Has a:
-    - N/A
-    Used by:
-    - SpeciesConservationStatus
-    - CommunityConservationStatus
-    - ConservationCategory
-    - ConservationCriteria
-    Is:
-    - TBD
-    """
-
     APPROVAL_LEVEL_INTERMEDIATE = "intermediate"
     APPROVAL_LEVEL_MINISTER = "minister"
     APPROVAL_LEVEL_CHOICES = (
@@ -138,27 +113,57 @@ class ConservationList(models.Model):
         return str(self.code)
 
 
+class AbstractConservationList(models.Model):
+    code = models.CharField(max_length=64)
+    label = models.CharField(max_length=512)
+    applies_to_species = models.BooleanField(default=False)
+    applies_to_communities = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+        app_label = "boranga"
+        ordering = ["code"]
+
+    def __str__(self):
+        return str(self.code)
+
+
+class AbstractConservationCategory(models.Model):
+    code = models.CharField(max_length=64)
+    label = models.CharField(max_length=512)
+    applies_to_species = models.BooleanField(default=False)
+    applies_to_communities = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+        app_label = "boranga"
+        ordering = ["code"]
+
+    def __str__(self):
+        return str(self.code)
+
+
+class WAPriorityList(AbstractConservationList):
+    pass
+
+
+class WAPriorityCategory(AbstractConservationCategory):
+    pass
+
+
+class WALegislativeList(AbstractConservationList):
+    pass
+
+
+class WAConservationCategory(AbstractConservationCategory):
+    pass
+
+
+class CommonwealthConservationList(AbstractConservationList):
+    pass
+
+
 class ConservationCategory(models.Model):
-    """
-    Dependent on Conservation List (FK)
-    eg.:
-    CR  Critically endangered fauna (S1)
-    P1  Priority 1
-    PD  Presumed Totally Destroyed
-    P1  Priority 1
-    EN  Endangered fauna (S2)
-    P2  Priority 2
-
-
-    Has a:
-    - ConservationList
-    Used by:
-    - SpeciesConservationStatus
-    - CommunityConservationStatus
-    Is:
-    - TBD
-    """
-
     conservation_list = models.ForeignKey(
         ConservationList,
         on_delete=models.CASCADE,
@@ -179,27 +184,6 @@ class ConservationCategory(models.Model):
 
 
 class ConservationCriteria(models.Model):
-    """
-    Dependent on Conservation List (FK)
-
-    Justification for listing as threatened (IUCN-how everything is defined)
-    eg:
-    A
-    Ai
-    Aii
-    B
-    Bi
-    Bii
-    NB: may have multiple of these per species
-    Has a:
-    - N/A
-    Used by:
-    - SpeciesConservationStatus
-    - CommunityConservationStatus
-    Is:
-    - TBD
-    """
-
     conservation_list = models.ForeignKey(
         ConservationList,
         on_delete=models.CASCADE,
@@ -402,33 +386,83 @@ class ConservationStatus(RevisionedMixin):
 
     conservation_status_number = models.CharField(max_length=9, blank=True, default="")
 
-    # listing details
-    conservation_list = models.ForeignKey(
-        ConservationList,
-        on_delete=models.CASCADE,
+    # Conservation Lists and Categories
+    wa_priority_list = models.ForeignKey(
+        WAPriorityList,
+        on_delete=models.PROTECT,
         blank=True,
         null=True,
-        related_name="curr_conservation_list",
+        related_name="curr_wa_priority_list",
     )
-    conservation_category = models.ForeignKey(
-        ConservationCategory,
-        on_delete=models.SET_NULL,
+    wa_priority_category = models.ForeignKey(
+        WAPriorityCategory,
+        on_delete=models.PROTECT,
         blank=True,
         null=True,
-        related_name="curr_conservation_category",
+        related_name="curr_wa_priority_category",
     )
+    wa_legislative_list = models.ForeignKey(
+        WALegislativeList,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="curr_wa_legislative_list",
+    )
+    wa_conservation_category = models.ForeignKey(
+        WAConservationCategory,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="curr_wa_conservation_category",
+    )
+    commonwealth_conservation_list = models.ForeignKey(
+        CommonwealthConservationList,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="curr_commonwealth_conservation_list",
+    )
+    international_conservation = models.CharField(max_length=100, blank=True, null=True)
     conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
-    # recommended listing details in a meeting
-    recommended_conservation_list = models.ForeignKey(
-        ConservationList, on_delete=models.CASCADE, blank=True, null=True
+
+    # Conservation Lists and Categories (from a meeting)
+    recommended_wa_priority_list = models.ForeignKey(
+        WAPriorityList,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
     )
-    recommended_conservation_category = models.ForeignKey(
-        ConservationCategory, on_delete=models.SET_NULL, blank=True, null=True
+    recommended_wa_priority_category = models.ForeignKey(
+        WAPriorityCategory,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
     )
-    # recommended_conservation_criteria = models.ManyToManyField(ConservationCriteria, blank=True)
+    recommended_wa_legislative_list = models.ForeignKey(
+        WALegislativeList,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+    recommended_wa_conservation_category = models.ForeignKey(
+        WAConservationCategory,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+    recommended_commonwealth_conservation_list = models.ForeignKey(
+        CommonwealthConservationList,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+    recommended_international_conservation = models.CharField(
+        max_length=100, blank=True, null=True
+    )
     recommended_conservation_criteria = models.CharField(
         max_length=100, blank=True, null=True
     )
+
     iucn_version = models.ForeignKey(
         IUCNVersion,
         on_delete=models.SET_NULL,
