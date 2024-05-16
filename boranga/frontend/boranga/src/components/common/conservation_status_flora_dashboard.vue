@@ -499,13 +499,18 @@ export default {
             }
         },
         column_number: function () {
+            let vm = this;
             return {
                 data: "conservation_status_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function (data, type, full) {
-                    return full.conservation_status_number
+                    let value = full.conservation_status_number
+                    if (vm.is_internal && full.is_new_contributor) {
+                        value += ' <span class="badge bg-warning">New Contributor</span>'
+                    }
+                    return value
                 },
                 name: "id",
             }

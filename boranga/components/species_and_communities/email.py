@@ -9,6 +9,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from boranga.components.emails.emails import TemplateEmailBase
 from boranga.components.species_and_communities.models import private_storage
+from boranga.helpers import convert_external_url_to_internal_url
 
 logger = logging.getLogger(__name__)
 
@@ -79,11 +80,7 @@ def send_species_create_email_notification(request, species_proposal):
     url = url + "?group_type_name={}&action=view".format(
         species_proposal.group_type.name
     )
-    if "-internal" not in url:
-        # add it. This email is for internal staff
-        url = f"-internal.{settings.SITE_DOMAIN}".join(
-            url.split("." + settings.SITE_DOMAIN)
-        )
+    url = convert_external_url_to_internal_url(url)
 
     context = {"species_community_proposal": species_proposal, "url": url}
 
@@ -111,12 +108,7 @@ def send_user_species_create_email_notification(request, species_proposal):
         species_proposal.group_type.name
     )
 
-    # will need to add internal as the user is internal
-    if "-internal" not in url:
-        # add it. This email is for internal staff
-        url = f"-internal.{settings.SITE_DOMAIN}".join(
-            url.split("." + settings.SITE_DOMAIN)
-        )
+    url = convert_external_url_to_internal_url(url)
 
     context = {
         "species_community_proposal": species_proposal,
@@ -153,11 +145,7 @@ def send_species_split_email_notification(request, species_proposal):
     url = request.build_absolute_uri(
         reverse("internal-conservation-status-dashboard", kwargs={})
     )
-    if "-internal" not in url:
-        # add it. This email is for internal staff
-        url = f"-internal.{settings.SITE_DOMAIN}".join(
-            url.split("." + settings.SITE_DOMAIN)
-        )
+    url = convert_external_url_to_internal_url(url)
 
     context = {"species_proposal": species_proposal, "url": url}
 
@@ -184,11 +172,7 @@ def send_species_combine_email_notification(request, species_proposal):
     url = request.build_absolute_uri(
         reverse("internal-conservation-status-dashboard", kwargs={})
     )
-    if "-internal" not in url:
-        # add it. This email is for internal staff
-        url = f"-internal.{settings.SITE_DOMAIN}".join(
-            url.split("." + settings.SITE_DOMAIN)
-        )
+    url = convert_external_url_to_internal_url(url)
 
     context = {"species_proposal": species_proposal, "url": url}
 
@@ -215,11 +199,7 @@ def send_species_rename_email_notification(request, species_proposal):
     url = request.build_absolute_uri(
         reverse("internal-conservation-status-dashboard", kwargs={})
     )
-    if "-internal" not in url:
-        # add it. This email is for internal staff
-        url = f"-internal.{settings.SITE_DOMAIN}".join(
-            url.split("." + settings.SITE_DOMAIN)
-        )
+    url = convert_external_url_to_internal_url(url)
 
     context = {"species_proposal": species_proposal, "url": url}
 
@@ -251,11 +231,7 @@ def send_community_create_email_notification(request, community_proposal):
     url = url + "?group_type_name={}&action=view".format(
         community_proposal.group_type.name
     )
-    if "-internal" not in url:
-        # add it. This email is for internal staff
-        url = f"-internal.{settings.SITE_DOMAIN}".join(
-            url.split("." + settings.SITE_DOMAIN)
-        )
+    url = convert_external_url_to_internal_url(url)
 
     context = {"species_community_proposal": community_proposal, "url": url}
 
@@ -283,12 +259,7 @@ def send_user_community_create_email_notification(request, community_proposal):
         community_proposal.group_type.name
     )
 
-    # will need to add internal as the user is internal
-    if "-internal" not in url:
-        # add it. This email is for internal staff
-        url = f"-internal.{settings.SITE_DOMAIN}".join(
-            url.split("." + settings.SITE_DOMAIN)
-        )
+    url = convert_external_url_to_internal_url(url)
 
     context = {
         "species_community_proposal": community_proposal,

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import models
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
 
 from boranga.components.main.models import CommunicationsLogEntry, Document, UserAction
 
@@ -29,6 +30,63 @@ class Profile(models.Model):
 
     class Meta:
         app_label = "boranga"
+
+
+class ExternalContributorBlacklist(models.Model):
+    email = models.EmailField(unique=True)
+    reason = models.TextField()
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name_plural = "External Contributor Blacklist"
+
+    def __str__(self):
+        return self.email
+
+    def save(self, *args, **kwargs):
+        # Remove the user from the external contributors group
+        external_contributor_group = SystemGroup.objects.get(
+            name=settings.GROUP_NAME_EXTERNAL_CONTRIBUTOR
+        )
+        try:
+            user = EmailUser.objects.get(email=self.email)
+        except EmailUser.DoesNotExist:
+            return
+
+        SystemGroupPermission.objects.filter(
+            system_group=external_contributor_group, emailuser=user
+        ).delete()
+        # Have to save the group to flush the member cache
+        external_contributor_group.save()
+
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        try:
+            user = EmailUser.objects.get(email=self.email)
+        except EmailUser.DoesNotExist:
+            return
+
+        # If user is already in the external contributors group, don't add them again
+        external_contributor_group = SystemGroup.objects.get(
+            name=settings.GROUP_NAME_EXTERNAL_CONTRIBUTOR
+        )
+        if SystemGroupPermission.objects.filter(
+            system_group=external_contributor_group, emailuser=user
+        ).exists():
+            return
+
+        # Add user back into the external contributors group
+        SystemGroupPermission.objects.create(
+            system_group=external_contributor_group, emailuser=user
+        )
+
+        # Have to save the group to flush the member cache
+        external_contributor_group.save()
+
+        super().delete(*args, **kwargs)
 
 
 class EmailUserLogEntry(CommunicationsLogEntry):

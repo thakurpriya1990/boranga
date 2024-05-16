@@ -67,7 +67,7 @@ from boranga.components.species_and_communities.models import (
     Taxonomy,
     TaxonVernacular,
 )
-from boranga.helpers import is_customer, is_internal
+from boranga.helpers import is_external_contributor, is_internal
 
 logger = logging.getLogger(__name__)
 
@@ -279,9 +279,7 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         filter_family = request.POST.get("filter_family")
         if queryset.model is ConservationStatus:
             if filter_family and not filter_family.lower() == "all":
-                queryset = queryset.filter(
-                    species__taxonomy__family_id=filter_family
-                )
+                queryset = queryset.filter(species__taxonomy__family_id=filter_family)
         elif queryset.model is ConservationStatusReferral:
             if filter_family and not filter_family.lower() == "all":
                 queryset = queryset.filter(
@@ -352,12 +350,18 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__species__district=filter_district
                 )
 
-        filter_from_effective_from_date = request.POST.get("filter_from_effective_from_date")
-        filter_to_effective_from_date = request.POST.get("filter_to_effective_from_date")
+        filter_from_effective_from_date = request.POST.get(
+            "filter_from_effective_from_date"
+        )
+        filter_to_effective_from_date = request.POST.get(
+            "filter_to_effective_from_date"
+        )
 
-        filter_from_effective_to_date = request.POST.get("filter_from_effective_to_date")
+        filter_from_effective_to_date = request.POST.get(
+            "filter_from_effective_to_date"
+        )
         filter_to_effective_to_date = request.POST.get("filter_to_effective_to_date")
-        
+
         if queryset.model is ConservationStatus:
             if filter_from_effective_from_date:
                 queryset = queryset.filter(
@@ -381,20 +385,20 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 
             if filter_from_effective_from_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_from_date #noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_from_date  # noqa
                 )
             if filter_to_effective_from_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_from_date #noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_from_date  # noqa
                 )
 
             if filter_from_effective_to_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_to_date #noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_to_date  # noqa
                 )
             if filter_to_effective_to_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_to_date #noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_to_date  # noqa
                 )
 
         filter_application_status = request.POST.get("filter_application_status")
@@ -430,7 +434,6 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (SpeciesConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    # renderer_classes = (SpeciesConservationStatusRenderer,)
     queryset = ConservationStatus.objects.none()
     serializer_class = ListSpeciesConservationStatusSerializer
     page_size = 10
@@ -825,10 +828,16 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__community__district=filter_district
                 )
 
-        filter_from_effective_from_date = request.POST.get("filter_from_effective_from_date")
-        filter_to_effective_from_date = request.POST.get("filter_to_effective_from_date")
+        filter_from_effective_from_date = request.POST.get(
+            "filter_from_effective_from_date"
+        )
+        filter_to_effective_from_date = request.POST.get(
+            "filter_to_effective_from_date"
+        )
 
-        filter_from_effective_to_date = request.POST.get("filter_from_effective_to_date")
+        filter_from_effective_to_date = request.POST.get(
+            "filter_from_effective_to_date"
+        )
         filter_to_effective_to_date = request.POST.get("filter_to_effective_to_date")
         if queryset.model is ConservationStatus:
             if filter_from_effective_from_date:
@@ -853,20 +862,20 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
 
             if filter_from_effective_from_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_from_date #noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_from_date  # noqa
                 )
             if filter_to_effective_from_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_from_date #noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_from_date  # noqa
                 )
 
             if filter_from_effective_to_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_to_date #noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__gte=filter_from_effective_to_date  # noqa
                 )
             if filter_to_effective_to_date:
                 queryset = queryset.filter(
-                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_to_date #noqa
+                    conservation_status__conservationstatusissuanceapprovaldetails__effective_from_date__lte=filter_to_effective_to_date  # noqa
                 )
 
         filter_application_status = request.POST.get("filter_application_status")
@@ -1256,21 +1265,18 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
 class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (ConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    # renderer_classes = (ConservationStatusRenderer,)
     queryset = ConservationStatus.objects.none()
     serializer_class = ListConservationStatusSerializer
     page_size = 10
 
     def get_queryset(self):
-        request_user = self.request.user
-        qs = ConservationStatus.objects.none()
+        qs = self.queryset
+
+        if is_external_contributor(self.request.user.id):
+            qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
 
         if is_internal(self.request):
             qs = ConservationStatus.objects.all()
-        elif is_customer(self.request):
-            # user_orgs = [org.id for org in request_user.mooringlicensing_organisations.all()]
-            qs = ConservationStatus.objects.filter(Q(submitter=request_user.id))
-            return qs
 
         return qs
 
@@ -1282,7 +1288,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
     )
     def conservation_status_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
-        qs = qs.filter(Q(internal_application=False))
+        qs = qs.filter(internal_application=False)
         # TODO Not Sure but to filter for only WA listed conservation lists for external
         # qs = qs.filter(Q(conservation_list__applies_to_wa=True))
         qs = self.filter_queryset(qs)
@@ -1301,18 +1307,15 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
     lookup_field = "id"
 
     def get_queryset(self):
-        user = self.request.user
-        if is_internal(self.request):  # user.is_authenticated():
+        qs = self.queryset
+
+        if is_external_contributor(self.request.user.id):
+            qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
+
+        if is_internal(self.request):
             qs = ConservationStatus.objects.all()
-            return qs
-        elif is_customer(self.request):
-            # user_orgs = [org.id for org in user.boranga_organisations.all()]
-            qs = ConservationStatus.objects.filter(Q(submitter=user.id))
-            return qs
-        logger.warn(
-            f"User is neither customer nor internal user: {user.get_full_name()} <{user.email}>"
-        )
-        return ConservationStatus.objects.none()
+
+        return qs
 
     def internal_serializer_class(self):
         return InternalConservationStatusSerializer

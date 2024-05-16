@@ -40,7 +40,6 @@ EMAIL_DELIVERY = env("EMAIL_DELIVERY", "off")
 EMAIL_INSTANCE = env("EMAIL_INSTANCE", "DEV")
 
 # Use these two admin group names as they are referred to in dbca templates
-ADMIN_GROUP = env("ADMIN_GROUP", "Boranga Admin")
 DJANGO_ADMIN_GROUP = env("DJANGO_ADMIN_GROUP", "Django Admin")
 # ----------------------------------------------
 
@@ -58,7 +57,6 @@ GROUP_NAME_READONLY_USER = "Read Only Users"
 GROUP_NAME_SPECIES_COMMUNITIES_APPROVER = "Species and Communities Approvers"
 
 GROUP_NAME_CHOICES = (
-    ADMIN_GROUP,
     DJANGO_ADMIN_GROUP,
     GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
     GROUP_NAME_CONSERVATION_STATUS_APPROVER,
@@ -170,6 +168,10 @@ SYSTEM_NAME = "Boranga System"
 SYSTEM_NAME_SHORT = env("SYSTEM_NAME_SHORT", "BGA")
 SITE_PREFIX = env("SITE_PREFIX")
 SITE_DOMAIN = env("SITE_DOMAIN")
+SITE_RANCHER_CLUSTER = env("SITE_RANCHER_CLUSTER", None)
+SITE_SUBDOMAIN_INTERNAL_SUFFIX = env("SITE_SUBDOMAIN_INTERNAL_SUFFIX", "-internal")
+if SITE_RANCHER_CLUSTER:
+    SITE_SUBDOMAIN_INTERNAL_SUFFIX += "-" + SITE_RANCHER_CLUSTER
 SUPPORT_EMAIL = env("SUPPORT_EMAIL", "bio@" + SITE_DOMAIN).lower()
 DEP_URL = env("DEP_URL", "www." + SITE_DOMAIN)
 DEP_PHONE = env("DEP_PHONE", "(08) 9219 9978")
@@ -242,6 +244,12 @@ LOGGING["loggers"]["payment_checkout"] = {
 LOGGING["loggers"]["boranga"] = {"handlers": ["file"], "level": "INFO"}
 if DEBUG:
     LOGGING["loggers"]["boranga"] = {"handlers": ["console"], "level": "DEBUG"}
+
+    # Get rid of the annoying asyncio info log message
+    LOGGING["loggers"]["asyncio"] = {
+        "level": "WARNING",
+    }
+
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 DEV_APP_BUILD_URL = env(
     "DEV_APP_BUILD_URL"
@@ -284,9 +292,6 @@ if not RUNNING_DEVSERVER and SENTRY_DSN and EMAIL_INSTANCE:
 LEDGER_UI_ACCOUNTS_MANAGEMENT = [
     {"first_name": {"options": {"view": True, "edit": True}}},
     {"last_name": {"options": {"view": True, "edit": True}}},
-    {"residential_address": {"options": {"view": True, "edit": True}}},
-    {"postal_same_as_residential": {"options": {"view": True, "edit": True}}},
-    {"postal_address": {"options": {"view": True, "edit": True}}},
     {"phone_number": {"options": {"view": True, "edit": True}}},
     {"mobile_number": {"options": {"view": True, "edit": True}}},
 ]

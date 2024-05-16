@@ -142,211 +142,232 @@
                         </div>
                     </div> -->
                     <!-- </transition> -->
-
                     <div
-                        v-if="
-                            layerSources[defaultQueryLayerName] && featureCount
-                        "
+                        v-if="featureCount"
                         id="submenu-geometries-list"
                         class="map-menu-submenu moved-menu-vertical"
                     >
                         <form class="layer_options form-horizontal">
                             <div
-                                v-for="feature in mapFeaturesSorted"
-                                :key="
-                                    feature.ol_uid +
-                                    feature.getProperties().original_geometry
-                                        .properties.srid +
-                                    feature.getProperties().original_geometry
-                                        .properties.latitude +
-                                    feature.getProperties().original_geometry
-                                        .properties.longitude
-                                "
-                                class="input-group input-group-sm mb-1 text-nowrap"
+                                v-for="(
+                                    features, title
+                                ) in mapFeaturesGroupedAndSorted"
+                                :key="`${title}-${features.length}`"
                             >
-                                <div class="input-group-text">
-                                    <input
-                                        :id="`feature-${feature.ol_uid}-checkbox`"
-                                        type="checkbox"
+                                <small
+                                    v-if="features.length"
+                                    class="input-group-text mb-1 w-100"
+                                    >{{ title }}:</small
+                                >
+                                <div
+                                    v-for="feature in features"
+                                    :key="
+                                        feature.ol_uid +
+                                        feature.getProperties()
+                                            .original_geometry.properties.srid +
+                                        feature.getProperties()
+                                            .original_geometry.properties
+                                            .latitude +
+                                        feature.getProperties()
+                                            .original_geometry.properties
+                                            .longitude
+                                    "
+                                    class="input-group input-group-sm mb-1 text-nowrap"
+                                >
+                                    <div class="input-group-text">
+                                        <input
+                                            :id="`feature-${feature.ol_uid}-checkbox`"
+                                            type="checkbox"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Select feature"
+                                            :checked="
+                                                selectedFeatureIds.includes(
+                                                    feature.getProperties().id
+                                                )
+                                            "
+                                            class="form-check-input"
+                                            @change="selectFeature(feature)"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary me-1"
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="top"
-                                        data-bs-title="Select feature"
-                                        :checked="
-                                            selectedFeatureIds.includes(
+                                        data-bs-title="Zoom to feature"
+                                        :title="feature.getProperties().label"
+                                        @mouseenter="
+                                            toggleHidden($event.target)
+                                        "
+                                        @mouseleave="
+                                            toggleHidden($event.target)
+                                        "
+                                        @click="centerOnFeature(feature)"
+                                    >
+                                        <img
+                                            v-if="isMultiPointFeature(feature)"
+                                            class="svg-icon"
+                                            src="../../assets/draw-points.svg"
+                                        />
+                                        <svg
+                                            v-else-if="
+                                                isPointLikeFeature(feature)
+                                            "
+                                            class="svg-object"
+                                            width="24"
+                                            height="24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <!-- A circle -->
+                                            <circle
+                                                cx="12"
+                                                cy="12"
+                                                r="5"
+                                                :fill="
+                                                    feature.getProperties()
+                                                        .color
+                                                "
+                                                :stroke="
+                                                    selectedFeatureIds.includes(
+                                                        feature.getProperties()
+                                                            .id
+                                                    )
+                                                        ? 'red'
+                                                        : feature.getProperties()
+                                                              .stroke
+                                                "
+                                                stroke-width="2"
+                                            />
+                                        </svg>
+                                        <svg
+                                            v-else
+                                            class="svg-object"
+                                            width="24"
+                                            height="24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <!-- A rectangle -->
+                                            <polygon
+                                                points="2,2 22,2 22,22 2,22"
+                                                :fill="
+                                                    feature.getProperties()
+                                                        .color
+                                                "
+                                                :stroke="
+                                                    selectedFeatureIds.includes(
+                                                        feature.getProperties()
+                                                            .id
+                                                    )
+                                                        ? 'red'
+                                                        : feature.getProperties()
+                                                              .stroke
+                                                "
+                                                stroke-width="2"
+                                            />
+                                        </svg>
+                                        <img
+                                            class="svg-icon hidden"
+                                            src="../../assets/map-zoom.svg"
+                                            style="
+                                                filter: url('data:image/svg+xml,<svg xmlns=`http://www.w3.org/2000/svg`><filter id=`white`><feColorMatrix type=`matrix` values=`0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0`/></filter></svg>#white');
+                                            "
+                                        />
+                                    </button>
+                                    <!-- Latitude -->
+                                    <div
+                                        class="form-floating flex-grow-1 input-group-text"
+                                    >
+                                        <input
+                                            v-if="isPointLikeFeature(feature)"
+                                            :id="`feature-${feature.ol_uid}-latitude-input`"
+                                            :ref="`feature-${feature.ol_uid}-latitude-input`"
+                                            class="form-control min-width-90"
+                                            :value="userCoordinates(feature)[1]"
+                                            placeholder="Latitude"
+                                            type="number"
+                                            min="-35.5"
+                                            max="-13.5"
+                                            step="0.0001"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Enter the latitude value"
+                                            @change="
+                                                updateUserInputGeoData(feature)
+                                            "
+                                        />
+                                        <label
+                                            v-if="isPointLikeFeature(feature)"
+                                            :for="`feature-${feature.ol_uid}-latitude-input`"
+                                            >Latitude</label
+                                        >
+                                    </div>
+                                    <!-- Longitude -->
+                                    <div
+                                        class="form-floating flex-grow-1 input-group-text"
+                                    >
+                                        <input
+                                            v-if="isPointLikeFeature(feature)"
+                                            :id="`feature-${feature.ol_uid}-longitude-input`"
+                                            :ref="`feature-${feature.ol_uid}-longitude-input`"
+                                            class="form-control min-width-90 me-1"
+                                            :value="userCoordinates(feature)[0]"
+                                            placeholder="Longitude"
+                                            type="number"
+                                            min="112.5"
+                                            max="129.0"
+                                            step="0.0001"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Enter the longitude value"
+                                            @change="
+                                                updateUserInputGeoData(feature)
+                                            "
+                                        />
+                                        <label
+                                            v-if="isPointLikeFeature(feature)"
+                                            :for="`feature-${feature.ol_uid}-longitude-input`"
+                                            >Longitude</label
+                                        >
+                                    </div>
+                                    <!-- CRS Dropdown -->
+                                    <div
+                                        class="input-group-text form-floating flex-grow-1 min-width-210 justify-content-end"
+                                    >
+                                        <SelectFilter
+                                            :id="`feature-${feature.ol_uid}-crs-select`"
+                                            :ref="`feature-${feature.ol_uid}-crs-select`"
+                                            :title="`Feature ${
                                                 feature.getProperties().id
-                                            )
-                                        "
-                                        class="form-check-input"
-                                        @change="selectFeature(feature)"
-                                    />
-                                </div>
-                                <button
-                                    type="button"
-                                    class="btn btn-secondary me-1"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-title="Zoom to feature"
-                                    :title="feature.getProperties().label"
-                                    @mouseenter="toggleHidden($event.target)"
-                                    @mouseleave="toggleHidden($event.target)"
-                                    @click="centerOnFeature(feature)"
-                                >
-                                    <img
-                                        v-if="isMultiPointFeature(feature)"
-                                        class="svg-icon"
-                                        src="../../assets/draw-points.svg"
-                                    />
-                                    <svg
-                                        v-else-if="isPointLikeFeature(feature)"
-                                        class="svg-object"
-                                        width="24"
-                                        height="24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <!-- A circle -->
-                                        <circle
-                                            cx="12"
-                                            cy="12"
-                                            r="5"
-                                            :fill="
-                                                feature.getProperties().color
+                                            }`"
+                                            :show-title="false"
+                                            placeholder="Coordinate Reference System"
+                                            :options="
+                                                coordinateReferenceSystemsForSelectFilter
                                             "
-                                            :stroke="
-                                                selectedFeatureIds.includes(
-                                                    feature.getProperties().id
-                                                )
-                                                    ? 'red'
-                                                    : feature.getProperties()
-                                                          .stroke
+                                            :pre-selected-filter-item="
+                                                feature.getProperties()
+                                                    .original_geometry
+                                                    .properties.srid || mapSrid
                                             "
-                                            stroke-width="2"
+                                            classes="min-width-210"
+                                            @option:selected="
+                                                (selected) => {
+                                                    updateUserInputGeoData(
+                                                        feature,
+                                                        selected.value
+                                                    );
+                                                }
+                                            "
+                                            @search="
+                                                (...args) =>
+                                                    $emit(
+                                                        'crs-select-search',
+                                                        ...args
+                                                    )
+                                            "
                                         />
-                                    </svg>
-                                    <svg
-                                        v-else
-                                        class="svg-object"
-                                        width="24"
-                                        height="24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <!-- A rectangle -->
-                                        <polygon
-                                            points="2,2 22,2 22,22 2,22"
-                                            :fill="
-                                                feature.getProperties().color
-                                            "
-                                            :stroke="
-                                                selectedFeatureIds.includes(
-                                                    feature.getProperties().id
-                                                )
-                                                    ? 'red'
-                                                    : feature.getProperties()
-                                                          .stroke
-                                            "
-                                            stroke-width="2"
-                                        />
-                                    </svg>
-                                    <img
-                                        class="svg-icon hidden"
-                                        src="../../assets/map-zoom.svg"
-                                        style="
-                                            filter: url('data:image/svg+xml,<svg xmlns=`http://www.w3.org/2000/svg`><filter id=`white`><feColorMatrix type=`matrix` values=`0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0`/></filter></svg>#white');
-                                        "
-                                    />
-                                </button>
-                                <!-- Latitude -->
-                                <div
-                                    class="form-floating flex-grow-1 input-group-text"
-                                >
-                                    <input
-                                        v-if="isPointLikeFeature(feature)"
-                                        :id="`feature-${feature.ol_uid}-latitude-input`"
-                                        :ref="`feature-${feature.ol_uid}-latitude-input`"
-                                        class="form-control min-width-90"
-                                        :value="userCoordinates(feature)[1]"
-                                        placeholder="Latitude"
-                                        type="number"
-                                        min="-35.5"
-                                        max="-13.5"
-                                        step="0.0001"
-                                        data-bs-toggle="tooltip"
-                                        data-bs-placement="top"
-                                        data-bs-title="Enter the latitude value"
-                                        @change="
-                                            updateUserInputGeoData(feature)
-                                        "
-                                    />
-                                    <label
-                                        v-if="isPointLikeFeature(feature)"
-                                        :for="`feature-${feature.ol_uid}-latitude-input`"
-                                        >Latitude</label
-                                    >
-                                </div>
-                                <!-- Longitude -->
-                                <div
-                                    class="form-floating flex-grow-1 input-group-text"
-                                >
-                                    <input
-                                        v-if="isPointLikeFeature(feature)"
-                                        :id="`feature-${feature.ol_uid}-longitude-input`"
-                                        :ref="`feature-${feature.ol_uid}-longitude-input`"
-                                        class="form-control min-width-90 me-1"
-                                        :value="userCoordinates(feature)[0]"
-                                        placeholder="Longitude"
-                                        type="number"
-                                        min="112.5"
-                                        max="129.0"
-                                        step="0.0001"
-                                        data-bs-toggle="tooltip"
-                                        data-bs-placement="top"
-                                        data-bs-title="Enter the longitude value"
-                                        @change="
-                                            updateUserInputGeoData(feature)
-                                        "
-                                    />
-                                    <label
-                                        v-if="isPointLikeFeature(feature)"
-                                        :for="`feature-${feature.ol_uid}-longitude-input`"
-                                        >Longitude</label
-                                    >
-                                </div>
-                                <!-- CRS Dropdown -->
-                                <div
-                                    class="input-group-text form-floating flex-grow-1 min-width-210 justify-content-end"
-                                >
-                                    <SelectFilter
-                                        :id="`feature-${feature.ol_uid}-crs-select`"
-                                        :ref="`feature-${feature.ol_uid}-crs-select`"
-                                        :title="`Feature ${
-                                            feature.getProperties().id
-                                        }`"
-                                        :show-title="false"
-                                        placeholder="Coordinate Reference System"
-                                        :options="
-                                            coordinateReferenceSystemsForSelectFilter
-                                        "
-                                        :pre-selected-filter-item="
-                                            feature.getProperties()
-                                                .original_geometry.properties
-                                                .srid || mapSrid
-                                        "
-                                        classes="min-width-210"
-                                        @option:selected="
-                                            (selected) => {
-                                                updateUserInputGeoData(
-                                                    feature,
-                                                    selected.value
-                                                );
-                                            }
-                                        "
-                                        @search="
-                                            (...args) =>
-                                                $emit(
-                                                    'crs-select-search',
-                                                    ...args
-                                                )
-                                        "
-                                    />
+                                    </div>
                                 </div>
                             </div>
                             <!-- A new-point Button -->
@@ -495,7 +516,6 @@
                                     : 'Select a drawing mode'
                             "
                             class="btn optional-layers-button"
-                            :class="isEditingALayer ? '' : 'disabled'"
                             @click="
                                 mode == 'draw'
                                     ? toggleElementVisibility('submenu-draw')
@@ -770,7 +790,10 @@
 
                     <!-- Spatially process Features -->
                     <div
-                        v-if="editable"
+                        v-if="
+                            defaultProcessedGeometryLayerName &&
+                            spatialOperationsAvailable.length
+                        "
                         class="optional-layers-button-wrapper"
                         :title="
                             featureCount
@@ -1527,6 +1550,19 @@ export default {
             required: false,
             default: 4326,
         },
+        spatialOperationsAllowed: {
+            type: Array,
+            required: false,
+            default: function () {
+                return ['__all__'];
+            },
+        },
+        /**
+         * The default layer definition for the query layer
+         * This layer is always available and it will be used to add new features to
+         * even if no default-layer is specified.
+         * On the contrary, specifying no processed-layer disables the processing of features
+         */
         queryLayerDefinition: {
             type: Object,
             required: false,
@@ -1534,7 +1570,8 @@ export default {
                 return {
                     name: 'query_layer',
                     title: 'Query Layer',
-                    default: true,
+                    default: true, // The default layer where in most cases features are added to
+                    processed: true, // The layer where processed geometries are added to
                     can_edit: true,
                 };
             },
@@ -1584,6 +1621,7 @@ export default {
             layerSources: {},
             vectorLayers: {},
             defaultQueryLayerName: null, // The layer where e.g. dropped geometries are added to
+            defaultProcessedGeometryLayerName: null, // The layer to which processed geometries are added to
             editableFeatureCollection: new Collection([], { unique: true }),
             selectedFeatureCollection: new Collection([], { unique: true }),
             zIndex: 10, // Incrementing Z-index for overlays
@@ -1622,7 +1660,7 @@ export default {
             shapefileTypesAllowed: ['.shp', '.dbf', '.prj', '.shx', '.cpg'], // The allowed shapefile types
             shapefileTypesRequired: ['.shp', '.dbf', '.shx'], // The required shapefile types
             userInputGeometryStack: [],
-            selectedSpatialOperation: 'buffer_geometries',
+            selectedSpatialOperation: null,
             selectedSpatialUnit: 'm',
             spatialOperationParameters: [1.0],
         };
@@ -1686,11 +1724,15 @@ export default {
             return visible_layers.length > 0;
         },
         featureCount: function () {
-            if (!this.layerSources[this.defaultQueryLayerName]) {
-                return 0;
+            this.defaultQueryLayerName;
+            this.defaultProcessedGeometryLayerName;
+            const features = [];
+
+            for (let layerName in this.layerSources) {
+                features.push(...this.layerSources[layerName].getFeatures());
             }
-            return this.layerSources[this.defaultQueryLayerName].getFeatures()
-                .length;
+
+            return features.length;
         },
         hasErrorMessage: function () {
             let vm = this;
@@ -1791,7 +1833,7 @@ export default {
             });
         },
         spatialOperationsAvailable: function () {
-            const spatialOPerations = [
+            let spatialOperations = [
                 {
                     id: 'buffer_geometries',
                     name: 'Buffer',
@@ -1842,7 +1884,15 @@ export default {
                     number_params: 0,
                 },
             ];
-            return spatialOPerations;
+
+            if (this.spatialOperationsAllowed.includes('__all__')) {
+                return spatialOperations;
+            }
+            spatialOperations = spatialOperations.filter((operation) => {
+                return this.spatialOperationsAllowed.includes(operation.id);
+            });
+
+            return spatialOperations;
         },
         spatialUnitsAvailable: function () {
             const units = [
@@ -1858,14 +1908,31 @@ export default {
             return units;
         },
         /**
-         * Returns the features in the modelQuerySource sorted by their id
+         * Returns the features in the modelQuerySource grouped by their source layer title and sorted by their id
          */
-        mapFeaturesSorted: function () {
-            return this.layerSources[this.defaultQueryLayerName]
-                .getFeatures()
-                .toSorted(function (a, b) {
-                    return a.getProperties().id - b.getProperties().id;
-                });
+        mapFeaturesGroupedAndSorted: function () {
+            const sortedFeatures = {};
+            const layerNameTitles = Object.fromEntries(
+                this.vectorLayerDefinitions().map((def) => [
+                    def.name,
+                    def.title,
+                ])
+            );
+
+            for (let source in this.layerSources) {
+                const features = this.layerSources[source]
+                    .getFeatures()
+                    .toSorted(function (a, b) {
+                        return a.getProperties().id - b.getProperties().id;
+                    });
+                const key = layerNameTitles[source];
+                if (!Object.keys(sortedFeatures).includes(key)) {
+                    sortedFeatures[key] = [];
+                }
+                sortedFeatures[key].push(...features);
+            }
+
+            return sortedFeatures;
         },
         parameterInputLabel: function () {
             let label = 'Parameter';
@@ -1912,6 +1979,10 @@ export default {
     created: function () {
         console.log('created()');
         this.fetchProposals();
+        this.selectedSpatialOperation =
+            this.spatialOperationsAvailable.length == 0
+                ? null
+                : this.spatialOperationsAvailable[0].id;
     },
     mounted: function () {
         console.log('mounted()');
@@ -2229,15 +2300,15 @@ export default {
                 }
             }
             const layers = vm.getLayersWithFeatures();
+            const selectedFeatures = vm.selectedFeatures();
+            const editableSelectedFeatures = vm.editableSelectedFeatures();
             layers.forEach((layer) => {
-                let features = layer.getSource().getFeatures();
+                const features = layer.getSource().getFeatures();
                 features.forEach((feature) => {
-                    if (
-                        vm.selectedFeatureIds.includes(
-                            feature.getProperties().id
-                        )
-                    ) {
+                    if (editableSelectedFeatures.includes(feature)) {
                         feature.setStyle(style);
+                    } else if (selectedFeatures.includes(feature)) {
+                        feature.setStyle(vm.basicSelectStyle);
                     } else {
                         feature.setStyle(undefined);
                     }
@@ -2259,6 +2330,8 @@ export default {
             vm.initialiseQueryLayer();
             vm.initialiseProcessingLayer();
             vm.defaultQueryLayerName = vm.getDefaultQueryLayerName();
+            vm.defaultProcessedGeometryLayerName =
+                vm.getDefaultProcessedGeometryLayerName();
 
             vm.initialiseDrawLayer();
             vm.initialiseLayerSwitcher(
@@ -2801,6 +2874,12 @@ export default {
                                     .forEach((f) => {
                                         this.editableFeatureCollection.push(f);
                                     });
+
+                                // A bit clunky but this makes it so when switching editing modes the feature selection styles get properly set
+                                const mode = this.mode;
+                                const subMode = this.submode;
+                                this.set_mode('layer');
+                                this.set_mode(mode, subMode);
                             } else {
                                 this.set_mode('layer');
                             }
@@ -3255,7 +3334,8 @@ export default {
                         return false;
                     }
 
-                    let features = vm.selectedFeatures();
+                    // Get the selected features that are also editable
+                    const features = vm.editableSelectedFeatures();
 
                     features.forEach((feature) => {
                         let coords = feature.getGeometry().getCoordinates();
@@ -3292,9 +3372,30 @@ export default {
                         }
                     });
                 },
-                // eslint-disable-next-line no-unused-vars
+                // A filter that takes a feature and return true if it can be modified
+                filter: function (feature) {
+                    return vm.editableSelectedFeatures().includes(feature);
+                },
                 insertVertexCondition: function (evt) {
-                    return true;
+                    evt.stopPropagation();
+
+                    const f = vm.map.getFeaturesAtPixel(evt.pixel, {
+                        hitTolerance: vm.hitTolerance,
+                    });
+                    if (!f) {
+                        return false;
+                    }
+
+                    const features = vm
+                        .editableSelectedFeatures()
+                        .filter((feature) => {
+                            return f.includes(feature);
+                        });
+
+                    if (features.length > 0) {
+                        return true;
+                    }
+                    return false;
                 },
             });
 
@@ -3462,12 +3563,13 @@ export default {
                                     )[0].name;
                             }
 
-                            // TODO:
+                            if (!this.defaultProcessedGeometryLayerName) {
+                                return;
+                            }
                             const features = this.addFeatureCollectionToMap(
                                 processedGeometry,
-                                // this.processedGeometrySource
                                 this.layerSources[
-                                    this.additionalLayersDefinitions[0].name
+                                    this.defaultProcessedGeometryLayerName
                                 ]
                             );
                             this.displayAllFeatures(features);
@@ -3989,6 +4091,22 @@ export default {
             return features;
         },
         /**
+         * Returns the editable features
+         */
+        editableFeatures: function () {
+            let vm = this;
+            const features = vm.getMapFeatures();
+            const editableFeaturesIds = vm.editableFeatureCollection
+                .getArray()
+                .map((feature) => {
+                    return feature.getProperties().id;
+                });
+
+            return features.filter((feature) => {
+                return editableFeaturesIds.includes(feature.getProperties().id);
+            });
+        },
+        /**
          * Returns the selected features
          */
         selectedFeatures: function () {
@@ -3999,6 +4117,16 @@ export default {
                 return vm.selectedFeatureIds.includes(
                     feature.getProperties().id
                 );
+            });
+        },
+        /**
+         * Returns features that are both selectable and editable
+         */
+        editableSelectedFeatures: function () {
+            const selectedFeatures = this.selectedFeatures();
+            const editableFeatures = this.editableFeatures();
+            return selectedFeatures.filter((feature) => {
+                return editableFeatures.includes(feature);
             });
         },
         setSelectedFeatureCollection: function (collection) {
@@ -4622,13 +4750,17 @@ export default {
                 return layer.get('can_edit');
             });
         },
-        getDefaultQueryLayerName: function () {
-            const layerDefs = this.additionalLayersDefinitions.concat(
+        vectorLayerDefinitions: function () {
+            return this.additionalLayersDefinitions.concat(
                 this.queryLayerDefinition
             );
-            const defaultLayerDef = layerDefs.filter((layer) => {
-                return layer.default == true;
-            });
+        },
+        getDefaultQueryLayerName: function () {
+            const defaultLayerDef = this.vectorLayerDefinitions().filter(
+                (layer) => {
+                    return layer.default == true;
+                }
+            );
 
             if (defaultLayerDef.length > 1) {
                 throw new Error('Cannot have more than one default layer.');
@@ -4637,6 +4769,21 @@ export default {
                     ? (this.defaultQueryLayerName = defaultLayerDef[0].name)
                     : (this.defaultQueryLayerName =
                           this.queryLayerDefinition.name);
+            }
+        },
+        getDefaultProcessedGeometryLayerName: function () {
+            const processedLayerDef = this.vectorLayerDefinitions().filter(
+                (layer) => {
+                    return layer.processed == true;
+                }
+            );
+            if (processedLayerDef.length > 1) {
+                throw new Error('Cannot have more than one processed layer.');
+            } else {
+                return processedLayerDef.length > 0
+                    ? (this.defaultProcessedGeometryLayerName =
+                          processedLayerDef[0].name)
+                    : (this.defaultProcessedGeometryLayerName = null);
             }
         },
         /**
@@ -4734,6 +4881,9 @@ export default {
 }
 .hidden {
     display: none;
+}
+.input-group-append + small {
+    width: 100%;
 }
 </style>
 <style>
