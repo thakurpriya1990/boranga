@@ -225,3 +225,25 @@ def clone_model(
         target_model.save()
 
     return target_model
+
+
+def convert_external_url_to_internal_url(url):
+    if not settings.SITE_SUBDOMAIN_INTERNAL_SUFFIX:
+        return url
+
+    if settings.SITE_SUBDOMAIN_INTERNAL_SUFFIX not in url:
+        # Add the internal subdomain suffix to the url
+        url = f"{settings.SITE_SUBDOMAIN_INTERNAL_SUFFIX}.{settings.SITE_DOMAIN}".join(
+            url.split("." + settings.SITE_DOMAIN)
+        )
+    return url
+
+
+def convert_internal_url_to_external_url(url):
+    if not settings.SITE_SUBDOMAIN_INTERNAL_SUFFIX:
+        return url
+
+    if settings.SITE_SUBDOMAIN_INTERNAL_SUFFIX in url:
+        # remove '-internal'. This email is for external submitters
+        url = "".join(url.split(settings.SITE_SUBDOMAIN_INTERNAL_SUFFIX))
+    return url
