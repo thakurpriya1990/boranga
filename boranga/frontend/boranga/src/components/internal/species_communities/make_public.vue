@@ -125,17 +125,24 @@ export default {
     methods:{
         updatePublishing(data) {
             let vm = this;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.species,(vm.species_community.id+'/update_publishing_status')),data,{
+
+            let endpoint = api_endpoints.species;
+            if (this.species_community.group_type === "community") {
+                endpoint = api_endpoints.community;
+            }
+
+            vm.$http.post(helpers.add_endpoint_json(endpoint,(vm.species_community.id+'/update_publishing_status')),data,{
                 emulateJSON:true
             }).then((response) => {
                 vm.updatingPublishing = false;
                 vm.species_community.publishing_status = response.body;
                 swal.fire({
                     title: 'Saved',
-                    text: 'Publishing settings have been updated',
+                    text: 'Record has been made public',
                     icon: 'success',
                     confirmButtonColor:'#226fbb',
-
+                }).then((swalresult) => {
+                    vm.close()
                 });
             }, (error) => {
                 var text= helpers.apiVueResourceError(error);

@@ -1475,12 +1475,23 @@ class SpeciesViewSet(viewsets.ModelViewSet):
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def update_publishing_status(self, request, *args, **kwargs):
-        pass
-        #check if this form is making the species public
+        instance = self.get_object()
+        request_data = request.data
+        publishing_status_instance, created = (
+            SpeciesPublishingStatus.objects.get_or_create(species=instance)
+        )
+        serializer = SaveSpeciesPublishingStatusSerializer(
+            publishing_status_instance,
+            data=request_data,
+        )
+        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            if instance.processing_status != "active" and serializer.validated_data["species_public"]:
+                raise serializer.ValidationError("non-active species record cannot be made public")
+            serializer.save()
 
-        #if already public or just made public, proceed to save
+        return Response(serializer.data)
 
-        #otherwise return error
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -2099,6 +2110,27 @@ class CommunityViewSet(viewsets.ModelViewSet):
             )
 
         return redirect(reverse("internal"))
+
+    @detail_route(methods=["post"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @transaction.atomic
+    def update_publishing_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        request_data = request.data
+        publishing_status_instance, created = (
+            CommunityPublishingStatus.objects.get_or_create(community=instance)
+        )
+        serializer = SaveCommunityPublishingStatusSerializer(
+            publishing_status_instance,
+            data=request_data,
+        )
+        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            if instance.processing_status != "active" and serializer.validated_data["community_public"]:
+                raise serializer.ValidationError("non-active community record cannot be made public")
+            serializer.save()
+
+        return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))

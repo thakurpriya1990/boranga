@@ -743,6 +743,39 @@ export default {
         },
         makePublic: async function () {
             this.$refs.make_public.isModalOpen = true;
+        },
+        makePrivate: function () {
+            let vm = this;
+            let endpoint = api_endpoints.species;
+            if (this.species_community.group_type === "community") {
+                vm.species_community.publishing_status.community_public = false;
+                endpoint = api_endpoints.community;
+            } else {
+                vm.species_community.publishing_status.species_public = false;
+            }
+            let data = JSON.stringify(vm.species_community.publishing_status)           
+            vm.$http.post(helpers.add_endpoint_json(endpoint,(vm.species_community.id+'/update_publishing_status')),data,{
+                emulateJSON:true
+            }).then((response) => {
+                vm.updatingPublishing = false;
+                vm.species_community.publishing_status = response.body;
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Record has been made private',
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb',
+
+                });
+            }, (error) => {
+                var text= helpers.apiVueResourceError(error);
+                swal.fire({
+                    title: 'Error',
+                    text: 'Publishing settings cannot be updated because of the following error: '+text,
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb',
+                });
+                vm.updatingPublishing = false;
+            });
         }
     },
     mounted: function () {

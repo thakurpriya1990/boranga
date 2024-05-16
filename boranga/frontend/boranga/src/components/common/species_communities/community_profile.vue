@@ -363,7 +363,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Publishing" Index="publishing">
+        <FormSection :v-if="is_internal" :formCollapse="false" label="Publishing" Index="publishing">
             <div class="row mb-3">
                 <label for="distribution_publishing" class="col-sm-3 control-label">Distribution: </label>
                 <div class="col-sm-9">
@@ -566,7 +566,7 @@ export default {
     methods: {
         updatePublishing(data) {
             let vm = this;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.species,(vm.species_community.id+'/update_publishing_status')),data,{
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.community,(vm.species_community.id+'/update_publishing_status')),data,{
                 emulateJSON:true
             }).then((response) => {
                 vm.updatingPublishing = false;

@@ -656,10 +656,12 @@ class SaveSpeciesPublishingStatusSerializer(serializers.ModelSerializer):
     species_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
+    public_status = serializers.SerializerMethodField()
 
     class Meta:
         model = SpeciesPublishingStatus
         fields = (
+            "public_status",
             "species_id",
             "species_public",
             "distribution_public",
@@ -667,6 +669,11 @@ class SaveSpeciesPublishingStatusSerializer(serializers.ModelSerializer):
             "conservation_attributes_public",
             "threats_public",
         )
+
+    def get_public_status(self,obj):
+        if obj.species_public:
+            return "Public"
+        return "Private"
 
 class BaseSpeciesSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
@@ -1126,10 +1133,12 @@ class SaveCommunityPublishingStatusSerializer(serializers.ModelSerializer):
     community_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
+    public_status = serializers.SerializerMethodField()
 
     class Meta:
         model = CommunityPublishingStatus
         fields = (
+            "public_status",
             "community_id",
             "community_public",
             "distribution_public",
@@ -1137,6 +1146,11 @@ class SaveCommunityPublishingStatusSerializer(serializers.ModelSerializer):
             "conservation_attributes_public",
             "threats_public",
         )
+
+    def get_public_status(self,obj):
+        if obj.community_public:
+            return "Public"
+        return "Private"
 
 class BaseCommunitySerializer(serializers.ModelSerializer):
     species = serializers.SerializerMethodField()
