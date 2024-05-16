@@ -705,10 +705,16 @@ class ConservationStatus(RevisionedMixin):
 
     # Check if the user is member of assessor group for the CS Proposal
     def is_assessor(self, user):
+        if user.is_superuser:
+            return True
+
         return user.id in self.get_assessor_group().get_system_group_member_ids()
 
     # Check if the user is member of assessor group for the CS Proposal
     def is_approver(self, user):
+        if user.is_superuser:
+            return True
+
         return user.id in self.get_assessor_group().get_system_group_member_ids()
 
     def can_assess(self, user):

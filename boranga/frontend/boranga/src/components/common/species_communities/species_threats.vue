@@ -48,7 +48,7 @@
                 </div>
             </CollapsibleFilters>
             <form class="form-horizontal" action="index.html" method="post">
-                <div v-if="is_internal" class="col-sm-12">
+                <div v-if="is_internal && !isReadOnly" class="col-sm-12"> <!--should we still show the add threat button if readonly, only disabled?-->
                     <div class="text-end">
                         <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
                             <i class="fa-solid fa-circle-plus"></i>

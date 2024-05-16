@@ -12,12 +12,6 @@ register = Library()
 
 
 @register.simple_tag(takes_context=True)
-def is_boranga_admin(context):
-    request = context["request"]
-    return boranga_helpers.is_boranga_admin(request)
-
-
-@register.simple_tag(takes_context=True)
 def is_django_admin(context):
     request = context["request"]
     return boranga_helpers.is_django_admin(request)
@@ -85,7 +79,6 @@ def show_internal_primary_menu_items(context):
         return False
     return (
         request.user.is_superuser
-        or boranga_helpers.is_boranga_admin(request)
         or boranga_helpers.is_conservation_status_approver(request.user)
         or boranga_helpers.is_conservation_status_assessor(request.user)
         or boranga_helpers.is_internal_contributor(request.user)

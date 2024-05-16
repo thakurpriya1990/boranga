@@ -20,7 +20,6 @@ from boranga.components.occurrence.models import OccurrenceReport
 from boranga.components.species_and_communities.models import Community, Species
 from boranga.forms import LoginForm
 from boranga.helpers import (
-    is_boranga_admin,
     is_conservation_status_assessor,
     is_conservation_status_referee,
     is_customer,
@@ -181,8 +180,7 @@ class ManagementCommandsView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
 
     def test_func(self):
         return self.request.user.is_superuser or (
-            is_internal(self.request)
-            and (is_boranga_admin(self.request) or is_django_admin(self.request))
+            is_internal(self.request) and is_django_admin(self.request)
         )
 
     def post(self, request):
@@ -201,7 +199,6 @@ def is_authorised_to_access_community_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_boranga_admin(request)
             or is_django_admin(request)
             or is_species_communities_approver(request.user)
             or is_occurrence_assessor(request.user)
@@ -216,7 +213,6 @@ def is_authorised_to_access_species_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_boranga_admin(request)
             or is_django_admin(request)
             or is_species_communities_approver(request.user)
             or is_occurrence_assessor(request.user)
@@ -231,7 +227,6 @@ def is_authorised_to_access_meeting_document(request, document_id):
         # check auth #TODO review
         return (
             request.user.is_superuser
-            or is_boranga_admin(request)
             or is_django_admin(request)
             or is_species_communities_approver(request)
             or is_conservation_status_assessor(request.user)
@@ -260,7 +255,6 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_boranga_admin(request)
             or is_django_admin(request)
             or is_occurrence_assessor(request.user)
             or is_occurrence_approver(request.user)
@@ -283,7 +277,6 @@ def is_authorised_to_access_occurrence_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_boranga_admin(request)
             or is_django_admin(request)
             or is_occurrence_assessor(request.user)
             or is_occurrence_approver(request.user)
@@ -297,7 +290,6 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_boranga_admin(request)
             or is_django_admin(request)
             or is_species_communities_approver(request.user)
             or is_conservation_status_assessor(request.user)

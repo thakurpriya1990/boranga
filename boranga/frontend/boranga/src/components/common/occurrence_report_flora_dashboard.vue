@@ -383,15 +383,20 @@ export default {
             }
         },
         column_number: function () {
+            let vm = this;
             return {
                 data: "occurrence_report_number",
                 orderable: true,
                 searchable: true,
                 visible: true,
                 'render': function (data, type, full) {
-                    return full.occurrence_report_number
+                    let value = full.occurrence_report_number
+                    if (vm.is_internal && full.is_new_contributor) {
+                        value += ' <span class="badge bg-warning">New Contributor</span>'
+                    }
+                    return value
                 },
-                name: "occurrence_report_number",
+                name: "id",
             }
         },
         column_occurrence: function () {

@@ -7,6 +7,7 @@
             <strong>Submitted by</strong><br />
             {{ submitter_first_name }}
             {{ submitter_last_name }}
+             <span v-if="is_new_contributor" class="badge bg-warning"><i class="bi bi-person-plus-fill"></i> New Contributor</span>
         </div>
         <div class="card-body py-2">
             <strong>Lodged on</strong><br />
@@ -44,6 +45,10 @@ export default {
         lodgement_date: {
             type: String,
             default: null,
+        },
+        is_new_contributor: {
+            type: Boolean,
+            default: false,
         },
         enableHistory: {
             type: Boolean,

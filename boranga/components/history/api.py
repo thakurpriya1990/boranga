@@ -13,7 +13,6 @@ from reversion import is_registered
 from reversion.models import Version
 
 from boranga.helpers import (
-    is_boranga_admin,
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_django_admin,
@@ -77,7 +76,7 @@ class InternalAuthorizationView(views.APIView):
     ]
 
     def check_auth_by_model(self, request, model_name):
-        if request.user.is_superuser or is_boranga_admin(request):
+        if request.user.is_superuser:
             return True
         else:
             # go through each list, if model is in it run function for user

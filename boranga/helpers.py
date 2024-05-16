@@ -33,10 +33,6 @@ def belongs_to(request, group_name):
     return belongs_to_by_user_id(request.user.id, group_name)
 
 
-def is_boranga_admin(request):
-    return belongs_to(request, settings.ADMIN_GROUP)
-
-
 def is_django_admin(request):
     return belongs_to(request, settings.DJANGO_ADMIN_GROUP)
 
@@ -90,6 +86,31 @@ def is_external_contributor(user_id):
         user_id = user_id.id
     assessor_group = SystemGroup.objects.get(name=GROUP_NAME_EXTERNAL_CONTRIBUTOR)
     return True if user_id in assessor_group.get_system_group_member_ids() else False
+
+
+def is_new_external_contributor(user_id):
+    from boranga.components.conservation_status.models import ConservationStatus
+    from boranga.components.occurrence.models import OccurrenceReport
+
+    if not is_external_contributor(user_id):
+        return False
+
+    finalised_cs = ConservationStatus.objects.filter(
+        submitter=user_id,
+        processing_status__in=[
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+        ],
+    ).exists()
+    finalised_ocr = OccurrenceReport.objects.filter(
+        submitter=user_id,
+        processing_status__in=[
+            OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            OccurrenceReport.PROCESSING_STATUS_DECLINED,
+        ],
+    ).exists()
+
+    return not finalised_cs and not finalised_ocr
 
 
 def is_internal_contributor(user_id):

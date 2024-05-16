@@ -14,18 +14,20 @@
                             <div class="card-body card-collapse">
                                 <div class="row">
                                     <div class="col-sm-12">
-
                                         <div class="site-logo row" v-if="uploadedID">
                                             <img :src="uploadedID" class="img-responsive" />
                                             <span>
                                                 <a @click="delete_image()" class="fa fa-trash-o" title="Remove file"
                                                     style="cursor: pointer; color:red;"> delete image</a>
                                             </span>
-
                                         </div>
-                                        <span class="btn btn-link btn-file pull-left" v-else-if="!uploadedID">Attach
-                                            Image<input type="file" ref="uploadedID" @change="readFileID()" /></span>
-                                        <span class="btn btn-link btn-file pull-left" v-else>&nbsp;Uploading...</span>
+                                        <template v-if="hasUserEditMode">
+                                            <span class="btn btn-link btn-file pull-left" v-if="!uploadedID">Attach
+                                                Image<input type="file" ref="uploadedID"
+                                                    @change="readFileID()" /></span>
+                                            <span class="btn btn-link btn-file pull-left"
+                                                v-else>&nbsp;Uploading...</span>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -39,12 +41,13 @@
                 <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="species_community.lodgement_date"
                     class="mb-3" />
+
                 <div class="top-buffer-s">
                     <div class="card card-default">
                         <div class="card-header">
                             Workflow
                         </div>
-                        <div class="card-body border-bottom">
+                        <div class="card-body">
                             <div class="row">
                                 <div class="col-sm-12">
                                     <strong>Status</strong><br />
@@ -52,43 +55,40 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
+                        <div v-if='hasUserEditMode' class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction"> -->
                                     <div class="col-sm-12 top-buffer-s">
-                                        <template v-if="hasUserEditMode">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <strong>Action</strong><br />
-                                                </div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <strong>Action</strong><br />
                                             </div>
-                                            <div class="row" v-if="!isCommunity">
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="splitSpecies()">Split</button><br />
-                                                </div>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="combineSpecies()">Combine</button><br />
-                                                </div>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="renameSpecies()">Rename</button><br />
-                                                </div>
+                                        </div>
+                                        <div class="row" v-if="!isCommunity">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="splitSpecies()">Split</button><br />
                                             </div>
-                                            <div class="row" v-if="isActive">
-                                                <div class="col-sm-12" v-if="!isPublic">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="makePublic()">Make Public</button><br />
-                                                </div>
-                                                <div class="col-sm-12" v-else>
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="makePrivate()">Make Private</button><br />
-                                                </div>
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="combineSpecies()">Combine</button><br />
                                             </div>
-                                        </template>
-                                        <template v-else-if="canDiscard">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="renameSpecies()">Rename</button><br />
+                                            </div>
+                                        </div>
+                                        <div class="row" v-if="isActive">
+                                            <div class="col-sm-12" v-if="!isPublic">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="makePublic()">Make Public</button><br />
+                                            </div>
+                                            <div class="col-sm-12" v-else>
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="makePrivate()">Make Private</button><br />
+                                            </div>
+                                        </div>
+                                        <div v-if="canDiscard">
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <strong>Action</strong><br />
@@ -100,12 +100,11 @@
                                                         @click.prevent="discardSpeciesProposal()">Discard</button><br />
                                                 </div>
                                             </div>
-                                        </template>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -118,7 +117,7 @@
                                     enctype="multipart/form-data">
                                     <ProposalSpeciesCommunities ref="species_communities"
                                         :species_community="species_community" id="speciesCommunityStart"
-                                        :is_internal="true">
+                                        :is_internal="true" :is_readonly="species_community.readonly">
                                     </ProposalSpeciesCommunities>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="species_community_id" :value="1" />
@@ -187,8 +186,6 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import Workflow from '@common-utils/workflow.vue'
-
-//import MoreReferrals from '@common-utils/more_referrals.vue'
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'

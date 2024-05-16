@@ -684,6 +684,8 @@ class Species(RevisionedMixin):
         return recipients
 
     def is_approver(self, user):
+        if user.is_superuser:
+            return True
         return user.id in self.get_approver_group().get_system_group_member_ids()
 
     @property
@@ -1178,12 +1180,9 @@ class Community(RevisionedMixin):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
-    # Check if the user is member of assessor group for the CS Proposal
-    def is_assessor(self, user):
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
-
-    # Check if the user is member of assessor group for the CS Proposal
     def is_approver(self, user):
+        if user.is_superuser:
+            return True
         return user.id in self.get_approver_group().get_system_group_member_ids()
 
     @property
@@ -1205,6 +1204,7 @@ class Community(RevisionedMixin):
         if self.processing_status in officer_view_state:
             return False
         else:
+            return self.is_approver(user)
             return self.is_approver(user)
 
     @property

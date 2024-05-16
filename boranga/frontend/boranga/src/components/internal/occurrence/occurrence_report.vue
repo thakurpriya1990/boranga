@@ -25,6 +25,7 @@
 
                 <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"
+                    :is_new_contributor="occurrence_report.is_new_contributor"
                     class="mb-3" />
 
                 <div class="card card-default sticky-top">
