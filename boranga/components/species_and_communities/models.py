@@ -303,6 +303,8 @@ class Taxonomy(models.Model):
     class Meta:
         app_label = "boranga"
         ordering = ["scientific_name"]
+        verbose_name = "Taxonomy"
+        verbose_name_plural = "Taxonomies"
 
     def __str__(self):
         return str(self.scientific_name)  # TODO: is the most appropriate?
@@ -412,6 +414,7 @@ class ClassificationSystem(models.Model):
     """
 
     classification_system_id = models.IntegerField(null=True, blank=True)
+    # TODO delete this field
     class_type = models.CharField(max_length=100, null=True, blank=True)
     class_desc = models.CharField(max_length=100, null=True, blank=True)
 
@@ -437,6 +440,7 @@ class InformalGroup(models.Model):
         null=True,
         related_name="informal_groups",
     )
+    # TODO delete this field
     informal_group_id = models.IntegerField(null=True, blank=True)
     taxon_name_id = models.IntegerField(null=True, blank=True)
     taxonomy = models.ForeignKey(
@@ -529,6 +533,8 @@ class Species(RevisionedMixin):
 
     class Meta:
         app_label = "boranga"
+        verbose_name = "Species"
+        verbose_name_plural = "Species"
 
     def __str__(self):
         return f"{self.species_number}"
