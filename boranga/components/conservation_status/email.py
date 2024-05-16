@@ -9,6 +9,10 @@ from django.utils.encoding import smart_text
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from boranga.components.emails.emails import TemplateEmailBase
+from boranga.helpers import (
+    convert_external_url_to_internal_url,
+    convert_internal_url_to_external_url,
+)
 
 private_storage = FileSystemStorage(
     location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
@@ -121,11 +125,7 @@ def send_submit_email_notification(request, cs_proposal):
             kwargs={"cs_proposal_pk": cs_proposal.id},
         )
     )
-    if "-internal" not in url:
-        # add it. This email is for internal staff (assessors)
-        url = f"-internal.{settings.SITE_DOMAIN}".join(
-            url.split("." + settings.SITE_DOMAIN)
-        )
+    url = convert_external_url_to_internal_url(url)
 
     context = {"cs_proposal": cs_proposal, "url": url}
 
@@ -147,9 +147,7 @@ def send_external_submit_email_notification(request, cs_proposal):
         )
     )
 
-    if "-internal" in url:
-        # remove '-internal'. This email is for external submitters
-        url = "".join(url.split("-internal"))
+    url = convert_internal_url_to_external_url(url)
 
     context = {
         "cs_proposal": cs_proposal,
@@ -443,9 +441,7 @@ def send_conservation_status_amendment_email_notification(
         )
     )
 
-    if "-internal" in url:
-        # remove '-internal'. This email is for external submitters
-        url = "".join(url.split("-internal"))
+    url = convert_internal_url_to_external_url(url)
 
     attachments = []
     if amendment_request.cs_amendment_request_documents:
@@ -590,9 +586,8 @@ def send_conservation_status_approval_email_notification(conservation_status, re
         all_ccs = cc_list.split(",")
 
     url = request.build_absolute_uri(reverse("external"))
-    if "-internal" in url:
-        # remove '-internal'. This email is for external submitters
-        url = "".join(url.split("-internal"))
+
+    url = convert_internal_url_to_external_url(url)
 
     context = {
         "cs_proposal": conservation_status,
