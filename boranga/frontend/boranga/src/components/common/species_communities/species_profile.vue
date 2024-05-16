@@ -661,10 +661,8 @@
                         v-model="species_community.comment" />
                 </div>
             </div>
-
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"><strong>Publishing</strong></label>
-            </div>
+        </FormSection>
+        <FormSection :formCollapse="false" label="Publishing" Index="publishing">
             <div class="row mb-3">
                 <label for="distribution_publishing" class="col-sm-3 control-label">Distribution: </label>
                 <div class="col-sm-9">
@@ -709,6 +707,12 @@
                         id="threats_publishing" v-model="species_community.publishing_status.threats_public">
                 </div>
             </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <button v-if="!updatingPublishing" :disabled="isReadOnly || !isPublic || !isActive" class="btn btn-primary btn-sm float-end" @click.prevent="updatePublishingDetails()">Update</button>
+                    <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                </div>
+            </div>
         </FormSection>
     </div>
 </template>
@@ -720,7 +724,8 @@ import {
     api_endpoints,
     helpers
 }
-    from '@/utils/hooks'
+
+from '@/utils/hooks'
 export default {
     name: 'Species',
     props: {
@@ -753,6 +758,7 @@ export default {
                 keepInvalid: true,
                 allowInputToggle: true,
             },
+            updatingPublishing: false,
             scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
             select_scientific_name: "select_scientific_name" + vm._uid,
             select_flowering_period: "select_flowering_period" + vm._uid,
@@ -911,6 +917,50 @@ export default {
         },
     },
     methods: {
+        updatePublishing(data) {
+            let vm = this;
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.species,(vm.species_community.id+'/update_publishing_status')),data,{
+                emulateJSON:true
+            }).then((response) => {
+                vm.updatingPublishing = false;
+                vm.species_community.publishing_status = response.body;
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Publishing settings have been updated',
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb',
+
+                });
+            }, (error) => {
+                var text= helpers.apiVueResourceError(error);
+                swal.fire({
+                    title: 'Error',
+                    text: 'Publishing settings cannot be updated because of the following error: '+text,
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb',
+                });
+                vm.updatingPublishing = false;
+            });
+        },
+        updatePublishingDetails: function() {
+            let vm = this;
+            vm.updatingPublishing = true;
+            //if not already public, we make it public (notify user first)
+            //but only if it is active
+            if (vm.isPublic && vm.isActive) {
+                //send just publishing form data
+                let data = JSON.stringify(vm.species_community.publishing_status)
+                vm.updatePublishing(data);
+            } else {
+                swal.fire({
+                    title: 'Error',
+                    text: 'Record not active and cannot be made public',
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb',
+                });
+                vm.updatingPublishing = false;
+            }
+        },
         switchNOO: function (value) {
             let vm = this;
             var selectedValue = value;

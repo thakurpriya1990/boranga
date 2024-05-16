@@ -178,6 +178,8 @@
             @refreshFromResponse="refreshFromResponse" />
         <SpeciesRename ref="species_rename" :species_community_original="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
+        <MakePublic ref="make_public" :species_community="species_community" :is_internal="true"
+            @refreshFromResponse="refreshFromResponse" />
     </div>
 </template>
 <script>
@@ -190,6 +192,7 @@ import ProposalSpeciesCommunities from '@/components/form_species_communities.vu
 import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'
 import SpeciesRename from './species_rename.vue'
+import MakePublic from './make_public.vue'
 import {
     api_endpoints,
     helpers
@@ -223,6 +226,7 @@ export default {
         SpeciesSplit,
         SpeciesCombine,
         SpeciesRename,
+        MakePublic,
     },
     filters: {
         formatDate: function (data) {
@@ -295,7 +299,9 @@ export default {
             }
         },
         isPublic: function() {
-            return this.species_community.publishing_status.species_public ? true : false;
+            return (this.species_community.group_type === "community") ?
+                this.species_community.publishing_status.community_public ? true : false :
+                this.species_community.publishing_status.species_public ? true : false;
         },
         isActive: function () {
             return this.species_community.processing_status === "Active" ? true : false;
@@ -734,6 +740,9 @@ export default {
                 this.$refs.species_rename.new_rename_species = rename_species_obj;
                 this.$refs.species_rename.isModalOpen = true;
             }
+        },
+        makePublic: async function () {
+            this.$refs.make_public.isModalOpen = true;
         }
     },
     mounted: function () {

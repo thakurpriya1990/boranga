@@ -1470,6 +1470,17 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             )
 
         return redirect(reverse("internal"))
+    
+    @detail_route(methods=["post"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @transaction.atomic
+    def update_publishing_status(self, request, *args, **kwargs):
+        pass
+        #check if this form is making the species public
+
+        #if already public or just made public, proceed to save
+
+        #otherwise return error
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
