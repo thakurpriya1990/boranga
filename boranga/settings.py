@@ -168,10 +168,17 @@ SYSTEM_NAME = "Boranga System"
 SYSTEM_NAME_SHORT = env("SYSTEM_NAME_SHORT", "BGA")
 SITE_PREFIX = env("SITE_PREFIX")
 SITE_DOMAIN = env("SITE_DOMAIN")
+
+# These are used for converting between internal and external urls
+# This is useful when generating urls for emails when the current request user
+# is external and the link needs to be internal or vis versa
+# To get email links to work locally, set SITE_SUBDOMAIN_INTERNAL_SUFFIX=None in .env
 SITE_RANCHER_CLUSTER = env("SITE_RANCHER_CLUSTER", None)
 SITE_SUBDOMAIN_INTERNAL_SUFFIX = env("SITE_SUBDOMAIN_INTERNAL_SUFFIX", "-internal")
 if SITE_RANCHER_CLUSTER:
     SITE_SUBDOMAIN_INTERNAL_SUFFIX += "-" + SITE_RANCHER_CLUSTER
+
+
 SUPPORT_EMAIL = env("SUPPORT_EMAIL", "bio@" + SITE_DOMAIN).lower()
 DEP_URL = env("DEP_URL", "www." + SITE_DOMAIN)
 DEP_PHONE = env("DEP_PHONE", "(08) 9219 9978")
