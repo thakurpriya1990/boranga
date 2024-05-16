@@ -1446,18 +1446,11 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
 
-        #TODO - move this to dedicated save and replace with setting to private
-        if request_data.get("publishing_status"):
-            publishing_status_instance, created = (
-                SpeciesPublishingStatus.objects.get_or_create(species=instance)
-            )
-            serializer = SaveSpeciesPublishingStatusSerializer(
-                publishing_status_instance,
-                data=request_data.get("publishing_status"),
-            )
-            serializer.is_valid(raise_exception=True)
-            if serializer.is_valid():
-                serializer.save()
+        publishing_status_instance, created = (
+            SpeciesPublishingStatus.objects.get_or_create(species=instance)
+        )
+        publishing_status_instance.species_public = False
+        publishing_status_instance.save()
 
         serializer = SaveSpeciesSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -1469,7 +1462,9 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 request,
             )
 
-        return redirect(reverse("internal"))
+        serializer = InternalSpeciesSerializer(instance, context={"request": request})
+
+        return Response(serializer.data)
     
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -2084,18 +2079,11 @@ class CommunityViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
 
-        #TODO - move this to dedicated save and replace with setting to private
-        if request_data.get("publishing_status"):
-            publishing_status_instance, created = (
-                CommunityPublishingStatus.objects.get_or_create(community=instance)
-            )
-            serializer = SaveCommunityPublishingStatusSerializer(
-                publishing_status_instance,
-                data=request_data.get("publishing_status"),
-            )
-            serializer.is_valid(raise_exception=True)
-            if serializer.is_valid():
-                serializer.save()
+        publishing_status_instance, created = (
+            CommunityPublishingStatus.objects.get_or_create(community=instance)
+        )
+        publishing_status_instance.community_public = False
+        publishing_status_instance.save()
 
         serializer = SaveCommunitySerializer(instance, data=request_data)
         serializer.is_valid(raise_exception=True)
@@ -2109,7 +2097,9 @@ class CommunityViewSet(viewsets.ModelViewSet):
                 request,
             )
 
-        return redirect(reverse("internal"))
+        serializer = InternalCommunitySerializer(instance, context={"request": request})
+
+        return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))

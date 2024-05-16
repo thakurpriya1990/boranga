@@ -481,10 +481,18 @@ export default {
             vm.savingSpeciesCommunity = true;
             let payload = new Object();
             Object.assign(payload, vm.species_community);
+
+            let was_public = "";
+            if (vm.species_community.publishing_status.public_status === "Public")
+            {
+                was_public = " - record is now private"
+            }
+
             await vm.$http.post(vm.species_community_form_url, payload).then(res => {
+                vm.species_community = res.body;
                 swal.fire({
                     title: "Saved",
-                    text: "Your changes has been saved",
+                    text: "Your changes has been saved" + was_public,
                     icon: "success",
                     confirmButtonColor: '#226fbb'
                 });
