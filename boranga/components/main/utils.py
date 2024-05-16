@@ -68,15 +68,33 @@ def handle_validation_error(e):
 
 def validate_threat_request(request):
     data = json.loads(request.data.get("data"))
-    # data observed must not be in the future
-    if (
-        "date_observed" in data
-        and data["date_observed"]
-        and datetime.strptime(data["date_observed"], "%Y-%m-%d") > datetime.now()
-    ):
+
+    required_fields = {"threat_category_id":"Threat Category","current_impact":"Current Impact","date_observed":"Date Observed"}
+    missing_required = []
+
+    for i in required_fields:
+        if not i in data or not data[i]:
+            missing_required.append(required_fields[i])
+
+    if missing_required:
         raise serializers.ValidationError(
-            "Date observed value invalid - must be on or before the current date"
+            "Missing required values for Threat - " + ", ".join(missing_required)
         )
+
+    # data observed must not be in the future
+    try:
+        if (
+            "date_observed" in data
+            and data["date_observed"]
+            and datetime.strptime(data["date_observed"], "%Y-%m-%d") > datetime.now()
+        ):
+            raise serializers.ValidationError(
+                "Date observed value invalid - must be on or before the current date"
+            )
+    except:
+        raise serializers.ValidationError(
+                "Date observed value invalid - must be on or before the current date"
+            )
     return True
 
 
