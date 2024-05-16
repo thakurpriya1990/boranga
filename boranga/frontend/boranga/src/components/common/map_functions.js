@@ -8,8 +8,11 @@ import { Style, Fill, Stroke } from 'ol/style';
 import { utils } from '@/utils/hooks';
 
 // Tile server url
-// eslint-disable-next-line no-undef
-var url = `${env['kmi_server_url']}/geoserver/public/wms/?SERVICE=WMS&VERSION=1.0.0&REQUEST=GetCapabilities`;
+// var urlKmi = `${env['gis_server_url']}/geoserver/public/wms/?SERVICE=WMS&VERSION=1.0.0&REQUEST=GetCapabilities`;
+const urlKb = `${env['gis_server_url']}/ows/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
+// TODO: fetch additional layer urls from dj admin
+const layerNamesKb = ['kaartdijin-boodja-public:CPT_DBCA_DISTRICTS'];
+
 // Layer to use as map base layer
 export var baselayer_name = 'mapbox-emerald';
 // export var baselayer_name = 'mapbox-dark'
@@ -46,29 +49,29 @@ export async function fetchTileLayers(map_component) {
     let parser = new WMSCapabilities();
     const tileLayers = [];
 
-    await fetch(url)
+    await fetch(urlKb)
         .then(function (response) {
             return response.text();
         })
         .then(function (text) {
             let result = parser.read(text);
             let layers = result.Capability.Layer.Layer.filter((layer) => {
-                return layer['Name'] === 'dbca_legislated_lands_and_waters';
+                // TODO: `layerNamesKb` Get from dj admin
+                return layerNamesKb.includes(layer['Name']);
             });
 
             for (let j in layers) {
                 let layer = layers[j];
 
                 let l = new TileWMS({
-                    // eslint-disable-next-line no-undef
-                    url: `${env['kmi_server_url']}/geoserver/public/wms`,
+                    url: `${env['gis_server_url']}/ows`,
                     crossOrigin: 'anonymous', // Data for a image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
                     params: {
                         FORMAT: 'image/png',
                         VERSION: '1.1.1',
                         tiled: true,
                         STYLES: '',
-                        LAYERS: `public:${layer.Name}`,
+                        LAYERS: `${layer.Name}`,
                     },
                 });
 
@@ -397,8 +400,8 @@ const _helper = {
             map_component = vm.$refs.component_map;
         }
         // The geoserver url
-        // eslint-disable-next-line no-undef
-        let owsUrl = `${env['kmi_server_url']}/geoserver/public/ows/?`;
+        // TODO: Only changed the env part here, so the url probably doesn't work with the new geoserver
+        let owsUrl = `${env['gis_server_url']}/geoserver/public/ows/?`;
         // Create a params dict for the WFS request to the land-water layer
         let paramsDict = map_component.queryParamsDict('landwater');
         let geometry_name = map_component.owsQuery.landwater.geometry;

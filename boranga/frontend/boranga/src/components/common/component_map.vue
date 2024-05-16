@@ -2760,8 +2760,10 @@ export default {
             vm.map.addInteraction(vm.drawPointsForModel);
         },
         initialiseBaseLayers: function () {
+            // TODO: Fetch baselayer urls from dj admin
+            const url = 'https://kmi.dbca.wa.gov.au/geoserver/public/wms';
             let satelliteTileWms = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                url: url,
                 params: {
                     FORMAT: 'image/png',
                     VERSION: '1.1.1',
@@ -2772,7 +2774,7 @@ export default {
             });
 
             let streetsTileWMS = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                url: url,
                 params: {
                     FORMAT: 'image/png',
                     VERSION: '1.1.1',
