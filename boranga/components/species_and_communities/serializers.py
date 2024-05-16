@@ -913,7 +913,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        if request.user.is_superuser:
+        if request.user.is_superuser and obj.can_user_edit:
             return True
 
         if not is_species_communities_approver(request.user.id):
