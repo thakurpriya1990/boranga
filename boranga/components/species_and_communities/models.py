@@ -2129,7 +2129,8 @@ reversion.register(SpeciesDocument)
 # Species History
 reversion.register(
     Species,
-    follow=["taxonomy", "species_distribution", "species_conservation_attributes"],
+    follow=["taxonomy", "species_distribution", 
+            "species_conservation_attributes", "species_publishing_status"],
 )
 reversion.register(Taxonomy, follow=["taxon_previous_queryset", "vernaculars"])
 # reversion.register(CrossReference, follow=["old_taxonomy"])
@@ -2137,6 +2138,7 @@ reversion.register(TaxonPreviousName)
 reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)
 reversion.register(TaxonVernacular)
+reversion.register(SpeciesPublishingStatus)
 
 # Community Document
 reversion.register(CommunityDocument)
@@ -2144,11 +2146,13 @@ reversion.register(CommunityDocument)
 # Community History
 reversion.register(
     Community,
-    follow=["taxonomy", "community_distribution", "community_conservation_attributes"],
+    follow=["taxonomy", "community_distribution", 
+            "community_conservation_attributes", "community_publishing_status"],
 )
 reversion.register(CommunityTaxonomy)
 reversion.register(CommunityDistribution)
 reversion.register(CommunityConservationAttributes)
+reversion.register(CommunityPublishingStatus)
 
 # Conservation Threat
 reversion.register(ConservationThreat)

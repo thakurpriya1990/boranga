@@ -1485,6 +1485,8 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 raise serializer.ValidationError("non-active species record cannot be made public")
             serializer.save()
 
+        instance.save(version_user=request.user)
+
         return Response(serializer.data)
 
 
@@ -2119,6 +2121,8 @@ class CommunityViewSet(viewsets.ModelViewSet):
             if instance.processing_status != "active" and serializer.validated_data["community_public"]:
                 raise serializer.ValidationError("non-active community record cannot be made public")
             serializer.save()
+
+        instance.save(version_user=request.user)
 
         return Response(serializer.data)
 
