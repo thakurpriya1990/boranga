@@ -1816,7 +1816,7 @@ class ConservationThreat(RevisionedMixin):
         null=True,
         blank=True,
     )
-    comment = models.CharField(max_length=512, default="None")
+    comment = models.CharField(max_length=512, blank=True, null=True)
     date_observed = models.DateField(blank=True, null=True)
     visible = models.BooleanField(
         default=True
