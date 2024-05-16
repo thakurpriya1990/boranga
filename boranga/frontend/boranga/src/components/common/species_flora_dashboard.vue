@@ -412,7 +412,7 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
-                     'Conservation List', 'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                     'Conservation List', 'Conservation Category', 'Region', 'District', 'Action']
             }
             if (this.is_internal){
                 return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
@@ -576,6 +576,9 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     if (full.processing_status){
+                        if (full.processing_status === "Active" && full.publishing_status) {
+                            return full.processing_status +" - "+ full.publishing_status.public_status;
+                        }
                         return full.processing_status;
                     }
                     // Should not reach here
@@ -633,6 +636,9 @@ export default {
                             links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
                         else{
+                            if(full.user_process){
+                                links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;
+                            }
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                             links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
@@ -677,7 +683,7 @@ export default {
                     vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_status,
+                    //vm.column_status,
                     vm.column_action,
                 ]
                 search = false

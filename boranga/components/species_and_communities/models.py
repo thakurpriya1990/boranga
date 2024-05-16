@@ -1205,6 +1205,7 @@ class Community(RevisionedMixin):
             return False
         else:
             return self.is_approver(user)
+            return self.is_approver(user)
 
     @property
     def reference(self):
@@ -1844,6 +1845,69 @@ class ConservationThreat(RevisionedMixin):
         elif self.community:
             return self.community.community_number
 
+class SpeciesPublishingStatus(models.Model):
+    """
+    The public publishing status of a species instance and its sections.
+
+    Has a:
+    - species
+    Used for:
+    - Species
+    Is:
+    - Table
+    """
+
+    species = models.OneToOneField(
+        Species,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="species_publishing_status",
+    )
+
+    species_public = models.BooleanField(default=False)
+
+    distribution_public = models.BooleanField(default=False)
+    conservation_status_public = models.BooleanField(default=False)
+    conservation_attributes_public = models.BooleanField(default=False)
+    threats_public = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.species) 
+
+class CommunityPublishingStatus(models.Model):
+    """
+    The public publishing status of a community instance and its sections.
+    
+    Has a:
+    - community
+    Used for:
+    - Community
+    Is:
+    - Table
+    """
+
+    community = models.OneToOneField(
+        Community,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="community_publishing_status",
+    )
+
+    community_public = models.BooleanField(default=False)
+
+    distribution_public = models.BooleanField(default=False)
+    conservation_status_public = models.BooleanField(default=False)
+    conservation_attributes_public = models.BooleanField(default=False)
+    threats_public = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.community) 
 
 class FloraRecruitmentType(models.Model):
     """
@@ -2065,7 +2129,8 @@ reversion.register(SpeciesDocument)
 # Species History
 reversion.register(
     Species,
-    follow=["taxonomy", "species_distribution", "species_conservation_attributes"],
+    follow=["taxonomy", "species_distribution", 
+            "species_conservation_attributes", "species_publishing_status"],
 )
 reversion.register(Taxonomy, follow=["taxon_previous_queryset", "vernaculars"])
 # reversion.register(CrossReference, follow=["old_taxonomy"])
@@ -2073,6 +2138,7 @@ reversion.register(TaxonPreviousName)
 reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)
 reversion.register(TaxonVernacular)
+reversion.register(SpeciesPublishingStatus)
 
 # Community Document
 reversion.register(CommunityDocument)
@@ -2080,11 +2146,13 @@ reversion.register(CommunityDocument)
 # Community History
 reversion.register(
     Community,
-    follow=["taxonomy", "community_distribution", "community_conservation_attributes"],
+    follow=["taxonomy", "community_distribution", 
+            "community_conservation_attributes", "community_publishing_status"],
 )
 reversion.register(CommunityTaxonomy)
 reversion.register(CommunityDistribution)
 reversion.register(CommunityConservationAttributes)
+reversion.register(CommunityPublishingStatus)
 
 # Conservation Threat
 reversion.register(ConservationThreat)

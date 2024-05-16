@@ -51,11 +51,11 @@
                             <div class="row">
                                 <div class="col-sm-12">
                                     <strong>Status</strong><br />
-                                    {{ species_community.processing_status }}
+                                    {{ species_community.processing_status }} <span v-if="isActive"> - {{species_community.publishing_status.public_status}}</span>
                                 </div>
                             </div>
                         </div>
-                        <div v-if='!isCommunity && hasUserEditMode' class="card-body border-top">
+                        <div v-if='hasUserEditMode' class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12">
                                     <div class="col-sm-12 top-buffer-s">
@@ -64,7 +64,7 @@
                                                 <strong>Action</strong><br />
                                             </div>
                                         </div>
-                                        <div class="row">
+                                        <div class="row" v-if="!isCommunity">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="splitSpecies()">Split</button><br />
@@ -78,7 +78,17 @@
                                                     @click.prevent="renameSpecies()">Rename</button><br />
                                             </div>
                                         </div>
-                                        <template v-if="canDiscard">
+                                        <div class="row" v-if="isActive">
+                                            <div class="col-sm-12" v-if="!isPublic">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="makePublic()">Make Public</button><br />
+                                            </div>
+                                            <div class="col-sm-12" v-else>
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="makePrivate()">Make Private</button><br />
+                                            </div>
+                                        </div>
+                                        <div v-if="canDiscard">
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <strong>Action</strong><br />
@@ -90,7 +100,7 @@
                                                         @click.prevent="discardSpeciesProposal()">Discard</button><br />
                                                 </div>
                                             </div>
-                                        </template>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -168,6 +178,8 @@
             @refreshFromResponse="refreshFromResponse" />
         <SpeciesRename ref="species_rename" :species_community_original="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
+        <MakePublic ref="make_public" :species_community="species_community" :is_internal="true"
+            @refreshFromResponse="refreshFromResponse" />
     </div>
 </template>
 <script>
@@ -180,6 +192,7 @@ import ProposalSpeciesCommunities from '@/components/form_species_communities.vu
 import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'
 import SpeciesRename from './species_rename.vue'
+import MakePublic from './make_public.vue'
 import {
     api_endpoints,
     helpers
@@ -213,6 +226,7 @@ export default {
         SpeciesSplit,
         SpeciesCombine,
         SpeciesRename,
+        MakePublic,
     },
     filters: {
         formatDate: function (data) {
@@ -283,6 +297,14 @@ export default {
             else {
                 return false;
             }
+        },
+        isPublic: function() {
+            return (this.species_community.group_type === "community") ?
+                this.species_community.publishing_status.community_public ? true : false :
+                this.species_community.publishing_status.species_public ? true : false;
+        },
+        isActive: function () {
+            return this.species_community.processing_status === "Active" ? true : false;
         },
         canDiscard: function () {
             return this.species_community && this.species_community.processing_status === "Draft" ? true : false;
@@ -459,10 +481,18 @@ export default {
             vm.savingSpeciesCommunity = true;
             let payload = new Object();
             Object.assign(payload, vm.species_community);
+
+            let was_public = "";
+            if (vm.species_community.publishing_status.public_status === "Public")
+            {
+                was_public = " - record is now private"
+            }
+
             await vm.$http.post(vm.species_community_form_url, payload).then(res => {
+                vm.species_community = res.body;
                 swal.fire({
                     title: "Saved",
-                    text: "Your changes has been saved",
+                    text: "Your changes has been saved" + was_public,
                     icon: "success",
                     confirmButtonColor: '#226fbb'
                 });
@@ -718,6 +748,42 @@ export default {
                 this.$refs.species_rename.new_rename_species = rename_species_obj;
                 this.$refs.species_rename.isModalOpen = true;
             }
+        },
+        makePublic: async function () {
+            this.$refs.make_public.isModalOpen = true;
+        },
+        makePrivate: function () {
+            let vm = this;
+            let endpoint = api_endpoints.species;
+            if (this.species_community.group_type === "community") {
+                vm.species_community.publishing_status.community_public = false;
+                endpoint = api_endpoints.community;
+            } else {
+                vm.species_community.publishing_status.species_public = false;
+            }
+            let data = JSON.stringify(vm.species_community.publishing_status)           
+            vm.$http.post(helpers.add_endpoint_json(endpoint,(vm.species_community.id+'/update_publishing_status')),data,{
+                emulateJSON:true
+            }).then((response) => {
+                vm.updatingPublishing = false;
+                vm.species_community.publishing_status = response.body;
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Record has been made private',
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb',
+
+                });
+            }, (error) => {
+                var text= helpers.apiVueResourceError(error);
+                swal.fire({
+                    title: 'Error',
+                    text: 'Publishing settings cannot be updated because of the following error: '+text,
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb',
+                });
+                vm.updatingPublishing = false;
+            });
         }
     },
     mounted: function () {

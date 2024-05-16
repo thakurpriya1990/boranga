@@ -44,7 +44,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Distribution" Index="distribution">
+        <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution" Index="distribution">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Distribution:</label>
                 <div class="col-sm-9">
@@ -168,7 +168,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Conservation Status" :Index="conservationStatusBody">
+        <FormSection v-if="conservation_status_public || is_internal" :formCollapse="false" label="Conservation Status" :Index="conservationStatusBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Conservation List</label>
                 <div class="col-sm-9">
@@ -201,7 +201,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="Conservation Attributes" Index="conservation_attributes">
+        <FormSection v-if="conservation_attributes_public || is_internal" :formCollapse="false" label="Conservation Attributes" Index="conservation_attributes">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
                 <div class="col-sm-9">
@@ -322,7 +322,7 @@
         <FormSection :formCollapse="false" label="General" Index="general">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
-                <div class="col-sm-9">
+                <div v-if="distribution_public" class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="department_file_numbers"
                         placeholder="" v-model="species_community.distribution.department_file_numbers" />
                 </div>
@@ -363,13 +363,70 @@
                 </div>
             </div>
         </FormSection>
+        <FormSection v-if="is_internal" :formCollapse="false" label="Publishing" Index="publishing">
+            <div class="row mb-3">
+                <label for="distribution_publishing" class="col-sm-3 control-label">Distribution: </label>
+                <div class="col-sm-9">
+                    <label for="distribution_publishing" class="me-2">Private</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
+                        id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
+                    <label for="distribution_publishing" class="me-2">Public</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
+                        id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="conservation_status_publishing" class="col-sm-3 control-label">Conservation Status: </label>
+                <div class="col-sm-9">
+                    <label for="conservation_status_publishing" class="me-2">Private</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
+                        id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
+                    <label for="conservation_status_publishing" class="me-2">Public</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
+                        id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="conservation_attributes_publishing" class="col-sm-3 control-label">Conservation Attributes: </label>
+                <div class="col-sm-9">
+                    <label for="conservation_attributes_publishing" class="me-2">Private</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
+                        id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
+                    <label for="conservation_attributes_publishing" class="me-2">Public</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
+                        id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="threats_publishing" class="col-sm-3 control-label">Threats: </label>
+                <div class="col-sm-9">
+                    <label for="threats_publishing" class="me-2">Private</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
+                        id="threats_publishing" v-model="species_community.publishing_status.threats_public">
+                    <label for="threats_publishing" class="me-2">Public</label>
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
+                        id="threats_publishing" v-model="species_community.publishing_status.threats_public">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <button v-if="!updatingPublishing" :disabled="isReadOnly || !isPublic || !isActive" class="btn btn-primary btn-sm float-end" @click.prevent="updatePublishingDetails()">Update</button>
+                    <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                </div>
+            </div>
+        </FormSection>
     </div>
 </template>
 
 <script>
 import Vue from 'vue';
 import FormSection from '@/components/forms/section_toggle.vue';
+import {
+    api_endpoints,
+    helpers
+}
 
+from '@/utils/hooks'
 export default {
     name: 'Community',
     props: {
@@ -377,10 +434,15 @@ export default {
             type: Object,
             required: true
         },
+        is_internal: {
+            type: Boolean,
+            default: false
+        },
     },
     data: function () {
         let vm = this;
         return {
+            updatingPublishing: false,
             conservationStatusBody: 'conservationStatusBody' + vm._uid,
             species_list: [],
             community_profile_dict: {},
@@ -401,6 +463,15 @@ export default {
         FormSection,
     },
     computed: {
+        distribution_public: function () {
+            return this.isPublic && this.species_community.publishing_status.distribution_public;
+        },
+        conservation_status_public: function() {
+            return this.isPublic && this.species_community.publishing_status.conservation_status_public;
+        },
+        conservation_attributes_public: function() {
+            return this.isPublic && this.species_community.publishing_status.conservation_attributes_public;
+        },
         isReadOnly: function () {
             let action = this.$route.query.action;
             if (action === "edit" && this.species_community && this.species_community.user_edit_mode) {
@@ -409,6 +480,12 @@ export default {
             else {
                 return this.species_community.readonly;
             }
+        },
+        isActive: function () {
+            return this.species_community.processing_status === "Active" ? true : false;
+        },
+        isPublic: function () {
+            return this.isActive && this.species_community.publishing_status.community_public ? true : false;
         },
         isNOOReadOnly: function () {
             let vm = this;
@@ -487,6 +564,50 @@ export default {
         },
     },
     methods: {
+        updatePublishing(data) {
+            let vm = this;
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.community,(vm.species_community.id+'/update_publishing_status')),data,{
+                emulateJSON:true
+            }).then((response) => {
+                vm.updatingPublishing = false;
+                vm.species_community.publishing_status = response.body;
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Publishing settings have been updated',
+                    icon: 'success',
+                    confirmButtonColor:'#226fbb',
+
+                });
+            }, (error) => {
+                var text= helpers.apiVueResourceError(error);
+                swal.fire({
+                    title: 'Error',
+                    text: 'Publishing settings cannot be updated because of the following error: '+text,
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb',
+                });
+                vm.updatingPublishing = false;
+            });
+        },
+        updatePublishingDetails: function() {
+            let vm = this;
+            vm.updatingPublishing = true;
+            //if not already public, we make it public (notify user first)
+            //but only if it is active
+            if (vm.isPublic && vm.isActive) {
+                //send just publishing form data
+                let data = JSON.stringify(vm.species_community.publishing_status)
+                vm.updatePublishing(data);
+            } else {
+                swal.fire({
+                    title: 'Error',
+                    text: 'Record not active and cannot be made public',
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb',
+                });
+                vm.updatingPublishing = false;
+            }
+        },
         filterDistrict: function (event) {
             this.$nextTick(() => {
                 if (event) {
@@ -685,54 +806,59 @@ export default {
                         vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.area_of_occupancy_actual;
                     }
 
-                }, (error) => {
-                    console.error('Error:', error);
-                });
-            }
-            else {
-                // set AOOActual value to null if manual selected
-                vm.species_community.distribution.area_of_occupancy_actual = null;
-                document.getElementById("aoo_actual_manual").checked = true;
-                document.getElementById("aoo_actual_auto").checked = false;
-                // set aoo_actual to false to fire the change of value so the AOOActual input box will be editable
-                vm.species_community.distribution.aoo_actual_auto = false;
-            }
+                    }, (error) => {
+                        console.error('Error:', error);
+                    });
+                }
+                else {
+                    // set AOOActual value to null if manual selected
+                    vm.species_community.distribution.area_of_occupancy_actual=null;
+                    document.getElementById("aoo_actual_manual").checked = true;
+                    document.getElementById("aoo_actual_auto").checked = false;
+                    // set aoo_actual to false to fire the change of value so the AOOActual input box will be editable
+                    vm.species_community.distribution.aoo_actual_auto= false;
+                }
+            },
         },
-    },
-    created: async function () {
-        let vm = this;
-        //----set the distribution field values if auto onload
-        if (vm.species_community.distribution.noo_auto == true) {
-            vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
-        }
-        if (vm.species_community.distribution.eoo_auto == true) {
-            vm.species_community.distribution.extent_of_occurrences = vm.species_community.distribution.cal_extent_of_occurrences;
-        }
-        if (vm.species_community.distribution.aoo_actual_auto == true) {
-            vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
-        }
-        if (vm.species_community.distribution.aoo_auto == true) {
-            vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
-        }
-        if (vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
-            vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&
-            vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined) {
-            vm.minimum_fire_interval_range = true;
-        }
-
-        const res_obj = await Vue.http.get('/api/community_profile_dict/');
-        vm.community_profile_dict = res_obj.body;
-        vm.post_fire_habitatat_interactions_list = vm.community_profile_dict.post_fire_habitatat_interactions_list;
-        vm.post_fire_habitatat_interactions_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-        const response = await Vue.http.get('/api/region_district_filter_dict/');
-        vm.filterRegionDistrict = response.body;
-        vm.region_list = vm.filterRegionDistrict.region_list;
-        vm.district_list = vm.filterRegionDistrict.district_list;
-        vm.region_list.splice(0, 0,
+        created: async function () {
+            let vm = this;
+            //----set the distribution field values if auto onload
+            if (vm.species_community.distribution) {
+                if(vm.species_community.distribution.noo_auto == true) {
+                    vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
+                }
+                if(vm.species_community.distribution.eoo_auto == true) {
+                    vm.species_community.distribution.extent_of_occurrences = vm.species_community.distribution.cal_extent_of_occurrences;
+                }
+                if(vm.species_community.distribution.aoo_actual_auto == true) {
+                    vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
+                }
+                if(vm.species_community.distribution.aoo_auto == true) {
+                    vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
+                }
+            }
+            if (vm.species_community.conservation_attributes) { 
+                if(vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
+                    vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&
+                        vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined)
+                {
+                    vm.minimum_fire_interval_range = true;
+                }
+            }
+            //------fetch list of values
+            const res_obj = await Vue.http.get('/api/community_profile_dict/');
+            vm.community_profile_dict = res_obj.body;
+            vm.post_fire_habitatat_interactions_list = vm.community_profile_dict.post_fire_habitatat_interactions_list;
+            vm.post_fire_habitatat_interactions_list.splice(0,0,
+                {
+                    id: null,
+                    name: null,
+                });
+            const response = await Vue.http.get('/api/region_district_filter_dict/');
+            vm.filterRegionDistrict= response.body;
+            vm.region_list = vm.filterRegionDistrict.region_list;
+            vm.district_list= vm.filterRegionDistrict.district_list;
+            vm.region_list.splice(0,0,
             {
                 id: null,
                 name: null,

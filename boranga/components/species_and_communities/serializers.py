@@ -19,6 +19,7 @@ from boranga.components.species_and_communities.models import (
     CommunityLogEntry,
     CommunityTaxonomy,
     CommunityUserAction,
+    CommunityPublishingStatus,
     ConservationThreat,
     InformalGroup,
     Species,
@@ -27,10 +28,11 @@ from boranga.components.species_and_communities.models import (
     SpeciesDocument,
     SpeciesLogEntry,
     SpeciesUserAction,
+    SpeciesPublishingStatus,
     Taxonomy,
     TaxonVernacular,
 )
-from boranga.helpers import is_species_communities_approver
+from boranga.helpers import is_species_communities_approver, is_internal
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -50,6 +52,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
     can_user_edit = serializers.SerializerMethodField()
+    publishing_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -71,6 +74,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "can_user_view",
             "user_process",
             "comment",
+            "publishing_status",
         )
         datatables_always_serialize = (
             "id",
@@ -90,6 +94,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "can_user_view",
             "user_process",
             "comment",
+            "publishing_status",
         )
 
     def get_group_type(self, obj):
@@ -188,6 +193,26 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             return False
         return obj.can_user_edit
 
+    def get_publishing_status(self, obj):
+        try:
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = SpeciesPublishingStatus.objects.get_or_create(
+                species=obj
+            )
+            return SpeciesPublishingStatusSerializer(ps_instance).data
+        except SpeciesPublishingStatus.DoesNotExist:
+            return SpeciesPublishingStatusSerializer().data
+
+    def get_publishing_status(self, obj):
+        try:
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = SpeciesPublishingStatus.objects.get_or_create(
+                species=obj
+            )
+            return SpeciesPublishingStatusSerializer(ps_instance).data
+        except SpeciesPublishingStatus.DoesNotExist:
+            return SpeciesPublishingStatusSerializer().data
+
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
@@ -200,6 +225,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
     can_user_edit = serializers.SerializerMethodField()
+    publishing_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Community
@@ -218,6 +244,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "can_user_view",
             "user_process",
             "comment",
+            "publishing_status",
         )
         datatables_always_serialize = (
             "id",
@@ -234,6 +261,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "can_user_view",
             "user_process",
             "comment",
+            "publishing_status",
         )
 
     def get_group_type(self, obj):
@@ -299,6 +327,16 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
         if not is_species_communities_approver(request.user.id):
             return False
         return obj.can_user_edit
+    
+    def get_publishing_status(self, obj):
+        try:
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = CommunityPublishingStatus.objects.get_or_create(
+                community=obj
+            )
+            return CommunityPublishingStatusSerializer(ps_instance).data
+        except CommunityPublishingStatus.DoesNotExist:
+            return CommunityPublishingStatusSerializer().data
 
 
 class TaxonomySerializer(serializers.ModelSerializer):
@@ -356,6 +394,9 @@ class TaxonomySerializer(serializers.ModelSerializer):
             return ""
 
     def get_conservation_status(self, obj):
+        request = self.context["request"]
+        if not is_internal(request):
+            return None
         try:
             taxonSpecies = Species.objects.get(taxonomy=obj)
             qs = ConservationStatus.objects.get(
@@ -369,6 +410,9 @@ class TaxonomySerializer(serializers.ModelSerializer):
             # return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
 
     def get_conservation_status_under_review(self, obj):
+        request = self.context["request"]
+        if not is_internal(request):
+            return None
         try:
             taxonSpecies = Species.objects.get(taxonomy=obj)
             return ConservationStatus.objects.filter(
@@ -587,6 +631,50 @@ class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
         )
 
 
+class SpeciesPublishingStatusSerializer(serializers.ModelSerializer):
+    public_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SpeciesPublishingStatus
+        fields = (
+            "public_status",
+            "species_id",
+            "species_public",
+            "distribution_public",
+            "conservation_status_public",
+            "conservation_attributes_public",
+            "threats_public",
+        )
+
+    def get_public_status(self,obj):
+        if obj.species_public:
+            return "Public"
+        return "Private"
+
+class SaveSpeciesPublishingStatusSerializer(serializers.ModelSerializer):
+    
+    species_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    public_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SpeciesPublishingStatus
+        fields = (
+            "public_status",
+            "species_id",
+            "species_public",
+            "distribution_public",
+            "conservation_status_public",
+            "conservation_attributes_public",
+            "threats_public",
+        )
+
+    def get_public_status(self,obj):
+        if obj.species_public:
+            return "Public"
+        return "Private"
+
 class BaseSpeciesSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
@@ -595,6 +683,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     taxonomy_details = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
     distribution = serializers.SerializerMethodField()
+    publishing_status = serializers.SerializerMethodField()
     image_doc = serializers.SerializerMethodField()
 
     class Meta:
@@ -623,6 +712,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             "can_user_view",
             "applicant_details",
             "comment",
+            "publishing_status",
         )
 
     def get_readonly(self, obj):
@@ -633,49 +723,83 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     # TODO not used on the form yet as gives error for new species as taxonomy = null
     def get_taxonomy_details(self, obj):
+        request = self.context["request"]
         try:
             if obj.taxonomy:
                 qs = obj.taxonomy
-                return TaxonomySerializer(qs).data
+                return TaxonomySerializer(qs,context={"request": request}).data
         except Taxonomy.DoesNotExist:
             return TaxonomySerializer().data
 
     def get_conservation_status(self, obj):
-        try:
-            qs = ConservationStatus.objects.get(
-                species=obj,
-                conservation_list__applies_to_wa=True,
-                processing_status="approved",
-            )
-            return SpeciesConservationStatusSerializer(qs).data
-        except ConservationStatus.DoesNotExist:
-            return SpeciesConservationStatusSerializer().data
-            # return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+        request = self.context["request"]
+        if is_internal(request) or \
+        (obj.species_publishing_status.species_public and \
+         obj.species_publishing_status.conservation_status_public):
+            try:
+                qs = ConservationStatus.objects.get(
+                    species=obj,
+                    conservation_list__applies_to_wa=True,
+                    processing_status="approved",
+                )
+                return SpeciesConservationStatusSerializer(qs).data
+            except ConservationStatus.DoesNotExist:
+                return SpeciesConservationStatusSerializer().data
+                # return [SpeciesConservationStatusSerializer(qs).data] # this array was used for dashboard on profile page
+        else:
+            return None
 
     def get_conservation_status_under_review(self, obj):
-
-        return ConservationStatus.objects.filter(
-            species=obj,
-            conservation_list__applies_to_wa=True,
-            processing_status="ready_for_agenda",
-        ).exists()
+        request = self.context["request"]
+        if is_internal(request) or \
+        (obj.species_publishing_status.species_public and \
+         obj.species_publishing_status.conservation_status_public):
+            return ConservationStatus.objects.filter(
+                species=obj,
+                conservation_list__applies_to_wa=True,
+                processing_status="ready_for_agenda",
+            ).exists()
+        else:
+            return None
 
     def get_conservation_attributes(self, obj):
-        try:
-            qs = SpeciesConservationAttributes.objects.get(species=obj)
-            return SpeciesConservationAttributesSerializer(qs).data
-        except SpeciesConservationAttributes.DoesNotExist:
-            return SpeciesConservationAttributesSerializer().data
+        request = self.context["request"]
+        if is_internal(request) or \
+        (obj.species_publishing_status.species_public and \
+         obj.species_publishing_status.conservation_attributes_public):
+            try:
+                qs = SpeciesConservationAttributes.objects.get(species=obj)
+                return SpeciesConservationAttributesSerializer(qs).data
+            except SpeciesConservationAttributes.DoesNotExist:
+                return SpeciesConservationAttributesSerializer().data
+        else:
+            return None
 
     def get_distribution(self, obj):
+        request = self.context["request"]
+        if is_internal(request) or \
+        (obj.species_publishing_status.species_public and \
+         obj.species_publishing_status.distribution_public):
+            try:
+                # to create the distribution instance for fetching the calculated values from serializer
+                distribution_instance, created = SpeciesDistribution.objects.get_or_create(
+                    species=obj
+                )
+                return SpeciesDistributionSerializer(distribution_instance).data
+            except SpeciesDistribution.DoesNotExist:
+                return SpeciesDistributionSerializer().data
+        else:
+            return None
+        
+    def get_publishing_status(self, obj):
         try:
-            # to create the distribution instance for fetching the calculated values from serializer
-            distribution_instance, created = SpeciesDistribution.objects.get_or_create(
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = SpeciesPublishingStatus.objects.get_or_create(
                 species=obj
             )
-            return SpeciesDistributionSerializer(distribution_instance).data
-        except SpeciesDistribution.DoesNotExist:
-            return SpeciesDistributionSerializer().data
+            return SpeciesPublishingStatusSerializer(ps_instance).data
+        except SpeciesPublishingStatus.DoesNotExist:
+            return SpeciesPublishingStatusSerializer().data
 
     def get_image_doc(self, obj):
         if obj.image_doc and obj.image_doc._file:
@@ -688,7 +812,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
 class SpeciesSerializer(BaseSpeciesSerializer):
     scientific_name = serializers.SerializerMethodField()
-    submitter = serializers.SerializerMethodField(read_only=True)
+    #submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -707,17 +831,18 @@ class SpeciesSerializer(BaseSpeciesSerializer):
             "distribution",
             "region_id",
             "district_id",
-            "last_data_curration_date",
+            #"last_data_curration_date",
             "image_doc",
             "processing_status",
-            "applicant",
-            "submitter",
-            "lodgement_date",
+            #"applicant",
+            #"submitter",
+            #"lodgement_date",
             "readonly",
             "can_user_edit",
             "can_user_view",
-            "applicant_details",
+            #"applicant_details",
             "comment",
+            "publishing_status",
         )
 
     def get_readonly(self, obj):
@@ -757,6 +882,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
+            "publishing_status",
             "region_id",
             "district_id",
             "last_data_curration_date",
@@ -794,12 +920,9 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        if request.user.is_superuser:
-            return True
-
-        if not is_species_communities_approver(request.user.id):
-            return False
-        return obj.can_user_edit
+        if request.user.is_superuser or is_species_communities_approver(request.user.id):
+            return obj.can_user_edit
+        return False
 
     def get_current_assessor(self, obj):
         return {
@@ -985,6 +1108,49 @@ class SaveCommunityTaxonomySerializer(serializers.ModelSerializer):
             "name_comments",
         )
 
+class CommunityPublishingStatusSerializer(serializers.ModelSerializer):
+    public_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CommunityPublishingStatus
+        fields = (
+            "public_status",
+            "community_id",
+            "community_public",
+            "distribution_public",
+            "conservation_status_public",
+            "conservation_attributes_public",
+            "threats_public",
+        )
+
+    def get_public_status(self,obj):
+        if obj.community_public:
+            return "Public"
+        return "Private"
+
+class SaveCommunityPublishingStatusSerializer(serializers.ModelSerializer):
+    
+    community_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    public_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CommunityPublishingStatus
+        fields = (
+            "public_status",
+            "community_id",
+            "community_public",
+            "distribution_public",
+            "conservation_status_public",
+            "conservation_attributes_public",
+            "threats_public",
+        )
+
+    def get_public_status(self,obj):
+        if obj.community_public:
+            return "Public"
+        return "Private"
 
 class BaseCommunitySerializer(serializers.ModelSerializer):
     species = serializers.SerializerMethodField()
@@ -993,6 +1159,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
     conservation_status = serializers.SerializerMethodField()
     conservation_status_under_review = serializers.SerializerMethodField()
     distribution = serializers.SerializerMethodField()
+    publishing_status = serializers.SerializerMethodField()
     conservation_attributes = serializers.SerializerMethodField()
     readonly = serializers.SerializerMethodField(read_only=True)
     image_doc = serializers.SerializerMethodField()
@@ -1010,6 +1177,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             "conservation_status",
             "conservation_status_under_review",
             "distribution",
+            "publishing_status",
             "conservation_attributes",
             "last_data_curration_date",
             "image_doc",
@@ -1044,43 +1212,76 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
         return CommunityTaxonomySerializer(qs).data
 
     def get_conservation_status(self, obj):
-        try:
-            qs = ConservationStatus.objects.get(
-                community=obj,
-                conservation_list__applies_to_wa=True,
-                processing_status="approved",
-            )
-            return CommunityConservationStatusSerializer(qs).data
-        except ConservationStatus.DoesNotExist:
-            return CommunityConservationStatusSerializer().data
-            # return [CommunityConservationStatusSerializer(qs).data]
-            # this array was used for dashboard on profile page
+        request = self.context["request"]
+        if is_internal(request) or \
+        (obj.community_publishing_status.community_public and \
+         obj.community_publishing_status.conservation_status_public):
+            try:
+                qs = ConservationStatus.objects.get(
+                    community=obj,
+                    conservation_list__applies_to_wa=True,
+                    processing_status="approved",
+                )
+                return CommunityConservationStatusSerializer(qs).data
+            except ConservationStatus.DoesNotExist:
+                return CommunityConservationStatusSerializer().data
+                # return [CommunityConservationStatusSerializer(qs).data]
+                # this array was used for dashboard on profile page
+        else:
+            return None
 
     def get_conservation_status_under_review(self, obj):
-
-        return ConservationStatus.objects.filter(
-            community=obj,
-            conservation_list__applies_to_wa=True,
-            processing_status="ready_for_agenda",
-        ).exists()
+        request = self.context["request"]
+        if is_internal(request) or \
+        (obj.community_publishing_status.community_public and \
+         obj.community_publishing_status.conservation_status_public):
+            return ConservationStatus.objects.filter(
+                community=obj,
+                conservation_list__applies_to_wa=True,
+                processing_status="ready_for_agenda",
+            ).exists()
+        else:
+            return None
 
     def get_distribution(self, obj):
+        request = self.context["request"]
+        if is_internal(request) or \
+        (obj.community_publishing_status.community_public and \
+         obj.community_publishing_status.distribution_public):
+            try:
+                # to create the distribution instance for fetching the calculated values from serializer
+                distribution_instance, created = (
+                    CommunityDistribution.objects.get_or_create(community=obj)
+                )
+                return CommunityDistributionSerializer(distribution_instance).data
+            except CommunityDistribution.MultipleObjectsReturned:
+                qs = None
+            return CommunityDistributionSerializer(qs).data
+        else:
+            return None
+
+    def get_publishing_status(self, obj):
         try:
-            # to create the distribution instance for fetching the calculated values from serializer
-            distribution_instance, created = (
-                CommunityDistribution.objects.get_or_create(community=obj)
+            # to create the publishing status instance for fetching the calculated values from serializer
+            ps_instance, created = CommunityPublishingStatus.objects.get_or_create(
+                community=obj
             )
-            return CommunityDistributionSerializer(distribution_instance).data
-        except CommunityDistribution.MultipleObjectsReturned:
-            qs = None
-        return CommunityDistributionSerializer(qs).data
+            return CommunityPublishingStatusSerializer(ps_instance).data
+        except CommunityPublishingStatus.DoesNotExist:
+            return CommunityPublishingStatusSerializer().data
 
     def get_conservation_attributes(self, obj):
-        try:
-            qs = CommunityConservationAttributes.objects.get(community=obj)
-            return CommunityConservationAttributesSerializer(qs).data
-        except CommunityConservationAttributes.DoesNotExist:
-            return CommunityConservationAttributesSerializer().data
+        request = self.context["request"]
+        if is_internal(request) or \
+        (obj.community_publishing_status.community_public and \
+         obj.community_publishing_status.conservation_attributes_public):
+            try:
+                qs = CommunityConservationAttributes.objects.get(community=obj)
+                return CommunityConservationAttributesSerializer(qs).data
+            except CommunityConservationAttributes.DoesNotExist:
+                return CommunityConservationAttributesSerializer().data
+        else:
+            return None
 
     def get_can_user_edit(self, obj):
         return True
@@ -1144,6 +1345,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "conservation_status",
             "conservation_status_under_review",
             "distribution",
+            "publishing_status",
             "conservation_attributes",
             "last_data_curration_date",
             "image_doc",
@@ -1158,6 +1360,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "comment",
             "conservation_plan_exists",
             "conservation_plan_reference",
+            "publishing_status",
         )
 
     def get_submitter(self, obj):
@@ -1180,12 +1383,9 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        if request.user.is_superuser:
-            return True
-
-        if not is_species_communities_approver(request.user.id):
-            return False
-        return obj.can_user_edit
+        if request.user.is_superuser or is_species_communities_approver(request.user.id):
+            return obj.can_user_edit
+        return False
 
     def get_current_assessor(self, obj):
         return {
