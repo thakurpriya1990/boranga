@@ -913,12 +913,9 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        if request.user.is_superuser and obj.can_user_edit:
-            return True
-
-        if not is_species_communities_approver(request.user.id):
-            return False
-        return obj.can_user_edit
+        if request.user.is_superuser or is_species_communities_approver(request.user.id):
+            return obj.can_user_edit
+        return False
 
     def get_current_assessor(self, obj):
         return {
@@ -1372,12 +1369,9 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        if request.user.is_superuser:
-            return True
-
-        if not is_species_communities_approver(request.user.id):
-            return False
-        return obj.can_user_edit
+        if request.user.is_superuser or is_species_communities_approver(request.user.id):
+            return obj.can_user_edit
+        return False
 
     def get_current_assessor(self, obj):
         return {

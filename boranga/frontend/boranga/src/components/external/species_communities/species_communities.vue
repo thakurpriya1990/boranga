@@ -44,7 +44,7 @@
                                     <input type='hidden' name="species_community_id" :value="1" />
                                     <div class="row" style="margin-bottom: 50px">
                                         <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                            <div v-if="species_community.can_user_approve" class="container">
+                                            <div v-if="species_community.can_user_edit" class="container">
                                                 <div class="col-md-12 text-end">
                                                     <button v-if="savingSpeciesCommunity"
                                                         class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
