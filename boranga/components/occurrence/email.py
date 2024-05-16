@@ -7,6 +7,10 @@ from django.utils.encoding import smart_text
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from boranga.components.emails.emails import TemplateEmailBase
+from boranga.helpers import (
+    convert_external_url_to_internal_url,
+    convert_internal_url_to_external_url,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -115,21 +119,17 @@ def send_submit_email_notification(request, occurrence_report):
             kwargs={"occurrence_report_pk": occurrence_report.id},
         )
     )
-    if "-internal" not in url:
-        # add it. This email is for internal staff (assessors)
-        url = f"-internal.{settings.SITE_DOMAIN}".join(
-            url.split("." + settings.SITE_DOMAIN)
-        )
+
+    url = convert_external_url_to_internal_url(url)
 
     context = {"occurrence_report": occurrence_report, "url": url}
 
     msg = email.send(occurrence_report.assessor_recipients, context=context)
+
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_occurrence_report_email(msg, occurrence_report, sender=sender)
-    # if occurrence_report.org_applicant:
-    #     _log_org_email(msg, occurrence_report.org_applicant, occurrence_report.submitter, sender=sender)
-    # else:
-    #     _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
+
     return msg
 
 
@@ -142,9 +142,7 @@ def send_external_submit_email_notification(request, occurrence_report):
         )
     )
 
-    if "-internal" in url:
-        # remove '-internal'. This email is for external submitters
-        url = "".join(url.split("-internal"))
+    url = convert_internal_url_to_external_url(url)
 
     context = {
         "occurrence_report": occurrence_report,
@@ -159,13 +157,17 @@ def send_external_submit_email_notification(request, occurrence_report):
         cc=None,
         context=context,
     )
+
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
     # if proposal.org_applicant:
     #     _log_org_email(msg, occurrence_report.org_applicant, occurrence_report.submitter, sender=sender)
     # else:
     #     _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
     # _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
+
     return msg
 
 
@@ -407,9 +409,7 @@ def send_occurrence_report_amendment_email_notification(
         )
     )
 
-    if "-internal" in url:
-        # remove '-internal'. This email is for external submitters
-        url = "".join(url.split("-internal"))
+    url = convert_internal_url_to_external_url(url)
 
     attachments = []
     if amendment_request.amendment_request_documents:
