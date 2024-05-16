@@ -42,8 +42,9 @@ export function layerAtEventPixel(map_component, evt) {
  * Queries the WMS server for its capabilities and adds optional layers to a map
  * @param {Proxy} map_component A map component instance
  */
-export async function addOptionalLayers(map_component) {
+export async function fetchTileLayers(map_component) {
     let parser = new WMSCapabilities();
+    const tileLayers = [];
 
     await fetch(url)
         .then(function (response) {
@@ -78,6 +79,7 @@ export async function addOptionalLayers(map_component) {
                     visible: false,
                     extent: layer.BoundingBox[0].extent,
                     source: l,
+                    displayInLayerSwitcher: true,
                 });
 
                 let legend_url = null;
@@ -94,8 +96,7 @@ export async function addOptionalLayers(map_component) {
                 tileLayer.set('display_all_columns', true); // true
                 tileLayer.set('legend_url', legend_url);
 
-                map_component.optionalLayers.push(tileLayer);
-                map_component.map.addLayer(tileLayer);
+                tileLayers.push(tileLayer);
 
                 tileLayer.on('change:visible', function (e) {
                     if (e.oldValue == false) {
@@ -156,6 +157,8 @@ export async function addOptionalLayers(map_component) {
         .catch((error) => {
             console.error('There was an error fetching addional layers', error);
         });
+
+    return tileLayers;
 }
 
 /**

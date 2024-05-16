@@ -1276,7 +1276,7 @@ import { platformModifierKeyOnly } from 'ol/events/condition.js';
 import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 import FileField from '@/components/forms/filefield_immediate.vue';
 import {
-    // addOptionalLayers,
+    fetchTileLayers,
     set_mode,
     baselayer_name,
     // validateFeature,
@@ -1663,6 +1663,7 @@ export default {
             selectedSpatialOperation: null,
             selectedSpatialUnit: 'm',
             spatialOperationParameters: [1.0],
+            fetchTileLayers: fetchTileLayers,
         };
     },
     computed: {
@@ -2334,9 +2335,24 @@ export default {
                 vm.getDefaultProcessedGeometryLayerName();
 
             vm.initialiseDrawLayer();
+
             vm.initialiseLayerSwitcher(
                 [vm.measurementLayer].concat(vm.vectorLayersArray)
             );
+
+            vm.fetchTileLayers(this).then((tileLayers) => {
+                for (let tileLayer of tileLayers) {
+                    vm.optionalLayers.push(tileLayer);
+                    vm.map.addLayer(tileLayer);
+
+                    if (vm.layerSwitcher.displayInLayerSwitcher(tileLayer)) {
+                        vm.layerSwitcher._layerGroup
+                            .getLayers()
+                            .push(tileLayer);
+                    }
+                }
+            });
+
             vm.initialiseLayerEvents();
 
             // update map extent when new features added
