@@ -277,16 +277,6 @@ class Taxonomy(models.Model):
         blank=True,
         related_name="taxons",
     )
-    family_nid = models.IntegerField(null=True, blank=True)
-    family_fk = models.ForeignKey(
-        "self",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="taxon_family",
-    )
-    genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
-    # phylogenetic_group is only used for Fauna
     name_currency = models.CharField(
         max_length=16, null=True, blank=True
     )  # is it the current name? yes or no
@@ -414,8 +404,6 @@ class ClassificationSystem(models.Model):
     """
 
     classification_system_id = models.IntegerField(null=True, blank=True)
-    # TODO delete this field
-    class_type = models.CharField(max_length=100, null=True, blank=True)
     class_desc = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
@@ -429,7 +417,6 @@ class ClassificationSystem(models.Model):
 class InformalGroup(models.Model):
     """
     Classification informal group of taxon which is also derived from taxon
-    informal_group_id is the phylo group for taxon
     """
 
     # may need to add the classisfication system id
@@ -440,8 +427,6 @@ class InformalGroup(models.Model):
         null=True,
         related_name="informal_groups",
     )
-    # TODO delete this field
-    informal_group_id = models.IntegerField(null=True, blank=True)
     taxon_name_id = models.IntegerField(null=True, blank=True)
     taxonomy = models.ForeignKey(
         Taxonomy, on_delete=models.CASCADE, null=True, related_name="informal_groups"
@@ -451,7 +436,7 @@ class InformalGroup(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.informal_group_id)  # TODO: is the most appropriate?
+        return str(self.classification_system_fk.class_desc)  # TODO: is the most appropriate?
 
 
 class Species(RevisionedMixin):

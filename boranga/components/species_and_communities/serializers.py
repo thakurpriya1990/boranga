@@ -358,8 +358,6 @@ class TaxonomySerializer(serializers.ModelSerializer):
             # need to fetch common name in multiple select
             "common_name",
             "taxon_previous_name",
-            "family_fk_id",
-            "genus_id",
             "phylogenetic_group",
             "name_authority",
             "name_comments",
