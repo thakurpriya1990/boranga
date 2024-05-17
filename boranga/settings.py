@@ -101,6 +101,7 @@ INSTALLED_APPS += [
     "boranga.components.meetings",
     "boranga.components.conservation_plan",
     "boranga.components.occurrence",
+    "boranga.components.spatial",
     "taggit",
     "rest_framework",
     "rest_framework_datatables",
