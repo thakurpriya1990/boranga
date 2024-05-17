@@ -389,28 +389,36 @@ class OccurrenceReport(RevisionedMixin):
     @property
     def allowed_assessors(self):
         group = None
-        # TODO: Take application_type into account
         if self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
         ]:
             group = self.get_approver_group()
+            users = list(map(
+                    lambda id: retrieve_email_user(id),
+                    group.get_system_group_member_ids(),
+                )) if group else []
+            return users
         elif self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
         ]:
+            users = []
             group = self.get_assessor_group()
+            users + list(map(
+                lambda id: retrieve_email_user(id),
+                group.get_system_group_member_ids(),
+            )) if group else []
 
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
+            group = self.get_approver_group()
+            users + list(map(
+                lambda id: retrieve_email_user(id),
+                group.get_system_group_member_ids(),
+            )) if group else []
+
+            return list(set(users))
+        else:
+            return []
+        
 
     def has_assessor_mode(self, user):
         status_with_assessor = [
@@ -423,8 +431,10 @@ class OccurrenceReport(RevisionedMixin):
             if self.assigned_officer:
                 if self.assigned_officer == user.id:
                     return (
-                        user.id
-                        in self.get_assessor_group().get_system_group_member_ids()
+                        (user.id
+                        in self.get_assessor_group().get_system_group_member_ids()) or
+                        (user.id
+                        in self.get_approver_group().get_system_group_member_ids())
                     )
                 else:
                     return False
@@ -459,7 +469,8 @@ class OccurrenceReport(RevisionedMixin):
     def assessor_recipients(self):
         logger.info("assessor_recipients")
         recipients = []
-        group_ids = self.get_assessor_group().get_system_group_member_ids()
+        group_ids = list(set((self.get_assessor_group().get_system_group_member_ids()
+                    + self.get_assessor_group().get_system_group_member_ids())))
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
@@ -488,7 +499,8 @@ class OccurrenceReport(RevisionedMixin):
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
         ]:
-            return user.id in self.get_assessor_group().get_system_group_member_ids()
+            return (user.id in self.get_assessor_group().get_system_group_member_ids() or
+                    user.id in self.get_approver_group().get_system_group_member_ids())
         elif self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
             return user.id in self.get_approver_group().get_system_group_member_ids()
         else:
