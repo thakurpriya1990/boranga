@@ -21,14 +21,28 @@ class TileLayer(models.Model):
     geoserver_url = models.ForeignKey(
         GeoserverUrl, on_delete=models.CASCADE, null=False, blank=False
     )
-    layer_name = models.CharField(max_length=255, unique=True, null=False, blank=False) # Name of the layer in Geoserver
-    layer_title = models.CharField(max_length=255) # Title of the layer
-    display_title = models.CharField(max_length=255) # Title to display in the layer switcher
-    is_satellite_background = models.BooleanField(default=False) # Whether the layer is the satellite background layer (mutually exclusive with is_streets_background)
-    is_streets_background = models.BooleanField(default=False) # Whether the layer is the streets background layer (mutually exclusive with is_satellite_background)
-    is_external = models.BooleanField(default=True) # Whether the layer is available for external use
-    is_internal = models.BooleanField(default=True) # Whether the layer is available for internal use
-    visible = models.BooleanField(default=False) # Whether the layer is visible by default
+    layer_name = models.CharField(
+        max_length=255, unique=True, null=False, blank=False
+    )  # Name of the layer in Geoserver
+    layer_title = models.CharField(max_length=255)  # Title of the layer
+    display_title = models.CharField(
+        max_length=255
+    )  # Title to display in the layer switcher
+    is_satellite_background = models.BooleanField(
+        default=False
+    )  # Whether the layer is the satellite background layer (mutually exclusive with is_streets_background)
+    is_streets_background = models.BooleanField(
+        default=False
+    )  # Whether the layer is the streets background layer (mutually exclusive with is_satellite_background)
+    is_external = models.BooleanField(
+        default=True
+    )  # Whether the layer is available for external use
+    is_internal = models.BooleanField(
+        default=True
+    )  # Whether the layer is available for internal use
+    visible = models.BooleanField(
+        default=False
+    )  # Whether the layer is visible by default
 
     class Meta:
         app_label = "boranga"
