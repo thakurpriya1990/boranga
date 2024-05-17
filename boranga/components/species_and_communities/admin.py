@@ -108,7 +108,10 @@ class TaxonomyAdmin(admin.ModelAdmin):
         return False
 
     def grouptype__name(self, obj):
-        return obj.kingdom_fk.grouptype.name
+        if obj.kingdom_fk.grouptype is None:
+            return ''
+        else:
+            return obj.kingdom_fk.grouptype.name
 
 @admin.register(TaxonomyRank)
 class TaxonomyRankAdmin(admin.ModelAdmin):
