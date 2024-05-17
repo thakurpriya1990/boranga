@@ -12,7 +12,11 @@ import { utils } from '@/utils/hooks';
 const urlKbBase = `${env['gis_server_url']}`;
 const urlKbGetCapabilities = `${urlKbBase}/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
 // TODO: fetch additional layer urls from dj admin
-const layerNamesKb = ['kaartdijin-boodja-public:CPT_DBCA_DISTRICTS'];
+const layerNamesKb = [
+    'kaartdijin-boodja-public:CPT_DBCA_DISTRICTS',
+    'kaartdijin-boodja-public:CPT_DBCA_REGIONS',
+    'kaartdijin-boodja-public:DFA_FMP_tenure',
+];
 
 // Layer to use as map base layer
 export var baselayer_name = 'mapbox-emerald';
