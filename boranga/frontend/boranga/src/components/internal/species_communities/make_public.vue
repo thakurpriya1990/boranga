@@ -79,6 +79,10 @@ export default {
             type: Object,
             required: true
         },
+        species_community_original: {
+            type: Object,
+            required: true
+        },
         is_internal: {
             type: Boolean,
             required: true
@@ -136,6 +140,7 @@ export default {
             }).then((response) => {
                 vm.updatingPublishing = false;
                 vm.species_community.publishing_status = response.body;
+                vm.species_community_original.publishing_status = helpers.copyObject(vm.species_community.publishing_status);
                 swal.fire({
                     title: 'Saved',
                     text: 'Record has been made public',
@@ -152,6 +157,7 @@ export default {
                     icon: 'error',
                     confirmButtonColor:'#226fbb',
                 });
+                vm.species_community.publishing_status = helpers.copyObject(vm.species_community_original.publishing_status);
                 vm.updatingPublishing = false;
             });
         },
