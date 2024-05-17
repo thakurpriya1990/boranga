@@ -9,7 +9,8 @@ import { utils } from '@/utils/hooks';
 
 // Tile server url
 // var urlKmi = `${env['gis_server_url']}/geoserver/public/wms/?SERVICE=WMS&VERSION=1.0.0&REQUEST=GetCapabilities`;
-const urlKb = `${env['gis_server_url']}/ows/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
+const urlKbBase = `${env['gis_server_url']}`;
+const urlKbGetCapabilities = `${urlKbBase}/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
 // TODO: fetch additional layer urls from dj admin
 const layerNamesKb = ['kaartdijin-boodja-public:CPT_DBCA_DISTRICTS'];
 
@@ -49,7 +50,7 @@ export async function fetchTileLayers(map_component) {
     let parser = new WMSCapabilities();
     const tileLayers = [];
 
-    await fetch(urlKb)
+    await fetch(urlKbGetCapabilities)
         .then(function (response) {
             return response.text();
         })
@@ -64,7 +65,7 @@ export async function fetchTileLayers(map_component) {
                 let layer = layers[j];
 
                 let l = new TileWMS({
-                    url: `${env['gis_server_url']}/ows`,
+                    url: urlKbBase,
                     crossOrigin: 'anonymous', // Data for a image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
                     params: {
                         FORMAT: 'image/png',

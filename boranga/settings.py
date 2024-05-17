@@ -303,7 +303,7 @@ NOMOS_URL = env("NOMOS_URL")
 NOMOS_USERNAME = env("NOMOS_USERNAME")
 NOMOS_PASSWORD = env("NOMOS_PASSWORD")
 NOMOS_BLOB_URL = env("NOMOS_BLOB_URL")
-GIS_SERVER_URL = env("GIS_SERVER_URL", "https://kaartdijin-boodja-geoserver.dbca.wa.gov.au/geoserver")
+GIS_SERVER_URL = env("GIS_SERVER_URL", "https://kaartdijin-boodja-geoserver.dbca.wa.gov.au/geoserver/ows")
 
 # ---------- Identifier fields for logging ----------
 
