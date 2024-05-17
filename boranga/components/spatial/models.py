@@ -8,6 +8,8 @@ class GeoserverUrl(models.Model):
     class Meta:
         app_label = "boranga"
         ordering = ["url"]
+        verbose_name = "Geoserver URL"
+        verbose_name_plural = "Geoserver URLs"
 
     def __str__(self):
         return self.url
@@ -47,6 +49,8 @@ class TileLayer(models.Model):
     class Meta:
         app_label = "boranga"
         ordering = ["display_title", "layer_name"]
+        verbose_name = "Geoserver Tile Layer"
+        verbose_name_plural = "Geoserver Tile Layers"
         constraints = [
             models.CheckConstraint(
                 check=models.Q(
