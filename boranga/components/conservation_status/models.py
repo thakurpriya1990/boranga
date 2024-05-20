@@ -489,6 +489,19 @@ class ConservationStatus(RevisionedMixin):
         max_length=100, blank=True, null=True
     )
 
+    APPROVAL_LEVEL_INTERMEDIATE = "intermediate"
+    APPROVAL_LEVEL_MINISTER = "minister"
+    APPROVAL_LEVEL_CHOICES = (
+        (APPROVAL_LEVEL_INTERMEDIATE, "Intermediate"),
+        (APPROVAL_LEVEL_MINISTER, "Minister"),
+    )
+
+    approval_level = models.CharField(
+        max_length=20,
+        choices=APPROVAL_LEVEL_CHOICES,
+        null=True,
+    )
+
     iucn_version = models.ForeignKey(
         IUCNVersion,
         on_delete=models.SET_NULL,
