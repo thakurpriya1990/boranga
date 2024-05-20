@@ -1,4 +1,4 @@
-import WMSCapabilities from 'ol/format/WMSCapabilities';
+// import WMSCapabilities from 'ol/format/WMSCapabilities';
 import TileWMS from 'ol/source/TileWMS';
 import TileLayer from 'ol/layer/Tile';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -8,8 +8,9 @@ import { Style, Fill, Stroke } from 'ol/style';
 import { utils } from '@/utils/hooks';
 
 // Tile server url
-// eslint-disable-next-line no-undef
-var url = `${env['kmi_server_url']}/geoserver/public/wms/?SERVICE=WMS&VERSION=1.0.0&REQUEST=GetCapabilities`;
+// var urlKmi = `${env['gis_server_url']}/geoserver/public/wms/?SERVICE=WMS&VERSION=1.0.0&REQUEST=GetCapabilities`;
+// const urlKbBase = `${env['gis_server_url']}`;
+
 // Layer to use as map base layer
 export var baselayer_name = 'mapbox-emerald';
 // export var baselayer_name = 'mapbox-dark'
@@ -21,12 +22,22 @@ export var baselayer_name = 'mapbox-emerald';
  * @returns an array of layers
  */
 export function layerAtEventPixel(map_component, evt) {
-    let layer_at_pixel = [];
+    const layer_at_pixel = [];
+    const layers = [];
     map_component.map.getLayers().forEach((layer) => {
+        if (typeof layer.getLayers === 'function') {
+            layers.concat(layer.getLayersArray());
+        } else {
+            layers.push(layer);
+        }
+    }, layers);
+
+    layers.forEach((layer) => {
         if (!map_component.informing) {
             return;
         }
         let pixel = map_component.map.getEventPixel(evt.originalEvent);
+
         let data = layer.getData(pixel);
         // Return if no data or the alpha channel in RGBA is zero (transparent)
         if (!data || data[3] == 0) {
@@ -41,121 +52,67 @@ export function layerAtEventPixel(map_component, evt) {
 /**
  * Queries the WMS server for its capabilities and adds optional layers to a map
  * @param {Proxy} map_component A map component instance
+ * @param {string} tileLayerApiUrl The url to the tile layer API
  */
-export async function addOptionalLayers(map_component) {
-    let parser = new WMSCapabilities();
+export async function fetchTileLayers(map_component, tileLayerApiUrl) {
+    // let parser = new WMSCapabilities();
+    if (!tileLayerApiUrl) {
+        console.error('No tile layer API url provided');
+        return [];
+    }
+    let tileLayers = [];
 
-    await fetch(url)
-        .then(function (response) {
-            return response.text();
-        })
-        .then(function (text) {
-            let result = parser.read(text);
-            let layers = result.Capability.Layer.Layer.filter((layer) => {
-                return layer['Name'] === 'dbca_legislated_lands_and_waters';
-            });
-
-            for (let j in layers) {
-                let layer = layers[j];
-
-                let l = new TileWMS({
-                    // eslint-disable-next-line no-undef
-                    url: `${env['kmi_server_url']}/geoserver/public/wms`,
-                    crossOrigin: 'anonymous', // Data for a image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
-                    params: {
-                        FORMAT: 'image/png',
-                        VERSION: '1.1.1',
-                        tiled: true,
-                        STYLES: '',
-                        LAYERS: `public:${layer.Name}`,
-                    },
-                });
-
-                let tileLayer = new TileLayer({
-                    name: layer.Name,
-                    abstract: layer.Abstract.trim(),
-                    title: layer.Title.trim(),
-                    visible: false,
-                    extent: layer.BoundingBox[0].extent,
-                    source: l,
-                });
-
-                let legend_url = null;
-                if (layer.Name == baselayer_name) {
-                    // TODO don't add the baselayer to the optional layer control
-                } else {
-                    if (typeof layer.Style != 'undefined') {
-                        legend_url = layer.Style[0].LegendURL[0].OnlineResource;
-                    }
-                }
-
-                // Set additional attributes to the layer
-                tileLayer.set('columns', []); // []
-                tileLayer.set('display_all_columns', true); // true
-                tileLayer.set('legend_url', legend_url);
-
-                map_component.optionalLayers.push(tileLayer);
-                map_component.map.addLayer(tileLayer);
-
-                tileLayer.on('change:visible', function (e) {
-                    if (e.oldValue == false) {
-                        $('#legend')
-                            .find('img')
-                            .attr('src', this.values_.legend_url);
-                        $('#legend_title').text(this.values_.title);
-                    } else if (e.oldValue == true) {
-                        $('#legend_title').text('');
-                        $('#legend').find('img').attr('src', '');
-                        // Hide any overlays when the optional layer is turned off
-                        map_component.overlay(undefined);
-                    } else {
-                        console.error(
-                            'Cannot assess tile layer visibility change.'
-                        );
-                    }
-                });
-
-                // Lets ol display a popup with clicked feature properties
-                map_component.map.on('singleclick', function (evt) {
-                    if (map_component.mode !== 'info') {
-                        return;
-                    }
-                    let coordinate = evt.coordinate;
-                    layerAtEventPixel(map_component, evt).forEach((lyr) => {
-                        if (lyr.values_.name === tileLayer.values_.name) {
-                            console.log('Clicked on tile layer', lyr);
-
-                            let point = `POINT (${coordinate.join(' ')})`;
-                            let query_str = _helper.geoserverQuery.bind(this)(
-                                point,
-                                map_component
-                            );
-
-                            _helper
-                                .validateFeatureQuery(query_str)
-                                .then(async (features) => {
-                                    if (features.length === 0) {
-                                        console.warn(
-                                            'No features found at this location.'
-                                        );
-                                        map_component.overlay(undefined);
-                                    } else {
-                                        console.log('Feature', features);
-                                        map_component.overlay(
-                                            coordinate,
-                                            features[0]
-                                        );
-                                    }
-                                    map_component.errorMessageProperty(null);
-                                });
-                        }
-                    });
-                });
+    await fetch(tileLayerApiUrl)
+        .then(async (response) => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
+            return response.json();
+        })
+        .then((layers) => {
+            console.log('tilelayer', layers);
+            tileLayers = _helper.tileLayerFromLayerDefinitions(layers);
         })
         .catch((error) => {
-            console.error('There was an error fetching addional layers', error);
+            console.error('Error fetching tilelayer:', error);
         });
+    return tileLayers;
+}
+
+export async function fetchProposals(map_component, proposalApiUrl) {
+    if (!proposalApiUrl) {
+        console.error('No proposal API URL provided');
+        return [];
+    }
+    map_component.fetchingProposals = true;
+    let url = proposalApiUrl;
+    // Characters to concatenate pseudo url elements
+    let chars = ['&', '&', '?'];
+    let proposals = [];
+
+    if (map_component.proposalIds.length > 0) {
+        url +=
+            `${chars.pop()}proposal_ids=` +
+            map_component.proposalIds.toString();
+    }
+    await fetch(url)
+        .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok) {
+                const error = (data && data.message) || response.statusText;
+                console.log(error);
+                return Promise.reject(error);
+            }
+            proposals = data;
+        })
+        .catch((error) => {
+            console.error('There was an error!', error);
+        })
+        .finally(() => {
+            map_component.fetchingProposals = false;
+        });
+
+    return proposals;
 }
 
 /**
@@ -394,8 +351,8 @@ const _helper = {
             map_component = vm.$refs.component_map;
         }
         // The geoserver url
-        // eslint-disable-next-line no-undef
-        let owsUrl = `${env['kmi_server_url']}/geoserver/public/ows/?`;
+        // TODO: Only changed the env part here, so the url probably doesn't work with the new geoserver
+        let owsUrl = `${env['gis_server_url']}/geoserver/public/ows/?`;
         // Create a params dict for the WFS request to the land-water layer
         let paramsDict = map_component.queryParamsDict('landwater');
         let geometry_name = map_component.owsQuery.landwater.geometry;
@@ -433,5 +390,56 @@ const _helper = {
             });
 
         return features;
+    },
+    tileLayerFromLayerDefinitions: function (layers) {
+        const tileLayers = [];
+
+        for (let j in layers) {
+            let layer = layers[j];
+
+            let l = new TileWMS({
+                url: layer.geoserver_url,
+                crossOrigin: 'anonymous', // Data for a image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
+                params: {
+                    FORMAT: 'image/png',
+                    VERSION: '1.1.1',
+                    tiled: true,
+                    STYLES: '',
+                    LAYERS: `${layer.layer_name}`,
+                },
+            });
+
+            const isBackgroundLayer =
+                layer.is_satellite_background || layer.is_streets_background;
+
+            let tileLayer = new TileLayer({
+                name: layer.Name,
+                // abstract: layer.Abstract.trim(),
+                title: layer.display_title.trim(),
+                visible: layer.visible,
+                // extent: layer.BoundingBox[0].extent,
+                source: l,
+                displayInLayerSwitcher: !isBackgroundLayer,
+                is_satellite_background: layer.is_satellite_background,
+                is_streets_background: layer.is_streets_background,
+            });
+
+            let legend_url = null;
+            if (layer.Name == baselayer_name) {
+                // TODO don't add the baselayer to the optional layer control
+            } else {
+                if (typeof layer.Style != 'undefined') {
+                    legend_url = layer.Style[0].LegendURL[0].OnlineResource;
+                }
+            }
+
+            // Set additional attributes to the layer
+            tileLayer.set('columns', []); // []
+            tileLayer.set('display_all_columns', true); // true
+            tileLayer.set('legend_url', legend_url);
+
+            tileLayers.push(tileLayer);
+        }
+        return tileLayers;
     },
 };

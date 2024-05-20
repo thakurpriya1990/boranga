@@ -101,6 +101,7 @@ INSTALLED_APPS += [
     "boranga.components.meetings",
     "boranga.components.conservation_plan",
     "boranga.components.occurrence",
+    "boranga.components.spatial",
     "taggit",
     "rest_framework",
     "rest_framework_datatables",
@@ -303,7 +304,7 @@ NOMOS_URL = env("NOMOS_URL")
 NOMOS_USERNAME = env("NOMOS_USERNAME")
 NOMOS_PASSWORD = env("NOMOS_PASSWORD")
 NOMOS_BLOB_URL = env("NOMOS_BLOB_URL")
-GIS_SERVER_URL = env("GIS_SERVER_URL", "https://kmi.dbca.wa.gov.au")
+GIS_SERVER_URL = env("GIS_SERVER_URL", "https://kaartdijin-boodja-geoserver.dbca.wa.gov.au/geoserver/ows")
 
 # ---------- Identifier fields for logging ----------
 
