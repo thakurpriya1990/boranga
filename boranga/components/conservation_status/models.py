@@ -776,6 +776,19 @@ class ConservationStatus(RevisionedMixin):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
+    @property
+    def current_conservation_status(self):
+        current_conservation_statuses = ConservationStatus.objects.filter(
+            species=self.species,
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+        )
+        if current_conservation_statuses.count() > 1:
+            logger.warning(
+                f"Multiple approved conservation statuses for {self.species}"
+            )
+
+        return current_conservation_statuses.first()
+
     # Check if the user is member of assessor group for the CS Proposal
     def is_assessor(self, user):
         if user.is_superuser:
