@@ -538,9 +538,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     group_type_id = serializers.SerializerMethodField(read_only=True)
-    # conservation_criteria = serializers.SerializerMethodField()
     allowed_assessors = EmailUserSerializer(many=True)
-    list_approval_level = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -551,8 +549,10 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "species_id",
             "community_id",
             "conservation_status_number",
-            "conservation_list_id",
-            "conservation_category_id",
+            "wa_legislative_list_id",
+            "wa_legislative_category_id",
+            "wa_priority_list_id",
+            "wa_priority_category_id",
             "conservation_criteria",
             "recommended_conservation_list_id",
             "recommended_conservation_category_id",
@@ -577,7 +577,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "allowed_assessors",
             "deficiency_data",
             "assessor_data",
-            "list_approval_level",
+            "approval_level",
             "can_view_recommended",
         )
 
@@ -611,12 +611,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_customer_status(self, obj):
         return obj.get_customer_status_display()
-
-    def get_list_approval_level(self, obj):
-        if obj.conservation_list:
-            return obj.conservation_list.approval_level
-        else:
-            return None
 
 
 class ConservationStatusSerializer(BaseConservationStatusSerializer):
@@ -701,17 +695,26 @@ class ConservationStatusIssuanceApprovalDetailsSerializer(serializers.ModelSeria
         )
 
 
-class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
-    curr_wa_priority_list = serializers.SerializerMethodField(read_only=True)
-    curr_wa_priority_category = serializers.SerializerMethodField(read_only=True)
-    curr_wa_legislative_list = serializers.SerializerMethodField(read_only=True)
-    curr_wa_legislative_category = serializers.SerializerMethodField(read_only=True)
-    curr_commonwealth_conservation_list = serializers.SerializerMethodField(
-        read_only=True
-    )
+class CurrentConservationStatusSerializer(serializers.ModelSerializer):
+    """Used in the serializer below so we can easily reference all the required fields
+    for the current conservation status in the internal conservation status serializer
+    without having to add lots of serializer method fields."""
 
-    international_conservation = serializers.CharField()
-    conservation_criteria = serializers.CharField()
+    class Meta:
+        model = ConservationStatus
+        fields = [
+            "id",
+            "wa_legislative_list_id",
+            "wa_legislative_category_id",
+            "wa_priority_list_id",
+            "wa_priority_category_id",
+            "commonwealth_conservation_list_id",
+            "international_conservation",
+            "conservation_criteria",
+        ]
+
+
+class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
@@ -730,6 +733,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     can_user_edit = serializers.SerializerMethodField(read_only=True)
     is_new_contributor = serializers.SerializerMethodField(read_only=True)
     internal_application = serializers.BooleanField(read_only=True)
+    current_conservation_status = CurrentConservationStatusSerializer(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -740,12 +744,11 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "species_id",
             "community_id",
             "conservation_status_number",
-            "curr_wa_priority_list",
-            "curr_wa_priority_category",
-            "curr_wa_legislative_list",
-            "curr_wa_legislative_category",
-            "curr_commonwealth_conservation_list",
-            "curr_conservation_criteria",
+            "wa_legislative_list_id",
+            "wa_legislative_category_id",
+            "wa_priority_list_id",
+            "wa_priority_category_id",
+            "commonwealth_conservation_list_id",
             "international_conservation",
             "conservation_criteria",
             "recommended_conservation_criteria",
@@ -773,11 +776,13 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "conservationstatusissuanceapprovaldetails",
             "internal_user_edit",
             "conservation_status_approval_document",
-            "list_approval_level",
+            "approval_level",
             "can_view_recommended",
             "can_edit_recommended",
             "internal_application",
             "is_new_contributor",
+            "change_code_id",
+            "current_conservation_status",
         )
 
     def get_submitter(self, obj):
@@ -851,146 +856,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
                 )
         except ConservationStatusIssuanceApprovalDetails.DoesNotExist:
             return None
-
-    def get_curr_wa_priority_list(self, obj):
-        try:
-            if obj.species:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    species=obj.species,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_wa_priority_list:
-                    return prev_approved_cs.recommended_wa_priority_list.code
-
-                return prev_approved_cs.conservation_list.code
-            elif obj.community:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    community=obj.community,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_wa_priority_list:
-                    return prev_approved_cs.recommended_wa_priority_list.code
-                return prev_approved_cs.conservation_list.code
-        except ConservationStatus.DoesNotExist:
-            return ""
-
-    def get_curr_wa_priority_category(self, obj):
-        try:
-            if obj.species:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    species=obj.species,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_wa_priority_category:
-                    return prev_approved_cs.recommended_wa_priority_category.code
-                return prev_approved_cs.conservation_category.code
-            elif obj.community:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    community=obj.community,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_wa_priority_category:
-                    return prev_approved_cs.recommended_wa_priority_category.code
-                return prev_approved_cs.conservation_category.code
-        except ConservationStatus.DoesNotExist:
-            return ""
-
-    def get_curr_wa_legislative_list(self, obj):
-        try:
-            if obj.species:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    species=obj.species,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_wa_legislative_list:
-                    return prev_approved_cs.recommended_wa_legislative_list.code
-                return prev_approved_cs.conservation_list.code
-            elif obj.community:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    community=obj.community,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_wa_legislative_list:
-                    return prev_approved_cs.recommended_wa_legislative_list.code
-                return prev_approved_cs.conservation_list.code
-        except ConservationStatus.DoesNotExist:
-            return ""
-
-    def get_curr_wa_legislative_category(self, obj):
-        try:
-            if obj.species:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    species=obj.species,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_wa_legislative_category:
-                    return prev_approved_cs.recommended_wa_legislative_category.code
-                return prev_approved_cs.conservation_category.code
-            elif obj.community:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    community=obj.community,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_wa_legislative_category:
-                    return prev_approved_cs.recommended_wa_legislative_category.code
-                return prev_approved_cs.conservation_category.code
-        except ConservationStatus.DoesNotExist:
-            return ""
-
-    def get_curr_commonwealth_conservation_list(self, obj):
-        try:
-            if obj.species:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    species=obj.species,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_commonwealth_conservation_list:
-                    return (
-                        prev_approved_cs.recommended_commonwealth_conservation_list.code
-                    )
-                return prev_approved_cs.conservation_list.code
-            elif obj.community:
-                prev_approved_cs = ConservationStatus.objects.get(
-                    community=obj.community,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_commonwealth_conservation_list:
-                    return (
-                        prev_approved_cs.recommended_commonwealth_conservation_list.code
-                    )
-                return prev_approved_cs.conservation_list.code
-        except ConservationStatus.DoesNotExist:
-            return ""
-
-    def get_curr_conservation_criteria(self, obj):
-        try:
-            if obj.species:
-                # TODO Do we need to condsider the wa, commonwealth, international approved status
-                prev_approved_cs = ConservationStatus.objects.get(
-                    species=obj.species,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_conservation_criteria:
-                    recom_criteria = prev_approved_cs.recommended_conservation_criteria
-                    return recom_criteria
-                else:
-                    criteria = prev_approved_cs.conservation_criteria
-                    return criteria
-
-            elif obj.community:
-                # TODO Do we need to condsider the wa, commonwealth, international approved status
-                prev_approved_cs = ConservationStatus.objects.get(
-                    community=obj.community,
-                    processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-                )
-                if prev_approved_cs.recommended_conservation_criteria:
-                    recom_criteria = prev_approved_cs.recommended_conservation_criteria
-                    return recom_criteria
-                else:
-                    criteria = prev_approved_cs.recommended_conservation_criteria
-                    return criteria
-        except ConservationStatus.DoesNotExist:
-            return ""
 
     def get_can_edit_recommended(self, obj):
         # TODO check if the proposal has been accepted or declined
