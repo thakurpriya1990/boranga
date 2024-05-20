@@ -41,7 +41,7 @@
                         <template v-if="with_approver">
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_approve"
                                 class="form-select mb-2" v-model="occurrence_report.assigned_approver">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id" :selected="member.id==occurrence_report.assigned_approver">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
@@ -51,7 +51,7 @@
                         <template v-else>
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess"
                                 class="form-select mb-2" v-model="occurrence_report.assigned_officer">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id" :selected="member.id==occurrence_report.current_assessor.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="(with_assessor || with_referral) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"

@@ -404,13 +404,13 @@ class OccurrenceReport(RevisionedMixin):
         ]:
             users = []
             group = self.get_assessor_group()
-            users + list(map(
+            users = users + list(map(
                 lambda id: retrieve_email_user(id),
                 group.get_system_group_member_ids(),
             )) if group else []
 
             group = self.get_approver_group()
-            users + list(map(
+            users = users + list(map(
                 lambda id: retrieve_email_user(id),
                 group.get_system_group_member_ids(),
             )) if group else []

@@ -1130,7 +1130,8 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             return
         elif assignee and instance.assigned_officer == assigner.id and \
             instance.has_assessor_mode(assigner) and \
-            assignee.id in instance.get_assessor_group().get_system_group_member_ids():
+            (assignee.id in instance.get_assessor_group().get_system_group_member_ids()
+             or assignee.id in instance.get_approver_group().get_system_group_member_ids()):
             return
         elif (assigner == assignee or (not(assignee) and
             instance.assigned_approver == assigner.id)) and \
