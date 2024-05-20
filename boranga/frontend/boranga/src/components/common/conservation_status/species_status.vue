@@ -151,10 +151,10 @@
                 </div>
             </div>
             <div v-if="conservation_status_obj.wa_priority_list_id" class="row mb-3">
-                <label for="" class="col-sm-4 col-form-label">WA Priority Category:</label>
+                <label for="wa_priority_category" class="col-sm-4 col-form-label">WA Priority Category:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" class="form-select"
-                        v-model="conservation_status_obj.conservation_category_id" id="conservation_category">
+                        v-model="conservation_status_obj.wa_priority_category_id" id="wa_priority_category">
                         <option :value="null" disabled>Select the appropriate WA Priority Category</option>
                         <option v-for="option in filtered_wa_priority_categories" :value="option.id"
                             v-bind:key="option.id">
@@ -164,10 +164,10 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
+                <label for="commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" class="form-select"
-                        v-model="conservation_status_obj.commonwealth_conservation_list_id" id="wa_priority_list"
+                        v-model="conservation_status_obj.commonwealth_conservation_list_id" id="commonwealth_conservation_list"
                         @change="filterWAPriorityCategories($event)">
                         <option :value="null" disabled>Select a Commonwealth Conservation List if Applicable
                         </option>
@@ -239,7 +239,7 @@
                     <label for="" class="col-sm-4 col-form-label">WA Priority Category:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
-                            v-model="conservation_status_obj.current_conservation_status.conservation_category_id"
+                            v-model="conservation_status_obj.current_conservation_status.wa_priority_category_id"
                             id="conservation_category">
                             <option v-for="option in filtered_wa_priority_categories" :value="option.id"
                                 v-bind:key="option.id">
@@ -277,7 +277,7 @@
                     </div>
                 </div>
             </template>
-            <template v-if="can_view_recommended">
+            <template v-if="conservation_status_obj.can_view_recommended">
                 <div class="row mb-3 border-top pt-3">
                     <h5 class="text-muted mb-4">Recommended Conservation
                         Status</h5>
@@ -321,7 +321,7 @@
                     <label for="" class="col-sm-4 col-form-label">WA Priority Category:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
-                            v-model="conservation_status_obj.recommended_conservation_category_id"
+                            v-model="conservation_status_obj.recommended_wa_priority_category_id"
                             id="conservation_category">
                             <option v-for="option in filtered_wa_priority_categories" :value="option.id"
                                 v-bind:key="option.id">
@@ -561,7 +561,7 @@ export default {
         filterWALegislativeCategories: function (event) {
             this.$nextTick(() => {
                 if (event) {
-                    this.conservation_status_obj.conservation_category_id = null;
+                    this.conservation_status_obj.wa_legislative_category_id = null;
                 }
 
                 this.filtered_wa_legislative_categories = this.wa_legislative_categories.filter((choice) => {
@@ -572,7 +572,7 @@ export default {
         filterWAPriorityCategories: function (event) {
             this.$nextTick(() => {
                 if (event) {
-                    this.conservation_status_obj.conservation_category_id = null;
+                    this.conservation_status_obj.wa_priority_category_id = null;
                 }
 
                 this.filtered_wa_priority_categories = this.wa_priority_categories.filter((choice) => {
@@ -583,8 +583,11 @@ export default {
         filterRecommendedWALegislativeCategories: function (event) {
             this.$nextTick(() => {
                 if (event) {
-                    this.conservation_status_obj.recommended_conservation_category_id = null;
+                    this.conservation_status_obj.recommended_wa_legislative_category_id = null;
                 }
+                this.filtered_wa_priority_categories = this.wa_priority_categories.filter((choice) => {
+                    return choice.list_ids.includes(this.conservation_status_obj.wa_priority_list_id);
+                });
                 this.filtered_recommended_wa_legislative_categories = [];
                 this.filtered_recommended_wa_legislative_categories = [{
                     id: null,
