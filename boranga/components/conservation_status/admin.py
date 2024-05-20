@@ -1,24 +1,41 @@
 from django.contrib.gis import admin
-from django.db.models import Q
+
 from boranga.components.conservation_status import models
 
-@admin.register(models.ConservationList)
-class ConservationListAdmin(admin.ModelAdmin):
-    list_display = ['code','label']
-
-@admin.register(models.ConservationCategory)
-class ConservationCategoryAdmin(admin.ModelAdmin):
-    list_display = ['code','label','conservation_list']
-
-# @admin.register(models.ConservationCriteria)
-# class ConservationCriteriaAdmin(admin.ModelAdmin):
-#     list_display = ['code','label','conservation_list']
-
-# @admin.register(models.ConservationChangeCode)
-# class ConservationChangeCodeAdmin(admin.ModelAdmin):
-#     list_display = ['code','label']
 
 @admin.register(models.ProposalAmendmentReason)
 class ProposalAmendmentReasonAdmin(admin.ModelAdmin):
-    list_display = ['reason']
+    list_display = ["reason"]
 
+
+class AbstractListAdmin(admin.ModelAdmin):
+    list_display = ["code", "label"]
+
+
+class WAPriorityListAdmin(AbstractListAdmin):
+    pass
+
+
+class WAPriorityCategoryAdmin(AbstractListAdmin):
+    filter_horizontal = ("wa_priority_lists",)
+
+
+class WALegislativeListAdmin(AbstractListAdmin):
+    pass
+
+
+class WALegislativeCategoryAdmin(AbstractListAdmin):
+    filter_horizontal = ("wa_legislative_lists",)
+
+
+class CommonwealthConservationListAdmin(AbstractListAdmin):
+    pass
+
+
+admin.site.register(models.WAPriorityList, WAPriorityListAdmin)
+admin.site.register(models.WAPriorityCategory, WAPriorityCategoryAdmin)
+admin.site.register(models.WALegislativeList, WALegislativeListAdmin)
+admin.site.register(models.WALegislativeCategory, WALegislativeCategoryAdmin)
+admin.site.register(
+    models.CommonwealthConservationList, CommonwealthConservationListAdmin
+)
