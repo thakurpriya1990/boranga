@@ -49,9 +49,14 @@ export function layerAtEventPixel(map_component, evt) {
 /**
  * Queries the WMS server for its capabilities and adds optional layers to a map
  * @param {Proxy} map_component A map component instance
+ * @param {string} tileLayerApiUrl The url to the tile layer API
  */
 export async function fetchTileLayers(map_component, tileLayerApiUrl) {
     // let parser = new WMSCapabilities();
+    if (!tileLayerApiUrl) {
+        console.error('No tile layer API url provided');
+        return [];
+    }
     let tileLayers = [];
 
     await fetch(tileLayerApiUrl)

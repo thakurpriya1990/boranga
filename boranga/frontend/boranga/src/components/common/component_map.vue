@@ -1253,7 +1253,6 @@ import alert from '@vue-utils/alert.vue';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
-// import TileWMS from 'ol/source/TileWMS';
 import { Draw, Select, Snap } from 'ol/interaction';
 import ModifyFeature from 'ol-ext/interaction/ModifyFeature';
 import UndoRedo from 'ol-ext/interaction/UndoRedo';
@@ -1278,7 +1277,6 @@ import FileField from '@/components/forms/filefield_immediate.vue';
 import {
     fetchTileLayers,
     set_mode,
-    // baselayer_name,
     // validateFeature,
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
@@ -3658,6 +3656,10 @@ export default {
             });
         },
         fetchProposals: async function (proposalApiUrl) {
+            if (!proposalApiUrl) {
+                console.error('No proposal API URL provided');
+                return [];
+            }
             let vm = this;
             vm.fetchingProposals = true;
             let url = proposalApiUrl;
