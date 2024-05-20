@@ -125,14 +125,12 @@ class AbstractConservationList(models.Model):
         ordering = ["code"]
 
     def __str__(self):
-        return str(self.code)
+        return f"{self.code} - {self.label}"
 
 
 class AbstractConservationCategory(models.Model):
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
-    applies_to_species = models.BooleanField(default=False)
-    applies_to_communities = models.BooleanField(default=False)
 
     class Meta:
         abstract = True
@@ -144,23 +142,51 @@ class AbstractConservationCategory(models.Model):
 
 
 class WAPriorityList(AbstractConservationList):
-    pass
+
+    class Meta:
+        ordering = ["code"]
+        app_label = "boranga"
+        verbose_name = "WA Priority List"
 
 
 class WAPriorityCategory(AbstractConservationCategory):
-    pass
+    wa_priority_lists = models.ManyToManyField(
+        WAPriorityList, related_name="wa_priority_categories"
+    )
+
+    class Meta:
+        ordering = ["code"]
+        app_label = "boranga"
+        verbose_name = "WA Priority Category"
+        verbose_name_plural = "WA Priority Categories"
 
 
 class WALegislativeList(AbstractConservationList):
-    pass
+
+    class Meta:
+        ordering = ["code"]
+        app_label = "boranga"
+        verbose_name = "WA Legislative List"
 
 
-class WAConservationCategory(AbstractConservationCategory):
-    pass
+class WALegislativeCategory(AbstractConservationCategory):
+    wa_legislative_lists = models.ManyToManyField(
+        WALegislativeList, related_name="wa_legislative_categories"
+    )
+
+    class Meta:
+        ordering = ["code"]
+        app_label = "boranga"
+        verbose_name = "WA Legislative Category"
+        verbose_name_plural = "WA Legislative Categories"
 
 
 class CommonwealthConservationList(AbstractConservationList):
-    pass
+
+    class Meta:
+        ordering = ["code"]
+        app_label = "boranga"
+        verbose_name = "Commonwealth Conservation List"
 
 
 class ConservationCategory(models.Model):
@@ -408,12 +434,12 @@ class ConservationStatus(RevisionedMixin):
         null=True,
         related_name="curr_wa_legislative_list",
     )
-    wa_conservation_category = models.ForeignKey(
-        WAConservationCategory,
+    wa_legislative_category = models.ForeignKey(
+        WALegislativeCategory,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
-        related_name="curr_wa_conservation_category",
+        related_name="curr_wa_legislative_category",
     )
     commonwealth_conservation_list = models.ForeignKey(
         CommonwealthConservationList,
@@ -444,8 +470,8 @@ class ConservationStatus(RevisionedMixin):
         blank=True,
         null=True,
     )
-    recommended_wa_conservation_category = models.ForeignKey(
-        WAConservationCategory,
+    recommended_wa_legislative_category = models.ForeignKey(
+        WALegislativeCategory,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
@@ -2070,8 +2096,6 @@ class ConservationStatusAmendmentRequestDocument(Document):
 reversion.register(ConservationStatusDocument)
 
 # Conservation Status History
-reversion.register(
-    ConservationStatus, follow=["species", "community", "conservation_list"]
-)
+reversion.register(ConservationStatus, follow=["species", "community"])
 reversion.register(ConservationList)
 # reversion.register(ConservationCategory)
