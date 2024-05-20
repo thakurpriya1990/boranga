@@ -32,6 +32,10 @@ class CommonwealthConservationListAdmin(AbstractListAdmin):
     pass
 
 
+class ConservationChangeCodeAdmin(admin.ModelAdmin):
+    list_display = ["code", "label"]
+
+
 admin.site.register(models.WAPriorityList, WAPriorityListAdmin)
 admin.site.register(models.WAPriorityCategory, WAPriorityCategoryAdmin)
 admin.site.register(models.WALegislativeList, WALegislativeListAdmin)
@@ -39,3 +43,4 @@ admin.site.register(models.WALegislativeCategory, WALegislativeCategoryAdmin)
 admin.site.register(
     models.CommonwealthConservationList, CommonwealthConservationListAdmin
 )
+admin.site.register(models.ConservationChangeCode, ConservationChangeCodeAdmin)
