@@ -241,6 +241,7 @@ export default {
                       });
                 this.$refs.observer_detail.isModalOpen = true;
             },
+            //TODO remove/replace - no deleting only discard (check every endpoint)
             deleteObserverDetail: function(id){
                 let vm=this;
                 swal.fire({
@@ -259,8 +260,12 @@ export default {
                                 text: 'The Observer has been discarded',
                                 icon: 'success',
                                 confirmButtonColor:'#226fbb',
-                            });
-                            vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+                            }).then((result) => {
+                                vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+                                if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                    vm.$router.go();
+                                }
+                            });                            
                         }, (error) => {
                             console.log(error);
                         });
@@ -270,7 +275,11 @@ export default {
                 });
             },
             updatedObserverDetails(){
+                let vm = this;
                 this.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+                if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                    vm.$router.go();
+                }
             },
         },
         created: async function() {

@@ -1997,8 +1997,15 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
         if not ((occurrence_report.can_user_edit and (
             user.id == occurrence_report.submitter #or 
             #(occurrence_report.internal_application and is_internal(self.request))
-        )) or (occurrence_report.has_assessor_mode(user))):
+        )) or (occurrence_report.has_assessor_mode(user)) or (occurrence_report.has_unlocked_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
+
+    def unlocked_back_to_assessor(self,occurrence_report):
+        request = self.request
+        if occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            serializer = BackToAssessorSerializer(data={"reason":"Change made after unlock"})
+            serializer.is_valid(raise_exception=True)
+            occurrence_report.back_to_assessor(request, serializer.validated_data)
 
     def get_queryset(self):
         qs = OCRObserverDetail.objects.none()
@@ -2019,6 +2026,9 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report)    
         # instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
         return Response(serializer.data)
 
@@ -2030,6 +2040,10 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
         occurrence_report = serializer.validated_data["occurrence_report"]
         self.is_authorised_to_update(occurrence_report)
         serializer.save()
+
+        if occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(occurrence_report)
+
         return Response(serializer.data)
 
 
@@ -2091,8 +2105,15 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
         if not ((occurrence_report.can_user_edit and (
             user.id == occurrence_report.submitter #or 
             #(occurrence_report.internal_application and is_internal(self.request))
-        )) or (occurrence_report.has_assessor_mode(user))):
+        )) or (occurrence_report.has_assessor_mode(user)) or (occurrence_report.has_unlocked_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
+
+    def unlocked_back_to_assessor(self,occurrence_report):
+        request = self.request
+        if occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            serializer = BackToAssessorSerializer(data={"reason":"Change made after unlock"})
+            serializer.is_valid(raise_exception=True)
+            occurrence_report.back_to_assessor(request, serializer.validated_data)
 
     def get_queryset(self):
         request_user = self.request.user
@@ -2125,6 +2146,8 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 request,
             )
         serializer = self.get_serializer(instance)
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
         return Response(serializer.data)
 
     @detail_route(
@@ -2147,6 +2170,8 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 request,
             )
         serializer = self.get_serializer(instance)
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
         return Response(serializer.data)
 
     @transaction.atomic
@@ -2169,6 +2194,8 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 ),
                 request,
             )
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
         return Response(serializer.data)
 
     @transaction.atomic
@@ -2191,6 +2218,8 @@ class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
                 ),
                 request,
             )
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
         return Response(serializer.data)
 
 
@@ -2248,8 +2277,15 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
         if not ((occurrence_report.can_user_edit and (
             user.id == occurrence_report.submitter #or 
             #(occurrence_report.internal_application and is_internal(self.request))
-        )) or (occurrence_report.has_assessor_mode(user))):
+        )) or (occurrence_report.has_assessor_mode(user)) or (occurrence_report.has_unlocked_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
+
+    def unlocked_back_to_assessor(self,occurrence_report):
+        request = self.request
+        if occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            serializer = BackToAssessorSerializer(data={"reason":"Change made after unlock"})
+            serializer.is_valid(raise_exception=True)
+            occurrence_report.back_to_assessor(request, serializer.validated_data)
 
     def get_queryset(self):
         request_user = self.request.user
@@ -2283,6 +2319,10 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
                 request,
             )
         serializer = self.get_serializer(instance)
+
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
+
         return Response(serializer.data)
 
     @detail_route(
@@ -2305,6 +2345,10 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
                 request,
             )
         serializer = self.get_serializer(instance)
+
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
+            
         return Response(serializer.data)
 
     @transaction.atomic
@@ -2326,6 +2370,10 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
                 request,
             )
         serializer = self.get_serializer(instance)
+
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
+
         return Response(serializer.data)
 
     @transaction.atomic
@@ -2347,6 +2395,10 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
                 request,
             )
         serializer = self.get_serializer(instance)
+
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
+
         return Response(serializer.data)
 
 

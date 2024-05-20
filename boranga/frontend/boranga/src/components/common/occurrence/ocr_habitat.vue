@@ -355,6 +355,10 @@ export default {
                         icon: 'success',
                         confirmButtonColor:'#226fbb',
 
+                    }).then((result) => {
+                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
                     });
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
@@ -390,6 +394,10 @@ export default {
                             text: 'Habitat Condition details cannot be saved because of the following error: '+text,
                             icon: 'error',
                             confirmButtonColor:'#226fbb',
+                        }).then((result) => {
+                            if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                vm.$router.go();
+                            }
                         });
                         vm.updatingHabitatConditionDetails = false;
                     });
@@ -409,6 +417,10 @@ export default {
                         icon: 'success',
                         confirmButtonColor:'#226fbb',
 
+                    }).then((result) => {
+                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
                     });
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
@@ -435,6 +447,10 @@ export default {
                         icon: 'success',
                         confirmButtonColor:'#226fbb',
 
+                    }).then((result) => {
+                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
                     });
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);

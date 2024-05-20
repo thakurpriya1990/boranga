@@ -302,8 +302,12 @@ export default {
                                 text: 'Your document has been removed',
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb'
+                            }).then((result) => {
+                                vm.$refs.documents_datatable.vmDataTable.ajax.reload();
+                                if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                    vm.$router.go();
+                                }
                             });
-                            vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
                             console.log(error);
                         });
@@ -328,8 +332,12 @@ export default {
                                 text: 'Your document has been reinstated',
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb'
+                            }).then((result) => {
+                                vm.$refs.documents_datatable.vmDataTable.ajax.reload();
+                                if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                    vm.$router.go();
+                                }
                             });
-                            vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
                             console.log(error);
                         });
@@ -337,7 +345,11 @@ export default {
             });
         },
         updatedDocuments() {
+            let vm = this;
             this.$refs.documents_datatable.vmDataTable.ajax.reload();
+            if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                vm.$router.go();
+            }
         },
         addEventListeners: function () {
             let vm = this;
