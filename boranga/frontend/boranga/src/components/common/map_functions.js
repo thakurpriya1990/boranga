@@ -9,14 +9,7 @@ import { utils } from '@/utils/hooks';
 
 // Tile server url
 // var urlKmi = `${env['gis_server_url']}/geoserver/public/wms/?SERVICE=WMS&VERSION=1.0.0&REQUEST=GetCapabilities`;
-const urlKbBase = `${env['gis_server_url']}`;
-const urlKbGetCapabilities = `${urlKbBase}/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
-// TODO: fetch additional layer urls from dj admin
-const layerNamesKb = [
-    'kaartdijin-boodja-public:CPT_DBCA_DISTRICTS',
-    'kaartdijin-boodja-public:CPT_DBCA_REGIONS',
-    'kaartdijin-boodja-public:DFA_FMP_tenure',
-];
+// const urlKbBase = `${env['gis_server_url']}`;
 
 // Layer to use as map base layer
 export var baselayer_name = 'mapbox-emerald';
@@ -29,12 +22,22 @@ export var baselayer_name = 'mapbox-emerald';
  * @returns an array of layers
  */
 export function layerAtEventPixel(map_component, evt) {
-    let layer_at_pixel = [];
+    const layer_at_pixel = [];
+    const layers = [];
     map_component.map.getLayers().forEach((layer) => {
+        if (typeof layer.getLayers === 'function') {
+            layers.concat(layer.getLayersArray());
+        } else {
+            layers.push(layer);
+        }
+    }, layers);
+
+    layers.forEach((layer) => {
         if (!map_component.informing) {
             return;
         }
         let pixel = map_component.map.getEventPixel(evt.originalEvent);
+
         let data = layer.getData(pixel);
         // Return if no data or the alpha channel in RGBA is zero (transparent)
         if (!data || data[3] == 0) {
@@ -68,10 +71,7 @@ export async function fetchTileLayers(map_component, tileLayerApiUrl) {
         })
         .then((layers) => {
             console.log('tilelayer', layers);
-            tileLayers = _helper.tileLayerFromLayerDefinitions(
-                layers,
-                map_component
-            );
+            tileLayers = _helper.tileLayerFromLayerDefinitions(layers);
         })
         .catch((error) => {
             console.error('Error fetching tilelayer:', error);
@@ -92,7 +92,8 @@ export async function fetchProposals(map_component, proposalApiUrl) {
 
     if (map_component.proposalIds.length > 0) {
         url +=
-            `${chars.pop()}proposal_ids=` + map_component.proposalIds.toString();
+            `${chars.pop()}proposal_ids=` +
+            map_component.proposalIds.toString();
     }
     await fetch(url)
         .then(async (response) => {
@@ -390,7 +391,7 @@ const _helper = {
 
         return features;
     },
-    tileLayerFromLayerDefinitions: function (layers, map_component) {
+    tileLayerFromLayerDefinitions: function (layers) {
         const tileLayers = [];
 
         for (let j in layers) {
@@ -418,7 +419,7 @@ const _helper = {
                 visible: layer.visible,
                 // extent: layer.BoundingBox[0].extent,
                 source: l,
-                displayInLayerSwitcher: isBackgroundLayer,
+                displayInLayerSwitcher: !isBackgroundLayer,
                 is_satellite_background: layer.is_satellite_background,
                 is_streets_background: layer.is_streets_background,
             });
@@ -438,62 +439,6 @@ const _helper = {
             tileLayer.set('legend_url', legend_url);
 
             tileLayers.push(tileLayer);
-
-            // TODO: put elsewhere
-            // tileLayer.on('change:visible', function (e) {
-            //     if (e.oldValue == false) {
-            //         $('#legend')
-            //             .find('img')
-            //             .attr('src', this.values_.legend_url);
-            //         $('#legend_title').text(this.values_.title);
-            //     } else if (e.oldValue == true) {
-            //         $('#legend_title').text('');
-            //         $('#legend').find('img').attr('src', '');
-            //         // Hide any overlays when the optional layer is turned off
-            //         map_component.overlay(undefined);
-            //     } else {
-            //         console.error(
-            //             'Cannot assess tile layer visibility change.'
-            //         );
-            //     }
-            // });
-
-            // Lets ol display a popup with clicked feature properties
-            // map_component.map.on('singleclick', function (evt) {
-            //     if (map_component.mode !== 'info') {
-            //         return;
-            //     }
-            //     let coordinate = evt.coordinate;
-            //     layerAtEventPixel(map_component, evt).forEach((lyr) => {
-            //         if (lyr.values_.name === tileLayer.values_.name) {
-            //             console.log('Clicked on tile layer', lyr);
-
-            //             let point = `POINT (${coordinate.join(' ')})`;
-            //             let query_str = _helper.geoserverQuery.bind(this)(
-            //                 point,
-            //                 map_component
-            //             );
-
-            //             _helper
-            //                 .validateFeatureQuery(query_str)
-            //                 .then(async (features) => {
-            //                     if (features.length === 0) {
-            //                         console.warn(
-            //                             'No features found at this location.'
-            //                         );
-            //                         map_component.overlay(undefined);
-            //                     } else {
-            //                         console.log('Feature', features);
-            //                         map_component.overlay(
-            //                             coordinate,
-            //                             features[0]
-            //                         );
-            //                     }
-            //                     map_component.errorMessageProperty(null);
-            //                 });
-            //         }
-            //     });
-            // });
         }
         return tileLayers;
     },

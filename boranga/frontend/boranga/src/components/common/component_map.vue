@@ -1998,6 +1998,7 @@ export default {
             const proposals = this.initialiseProposals(initialised[1]);
             const baseLayers = this.initialiseBaseLayers(initialised[0]);
             this.createMap(baseLayers);
+            this.addTileLayers();
             this.initialiseMap();
             this.loadMapFeatures(proposals, this.proposalIdsLayer);
 
@@ -2385,9 +2386,10 @@ export default {
 
             vm.initialiseDrawLayer();
 
-            vm.initialiseLayerSwitcher(
-                [vm.measurementLayer].concat(vm.vectorLayersArray)
-            );
+            vm.initialiseLayerSwitcher([
+                vm.measurementLayer,
+                ...vm.vectorLayersArray,
+            ]);
 
             vm.initialiseLayerEvents();
 
@@ -2720,11 +2722,11 @@ export default {
                 layers.forEach((layer) => {
                     layer.set('displayInLayerSwitcher', true);
                 });
-                const layerGroup = new LayerGroup({
-                    title: 'Layers',
-                    layers: layers,
-                });
-                props['layerGroup'] = layerGroup;
+                // const layerGroup = new LayerGroup({
+                //     title: 'Layers',
+                //     layers: layers,
+                // });
+                // props['layerGroup'] = layerGroup;
             }
 
             this.layerSwitcher = new LayerSwitcher(props);
@@ -3735,6 +3737,66 @@ export default {
                     loaded: true,
                 },
             });
+        },
+        addTileLayers: function () {
+            let vm = this;
+            for (let tileLayer of this.optionalLayers) {
+                vm.map.addLayer(tileLayer);
+                tileLayer.on('change:visible', function (e) {
+                    if (e.oldValue == false) {
+                        $('#legend')
+                            .find('img')
+                            .attr('src', this.values_.legend_url);
+                        $('#legend_title').text(this.values_.title);
+                    } else if (e.oldValue == true) {
+                        $('#legend_title').text('');
+                        $('#legend').find('img').attr('src', '');
+                        // Hide any overlays when the optional layer is turned off
+                        vm.overlay(undefined);
+                    } else {
+                        console.error(
+                            'Cannot assess tile layer visibility change.'
+                        );
+                    }
+                });
+            }
+            // TODO:
+            // Lets ol display a popup with clicked feature properties
+            // map_component.map.on('singleclick', function (evt) {
+            //     if (map_component.mode !== 'info') {
+            //         return;
+            //     }
+            //     let coordinate = evt.coordinate;
+            //     layerAtEventPixel(map_component, evt).forEach((lyr) => {
+            //         if (lyr.values_.name === tileLayer.values_.name) {
+            //             console.log('Clicked on tile layer', lyr);
+
+            //             let point = `POINT (${coordinate.join(' ')})`;
+            //             let query_str = _helper.geoserverQuery.bind(this)(
+            //                 point,
+            //                 map_component
+            //             );
+
+            //             _helper
+            //                 .validateFeatureQuery(query_str)
+            //                 .then(async (features) => {
+            //                     if (features.length === 0) {
+            //                         console.warn(
+            //                             'No features found at this location.'
+            //                         );
+            //                         map_component.overlay(undefined);
+            //                     } else {
+            //                         console.log('Feature', features);
+            //                         map_component.overlay(
+            //                             coordinate,
+            //                             features[0]
+            //                         );
+            //                     }
+            //                     map_component.errorMessageProperty(null);
+            //                 });
+            //         }
+            //     });
+            // });
         },
         onDrawEnd: function (feature) {
             let vm = this;
