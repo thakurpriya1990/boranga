@@ -821,7 +821,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField(read_only=True)
     # group_type_id = serializers.SerializerMethodField(read_only=True)
     allowed_assessors = EmailUserSerializer(many=True)
-    # list_approval_level = serializers.SerializerMethodField(read_only=True)
     location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
@@ -868,7 +867,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "allowed_assessors",
             "deficiency_data",
             "assessor_data",
-            # 'list_approval_level',
             "location",
             "habitat_composition",
             "habitat_condition",
@@ -898,12 +896,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_customer_status(self, obj):
         return obj.get_customer_status_display()
-
-    # def get_list_approval_level(self,obj):
-    #     if obj.conservation_list:
-    #         return obj.conservation_list.approval_level
-    #     else:
-    #         return None
 
     def get_location(self, obj):
         try:
