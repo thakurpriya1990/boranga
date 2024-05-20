@@ -1646,13 +1646,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
             if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
-                self.unlocked_back_to_assessor()
                 saved_instance = serializer.save(no_revision=True)
+                self.unlocked_back_to_assessor()
             else:
                 saved_instance = serializer.save(version_user=request.user)
 
         # return redirect(reverse('external'))
-        serializer = self.get_serializer(saved_instance)
+
+        final_instance = self.get_object()
+        serializer = self.get_serializer(final_instance)
         return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)

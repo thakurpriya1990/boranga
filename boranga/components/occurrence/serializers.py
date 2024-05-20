@@ -1530,7 +1530,6 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         )
         read_only_fields = ("id",)
 
-
 class OccurrenceReportUserActionSerializer(serializers.ModelSerializer):
     who = serializers.SerializerMethodField()
 

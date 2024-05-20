@@ -174,9 +174,8 @@ export default {
                                 text: `Your proposal to approve occurrence report ${vm.occurrence_report_number} has been succuessfully submitted.`,
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb',
-                            });
-                            vm.$router.push({
-                                name: 'internal-occurrence-dash'
+                            }).then((result) => {
+                                vm.$router.go();
                             });
                         }, (error) => {
                             console.log(error);

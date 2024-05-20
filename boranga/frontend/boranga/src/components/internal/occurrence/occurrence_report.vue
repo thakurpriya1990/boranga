@@ -567,6 +567,7 @@ export default {
                 });
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = true;
+                vm.occurrence_report = res.body
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
