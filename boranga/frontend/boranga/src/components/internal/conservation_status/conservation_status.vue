@@ -110,14 +110,12 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
-
                                             <CSMoreReferrals @refreshFromResponse="refreshFromResponse"
                                                 :conservation_status_obj="conservation_status_obj"
                                                 :canAction="canLimitedAction" :isFinalised="isFinalised"
                                                 :referral_url="referralListURL" />
                                         </div>
                                     </template>
-
                                 </div>
                             </div>
                         </div>
@@ -171,7 +169,7 @@
                                             </div>
                                         </div>
                                         <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'minister'">
+                                            v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="conservation_status_obj.can_user_edit"
@@ -180,7 +178,7 @@
                                             </div>
                                         </div>
                                         <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'intermediate'">
+                                            v-if="conservation_status_obj.approval_level == 'intermediate'">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="conservation_status_obj.can_user_edit"
@@ -188,7 +186,7 @@
                                             </div>
                                         </div>
                                         <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'intermediate'">
+                                            v-if="conservation_status_obj.approval_level == 'intermediate'">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="conservation_status_obj.can_user_edit"
@@ -203,7 +201,7 @@
                                             </div>
                                         </div>
                                         <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'minister'">
+                                            v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="conservation_status_obj.can_user_edit"
@@ -211,7 +209,7 @@
                                             </div>
                                         </div>
                                         <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'minister'">
+                                            v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="conservation_status_obj.can_user_edit"
@@ -226,7 +224,6 @@
                                                 <strong>Action</strong><br />
                                             </div>
                                         </div>
-
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <label class="control-label pull-left" for="Name">Approver
@@ -235,7 +232,6 @@
                                                     v-model="approver_comment"></textarea><br>
                                             </div>
                                         </div>
-
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary"
@@ -1119,6 +1115,16 @@ export default {
     mounted: function () {
         let vm = this;
         vm.fetchDeparmentUsers();
+    },
+    created: function () {
+        if(!this.conservation_status_obj){
+            this.$http.get('/api/conservation_status/' + this.$route.params.conservation_status_id + '/internal_conservation_status.json').then(res => {
+            this.conservation_status_obj = res.body.conservation_status_obj;
+        },
+            err => {
+                console.log(err);
+            });
+        }
     },
     updated: function () {
         let vm = this;
