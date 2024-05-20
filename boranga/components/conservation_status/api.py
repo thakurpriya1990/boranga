@@ -1836,9 +1836,9 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                 .distinct()
             )
             families_qs = (
-                Taxonomy.objects.filter(Q(id__in=taxonomy_qs) & ~Q(family_fk=None))
+                Taxonomy.objects.filter(Q(id__in=taxonomy_qs))
                 .order_by()
-                .values_list("family_fk", flat=True)
+                .values_list("family_id", flat=True)
                 .distinct()
             )  # fetch all distinct the family_nid(taxon_name_id) for each taxon
             families = Taxonomy.objects.filter(id__in=families_qs)
@@ -1877,28 +1877,6 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                         }
                     )
         genus_list = []
-        if group_type:
-            taxonomy_qs = (
-                qs.filter(conservation_status__species__group_type__name=group_type)
-                .values_list("conservation_status__species__taxonomy", flat=True)
-                .distinct()
-            )
-            genus_qs = (
-                Taxonomy.objects.filter(id__in=taxonomy_qs)
-                .values_list("genus", flat=True)
-                .distinct()
-            )
-            generas = Genus.objects.filter(
-                id__in=genus_qs
-            )  # TODO will need to filter according to  group  selection
-            if generas:
-                for genus in generas:
-                    genus_list.append(
-                        {
-                            "id": genus.id,
-                            "name": genus.name,
-                        }
-                    )
         conservation_list_dict = []
         cons_list_qs = (
             qs.filter(conservation_status__species__group_type__name=group_type)

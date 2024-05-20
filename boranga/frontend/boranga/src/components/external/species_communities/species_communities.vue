@@ -2,7 +2,7 @@
     <div v-if="species_community" class="container" id="internalSpeciesCommunity">
         <div class="row" style="padding-bottom: 50px;">
             <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
-            <h4>{{ species_community.conservation_status.conservation_category }}</h4>
+            <h4 v-if="species_community.conservation_status">{{ species_community.conservation_status.conservation_category }}</h4>
             <div v-if="!comparing" class="col-md-3">
                 <!-- TODO -->
                 <template>
@@ -38,7 +38,7 @@
                                     enctype="multipart/form-data">
                                     <ProposalSpeciesCommunities ref="species_communities"
                                         :species_community="species_community" id="speciesCommunityStart"
-                                        :is_internal="false">
+                                        :is_internal="false" :is_readonly="true">
                                     </ProposalSpeciesCommunities>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="species_community_id" :value="1" />

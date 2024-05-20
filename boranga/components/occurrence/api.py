@@ -2156,7 +2156,7 @@ class OCRConservationThreatViewSet(viewsets.ModelViewSet):
             qs = OCRConservationThreat.objects.all().order_by("id")
         elif is_customer(self.request):
             # TODO filter qs as per added_by - using the OCR submitter for now
-            qs = OCRConservationThreat.objects.filter(occurrence_report__submitter_id=request_user).order_by("id")
+            qs = OCRConservationThreat.objects.filter(occurrence_report__submitter=request_user.id).order_by("id")
             return qs
         return qs
 
