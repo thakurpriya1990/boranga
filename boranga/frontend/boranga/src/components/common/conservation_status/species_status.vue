@@ -7,7 +7,7 @@
                 <div v-show="isShowComment">
                     <!-- Assessor Deficiencies and comment box -->
                     <div class="row mb-3" v-if="deficiencyVisibility">
-                        <label for="" class="col-sm-4 control-label">Deficiencies:</label>
+                        <label for="" class="col-sm-4 col-form-label">Deficiencies:</label>
                         <div class="col-sm-8">
                             <textarea :disabled="deficiency_readonly" class="form-control" rows="3"
                                 id="assessor_deficiencies" placeholder=""
@@ -15,7 +15,7 @@
                         </div>
                     </div>
                     <div class="row mb-3" v-if="assessorCommentVisibility">
-                        <label for="" class="col-sm-4 control-label">Assessor:</label>
+                        <label for="" class="col-sm-4 col-form-label">Assessor:</label>
                         <div class="col-sm-8">
                             <textarea :disabled="assessor_comment_readonly" class="form-control" rows="3"
                                 id="assessor_comment" placeholder="" v-model="conservation_status_obj.assessor_data" />
@@ -25,7 +25,7 @@
                     <div v-if="referral_comments_boxes.length > 0">
                         <div v-for="ref in referral_comments_boxes">
                             <div class="row mb-3" v-if="ref.box_view">
-                                <label for="" class="col-sm-4 control-label">{{ ref.label }}:</label>
+                                <label for="" class="col-sm-4 col-form-label">{{ ref.label }}:</label>
                                 <div class="col-sm-8">
                                     <textarea v-if='!ref.readonly' :disabled="ref.readonly" :name="ref.name"
                                         class="form-control" rows="3" placeholder=""
@@ -39,44 +39,124 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Scientific Name:</label>
+                <label for="" class="col-sm-4 col-form-label">Scientific Name:</label>
                 <div class="col-sm-8" :id="select_scientific_name">
                     <select :disabled="isReadOnly" :id="scientific_name_lookup" :name="scientific_name_lookup"
                         :ref="scientific_name_lookup" class="form-control" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label"></label>
+                <label for="" class="col-sm-4 col-form-label"></label>
                 <div class="col-sm-8">
                     <textarea disabled class="form-control" rows="3" id="species_display" v-model="species_display" />
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Previous Name:</label>
+            <div v-if="taxon_previous_name" class="row mb-3">
+                <label for="" class="col-sm-4 col-form-label">Previous Name:</label>
                 <div class="col-sm-8">
                     <input readonly type="text" class="form-control" id="previous_name" placeholder=""
                         v-model="taxon_previous_name" />
                 </div>
             </div>
             <div class="row mb-3 border-top pt-3">
-                <h5 class="text-muted mb-4">Proposed Conservation Status</h5>
-                <label for="" class="col-sm-4 control-label">{{ conservation_list_label }}:</label>
+                <h5 class="text-muted mb-4">Administrative Information</h5>
+                <label for="wa_legislative_list" class="col-sm-4 col-form-label">Change Type:</label>
                 <div class="col-sm-8">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="conservation_status_obj.conservation_list_id" id="conservation_list"
-                        @change="filterConservationCategoryCriteria($event)">
-                        <option v-for="option in conservation_list_values" :value="option.id" v-bind:key="option.id">
+                    <select :disabled="isReadOnly" class="form-select" v-model="conservation_status_obj.change_code_id"
+                        id="change_code" @change="filterWALegislativeCategories($event)">
+                        <option :value="null">Select the appropriate Change type</option>
+                        <option v-for="option in change_code_list" :value="option.id" v-bind:key="option.id">
                             {{ option.code }}
                         </option>
                     </select>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">{{ conservation_category_label }}:</label>
+                <label for="applicable-workflow" class="col-sm-4 col-form-label">Applicable Workflow:</label>
+                <div class="col-sm-8">
+                    <select id="applicable-workflow" v-model="conservation_status_obj.approval_level"
+                        class="form-select">
+                        <option :value="null">Select Appropriate Workflow</option>
+                        <option :value="'intermediate'">Intermediate</option>
+                        <option :value="'ministerial'">Ministerial</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4"></div>
+                <label for="start-date" class="col-sm-2 col-form-label">Start Date:</label>
+                <div class="col-sm-2">
+                    <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="start-date"
+                        v-model="conservation_status_obj.cs_start_date" />
+                </div>
+                <label for="first-listed-date" class="col-sm-2 col-form-label">First Listed Date:</label>
+                <div class="col-sm-2">
+                    <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="first-listed-date"
+                        v-model="conservation_status_obj.listing_date" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4"></div>
+                <label for="review-date" class="col-sm-2 col-form-label">Review Date:</label>
+                <div class="col-sm-2">
+                    <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="review-date"
+                        v-model="conservation_status_obj.review_date" />
+                </div>
+                <label for="end-date" class="col-sm-2 col-form-label">End Date:</label>
+                <div class="col-sm-2">
+                    <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="end-date"
+                        v-model="conservation_status_obj.cs_end_date" />
+                </div>
+            </div>
+            <div class="row mb-3 border-top pt-3">
+                <h5 class="text-muted mb-4"><template v-if="conservation_list_proposed">Proposed
+                    </template>Conservation
+                    Status</h5>
+                <label for="wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List:</label>
+                <div class="col-sm-8">
+                    <select :disabled="isReadOnly" class="form-select"
+                        v-model="conservation_status_obj.wa_legislative_list_id" id="wa_legislative_list"
+                        @change="filterWALegislativeCategories($event)">
+                        <option :value="null" disabled>Select the appropriate WA Legislative List</option>
+                        <option v-for="option in wa_legislative_lists" :value="option.id" v-bind:key="option.id">
+                            {{ option.code }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div v-if="conservation_status_obj.wa_legislative_list_id" class="row mb-3">
+                <label for="" class="col-sm-4 col-form-label">WA Legislative Category:</label>
+                <div class="col-sm-8">
+                    <select :disabled="isReadOnly" class="form-select"
+                        v-model="conservation_status_obj.wa_legislative_category_id" id="wa_legislative_category">
+                        <option :value="null" disabled>Select the appropriate WA Legislative Category</option>
+                        <option v-for="option in filtered_wa_legislative_categories" :value="option.id"
+                            v-bind:key="option.id">
+                            {{ option.code }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
+                <div class="col-sm-8">
+                    <select :disabled="isReadOnly" class="form-select"
+                        v-model="conservation_status_obj.wa_priority_list_id" id="wa_priority_list"
+                        @change="filterWAPriorityCategories($event)">
+                        <option :value="null" disabled>Select the appropriate WA Priority List</option>
+                        <option v-for="option in wa_priority_lists" :value="option.id" v-bind:key="option.id">
+                            {{ option.code }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div v-if="conservation_status_obj.wa_priority_list_id" class="row mb-3">
+                <label for="" class="col-sm-4 col-form-label">WA Priority Category:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" class="form-select"
                         v-model="conservation_status_obj.conservation_category_id" id="conservation_category">
-                        <option v-for="option in filtered_conservation_category_list" :value="option.id"
+                        <option :value="null" disabled>Select the appropriate WA Priority Category</option>
+                        <option v-for="option in filtered_wa_priority_categories" :value="option.id"
                             v-bind:key="option.id">
                             {{ option.code }}
                         </option>
@@ -84,71 +164,203 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">{{ conservation_criteria_label }}:</label>
+                <label for="" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
                 <div class="col-sm-8">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="conservation_criteria"
-                        placeholder="" v-model="conservation_status_obj.conservation_criteria" />
+                    <select :disabled="isReadOnly" class="form-select"
+                        v-model="conservation_status_obj.commonwealth_conservation_list_id" id="wa_priority_list"
+                        @change="filterWAPriorityCategories($event)">
+                        <option :value="null" disabled>Select a Commonwealth Conservation List if Applicable
+                        </option>
+                        <option v-for="option in commonwealth_conservation_lists" :value="option.id"
+                            v-bind:key="option.id">
+                            {{ option.code }}
+                        </option>
+                    </select>
                 </div>
             </div>
-            <template v-if="canViewCurrentList">
+            <div class="row mb-3">
+                <label for="international-conservation" class="col-sm-4 col-form-label">International
+                    Conservation:</label>
+                <div class="col-sm-8">
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="international-conservation"
+                        placeholder="Enter International Conservation Details if Applicable"
+                        v-model="conservation_status_obj.international_conservation" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 col-form-label">Conservation Criteria:</label>
+                <div class="col-sm-8">
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="conservation_criteria"
+                        placeholder="Enter Conservation Criteria if Applicable"
+                        v-model="conservation_status_obj.conservation_criteria" />
+                </div>
+            </div>
+            <template v-if="canViewCurrentList && conservation_status_obj.current_conservation_status">
                 <div class="row mb-3 border-top pt-3">
-                    <h5 class="text-muted mb-4">Current Conservation Status</h5>
-                    <label for="" class="col-sm-4 control-label">Current Conservation List:</label>
+                    <h5 class="text-muted mb-4">Current Conservation
+                        Status</h5>
+                    <label for="wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List:</label>
                     <div class="col-sm-8">
-                        <input readonly type="text" class="form-control" id="curr_cons_list" placeholder=""
-                            v-model="conservation_status_obj.curr_conservation_list" />
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.current_conservation_status.wa_legislative_list_id"
+                            id="wa_legislative_list" @change="filterWALegislativeCategories($event)">
+                            <option v-for="option in wa_legislative_lists" :value="option.id" v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div v-if="conservation_status_obj.current_conservation_status.wa_legislative_list_id" class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">WA Legislative Category:</label>
+                    <div class="col-sm-8">
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.current_conservation_status.wa_legislative_category_id"
+                            id="wa_legislative_category">
+                            <option v-for="option in filtered_wa_legislative_categories" :value="option.id"
+                                v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 control-label">Current Conservation Category:</label>
+                    <label for="wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
                     <div class="col-sm-8">
-                        <input readonly type="text" class="form-control" id="curr_cons_category" placeholder=""
-                            v-model="conservation_status_obj.curr_conservation_category" />
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.current_conservation_status.wa_priority_list_id"
+                            id="wa_priority_list" @change="filterWAPriorityCategories($event)">
+                            <option v-for="option in wa_priority_lists" :value="option.id" v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div v-if="conservation_status_obj.current_conservation_status.wa_priority_list_id" class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">WA Priority Category:</label>
+                    <div class="col-sm-8">
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.current_conservation_status.conservation_category_id"
+                            id="conservation_category">
+                            <option v-for="option in filtered_wa_priority_categories" :value="option.id"
+                                v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 control-label">Current Conservation Criteria:</label>
+                    <label for="" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
                     <div class="col-sm-8">
-                        <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder=""
-                            v-model="conservation_status_obj.curr_conservation_criteria" />
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.current_conservation_status.commonwealth_conservation_list_id"
+                            id="wa_priority_list" @change="filterWAPriorityCategories($event)">
+                            <option v-for="option in commonwealth_conservation_lists" :value="option.id"
+                                v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="international-conservation" class="col-sm-4 col-form-label">International
+                        Conservation:</label>
+                    <div class="col-sm-8">
+                        <input :disabled="true" type="text" class="form-control" id="international-conservation"
+                            v-model="conservation_status_obj.current_conservation_status.international_conservation" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">Conservation Criteria:</label>
+                    <div class="col-sm-8">
+                        <input :disabled="true" type="text" class="form-control" id="conservation_criteria"
+                            v-model="conservation_status_obj.current_conservation_status.conservation_criteria" />
                     </div>
                 </div>
             </template>
-            <div class="row mb-3" v-show="conservation_status_obj.can_view_recommended">
-                <label for="" class="col-sm-4 control-label">Recommended Conservation List:</label>
-                <div class="col-sm-8">
-                    <select :disabled="!conservation_status_obj.can_edit_recommended" class="form-select"
-                        v-model="conservation_status_obj.recommended_conservation_list_id" id="rec_conservation_list"
-                        @change="filterRecomConservationCategoryCriteria($event)">
-                        <option v-for="option in conservation_list_values" :value="option.id" v-bind:key="option.id">
-                            {{ option.code }}
-                        </option>
-                    </select>
+            <template v-if="can_view_recommended">
+                <div class="row mb-3 border-top pt-3">
+                    <h5 class="text-muted mb-4">Recommended Conservation
+                        Status</h5>
+                    <label for="wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List:</label>
+                    <div class="col-sm-8">
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.recommended_wa_legislative_list_id"
+                            id="wa_legislative_list" @change="filterWALegislativeCategories($event)">
+                            <option v-for="option in wa_legislative_lists" :value="option.id" v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-3" v-show="conservation_status_obj.can_view_recommended">
-                <label for="" class="col-sm-4 control-label">Recommended Conservation Category:</label>
-                <div class="col-sm-8">
-                    <select :disabled="!conservation_status_obj.can_edit_recommended" class="form-select"
-                        v-model="conservation_status_obj.recommended_conservation_category_id"
-                        id="recom_conservation_category">
-                        <option v-for="option in filtered_recom_conservation_category_list" :value="option.id"
-                            v-bind:key="option.id">
-                            {{ option.code }}
-                        </option>
-                    </select>
+                <div v-if="conservation_status_obj.recommended_wa_legislative_list_id" class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">WA Legislative Category:</label>
+                    <div class="col-sm-8">
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.recommended_wa_legislative_category_id"
+                            id="wa_legislative_category">
+                            <option v-for="option in filtered_wa_legislative_categories" :value="option.id"
+                                v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-3" v-show="conservation_status_obj.can_view_recommended">
-                <label for="" class="col-sm-4 control-label">Recommended Conservation Criteria:</label>
-                <div class="col-sm-8">
-                    <input :disabled="!conservation_status_obj.can_edit_recommended" type="text" class="form-control"
-                        id="rec_conservation_criteria" placeholder=""
-                        v-model="conservation_status_obj.recommended_conservation_criteria" />
+                <div class="row mb-3">
+                    <label for="wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
+                    <div class="col-sm-8">
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.recommended_wa_priority_list_id" id="wa_priority_list"
+                            @change="filterWAPriorityCategories($event)">
+                            <option v-for="option in wa_priority_lists" :value="option.id" v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
-            </div>
+                <div v-if="conservation_status_obj.recommended_wa_priority_list_id" class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">WA Priority Category:</label>
+                    <div class="col-sm-8">
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.recommended_conservation_category_id"
+                            id="conservation_category">
+                            <option v-for="option in filtered_wa_priority_categories" :value="option.id"
+                                v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
+                    <div class="col-sm-8">
+                        <select :disabled="true" class="form-select"
+                            v-model="conservation_status_obj.recommended_commonwealth_conservation_list_id"
+                            id="wa_priority_list" @change="filterWAPriorityCategories($event)">
+                            <option v-for="option in commonwealth_conservation_lists" :value="option.id"
+                                v-bind:key="option.id">
+                                {{ option.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="international-conservation" class="col-sm-4 col-form-label">International
+                        Conservation:</label>
+                    <div class="col-sm-8">
+                        <input :disabled="true" type="text" class="form-control" id="international-conservation"
+                            v-model="conservation_status_obj.recommended_international_conservation" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">Conservation Criteria:</label>
+                    <div class="col-sm-8">
+                        <input :disabled="true" type="text" class="form-control" id="conservation_criteria"
+                            v-model="conservation_status_obj.recommended_conservation_criteria" />
+                    </div>
+                </div>
+            </template>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Comment:</label>
+                <label for="" class="col-sm-4 col-form-label">Comment:</label>
                 <div class="col-sm-8">
                     <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
                         v-model="conservation_status_obj.comment" />
@@ -156,7 +368,7 @@
             </div>
             <!-- TODO Do we need to show the effective dates and approval document to external user -->
             <div class="row mb-3" v-if="isStatusApproved && is_external == false">
-                <label for="" class="col-sm-4 control-label">Effective From Date:</label>
+                <label for="" class="col-sm-4 col-form-label">Effective From Date:</label>
                 <div class="col-sm-8">
                     <input :disabled="conservation_status_obj.readonly" type="date" class="form-control"
                         placeholder="DD/MM/YYYY" id="effective_from_date"
@@ -164,7 +376,7 @@
                 </div>
             </div>
             <div class="row mb-3" v-if="isStatusApproved && is_external == false">
-                <label for="" class="col-sm-4 control-label">Effective To Date:</label>
+                <label for="" class="col-sm-4 col-form-label">Effective To Date:</label>
                 <div class="col-sm-8">
                     <input :disabled="conservation_status_obj.readonly" type="date" class="form-control"
                         placeholder="DD/MM/YYYY" id="effective_to_date"
@@ -172,7 +384,7 @@
                 </div>
             </div>
             <div class="row mb-3" v-if="isStatusApproved && is_external == false">
-                <label for="" class="col-sm-4 control-label">Approval document:</label>
+                <label for="" class="col-sm-4 col-form-label">Approval document:</label>
                 <div class="col-sm-8">
                     <p v-if="conservation_status_obj.conservation_status_approval_document">
                         <strong><a :href="conservation_status_obj.conservation_status_approval_document[1]"
@@ -223,12 +435,16 @@ export default {
             //----list of values dictionary
             cs_profile_dict: {},
             species_list: [],
-            conservation_list_values: [],
-            conservation_category_list: [],
+            wa_legislative_lists: [],
+            wa_legislative_categories: [],
+            wa_priority_lists: [],
+            wa_priority_categories: [],
+            commonwealth_conservation_lists: [],
             iucn_version_list: [],
             change_code_list: [],
-            filtered_conservation_category_list: [],
-            filtered_recom_conservation_category_list: [],
+            filtered_wa_legislative_categories: [],
+            filtered_wa_priority_categories: [],
+            filtered_recommended_wa_legislative_categories: [],
             referral_comments_boxes: [],
             // to display the species selected
             species_display: '',
@@ -268,31 +484,8 @@ export default {
         isReadOnly: function () {
             return !this.conservation_status_obj.can_user_edit;
         },
-        conservation_list_label: function () {
-            if (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") {
-                return "Conservation List";
-            }
-            else {
-                if (this.conservation_status_obj.processing_status == "Draft") {
-                    return "Propose Conservation List";
-                }
-                else {
-                    return "Proposed Conservation List";
-                }
-            }
-        },
-        conservation_category_label: function () {
-            if (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") {
-                return "Conservation Category";
-            }
-            else {
-                if (this.conservation_status_obj.processing_status == "Draft") {
-                    return "Propose Conservation Category";
-                }
-                else {
-                    return "Proposed Conservation Category";
-                }
-            }
+        conservation_list_proposed: function () {
+            return !(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed")
         },
         conservation_criteria_label: function () {
             if (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") {
@@ -310,8 +503,6 @@ export default {
         canViewCurrentList: function () {
             return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? false : true;
         }
-    },
-    watch: {
     },
     methods: {
         initialiseScientificNameLookup: function () {
@@ -367,41 +558,42 @@ export default {
                 }
             }
         },
-        filterConservationCategoryCriteria: function (event) {
+        filterWALegislativeCategories: function (event) {
             this.$nextTick(() => {
                 if (event) {
                     this.conservation_status_obj.conservation_category_id = null;
                 }
-                this.filtered_conservation_category_list = [];
-                this.filtered_conservation_category_list = [{
-                    id: null,
-                    code: "",
-                    conservation_list_id: null,
-                }];
-                // this.filtered_conservation_criteria_list=[];
-                for (let choice of this.conservation_category_list) {
-                    if (choice.conservation_list_id === this.conservation_status_obj.conservation_list_id) {
-                        this.filtered_conservation_category_list.push(choice);
-                    }
-                }
+
+                this.filtered_wa_legislative_categories = this.wa_legislative_categories.filter((choice) => {
+                    return choice.list_ids.includes(this.conservation_status_obj.wa_legislative_list_id);
+                });
             });
         },
-        filterRecomConservationCategoryCriteria: function (event) {
+        filterWAPriorityCategories: function (event) {
+            this.$nextTick(() => {
+                if (event) {
+                    this.conservation_status_obj.conservation_category_id = null;
+                }
+
+                this.filtered_wa_priority_categories = this.wa_priority_categories.filter((choice) => {
+                    return choice.list_ids.includes(this.conservation_status_obj.wa_priority_list_id);
+                });
+            });
+        },
+        filterRecommendedWALegislativeCategories: function (event) {
             this.$nextTick(() => {
                 if (event) {
                     this.conservation_status_obj.recommended_conservation_category_id = null;
-                    // this.conservation_status_obj.recommended_conservation_criteria=[];
                 }
-                this.filtered_recom_conservation_category_list = [];
-                this.filtered_recom_conservation_category_list = [{
+                this.filtered_recommended_wa_legislative_categories = [];
+                this.filtered_recommended_wa_legislative_categories = [{
                     id: null,
                     code: "",
                     conservation_list_id: null,
                 }];
-                // this.filtered_recom_conservation_criteria_list=[];
-                for (let choice of this.conservation_category_list) {
+                for (let choice of this.wa_legislative_categories) {
                     if (choice.conservation_list_id === this.conservation_status_obj.recommended_conservation_list_id) {
-                        this.filtered_recom_conservation_category_list.push(choice);
+                        this.filtered_recommended_wa_legislative_categories.push(choice);
                     }
                 }
             });
@@ -441,19 +633,18 @@ export default {
         vm.$http.get(dict_url).then((response) => {
             vm.cs_profile_dict = response.body;
             vm.species_list = vm.cs_profile_dict.species_list;
-            vm.conservation_list_values = vm.cs_profile_dict.conservation_list_values;
 
-            vm.conservation_list_values.splice(0, 0,
-                {
-                    id: null,
-                    code: null,
-                });
-            vm.conservation_category_list = vm.cs_profile_dict.conservation_category_list;
+            vm.wa_legislative_lists = vm.cs_profile_dict.wa_legislative_lists;
+            vm.wa_legislative_categories = vm.cs_profile_dict.wa_legislative_categories;
+            vm.wa_priority_lists = vm.cs_profile_dict.wa_priority_lists;
+            vm.wa_priority_categories = vm.cs_profile_dict.wa_priority_categories;
+            vm.commonwealth_conservation_lists = vm.cs_profile_dict.commonwealth_conservation_lists;
+
             vm.iucn_version_list = vm.cs_profile_dict.iucn_version_list;
             vm.change_code_list = vm.cs_profile_dict.change_code_list;
             this.getSpeciesDisplay();
-            this.filterConservationCategoryCriteria();
-            this.filterRecomConservationCategoryCriteria();
+            this.filterWALegislativeCategories();
+            this.filterRecommendedWALegislativeCategories();
             if (!vm.is_external) {
                 this.generateReferralCommentBoxes();
             }
