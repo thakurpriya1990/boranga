@@ -1,33 +1,25 @@
 import logging
-import traceback
 
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import CharField, Value
 from django.db.models.functions import Concat
 from django_countries import countries
-from ledger_api_client.ledger_models import Address
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from rest_framework import filters, generics, serializers, views, viewsets
+from rest_framework import filters, generics, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
-from boranga.components.main.models import UserSystemSettings
 from boranga.components.main.utils import retrieve_department_users
 from boranga.components.users.serializers import (
-    ContactSerializer,
     EmailUserActionSerializer,
     EmailUserCommsSerializer,
     EmailUserLogEntrySerializer,
-    PersonalSerializer,
-    UserAddressSerializer,
     UserFilterSerializer,
     UserSerializer,
-    UserSystemSettingsSerializer,
 )
 from boranga.permissions import IsApprover, IsAssessor
 
@@ -46,8 +38,6 @@ class DepartmentUserList(views.APIView):
             data = cache.get("department_users")
         data = retrieve_department_users()
         return Response(data)
-
-        # serializer  = UserSerializer(request.user)
 
 
 class GetCountries(views.APIView):
@@ -73,8 +63,6 @@ class GetProfile(views.APIView):
 
 
 class UserListFilterView(generics.ListAPIView):
-    """https://cop-internal.dbca.wa.gov.au/api/filtered_users?search=russell"""
-
     queryset = EmailUser.objects.all()
     serializer_class = UserFilterSerializer
     filter_backends = (filters.SearchFilter,)
@@ -84,7 +72,6 @@ class UserListFilterView(generics.ListAPIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = EmailUser.objects.all()
     serializer_class = UserSerializer
-    # Add permission groups that can access the userviewset, can add more group later as required
     permission_classes = [IsAssessor | IsApprover]
 
     @list_route(
@@ -93,7 +80,7 @@ class UserViewSet(viewsets.ModelViewSet):
         ],
         detail=False,
     )
-    def get_department_users(self, request, *args, **kwargs):
+    def get_users(self, request, *args, **kwargs):
         search_term = request.GET.get("term", "")
 
         # Allow for search of first name, last name and concatenation of both
@@ -106,7 +93,13 @@ class UserViewSet(viewsets.ModelViewSet):
                 "email",
                 output_field=CharField(),
             )
-        ).filter(is_staff=True)
+        )
+        if kwargs.get("is_staff", False):
+            department_users = department_users.filter(is_staff=True)
+
+        id_field = "email"
+        if kwargs.get("id_field", False):
+            id_field = kwargs.get("id_field")
 
         department_users = department_users.filter(
             search_term__icontains=search_term
@@ -114,124 +107,39 @@ class UserViewSet(viewsets.ModelViewSet):
 
         data_transform = [
             {
-                "id": person["email"],
+                "id": person[id_field],
                 "text": f"{person['first_name']} {person['last_name']} ({person['email']})",
             }
             for person in department_users
         ]
         return Response({"results": data_transform})
 
-    @detail_route(
+    @list_route(
         methods=[
-            "POST",
+            "GET",
         ],
-        detail=True,
+        detail=False,
     )
-    def update_personal(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = PersonalSerializer(instance, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance = serializer.save()
-            serializer = UserSerializer(instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+    def get_users_ledger_id(self, request, *args, **kwargs):
+        return self.get_users(request, id_field="id")
 
-    @detail_route(
+    @list_route(
         methods=[
-            "POST",
+            "GET",
         ],
-        detail=True,
+        detail=False,
     )
-    def update_contact(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = ContactSerializer(instance, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance = serializer.save()
-            serializer = UserSerializer(instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+    def get_department_users(self, request):
+        return self.get_users(request, is_staff=True)
 
-    @detail_route(
+    @list_route(
         methods=[
-            "POST",
+            "GET",
         ],
-        detail=True,
+        detail=False,
     )
-    def update_address(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = UserAddressSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            address, created = Address.objects.get_or_create(
-                line1=serializer.validated_data["line1"],
-                locality=serializer.validated_data["locality"],
-                state=serializer.validated_data["state"],
-                country=serializer.validated_data["country"],
-                postcode=serializer.validated_data["postcode"],
-                user=instance,
-            )
-            instance.residential_address = address
-            instance.save()
-            serializer = UserSerializer(instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @detail_route(
-        methods=[
-            "POST",
-        ],
-        detail=True,
-    )
-    def update_system_settings(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            # serializer = UserSystemSettingsSerializer(data=request.data)
-            # serializer.is_valid(raise_exception=True)
-            user_setting, created = UserSystemSettings.objects.get_or_create(
-                user=instance
-            )
-            serializer = UserSystemSettingsSerializer(user_setting, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            # instance.residential_address = address
-            serializer.save()
-            instance = self.get_object()
-            serializer = UserSerializer(instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+    def get_department_users_ledger_id(self, request, *args, **kwargs):
+        return self.get_users(request, is_staff=True, id_field="id")
 
     @detail_route(
         methods=[
@@ -240,20 +148,10 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def action_log(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            qs = instance.action_logs.all()
-            serializer = EmailUserActionSerializer(qs, many=True)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        qs = instance.action_logs.all()
+        serializer = EmailUserActionSerializer(qs, many=True)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -262,20 +160,10 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def comms_log(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            qs = instance.comms_logs.all()
-            serializer = EmailUserCommsSerializer(qs, many=True)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        qs = instance.comms_logs.all()
+        serializer = EmailUserCommsSerializer(qs, many=True)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -284,33 +172,23 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     @renderer_classes((JSONRenderer,))
+    @transaction.atomic
     def add_comms_log(self, request, *args, **kwargs):
-        try:
-            with transaction.atomic():
-                instance = self.get_object()
-                mutable = request.data._mutable
-                request.data._mutable = True
-                request.data["emailuser"] = f"{instance.id}"
-                request.data["staff"] = f"{request.user.id}"
-                request.data._mutable = mutable
-                serializer = EmailUserLogEntrySerializer(data=request.data)
-                serializer.is_valid(raise_exception=True)
-                comms = serializer.save()
-                # Save the files
-                for f in request.FILES:
-                    document = comms.documents.create()
-                    document.name = str(request.FILES[f])
-                    document._file = request.FILES[f]
-                    document.save()
-                # End Save Documents
+        instance = self.get_object()
+        mutable = request.data._mutable
+        request.data._mutable = True
+        request.data["emailuser"] = f"{instance.id}"
+        request.data["staff"] = f"{request.user.id}"
+        request.data._mutable = mutable
+        serializer = EmailUserLogEntrySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        comms = serializer.save()
 
-                return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        # Save the files
+        for f in request.FILES:
+            document = comms.documents.create()
+            document.name = str(request.FILES[f])
+            document._file = request.FILES[f]
+            document.save()
+
+        return Response(serializer.data)
