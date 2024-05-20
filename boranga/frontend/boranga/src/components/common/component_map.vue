@@ -1276,6 +1276,7 @@ import MeasureStyles, { formatLength } from '@/components/common/measure.js';
 import FileField from '@/components/forms/filefield_immediate.vue';
 import {
     fetchTileLayers,
+    fetchProposals,
     set_mode,
     // validateFeature,
     layerAtEventPixel,
@@ -1672,6 +1673,7 @@ export default {
             selectedSpatialUnit: 'm',
             spatialOperationParameters: [1.0],
             fetchTileLayers: fetchTileLayers,
+            fetchProposals: fetchProposals,
         };
     },
     computed: {
@@ -1990,7 +1992,7 @@ export default {
 
         let initialisers = [
             this.fetchTileLayers(this, this.tileLayerApiUrl),
-            this.fetchProposals(this.proposalApiUrl),
+            this.fetchProposals(this, this.proposalApiUrl),
         ];
         Promise.all(initialisers).then((initialised) => {
             const proposals = this.initialiseProposals(initialised[1]);
@@ -3654,42 +3656,6 @@ export default {
                     vm.selectedFeatureCollection.remove(feature);
                 }
             });
-        },
-        fetchProposals: async function (proposalApiUrl) {
-            if (!proposalApiUrl) {
-                console.error('No proposal API URL provided');
-                return [];
-            }
-            let vm = this;
-            vm.fetchingProposals = true;
-            let url = proposalApiUrl;
-            // Characters to concatenate pseudo url elements
-            let chars = ['&', '&', '?'];
-            let proposals = [];
-
-            if (vm.proposalIds.length > 0) {
-                url +=
-                    `${chars.pop()}proposal_ids=` + vm.proposalIds.toString();
-            }
-            await fetch(url)
-                .then(async (response) => {
-                    const data = await response.json();
-                    if (!response.ok) {
-                        const error =
-                            (data && data.message) || response.statusText;
-                        console.log(error);
-                        return Promise.reject(error);
-                    }
-                    proposals = data;
-                })
-                .catch((error) => {
-                    console.error('There was an error!', error);
-                })
-                .finally(() => {
-                    vm.fetchingProposals = false;
-                });
-
-            return proposals;
         },
         /**
          * Adds a GeoJSON feature collection to the map

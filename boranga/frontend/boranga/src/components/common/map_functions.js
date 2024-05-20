@@ -79,6 +79,41 @@ export async function fetchTileLayers(map_component, tileLayerApiUrl) {
     return tileLayers;
 }
 
+export async function fetchProposals(map_component, proposalApiUrl) {
+    if (!proposalApiUrl) {
+        console.error('No proposal API URL provided');
+        return [];
+    }
+    map_component.fetchingProposals = true;
+    let url = proposalApiUrl;
+    // Characters to concatenate pseudo url elements
+    let chars = ['&', '&', '?'];
+    let proposals = [];
+
+    if (map_component.proposalIds.length > 0) {
+        url +=
+            `${chars.pop()}proposal_ids=` + map_component.proposalIds.toString();
+    }
+    await fetch(url)
+        .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok) {
+                const error = (data && data.message) || response.statusText;
+                console.log(error);
+                return Promise.reject(error);
+            }
+            proposals = data;
+        })
+        .catch((error) => {
+            console.error('There was an error!', error);
+        })
+        .finally(() => {
+            map_component.fetchingProposals = false;
+        });
+
+    return proposals;
+}
+
 /**
  * Sets the mode of interaction of the map.
  * @param {string} mode The mode to set the map to (layer, draw, measure)
