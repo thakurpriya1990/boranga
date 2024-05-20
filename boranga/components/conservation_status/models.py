@@ -235,8 +235,8 @@ class ConservationChangeCode(models.Model):
     These reasons are represented by change codes.
     """
 
-    code = models.CharField(max_length=32, default="None")
-    label = models.CharField(max_length=512, default="None")
+    code = models.CharField(max_length=32)
+    label = models.CharField(max_length=512)
 
     class Meta:
         app_label = "boranga"
