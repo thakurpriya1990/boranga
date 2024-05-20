@@ -1,4 +1,4 @@
-import WMSCapabilities from 'ol/format/WMSCapabilities';
+// import WMSCapabilities from 'ol/format/WMSCapabilities';
 import TileWMS from 'ol/source/TileWMS';
 import TileLayer from 'ol/layer/Tile';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -50,30 +50,27 @@ export function layerAtEventPixel(map_component, evt) {
  * Queries the WMS server for its capabilities and adds optional layers to a map
  * @param {Proxy} map_component A map component instance
  */
-export async function fetchTileLayers(map_component) {
-    let parser = new WMSCapabilities();
+export async function fetchTileLayers(map_component, tileLayerApiUrl) {
+    // let parser = new WMSCapabilities();
     let tileLayers = [];
 
-    await fetch(urlKbGetCapabilities)
-        .then(function (response) {
-            return response.text();
+    await fetch(tileLayerApiUrl)
+        .then(async (response) => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
         })
-        .then(function (text) {
-            let result = parser.read(text);
-            let layers = result.Capability.Layer.Layer.filter((layer) => {
-                // TODO: `layerNamesKb` Get from dj admin
-                return layerNamesKb.includes(layer['Name']);
-            });
-
+        .then((layers) => {
+            console.log('tilelayer', layers);
             tileLayers = _helper.tileLayerFromLayerDefinitions(
                 layers,
                 map_component
             );
         })
         .catch((error) => {
-            console.error('There was an error fetching addional layers', error);
+            console.error('Error fetching tilelayer:', error);
         });
-
     return tileLayers;
 }
 
@@ -360,25 +357,30 @@ const _helper = {
             let layer = layers[j];
 
             let l = new TileWMS({
-                url: urlKbBase,
+                url: layer.geoserver_url,
                 crossOrigin: 'anonymous', // Data for a image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
                 params: {
                     FORMAT: 'image/png',
                     VERSION: '1.1.1',
                     tiled: true,
                     STYLES: '',
-                    LAYERS: `${layer.Name}`,
+                    LAYERS: `${layer.layer_name}`,
                 },
             });
 
+            const isBackgroundLayer =
+                layer.is_satellite_background || layer.is_streets_background;
+
             let tileLayer = new TileLayer({
                 name: layer.Name,
-                abstract: layer.Abstract.trim(),
-                title: layer.Title.trim(),
-                visible: false,
-                extent: layer.BoundingBox[0].extent,
+                // abstract: layer.Abstract.trim(),
+                title: layer.display_title.trim(),
+                visible: layer.visible,
+                // extent: layer.BoundingBox[0].extent,
                 source: l,
-                displayInLayerSwitcher: true,
+                displayInLayerSwitcher: isBackgroundLayer,
+                is_satellite_background: layer.is_satellite_background,
+                is_streets_background: layer.is_streets_background,
             });
 
             let legend_url = null;
@@ -397,60 +399,61 @@ const _helper = {
 
             tileLayers.push(tileLayer);
 
-            tileLayer.on('change:visible', function (e) {
-                if (e.oldValue == false) {
-                    $('#legend')
-                        .find('img')
-                        .attr('src', this.values_.legend_url);
-                    $('#legend_title').text(this.values_.title);
-                } else if (e.oldValue == true) {
-                    $('#legend_title').text('');
-                    $('#legend').find('img').attr('src', '');
-                    // Hide any overlays when the optional layer is turned off
-                    map_component.overlay(undefined);
-                } else {
-                    console.error(
-                        'Cannot assess tile layer visibility change.'
-                    );
-                }
-            });
+            // TODO: put elsewhere
+            // tileLayer.on('change:visible', function (e) {
+            //     if (e.oldValue == false) {
+            //         $('#legend')
+            //             .find('img')
+            //             .attr('src', this.values_.legend_url);
+            //         $('#legend_title').text(this.values_.title);
+            //     } else if (e.oldValue == true) {
+            //         $('#legend_title').text('');
+            //         $('#legend').find('img').attr('src', '');
+            //         // Hide any overlays when the optional layer is turned off
+            //         map_component.overlay(undefined);
+            //     } else {
+            //         console.error(
+            //             'Cannot assess tile layer visibility change.'
+            //         );
+            //     }
+            // });
 
             // Lets ol display a popup with clicked feature properties
-            map_component.map.on('singleclick', function (evt) {
-                if (map_component.mode !== 'info') {
-                    return;
-                }
-                let coordinate = evt.coordinate;
-                layerAtEventPixel(map_component, evt).forEach((lyr) => {
-                    if (lyr.values_.name === tileLayer.values_.name) {
-                        console.log('Clicked on tile layer', lyr);
+            // map_component.map.on('singleclick', function (evt) {
+            //     if (map_component.mode !== 'info') {
+            //         return;
+            //     }
+            //     let coordinate = evt.coordinate;
+            //     layerAtEventPixel(map_component, evt).forEach((lyr) => {
+            //         if (lyr.values_.name === tileLayer.values_.name) {
+            //             console.log('Clicked on tile layer', lyr);
 
-                        let point = `POINT (${coordinate.join(' ')})`;
-                        let query_str = _helper.geoserverQuery.bind(this)(
-                            point,
-                            map_component
-                        );
+            //             let point = `POINT (${coordinate.join(' ')})`;
+            //             let query_str = _helper.geoserverQuery.bind(this)(
+            //                 point,
+            //                 map_component
+            //             );
 
-                        _helper
-                            .validateFeatureQuery(query_str)
-                            .then(async (features) => {
-                                if (features.length === 0) {
-                                    console.warn(
-                                        'No features found at this location.'
-                                    );
-                                    map_component.overlay(undefined);
-                                } else {
-                                    console.log('Feature', features);
-                                    map_component.overlay(
-                                        coordinate,
-                                        features[0]
-                                    );
-                                }
-                                map_component.errorMessageProperty(null);
-                            });
-                    }
-                });
-            });
+            //             _helper
+            //                 .validateFeatureQuery(query_str)
+            //                 .then(async (features) => {
+            //                     if (features.length === 0) {
+            //                         console.warn(
+            //                             'No features found at this location.'
+            //                         );
+            //                         map_component.overlay(undefined);
+            //                     } else {
+            //                         console.log('Feature', features);
+            //                         map_component.overlay(
+            //                             coordinate,
+            //                             features[0]
+            //                         );
+            //                     }
+            //                     map_component.errorMessageProperty(null);
+            //                 });
+            //         }
+            //     });
+            // });
         }
         return tileLayers;
     },

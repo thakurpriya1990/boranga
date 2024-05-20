@@ -1253,7 +1253,7 @@ import alert from '@vue-utils/alert.vue';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
-import TileWMS from 'ol/source/TileWMS';
+// import TileWMS from 'ol/source/TileWMS';
 import { Draw, Select, Snap } from 'ol/interaction';
 import ModifyFeature from 'ol-ext/interaction/ModifyFeature';
 import UndoRedo from 'ol-ext/interaction/UndoRedo';
@@ -1278,7 +1278,7 @@ import FileField from '@/components/forms/filefield_immediate.vue';
 import {
     fetchTileLayers,
     set_mode,
-    baselayer_name,
+    // baselayer_name,
     // validateFeature,
     layerAtEventPixel,
 } from '@/components/common/map_functions.js';
@@ -1556,6 +1556,16 @@ export default {
             default: function () {
                 return ['__all__'];
             },
+        },
+        tileLayerApiUrl: {
+            type: String,
+            required: false,
+            default: null,
+        },
+        proposalApiUrl: {
+            type: String,
+            required: false,
+            default: null,
         },
         /**
          * The default layer definition for the query layer
@@ -1979,7 +1989,21 @@ export default {
     },
     created: function () {
         console.log('created()');
-        this.fetchProposals();
+
+        let initialisers = [
+            this.fetchTileLayers(this, this.tileLayerApiUrl),
+            this.fetchProposals(this.proposalApiUrl),
+        ];
+        Promise.all(initialisers).then((initialised) => {
+            const proposals = this.initialiseProposals(initialised[1]);
+            const baseLayers = this.initialiseBaseLayers(initialised[0]);
+            this.createMap(baseLayers);
+            this.initialiseMap();
+            this.loadMapFeatures(proposals, this.proposalIdsLayer);
+
+            console.log('Done fetching initilisation data');
+        });
+
         this.selectedSpatialOperation =
             this.spatialOperationsAvailable.length == 0
                 ? null
@@ -1993,7 +2017,6 @@ export default {
         this.$nextTick(() => {
             var toastEl = document.getElementById('featureToast');
             $('#map-spinner').children().css('position', 'static'); // Position spinner in center of map
-            vm.initialiseMap();
             vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
@@ -2001,7 +2024,7 @@ export default {
                 console.log('Done initializing map (no refresh)');
                 vm.loadingMap = false;
             }
-            // Priya calling this event from mounted as its only been triggered from loadFeatures() which is coomented at the moment
+            // Priya calling this event from mounted as its only been triggered from loadMapFeatures() which is coomented at the moment
             // vm.map.dispatchEvent({
             //     type: 'features-loaded',
             //     details: {
@@ -2067,6 +2090,35 @@ export default {
                     let z = view.getZoomForResolution(resolution) - 1;
                     view.animate({ zoom: z, center: centre });
                 }
+            }
+        },
+        onFeaturesLoaded: function (event) {
+            let vm = this;
+            if (event.details.loaded == true) {
+                vm.initialiseUndoRedos();
+
+                vm.dragbox = new DragBox({
+                    condition: platformModifierKeyOnly,
+                });
+                vm.dragbox.on('boxend', function () {
+                    const extent = vm.dragbox.getGeometry().getExtent();
+
+                    const layers = vm.getLayersWithFeatures();
+                    layers.forEach((layer) => {
+                        layer
+                            .getSource()
+                            .forEachFeatureIntersectingExtent(
+                                extent,
+                                function (feature) {
+                                    vm.selectFeature(feature);
+                                }
+                            );
+                    });
+                });
+
+                vm.map.addInteraction(vm.undoredo);
+                vm.map.addInteraction(vm.undoredo_forSketch);
+                vm.map.addInteraction(vm.dragbox);
             }
         },
         getFeaturesExtent: function (features) {
@@ -2319,9 +2371,6 @@ export default {
         initialiseMap: function () {
             let vm = this;
 
-            const baseLayers = vm.initialiseBaseLayers();
-            vm.createMap(baseLayers);
-
             // Full screen toggle
             let fullScreenControl = new FullScreenControl();
             vm.map.addControl(fullScreenControl);
@@ -2340,161 +2389,11 @@ export default {
                 [vm.measurementLayer].concat(vm.vectorLayersArray)
             );
 
-            vm.fetchTileLayers(this).then((tileLayers) => {
-                for (let tileLayer of tileLayers) {
-                    vm.optionalLayers.push(tileLayer);
-                    vm.map.addLayer(tileLayer);
-
-                    if (vm.layerSwitcher.displayInLayerSwitcher(tileLayer)) {
-                        vm.layerSwitcher._layerGroup
-                            .getLayers()
-                            .push(tileLayer);
-                    }
-                }
-            });
-
             vm.initialiseLayerEvents();
 
             // update map extent when new features added
             vm.map.on('rendercomplete', vm.displayAllFeatures());
-            vm.map.on('features-loaded', function (evt) {
-                if (evt.details.loaded == true) {
-                    // Add undo/redo AFTER proposal geometries have been added to the map
-                    vm.undoredo = new UndoRedo({
-                        layers: vm.vectorLayersArray,
-                    });
-                    vm.undoredo.clear();
-
-                    // Somehow passing the parameter has no effect, so we set it here
-                    vm.undoredo.setMaxLength(vm.undoStackMaxLength);
-                    // Define a custom undo/redo for selected features
-                    vm.undoredo.define(
-                        'select feature',
-                        function (s) {
-                            // Undo fn: set to the previous feature collection and styles
-                            console.log(
-                                'undo selected',
-                                s.before.getArray(),
-                                s.after.getArray()
-                            );
-                            // Set the collection of selected features to the before value
-                            vm.setSelectedFeatureCollection(s.before);
-                            vm.setStyleForUnAndSelectedFeatures();
-                        },
-                        function (s) {
-                            // Redo fn: reset the feature collection and styles
-                            console.log(
-                                'redo selected',
-                                s.before.getArray(),
-                                s.after.getArray()
-                            );
-                            // Set the collection of selected features to the after value
-                            vm.setSelectedFeatureCollection(s.after);
-                            vm.setStyleForUnAndSelectedFeatures();
-                        }
-                    );
-
-                    vm.undoredo.define(
-                        'update user input geodata',
-                        function (s) {
-                            // Undo fn
-                            // The last entry the user has edited in the list of geometries
-                            let last = vm.userInputGeometryStack.slice(-1)[0];
-                            // Set the stack to the state before the last edit
-                            vm.userInputGeometryStack = s.before;
-                            // The user input geometry before the last edit, which is the state we want the feature to revert to
-                            const original_geometry =
-                                vm.userInputGeometryStackLast(last.ol_uid);
-
-                            vm.unOrRedoFeatureUserInputGeoData(
-                                last.ol_uid,
-                                original_geometry
-                            );
-                        },
-                        function (s) {
-                            // Redo fn
-                            vm.userInputGeometryStack = s.after;
-                            // The last entry the user has edited in the list of geometries
-                            const last = vm.userInputGeometryStack.slice(-1)[0];
-                            // The user input geometry before the last edit, which is the state we want the feature to revert to
-                            const original_geometry =
-                                vm.userInputGeometryStackLast(last.ol_uid);
-                            vm.unOrRedoFeatureUserInputGeoData(
-                                last.ol_uid,
-                                original_geometry
-                            );
-                        }
-                    );
-
-                    // Setup a dedicated undo/redo for sketch points on the draw layer
-                    vm.undoredo_forSketch = new UndoRedo({
-                        layers: vm.vectorLayersArray,
-                    });
-                    vm.undoredo_forSketch.clear();
-
-                    vm.undoredo_forSketch.setMaxLength(vm.undoStackMaxLength);
-                    vm.undoredo_forSketch.define(
-                        'add polygon point',
-                        function (s) {
-                            // Undo fn: set to the previous sketch coordinates
-                            vm.unOrRedoing_sketchPoint = true;
-                            vm.sketchCoordinates = s.before;
-                            vm.undoLeaseLicensePoint();
-                            vm.unOrRedoing_sketchPoint = false;
-                        },
-                        function (s) {
-                            // Redo fn: reset the sketch coordinates
-                            vm.unOrRedoing_sketchPoint = true;
-                            vm.sketchCoordinates = s.after;
-                            vm.redoLeaseLicensePoint();
-                            vm.unOrRedoing_sketchPoint = false;
-                        }
-                    );
-
-                    for (let eventName of ['stack:add', 'stack:remove']) {
-                        vm.undoredo.addEventListener(eventName, function () {
-                            let undo_stack = vm.undoredo.getStack('undo');
-
-                            let stack = undo_stack.filter((item) => {
-                                // Filter out the actions that modify an existing or add a feature
-                                return (
-                                    (['addfeature'].includes(item.type) &&
-                                        item.feature.getProperties()
-                                            .geometry_source === 'New') ||
-                                    ['translate', 'rotate', 'scale'].includes(
-                                        item.name
-                                    )
-                                );
-                            });
-
-                            vm.modifiedFeaturesStack = Object.assign(stack, {});
-                        });
-                    }
-
-                    vm.dragbox = new DragBox({
-                        condition: platformModifierKeyOnly,
-                    });
-                    vm.dragbox.on('boxend', function () {
-                        const extent = vm.dragbox.getGeometry().getExtent();
-
-                        const layers = vm.getLayersWithFeatures();
-                        layers.forEach((layer) => {
-                            layer
-                                .getSource()
-                                .forEachFeatureIntersectingExtent(
-                                    extent,
-                                    function (feature) {
-                                        vm.selectFeature(feature);
-                                    }
-                                );
-                        });
-                    });
-
-                    vm.map.addInteraction(vm.undoredo);
-                    vm.map.addInteraction(vm.undoredo_forSketch);
-                    vm.map.addInteraction(vm.dragbox);
-                }
-            });
+            vm.map.on('features-loaded', vm.onFeaturesLoaded);
 
             vm.initialisePointerMoveEvent();
             vm.snap = vm.initialiseSnap(vm.vectorLayersArray);
@@ -2759,43 +2658,35 @@ export default {
             vm.map.addInteraction(vm.drawPolygonsForModel);
             vm.map.addInteraction(vm.drawPointsForModel);
         },
-        initialiseBaseLayers: function () {
-            // TODO: Fetch baselayer urls from dj admin
-            const url = 'https://kmi.dbca.wa.gov.au/geoserver/public/wms';
-            let satelliteTileWms = new TileWMS({
-                url: url,
-                params: {
-                    FORMAT: 'image/png',
-                    VERSION: '1.1.1',
-                    tiled: true,
-                    STYLES: '',
-                    LAYERS: 'public:mapbox-satellite',
-                },
-            });
+        initialiseProposals: function (proposals) {
+            this.proposals = proposals;
+            this.assignProposalFeatureColors(proposals);
 
-            let streetsTileWMS = new TileWMS({
-                url: url,
-                params: {
-                    FORMAT: 'image/png',
-                    VERSION: '1.1.1',
-                    tiled: true,
-                    STYLES: '',
-                    LAYERS: `public:${baselayer_name}`,
-                },
-            });
+            return proposals;
+        },
+        initialiseBaseLayers: function (tileLayers) {
             this.tileLayerMapbox = new TileLayer({
                 title: 'Mapbox Streets',
                 type: 'base',
                 visible: true,
-                source: streetsTileWMS,
+                // source: new OSM(),
             });
-
             this.tileLayerSat = new TileLayer({
                 title: 'Satellite Map',
                 type: 'base',
-                visible: true,
-                source: satelliteTileWms,
+                visible: false,
+                // source: new OSM(),
             });
+
+            for (let tileLayer of tileLayers) {
+                if (tileLayer.get('is_streets_background')) {
+                    this.tileLayerMapbox = tileLayer;
+                } else if (tileLayer.get('is_satellite_background')) {
+                    this.tileLayerSat = tileLayer;
+                } else {
+                    this.optionalLayers.push(tileLayer);
+                }
+            }
 
             const baseLayers = new LayerGroup({
                 title: 'Background Maps',
@@ -2949,6 +2840,120 @@ export default {
                     this.editableFeatureCollection.remove(evt.feature);
                 });
             });
+        },
+        initialiseUndoRedos: function () {
+            let vm = this;
+            // Add undo/redo AFTER proposal geometries have been added to the map
+            vm.undoredo = new UndoRedo({
+                layers: vm.vectorLayersArray,
+            });
+            vm.undoredo.clear();
+
+            // Somehow passing the parameter has no effect, so we set it here
+            vm.undoredo.setMaxLength(vm.undoStackMaxLength);
+            // Define a custom undo/redo for selected features
+            vm.undoredo.define(
+                'select feature',
+                function (s) {
+                    // Undo fn: set to the previous feature collection and styles
+                    console.log(
+                        'undo selected',
+                        s.before.getArray(),
+                        s.after.getArray()
+                    );
+                    // Set the collection of selected features to the before value
+                    vm.setSelectedFeatureCollection(s.before);
+                    vm.setStyleForUnAndSelectedFeatures();
+                },
+                function (s) {
+                    // Redo fn: reset the feature collection and styles
+                    console.log(
+                        'redo selected',
+                        s.before.getArray(),
+                        s.after.getArray()
+                    );
+                    // Set the collection of selected features to the after value
+                    vm.setSelectedFeatureCollection(s.after);
+                    vm.setStyleForUnAndSelectedFeatures();
+                }
+            );
+
+            vm.undoredo.define(
+                'update user input geodata',
+                function (s) {
+                    // Undo fn
+                    // The last entry the user has edited in the list of geometries
+                    let last = vm.userInputGeometryStack.slice(-1)[0];
+                    // Set the stack to the state before the last edit
+                    vm.userInputGeometryStack = s.before;
+                    // The user input geometry before the last edit, which is the state we want the feature to revert to
+                    const original_geometry = vm.userInputGeometryStackLast(
+                        last.ol_uid
+                    );
+
+                    vm.unOrRedoFeatureUserInputGeoData(
+                        last.ol_uid,
+                        original_geometry
+                    );
+                },
+                function (s) {
+                    // Redo fn
+                    vm.userInputGeometryStack = s.after;
+                    // The last entry the user has edited in the list of geometries
+                    const last = vm.userInputGeometryStack.slice(-1)[0];
+                    // The user input geometry before the last edit, which is the state we want the feature to revert to
+                    const original_geometry = vm.userInputGeometryStackLast(
+                        last.ol_uid
+                    );
+                    vm.unOrRedoFeatureUserInputGeoData(
+                        last.ol_uid,
+                        original_geometry
+                    );
+                }
+            );
+
+            // Setup a dedicated undo/redo for sketch points on the draw layer
+            vm.undoredo_forSketch = new UndoRedo({
+                layers: vm.vectorLayersArray,
+            });
+            vm.undoredo_forSketch.clear();
+
+            vm.undoredo_forSketch.setMaxLength(vm.undoStackMaxLength);
+            vm.undoredo_forSketch.define(
+                'add polygon point',
+                function (s) {
+                    // Undo fn: set to the previous sketch coordinates
+                    vm.unOrRedoing_sketchPoint = true;
+                    vm.sketchCoordinates = s.before;
+                    vm.undoLeaseLicensePoint();
+                    vm.unOrRedoing_sketchPoint = false;
+                },
+                function (s) {
+                    // Redo fn: reset the sketch coordinates
+                    vm.unOrRedoing_sketchPoint = true;
+                    vm.sketchCoordinates = s.after;
+                    vm.redoLeaseLicensePoint();
+                    vm.unOrRedoing_sketchPoint = false;
+                }
+            );
+
+            for (let eventName of ['stack:add', 'stack:remove']) {
+                vm.undoredo.addEventListener(eventName, function () {
+                    let undo_stack = vm.undoredo.getStack('undo');
+
+                    let stack = undo_stack.filter((item) => {
+                        // Filter out the actions that modify an existing or add a feature
+                        return (
+                            (['addfeature'].includes(item.type) &&
+                                item.feature.getProperties().geometry_source ===
+                                    'New') ||
+                            ['translate', 'rotate', 'scale'].includes(item.name)
+                        );
+                    });
+
+                    vm.modifiedFeaturesStack = Object.assign(stack, {});
+                });
+            }
         },
         initialiseSnap: function (snapLayers) {
             const snapCollection = new Collection([], {
@@ -3652,18 +3657,19 @@ export default {
                 }
             });
         },
-        fetchProposals: async function () {
+        fetchProposals: async function (proposalApiUrl) {
             let vm = this;
             vm.fetchingProposals = true;
-            let url = api_endpoints.occurrence_report + '/list_for_map/';
+            let url = proposalApiUrl;
             // Characters to concatenate pseudo url elements
             let chars = ['&', '&', '?'];
+            let proposals = [];
 
             if (vm.proposalIds.length > 0) {
                 url +=
                     `${chars.pop()}proposal_ids=` + vm.proposalIds.toString();
             }
-            fetch(url)
+            await fetch(url)
                 .then(async (response) => {
                     const data = await response.json();
                     if (!response.ok) {
@@ -3672,14 +3678,7 @@ export default {
                         console.log(error);
                         return Promise.reject(error);
                     }
-                    vm.proposals = data;
-                    let initialisers = [
-                        vm.assignProposalFeatureColors(vm.proposals),
-                        vm.loadFeatures(vm.proposals, vm.proposalIdsLayer),
-                    ];
-                    Promise.all(initialisers).then(() => {
-                        console.log('Done loading features');
-                    });
+                    proposals = data;
                 })
                 .catch((error) => {
                     console.error('There was an error!', error);
@@ -3687,6 +3686,8 @@ export default {
                 .finally(() => {
                     vm.fetchingProposals = false;
                 });
+
+            return proposals;
         },
         /**
          * Adds a GeoJSON feature collection to the map
@@ -3729,7 +3730,7 @@ export default {
          * @param {Object} proposals The proposals to load as new map features
          * @param {String=} toSource The layer source to load the features to
          */
-        loadFeatures: function (proposals, toSource = null) {
+        loadMapFeatures: function (proposals, toSource = null) {
             let vm = this;
             console.log(proposals);
             // Remove all features from the layer
@@ -4056,7 +4057,7 @@ export default {
                     // so calling this will remove the file list from the front end
                     vm.$refs.shapefile_document.get_documents();
                     vm.$nextTick(() => {
-                        vm.loadFeatures([data]);
+                        vm.loadMapFeatures([data]);
                         vm.displayAllFeatures();
                         swal.fire(
                             'Success',
