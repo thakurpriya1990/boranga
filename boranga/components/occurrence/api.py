@@ -1124,31 +1124,31 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         # AND the Assignee must be the proposed assignee, or already assigned
         instance = self.get_object()
 
-        if (assigner == assignee or (not(assignee) and
-            instance.assigned_officer == assigner.id)) and \
-            instance.has_assessor_mode(assigner):
+        in_assessor_group = assignee and (assignee.id in instance.get_assessor_group().get_system_group_member_ids())
+        in_approver_group = assignee and (assignee.id in instance.get_approver_group().get_system_group_member_ids())
+        
+        self_assigning = assigner == assignee
+        
+        assigner_assigned = instance.assigned_officer == assigner.id
+        assigner_approver = instance.assigned_approver == assigner.id
+
+        if (instance.processing_status in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+        ]) and (\
+            (self_assigning and (in_assessor_group or in_approver_group)) or \
+            (not(assignee) and assigner_assigned and instance.has_assessor_mode(assigner)) or \
+            ((in_assessor_group or in_approver_group) and assigner_assigned and instance.has_assessor_mode(assigner)) \
+        ):
             return
-        elif assignee and instance.assigned_officer == assigner.id and \
-            instance.has_assessor_mode(assigner) and \
-            (assignee.id in instance.get_assessor_group().get_system_group_member_ids()
-             or assignee.id in instance.get_approver_group().get_system_group_member_ids()):
-            return
-        elif (assigner == assignee or (not(assignee) and
-            instance.assigned_approver == assigner.id)) and \
-            instance.has_approver_mode(assigner):
-            return
-        elif assignee and instance.assigned_approver == assigner.id and \
-            instance.has_approver_mode(assigner) and \
-            assignee.id in instance.get_approver_group().get_system_group_member_ids():
-            return
-        elif (assigner == assignee or (not(assignee) and
-            instance.assigned_officer == assigner.id)) and \
-            instance.has_unlocked_mode(assigner):
-            return
-        elif assignee and instance.assigned_officer == assigner.id and \
-            instance.has_unlocked_mode(assigner) and \
-            (assignee.id in instance.get_assessor_group().get_system_group_member_ids()
-             or assignee.id in instance.get_approver_group().get_system_group_member_ids()):
+        elif (instance.processing_status in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+        ]) and (\
+            (self_assigning and in_approver_group) or \
+            (not(assignee) and assigner_approver and instance.has_approver_mode(assigner)) or \
+            ((in_approver_group) and assigner_assigned and instance.has_assessor_mode(assigner)) \
+        ):
             return
 
         raise serializers.ValidationError("User not authorised to manage assignments for Occurrence Report")
@@ -1176,9 +1176,37 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         instance = self.get_object()
         request = self.request
         if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
-            serializer = BackToAssessorSerializer(data=request.data)
+            serializer = BackToAssessorSerializer(data={"reason":"Change made after unlock"})
             serializer.is_valid(raise_exception=True)
             instance.back_to_assessor(request, serializer.validated_data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def lock_occurrence_report(self, request, *args, **kwargs):
+        self.is_authorised_to_change_lock()
+        instance = self.get_object()
+        instance.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
+        instance.save(version_user=request.user)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def unlock_occurrence_report(self, request, *args, **kwargs):
+        self.is_authorised_to_change_lock()
+        instance = self.get_object()
+        instance.processing_status = OccurrenceReport.PROCESSING_STATUS_UNLOCKED
+        instance.save(version_user=request.user)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @list_route(
         methods=[

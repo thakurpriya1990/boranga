@@ -150,6 +150,7 @@ class OccurrenceReport(RevisionedMixin):
         (PROCESSING_STATUS_AWAITING_RESPONSES, "Awaiting Responses"),
         (PROCESSING_STATUS_APPROVED, "Approved"),
         (PROCESSING_STATUS_DECLINED, "Declined"),
+        (PROCESSING_STATUS_UNLOCKED, "Unlocked"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_CLOSED, "DeListed"),
         (PROCESSING_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
@@ -402,6 +403,7 @@ class OccurrenceReport(RevisionedMixin):
         elif self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
             users = []
             group = self.get_assessor_group()
