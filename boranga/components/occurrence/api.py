@@ -1189,8 +1189,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     def lock_occurrence_report(self, request, *args, **kwargs):
         self.is_authorised_to_change_lock()
         instance = self.get_object()
-        instance.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
-        instance.save(version_user=request.user)
+        instance.lock(request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -1203,8 +1202,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     def unlock_occurrence_report(self, request, *args, **kwargs):
         self.is_authorised_to_change_lock()
         instance = self.get_object()
-        instance.processing_status = OccurrenceReport.PROCESSING_STATUS_UNLOCKED
-        instance.save(version_user=request.user)
+        instance.unlock(request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 

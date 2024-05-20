@@ -796,6 +796,16 @@ class OccurrenceReport(RevisionedMixin):
 
         send_approver_back_to_assessor_email_notification(request, self, reason)
 
+    def lock(self, request):
+        if self.can_change_lock(request.user) and self.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED 
+            self.save(version_user=request.user)
+
+    def unlock(self, request):
+        if self.can_change_lock(request.user) and self.processing_status == OccurrenceReport.PROCESSING_STATUS_APPROVED:
+            self.processing_status = OccurrenceReport.PROCESSING_STATUS_UNLOCKED
+            self.save(version_user=request.user)
+
     @property
     def latest_referrals(self):
         return self.referrals.all()[: settings.RECENT_REFERRAL_COUNT]
