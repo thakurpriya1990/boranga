@@ -21,7 +21,6 @@
                                 id="assessor_comment" placeholder="" v-model="conservation_status_obj.assessor_data" />
                         </div>
                     </div>
-
                     <!-- Assessor Deficiencies and comment box -->
                     <div v-if="referral_comments_boxes.length > 0">
                         <div v-for="ref in referral_comments_boxes">
@@ -187,7 +186,6 @@
 </template>
 
 <script>
-import Vue from 'vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
     api_endpoints,
@@ -229,11 +227,8 @@ export default {
             conservation_category_list: [],
             iucn_version_list: [],
             change_code_list: [],
-            // conservation_criteria_list: [],
             filtered_conservation_category_list: [],
-            // filtered_conservation_criteria_list: [],
             filtered_recom_conservation_category_list: [],
-            // filtered_recom_conservation_criteria_list: [],
             referral_comments_boxes: [],
             // to display the species selected
             species_display: '',
@@ -287,7 +282,6 @@ export default {
             }
         },
         conservation_category_label: function () {
-            // return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? "Conservation Category" : "Proposed Conservation Category";
             if (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") {
                 return "Conservation Category";
             }
@@ -301,7 +295,6 @@ export default {
             }
         },
         conservation_criteria_label: function () {
-            //return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? "Conservation Criteria" : "Proposed Conservation Criteria";
             if (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") {
                 return "Conservation Criteria";
             }
