@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import subprocess
 from datetime import datetime
@@ -29,6 +30,10 @@ from boranga.components.conservation_status.models import (
     ConservationList,
     ConservationStatus,
     ConservationStatusUserAction,
+    WALegislativeCategory,
+    WALegislativeList,
+    WAPriorityCategory,
+    WAPriorityList,
 )
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
@@ -108,6 +113,8 @@ from boranga.components.species_and_communities.utils import (
     species_form_submit,
 )
 from boranga.helpers import is_internal
+
+logger = logging.getLogger(__name__)
 
 
 class GetGroupTypeDict(views.APIView):
@@ -520,31 +527,31 @@ class GetCommunityName(views.APIView):
 class GetSpeciesFilterDict(views.APIView):
 
     def get(self, request, format=None):
-        conservation_list_dict = []
-        conservation_lists = ConservationList.objects.filter(applies_to_species=True)
-        if conservation_lists:
-            for choice in conservation_lists:
-                conservation_list_dict.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                    }
-                )
-
-        conservation_category_list = []
-        conservation_categories = ConservationCategory.objects.all()
-        if conservation_categories:
-            for choice in conservation_categories:
-                conservation_category_list.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                        "conservation_list_id": choice.conservation_list_id,
-                    }
-                )
+        wa_priority_lists = WAPriorityList.objects.filter(
+            applies_to_species=True
+        ).values("id", "code")
+        wa_priority_categories = (
+            WAPriorityCategory.objects.filter(
+                wa_priority_lists__applies_to_species=True
+            )
+            .values("id", "code")
+            .distinct()
+        )
+        wa_legislative_lists = WALegislativeList.objects.filter(
+            applies_to_species=True
+        ).values("id", "code")
+        wa_legislative_categories = (
+            WALegislativeCategory.objects.filter(
+                wa_legislative_lists__applies_to_species=True
+            )
+            .values("id", "code")
+            .distinct()
+        )
         res_json = {
-            "conservation_list_dict": conservation_list_dict,
-            "conservation_category_list": conservation_category_list,
+            "wa_priority_lists": list(wa_priority_lists),
+            "wa_priority_categories": list(wa_priority_categories),
+            "wa_legislative_lists": list(wa_legislative_lists),
+            "wa_legislative_categories": list(wa_legislative_categories),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
