@@ -1114,7 +1114,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         if not ((instance.can_user_edit and (
             user.id == instance.submitter #or 
             #(instance.internal_application and is_internal(self.request))
-        )) or (instance.has_assessor_mode(user))):
+        )) or (instance.has_assessor_mode(user)) or (instance.has_unlocked_mode(user))):
             raise serializers.ValidationError("User not authorised to update Occurrence Report")
 
     def is_authorised_to_assign(self, assigner, assignee=None):
@@ -1141,6 +1141,15 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
             instance.has_approver_mode(assigner) and \
             assignee.id in instance.get_approver_group().get_system_group_member_ids():
             return
+        elif (assigner == assignee or (not(assignee) and
+            instance.assigned_officer == assigner.id)) and \
+            instance.has_unlocked_mode(assigner):
+            return
+        elif assignee and instance.assigned_officer == assigner.id and \
+            instance.has_unlocked_mode(assigner) and \
+            (assignee.id in instance.get_assessor_group().get_system_group_member_ids()
+             or assignee.id in instance.get_approver_group().get_system_group_member_ids()):
+            return
 
         raise serializers.ValidationError("User not authorised to manage assignments for Occurrence Report")
 
@@ -1155,6 +1164,21 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         user = self.request.user
         if not instance.has_approver_mode(user):
             raise serializers.ValidationError("User not authorised to make Approval Actions for Occurrence Report")
+
+    def is_authorised_to_change_lock(self):
+        instance = self.get_object()
+        user = self.request.user
+
+        if not instance.can_change_lock(user):
+            raise serializers.ValidationError("User not authorised to change lock status for Occurrence Report")
+
+    def unlocked_back_to_assessor(self):
+        instance = self.get_object()
+        request = self.request
+        if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            serializer = BackToAssessorSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.back_to_assessor(request, serializer.validated_data)
 
     @list_route(
         methods=[
@@ -1178,7 +1202,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         community = request.data.get("community_id")
         ocr_instance.community_id = community
 
-        ocr_instance.save(version_user=request.user)
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+        else:
+            ocr_instance.save(version_user=request.user)
 
         # ocr geometry data to save seperately
         geometry_data = request.data.get("ocr_geometry")
@@ -1200,6 +1227,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
         return Response(serializer.data)
 
     @list_route(
@@ -1212,6 +1240,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
         self.is_authorised_to_update()
         ocr_instance = self.get_object()
+        
         habitat_instance, created = OCRHabitatComposition.objects.get_or_create(
             occurrence_report=ocr_instance
         )
@@ -1221,6 +1250,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
         return Response(serializer.data)
 
     @list_route(
@@ -1242,6 +1275,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
         return Response(serializer.data)
 
     @list_route(
@@ -1263,6 +1300,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
         return Response(serializer.data)
 
     @list_route(
@@ -1284,6 +1325,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
         return Response(serializer.data)
 
     @list_route(
@@ -1305,6 +1350,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
         return Response(serializer.data)
 
     @list_route(
@@ -1326,6 +1375,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
         return Response(serializer.data)
 
     @list_route(
@@ -1347,6 +1400,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
         return Response(serializer.data)
 
     @list_route(
@@ -1368,6 +1425,10 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
         return Response(serializer.data)
 
     # used for observer detail datatable on location tab
@@ -1556,7 +1617,11 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
 
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
-            saved_instance = serializer.save(version_user=request.user)
+            if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+                self.unlocked_back_to_assessor()
+                saved_instance = serializer.save(no_revision=True)
+            else:
+                saved_instance = serializer.save(version_user=request.user)
 
         # return redirect(reverse('external'))
         serializer = self.get_serializer(saved_instance)
@@ -1688,12 +1753,17 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     @detail_route(methods=["POST"], detail=True)
     @renderer_classes((JSONRenderer,))
     def validate_map_files(self, request, *args, **kwargs):
-        self.is_authorised_to_update()        
+        self.is_authorised_to_update()    
         instance = self.get_object()
         validate_map_files(request, instance, "occurrence_report")
-        instance.save()
+        if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+            instance.save(no_revision=True)
+        else:
+            instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         logger.debug(f"validate_map_files response: {serializer.data}")
+        
         return Response(serializer.data)
 
     @detail_route(
@@ -1704,6 +1774,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
     )
     def assign_request_user(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.is_authorised_to_assign(request.user,request.user)
         instance.assign_officer(request, request.user)
         serializer = InternalOccurrenceReportSerializer(
             instance, context={"request": request}
@@ -1813,10 +1884,13 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         detail=True,
     )
     def back_to_assessor(self, request, *args, **kwargs):
-
-        self.is_authorised_to_approve()
-
         instance = self.get_object()
+        
+        if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
+            self.is_authorised_to_approve()
+        elif instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.is_authorised_to_update()
+        
         serializer = BackToAssessorSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance.back_to_assessor(request, serializer.validated_data)

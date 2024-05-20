@@ -135,6 +135,7 @@ class OccurrenceReport(RevisionedMixin):
     PROCESSING_STATUS_AWAITING_RESPONSES = "awaiting_responses"
     PROCESSING_STATUS_APPROVED = "approved"
     PROCESSING_STATUS_DECLINED = "declined"
+    PROCESSING_STATUS_UNLOCKED = "unlocked"
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_CLOSED = "closed"
     PROCESSING_STATUS_PARTIALLY_APPROVED = "partially_approved"
@@ -459,6 +460,26 @@ class OccurrenceReport(RevisionedMixin):
             else:
                 return False
 
+    def has_unlocked_mode(self, user):
+        status_with_assessor = [
+            "unlocked",
+        ]
+        if self.processing_status not in status_with_assessor:
+            return False
+        else:
+            if self.assigned_officer:
+                if self.assigned_officer == user.id:
+                    return (
+                        (user.id
+                        in self.get_assessor_group().get_system_group_member_ids()) or
+                        (user.id
+                        in self.get_approver_group().get_system_group_member_ids())
+                    )
+                else:
+                    return False
+            else:
+                return False
+
     def get_assessor_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
 
@@ -492,12 +513,13 @@ class OccurrenceReport(RevisionedMixin):
 
     # Check if the user is member of assessor group for the OCR Proposal
     def is_approver(self, user):
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
+        return user.id in self.get_approver_group().get_system_group_member_ids()
 
     def can_assess(self, user):
         if self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
             return (user.id in self.get_assessor_group().get_system_group_member_ids() or
                     user.id in self.get_approver_group().get_system_group_member_ids())
@@ -505,6 +527,15 @@ class OccurrenceReport(RevisionedMixin):
             return user.id in self.get_approver_group().get_system_group_member_ids()
         else:
             return False
+
+    def can_change_lock(self, user):
+        if self.processing_status in [
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+            OccurrenceReport.PROCESSING_STATUS_APPROVED,
+        ]:
+            #TODO: current requirment task allows assessors to unlock, is this too permissive?
+            return (user.id in self.get_assessor_group().get_system_group_member_ids() or
+                    user.id in self.get_approver_group().get_system_group_member_ids())
 
     @transaction.atomic
     def assign_officer(self, request, officer):
@@ -741,8 +772,9 @@ class OccurrenceReport(RevisionedMixin):
     def back_to_assessor(self, request, validated_data):
         if (
             not self.can_assess(request.user)
-            or self.processing_status
-            != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
+            or not self.processing_status in
+            [OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+             OccurrenceReport.PROCESSING_STATUS_UNLOCKED]
         ):
             raise exceptions.OccurrenceReportNotAuthorized()
 
