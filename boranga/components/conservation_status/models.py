@@ -81,38 +81,6 @@ def update_conservation_status_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/conservation_status/{instance.conservation_status.id}/documents/{filename}"
 
 
-class ConservationList(models.Model):
-    APPROVAL_LEVEL_INTERMEDIATE = "intermediate"
-    APPROVAL_LEVEL_MINISTER = "minister"
-    APPROVAL_LEVEL_CHOICES = (
-        (APPROVAL_LEVEL_INTERMEDIATE, "Intermediate"),
-        (APPROVAL_LEVEL_MINISTER, "Minister"),
-    )
-
-    code = models.CharField(max_length=64, default="None")
-    label = models.CharField(max_length=512, default="None")
-    applies_to_wa = models.BooleanField(default=False)
-    applies_to_commonwealth = models.BooleanField(default=False)
-    applies_to_international = models.BooleanField(default=False)
-    applies_to_species = models.BooleanField(default=False)
-    applies_to_communities = models.BooleanField(default=False)
-    approval_level = models.CharField(
-        "Approval level",
-        max_length=20,
-        choices=APPROVAL_LEVEL_CHOICES,
-        default=APPROVAL_LEVEL_CHOICES[0][0],
-    )
-
-    class Meta:
-        app_label = "boranga"
-        verbose_name = "Conservation List"
-        verbose_name_plural = "Conservation Lists"
-        ordering = ["code"]
-
-    def __str__(self):
-        return str(self.code)
-
-
 class AbstractConservationList(models.Model):
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
@@ -290,46 +258,6 @@ class CommonwealthConservationList(AbstractConservationList):
         ordering = ["code"]
         app_label = "boranga"
         verbose_name = "Commonwealth Conservation List"
-
-
-class ConservationCategory(models.Model):
-    conservation_list = models.ForeignKey(
-        ConservationList,
-        on_delete=models.CASCADE,
-        related_name="conservation_categories",
-        null=True,
-    )
-    code = models.CharField(max_length=64, default="None")
-    label = models.CharField(max_length=512, default="None")
-
-    class Meta:
-        app_label = "boranga"
-        verbose_name = "Conservation Category"
-        verbose_name_plural = "Conservation Categories"
-        ordering = ["code"]
-
-    def __str__(self):
-        return str(self.code)
-
-
-class ConservationCriteria(models.Model):
-    conservation_list = models.ForeignKey(
-        ConservationList,
-        on_delete=models.CASCADE,
-        related_name="conservation_criterias",
-        null=True,
-    )
-    code = models.CharField(max_length=64)
-    label = models.CharField(max_length=512, default="None")
-
-    class Meta:
-        app_label = "boranga"
-        verbose_name = "Conservation Criteria"
-        verbose_name_plural = "Conservation Criterias"
-        ordering = ["code"]
-
-    def __str__(self):
-        return str(self.code)
 
 
 class ConservationChangeCode(models.Model):
@@ -2224,5 +2152,3 @@ reversion.register(ConservationStatusDocument)
 
 # Conservation Status History
 reversion.register(ConservationStatus, follow=["species", "community"])
-reversion.register(ConservationList)
-# reversion.register(ConservationCategory)
