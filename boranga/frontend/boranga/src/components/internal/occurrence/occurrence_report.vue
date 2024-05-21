@@ -157,7 +157,7 @@
                             <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="amendmentRequest()">Request
                                 Amendment</button>
-                            <button v-if="with_approver" style="width:80%;" class="btn btn-primary mb-4"
+                            <button v-if="with_approver || unlocked" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="backToAssessor()">Back to Assessor</button>
 
                             <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-2"
