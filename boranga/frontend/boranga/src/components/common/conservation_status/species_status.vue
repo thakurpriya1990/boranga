@@ -112,10 +112,10 @@
                 <h5 class="text-muted mb-4"><template v-if="conservation_list_proposed">Proposed
                     </template>Conservation
                     Status</h5>
-                <label for="wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List:</label>
+                <label for="proposed_wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" class="form-select"
-                        v-model="conservation_status_obj.wa_legislative_list_id" id="wa_legislative_list"
+                        v-model="conservation_status_obj.wa_legislative_list_id" id="proposed_wa_legislative_list"
                         @change="filterWALegislativeCategories($event)">
                         <option :value="null" disabled>Select the appropriate WA Legislative List</option>
                         <option v-for="option in wa_legislative_lists" :value="option.id" v-bind:key="option.id">
@@ -125,10 +125,10 @@
                 </div>
             </div>
             <div v-if="conservation_status_obj.wa_legislative_list_id" class="row mb-3">
-                <label for="" class="col-sm-4 col-form-label">WA Legislative Category:</label>
+                <label for="proposed_wa_legislative_category" class="col-sm-4 col-form-label">WA Legislative Category:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" class="form-select"
-                        v-model="conservation_status_obj.wa_legislative_category_id" id="wa_legislative_category">
+                        v-model="conservation_status_obj.wa_legislative_category_id" id="proposed_wa_legislative_category">
                         <option :value="null" disabled>Select the appropriate WA Legislative Category</option>
                         <option v-for="option in filtered_wa_legislative_categories" :value="option.id"
                             v-bind:key="option.id">
@@ -138,10 +138,10 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
+                <label for="proposed_wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" class="form-select"
-                        v-model="conservation_status_obj.wa_priority_list_id" id="wa_priority_list"
+                        v-model="conservation_status_obj.wa_priority_list_id" id="proposed_wa_priority_list"
                         @change="filterWAPriorityCategories($event)">
                         <option :value="null" disabled>Select the appropriate WA Priority List</option>
                         <option v-for="option in wa_priority_lists" :value="option.id" v-bind:key="option.id">
@@ -151,10 +151,10 @@
                 </div>
             </div>
             <div v-if="conservation_status_obj.wa_priority_list_id" class="row mb-3">
-                <label for="wa_priority_category" class="col-sm-4 col-form-label">WA Priority Category:</label>
+                <label for="proposed_wa_priority_category" class="col-sm-4 col-form-label">WA Priority Category:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" class="form-select"
-                        v-model="conservation_status_obj.wa_priority_category_id" id="wa_priority_category">
+                        v-model="conservation_status_obj.wa_priority_category_id" id="proposed_wa_priority_category">
                         <option :value="null" disabled>Select the appropriate WA Priority Category</option>
                         <option v-for="option in filtered_wa_priority_categories" :value="option.id"
                             v-bind:key="option.id">
@@ -164,10 +164,10 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
+                <label for="proposed_commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" class="form-select"
-                        v-model="conservation_status_obj.commonwealth_conservation_list_id" id="commonwealth_conservation_list"
+                        v-model="conservation_status_obj.commonwealth_conservation_list_id" id="proposed_commonwealth_conservation_list"
                         @change="filterWAPriorityCategories($event)">
                         <option :value="null" disabled>Select a Commonwealth Conservation List if Applicable
                         </option>
@@ -179,18 +179,18 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="international-conservation" class="col-sm-4 col-form-label">International
+                <label for="proposed_international_conservation" class="col-sm-4 col-form-label">International
                     Conservation:</label>
                 <div class="col-sm-8">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="international-conservation"
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="proposed_international_conservation"
                         placeholder="Enter International Conservation Details if Applicable"
                         v-model="conservation_status_obj.international_conservation" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 col-form-label">Conservation Criteria:</label>
+                <label for="proposed_conservation_criteria" class="col-sm-4 col-form-label">Conservation Criteria:</label>
                 <div class="col-sm-8">
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="conservation_criteria"
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="proposed_conservation_criteria"
                         placeholder="Enter Conservation Criteria if Applicable"
                         v-model="conservation_status_obj.conservation_criteria" />
                 </div>
@@ -199,11 +199,11 @@
                 <div class="row mb-3 border-top pt-3">
                     <h5 class="text-muted mb-4">Current Conservation
                         Status</h5>
-                    <label for="wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List:</label>
+                    <label for="current_wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="conservation_status_obj.current_conservation_status.wa_legislative_list_id"
-                            id="wa_legislative_list" @change="filterWALegislativeCategories($event)">
+                            id="current_wa_legislative_list" @change="filterWALegislativeCategories($event)">
                             <option v-for="option in wa_legislative_lists" :value="option.id" v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
@@ -211,12 +211,12 @@
                     </div>
                 </div>
                 <div v-if="conservation_status_obj.current_conservation_status.wa_legislative_list_id" class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">WA Legislative Category:</label>
+                    <label for="current_wa_legislative_category" class="col-sm-4 col-form-label">WA Legislative Category:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="conservation_status_obj.current_conservation_status.wa_legislative_category_id"
-                            id="wa_legislative_category">
-                            <option v-for="option in filtered_wa_legislative_categories" :value="option.id"
+                            id="current_wa_legislative_category">
+                            <option v-for="option in wa_legislative_categories" :value="option.id"
                                 v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
@@ -224,11 +224,11 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
+                    <label for="current_wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="conservation_status_obj.current_conservation_status.wa_priority_list_id"
-                            id="wa_priority_list" @change="filterWAPriorityCategories($event)">
+                            id="current_wa_priority_list" @change="filterWAPriorityCategories($event)">
                             <option v-for="option in wa_priority_lists" :value="option.id" v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
@@ -236,12 +236,12 @@
                     </div>
                 </div>
                 <div v-if="conservation_status_obj.current_conservation_status.wa_priority_list_id" class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">WA Priority Category:</label>
+                    <label for="current_wa_priority_category" class="col-sm-4 col-form-label">WA Priority Category:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="conservation_status_obj.current_conservation_status.wa_priority_category_id"
-                            id="conservation_category">
-                            <option v-for="option in filtered_wa_priority_categories" :value="option.id"
+                            id="current_wa_priority_category">
+                            <option v-for="option in wa_priority_categories" :value="option.id"
                                 v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
@@ -249,11 +249,11 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
+                    <label for="current_commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="conservation_status_obj.current_conservation_status.commonwealth_conservation_list_id"
-                            id="wa_priority_list" @change="filterWAPriorityCategories($event)">
+                            id="current_commonwealth_conservation_list">
                             <option v-for="option in commonwealth_conservation_lists" :value="option.id"
                                 v-bind:key="option.id">
                                 {{ option.code }}
@@ -262,17 +262,17 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="international-conservation" class="col-sm-4 col-form-label">International
+                    <label for="current_international_conservation" class="col-sm-4 col-form-label">International
                         Conservation:</label>
                     <div class="col-sm-8">
-                        <input :disabled="true" type="text" class="form-control" id="international-conservation"
+                        <input :disabled="true" type="text" class="form-control" id="current_international_conservation"
                             v-model="conservation_status_obj.current_conservation_status.international_conservation" />
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">Conservation Criteria:</label>
+                    <label for="current_conservation_criteria" class="col-sm-4 col-form-label">Conservation Criteria:</label>
                     <div class="col-sm-8">
-                        <input :disabled="true" type="text" class="form-control" id="conservation_criteria"
+                        <input :disabled="true" type="text" class="form-control" id="current_conservation_criteria"
                             v-model="conservation_status_obj.current_conservation_status.conservation_criteria" />
                     </div>
                 </div>
@@ -281,11 +281,11 @@
                 <div class="row mb-3 border-top pt-3">
                     <h5 class="text-muted mb-4">Recommended Conservation
                         Status</h5>
-                    <label for="wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List:</label>
+                    <label for="recommended_wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="conservation_status_obj.recommended_wa_legislative_list_id"
-                            id="wa_legislative_list" @change="filterWALegislativeCategories($event)">
+                            id="recommended_wa_legislative_list">
                             <option v-for="option in wa_legislative_lists" :value="option.id" v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
@@ -293,12 +293,12 @@
                     </div>
                 </div>
                 <div v-if="conservation_status_obj.recommended_wa_legislative_list_id" class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">WA Legislative Category:</label>
+                    <label for="recommended_wa_legislative_category" class="col-sm-4 col-form-label">WA Legislative Category:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="conservation_status_obj.recommended_wa_legislative_category_id"
-                            id="wa_legislative_category">
-                            <option v-for="option in filtered_wa_legislative_categories" :value="option.id"
+                            id="recommended_wa_legislative_category">
+                            <option v-for="option in wa_legislative_categories" :value="option.id"
                                 v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
@@ -306,11 +306,10 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
+                    <label for="recommended_wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
-                            v-model="conservation_status_obj.recommended_wa_priority_list_id" id="wa_priority_list"
-                            @change="filterWAPriorityCategories($event)">
+                            v-model="conservation_status_obj.recommended_wa_priority_list_id" id="recommended_wa_priority_list">
                             <option v-for="option in wa_priority_lists" :value="option.id" v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
@@ -318,12 +317,12 @@
                     </div>
                 </div>
                 <div v-if="conservation_status_obj.recommended_wa_priority_list_id" class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">WA Priority Category:</label>
+                    <label for="recommended_wa_priority_category" class="col-sm-4 col-form-label">WA Priority Category:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="conservation_status_obj.recommended_wa_priority_category_id"
                             id="conservation_category">
-                            <option v-for="option in filtered_wa_priority_categories" :value="option.id"
+                            <option v-for="option in wa_priority_categories" :value="option.id"
                                 v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
@@ -331,11 +330,11 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
+                    <label for="recommended_commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth Conservation List:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="conservation_status_obj.recommended_commonwealth_conservation_list_id"
-                            id="wa_priority_list" @change="filterWAPriorityCategories($event)">
+                            id="recommended_commonwealth_conservation_list">
                             <option v-for="option in commonwealth_conservation_lists" :value="option.id"
                                 v-bind:key="option.id">
                                 {{ option.code }}
@@ -344,23 +343,23 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="international-conservation" class="col-sm-4 col-form-label">International
+                    <label for="recommended_international_conservation" class="col-sm-4 col-form-label">International
                         Conservation:</label>
                     <div class="col-sm-8">
-                        <input :disabled="true" type="text" class="form-control" id="international-conservation"
+                        <input :disabled="true" type="text" class="form-control" id="recommended_international_conservation"
                             v-model="conservation_status_obj.recommended_international_conservation" />
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">Conservation Criteria:</label>
+                    <label for="recommended_conservation_criteria" class="col-sm-4 col-form-label">Conservation Criteria:</label>
                     <div class="col-sm-8">
-                        <input :disabled="true" type="text" class="form-control" id="conservation_criteria"
+                        <input :disabled="true" type="text" class="form-control" id="recommended_conservation_criteria"
                             v-model="conservation_status_obj.recommended_conservation_criteria" />
                     </div>
                 </div>
             </template>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 col-form-label">Comment:</label>
+                <label for="comment" class="col-sm-4 col-form-label">Comment:</label>
                 <div class="col-sm-8">
                     <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
                         v-model="conservation_status_obj.comment" />
