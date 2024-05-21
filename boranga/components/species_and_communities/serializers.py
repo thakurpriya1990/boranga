@@ -43,8 +43,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     family = serializers.SerializerMethodField()
     genus = serializers.SerializerMethodField()
     phylogenetic_group = serializers.SerializerMethodField()
-    conservation_list = serializers.SerializerMethodField()
-    conservation_category = serializers.SerializerMethodField()
+    # TODO: Add new conservation status lists/catories
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
@@ -64,8 +63,6 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "phylogenetic_group",
             "region",
             "district",
-            "conservation_list",
-            "conservation_category",
             "processing_status",
             "can_user_edit",
             "can_user_view",
@@ -83,8 +80,6 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "phylogenetic_group",
             "region",
             "district",
-            "conservation_list",
-            "conservation_category",
             "processing_status",
             "can_user_edit",
             "can_user_view",
@@ -129,40 +124,6 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
                 )
         return ""
 
-    def get_conservation_list(self, obj):
-        try:
-            # need to show only WA_listed species
-            conservation_status = ConservationStatus.objects.get(
-                species=obj,
-                conservation_list__applies_to_wa=True,
-                processing_status="approved",
-            )  # need to show only WA_list species
-            # TODO: Shouldn't we only allow the objects to be linked in the first place if the
-            # conseration list applies to wa?
-            if not hasattr(conservation_status, "conservation_list"):
-                return ""
-            if not conservation_status.conservation_list:
-                return ""
-            return conservation_status.conservation_list.code
-        except ConservationStatus.DoesNotExist:
-            return ""
-
-    def get_conservation_category(self, obj):
-        try:
-            # need to show only WA_list species
-            conservation_status = ConservationStatus.objects.get(
-                species=obj,
-                conservation_list__applies_to_wa=True,
-                processing_status="approved",
-            )  # need to show only WA_list species
-            if not hasattr(conservation_status, "conservation_category"):
-                return ""
-            if not conservation_status.conservation_category:
-                return ""
-            return conservation_status.conservation_category.code
-        except ConservationStatus.DoesNotExist:
-            return ""
-
     def get_region(self, obj):
         if obj.region:
             return obj.region.name
@@ -193,8 +154,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
-    conservation_list = serializers.SerializerMethodField()
-    conservation_category = serializers.SerializerMethodField()
+    # TODO: Add new conservation status lists/catories
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
@@ -209,8 +169,6 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "group_type",
             "community_migrated_id",
             "community_name",
-            "conservation_list",
-            "conservation_category",
             "region",
             "district",
             "processing_status",
@@ -225,8 +183,6 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "group_type",
             "community_migrated_id",
             "community_name",
-            "conservation_list",
-            "conservation_category",
             "region",
             "district",
             "processing_status",
@@ -251,28 +207,6 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             taxonomy = CommunityTaxonomy.objects.get(community=obj)
             return taxonomy.community_migrated_id
         except CommunityTaxonomy.DoesNotExist:
-            return ""
-
-    def get_conservation_list(self, obj):
-        try:
-            conservation_status = ConservationStatus.objects.get(
-                community=obj,
-                conservation_list__applies_to_wa=True,
-                processing_status="approved",
-            )  # need to show only WA_list species
-            return conservation_status.conservation_list.code
-        except ConservationStatus.DoesNotExist:
-            return ""
-
-    def get_conservation_category(self, obj):
-        try:
-            conservation_status = ConservationStatus.objects.get(
-                community=obj,
-                conservation_list__applies_to_wa=True,
-                processing_status="approved",
-            )  # need to show only WA_list species
-            return conservation_status.conservation_category.code
-        except ConservationStatus.DoesNotExist:
             return ""
 
     def get_region(self, obj):
