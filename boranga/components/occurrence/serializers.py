@@ -1480,6 +1480,7 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             "contact",
             "organisation",
             "main_observer",
+            "visible",
         )
 
 

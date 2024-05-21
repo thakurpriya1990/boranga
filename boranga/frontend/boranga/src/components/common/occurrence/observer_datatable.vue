@@ -94,7 +94,11 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.observer_name;
+                                if (full.visible) {
+                                    return full.observer_name;
+                                } else {
+                                    return '<s>' + full.observer_name + '</s>'
+                                }
                             },
 
                         },
@@ -103,7 +107,11 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.role;
+                                if (full.visible) {
+                                    return full.role;
+                                } else {
+                                    return '<s>' + full.role + '</s>'
+                                }
                             },
                         },
                         {
@@ -111,7 +119,11 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.contact;
+                                if (full.visible) {
+                                    return full.contact;
+                                } else {
+                                    return '<s>' + full.contact + '</s>'
+                                }
                             },
                         },
                         {
@@ -119,7 +131,11 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.organisation;
+                                if (full.visible) {
+                                    return full.organisation;
+                                } else {
+                                    return '<s>' + full.organisation + '</s>'
+                                }
                             },
                         },
                         {
@@ -127,18 +143,26 @@ export default {
                             orderable: true,
                             searchable: true,
                             mRender: function(data,type,full){
-                                return full.main_observer;
+                                if (full.visible) {
+                                    return full.main_observer;
+                                } else {
+                                    return '<s>' + full.main_observer; + '</s>'
+                                }                                
                             },
                         },
                         {
                             data: "id",
                             mRender:function (data,type,full){
-                                let links = '';                                
-                                if (!vm.isReadOnly) {
-                                    links +=  `<a href='#${full.id}' data-edit-observer_det='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-delete-observer_det='${full.id}'>Delete</a><br>`;
-                                } else {
-                                    links +=  `<a href='#${full.id}' data-view-observer_det='${full.id}'>View</a><br/>`;
+                                let links = '';
+                                if (full.visible) {                                
+                                    if (!vm.isReadOnly) {
+                                        links +=  `<a href='#${full.id}' data-edit-observer_det='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-delete-observer_det='${full.id}'>Discard</a><br>`;
+                                    } else {
+                                        links +=  `<a href='#${full.id}' data-view-observer_det='${full.id}'>View</a><br/>`;
+                                    }
+                                } else if (!vm.isReadOnly) {
+                                    links += `<a href='#' data-reinstate-observer_det='${full.id}'>Reinstate</a><br>`;
                                 }
                                 return links;
                             }
@@ -188,6 +212,11 @@ export default {
                     e.preventDefault();
                     var id = $(this).attr('data-delete-observer_det');
                     vm.deleteObserverDetail(id);
+                });
+                vm.$refs.observer_detail_datatable.vmDataTable.on('click', 'a[data-reinstate-observer_det]', function(e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-reinstate-observer_det');
+                    vm.reinstateObserverDetail(id);
                 });
                 vm.$refs.observer_detail_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                     helpers.enablePopovers();
@@ -241,7 +270,6 @@ export default {
                       });
                 this.$refs.observer_detail.isModalOpen = true;
             },
-            //TODO remove/replace - no deleting only discard (check every endpoint)
             deleteObserverDetail: function(id){
                 let vm=this;
                 swal.fire({
@@ -253,7 +281,7 @@ export default {
                     confirmButtonColor:'#d9534f'
                 }).then((result) => {
                     if(result.isConfirmed){
-                        vm.$http.delete(api_endpoints.discard_observer_detail(id))
+                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.observer_detail,id + '/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -272,6 +300,25 @@ export default {
                     }
                 },(error) => {
 
+                });
+            },
+            reinstateObserverDetail: function(id){
+                let vm=this;
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.observer_detail,id + '/reinstate'))
+                .then((response) => {
+                    swal.fire({
+                        title: 'Reinstated',
+                        text: 'The Observer has been reinstated',
+                        icon: 'success',
+                        confirmButtonColor:'#226fbb',
+                    }).then((result) => {
+                        vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
+                    });                            
+                }, (error) => {
+                    console.log(error);
                 });
             },
             updatedObserverDetails(){

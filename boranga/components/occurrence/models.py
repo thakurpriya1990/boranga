@@ -1604,6 +1604,7 @@ class OCRObserverDetail(models.Model):
     contact = models.CharField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
     main_observer = models.BooleanField(null=True, blank=True)
+    visible = models.BooleanField(default=True)
 
     class Meta:
         app_label = "boranga"

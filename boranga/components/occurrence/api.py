@@ -2045,6 +2045,40 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
             self.unlocked_back_to_assessor(occurrence_report)
 
         return Response(serializer.data)
+    
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence_report)
+        instance.visible = False
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence_report)
+        instance.visible = True
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        if instance.occurrence_report.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor(instance.occurrence_report) 
+        return Response(serializer.data)
 
 
 class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
