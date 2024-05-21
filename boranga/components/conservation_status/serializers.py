@@ -1262,7 +1262,7 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
         user = (
             request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
         )
-        if obj.can_process(user) and obj.can_be_completed:
+        if obj.can_be_completed:
             if obj.assigned_officer:
                 if obj.assigned_officer == user:
                     return True
