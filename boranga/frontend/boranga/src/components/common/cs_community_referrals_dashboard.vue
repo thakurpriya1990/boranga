@@ -38,25 +38,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSRefCommunityConservationList"
-                        @change="filterConservationCategory($event)">
-                            <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation Category:</label>
-                        <select class="form-select" v-model="filterCSRefCommunityConservationCategory">
-                            <option value="all">All</option>
-                            <option v-for="list in filtered_conservation_category_list" :value="list.id">{{list.code}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSRefCommunityApplicationStatus">
                             <option value="all">All</option>
@@ -190,9 +171,6 @@ export default {
 
             //Filter list for Community select box
             filterListsCommunities: {},
-            conservation_list_dict: [],
-            conservation_category_list: [],
-            filtered_conservation_category_list: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
@@ -611,9 +589,6 @@ export default {
 
             vm.$http.get(api_endpoints.filter_list_cs_referrals_community+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunities= response.body;
-                vm.conservation_list_dict = vm.filterListsCommunities.conservation_list_dict;
-                vm.conservation_category_list = vm.filterListsCommunities.conservation_category_list;
-                vm.filterConservationCategory();
                 vm.filterDistrict();
                 vm.proposal_status = vm.filterListsCommunities.processing_status_list
             },(error) => {
@@ -626,22 +601,6 @@ export default {
             },(error) => {
                 console.log(error);
             })
-        },
-        //-------filter category dropdown dependent on conservation_list selected
-        filterConservationCategory: function(event) {
-                this.$nextTick(() => {
-                    if(event){
-                      this.filterCSRefCommunityConservationCategory='all'; //-----to remove the previous selection
-                    }
-                    this.filtered_conservation_category_list=[];
-                    //---filter conservation_categories as per cons_list selected
-                    for(let choice of this.conservation_category_list){
-                        if(choice.conservation_list_id.toString() === this.filterCSRefCommunityConservationList.toString())
-                        {
-                          this.filtered_conservation_category_list.push(choice);
-                        }
-                    }
-                });
         },
           //-------filter district dropdown dependent on region selected
           filterDistrict: function(event) {

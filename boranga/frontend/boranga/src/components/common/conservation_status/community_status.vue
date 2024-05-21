@@ -27,23 +27,23 @@
                                 <label for="" class="col-sm-4 control-label">{{ref.label}}:</label>
                                 <div class="col-sm-8">
                                     <textarea v-if='!ref.readonly'
-                                        :disabled="ref.readonly" 
-                                        :name="ref.name" 
-                                        class="form-control" 
-                                        rows="3" 
-                                        placeholder="" 
+                                        :disabled="ref.readonly"
+                                        :name="ref.name"
+                                        class="form-control"
+                                        rows="3"
+                                        placeholder=""
                                         v-model="referral.referral_comment"
                                         />
                                     <textarea v-else
-                                        :disabled="ref.readonly" 
-                                        :name="ref.name" 
-                                        :value="ref.value" 
-                                        class="form-control" 
-                                        rows="" 
-                                        placeholder="" 
+                                        :disabled="ref.readonly"
+                                        :name="ref.name"
+                                        :value="ref.value"
+                                        class="form-control"
+                                        rows=""
+                                        placeholder=""
                                         />
                                 </div>
-                            </div> 
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -53,16 +53,16 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Community Name:</label>
                 <div class="col-sm-8" :id="select_community_name">
-                    <!-- <select :disabled="conservation_status_obj.readonly" class="form-select" 
+                    <!-- <select :disabled="conservation_status_obj.readonly" class="form-select"
                         v-model="conservation_status_obj.community_id" id="community_name" @change="getCommunityDisplay()">
                         <option v-for="option in community_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}                            
+                            {{ option.name }}
                         </option>
                     </select> -->
                     <select :disabled="conservation_status_obj.readonly"
-                        :id="community_name_lookup"  
-                        :name="community_name_lookup"  
-                        :ref="community_name_lookup" 
+                        :id="community_name_lookup"
+                        :name="community_name_lookup"
+                        :ref="community_name_lookup"
                         class="form-control" />
                 </div>
             </div>
@@ -72,107 +72,43 @@
                     <textarea disabled class="form-control" rows="3" id="community_display" v-model="community_display"/>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">{{ conservation_list_label }}:</label>
-                <div class="col-sm-8">
-                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
-                        v-model="conservation_status_obj.conservation_list_id" id="conservation_list" 
-                        @change="filterConservationCategoryCriteria($event)">
-                        <option v-for="option in conservation_list_values" :value="option.id" v-bind:key="option.id">
-                            {{ option.code }}                            
-                        </option>
-                    </select>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">{{ conservation_category_label }}:</label>
-                <div class="col-sm-8">
-                    <select :disabled="conservation_status_obj.readonly" class="form-select" 
-                        v-model="conservation_status_obj.conservation_category_id" 
-                        id="conservation_category">
-                        <option v-for="option in filtered_conservation_category_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.code }}                            
-                        </option>
-                    </select>
-                </div>
-            </div>
+            <!-- TODO: Add new conservation list / category fields in here -->
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">{{ conservation_criteria_label }}:</label>
                 <div class="col-sm-8">
-                    <!-- <select :disabled="isReadOnly" 
-                        style="width:100%;" class="form-select input-sm" multiple 
-                        ref="conservation_criteria_select" 
-                        v-model="conservation_status_obj.conservation_criteria" >
-                        <option v-for="c in filtered_conservation_criteria_list" :value="c.id" :key="c.id">
-                            {{c.code}}
-                        </option>
-                    </select> -->
-                    <input :disabled="isReadOnly" type="text" class="form-control" id="conservation_criteria" placeholder="" 
+                    <input :disabled="isReadOnly" type="text" class="form-control" id="conservation_criteria" placeholder=""
                         v-model="conservation_status_obj.conservation_criteria"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="canViewCurrentList">
                 <label for="" class="col-sm-4 control-label">Current Conservation List:</label>
                 <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="curr_cons_list" placeholder="" 
+                    <input readonly type="text" class="form-control" id="curr_cons_list" placeholder=""
                     v-model="conservation_status_obj.curr_conservation_list"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="canViewCurrentList">
                 <label for="" class="col-sm-4 control-label">Current Conservation Category:</label>
                 <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="curr_cons_category" placeholder="" 
+                    <input readonly type="text" class="form-control" id="curr_cons_category" placeholder=""
                     v-model="conservation_status_obj.curr_conservation_category"/>
                 </div>
             </div>
             <div class="row mb-3" v-show="canViewCurrentList">
                 <label for="" class="col-sm-4 control-label">Current Conservation Criteria:</label>
                 <div class="col-sm-8">
-                    <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder="" 
+                    <input readonly type="text" class="form-control" id="curr_cons_criteria" placeholder=""
                     v-model="conservation_status_obj.curr_conservation_criteria"/>
-                </div>
-            </div>
-
-            <div class="row mb-3" v-show="conservation_status_obj.can_view_recommended">
-                <label for="" class="col-sm-4 control-label">Recommended Conservation List:</label>
-                <div class="col-sm-8">
-                    <select :disabled="!conservation_status_obj.can_edit_recommended" class="form-select" 
-                        v-model="conservation_status_obj.recommended_conservation_list_id" id="rec_conservation_list" 
-                        @change="filterRecomConservationCategoryCriteria($event)">
-                        <option v-for="option in conservation_list_values" :value="option.id" v-bind:key="option.id">
-                            {{ option.code }}                            
-                        </option>
-                    </select>
-                </div>
-            </div>
-            <div class="row mb-3" v-show="conservation_status_obj.can_view_recommended">
-                <label for="" class="col-sm-4 control-label">Recommended Conservation Category:</label>
-                <div class="col-sm-8">
-                    <select :disabled="!conservation_status_obj.can_edit_recommended" class="form-select" 
-                        v-model="conservation_status_obj.recommended_conservation_category_id" 
-                        id="recom_conservation_category">
-                        <option v-for="option in filtered_recom_conservation_category_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.code }}                            
-                        </option>
-                    </select>
                 </div>
             </div>
             <div class="row mb-3" v-show="conservation_status_obj.can_view_recommended">
                 <label for="" class="col-sm-4 control-label">Recommended Conservation Criteria:</label>
                 <div class="col-sm-8">
-                    <!-- <select :disabled="!conservation_status_obj.can_edit_recommended"
-                        style="width:100%;" class="form-select input-sm" multiple 
-                        ref="recom_conservation_criteria_select" 
-                        v-model="conservation_status_obj.recommended_conservation_criteria" >
-                        <option v-for="c in filtered_recom_conservation_criteria_list" :value="c.id" :key="c.id">
-                            {{c.code}}
-                        </option>
-                    </select> -->
-                    <input :disabled="!conservation_status_obj.can_edit_recommended" type="text" class="form-control" id="rec_conservation_criteria" placeholder="" 
+                    <input :disabled="!conservation_status_obj.can_edit_recommended" type="text" class="form-control" id="rec_conservation_criteria" placeholder=""
                         v-model="conservation_status_obj.recommended_conservation_criteria"/>
                 </div>
             </div>
-            
+
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Comment:</label>
                 <div class="col-sm-8">
@@ -245,15 +181,8 @@ export default {
                 //----list of values dictionary
                 cs_community_profile_dict: {},
                 community_list: [],
-                conservation_list_values: [],
-                conservation_category_list: [],
-                // conservation_criteria_list: [],
-                filtered_conservation_category_list: [],
-                // filtered_conservation_criteria_list: [],
-                filtered_recom_conservation_category_list: [],
-                // filtered_recom_conservation_criteria_list: [],
                 referral_comments_boxes: [],
-                // to display the species selected 
+                // to display the species selected
                 community_display: '',
                 //---Comment box attributes
                 deficiency_readonly : !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor? false : true,
@@ -278,7 +207,7 @@ export default {
                         if(this.referral_comments_boxes[i].value!=null && this.referral_comments_boxes[i].value!=undefined && this.referral_comments_boxes[i].value!= '' ){
                             has_value=true;
                         }
-                    } 
+                    }
                 }
                 return has_value;
             },
@@ -394,67 +323,13 @@ export default {
                         }
                     }
             },
-            filterConservationCategoryCriteria: function(event){
-                this.$nextTick(() => {
-                    if(event){
-                        this.conservation_status_obj.conservation_category_id=null;
-                        // this.conservation_status_obj.conservation_criteria=[];
-                    }
-                    this.filtered_conservation_category_list=[];
-                    this.filtered_conservation_category_list=[{
-                          id:null,
-                          code:"",
-                          conservation_list_id:null,
-                        }];
-                    // this.filtered_conservation_criteria_list=[];
-                    for(let choice of this.conservation_category_list){
-                            if(choice.conservation_list_id === this.conservation_status_obj.conservation_list_id)
-                            {
-                              this.filtered_conservation_category_list.push(choice);
-                            }
-                        }
-                    // for(let choice of this.conservation_criteria_list){
-                    //         if(choice.conservation_list_id === this.conservation_status_obj.conservation_list_id)
-                    //         {
-                    //           this.filtered_conservation_criteria_list.push(choice);
-                    //         }
-                    //     }
-                });
-            },
-            filterRecomConservationCategoryCriteria: function(event){
-                this.$nextTick(() => {
-                    if(event){
-                        this.conservation_status_obj.recommended_conservation_category_id=null;
-                        // this.conservation_status_obj.recommended_conservation_criteria=[];
-                    }
-                    this.filtered_recom_conservation_category_list=[];
-                    this.filtered_recom_conservation_category_list=[{
-                          id:null,
-                          code:"",
-                          conservation_list_id:null,
-                        }];
-                    // this.filtered_recom_conservation_criteria_list=[];
-                    for(let choice of this.conservation_category_list){
-                            if(choice.conservation_list_id === this.conservation_status_obj.recommended_conservation_list_id)
-                            {
-                              this.filtered_recom_conservation_category_list.push(choice);
-                            }
-                        }
-                    // for(let choice of this.conservation_criteria_list){
-                    //         if(choice.conservation_list_id === this.conservation_status_obj.recommended_conservation_list_id)
-                    //         {
-                    //           this.filtered_recom_conservation_criteria_list.push(choice);
-                    //         }
-                    //     }
-                });
-            },
             generateReferralCommentBoxes: function(){
                 var box_visibility = this.conservation_status_obj.assessor_mode.assessor_box_view
                 var assessor_mode = this.conservation_status_obj.assessor_mode.assessor_level
                 if (!this.conservation_status_obj.can_user_edit){
                     var current_referral_present = false;
                     $.each(this.conservation_status_obj.latest_referrals,(i,v)=> {
-                        var referral_name = `comment-field-Referral-${v.referral_obj.email}`; 
+                        var referral_name = `comment-field-Referral-${v.referral_obj.email}`;
                         var referral_visibility =  assessor_mode == 'referral' && this.conservation_status_obj.assessor_mode.assessor_can_assess && this.referral.referral == v.referral_obj.id ? false : true ;
                         var referral_label = `${v.referral_obj.fullname}`;
                         var referral_comment_val = `${v.referral_comment}`;
@@ -514,22 +389,12 @@ export default {
             let vm=this;
             //------fetch list of values according to action
             let action = this.$route.query.action;
-            let dict_url= action == "view"? api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type+ '&action=' + action : 
+            let dict_url= action == "view"? api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type+ '&action=' + action :
                                             api_endpoints.cs_profile_dict+ '?group_type=' + vm.conservation_status_obj.group_type
             vm.$http.get(dict_url).then((response) => {
                 vm.cs_profile_dict = response.body;
                 vm.community_list = vm.cs_profile_dict.community_list;
-                vm.conservation_list_values = vm.cs_profile_dict.conservation_list_values;
-                vm.conservation_list_values.splice(0,0,
-                {
-                    id: null,
-                    code: null,
-                });
-                vm.conservation_category_list = vm.cs_profile_dict.conservation_category_list;
-                // vm.conservation_criteria_list = vm.cs_profile_dict.conservation_criteria_list;
                 this.getCommunityDisplay();
-                this.filterConservationCategoryCriteria();
-                this.filterRecomConservationCategoryCriteria();
                 if(!vm.is_external){
                     this.generateReferralCommentBoxes();
                 }
@@ -569,4 +434,3 @@ export default {
         padding: 0.375rem 2.25rem 0.375rem 0.75rem;
     }
 </style>
-

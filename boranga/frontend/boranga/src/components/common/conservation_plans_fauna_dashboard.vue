@@ -656,18 +656,8 @@ export default {
             let vm = this;
             //large FilterList of Species Values object
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
-                // vm.filterListsSpecies = response.body;
-                // vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
-                // vm.common_name_list = vm.filterListsSpecies.common_name_list;
-                // vm.family_list = vm.filterListsSpecies.family_list;
-                // vm.genus_list = vm.filterListsSpecies.genus_list;
-                // vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
-                // vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
-                // vm.filterConservationCategory();
                 vm.filterDistrict();
                 vm.proposal_status = vm.internal_status;
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
-                //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
                 console.log(error);
             })

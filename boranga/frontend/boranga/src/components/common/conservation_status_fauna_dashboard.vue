@@ -38,26 +38,6 @@
                             class="form-control" />
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSFaunaConservationList"
-                            @change="filterConservationCategory($event)">
-                            <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id">{{ list.code }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation Category:</label>
-                        <select class="form-select" v-model="filterCSFaunaConservationCategory">
-                            <option value="all">All</option>
-                            <option v-for="list in filtered_conservation_category_list" :value="list.id">{{ list.code }}
-                            </option>
-                        </select>
-                    </div>
-                </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Status:</label>
@@ -321,9 +301,6 @@ export default {
             family_list: [],
             genus_list: [],
             phylogenetic_group_list: [],
-            conservation_list_dict: [],
-            filtered_conservation_category_list: [],
-            conservation_category_list: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
@@ -1086,15 +1063,10 @@ export default {
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
-                vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
-                vm.filterConservationCategory();
                 vm.filterDistrict();
                 vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
-                //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             }, (error) => {
                 console.log(error);
             })
@@ -1105,21 +1077,6 @@ export default {
             }, (error) => {
                 console.log(error);
             })
-        },
-        //-------filter category dropdown dependent on conservation_list selected
-        filterConservationCategory: function (event) {
-            //this.$nextTick(() => {
-            if (event) {
-                this.filterCSFaunaConservationCategory = 'all'; //-----to remove the previous selection
-            }
-            this.filtered_conservation_category_list = [];
-            //---filter conservation_categories as per cons_list selected
-            for (let choice of this.conservation_category_list) {
-                if (choice.conservation_list_id.toString() === this.filterCSFaunaConservationList.toString()) {
-                    this.filtered_conservation_category_list.push(choice);
-                }
-            }
-            //});
         },
         //-------filter district dropdown dependent on region selected
         filterDistrict: function (event) {
