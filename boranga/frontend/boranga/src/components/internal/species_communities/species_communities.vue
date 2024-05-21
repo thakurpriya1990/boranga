@@ -542,6 +542,11 @@ export default {
             let vm = this;
             vm.saveError = false;
 
+            //only save if something has changed
+            if (vm.can_submit("") != true) {
+                return false;
+            }
+
             let payload = new Object();
             Object.assign(payload, vm.species_community);
             const result = await vm.$http.post(vm.species_community_form_url, payload).then(res => {
