@@ -364,38 +364,6 @@ export default {
                 name: "conservation_status__species__taxonomy__vernaculars__vernacular_name",
             }
         },
-        column_conservation_list: function(){
-            return {
-                data: "conservation_list",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, full){
-                    if(full.conservation_list){
-                        return full.conservation_list;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__conservation_list__code",
-            }
-        },
-        column_conservation_category: function(){
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, full){
-                    if(full.conservation_category){
-                        return full.conservation_category;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__conservation_category__code",
-            }
-        },
         column_status: function(){
             return {
                 // 9. Workflow Status
@@ -457,8 +425,6 @@ export default {
                 vm.column_species_number,
                 vm.column_scientific_name,
                 vm.column_common_name,
-                vm.column_conservation_list,
-                vm.column_conservation_category,
                 vm.column_status,
                 vm.column_action,
             ]

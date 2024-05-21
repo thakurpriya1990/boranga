@@ -704,12 +704,7 @@ export default {
                 }
             }
             if (check_action == "submit") {
-                if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == '') {
-                    blank_fields.push(' Conservation List is missing')
-                }
-                if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == '') {
-                    blank_fields.push(' Conservation Category is missing')
-                }
+                // TODO: Check for required conservation list / category fields
             }
             return blank_fields
         },

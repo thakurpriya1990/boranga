@@ -223,33 +223,6 @@ export default {
                     return this.conservation_status_obj.readonly;
                 }
             },
-            conservation_list_label: function(){
-                if(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed"){
-                    return "Conservation List";
-                }
-                else{
-                    if(this.conservation_status_obj.processing_status == "Draft"){
-                        return "Propose Conservation List";
-                    }
-                    else{
-                        return "Proposed Conservation List";
-                    }
-                }
-            },
-            conservation_category_label: function(){
-                // return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? "Conservation Category" : "Proposed Conservation Category";
-                if(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed"){
-                    return "Conservation Category";
-                }
-                else{
-                    if(this.conservation_status_obj.processing_status == "Draft"){
-                        return "Propose Conservation Category";
-                    }
-                    else{
-                        return "Proposed Conservation Category";
-                    }
-                }
-            },
             conservation_criteria_label: function(){
                 //return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? "Conservation Criteria" : "Proposed Conservation Criteria";
                 if(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed"){

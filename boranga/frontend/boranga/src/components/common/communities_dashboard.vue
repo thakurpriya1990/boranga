@@ -242,12 +242,10 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Conservation List',
-                    'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District', 'Status', 'Action']
             }
             if (this.is_internal) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Conservation List',
-                    'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -298,34 +296,6 @@ export default {
                     return type == 'export' ? value : result;
                 },
                 name: "taxonomy__community_name",
-            }
-        },
-        column_conservation_list: function () {
-            return {
-                data: "conservation_list",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function (value, type) {
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type == 'export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_status__conservation_list__code",
-            }
-        },
-        column_conservation_category: function () {
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function (value, type) {
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type == 'export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_status__conservation_category__code",
             }
         },
         column_status: function () {
@@ -432,8 +402,6 @@ export default {
                     vm.column_number,
                     vm.column_community_id,
                     vm.column_community_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_status,
@@ -447,8 +415,6 @@ export default {
                     vm.column_number,
                     vm.column_community_id,
                     vm.column_community_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_status,
@@ -740,26 +706,6 @@ export default {
                 "3": {
                     "data": "community_name",
                     "name": "taxonomy__community_name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "4": {
-                    "data": "conservation_list",
-                    "name": "conservation_status__conservation_list__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "5": {
-                    "data": "conservation_category",
-                    "name": "conservation_status__conservation_category__code",
                     "searchable": "true",
                     "orderable": "true",
                     "search": {

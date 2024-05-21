@@ -418,34 +418,6 @@ export default {
                 name: "community__taxonomy__community_name",
             }
         },
-        column_conservation_list: function () {
-            return {
-                data: "conservation_list",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function (value, type) {
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type == 'export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_list__code",
-            }
-        },
-        column_conservation_category: function () {
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function (value, type) {
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type == 'export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_category__code",
-            }
-        },
         column_status: function () {
             return {
                 data: "processing_status",
@@ -538,7 +510,6 @@ export default {
                     let links = "";
                     if (vm.is_for_agenda == false) {
                         if (!vm.is_external) {
-                            /*if(vm.check_assessor(full) && full.can_officer_process)*/
                             if (full.internal_user_edit) {
                                 links += `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
                                 links += `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
@@ -604,8 +575,6 @@ export default {
                     vm.column_community_number,
                     vm.column_community_id,
                     vm.column_community_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,
@@ -621,8 +590,6 @@ export default {
                     vm.column_community_number,
                     vm.column_community_id,
                     vm.column_community_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,

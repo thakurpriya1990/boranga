@@ -1,9 +1,9 @@
 <template id="species_community_conservation_status">
     <div>
-            <datatable 
-            ref="conservation_status_datatable" 
-            :id="datatable_id" 
-            :dtOptions="conservation_status_options" 
+            <datatable
+            ref="conservation_status_datatable"
+            :id="datatable_id"
+            :dtOptions="conservation_status_options"
             :dtHeaders="conservation_status_headers"/>
     </div>
 </template>
@@ -30,34 +30,13 @@ export default {
 
             datatable_id: 'species_community-conservation-status-datatable-'+vm._uid,
             conservation_status_headers:[
-                    "Conservation List",
-                    "Conservation Category",
                     "Conservation Criteria",
                     "Action",
                     "Effective Status Date",
             ],
             conservation_status_options:{
+                // TODO: Add new conservation list / category fields in here.
                 columns: [
-                    {
-                        data: "conservation_list",
-                        mRender: function(data, type, row){
-                            if (data.conservation_list){
-                                return data.conservation_list;
-                            }
-                            // Should not reach here
-                            return '';
-                        },
-                    },
-                    {
-                        data: "conservation_category",
-                        mRender: function(data, type, row){
-                            if (data.conservation_category){
-                                return data.conservation_category;
-                            }
-                            // Should not reach here
-                            return '';
-                        },
-                    },
                     {
                         data: "conservation_criteria",
                         mRender: function(data, type, row){

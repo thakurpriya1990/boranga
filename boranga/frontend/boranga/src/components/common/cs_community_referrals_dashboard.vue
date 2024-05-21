@@ -305,34 +305,6 @@ export default {
                 name: "conservation_status__community__taxonomy__community_name",
             }
         },
-        column_conservation_list: function(){
-            return {
-                data: "conservation_list",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_status__conservation_list__code",
-            }
-        },
-        column_conservation_category: function(){
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "conservation_status__conservation_category__code",
-            }
-        },
         column_status: function(){
             return {
                 data: "processing_status",
@@ -425,10 +397,6 @@ export default {
                 vm.column_community_number,
                 vm.column_community_id,
                 vm.column_community_name,
-                vm.column_conservation_list,
-                vm.column_conservation_category,
-                // vm.column_region,
-                // vm.column_district,
                 vm.column_status,
                 vm.column_action,
             ]
