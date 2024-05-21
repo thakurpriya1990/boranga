@@ -26,8 +26,7 @@ from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
 from boranga.components.conservation_status.models import (
-    ConservationCategory,
-    ConservationList,
+    CommonwealthConservationList,
     ConservationStatus,
     ConservationStatusUserAction,
     WALegislativeCategory,
@@ -525,68 +524,41 @@ class GetCommunityName(views.APIView):
 
 
 class GetSpeciesFilterDict(views.APIView):
-
     def get(self, request, format=None):
-        wa_priority_lists = WAPriorityList.objects.filter(
-            applies_to_species=True
-        ).values("id", "code")
-        wa_priority_categories = (
-            WAPriorityCategory.objects.filter(
-                wa_priority_lists__applies_to_species=True
-            )
-            .values("id", "code")
-            .distinct()
-        )
-        wa_legislative_lists = WALegislativeList.objects.filter(
-            applies_to_species=True
-        ).values("id", "code")
-        wa_legislative_categories = (
-            WALegislativeCategory.objects.filter(
-                wa_legislative_lists__applies_to_species=True
-            )
-            .values("id", "code")
-            .distinct()
-        )
+        # Note: Passing flora or fauna group type will return the same data (i.e. species)
+        group_type = GroupType.GROUP_TYPE_FLORA
         res_json = {
-            "wa_priority_lists": list(wa_priority_lists),
-            "wa_priority_categories": list(wa_priority_categories),
-            "wa_legislative_lists": list(wa_legislative_lists),
-            "wa_legislative_categories": list(wa_legislative_categories),
+            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
+                group_type
+            ),
+            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+                group_type
+            ),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
 
 class GetCommunityFilterDict(views.APIView):
-
     def get(self, request, format=None):
-        conservation_list_dict = []
-        conservation_lists = ConservationList.objects.filter(
-            applies_to_communities=True
-        )
-        if conservation_lists:
-            for choice in conservation_lists:
-                conservation_list_dict.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                    }
-                )
-
-        conservation_category_list = []
-        conservation_categories = ConservationCategory.objects.all()
-        if conservation_categories:
-            for choice in conservation_categories:
-                conservation_category_list.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                        "conservation_list_id": choice.conservation_list_id,
-                    }
-                )
+        group_type = GroupType.GROUP_TYPE_COMMUNITY
         res_json = {
-            "conservation_list_dict": conservation_list_dict,
-            "conservation_category_list": conservation_category_list,
+            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
+                group_type
+            ),
+            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+                group_type
+            ),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")

@@ -24,9 +24,7 @@ from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from boranga import exceptions
 from boranga.components.conservation_status.models import (
     CommonwealthConservationList,
-    ConservationCategory,
     ConservationChangeCode,
-    ConservationList,
     ConservationStatus,
     ConservationStatusAmendmentRequest,
     ConservationStatusAmendmentRequestDocument,
@@ -80,33 +78,20 @@ logger = logging.getLogger(__name__)
 # used for external CS Dash filter
 class GetConservationListDict(views.APIView):
     def get(self, request, format=None):
-        conservation_list = []
-        lists = ConservationList.objects.filter(applies_to_wa=True)
-        if lists:
-            for choice in lists:
-                conservation_list.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                    }
-                )
-
-        conservation_category_list = []
-        conservation_categories = ConservationCategory.objects.filter(
-            conservation_list__applies_to_wa=True
-        )
-        if conservation_categories:
-            for choice in conservation_categories:
-                conservation_category_list.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                        "conservation_list_id": choice.conservation_list_id,
-                    }
-                )
+        # TODO: Check where this is used and add group type filtering if necessary
+        group_type = None
         res_json = {
-            "conservation_list": conservation_list,
-            "conservation_category_list": conservation_category_list,
+            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
+                group_type
+            ),
+            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+                group_type
+            ),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
@@ -146,83 +131,6 @@ class GetCSProfileDict(views.APIView):
                     }
                 )
 
-        wa_priority_lists = WAPriorityList.objects.values("id", "code")
-        if group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            wa_priority_lists = wa_priority_lists.filter(applies_to_communities=True)
-        else:
-            wa_priority_lists = wa_priority_lists.filter(applies_to_species=True)
-        wa_priority_lists = list(wa_priority_lists)
-
-        wa_priority_categories = []
-        wa_priority_categories_qs = WAPriorityCategory.objects.only("id", "code")
-        if group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            wa_priority_categories_qs = wa_priority_categories_qs.filter(
-                wa_priority_lists__applies_to_communities=True
-            )
-        else:
-            wa_priority_categories_qs = wa_priority_categories_qs.filter(
-                wa_priority_lists__applies_to_species=True
-            )
-        for wa_priority_category in wa_priority_categories_qs.distinct():
-            list_ids = list(
-                WAPriorityList.objects.filter(
-                    wa_priority_categories=wa_priority_category.id
-                ).values_list("id", flat=True)
-            )
-            wa_priority_categories.append(
-                {
-                    "id": wa_priority_category.id,
-                    "code": wa_priority_category.code,
-                    "list_ids": list_ids,
-                }
-            )
-
-        wa_legislative_lists = WALegislativeList.objects.values("id", "code")
-        if group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            wa_legislative_lists = wa_legislative_lists.filter(
-                applies_to_communities=True
-            )
-        else:
-            wa_legislative_lists = wa_legislative_lists.filter(applies_to_species=True)
-        wa_legislative_lists = list(wa_legislative_lists)
-
-        wa_legislative_categories = []
-        wa_legislative_categories_qs = WALegislativeCategory.objects.only("id", "code")
-        if group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            wa_legislative_categories_qs = wa_legislative_categories_qs.filter(
-                wa_legislative_lists__applies_to_communities=True
-            )
-        else:
-            wa_legislative_categories_qs = wa_legislative_categories_qs.filter(
-                wa_legislative_lists__applies_to_species=True
-            )
-        for wa_legislative_category in wa_legislative_categories_qs.distinct():
-            list_ids = list(
-                WALegislativeList.objects.filter(
-                    wa_legislative_categories=wa_legislative_category.id
-                ).values_list("id", flat=True)
-            )
-            wa_legislative_categories.append(
-                {
-                    "id": wa_legislative_category.id,
-                    "code": wa_legislative_category.code,
-                    "list_ids": list_ids,
-                }
-            )
-
-        commonwealth_conservation_lists = CommonwealthConservationList.objects.values(
-            "id", "code"
-        )
-        if group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            commonwealth_conservation_lists = commonwealth_conservation_lists.filter(
-                applies_to_communities=True
-            )
-        else:
-            commonwealth_conservation_lists = commonwealth_conservation_lists.filter(
-                applies_to_species=True
-            )
-        commonwealth_conservation_lists = list(commonwealth_conservation_lists)
-
         iucn_version_list = []
         if group_type:
             versions = IUCNVersion.objects.filter()
@@ -248,11 +156,17 @@ class GetCSProfileDict(views.APIView):
         res_json = {
             "species_list": species_list,
             "community_list": community_list,
-            "wa_priority_lists": wa_priority_lists,
-            "wa_priority_categories": wa_priority_categories,
-            "wa_legislative_lists": wa_legislative_lists,
-            "wa_legislative_categories": wa_legislative_categories,
-            "commonwealth_conservation_lists": commonwealth_conservation_lists,
+            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
+                group_type
+            ),
+            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+                group_type
+            ),
             "iucn_version_list": iucn_version_list,
             "change_code_list": change_code_list,
         }
@@ -2025,44 +1939,6 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                         }
                     )
 
-        wa_priority_lists = WAPriorityList.objects.values("id", "code")
-        if group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            wa_priority_lists = wa_priority_lists.filter(applies_to_communities=True)
-        else:
-            wa_priority_lists = wa_priority_lists.filter(applies_to_species=True)
-        wa_priority_lists = list(wa_priority_lists)
-
-        wa_priority_categories = WAPriorityCategory.objects.values("id", "code")
-        if group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            wa_priority_categories = wa_priority_categories.filter(
-                wa_priority_lists__applies_to_communities=True
-            )
-        else:
-            wa_priority_categories = wa_priority_categories.filter(
-                wa_priority_lists__applies_to_species=True
-            )
-        wa_priority_categories = list(wa_priority_categories)
-
-        wa_legislative_lists = WALegislativeList.objects.values("id", "code")
-        if group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            wa_legislative_lists = wa_legislative_lists.filter(
-                applies_to_communities=True
-            )
-        else:
-            wa_legislative_lists = wa_legislative_lists.filter(applies_to_species=True)
-        wa_legislative_lists = list(wa_legislative_lists)
-
-        wa_legislative_categories = WALegislativeCategory.objects.values("id", "code")
-        if group_type and group_type == GroupType.GROUP_TYPE_COMMUNITY:
-            wa_legislative_categories = wa_legislative_categories.filter(
-                wa_legislative_lists__applies_to_communities=True
-            )
-        else:
-            wa_legislative_categories = wa_legislative_categories.filter(
-                wa_legislative_lists__applies_to_species=True
-            )
-        wa_legislative_categories = list(wa_legislative_categories)
-
         processing_status_list = []
         processing_statuses = (
             qs.filter(conservation_status__processing_status__isnull=False)
@@ -2085,10 +1961,17 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
             "family_list": family_list,
             "phylogenetic_group_list": phylogenetic_group_list,
             "genus_list": genus_list,
-            "wa_legislative_lists": wa_legislative_lists,
-            "wa_legislative_categories": wa_legislative_categories,
-            "wa_priority_lists": wa_priority_lists,
-            "wa_priority_categories": wa_priority_categories,
+            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
+                group_type
+            ),
+            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+                group_type
+            ),
             "processing_status_list": processing_status_list,
         }
         res_json = json.dumps(res_json)
@@ -2102,7 +1985,6 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
     )
     def community_filter_list(self, request, *args, **kwargs):
         """Used by the internal referred to me dashboard filters for community"""
-        # qs =  self.get_queryset().filter(referral=request.user)
         qs = self.get_queryset()
         group_type = request.GET.get("group_type_name", "")
         community_data_list = []
@@ -2124,33 +2006,7 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                             "community_name": name.community_name,
                         }
                     )
-        conservation_list_dict = []
-        cons_list_qs = (
-            qs.filter(conservation_status__community__isnull=False)
-            .values_list("conservation_status__conservation_list", flat=True)
-            .distinct()
-        )
-        conservation_lists = ConservationList.objects.filter(id__in=cons_list_qs)
-        if conservation_lists:
-            for choice in conservation_lists:
-                conservation_list_dict.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                    }
-                )
 
-        conservation_category_list = []
-        conservation_categories = ConservationCategory.objects.all()
-        if conservation_categories:
-            for choice in conservation_categories:
-                conservation_category_list.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                        "conservation_list_id": choice.conservation_list_id,
-                    }
-                )
         processing_status_list = []
         processing_statuses = (
             qs.filter(conservation_status__processing_status__isnull=False)
@@ -2168,8 +2024,17 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
                 )
         res_json = {
             "community_data_list": community_data_list,
-            "conservation_list_dict": conservation_list_dict,
-            "conservation_category_list": conservation_category_list,
+            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
+                group_type
+            ),
+            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+                group_type
+            ),
             "processing_status_list": processing_status_list,
         }
         res_json = json.dumps(res_json)
