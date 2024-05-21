@@ -586,8 +586,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
             "Phylo Group",
             "Region",
             "District",
-            "Conservation List",
-            "Conservation Category",
             "Processing Status",
             "Effective From Date",
             "Effective To Date",
@@ -598,8 +596,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
             "Species",
             "Scientific Name",
             "Common Name",
-            "Conservation List",
-            "Conservation Category",
             "Region",
             "District",
             "Effective From Date",
@@ -732,8 +728,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
             "Species",
             "Scientific Name",
             "Common Name",
-            "Conservation List",
-            "Conservation Category",
         ]
         df.columns = new_headings
         column_order = [
@@ -741,8 +735,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
             "Species",
             "Scientific Name",
             "Common Name",
-            "Conservation List",
-            "Conservation Category",
             "Processing Status",
         ]
         df = df[column_order]
@@ -1049,8 +1041,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
             "Community",
             "Community Id",
             "Community Name",
-            "Conservation List",
-            "Conservation Category",
             "Region",
             "District",
             "Processing Status",
@@ -1063,8 +1053,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
             "Community",
             "Community Id",
             "Community Name",
-            "Conservation List",
-            "Conservation Category",
             "Region",
             "District",
             "Effective From Date",
@@ -1191,8 +1179,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         new_headings = [
             "Processing Status",
             "Number",
-            "Conservation List",
-            "Conservation Category",
             "Community",
             "Community Id",
             "Community Name",
@@ -1203,8 +1189,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
             "Community",
             "Community Id",
             "Community Name",
-            "Conservation List",
-            "Conservation Category",
             "Processing Status",
         ]
         df = df[column_order]

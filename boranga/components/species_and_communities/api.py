@@ -910,8 +910,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "phylogenetic_group",
             "region",
             "district",
-            "conservation_list",
-            "conservation_category",
             "processing_status",
         ]
 
@@ -953,8 +951,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Phylo Group",
             "Region",
             "District",
-            "Conservation List",
-            "Conservation Category",
             "Processing Status",
         ]
         df.columns = new_headings
@@ -965,8 +961,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Phylo Group",
             "Family",
             "Genera",
-            "Conservation List",
-            "Conservation Category",
             "Region",
             "District",
             "Processing Status",
@@ -1172,8 +1166,6 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Number",
             "Community Id",
             "Community Name",
-            "Conservation List",
-            "Conservation Category",
             "Region",
             "District",
             "Processing Status",
