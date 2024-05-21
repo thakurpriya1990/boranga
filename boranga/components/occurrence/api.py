@@ -3265,8 +3265,7 @@ class OccurrenceViewSet(UserActionLoggingViewset, DatumSearchMixing):
     def lock_occurrence(self, request, *args, **kwargs):
         self.is_authorised_to_update()
         instance = self.get_object()
-        instance.processing_status = Occurrence.PROCESSING_STATUS_LOCKED
-        instance.save(version_user=request.user)
+        instance.lock(request)
         return redirect(reverse("internal"))
 
     @detail_route(
@@ -3280,8 +3279,7 @@ class OccurrenceViewSet(UserActionLoggingViewset, DatumSearchMixing):
         instance = self.get_object()
         if not (user.id in instance.get_occurrence_editor_group().get_system_group_member_ids() and instance.processing_status == Occurrence.PROCESSING_STATUS_LOCKED):
             raise serializers.ValidationError("User not authorised to update Occurrence")
-        instance.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
-        instance.save(version_user=user)
+        instance.unlock(request)
         return redirect(reverse("internal"))
 
     @detail_route(
@@ -3293,8 +3291,7 @@ class OccurrenceViewSet(UserActionLoggingViewset, DatumSearchMixing):
     def close_occurrence(self, request, *args, **kwargs):
         self.is_authorised_to_update()
         instance = self.get_object()
-        instance.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
-        instance.save(version_user=request.user)
+        instance.close(request)
         return redirect(reverse("internal"))
     
     @detail_route(

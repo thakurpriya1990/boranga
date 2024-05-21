@@ -2731,6 +2731,24 @@ class Occurrence(RevisionedMixin):
     @property
     def number_of_reports(self):
         return self.occurrence_report_count
+    
+    def lock(self,request):
+        if (request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
+            self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
+            self.processing_status = Occurrence.PROCESSING_STATUS_LOCKED
+            self.save(version_user=request.user)
+
+    def unlock(self,request):
+        if (request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
+            self.processing_status == Occurrence.PROCESSING_STATUS_LOCKED):
+            self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
+            self.save(version_user=request.user)
+
+    def close(self,request):
+        if (request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
+            self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
+            self.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
+            self.save(version_user=request.user)
 
     #if this function is called and the OCC has no associated OCRs, discard it
     def check_ocr_count_for_discard(self,request):
