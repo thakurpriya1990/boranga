@@ -994,9 +994,6 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
     conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer(
         many=True
     )
-    # accessing_user_roles = (
-    #     serializers.SerializerMethodField()
-    # )
 
     class Meta:
         model = ConservationStatus
@@ -1029,25 +1026,6 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
             "proposed_decline_status",
             "conservationstatusdeclineddetails",
         )
-
-    # def get_accessing_user_roles(self, conservation_status):
-    #     request = self.context.get("request")
-    #     accessing_user = request.user
-    #     roles = []
-    #     if (
-    #         accessing_user.id
-    #         in conservation_status.get_assessor_group().get_system_group_member_ids()
-    #     ):
-    #         roles.append("assessor")
-    #     if (
-    #         accessing_user.id
-    #         in conservation_status.get_approver_group().get_system_group_member_ids()
-    #     ):
-    #         roles.append("approver")
-    #     referral_ids = list(conservation_status.referrals.values_list("referral", flat=True))
-    #     if accessing_user.id in referral_ids:
-    #         roles.append("referral")
-    #     return roles
 
     def get_submitter(self, obj):
         if obj.submitter:
@@ -1085,16 +1063,39 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
     community_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-    conservation_list_id = serializers.IntegerField(
+
+    wa_legislative_list_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-    conservation_category_id = serializers.IntegerField(
+    wa_legislative_category_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-    recommended_conservation_list_id = serializers.IntegerField(
+    wa_priority_list_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-    recommended_conservation_category_id = serializers.IntegerField(
+    wa_priority_category_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    commonwealth_conservation_list_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+
+    recommended_wa_legislative_list_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    recommended_wa_legislative_category_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    recommended_wa_priority_list_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    recommended_wa_priority_category_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    recommended_commonwealth_conservation_list_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    change_code_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
 
@@ -1104,11 +1105,19 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "id",
             "application_type",
             "community_id",
-            "conservation_list_id",
-            "conservation_category_id",
+            "wa_legislative_list_id",
+            "wa_legislative_category_id",
+            "wa_priority_list_id",
+            "wa_priority_category_id",
+            "commonwealth_conservation_list_id",
+            "international_conservation",
             "conservation_criteria",
-            "recommended_conservation_list_id",
-            "recommended_conservation_category_id",
+            "recommended_wa_legislative_list_id",
+            "recommended_wa_legislative_category_id",
+            "recommended_wa_priority_list_id",
+            "recommended_wa_priority_category_id",
+            "recommended_commonwealth_conservation_list_id",
+            "recommended_international_conservation",
             "recommended_conservation_criteria",
             "comment",
             "lodgement_date",
