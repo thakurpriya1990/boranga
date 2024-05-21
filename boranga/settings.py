@@ -250,7 +250,11 @@ LOGGING["loggers"]["payment_checkout"] = {
 
 LOGGING["loggers"]["boranga"] = {"handlers": ["file"], "level": "INFO"}
 if DEBUG:
-    LOGGING["loggers"]["boranga"] = {"handlers": ["console"], "level": "DEBUG"}
+    LOGGING["loggers"]["boranga"] = {
+        "handlers": ["console"],
+        "level": "DEBUG",
+        "propagate": False,
+    }
 
     # Get rid of the annoying asyncio info log message
     LOGGING["loggers"]["asyncio"] = {
