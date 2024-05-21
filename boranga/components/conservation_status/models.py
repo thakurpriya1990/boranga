@@ -125,20 +125,25 @@ class AbstractConservationList(models.Model):
         ordering = ["code"]
 
     @classmethod
-    def get_lists_dict(cls: models.base.ModelBase, group_type: str | int) -> list:
+    def get_lists_dict(
+        cls: models.base.ModelBase, group_type: str | int | None
+    ) -> list:
         try:
-            if isinstance(group_type, int):
+            if group_type and isinstance(group_type, int):
                 group_type = GroupType.objects.get(id=group_type)
-            else:
+            elif group_type and isinstance(group_type, str):
                 group_type = GroupType.objects.get(name=group_type)
         except GroupType.DoesNotExist:
             logger.warning(f"GroupType {group_type} does not exist")
             return []
 
         lists = cls.objects.values("id", "code")
-        if group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+        if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             lists = lists.filter(applies_to_communities=True)
-        else:
+        elif group_type and group_type.name in [
+            GroupType.GROUP_TYPE_FLORA,
+            GroupType.GROUP_TYPE_FAUNA,
+        ]:
             lists = lists.filter(applies_to_species=True)
         return list(lists)
 
@@ -179,22 +184,27 @@ class WAPriorityCategory(AbstractConservationCategory):
         verbose_name_plural = "WA Priority Categories"
 
     @classmethod
-    def get_categories_dict(cls: models.base.ModelBase, group_type: str | int) -> list:
+    def get_categories_dict(
+        cls: models.base.ModelBase, group_type: str | int | None
+    ) -> list:
         try:
-            if isinstance(group_type, int):
+            if group_type and isinstance(group_type, int):
                 group_type = GroupType.objects.get(id=group_type)
-            else:
+            elif group_type and isinstance(group_type, str):
                 group_type = GroupType.objects.get(name=group_type)
         except GroupType.DoesNotExist:
             logger.warning(f"GroupType {group_type} does not exist")
             return []
         wa_priority_categories = []
         wa_priority_categories_qs = WAPriorityCategory.objects.only("id", "code")
-        if group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+        if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             wa_priority_categories_qs = wa_priority_categories_qs.filter(
                 wa_priority_lists__applies_to_communities=True
             )
-        else:
+        elif group_type and group_type.name in [
+            GroupType.GROUP_TYPE_FLORA,
+            GroupType.GROUP_TYPE_FAUNA,
+        ]:
             wa_priority_categories_qs = wa_priority_categories_qs.filter(
                 wa_priority_lists__applies_to_species=True
             )
@@ -234,22 +244,27 @@ class WALegislativeCategory(AbstractConservationCategory):
         verbose_name_plural = "WA Legislative Categories"
 
     @classmethod
-    def get_categories_dict(cls: models.base.ModelBase, group_type: str | int) -> list:
+    def get_categories_dict(
+        cls: models.base.ModelBase, group_type: str | int | None
+    ) -> list:
         try:
-            if isinstance(group_type, int):
+            if group_type and isinstance(group_type, int):
                 group_type = GroupType.objects.get(id=group_type)
-            else:
+            elif group_type and isinstance(group_type, str):
                 group_type = GroupType.objects.get(name=group_type)
         except GroupType.DoesNotExist:
             logger.warning(f"GroupType {group_type} does not exist")
             return []
         wa_legislative_categories = []
         wa_legislative_categories_qs = WALegislativeCategory.objects.only("id", "code")
-        if group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+        if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             wa_legislative_categories_qs = wa_legislative_categories_qs.filter(
                 wa_legislative_lists__applies_to_communities=True
             )
-        else:
+        elif group_type and group_type.name in [
+            GroupType.GROUP_TYPE_FLORA,
+            GroupType.GROUP_TYPE_FAUNA,
+        ]:
             wa_legislative_categories_qs = wa_legislative_categories_qs.filter(
                 wa_legislative_lists__applies_to_species=True
             )
