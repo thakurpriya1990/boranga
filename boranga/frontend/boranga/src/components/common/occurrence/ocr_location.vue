@@ -871,6 +871,10 @@ export default {
                             text: 'Location details have been saved',
                             icon: 'success',
                             confirmButtonColor: '#226fbb',
+                        }).then((result) => {
+                            if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                vm.$router.go();
+                            }
                         });
                         vm.$refs.component_map.forceToRefreshMap();
                     },

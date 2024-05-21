@@ -33,7 +33,8 @@
                                         Occurrence:</label>
                                     <select id="occurrence_name_lookup_propose_approve"
                                         name="occurrence_name_lookup_propose_approve"
-                                        ref="occurrence_name_lookup_propose_approve" class="form-control" required />
+                                        ref="occurrence_name_lookup_propose_approve" class="form-control" required 
+                                        />
                                 </div>
                             </div>
                             <div v-else class="mt-3">
@@ -91,6 +92,9 @@ export default {
         group_type_id: {
             type: Number,
         },
+        occurrence: {
+            type: Object,
+        }
     },
     data: function () {
         return {
@@ -110,10 +114,18 @@ export default {
     },
     watch: {
         isModalOpen: function (value) {
-            if (value) {
+            if (value && this.occurrence == null) {
                 this.$nextTick(() => {
                     $(this.$refs.occurrence_name_lookup_propose_approve).select2('open');
                 });
+            } else if (this.occurrence.id !== undefined) {
+                var newOption = new Option(this.occurrence.occurrence_number + " - " + 
+                    this.occurrence.occurrence_name + " ("+ this.occurrence.group_type +")", 
+                    this.occurrence.id, false, true);
+                $(this.$refs.occurrence_name_lookup_propose_approve).append(newOption);
+
+                this.propose_approve.occurrence_id = this.occurrence.id;
+                this.propose_approve.occurrence_name = this.occurrence.occurrence_name;
             }
         }
     },
@@ -171,12 +183,11 @@ export default {
                         .then((response) => {
                             swal.fire({
                                 title: 'Proposal to Approve Successful',
-                                text: `Your proposal to approve occurrence report ${vm.occurrence_report_number} has been succuessfully submitted.`,
+                                text: `Your proposal to approve occurrence report ${vm.occurrence_report_number} has been successfully submitted.`,
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb',
-                            });
-                            vm.$router.push({
-                                name: 'internal-occurrence-dash'
+                            }).then((result) => {
+                                vm.$router.go();
                             });
                         }, (error) => {
                             console.log(error);

@@ -193,6 +193,10 @@ export default {
                 type: Number,
                 required:true
             },
+            processing_status:{
+                type: String,
+                required:true
+            },
             // this prop is only send from split species form to make the original species readonly
             is_readonly:{
               type: Boolean,
@@ -301,6 +305,10 @@ export default {
                         icon: 'success',
                         confirmButtonColor:'#226fbb',
 
+                    }).then((result) => {
+                        if (vm.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
                     });
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);

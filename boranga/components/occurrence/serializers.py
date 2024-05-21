@@ -1154,11 +1154,12 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     def get_can_user_assess(self, obj):
         request = self.context["request"]
         return (
-            is_occurrence_assessor(request.user)
+            (is_occurrence_assessor(request.user) or is_occurrence_approver(request.user))
             and obj.processing_status
             in [
                 OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
                 OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+                OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
             ]
             and obj.assigned_officer == request.user.id
         )
@@ -1170,9 +1171,20 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             and obj.processing_status == OccurrenceReport.CUSTOMER_STATUS_WITH_APPROVER
             and obj.assigned_approver == request.user.id
         )
+    
+    def get_can_user_change_lock(self, obj):
+        request = self.context["request"]
+        return (
+            (is_occurrence_assessor(request.user) or is_occurrence_approver(request.user))
+            and obj.processing_status
+            in [
+                OccurrenceReport.PROCESSING_STATUS_APPROVED,
+                OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+            ]
+        )
 
     def get_can_user_action(self, obj):
-        return self.get_can_user_assess(obj) or self.get_can_user_approve(obj)
+        return self.get_can_user_assess(obj) or self.get_can_user_approve(obj) or self.get_can_user_change_lock(obj)
 
     def get_current_assessor(self, obj):
         user = self.context["request"].user
@@ -1190,6 +1202,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         return {
             "assessor_mode": True,
             "has_assessor_mode": obj.has_assessor_mode(user),
+            "has_unlocked_mode": obj.has_unlocked_mode(user),
             "assessor_can_assess": obj.can_assess(user),
             "assessor_level": "assessor",
         }
@@ -1467,6 +1480,7 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             "contact",
             "organisation",
             "main_observer",
+            "visible",
         )
 
 
@@ -1516,7 +1530,6 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             "assessor_data",
         )
         read_only_fields = ("id",)
-
 
 class OccurrenceReportUserActionSerializer(serializers.ModelSerializer):
     who = serializers.SerializerMethodField()

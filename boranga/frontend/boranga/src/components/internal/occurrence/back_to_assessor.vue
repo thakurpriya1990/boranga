@@ -94,8 +94,10 @@ export default {
                     text: `${vm.occurrence_report_number} has been sent back to the assessor with the provided reason.`,
                     icon: 'success',
                     confirmButtonColor: '#226fbb'
+                }).then((result) => {
+                    vm.$router.go();
                 });
-                vm.close();
+                /*vm.close();
 
                 Vue.http.get(`/api/occurrence_report/${vm.occurrence_report_id}/internal_occurrence_report.json`).then((response) => {
                     vm.$emit('refreshFromResponse', response);
@@ -103,7 +105,7 @@ export default {
                 }, (error) => {
                     console.log(error);
                 });
-                vm.$router.push({ path: '/internal/occurrence' });
+                vm.$router.push({ path: '/internal/occurrence' });*/
 
             }, (error) => {
                 console.log(error);
