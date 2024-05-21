@@ -1313,7 +1313,6 @@ class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset()
         qs = qs.filter(internal_application=False)
         # TODO Not Sure but to filter for only WA listed conservation lists for external
-        # qs = qs.filter(Q(conservation_list__applies_to_wa=True))
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()

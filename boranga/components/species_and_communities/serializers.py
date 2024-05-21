@@ -294,7 +294,6 @@ class TaxonomySerializer(serializers.ModelSerializer):
             taxonSpecies = Species.objects.get(taxonomy=obj)
             qs = ConservationStatus.objects.get(
                 species=taxonSpecies,
-                conservation_list__applies_to_wa=True,
                 processing_status="approved",
             )
             return SpeciesConservationStatusSerializer(qs).data
@@ -307,7 +306,6 @@ class TaxonomySerializer(serializers.ModelSerializer):
             taxonSpecies = Species.objects.get(taxonomy=obj)
             return ConservationStatus.objects.filter(
                 species=taxonSpecies,
-                conservation_list__applies_to_wa=True,
                 processing_status="ready_for_agenda",
             ).exists()
         except (ConservationStatus.DoesNotExist, Species.DoesNotExist):
@@ -578,7 +576,6 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
         try:
             qs = ConservationStatus.objects.get(
                 species=obj,
-                conservation_list__applies_to_wa=True,
                 processing_status="approved",
             )
             return SpeciesConservationStatusSerializer(qs).data
@@ -590,7 +587,6 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
         return ConservationStatus.objects.filter(
             species=obj,
-            conservation_list__applies_to_wa=True,
             processing_status="ready_for_agenda",
         ).exists()
 
@@ -981,7 +977,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
         try:
             qs = ConservationStatus.objects.get(
                 community=obj,
-                conservation_list__applies_to_wa=True,
                 processing_status="approved",
             )
             return CommunityConservationStatusSerializer(qs).data
@@ -994,7 +989,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
         return ConservationStatus.objects.filter(
             community=obj,
-            conservation_list__applies_to_wa=True,
             processing_status="ready_for_agenda",
         ).exists()
 

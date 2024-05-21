@@ -1435,7 +1435,6 @@ class ConservationStatus(RevisionedMixin):
                                 ConservationStatus.objects.get(
                                     species=self.species,
                                     processing_status="approved",
-                                    conservation_list__applies_to_wa=True,
                                 )
                             )
                             if previous_approved_wa_version:
@@ -1456,7 +1455,6 @@ class ConservationStatus(RevisionedMixin):
                                 ConservationStatus.objects.get(
                                     community=self.community,
                                     processing_status="approved",
-                                    conservation_list__applies_to_wa=True,
                                 )
                             )
                             if previous_approved_wa_version:
