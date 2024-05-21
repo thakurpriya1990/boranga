@@ -95,7 +95,7 @@ export default {
                         .then((response) => {
                             swal.fire({
                                 title: 'Proposal to Decline Successful',
-                                text: `Your proposal to decline occurrence report ${vm.occurrence_report_number} has been succuessfully submitted.`,
+                                text: `Your proposal to decline occurrence report ${vm.occurrence_report_number} has been successfully submitted.`,
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb',
                             }).then((result) => {

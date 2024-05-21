@@ -660,6 +660,7 @@ class OccurrenceReport(RevisionedMixin):
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_DECLINED
         self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DECLINED
+        self.occurrence = None
         self.save(version_user=request.user)
 
         # Log proposal action
@@ -2686,12 +2687,14 @@ class Occurrence(RevisionedMixin):
     PROCESSING_STATUS_SPLIT = "split"
     PROCESSING_STATUS_COMBINE = "combine"
     PROCESSING_STATUS_HISTORICAL = "historical"
+    PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_LOCKED, "Locked"),
         (PROCESSING_STATUS_SPLIT, "Split"),
         (PROCESSING_STATUS_COMBINE, "Combine"),
         (PROCESSING_STATUS_HISTORICAL, "Historical"),
+        (PROCESSING_STATUS_DISCARDED, "Discarded"),
     )
     processing_status = models.CharField(
         "Processing Status",
@@ -2728,6 +2731,19 @@ class Occurrence(RevisionedMixin):
     @property
     def number_of_reports(self):
         return self.occurrence_report_count
+
+    #if this function is called and the OCC has no associated OCRs, discard it
+    def check_ocr_count_for_discard(self,request):
+        discardable = [
+            Occurrence.PROCESSING_STATUS_ACTIVE,
+            Occurrence.PROCESSING_STATUS_LOCKED,
+        ]
+        if self.processing_status in discardable and \
+        request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
+        OccurrenceReport.objects.filter(occurrence=self).count() < 1:
+            self.processing_status = Occurrence.PROCESSING_STATUS_DISCARDED
+            self.save(version_user=request.user)
+            
 
     def can_user_edit(self, user):
         user_editable_state = [

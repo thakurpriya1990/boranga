@@ -1897,9 +1897,17 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         self.is_authorised_to_approve()
 
         instance = self.get_object()
+
+        original_occ = instance.occurrence
+
         serializer = ProposeDeclineSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        instance.decline(request, serializer.validated_data)
+        instance.decline(request, serializer.validated_data) #ensure occ set to None
+
+        #run occ check
+        if original_occ:
+            original_occ.check_ocr_count_for_discard(request)
+
         serializer = InternalOccurrenceReportSerializer(
             instance, context={"request": request}
         )
@@ -1957,7 +1965,14 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         self.is_authorised_to_approve()
 
         instance = self.get_object()
+
+        original_occ = instance.occurrence
+
         instance.approve(request)
+
+        if original_occ and original_occ.id != instance.occurrence.id:
+            original_occ.check_ocr_count_for_discard(request)
+
         serializer = InternalOccurrenceReportSerializer(
             instance, context={"request": request}
         )
@@ -2731,7 +2746,7 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         detail=False,
     )
     def occurrence_name_lookup(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().filter(processing_status=Occurrence.PROCESSING_STATUS_ACTIVE)
         group_type_id = request.GET.get("group_type_id", None)
         if group_type_id:
             try:
