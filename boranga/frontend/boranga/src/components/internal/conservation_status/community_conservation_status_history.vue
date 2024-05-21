@@ -3,7 +3,7 @@
         <modal
             transition="modal fade"
             :title="'Conservation Status CS'
-            + conservationStatusId + ' - ' 
+            + conservationStatusId + ' - '
             + conservationListId + ' - Community '+ communityId +' - History'"
             :large="true"
             :full="true"
@@ -98,8 +98,6 @@ export default {
                 'Modified By',
                 'Community Name',
                 'Previous Name',
-                'Conservation List',
-                'Conservation Category', //level?
                 'Status',
                 'Comment',
                 'Action',
@@ -120,7 +118,7 @@ export default {
         },
         column_sequence: function () {
             return {
-                
+
                 data: 'revision_sequence',
                 orderable: true,
                 searchable: false,
@@ -153,7 +151,7 @@ export default {
                 // 2. Number
                 data: 'data.data.conservationstatus.fields.conservation_status_number',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.data.conservationstatus.fields.conservation_status_number;
@@ -163,10 +161,10 @@ export default {
         },
         column_revision_id: function () {
             return {
-                
+
                 data: 'revision_id',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_id;
@@ -176,10 +174,10 @@ export default {
         },
         column_revision_date: function () {
             return {
-                
+
                 data: 'date_created',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.date_created;
@@ -189,10 +187,10 @@ export default {
         },
         column_revision_user: function () {
             return {
-                
+
                 data: 'revision_user',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_user;
@@ -202,10 +200,10 @@ export default {
         },
         column_community_name: function () {
             return {
-                data: 'data.data.communitytaxonomy.fields.community_name', 
+                data: 'data.data.communitytaxonomy.fields.community_name',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 //TODO: determine if communities can have multiple taxonomies (if not, change this to be more simple)
                 render: function (row, type, full) {
@@ -214,7 +212,7 @@ export default {
                         var fallback_name = ""; //if none of the names are current somehow, use this
                         if (full.data.communitytaxonomy.fields === undefined) {
                             for (var i = 0; i < full.data.communitytaxonomy.length; i++) {
-                                if (full.data.communitytaxonomy[i].name_currency) { 
+                                if (full.data.communitytaxonomy[i].name_currency) {
                                     //return full.data.communitytaxonomy[i].fields.community_name
                                     let value = full.data.communitytaxonomy[i].fields.community_name;
                                     let result = helpers.dtPopover(value, 30, 'hover');
@@ -224,7 +222,7 @@ export default {
                                     let result = helpers.dtPopover(value, 30, 'hover');
                                     fallback_name = type=='export' ? value : result;
                                 }
-                            }                               
+                            }
                             return fallback_name;
                         }
 
@@ -241,7 +239,7 @@ export default {
         },
         column_previous_name: function () {
             return {
-                data: 'data.data.communitytaxonomy.fields.previous_name', 
+                data: 'data.data.communitytaxonomy.fields.previous_name',
                 defaultContent: '',
                 orderable: false,
                 searchable: false,
@@ -252,7 +250,7 @@ export default {
                         var fallback_name = ""; //if none of the names are current somehow, use this
                         if (full.data.communitytaxonomy.fields === undefined) {
                             for (var i = 0; i < full.data.communitytaxonomy.length; i++) {
-                                if (full.data.communitytaxonomy[i].name_currency) { 
+                                if (full.data.communitytaxonomy[i].name_currency) {
                                     //return full.data.communitytaxonomy[i].fields.previous_name
                                     let value = full.data.communitytaxonomy[i].fields.previous_name;
                                     let result = helpers.dtPopover(value, 30, 'hover');
@@ -262,7 +260,7 @@ export default {
                                     let result = helpers.dtPopover(value, 30, 'hover');
                                     fallback_name = type=='export' ? value : result;
                                 }
-                            }                               
+                            }
                             return fallback_name;
                         }
 
@@ -279,11 +277,11 @@ export default {
         },
         column_category: function () {
             return {
-                
+
                 data: 'data.data.conservationcategory.fields.code',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.conservationcategory !== undefined) {
@@ -297,11 +295,11 @@ export default {
         },
         column_list: function () {
             return {
-                
+
                 data: 'data.data.conservationlist.fields.code',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.conservationlist !== undefined) {
@@ -315,11 +313,11 @@ export default {
         },
         column_processing_status: function () {
             return {
-                
+
                 data: 'data.data.conservationstatus.fields.processing_status',
                 defaultContent: '',
                 orderable: true,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.data.conservationstatus.fields.processing_status;
@@ -333,7 +331,7 @@ export default {
                 data: 'data.data.conservationstatus.fields.comment',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     //return full.data.conservationstatus.fields.comment;
@@ -391,7 +389,7 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                     {
@@ -399,7 +397,7 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                 ],

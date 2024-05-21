@@ -233,8 +233,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Number', 'Type', 'Scientific Name', 'Community Name', 'Conservation List',
-                    'Conservation Category', 'Status', 'Action']
+                return ['Number', 'Type', 'Scientific Name', 'Community Name', 'Status', 'Action']
             }
         },
         column_id: function () {

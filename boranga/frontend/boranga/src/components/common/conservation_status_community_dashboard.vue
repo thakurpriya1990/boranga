@@ -344,10 +344,10 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Number', 'Community', 'Community Id', 'Community Name', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
+                return ['Number', 'Community', 'Community Id', 'Community Name', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
             if (this.is_internal) {
-                return ['Number', 'Community', 'Community Id', 'Community Name', 'Conservation List', 'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
+                return ['Number', 'Community', 'Community Id', 'Community Name', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Status', 'Action']
             }
         },
         column_id: function () {

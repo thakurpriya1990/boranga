@@ -275,8 +275,7 @@ export default {
             }
         },
         datatable_headers: function(){
-            return ['Number','Species','Scientific Name','Common Name','Conservation List',
-                    'Conservation Category', /*'Family', 'Genera' , 'Region', 'District',*/'Status', 'Action']
+            return ['Number','Species','Scientific Name','Common Name', 'Status', 'Action']
         },
         column_number: function(){
             return {

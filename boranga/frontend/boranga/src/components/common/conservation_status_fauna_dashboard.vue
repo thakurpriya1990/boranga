@@ -453,12 +453,10 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Conservation List',
-                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
             if (this.is_internal) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Conservation List',
-                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
         },
         column_id: function () {

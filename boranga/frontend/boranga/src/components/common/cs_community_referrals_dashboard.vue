@@ -244,7 +244,7 @@ export default {
             }
         },
         datatable_headers: function(){
-           return ['Number', 'Community','Community Id' ,'Community Name', 'Conservation List' , 'Conservation Category', /*'Region', 'District',*/ 'Status', 'Action']
+           return ['Number', 'Community','Community Id' ,'Community Name', 'Status', 'Action']
         },
         column_number: function(){
             return {

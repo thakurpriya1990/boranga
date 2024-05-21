@@ -363,11 +363,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
-                     'Conservation List', 'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                     'Region', 'District', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
-                    'Conservation List', 'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                   'Region', 'District', 'Status', 'Action']
             }
         },
         column_id: function(){
