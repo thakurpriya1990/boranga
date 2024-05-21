@@ -524,7 +524,7 @@ class ConservationStatus(RevisionedMixin):
     APPROVAL_LEVEL_MINISTER = "minister"
     APPROVAL_LEVEL_CHOICES = (
         (APPROVAL_LEVEL_INTERMEDIATE, "Intermediate"),
-        (APPROVAL_LEVEL_MINISTER, "Minister"),
+        (APPROVAL_LEVEL_MINISTER, "Ministerial"),
     )
 
     approval_level = models.CharField(
@@ -1736,7 +1736,6 @@ class ConservationStatusReferralDocument(Document):
         app_label = "boranga"
 
 
-# class ConservationStatusReferral(RevisionedMixin):
 class ConservationStatusReferral(models.Model):
     SENT_CHOICES = ((1, "Sent From Assessor"), (2, "Sent From Referral"))
     PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
@@ -1794,236 +1793,219 @@ class ConservationStatusReferral(models.Model):
     @property
     def can_be_completed(self):
         # Referral cannot be completed until second level referral sent by referral has been completed/recalled
-        qs = ConservationStatusReferral.objects.filter(
+        return not ConservationStatusReferral.objects.filter(
             sent_by=self.referral,
             conservation_status=self.conservation_status,
             processing_status=ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL,
-        )
-        if qs:
-            return False
-        else:
-            return True
-
-    def can_process(self, user):
-        return True  # TODO: implement
-        # if self.processing_status == Referral.PROCESSING_STATUS_WITH_REFERRAL:
-        #    group =  ReferralRecipientGroup.objects.filter(id=self.referral_group.id)
-        #    #user=request.user
-        #    if group and group[0] in user.referralrecipientgroup_set.all():
-        #        return True
-        #    else:
-        #        return False
-        # return False
-
-    # @property
-    # def referral_recipients(self):
-    #     logger.info("referral_recipients")
-    #     recipients = []
-    #     group_ids = self.get_referral_group().get_system_group_member_ids()
-    #     for id in group_ids:
-    #         logger.info(id)
-    #         recipients.append(EmailUser.objects.get(id=id).email)
-    #     return recipients
+        ).exists()
 
     @property
     def referral_as_email_user(self):
         return retrieve_email_user(self.referral)
 
+    @transaction.atomic
     def remind(self, request):
-        with transaction.atomic():
-            # TODO Is referral needed to check the assessor_group permission for below?
-            if not self.conservation_status.can_assess(request.user):
-                raise exceptions.ProposalNotAuthorized()
-            # Create a log entry for the proposal
-            self.conservation_status.log_user_action(
-                ConservationStatusUserAction.ACTION_REMIND_REFERRAL.format(
-                    self.id,
-                    self.conservation_status.conservation_status_number,
-                    f"{self.referral_as_email_user.get_full_name()}",
-                ),
-                request,
-            )
-            # Create a log entry for the organisation
-            applicant_field = getattr(
-                self.conservation_status, self.conservation_status.applicant_field
-            )
-            applicant_field = retrieve_email_user(applicant_field)
+        if not self.conservation_status.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
 
-            # TODO: logging applicant_field
-            # applicant_field.log_user_action(
-            #     ConservationStatusUserAction.ACTION_REMIND_REFERRAL.format(
-            #         self.id,
-            #         self.conservation_status.conservation_status_number,
-            #         '{}'.format(self.referral_as_email_user.get_full_name())
-            #         ), request
-            #     )
+        # Create a log entry for the proposal
+        self.conservation_status.log_user_action(
+            ConservationStatusUserAction.ACTION_REMIND_REFERRAL.format(
+                self.id,
+                self.conservation_status.conservation_status_number,
+                f"{self.referral_as_email_user.get_full_name()}",
+            ),
+            request,
+        )
 
-            # send email
-            send_conservation_status_referral_email_notification(
-                self,
-                request,
-                reminder=True,
-            )
+        # TODO Create a log entry for the user who performed the action
 
+        # send email
+        send_conservation_status_referral_email_notification(
+            self,
+            request,
+            reminder=True,
+        )
+
+    @transaction.atomic
     def recall(self, request):
-        with transaction.atomic():
-            if not self.conservation_status.can_assess(request.user):
-                raise exceptions.ProposalNotAuthorized()
-            self.processing_status = "recalled"
-            self.save()
+        if not self.conservation_status.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
 
-            outstanding = self.conservation_status.referrals.filter(
-                processing_status="with_referral"
+        self.processing_status = ConservationStatusReferral.PROCESSING_STATUS_RECALLED
+        self.save()
+
+        outstanding = self.conservation_status.referrals.filter(
+            processing_status=ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL
+        )
+        if len(outstanding) == 0:
+            self.conservation_status.processing_status = (
+                ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
             )
-            if len(outstanding) == 0:
-                self.conservation_status.processing_status = "with_assessor"
-                self.conservation_status.save()
-
-            send_conservation_status_referral_recall_email_notification(self, request)
-            # TODO Log conservationstatus proposal action
-            self.conservation_status.log_user_action(
-                ConservationStatusUserAction.RECALL_REFERRAL.format(
-                    self.id,
-                    self.conservation_status.conservation_status_number,
-                ),
-                request,
-            )
-            # TODO log organisation action
-            # self.proposal.applicant.log_user_action(ProposalUserAction.RECALL_REFERRAL.format(
-            # self.id, self.proposal.lodgement_number), request)
-
-    def resend(self, request):
-        with transaction.atomic():
-            if not self.conservation_status.can_assess(request.user):
-                raise exceptions.ProposalNotAuthorized()
-            self.processing_status = "with_referral"
-            self.conservation_status.processing_status = "with_referral"
             self.conservation_status.save()
-            self.sent_from = 1
-            self.save()
-            # Create a log entry for the proposal
-            self.conservation_status.log_user_action(
-                ConservationStatusUserAction.ACTION_RESEND_REFERRAL_TO.format(
-                    self.id,
-                    self.conservation_status.conservation_status_number,
-                    f"{self.referral_as_email_user.get_full_name()}({self.referral_as_email_user.email})",
-                ),
-                request,
-            )
-            # Create a log entry for the organisation
-            # self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
 
-            # send email
-            send_conservation_status_referral_email_notification(self, request)
+        send_conservation_status_referral_recall_email_notification(self, request)
 
+        # Create a log entry for the conservation status
+        self.conservation_status.log_user_action(
+            ConservationStatusUserAction.RECALL_REFERRAL.format(
+                self.id,
+                self.conservation_status.conservation_status_number,
+            ),
+            request,
+        )
+
+        # TODO Create a log entry for the user who performed the action
+
+    @transaction.atomic
+    def resend(self, request):
+        if not self.conservation_status.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
+
+        self.processing_status = (
+            ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL
+        )
+        self.conservation_status.processing_status = (
+            ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL
+        )
+        self.conservation_status.save()
+
+        self.sent_from = 1
+        self.save()
+
+        # Create a log entry for the conservation status
+        self.conservation_status.log_user_action(
+            ConservationStatusUserAction.ACTION_RESEND_REFERRAL_TO.format(
+                self.id,
+                self.conservation_status.conservation_status_number,
+                f"{self.referral_as_email_user.get_full_name()}({self.referral_as_email_user.email})",
+            ),
+            request,
+        )
+
+        # TODO Create a log entry for the user who performed the action
+
+        # send email
+        send_conservation_status_referral_email_notification(self, request)
+
+    @transaction.atomic
     def send_referral(self, request, referral_email, referral_text):
-        with transaction.atomic():
-            referral_email = referral_email.lower()
-            if (
-                self.conservation_status.processing_status
-                == ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
-            ):
-                if request.user.id != self.referral:
-                    raise exceptions.ReferralNotAuthorized()
-                if self.sent_from != 1:
-                    raise exceptions.ReferralCanNotSend()
-                self.conservation_status.processing_status = (
-                    ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
-                )
-                self.conservation_status.save()
-                referral = None
-                # Check if the user is in ledger
-                try:
-                    user = EmailUser.objects.get(email__icontains=referral_email)
-                except EmailUser.DoesNotExist:
-                    # Validate if it is a deparment user
-                    department_user = get_department_user(referral_email)
-                    if not department_user:
-                        raise ValidationError(
-                            "The user you want to send the referral to is not a member of the department"
-                        )
-                    # Check if the user is in ledger or create
+        referral_email = referral_email.lower()
+        if not (
+            self.conservation_status.processing_status
+            == ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+        ):
+            raise exceptions.ConservationStatusReferralCannotBeSent()
 
-                    user, created = EmailUser.objects.get_or_create(
-                        email=department_user["email"].lower()
-                    )
-                    if created:
-                        user.first_name = department_user["given_name"]
-                        user.last_name = department_user["surname"]
-                        user.save()
-                qs = ConservationStatusReferral.objects.filter(
-                    sent_by=user.id, conservation_status=self.conservation_status
-                )
-                if qs:
-                    raise ValidationError("You cannot send referral to this user")
-                try:
-                    ConservationStatusReferral.objects.get(
-                        referral=user.id,
-                        conservation_status=self.conservation_status,
-                    )
-                    raise ValidationError(
-                        "A referral has already been sent to this user"
-                    )
-                except ConservationStatusReferral.DoesNotExist:
-                    # Create Referral
-                    referral = ConservationStatusReferral.objects.create(
-                        conservation_status=self.conservation_status,
-                        referral=user.id,
-                        sent_by=request.user.id,
-                        sent_from=2,
-                        text=referral_text,
-                    )
-                # Create a log entry for the proposal
-                self.conservation_status.log_user_action(
-                    ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
-                        referral.id,
-                        self.conservation_status.conservation_status_number,
-                        f"{user.get_full_name()}({user.email})",
-                    ),
-                    request,
-                )
-                # Create a log entry for the organisation
-                # self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.proposal.lodgement_number,'{}({})'.format(user.get_full_name(),user.email)),request)
-                # send email
-                send_conservation_status_referral_email_notification(referral, request)
-            else:
-                raise exceptions.ConservationStatusReferralCannotBeSent()
+        if request.user.id != self.referral:
+            raise exceptions.ReferralNotAuthorized()
+        if self.sent_from != 1:
+            raise exceptions.ReferralCanNotSend()
+        self.conservation_status.processing_status = (
+            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+        )
+        self.conservation_status.save()
+        referral = None
 
-    # def complete(self,request, referral_comment):
+        # Check if the user is in ledger
+        try:
+            user = EmailUser.objects.get(email__icontains=referral_email)
+        except EmailUser.DoesNotExist:
+            # Validate if it is a deparment user
+            department_user = get_department_user(referral_email)
+            if not department_user:
+                raise ValidationError(
+                    "The user you want to send the referral to is not a member of the department"
+                )
+
+            # Check if the user is in ledger or create
+            user, created = EmailUser.objects.get_or_create(
+                email=department_user["email"].lower()
+            )
+            if created:
+                user.first_name = department_user["given_name"]
+                user.last_name = department_user["surname"]
+                user.save()
+
+        qs = ConservationStatusReferral.objects.filter(
+            sent_by=user.id, conservation_status=self.conservation_status
+        )
+        if qs:
+            raise ValidationError("You cannot send referral to this user")
+        try:
+            ConservationStatusReferral.objects.get(
+                referral=user.id,
+                conservation_status=self.conservation_status,
+            )
+            raise ValidationError("A referral has already been sent to this user")
+        except ConservationStatusReferral.DoesNotExist:
+            # Create Referral
+            referral = ConservationStatusReferral.objects.create(
+                conservation_status=self.conservation_status,
+                referral=user.id,
+                sent_by=request.user.id,
+                sent_from=2,
+                text=referral_text,
+            )
+
+        # Create a log entry for the conservation status
+        self.conservation_status.log_user_action(
+            ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
+                referral.id,
+                self.conservation_status.conservation_status_number,
+                f"{user.get_full_name()}({user.email})",
+            ),
+            request,
+        )
+
+        # TODO Create a log entry for the user who performed the action
+
+        # send email
+        send_conservation_status_referral_email_notification(referral, request)
+
+    @transaction.atomic
     def complete(self, request):
-        with transaction.atomic():
-            if request.user.id != self.referral:
-                raise exceptions.ReferralNotAuthorized()
-            self.processing_status = "completed"
-            # self.referral_text = referral_comment
-            self.save()
+        if request.user.id != self.referral:
+            raise exceptions.ReferralNotAuthorized()
 
-            outstanding = self.conservation_status.referrals.filter(
-                processing_status="with_referral"
-            )
-            if len(outstanding) == 0:
-                self.conservation_status.processing_status = "with_assessor"
-                self.conservation_status.save()
+        self.processing_status = ConservationStatusReferral.PROCESSING_STATUS_COMPLETED
+        self.save()
 
-            # TODO Log conservationstatus action
-            self.conservation_status.log_user_action(
-                ConservationStatusUserAction.CONCLUDE_REFERRAL.format(
-                    self.id,
-                    self.conservation_status.conservation_status_number,
-                    f"{self.referral_as_email_user.get_full_name()}({self.referral_as_email_user.email})",
-                ),
-                request,
+        outstanding = self.conservation_status.referrals.filter(
+            processing_status=ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL
+        )
+        if len(outstanding) == 0:
+            self.conservation_status.processing_status = (
+                ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
             )
-            # TODO log organisation action
-            # self.proposal.applicant.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
-            send_conservation_status_referral_complete_email_notification(self, request)
+            self.conservation_status.save()
+
+        # Create a log entry for the conservation status
+        self.conservation_status.log_user_action(
+            ConservationStatusUserAction.CONCLUDE_REFERRAL.format(
+                self.id,
+                self.conservation_status.conservation_status_number,
+                f"{self.referral_as_email_user.get_full_name()}({self.referral_as_email_user.email})",
+            ),
+            request,
+        )
+
+        # TODO Create a log entry for the user who performed the action
+
+        send_conservation_status_referral_complete_email_notification(self, request)
 
     def can_assess_referral(self, user):
-        return self.processing_status == "with_referral"
+        return (
+            self.processing_status
+            == ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL
+        )
 
     @property
     def can_be_processed(self):
-        return self.processing_status == "with_referral"
+        return (
+            self.processing_status
+            == ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL
+        )
 
 
 class ConservationStatusProposalRequest(models.Model):
