@@ -712,8 +712,6 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
     community_number = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
-    conservation_list = serializers.SerializerMethodField()
-    conservation_category = serializers.SerializerMethodField()
     wild_status = serializers.CharField(source="wild_status.name", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
 
@@ -727,8 +725,6 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "community_number",
             "community_name",
             "community_migrated_id",
-            "conservation_list",
-            "conservation_category",
             "wild_status",
             "group_type",
             "group_type_id",
@@ -782,34 +778,11 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
         try:
             conservation_status = ConservationStatus.objects.get(
                 community=obj.community,
-                conservation_list__applies_to_wa=True,
                 processing_status="approved",
             )
             return conservation_status
         except ConservationStatus.DoesNotExist:
             return None
-
-    def get_conservation_list(self, obj):
-        if not obj.community:
-            return ""
-
-        conservation_status = self.get_conservation_status(obj)
-
-        if not conservation_status:
-            return ""
-
-        return conservation_status.conservation_list.code
-
-    def get_conservation_category(self, obj):
-        if not obj.community:
-            return ""
-
-        conservation_status = self.get_conservation_status(obj)
-
-        if not conservation_status:
-            return ""
-
-        return conservation_status.conservation_category.code
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
