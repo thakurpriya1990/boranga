@@ -34,8 +34,13 @@ class Command(BaseCommand):
         my_url = settings.NOMOS_BLOB_URL
         
         try:
+            logger.info('{}'.format("Requesting NOMOS URL"))
             taxon_res=requests.get(my_url)
+            count = 0
+            total_count = 0
+            brk_count = 0
             if taxon_res.status_code==200:
+                logger.info('{}'.format("Done Fetching NOMOS data"))
                 taxon=taxon_res.json()
                 try:
                     for t in taxon:
@@ -90,6 +95,11 @@ class Command(BaseCommand):
                                                                                                             "genera_name" : t["genus"],
                                                                                                             })
                         updates.append(taxon_obj.id)
+                        count += 1
+                        if count == 10000:
+                            total_count += count
+                            logger.info('{} Taxon Records Updated. Continuing...'.format(total_count))
+                            count = 0
 
                         if taxon_obj:
                             # check if the taxon has vernaculars and then create the TaxonVernacular records for taxon which will be the "common names"
@@ -157,6 +167,10 @@ class Command(BaseCommand):
                                     err_msg = "Create Taxon Previous Name:"
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
                                     errors.append(err_msg)
+                    
+                    # printing last records out of for loop
+                    total_count += count
+                    logger.info('{} Taxon Records Updated. End'.format(total_count))
 
                 except Exception as e:
                     err_msg = 'Create Taxon:'
@@ -176,6 +190,6 @@ class Command(BaseCommand):
 
         cmd_name = __name__.split('.')[-1].replace('_', ' ').upper()
         err_str = '<strong style="color: red;">Errors: {}</strong>'.format(len(errors)) if len(errors)>0 else '<strong style="color: green;">Errors: 0</strong>'
-        msg = '<p>{} completed. Errors: {}. IDs updated: {}.</p>'.format(cmd_name, err_str, updates)
+        msg = '{} completed. Errors: {}. Total IDs updated: {}.'.format(cmd_name, err_str, total_count)
         logger.info(msg)
         print(msg) # will redirect to cron_tasks.log file, by the parent script
