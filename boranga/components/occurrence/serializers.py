@@ -1460,7 +1460,6 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     community_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-    # conservation_criteria = ConservationCriteriaSerializer(read_only = True)
 
     class Meta:
         model = OccurrenceReport
