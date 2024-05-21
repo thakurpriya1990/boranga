@@ -78,7 +78,7 @@
                         class="form-select">
                         <option :value="null">Select Appropriate Workflow</option>
                         <option :value="'intermediate'">Intermediate</option>
-                        <option :value="'ministerial'">Ministerial</option>
+                        <option :value="'minister'">Ministerial</option>
                     </select>
                 </div>
             </div>
