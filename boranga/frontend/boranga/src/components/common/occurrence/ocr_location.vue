@@ -99,6 +99,8 @@
                     "
                     :selectable="true"
                     :coordinate-reference-systems="coordinateReferenceSystems"
+                    :tile-layer-api-url="tileLayerApiUrl"
+                    :proposal-api-url="proposalApiUrl"
                     :query-layer-definition="{
                         name: 'query_layer',
                         title: 'Occurrence Report',
@@ -572,6 +574,12 @@ export default {
         },
         coordinateReferenceSystems: function () {
             return this.datum_list;
+        },
+        tileLayerApiUrl: function () {
+            return api_endpoints.tile_layer;
+        },
+        proposalApiUrl: function () {
+            return api_endpoints.occurrence_report + '/list_for_map/';
         },
     },
     watch: {},

@@ -155,6 +155,8 @@ module.exports = {
     occ_threat: "/api/occ_threat.json",
     occ_profile_dict: "/api/occ_profile_dict",
 
+    tile_layer: "/api/tile_layer",
+
     discard_cs_proposal: function (id) {
         return `/api/conservation_status/${id}.json`;
     },
