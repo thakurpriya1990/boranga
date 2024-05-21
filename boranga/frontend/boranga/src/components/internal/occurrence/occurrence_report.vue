@@ -246,7 +246,7 @@
             @refreshFromResponse="refreshFromResponse">
         </BackToAssessor>
         <ProposeAppprove ref="propose_approve" :occurrence_report_id="occurrence_report.id"
-            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :occurrence_report_number="occurrence_report.occurrence_report_number" :occurrence="occurrence_report.occurrence"
             :group_type_id="occurrence_report.group_type_id" @refreshFromResponse="refreshFromResponse">
         </ProposeAppprove>
         <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id"

@@ -194,7 +194,7 @@ export default {
                 required:true
             },
             processing_status:{
-                type: Text,
+                type: String,
                 required:true
             },
             // this prop is only send from split species form to make the original species readonly
