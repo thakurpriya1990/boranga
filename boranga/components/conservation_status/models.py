@@ -124,6 +124,24 @@ class AbstractConservationList(models.Model):
         app_label = "boranga"
         ordering = ["code"]
 
+    @classmethod
+    def get_lists_dict(cls: models.base.ModelBase, group_type: str | int) -> list:
+        try:
+            if isinstance(group_type, int):
+                group_type = GroupType.objects.get(id=group_type)
+            else:
+                group_type = GroupType.objects.get(name=group_type)
+        except GroupType.DoesNotExist:
+            logger.warning(f"GroupType {group_type} does not exist")
+            return []
+
+        lists = cls.objects.values("id", "code")
+        if group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+            lists = lists.filter(applies_to_communities=True)
+        else:
+            lists = lists.filter(applies_to_species=True)
+        return list(lists)
+
     def __str__(self):
         return f"{self.code} - {self.label}"
 
@@ -160,6 +178,41 @@ class WAPriorityCategory(AbstractConservationCategory):
         verbose_name = "WA Priority Category"
         verbose_name_plural = "WA Priority Categories"
 
+    @classmethod
+    def get_categories_dict(cls: models.base.ModelBase, group_type: str | int) -> list:
+        try:
+            if isinstance(group_type, int):
+                group_type = GroupType.objects.get(id=group_type)
+            else:
+                group_type = GroupType.objects.get(name=group_type)
+        except GroupType.DoesNotExist:
+            logger.warning(f"GroupType {group_type} does not exist")
+            return []
+        wa_priority_categories = []
+        wa_priority_categories_qs = WAPriorityCategory.objects.only("id", "code")
+        if group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+            wa_priority_categories_qs = wa_priority_categories_qs.filter(
+                wa_priority_lists__applies_to_communities=True
+            )
+        else:
+            wa_priority_categories_qs = wa_priority_categories_qs.filter(
+                wa_priority_lists__applies_to_species=True
+            )
+        for wa_priority_category in wa_priority_categories_qs.distinct():
+            list_ids = list(
+                WAPriorityList.objects.filter(
+                    wa_priority_categories=wa_priority_category.id
+                ).values_list("id", flat=True)
+            )
+            wa_priority_categories.append(
+                {
+                    "id": wa_priority_category.id,
+                    "code": wa_priority_category.code,
+                    "list_ids": list_ids,
+                }
+            )
+        return wa_priority_categories
+
 
 class WALegislativeList(AbstractConservationList):
 
@@ -179,6 +232,41 @@ class WALegislativeCategory(AbstractConservationCategory):
         app_label = "boranga"
         verbose_name = "WA Legislative Category"
         verbose_name_plural = "WA Legislative Categories"
+
+    @classmethod
+    def get_categories_dict(cls: models.base.ModelBase, group_type: str | int) -> list:
+        try:
+            if isinstance(group_type, int):
+                group_type = GroupType.objects.get(id=group_type)
+            else:
+                group_type = GroupType.objects.get(name=group_type)
+        except GroupType.DoesNotExist:
+            logger.warning(f"GroupType {group_type} does not exist")
+            return []
+        wa_legislative_categories = []
+        wa_legislative_categories_qs = WALegislativeCategory.objects.only("id", "code")
+        if group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
+            wa_legislative_categories_qs = wa_legislative_categories_qs.filter(
+                wa_legislative_lists__applies_to_communities=True
+            )
+        else:
+            wa_legislative_categories_qs = wa_legislative_categories_qs.filter(
+                wa_legislative_lists__applies_to_species=True
+            )
+        for wa_legislative_category in wa_legislative_categories_qs.distinct():
+            list_ids = list(
+                WALegislativeList.objects.filter(
+                    wa_legislative_categories=wa_legislative_category.id
+                ).values_list("id", flat=True)
+            )
+            wa_legislative_categories.append(
+                {
+                    "id": wa_legislative_category.id,
+                    "code": wa_legislative_category.code,
+                    "list_ids": list_ids,
+                }
+            )
+        return wa_legislative_categories
 
 
 class CommonwealthConservationList(AbstractConservationList):
