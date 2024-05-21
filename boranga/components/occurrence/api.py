@@ -2696,7 +2696,7 @@ class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
 
     def is_authorised_to_update(self, occurrence):
         user = self.request.user
-        if not (user.id in occurrence.get_occurrence_editor_group().get_system_group_member_ids()):
+        if not (user.id in occurrence.get_occurrence_approver_group().get_system_group_member_ids()):
             raise serializers.ValidationError("User not authorised to update Occurrence")
 
     @detail_route(
@@ -2851,7 +2851,7 @@ class OCCConservationThreatViewSet(viewsets.ModelViewSet):
 
     def is_authorised_to_update(self, occurrence):
         user = self.request.user
-        if not (user.id in occurrence.get_occurrence_editor_group().get_system_group_member_ids()):
+        if not (user.id in occurrence.get_occurrence_approver_group().get_system_group_member_ids()):
             raise serializers.ValidationError("User not authorised to update Occurrence")
 
     @detail_route(
@@ -2984,7 +2984,7 @@ class OccurrenceViewSet(UserActionLoggingViewset, DatumSearchMixing):
     def is_authorised_to_update(self):
         user = self.request.user
         instance = self.get_object()
-        if not (user.id in instance.get_occurrence_editor_group().get_system_group_member_ids() and instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
+        if not (user.id in instance.get_occurrence_approver_group().get_system_group_member_ids() and instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
             raise serializers.ValidationError("User not authorised to update Occurrence")
 
     @transaction.atomic
@@ -2997,7 +2997,7 @@ class OccurrenceViewSet(UserActionLoggingViewset, DatumSearchMixing):
             group_type=group_type_id,
         )
 
-        if not (request.user.id in new_instance.get_occurrence_editor_group().get_system_group_member_ids()):
+        if not (request.user.id in new_instance.get_occurrence_approver_group().get_system_group_member_ids()):
             raise serializers.ValidationError("User not authorised to create Occurrence")
 
         new_instance.save(version_user=request.user)
@@ -3074,7 +3074,7 @@ class OccurrenceViewSet(UserActionLoggingViewset, DatumSearchMixing):
     def unlock_occurrence(self, request, *args, **kwargs):
         user = request.user
         instance = self.get_object()
-        if not (user.id in instance.get_occurrence_editor_group().get_system_group_member_ids() and instance.processing_status == Occurrence.PROCESSING_STATUS_LOCKED):
+        if not (user.id in instance.get_occurrence_approver_group().get_system_group_member_ids() and instance.processing_status == Occurrence.PROCESSING_STATUS_LOCKED):
             raise serializers.ValidationError("User not authorised to update Occurrence")
         instance.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
         instance.save(version_user=user)

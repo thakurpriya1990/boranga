@@ -2681,10 +2681,10 @@ class Occurrence(RevisionedMixin):
         else:
             return (
                 user.id
-                in self.get_occurrence_editor_group().get_system_group_member_ids()
+                in self.get_occurrence_approver_group().get_system_group_member_ids()
             )
 
-    def get_occurrence_editor_group(self):
+    def get_occurrence_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
 
     def log_user_action(self, action, request):
