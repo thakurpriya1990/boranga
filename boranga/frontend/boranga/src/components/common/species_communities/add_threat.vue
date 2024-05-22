@@ -5,7 +5,7 @@
                 <div class="row">
                     <form class="form-horizontal" name="threatForm">
                         <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
-                        <alert v-if="change_warning" type="warning"><strong>{{ change_warning }}</strong></alert>
+                        <alert v-if="change_warning && !isReadOnly" type="warning"><strong>{{ change_warning }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
