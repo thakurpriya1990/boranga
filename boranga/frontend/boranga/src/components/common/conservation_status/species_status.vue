@@ -584,20 +584,10 @@ export default {
                 if (event) {
                     this.conservation_status_obj.recommended_wa_legislative_category_id = null;
                 }
-                this.filtered_wa_priority_categories = this.wa_priority_categories.filter((choice) => {
-                    return choice.list_ids.includes(this.conservation_status_obj.wa_priority_list_id);
+
+                this.filtered_recommended_wa_legislative_categories = this.wa_priority_categories.filter((choice) => {
+                    return choice.list_ids.includes(this.conservation_status_obj.recommended_wa_legislative_list_id);
                 });
-                this.filtered_recommended_wa_legislative_categories = [];
-                this.filtered_recommended_wa_legislative_categories = [{
-                    id: null,
-                    code: "",
-                    conservation_list_id: null,
-                }];
-                for (let choice of this.wa_legislative_categories) {
-                    if (choice.conservation_list_id === this.conservation_status_obj.recommended_conservation_list_id) {
-                        this.filtered_recommended_wa_legislative_categories.push(choice);
-                    }
-                }
             });
         },
         generateReferralCommentBoxes: function () {
