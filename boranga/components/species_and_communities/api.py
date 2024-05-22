@@ -15,7 +15,7 @@ from django.urls import reverse
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import status, views, viewsets
+from rest_framework import status, views, viewsets, mixins
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -653,7 +653,7 @@ class GetDocumentCategoriesDict(views.APIView):
 
 
 # Not used now on SpeciesProfile
-class TaxonomyViewSet(viewsets.ModelViewSet):
+class TaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Taxonomy.objects.none()
     serializer_class = TaxonomySerializer
 
@@ -749,7 +749,7 @@ class GetSpeciesProfileDict(views.APIView):
 
 
 # Not used now on CommunityProfile
-class CommunityTaxonomyViewSet(viewsets.ModelViewSet):
+class CommunityTaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CommunityTaxonomy.objects.none()
     serializer_class = CommunityTaxonomySerializer
 
@@ -1315,7 +1315,7 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
         )
         return Response(serializer.data)
 
-class SpeciesViewSet(viewsets.ModelViewSet):
+class SpeciesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = Species.objects.none()
     serializer_class = InternalSpeciesSerializer
     lookup_field = "id"
@@ -1934,7 +1934,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CommunityViewSet(viewsets.ModelViewSet):
+class CommunityViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = Community.objects.none()
     serializer_class = InternalCommunitySerializer
     lookup_field = "id"
@@ -2307,7 +2307,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class SpeciesDocumentViewSet(viewsets.ModelViewSet):
+class SpeciesDocumentViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = SpeciesDocument.objects.none()
     serializer_class = SpeciesDocumentSerializer
 
@@ -2389,7 +2389,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CommunityDocumentViewSet(viewsets.ModelViewSet):
+class CommunityDocumentViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = CommunityDocument.objects.none()
     serializer_class = CommunityDocumentSerializer
 
@@ -2526,7 +2526,7 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class ConservationThreatViewSet(viewsets.ModelViewSet):
+class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = ConservationThreat.objects.none()
     serializer_class = ConservationThreatSerializer
     filter_backends = (ConservationThreatFilterBackend,)

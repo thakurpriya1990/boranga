@@ -861,7 +861,7 @@ export default {
         },
         isNOOReadOnly: function () {
             let vm = this;
-            if (vm.species_community.distribution.noo_auto === true && vm.distribtion_public) {
+            if (vm.species_community.distribution.noo_auto === true) {
                 return true;
             }
             else {
