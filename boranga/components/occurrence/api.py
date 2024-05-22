@@ -14,7 +14,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import serializers, views, viewsets
+from rest_framework import serializers, views, viewsets, mixins
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -295,7 +295,7 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
 #         return super(OccurrenceReportRenderer, self).render(data, accepted_media_type, renderer_context)
 
 
-class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
+class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (OccurrenceReportFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     queryset = OccurrenceReport.objects.none()
@@ -647,7 +647,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ModelViewSet):
                 return Response(status=400, data="Format not valid")
 
 
-class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
+class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = OccurrenceReport.objects.none()
     serializer_class = OccurrenceReportSerializer
     lookup_field = "id"
@@ -2003,7 +2003,7 @@ class OccurrenceReportViewSet(UserActionLoggingViewset, DatumSearchMixing):
         return Response(serializer.data)
 
 
-class ObserverDetailViewSet(viewsets.ModelViewSet):
+class ObserverDetailViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = OCRObserverDetail.objects.none()
     serializer_class = OCRObserverDetailSerializer
 
@@ -2096,7 +2096,7 @@ class ObserverDetailViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
+class OccurrenceReportAmendmentRequestViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = OccurrenceReportAmendmentRequest.objects.none()
     serializer_class = OccurrenceReportAmendmentRequestSerializer
 
@@ -2145,7 +2145,7 @@ class OccurrenceReportAmendmentRequestViewSet(viewsets.ModelViewSet):
         )
 
 
-class OccurrenceReportDocumentViewSet(viewsets.ModelViewSet):
+class OccurrenceReportDocumentViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = OccurrenceReportDocument.objects.none()
     serializer_class = OccurrenceReportDocumentSerializer
 
@@ -2317,7 +2317,7 @@ class OCRConservationThreatFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class OCRConservationThreatViewSet(viewsets.ModelViewSet):
+class OCRConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = OCRConservationThreat.objects.none()
     serializer_class = OCRConservationThreatSerializer
 
@@ -2579,7 +2579,7 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class OccurrencePaginatedViewSet(UserActionLoggingViewset):
+class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DatatablesPageNumberPagination
     queryset = Occurrence.objects.none()
     serializer_class = OccurrenceSerializer
@@ -2886,7 +2886,7 @@ class OccurrencePaginatedViewSet(UserActionLoggingViewset):
         return HttpResponse(res_json, content_type="application/json")
 
 
-class OccurrenceDocumentViewSet(viewsets.ModelViewSet):
+class OccurrenceDocumentViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = OccurrenceDocument.objects.none()
     serializer_class = OccurrenceDocumentSerializer
 
@@ -3040,7 +3040,7 @@ class OCCConservationThreatFilterBackend(DatatablesFilterBackend):
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
-class OCCConservationThreatViewSet(viewsets.ModelViewSet):
+class OCCConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = OCCConservationThreat.objects.none()
     serializer_class = OCCConservationThreatSerializer
     filter_backends = (OCCConservationThreatFilterBackend,)
@@ -3174,7 +3174,7 @@ class GetOccurrenceSource(views.APIView):
         return Response()
 
 
-class OccurrenceViewSet(UserActionLoggingViewset, DatumSearchMixing):
+class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = Occurrence.objects.none()
     serializer_class = OccurrenceSerializer
     lookup_field = "id"
@@ -4102,7 +4102,7 @@ class OccurrenceViewSet(UserActionLoggingViewset, DatumSearchMixing):
         return HttpResponse(res_json, content_type="application/json")
 
 
-class OccurrenceReportReferralViewSet(viewsets.ModelViewSet):
+class OccurrenceReportReferralViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = OccurrenceReportReferral.objects.all()
     serializer_class = OccurrenceReportReferralSerializer
 
