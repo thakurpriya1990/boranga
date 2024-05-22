@@ -78,7 +78,12 @@
             />
         </FormSection>
 
-        <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="threat_url"></ThreatDetail>
+        <ThreatDetail ref="threat_detail" 
+        @refreshFromResponse="refreshFromResponse" 
+        :url="threat_url"
+        :change_warning="changeWarning"
+        >
+        </ThreatDetail>
         <div v-if="conservationThreatHistoryId">
             <ConservationThreatHistory
                 ref="conservation_threat_history"
@@ -357,6 +362,15 @@ export default {
             CollapsibleFilters,
         },
         computed: {
+            changeWarning: function() {
+                if (this.species_community.publishing_status.species_public &&
+                    this.species_community.publishing_status.threats_public
+                )
+                    return "Adding or updating a threat will set the Species record to Private."
+                else {
+                    return null
+                }
+            },
             isReadOnly: function(){
                 // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
                 if(this.is_readonly){
@@ -477,11 +491,22 @@ export default {
                     this.$refs.conservation_threat_history.isModalOpen = true;
                 });
             },
+            refreshSpeciesCommunity: function() {
+                let vm = this;
+                vm.$parent.refreshSpeciesCommunity();
+            },
             discardThreat:function (id) {
                 let vm = this;
+                let public_message = ""
+                if (vm.species_community.publishing_status.species_public &&
+                    vm.species_community.publishing_status.threats_public
+                ) {
+                    public_message = " Doing so will make the Species Record Private"
+                }
+
                 swal.fire({
                     title: "Remove Threat",
-                    text: "Are you sure you want to remove this Threat?",
+                    text: "Are you sure you want to remove this Threat?" + public_message,
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: 'Remove Threat',
@@ -497,6 +522,7 @@ export default {
                                 confirmButtonColor:'#226fbb'
                             });
                             vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                            vm.refreshSpeciesCommunity();
                         }, (error) => {
                             console.log(error);
                         });
@@ -507,9 +533,16 @@ export default {
             },
             reinstateThreat:function (id) {
                 let vm = this;
+                let public_message = ""
+                if (vm.species_community.publishing_status.species_public &&
+                    vm.species_community.publishing_status.threats_public
+                ) {
+                    public_message = " Doing so will make the Species Record Private"
+                }
+                
                 swal.fire({
                     title: "Reinstate Threat",
-                    text: "Are you sure you want to Reinstate this Threat?",
+                    text: "Are you sure you want to Reinstate this Threat?" + public_message,
                     icon: "question",
                     showCancelButton: true,
                     confirmButtonText: 'Reinstate Threat',
@@ -525,6 +558,7 @@ export default {
                                 confirmButtonColor:'#226fbb',
                             });
                             vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                            vm.refreshSpeciesCommunity();
                         }, (error) => {
                             console.log(error);
                         });
@@ -535,6 +569,7 @@ export default {
             },
             updatedThreats(){
                 this.$refs.threats_datatable.vmDataTable.ajax.reload();
+                this.refreshSpeciesCommunity();
             },
             addEventListeners:function (){
                 let vm=this;
