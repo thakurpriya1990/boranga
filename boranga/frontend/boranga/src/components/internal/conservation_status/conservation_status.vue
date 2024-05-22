@@ -51,7 +51,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="canAction"
+                        <div v-if="canRefer"
                             class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
@@ -485,7 +485,7 @@ export default {
                     )
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
-            else if ( ['With Assessor', 'Ready For Agenda', 'With Referral'].includes(this.conservation_status_obj.processing_status)) {
+            else if ( ['With Assessor', 'Ready For Agenda'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj
                     && !this.isFinalised &&
                     this.conservation_status_obj.can_user_edit
@@ -498,6 +498,14 @@ export default {
                     && this.conservation_status_obj.internal_application
                     && this.conservation_status_obj.internal_user_edit
             }
+        },
+        canRefer: function () {
+            return this.conservation_status_obj && ['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)
+                    && !this.isFinalised &&
+                    this.conservation_status_obj.can_user_edit
+                    && (
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer                    )
+                    && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
         },
         canAssess: function () {
             return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
