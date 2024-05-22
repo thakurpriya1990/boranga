@@ -2498,6 +2498,18 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
         ):
             queryset = queryset.filter(potential_impact=filter_threat_potential_impact)
 
+        filter_threat_status = request.GET.get(
+            "filter_threat_status"
+        )
+        if (
+            filter_threat_status
+            and not filter_threat_status.lower() == "all"
+        ):
+            if filter_threat_status == "active":
+                queryset = queryset.filter(visible=True)
+            elif filter_threat_status == "removed":
+                queryset = queryset.filter(visible=False)
+
         def get_date(filter_date):
             date = request.GET.get(filter_date)
             if date:
@@ -2548,6 +2560,27 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
             ).order_by("id")
             return qs
         return ConservationThreat.objects.none()
+
+    def update_publishing_status(self):
+
+        #if the parent species or community of this threat is public 
+        #AND the threat section has been made public
+        #revert back to private on any change
+        instance = self.get_object()
+        if instance.species:
+            publishing_status_instance, created = (
+                SpeciesPublishingStatus.objects.get_or_create(species=instance.species)
+            )
+            if publishing_status_instance.threats_public:
+                publishing_status_instance.species_public = False
+                publishing_status_instance.save()
+        elif instance.community:
+            publishing_status_instance, created = (
+                CommunityPublishingStatus.objects.get_or_create(community=instance.community)
+            )
+            if publishing_status_instance.threats_public:
+                publishing_status_instance.community_public = False
+                publishing_status_instance.save()
 
     # used for Threat Form dropdown lists
     @list_route(
@@ -2645,6 +2678,9 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
                 ),
                 request,
             )
+
+        self.update_publishing_status()
+        
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -2674,6 +2710,9 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
                 ),
                 request,
             )
+
+        self.update_publishing_status()
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -2702,6 +2741,9 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
                 ),
                 request,
             )
+
+        self.update_publishing_status()
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -2722,6 +2764,12 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
                 ),
                 request,
             )
+            publishing_status_instance, created = (
+                SpeciesPublishingStatus.objects.get_or_create(species=instance.species)
+            )
+            if publishing_status_instance.threats_public:
+                publishing_status_instance.species_public = False
+                publishing_status_instance.save()
         elif instance.community:
             instance.community.log_user_action(
                 CommunityUserAction.ACTION_ADD_THREAT.format(
@@ -2729,5 +2777,12 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
                 ),
                 request,
             )
+            publishing_status_instance, created = (
+                CommunityPublishingStatus.objects.get_or_create(community=instance.community)
+            )
+            if publishing_status_instance.threats_public:
+                publishing_status_instance.community_public = False
+                publishing_status_instance.save()
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)

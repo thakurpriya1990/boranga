@@ -2289,6 +2289,18 @@ class OCRConservationThreatFilterBackend(DatatablesFilterBackend):
         if filter_threat_potential_impact and not filter_threat_potential_impact.lower() == "all":
             queryset = queryset.filter(potential_impact=filter_threat_potential_impact)
 
+        filter_threat_status = request.GET.get(
+            "filter_threat_status"
+        )
+        if (
+            filter_threat_status
+            and not filter_threat_status.lower() == "all"
+        ):
+            if filter_threat_status == "active":
+                queryset = queryset.filter(visible=True)
+            elif filter_threat_status == "removed":
+                queryset = queryset.filter(visible=False)
+
         def get_date(filter_date):
             date = request.GET.get(filter_date)
             if date:
@@ -3012,6 +3024,18 @@ class OCCConservationThreatFilterBackend(DatatablesFilterBackend):
         filter_threat_potential_impact = request.GET.get("filter_threat_potential_impact")
         if filter_threat_potential_impact and not filter_threat_potential_impact.lower() == "all":
             queryset = queryset.filter(potential_impact=filter_threat_potential_impact)
+
+        filter_threat_status = request.GET.get(
+            "filter_threat_status"
+        )
+        if (
+            filter_threat_status
+            and not filter_threat_status.lower() == "all"
+        ):
+            if filter_threat_status == "active":
+                queryset = queryset.filter(visible=True)
+            elif filter_threat_status == "removed":
+                queryset = queryset.filter(visible=False)
 
         def get_date(filter_date):
             date = request.GET.get(filter_date)

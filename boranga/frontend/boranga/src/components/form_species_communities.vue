@@ -170,6 +170,10 @@ export default {
              set profile tab Active
             //$('#pills-tab a[href="#pills-profile"]').tab('show');
         },*/
+        refreshSpeciesCommunity: function() {
+            let vm = this;
+            vm.$parent.refreshSpeciesCommunity();
+        },
         eventListener: function () {
             let vm = this;
         },

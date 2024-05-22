@@ -672,6 +672,30 @@ export default {
             vm.species_community = helpers.copyObject(response.body);
             vm.species_community_original = copyObject(vm.species_community);
         },
+        refreshSpeciesCommunity: function () {
+            let vm = this;
+            if (vm.species_community.group_type === 'flora' || vm.species_community.group_type === "fauna") {
+                Vue.http.get(`/api/species/${vm.species_community.id}/internal_species.json`)
+                .then(res => {
+                    vm.species_community = res.body.species_obj;
+                    vm.species_community_original = helpers.copyObject(vm.species_community);
+                    vm.uploadedID = vm.species_community.image_doc;
+                },
+                err => {
+                    console.log(err);
+                });
+            } else {
+                Vue.http.get(`/api/community/${vm.species_community.id}/internal_community.json`)
+                .then(res => {
+                    vm.species_community = res.body.community_obj;
+                    vm.species_community_original = helpers.copyObject(vm.species_community);
+                    vm.uploadedID = vm.species_community.image_doc;
+                },
+                err => {
+                    console.log(err);
+                });
+            }
+        },
         splitSpecies: async function () {
             this.$refs.species_split.species_community_original = this.species_community;
             let newSpeciesId1 = null
