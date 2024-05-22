@@ -39,20 +39,20 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 col-form-label">Scientific Name:</label>
+                <label :for="scientific_name_lookup" class="col-sm-4 col-form-label">Scientific Name:</label>
                 <div class="col-sm-8" :id="select_scientific_name">
                     <select :disabled="isReadOnly" :id="scientific_name_lookup" :name="scientific_name_lookup"
                         :ref="scientific_name_lookup" class="form-control" />
                 </div>
             </div>
             <div v-if="species_display" class="row mb-3">
-                <label for="" class="col-sm-4 col-form-label"></label>
+                <label for="species_display" class="col-sm-4 col-form-label"></label>
                 <div class="col-sm-8">
                     <textarea disabled class="form-control" rows="3" id="species_display" v-model="species_display" />
                 </div>
             </div>
             <div v-if="taxon_previous_name" class="row mb-3">
-                <label for="" class="col-sm-4 col-form-label">Previous Name:</label>
+                <label for="previous_name" class="col-sm-4 col-form-label">Previous Name:</label>
                 <div class="col-sm-8">
                     <input readonly type="text" class="form-control" id="previous_name" placeholder=""
                         v-model="taxon_previous_name" />
@@ -61,7 +61,7 @@
             <template v-if="show_administrative_information">
                 <div class="row mb-3 border-top pt-3">
                     <h5 class="text-muted mb-4">Administrative Information</h5>
-                    <label for="wa_legislative_list" class="col-sm-4 col-form-label">Change Type:</label>
+                    <label for="change_code" class="col-sm-4 col-form-label">Change Type:</label>
                     <div class="col-sm-8">
                         <select :disabled="isReadOnly" class="form-select"
                             v-model="conservation_status_obj.change_code_id" id="change_code">
@@ -73,40 +73,43 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="applicable-workflow" class="col-sm-4 col-form-label">Applicable Workflow:</label>
+                    <label for="approval_level" class="col-sm-4 col-form-label">Applicable Workflow:</label>
                     <div class="col-sm-8">
-                        <select id="applicable-workflow" v-model="conservation_status_obj.approval_level"
-                            class="form-select">
+                        <select id="approval_level" v-model="conservation_status_obj.approval_level" class="form-select"
+                            @change="approvalLevelChanged">
                             <option :value="null">Select Appropriate Workflow</option>
                             <option :value="'intermediate'">Intermediate</option>
                             <option :value="'minister'">Ministerial</option>
                         </select>
                     </div>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4"></div>
-                    <label for="start-date" class="col-sm-2 col-form-label">Start Date:</label>
-                    <div class="col-sm-2">
-                        <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="start-date"
-                            v-model="conservation_status_obj.cs_start_date" />
-                    </div>
-                    <label for="first-listed-date" class="col-sm-2 col-form-label">First Listed Date:</label>
-                    <div class="col-sm-2">
-                        <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="first-listed-date"
-                            v-model="conservation_status_obj.listing_date" />
-                    </div>
+                <div class="row mb-3 border-top pt-3">
+                    <template v-if="show_effective_from_date">
+                        <label for="effective_from" class="col-sm-3 col-form-label">Effective From:</label>
+                        <div class="col-sm-3">
+                            <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="effective_from"
+                                v-model="conservation_status_obj.effective_from"
+                                :disabled="effective_from_date_disabled" :required="!effective_from_date_disabled" />
+                        </div>
+                    </template>
+                    <template v-if="conservation_status_obj.effective_to">
+                        <label for="effective_to" class="col-sm-3 col-form-label">Effective to:</label>
+                        <div class="col-sm-3">
+                            <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="effective_to"
+                                v-model="conservation_status_obj.effective_to" />
+                        </div>
+                    </template>
                 </div>
                 <div class="row mb-3">
-                    <div class="col-sm-4"></div>
-                    <label for="review-date" class="col-sm-2 col-form-label">Review Date:</label>
-                    <div class="col-sm-2">
-                        <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="review-date"
-                            v-model="conservation_status_obj.review_date" />
+                    <label for="listing_date" class="col-sm-3 col-form-label">Date First Listed:</label>
+                    <div class="col-sm-3">
+                        <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="listing_date"
+                            v-model="conservation_status_obj.listing_date" />
                     </div>
-                    <label for="end-date" class="col-sm-2 col-form-label">End Date:</label>
-                    <div class="col-sm-2">
-                        <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="end-date"
-                            v-model="conservation_status_obj.cs_end_date" />
+                    <label for="review_date" class="col-sm-3 col-form-label">Review Date:</label>
+                    <div class="col-sm-3">
+                        <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="review_date"
+                            v-model="conservation_status_obj.review_date" />
                     </div>
                 </div>
             </template>
@@ -207,11 +210,20 @@
                             v-model="conservation_status_obj.conservation_criteria" />
                     </div>
                 </div>
+                <div class="row mb-3">
+                    <label for="comment" class="col-sm-4 col-form-label">Comments:</label>
+                    <div class="col-sm-8">
+                        <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
+                            v-model="conservation_status_obj.comment" />
+                    </div>
+                </div>
             </template>
             <template v-if="canViewCurrentList && conservation_status_obj.current_conservation_status">
-                <div class="row mb-3 border-top pt-3">
+                <div class="row border-top pt-3">
                     <h5 class="text-muted mb-4">Current Conservation
                         Status</h5>
+                </div>
+                <div v-if="conservation_status_obj.current_conservation_status.wa_legislative_list_id" class="row mb-3">
                     <label for="current_wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative
                         List:</label>
                     <div class="col-sm-8">
@@ -224,7 +236,8 @@
                         </select>
                     </div>
                 </div>
-                <div v-if="conservation_status_obj.current_conservation_status.wa_legislative_list_id" class="row mb-3">
+                <div v-if="conservation_status_obj.current_conservation_status.wa_legislative_category_id"
+                    class="row mb-3">
                     <label for="current_wa_legislative_category" class="col-sm-4 col-form-label">WA Legislative
                         Category:</label>
                     <div class="col-sm-8">
@@ -238,7 +251,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="row mb-3">
+                <div v-if="conservation_status_obj.current_conservation_status.wa_priority_list_id" class="row mb-3">
                     <label for="current_wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
@@ -250,7 +263,8 @@
                         </select>
                     </div>
                 </div>
-                <div v-if="conservation_status_obj.current_conservation_status.wa_priority_list_id" class="row mb-3">
+                <div v-if="conservation_status_obj.current_conservation_status.wa_priority_category_id"
+                    class="row mb-3">
                     <label for="current_wa_priority_category" class="col-sm-4 col-form-label">WA Priority
                         Category:</label>
                     <div class="col-sm-8">
@@ -263,7 +277,8 @@
                         </select>
                     </div>
                 </div>
-                <div class="row mb-3">
+                <div v-if="conservation_status_obj.current_conservation_status.commonwealth_conservation_list_id"
+                    class="row mb-3">
                     <label for="current_commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth
                         Conservation List:</label>
                     <div class="col-sm-8">
@@ -277,7 +292,8 @@
                         </select>
                     </div>
                 </div>
-                <div class="row mb-3">
+                <div v-if="conservation_status_obj.current_conservation_status.international_conservation"
+                    class="row mb-3">
                     <label for="current_international_conservation" class="col-sm-4 col-form-label">International
                         Conservation:</label>
                     <div class="col-sm-8">
@@ -285,7 +301,7 @@
                             v-model="conservation_status_obj.current_conservation_status.international_conservation" />
                     </div>
                 </div>
-                <div class="row mb-3">
+                <div v-if="conservation_status_obj.current_conservation_status.conservation_criteria" class="row mb-3">
                     <label for="current_conservation_criteria" class="col-sm-4 col-form-label">Conservation
                         Criteria:</label>
                     <div class="col-sm-8">
@@ -381,40 +397,34 @@
                     </div>
                 </div>
             </template>
-            <div class="row mb-3">
-                <label for="comment" class="col-sm-4 col-form-label">Comments:</label>
-                <div class="col-sm-8">
-                    <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
-                        v-model="conservation_status_obj.comment" />
+            <template v-if="!is_external && isStatusApproved">
+                <div class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">Effective From Date:</label>
+                    <div class="col-sm-8">
+                        <input :disabled="conservation_status_obj.readonly" type="date" class="form-control"
+                            placeholder="DD/MM/YYYY" id="effective_from_date"
+                            v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_from_date">
+                    </div>
                 </div>
-            </div>
-            <!-- TODO Do we need to show the effective dates and approval document to external user -->
-            <div class="row mb-3" v-if="isStatusApproved && is_external == false">
-                <label for="" class="col-sm-4 col-form-label">Effective From Date:</label>
-                <div class="col-sm-8">
-                    <input :disabled="conservation_status_obj.readonly" type="date" class="form-control"
-                        placeholder="DD/MM/YYYY" id="effective_from_date"
-                        v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_from_date">
+                <div class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">Effective To Date:</label>
+                    <div class="col-sm-8">
+                        <input :disabled="conservation_status_obj.readonly" type="date" class="form-control"
+                            placeholder="DD/MM/YYYY" id="effective_to_date"
+                            v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_to_date">
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-3" v-if="isStatusApproved && is_external == false">
-                <label for="" class="col-sm-4 col-form-label">Effective To Date:</label>
-                <div class="col-sm-8">
-                    <input :disabled="conservation_status_obj.readonly" type="date" class="form-control"
-                        placeholder="DD/MM/YYYY" id="effective_to_date"
-                        v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_to_date">
+                <div class="row mb-3">
+                    <label for="" class="col-sm-4 col-form-label">Approval document:</label>
+                    <div class="col-sm-8">
+                        <p v-if="conservation_status_obj.conservation_status_approval_document">
+                            <strong><a :href="conservation_status_obj.conservation_status_approval_document[1]"
+                                    target="_blank">{{
+                                        conservation_status_obj.conservation_status_approval_document[0] }}</a></strong>
+                        </p>
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-3" v-if="isStatusApproved && is_external == false">
-                <label for="" class="col-sm-4 col-form-label">Approval document:</label>
-                <div class="col-sm-8">
-                    <p v-if="conservation_status_obj.conservation_status_approval_document">
-                        <strong><a :href="conservation_status_obj.conservation_status_approval_document[1]"
-                                target="_blank">{{
-                                    conservation_status_obj.conservation_status_approval_document[0] }}</a></strong>
-                    </p>
-                </div>
-            </div>
+            </template>
         </FormSection>
     </div>
 </template>
@@ -473,8 +483,17 @@ export default {
             taxon_previous_name: '',
             //---Comment box attributes
 
-            deficiency_readonly: !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor ? false : true,
-            assessor_comment_readonly: !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor ? false : true,
+            deficiency_readonly: !this.is_external &&
+                !this.conservation_status_obj.can_user_edit &&
+                this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' &&
+                this.conservation_status_obj.assessor_mode.has_assessor_mode &&
+                !this.conservation_status_obj.assessor_mode.status_without_assessor ? false : true,
+
+            assessor_comment_readonly: !this.is_external &&
+                !this.conservation_status_obj.can_user_edit &&
+                this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' &&
+                this.conservation_status_obj.assessor_mode.has_assessor_mode &&
+                !this.conservation_status_obj.assessor_mode.status_without_assessor ? false : true,
         }
     },
     components: {
@@ -486,6 +505,33 @@ export default {
         },
         show_proposed_conservation_status: function () {
             return this.conservation_status_obj.species_id;
+        },
+        show_effective_from_date: function () {
+            if (this.conservation_status_obj.processing_status == "With Assessor") {
+                return this.conservation_status_obj.approval_level == "intermediate";
+            }
+            return true;
+        },
+        effective_from_date_disabled: function () {
+            if (!['With Assessor'], ['With Approver'].includes(this.conservation_status_obj.processing_status)) {
+                return true;
+            }
+            if (this.conservation_status_obj.processing_status == 'With Assessor' && this.conservation_status_obj.approval_level == 'intermediate') {
+                return false;
+            }
+            if (this.conservation_status_obj.processing_status == 'With Approver' && this.conservation_status_obj.approval_level == 'minister') {
+                return false;
+            }
+            return true;
+        },
+        effective_from_date_required: function () {
+            if (this.conservation_status_obj.processing_status == "With Assessor") {
+                return this.conservation_status_obj.approval_level == "intermediate";
+            }
+            if (this.conservation_status_obj.processing_status == "With Approver") {
+                return this.conservation_status_obj.approval_level == "minister";
+            }
+            return false;
         },
         deficiencyVisibility: function () {
             return this.conservation_status_obj.assessor_mode.assessor_box_view;
@@ -509,7 +555,15 @@ export default {
             return this.conservation_status_obj.processing_status == "Approved" ? true : false;
         },
         isReadOnly: function () {
-            return !this.conservation_status_obj.can_user_edit;
+            if(this.is_external){
+                return !this.conservation_status_obj.can_user_edit;
+            } else {
+                if(this.conservation_status_obj.assessor_mode.assessor_can_assess || this.conservation_status_obj.internal_user_edit){
+                    return false;
+                }
+            }
+
+            return true;
         },
         conservation_list_proposed: function () {
             return !(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed")
@@ -532,6 +586,9 @@ export default {
         }
     },
     methods: {
+        approvalLevelChanged: function () {
+            this.conservation_status_obj.effective_from = null;
+        },
         initialiseScientificNameLookup: function () {
             let vm = this;
             $(vm.$refs[vm.scientific_name_lookup]).select2({
@@ -539,7 +596,7 @@ export default {
                 dropdownParent: $("#" + vm.select_scientific_name),
                 "theme": "bootstrap-5",
                 allowClear: true,
-                placeholder: "Search for the Scientific Name",
+                placeholder: "Search for the Scientific Name of the Species",
                 ajax: {
                     url: api_endpoints.scientific_name_lookup,
                     dataType: 'json',
