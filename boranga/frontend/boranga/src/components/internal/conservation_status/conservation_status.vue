@@ -20,7 +20,38 @@
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
                         </div>
-                        <div v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'"
+                        <div v-if="!isFinalised" class="card-body border-top">
+                            <div class="row">
+                                <div class="col-sm-12 top-buffer-s">
+                                    <strong>Currently assigned to</strong><br />
+                                    <div class="form-group">
+                                        <template v-if="conservation_status_obj.processing_status == 'With Approver'">
+                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
+                                                v-model="conservation_status_obj.assigned_approver">
+                                                <option v-for="member in conservation_status_obj.allowed_assessors"
+                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
+                                                </option>
+                                            </select>
+                                            <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
+                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
+                                                to me</a>
+                                        </template>
+                                        <template v-else>
+                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
+                                                v-model="conservation_status_obj.assigned_officer">
+                                                <option v-for="member in conservation_status_obj.allowed_assessors"
+                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
+                                                </option>
+                                            </select>
+                                            <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id"
+                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
+                                                to me</a>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="canAction"
                             class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
@@ -119,37 +150,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="!isFinalised" class="card-body border-top">
-                            <div class="row">
-                                <div class="col-sm-12 top-buffer-s">
-                                    <strong>Currently assigned to</strong><br />
-                                    <div class="form-group">
-                                        <template v-if="conservation_status_obj.processing_status == 'With Approver'">
-                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
-                                                v-model="conservation_status_obj.assigned_approver">
-                                                <option v-for="member in conservation_status_obj.allowed_assessors"
-                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
-                                                </option>
-                                            </select>
-                                            <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
-                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
-                                                to me</a>
-                                        </template>
-                                        <template v-else>
-                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
-                                                v-model="conservation_status_obj.assigned_officer">
-                                                <option v-for="member in conservation_status_obj.allowed_assessors"
-                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
-                                                </option>
-                                            </select>
-                                            <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id"
-                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
-                                                to me</a>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div v-if="!isFinalised && canAction" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
@@ -162,7 +162,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="!conservation_status_obj.can_user_edit"
                                                     @click.prevent="amendmentRequest()">Request
                                                     Amendment</button><br />
@@ -170,7 +170,7 @@
                                         </div>
                                         <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="!conservation_status_obj.can_user_edit"
                                                     @click.prevent="proposedReadyForAgenda()">Propose Ready For
                                                     Agenda</button><br />
@@ -179,7 +179,7 @@
                                         <div class="row"
                                             v-if="conservation_status_obj.approval_level == 'intermediate'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="!conservation_status_obj.can_user_edit"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
@@ -187,7 +187,7 @@
                                         <div class="row"
                                             v-if="conservation_status_obj.approval_level == 'intermediate'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="!conservation_status_obj.can_user_edit"
                                                     @click.prevent="issueProposal()">Approve</button><br />
                                             </div>
@@ -201,20 +201,19 @@
                                         </div>
                                         <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="!conservation_status_obj.can_user_edit"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
                                         </div>
                                         <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="!conservation_status_obj.can_user_edit"
                                                     @click.prevent="issueProposal()">Approve</button><br />
                                             </div>
                                         </div>
                                     </template>
-                                    <!-- TODO the below template section will not be needed/used  according to Marks workflow where assessor approves the proposal -->
                                     <template v-else-if="conservation_status_obj.processing_status == 'With Approver'">
                                         <div class="row">
                                             <div class="col-sm-12">
@@ -231,7 +230,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     :disabled="conservation_status_obj.can_user_edit"
                                                     @click.prevent="switchStatus('with_assessor')">Back To
                                                     Assessor</button><br />
@@ -239,12 +238,12 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="conservation_status_obj.can_user_edit"
                                                     @click.prevent="issueProposal()">Approve</button><br />
                                             </div>
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     :disabled="conservation_status_obj.can_user_edit"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
@@ -259,7 +258,7 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                            <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                 @click.prevent="discardCSProposal()">Discard</button><br />
                                         </div>
                                     </div>
@@ -486,15 +485,12 @@ export default {
                     )
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
-            else if (this.conservation_status_obj.processing_status == 'With Assessor'
-                || this.conservation_status_obj.processing_status == 'Ready For Agenda') {
+            else if ( ['With Assessor', 'Ready For Agenda', 'With Referral'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj
                     && !this.isFinalised &&
                     this.conservation_status_obj.can_user_edit
                     && (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
-                        || this.conservation_status_obj.assigned_officer == null
-                    )
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer                    )
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             } else {
                 return this.conservation_status_obj
