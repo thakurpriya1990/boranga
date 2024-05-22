@@ -9,7 +9,7 @@ from django.db.models.functions import Concat
 from django_countries import countries
 from ledger_api_client.ledger_models import Address
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from rest_framework import filters, generics, serializers, views, viewsets
+from rest_framework import filters, generics, serializers, views, viewsets, mixins
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -75,13 +75,15 @@ class GetProfile(views.APIView):
 class UserListFilterView(generics.ListAPIView):
     """https://cop-internal.dbca.wa.gov.au/api/filtered_users?search=russell"""
 
-    queryset = EmailUser.objects.all()
+    permission_classes = [IsAssessor | IsApprover]
+
+    queryset = EmailUser.objects.none()
     serializer_class = UserFilterSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ("email", "first_name", "last_name")
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = EmailUser.objects.all()
     serializer_class = UserSerializer
     # Add permission groups that can access the userviewset, can add more group later as required
