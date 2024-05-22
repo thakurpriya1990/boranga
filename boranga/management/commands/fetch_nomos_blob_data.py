@@ -2,6 +2,8 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
+from django.core.mail import send_mail
+from boranga.components.species_and_communities.email import send_nomos_script_failed
 import requests
 from boranga.components.species_and_communities.models import(
     Taxonomy,
@@ -18,27 +20,24 @@ import itertools
 
 import logging
 logger = logging.getLogger(__name__)
-
+errors = ["check cron email"]
 
 class Command(BaseCommand):
     help = 'Fetch Taxonomy data'
 
     def handle(self, *args, **options):
-        #logger.info('Running command {}')
-        
         logger.info('Running command {}'.format(__name__))
 
-        errors = []
+        # errors = []
         updates = []
         
         my_url = settings.NOMOS_BLOB_URL
         
         try:
             logger.info('{}'.format("Requesting NOMOS URL"))
+            total_count = 0
             taxon_res=requests.get(my_url)
             count = 0
-            total_count = 0
-            brk_count = 0
             if taxon_res.status_code==200:
                 logger.info('{}'.format("Done Fetching NOMOS data"))
                 taxon=taxon_res.json()
@@ -193,3 +192,14 @@ class Command(BaseCommand):
         msg = '{} completed. Errors: {}. Total IDs updated: {}.'.format(cmd_name, err_str, total_count)
         logger.info(msg)
         print(msg) # will redirect to cron_tasks.log file, by the parent script
+
+        # if len(errors)>0:
+        #     # send_nomos_script_failed(errors)
+        #     self.send_email()
+
+    def send_email(self):
+        log_txt = errors
+        subject = '{} - Cronjob'.format(settings.SYSTEM_NAME_SHORT)
+        body = ''
+        to = settings.CRON_NOTIFICATION_EMAIL if isinstance(settings.NOTIFICATION_EMAIL, list) else [settings.CRON_NOTIFICATION_EMAIL]
+        send_mail(subject, body, settings.EMAIL_FROM, to, fail_silently=False, html_message=log_txt)
