@@ -18,11 +18,7 @@ from boranga.components.main.serializers import (
     EmailUserSerializer,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
-from boranga.helpers import (
-    is_internal,
-    is_internal_contributor,
-    is_new_external_contributor,
-)
+from boranga.helpers import is_internal_contributor, is_new_external_contributor
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -677,7 +673,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
     can_edit_recommended = serializers.SerializerMethodField(read_only=True)
     referrals = ConservationStatusProposalReferralSerializer(many=True)
-    can_user_edit = serializers.SerializerMethodField(read_only=True)
     is_new_contributor = serializers.SerializerMethodField(read_only=True)
     internal_application = serializers.BooleanField(read_only=True)
     current_conservation_status = CurrentConservationStatusSerializer(read_only=True)
@@ -743,8 +738,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         return obj.get_processing_status_display()
 
     def get_readonly(self, obj):
-        # Check if in 'draft' shouldn't be editable internal(if application is external)
-        # but should be editable(if internal_application)
         if obj.can_user_edit:
             if obj.internal_application:
                 return False
@@ -808,23 +801,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
         )
         return obj.can_edit_recommended(user)
-
-    def get_can_user_edit(self, obj):
-        # User here refers to an internal user (not external user/contributor)
-        request = self.context["request"]
-
-        if not is_internal(request) or is_internal_contributor(request.user):
-            return obj.can_user_edit and request.user.id == obj.submitter
-
-        return (
-            obj.processing_status
-            in [
-                ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
-                ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
-            ]
-            and request.user.id
-            in obj.get_assessor_group().get_system_group_member_ids()
-        )
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
