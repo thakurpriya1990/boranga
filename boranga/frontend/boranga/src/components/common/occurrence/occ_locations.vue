@@ -21,6 +21,8 @@
             :selectable="true"
             :coordinate-reference-systems="coordinateReferenceSystems"
             :spatial-operations-allowed="['__all__']"
+            :tile-layer-api-url="tileLayerApiUrl"
+            :proposal-api-url="proposalApiUrl"
             :query-layer-definition="{
                 name: 'query_layer',
                 title: 'Occurrence Reports',
@@ -87,13 +89,19 @@ export default {
         componentMapKey: function () {
             return `component-map-${this.uuid}`;
         },
-        coordinateReferenceSystems() {
+        coordinateReferenceSystems: function () {
             return this.crs;
         },
-        occurrenceReportIds() {
+        occurrenceReportIds: function () {
             return this.occurrence.occurrence_reports.map(
                 (report) => report.id
             );
+        },
+        tileLayerApiUrl: function () {
+            return api_endpoints.tile_layer;
+        },
+        proposalApiUrl: function () {
+            return api_endpoints.occurrence_report + '/list_for_map/';
         },
     },
     created() {

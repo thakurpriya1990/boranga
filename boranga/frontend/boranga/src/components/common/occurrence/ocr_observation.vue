@@ -39,6 +39,7 @@
             <PlantCount
                 v-if="isFlora"
                 :plant_count="occurrence_report_obj.plant_count"
+                :processing_status="occurrence_report_obj.processing_status"
                 :is_report=true
                 :occurrence_id="occurrence_report_obj.id"
                 id="plantCountDetail"
@@ -52,6 +53,7 @@
             <AnimalObservation
                 v-if="isFauna"
                 :animal_observation="occurrence_report_obj.animal_observation"
+                :processing_status="occurrence_report_obj.processing_status"
                 :is_report=true
                 :occurrence_id="occurrence_report_obj.id"
                 id="animalObservationDetail"
@@ -225,6 +227,10 @@ export default {
                         icon: 'success',
                         confirmButtonColor:'#226fbb',
 
+                    }).then((result) => {
+                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
                     });
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
@@ -251,6 +257,10 @@ export default {
                         icon: 'success',
                         confirmButtonColor:'#226fbb',
 
+                    }).then((result) => {
+                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
                     });
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);

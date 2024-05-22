@@ -116,7 +116,7 @@
                                 <form :action="species_community_form_url" method="post" name="new_species"
                                     enctype="multipart/form-data">
                                     <ProposalSpeciesCommunities ref="species_communities"
-                                        :species_community="species_community" id="speciesCommunityStart"
+                                        :species_community="species_community" :species_community_original="species_community_original" id="speciesCommunityStart"
                                         :is_internal="true" :is_readonly="species_community.readonly">
                                     </ProposalSpeciesCommunities>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
@@ -178,8 +178,8 @@
             @refreshFromResponse="refreshFromResponse" />
         <SpeciesRename ref="species_rename" :species_community_original="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <MakePublic ref="make_public" :species_community="species_community" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
+        <MakePublic ref="make_public" :species_community="species_community" :species_community_original="species_community_original" 
+            :is_internal="true" @refreshFromResponse="refreshFromResponse" />
     </div>
 </template>
 <script>
@@ -204,6 +204,7 @@ export default {
         let vm = this;
         return {
             "species_community": null,
+            "species_community_original": null,
             form: null,
             savingSpeciesCommunity: false,
             saveExitSpeciesCommunity: false,
@@ -490,6 +491,7 @@ export default {
 
             await vm.$http.post(vm.species_community_form_url, payload).then(res => {
                 vm.species_community = res.body;
+                vm.species_community_original = helpers.copyObject(vm.species_community); //update original after save
                 swal.fire({
                     title: "Saved",
                     text: "Your changes has been saved" + was_public,
@@ -540,6 +542,11 @@ export default {
             let vm = this;
             vm.saveError = false;
 
+            //only save if something has changed
+            if (vm.can_submit("") != true) {
+                return false;
+            }
+
             let payload = new Object();
             Object.assign(payload, vm.species_community);
             const result = await vm.$http.post(vm.species_community_form_url, payload).then(res => {
@@ -561,6 +568,20 @@ export default {
         },
         can_submit: function (check_action) {
             let vm = this;
+
+            if (check_action != 'submit') {
+                //remove publishing status for check as it is handled separately
+                let sc_no_ps = helpers.copyObject(vm.species_community);
+                let sco_no_ps = helpers.copyObject(vm.species_community_original);
+                
+                sc_no_ps.publishing_status = undefined;
+                sco_no_ps.publishing_status = undefined;
+
+                if (helpers.checkForChange(sco_no_ps,sc_no_ps)) {
+                    return ["No changes made"]
+                }
+            }
+
             let blank_fields = []
             if (vm.species_community.group_type == 'flora' || vm.species_community.group_type == 'fauna') {
                 if (vm.species_community.taxonomy_id == null || vm.species_community.taxonomy_id == '') {
@@ -616,6 +637,7 @@ export default {
                             helpers.add_endpoint_json(api_endpoints.species, vm.species_community.id + '/submit')
                         vm.$http.post(submit_url, payload).then(res => {
                             vm.species_community = res.body;
+                            vm.species_community_original = helpers.copyObject(vm.species_community);
                             // vm.$router.push({
                             //     name: 'submit_cs_proposal',
                             //     params: { conservation_status_obj: vm.conservation_status_obj}
@@ -647,8 +669,8 @@ export default {
         },
         refreshFromResponse: function (response) {
             let vm = this;
-            vm.original_species_community = helpers.copyObject(response.body);
             vm.species_community = helpers.copyObject(response.body);
+            vm.species_community_original = copyObject(vm.species_community);
         },
         splitSpecies: async function () {
             this.$refs.species_split.species_community_original = this.species_community;
@@ -767,6 +789,7 @@ export default {
             }).then((response) => {
                 vm.updatingPublishing = false;
                 vm.species_community.publishing_status = response.body;
+                vm.species_community_original.publishing_status = helpers.copyObject(vm.species_community.publishing_status);
                 swal.fire({
                     title: 'Saved',
                     text: 'Record has been made private',
@@ -801,6 +824,7 @@ export default {
             Vue.http.get(`/api/species/${to.params.species_community_id}/internal_species.json`).then(res => {
                 next(vm => {
                     vm.species_community = res.body.species_obj; //--temp species_obj
+                    vm.species_community_original = helpers.copyObject(vm.species_community);
                     vm.uploadedID = vm.species_community.image_doc;
                 });
             },
@@ -813,6 +837,7 @@ export default {
             Vue.http.get(`/api/community/${to.params.species_community_id}/internal_community.json`).then(res => {
                 next(vm => {
                     vm.species_community = res.body.community_obj; //--temp community_obj
+                    vm.species_community_original = helpers.copyObject(vm.species_community);
                     vm.uploadedID = vm.species_community.image_doc;
                 });
             },

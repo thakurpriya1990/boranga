@@ -31,10 +31,10 @@
                 <div v-if="is_internal || is_public" class="tab-pane fade show active" :id="profileBody" role="tabpanel"
                     aria-labelledby="pills-profile-tab">
                     <Community v-if="isCommunity" ref="community_information" id="communityInformation"
-                        :is_internal="is_internal" :species_community="species_community">
+                        :is_internal="is_internal" :species_community="species_community" :species_community_original="species_community_original">
                     </Community>
                     <Species v-else ref="species_information" id="speciesInformation" :is_internal="is_internal"
-                        :species_community="species_community" :is_readonly="is_readonly"
+                        :species_community="species_community" :species_community_original="species_community_original" :is_readonly="is_readonly"
                         :rename_species="rename_species">
                     </Species>
                 </div>
@@ -80,6 +80,10 @@ import RelatedItems from '@/components/common/table_related_items.vue'
 export default {
     props: {
         species_community: {
+            type: Object,
+            required: true
+        },
+        species_community_original: {
             type: Object,
             required: true
         },

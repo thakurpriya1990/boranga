@@ -99,6 +99,8 @@
                     "
                     :selectable="true"
                     :coordinate-reference-systems="coordinateReferenceSystems"
+                    :tile-layer-api-url="tileLayerApiUrl"
+                    :proposal-api-url="proposalApiUrl"
                     :query-layer-definition="{
                         name: 'query_layer',
                         title: 'Occurrence Report',
@@ -573,6 +575,12 @@ export default {
         coordinateReferenceSystems: function () {
             return this.datum_list;
         },
+        tileLayerApiUrl: function () {
+            return api_endpoints.tile_layer;
+        },
+        proposalApiUrl: function () {
+            return api_endpoints.occurrence_report + '/list_for_map/';
+        },
     },
     watch: {},
     created: async function () {
@@ -863,6 +871,10 @@ export default {
                             text: 'Location details have been saved',
                             icon: 'success',
                             confirmButtonColor: '#226fbb',
+                        }).then((result) => {
+                            if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                vm.$router.go();
+                            }
                         });
                         vm.$refs.component_map.forceToRefreshMap();
                     },

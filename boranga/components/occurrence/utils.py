@@ -393,7 +393,7 @@ def validate_map_files(request, instance, foreign_key_field=None):
                 }
             )
 
-        instance.save()
+        instance.save(no_revision=True)
         valid_geometry_saved = True
 
     # Delete all shapefile documents so the user can upload another one if they wish.

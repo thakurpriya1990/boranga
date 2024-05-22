@@ -454,8 +454,12 @@ export default {
                                 text: 'Your threat has been removed',
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb'
+                            }).then((result) => {
+                                vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                                if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                    vm.$router.go();
+                                }
                             });
-                            vm.$refs.threats_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
                             console.log(error);
                         });
@@ -482,8 +486,12 @@ export default {
                                 text: 'Your threat has been reinstated',
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb',
+                            }).then((result) => {
+                                vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                                if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                    vm.$router.go();
+                                }
                             });
-                            vm.$refs.threats_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
                             console.log(error);
                         });
@@ -491,7 +499,11 @@ export default {
             });
         },
         updatedThreats() {
+            let vm = this;
             this.$refs.threats_datatable.vmDataTable.ajax.reload();
+            if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                vm.$router.go();
+            }
         },
         addEventListeners: function () {
             let vm = this;

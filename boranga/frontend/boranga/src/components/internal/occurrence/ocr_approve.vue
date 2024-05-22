@@ -147,7 +147,7 @@ export default {
                         .then((response) => {
                             swal.fire({
                                 title: 'Occurrence Report Successfully Approved',
-                                text: `Occurrence Report: ${vm.occurrence_report_number} has been succuessfully approved.`,
+                                text: `Occurrence Report: ${vm.occurrence_report_number} has been successfully approved.`,
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb',
                             });

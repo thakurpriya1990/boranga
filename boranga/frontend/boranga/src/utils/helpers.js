@@ -244,4 +244,13 @@ module.exports = {
  //         })
  //       })
  //   },
+
+    checkForChange: function(before, after) {
+        //compare two objects, return true if the are the same
+        console.log(before);
+        console.log(after);
+        //JSON.stringify does not guarantee order and removes keys with undefined values
+        //that is acceptable for this use case, however
+        return JSON.stringify(before) === JSON.stringify(after);
+    }
 };

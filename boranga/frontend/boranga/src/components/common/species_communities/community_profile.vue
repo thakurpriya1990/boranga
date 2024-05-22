@@ -434,6 +434,10 @@ export default {
             type: Object,
             required: true
         },
+        species_community_original: {
+            type: Object,
+            required: true
+        },
         is_internal: {
             type: Boolean,
             default: false
@@ -571,6 +575,7 @@ export default {
             }).then((response) => {
                 vm.updatingPublishing = false;
                 vm.species_community.publishing_status = response.body;
+                vm.species_community_original.publishing_status = helpers.copyObject(vm.species_community.publishing_status);
                 swal.fire({
                     title: 'Saved',
                     text: 'Publishing settings have been updated',
@@ -594,7 +599,16 @@ export default {
             vm.updatingPublishing = true;
             //if not already public, we make it public (notify user first)
             //but only if it is active
-            if (vm.isPublic && vm.isActive) {
+            if (helpers.checkForChange(vm.species_community_original.publishing_status,vm.species_community.publishing_status)) {
+                swal.fire({
+                    title: 'Error',
+                    text: 'No changes made',
+                    icon: 'error',
+                    confirmButtonColor:'#226fbb',
+                });
+                vm.updatingPublishing = false;
+            }
+            else if (vm.isPublic && vm.isActive) {
                 //send just publishing form data
                 let data = JSON.stringify(vm.species_community.publishing_status)
                 vm.updatePublishing(data);
