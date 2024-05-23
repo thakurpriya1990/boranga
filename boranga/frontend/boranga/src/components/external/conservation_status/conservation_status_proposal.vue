@@ -17,7 +17,8 @@
                 </div>
             </div>
             <div v-if="conservation_status_obj" id="scrollspy-heading" class="col-lg-12 mb-3">
-                <h4>Conservation List - {{ display_group_type }} Application: {{ conservation_status_obj.conservation_status_number }}</h4>
+                <h4>Conservation List - {{ display_group_type }} Application: {{
+                    conservation_status_obj.conservation_status_number }}</h4>
             </div>
             <ProposalConservationStatus v-if="conservation_status_obj"
                 :conservation_status_obj="conservation_status_obj" id="ConservationStatusStart"
@@ -277,73 +278,21 @@ export default {
                 $("#" + missing_field.id).css("color", 'red');
             }
         },
-        validate: function () {
-            let vm = this;
-
-            // reset default colour
-            for (var field of vm.missing_fields) {
-                $("#" + field.id).css("color", '#515151');
+        validateConservationStatusListsCategories: function (blank_fields) {
+            let required_fields = [
+                { 'id': 'wa_legislative_list_id', 'display': 'WA Legislative List' },
+                { 'id': 'wa_priority_list_id', 'display': 'WA Priority List' },
+                { 'id': 'commonwealth_conservation_list', 'display': 'Commonwealth Conservation List' },
+                { 'id': 'international_conservation', 'display': 'International Conservation' },
+                { 'id': 'conservation_criteria', 'display': 'Conservation Criteria' },
+            ];
+            for (let field of required_fields) {
+                if (this.conservation_status_obj[field.id] != null && this.conservation_status_obj[field.id] != '') {
+                    return blank_fields;
+                }
             }
-            vm.missing_fields = [];
-
-            // get all required fields, that are not hidden in the DOM
-            var required_fields = $('input[type=text]:required, textarea:required, input[type=checkbox]:required, input[type=radio]:required, input[type=file]:required, select:required').not(':hidden');
-
-            // loop through all (non-hidden) required fields, and check data has been entered
-            required_fields.each(function () {
-                var id = 'id_' + this.name
-                if (this.type == 'radio') {
-                    if (!$("input[name=" + this.name + "]").is(':checked')) {
-                        var text = $('#' + id).text()
-                        console.log('radio not checked: ' + this.type + ' ' + text)
-                        vm.missing_fields.push({ id: id, label: text });
-                    }
-                }
-
-                if (this.type == 'checkbox') {
-                    var id = 'id_' + this.classList['value']
-                    if ($("[class=" + this.classList['value'] + "]:checked").length == 0) {
-                        var text = $('#' + id).text()
-                        console.log('checkbox not checked: ' + this.type + ' ' + text)
-                        vm.missing_fields.push({ id: id, label: text });
-                    }
-                }
-
-                if (this.type == 'select-one') {
-                    if ($(this).val() == '') {
-                        var text = $('#' + id).text()  // this is the (question) label
-                        var id = 'id_' + $(this).prop('name'); // the label id
-                        console.log('selector not selected: ' + this.type + ' ' + text)
-                        vm.missing_fields.push({ id: id, label: text });
-                    }
-                }
-
-                if (this.type == 'file') {
-                    var num_files = $('#' + id).attr('num_files')
-                    if (num_files == "0") {
-                        var text = $('#' + id).text()
-                        console.log('file not uploaded: ' + this.type + ' ' + this.name)
-                        vm.missing_fields.push({ id: id, label: text });
-                    }
-                }
-
-                if (this.type == 'text') {
-                    if (this.value == '') {
-                        var text = $('#' + id).text()
-                        console.log('text not provided: ' + this.type + ' ' + this.name)
-                        vm.missing_fields.push({ id: id, label: text });
-                    }
-                }
-
-                if (this.type == 'textarea') {
-                    if (this.value == '') {
-                        var text = $('#' + id).text()
-                        console.log('textarea not provided: ' + this.type + ' ' + this.name)
-                        vm.missing_fields.push({ id: id, label: text });
-                    }
-                }
-            });
-            return vm.missing_fields.length
+            blank_fields.push(`At least one of the following fields are required: ${required_fields.map(f => f.display).join(', ')}`);
+            return blank_fields;
         },
         can_submit: function (check_action) {
             let vm = this;
@@ -363,17 +312,21 @@ export default {
             let blank_fields = []
             if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna') {
                 if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == '') {
-                    blank_fields.push(' Scientific Name is missing')
+                    blank_fields.push(' Scientific Name is required')
                 }
             }
             else {
                 if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == '') {
-                    blank_fields.push(' Community Name is missing')
+                    blank_fields.push(' Community Name is required')
                 }
             }
-            if (check_action == "submit") {
-                // TODO: Check for required conservation list / category fields
+            if (check_action == "submit" && (vm.conservation_status_obj.species_id || vm.conservation_status_obj.community_id)) {
+                vm.validateConservationStatusListsCategories(blank_fields)
+                if (vm.conservation_status_obj.comment == null || vm.conservation_status_obj.comment == '') {
+                    blank_fields.push(' Please enter some comments regarding your conservation status proposal.')
+                }
             }
+
             return blank_fields
         },
         submit: function () {
