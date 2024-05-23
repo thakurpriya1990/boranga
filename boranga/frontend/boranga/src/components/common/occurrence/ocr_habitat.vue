@@ -155,6 +155,27 @@
                 </div>
             </div>
         </FormSection>
+        <FormSection :formCollapse="false" label="Vegetation Structure" :Index="vegetationStructureBody">
+            <label for="" class="col-lg-3 control-label fs-5 fw-bold">Vegetation Structure</label>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Free Text Field 1 :</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_1" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_one"/>
+                </div>
+                <label for="" class="col-sm-3 control-label">Free Text Field 2 :</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_2" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_two"/>
+                </div>
+                <label for="" class="col-sm-3 control-label">Free Text Field 3 :</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_3" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_three"/>
+                </div>
+                <label for="" class="col-sm-3 control-label">Free Text Field 4 :</label>
+                <div class="col-sm-9">
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_4" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_four"/>
+                </div>
+            </div>
+        </FormSection>
         <FormSection :formCollapse="false" label="Fire History" :Index="fireHistoryBody">
             <label for="" class="col-lg-3 control-label fs-5 fw-bold">Last Fire History</label>
             <div class="row mb-3">
@@ -247,6 +268,7 @@ export default {
             return{
                 habitatCompositionBody: 'habitatCompositionBody' + vm._uid,
                 habitatConditionBody: 'habitatConditionBody' + vm._uid,
+                vegetationStructureBody: 'vegetationStructureBody' + vm._uid,
                 fireHistoryBody: 'fireHistoryBody' + vm._uid,
                 associatedSpeciesBody: 'associatedSpeciesBody'+ vm._uid,
                 //---to show fields related to Fauna

@@ -24,6 +24,7 @@ from boranga.components.occurrence.models import (
     OCCObservationDetail,
     OCCObserverDetail,
     OCCPlantCount,
+    OCCVegetationStructure,
     Occurrence,
     OccurrenceDocument,
     OccurrenceLogEntry,
@@ -48,6 +49,7 @@ from boranga.components.occurrence.models import (
     OCRObservationDetail,
     OCRObserverDetail,
     OCRPlantCount,
+    OCRVegetationStructure,
     PrimaryDetectionMethod,
     ReproductiveMaturity,
     SecondarySign,
@@ -75,6 +77,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
 
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
+    vegetation_structure = serializers.SerializerMethodField()
     fire_history = serializers.SerializerMethodField()
     associated_species = serializers.SerializerMethodField()
     observation_detail = serializers.SerializerMethodField()
@@ -109,6 +112,13 @@ class OccurrenceSerializer(serializers.ModelSerializer):
             return OCCHabitatConditionSerializer(qs).data
         except OCCHabitatCondition.DoesNotExist:
             return OCCHabitatConditionSerializer().data
+        
+    def get_vegetation_structure(self, obj):
+        try:
+            qs = OCCVegetationStructure.objects.get(occurrence=obj)
+            return OCCVegetationStructureSerializer(qs).data
+        except OCCVegetationStructure.DoesNotExist:
+            return OCCVegetationStructureSerializer().data
 
     def get_fire_history(self, obj):
         try:
@@ -387,6 +397,18 @@ class OCRHabitatConditionSerializer(serializers.ModelSerializer):
             "completely_degraded",
         )
 
+class OCRVegetationStructureSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCRVegetationStructure
+        fields = (
+            "id",
+            "occurrence_report_id",
+            "free_text_field_one",
+            "free_text_field_two",
+            "free_text_field_three",
+            "free_text_field_four",
+        )
 
 class OCRFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")
@@ -825,6 +847,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
+    vegetation_structure = serializers.SerializerMethodField()
     fire_history = serializers.SerializerMethodField()
     associated_species = serializers.SerializerMethodField()
     observation_detail = serializers.SerializerMethodField()
@@ -925,6 +948,13 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             return OCRHabitatConditionSerializer(qs).data
         except OCRHabitatCondition.DoesNotExist:
             return OCRHabitatConditionSerializer().data
+
+    def get_vegetation_structure(self, obj):
+        try:
+            qs = OCRVegetationStructure.objects.get(occurrence=obj)
+            return OCRVegetationStructureSerializer(qs).data
+        except OCRVegetationStructure.DoesNotExist:
+            return OCRVegetationStructureSerializer().data
 
     def get_fire_history(self, obj):
         try:
@@ -2003,6 +2033,18 @@ class OCCHabitatConditionSerializer(serializers.ModelSerializer):
             "completely_degraded",
         )
 
+class OCCVegetationStructureSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCVegetationStructure
+        fields = (
+            "id",
+            "occurrence_id",
+            "free_text_field_one",
+            "free_text_field_two",
+            "free_text_field_three",
+            "free_text_field_four",
+        )
 
 class OCCFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")
