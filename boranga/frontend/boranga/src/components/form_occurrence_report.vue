@@ -1,5 +1,12 @@
 <template lang="html">
     <div>
+        <div class="" :id="occurrenceReportBody">
+            <OCRProfile
+                ref="ocr_profile" 
+                id="ocrProfile"                 
+                :occurrence_report_obj="occurrence_report_obj">
+            </OCRProfile>
+        </div>
         <div class="col-md-12">
             <ul id="pills-tab" class="nav nav-pills" role="tablist">
                 <li class="nav-item">
@@ -187,6 +194,7 @@ import OCRObservation from '@/components/common/occurrence/ocr_observation.vue';
 // import RelatedItems from '@/components/common/table_related_items.vue'
 import OCRDocuments from '@/components/common/occurrence/ocr_documents.vue';
 import OCRThreats from '@/components/common/occurrence/ocr_threats.vue';
+import OCRProfile from '@/components/common/occurrence/occurrence_report_profile.vue';
 
 export default {
     components: {
@@ -195,6 +203,7 @@ export default {
         OCRObservation,
         OCRDocuments,
         OCRThreats,
+        OCRProfile,
         // RelatedItems,
     },
     props: {
@@ -225,6 +234,7 @@ export default {
         return {
             values: null,
             reloadcount: 0,
+            occurrenceReportBody: 'occurrenceReportBody' + vm._uid,
             locationBody: 'locationBody' + vm._uid,
             habitatBody: 'habitatBody' + vm._uid,
             observationBody: 'observationBody' + vm._uid,

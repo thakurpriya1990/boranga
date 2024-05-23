@@ -4,7 +4,7 @@
         <FormSection
             :form-collapse="false"
             label="Location"
-            Index="occurrence_report"
+            Index="occurrence_report_location"
             :is-show-comment="isShowComment"
             :has_comment_value="has_comment_value"
             :display-comment-section="!is_external"
@@ -113,6 +113,7 @@
                 ></MapComponent>
             </div>
 
+            <!--
             <div v-show="!isCommunity">
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 control-label"
@@ -185,6 +186,7 @@
                     </div>
                 </div>
             </div>
+            -->
 
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
@@ -484,12 +486,12 @@ export default {
         let vm = this;
         return {
             uuid: null,
-            scientific_name_lookup:
+            /*scientific_name_lookup:
                 'scientific_name_lookup' + vm.occurrence_report_obj.id,
             select_scientific_name:
                 'select_scientific_name' + vm.occurrence_report_obj.id,
             community_name_lookup: 'community_name_lookup' + vm._uid,
-            select_community_name: 'select_community_name' + vm._uid,
+            select_community_name: 'select_community_name' + vm._uid,*/
             isShowComment: false,
             //---to show fields related to Fauna
             isFauna:
@@ -503,9 +505,9 @@ export default {
             species_list: [],
             referral_comments_boxes: [],
             // to display the species selected
-            species_display: '',
-            community_display: '',
-            taxon_previous_name: '',
+            //species_display: '',
+            //community_display: '',
+            //taxon_previous_name: '',
             //---Comment box attributes
 
             deficiency_readonly:
@@ -588,7 +590,7 @@ export default {
         this.uuid = uuid();
         //------fetch list of values according to action
         let action = this.$route.query.action;
-        let dict_url =
+        /*let dict_url =
             action == 'view'
                 ? api_endpoints.cs_profile_dict +
                   '?group_type=' +
@@ -610,7 +612,7 @@ export default {
             (error) => {
                 console.log(error);
             }
-        );
+        );*/
 
         //------fetch list of values
         fetch(
@@ -652,12 +654,12 @@ export default {
         let vm = this;
         this.$nextTick(() => {
             vm.eventListeners();
-            vm.initialiseScientificNameLookup();
-            vm.initialiseCommunityNameLookup();
+            //vm.initialiseScientificNameLookup();
+            //vm.initialiseCommunityNameLookup();
         });
     },
     methods: {
-        initialiseScientificNameLookup: function () {
+        /*initialiseScientificNameLookup: function () {
             let vm = this;
             $(vm.$refs[vm.scientific_name_lookup])
                 .select2({
@@ -792,7 +794,7 @@ export default {
                     this.community_display = choice.name;
                 }
             }
-        },
+        },*/
         generateReferralCommentBoxes: function () {
             var box_visibility =
                 this.occurrence_report_obj.assessor_mode.assessor_box_view;
