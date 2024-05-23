@@ -75,8 +75,8 @@
                 <div class="row mb-3">
                     <label for="approval_level" class="col-sm-4 col-form-label">Applicable Workflow:</label>
                     <div class="col-sm-8">
-                        <select id="approval_level" v-model="conservation_status_obj.approval_level" class="form-select" :disabled="approval_level_disabled"
-                            @change="approvalLevelChanged">
+                        <select id="approval_level" v-model="conservation_status_obj.approval_level" class="form-select"
+                            :disabled="approval_level_disabled" @change="approvalLevelChanged">
                             <option :value="null">Select Appropriate Workflow</option>
                             <option :value="'intermediate'">Intermediate</option>
                             <option :value="'minister'">Ministerial</option>
@@ -84,15 +84,15 @@
                     </div>
                 </div>
                 <div class="row mb-3 border-top pt-3">
-                    <template v-if="show_effective_from_date">
+                    <template v-if="conservation_status_obj.effective_from">
                         <label for="effective_from" class="col-sm-3 col-form-label">Effective From:</label>
                         <div class="col-sm-3">
                             <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="effective_from"
-                                v-model="conservation_status_obj.effective_from"
-                                :disabled="effective_from_date_disabled" :required="!effective_from_date_disabled" />
+                                v-model="conservation_status_obj.effective_from" :disabled="true"
+                                :required="!effective_from_date_disabled" />
                         </div>
                     </template>
-                    <template v-if="conservation_status_obj.effective_to">
+                    <template v-if="conservation_status_obj.effective_from">
                         <label for="effective_to" class="col-sm-3 col-form-label">Effective to:</label>
                         <div class="col-sm-3">
                             <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="effective_to"
@@ -399,22 +399,6 @@
             </template>
             <template v-if="!is_external && isStatusApproved">
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">Effective From Date:</label>
-                    <div class="col-sm-8">
-                        <input :disabled="conservation_status_obj.readonly" type="date" class="form-control"
-                            placeholder="DD/MM/YYYY" id="effective_from_date"
-                            v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_from_date">
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">Effective To Date:</label>
-                    <div class="col-sm-8">
-                        <input :disabled="conservation_status_obj.readonly" type="date" class="form-control"
-                            placeholder="DD/MM/YYYY" id="effective_to_date"
-                            v-model="conservation_status_obj.conservationstatusissuanceapprovaldetails.effective_to_date">
-                    </div>
-                </div>
-                <div class="row mb-3">
                     <label for="" class="col-sm-4 col-form-label">Approval document:</label>
                     <div class="col-sm-8">
                         <p v-if="conservation_status_obj.conservation_status_approval_document">
@@ -515,27 +499,6 @@ export default {
         approval_level_disabled: function () {
             return !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
         },
-        effective_from_date_disabled: function () {
-            if (!['With Assessor'], ['With Approver'].includes(this.conservation_status_obj.processing_status)) {
-                return true;
-            }
-            if (this.conservation_status_obj.processing_status == 'With Assessor' && this.conservation_status_obj.approval_level == 'intermediate') {
-                return false;
-            }
-            if (this.conservation_status_obj.processing_status == 'With Approver' && this.conservation_status_obj.approval_level == 'minister') {
-                return false;
-            }
-            return true;
-        },
-        effective_from_date_required: function () {
-            if (this.conservation_status_obj.processing_status == "With Assessor") {
-                return this.conservation_status_obj.approval_level == "intermediate";
-            }
-            if (this.conservation_status_obj.processing_status == "With Approver") {
-                return this.conservation_status_obj.approval_level == "minister";
-            }
-            return false;
-        },
         deficiencyVisibility: function () {
             return this.conservation_status_obj.assessor_mode.assessor_box_view;
         },
@@ -558,10 +521,10 @@ export default {
             return this.conservation_status_obj.processing_status == "Approved" ? true : false;
         },
         isReadOnly: function () {
-            if(this.is_external){
+            if (this.is_external) {
                 return !this.conservation_status_obj.can_user_edit;
             } else {
-                if(this.conservation_status_obj.assessor_mode.assessor_can_assess || this.conservation_status_obj.internal_user_edit){
+                if (this.conservation_status_obj.assessor_mode.assessor_can_assess || this.conservation_status_obj.internal_user_edit) {
                     return false;
                 }
             }
