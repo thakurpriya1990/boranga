@@ -219,6 +219,7 @@ if not VALID_SYSTEMS:
 CRON_CLASSES = [
     "appmonitor_client.cron.CronJobAppMonitorClient",
     "boranga.cron.CronJobFetchNomosTaxonDataDaily",
+    "boranga.cron.CronJobDelistExpiredConservationStatus",
 ]
 
 
@@ -341,3 +342,27 @@ ACTION_DESTROY = "Destroy {} {}"
 # ---------- Cache keys ----------
 
 CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}-{codes}"
+
+# ---------- Conservation Change Codes ----------
+
+CONSERVATION_CHANGE_CODE_NEW = "New"
+CONSERVATION_CHANGE_CODE_UPGRADE = "Upgrade"
+CONSERVATION_CHANGE_CODE_DOWNGRADE = "Downgrade"
+CONSERVATION_CHANGE_CODE_NAME_CHANGE = "Name Change"
+CONSERVATION_CHANGE_CODE_RANK_CHANGE = "Rank Change"
+CONSERVATION_CHANGE_CODE_CATEGORY_CHANGE = "Category Change"
+CONSERVATION_CHANGE_CODE_CRITERIA_CHANGE = "Criteria Change"
+CONSERVATION_CHANGE_CODE_DELIST = "DeList"
+CONSERVATION_CHANGE_CODE_OTHER = "Other"
+
+CONSERVATION_CHANGE_CODES = [
+    {"code": CONSERVATION_CHANGE_CODE_NEW, "label": "New"},
+    {"code": CONSERVATION_CHANGE_CODE_UPGRADE, "label": "Upgrade"},
+    {"code": CONSERVATION_CHANGE_CODE_DOWNGRADE, "label": "Downgrade"},
+    {"code": CONSERVATION_CHANGE_CODE_NAME_CHANGE, "label": "Name Change"},
+    {"code": CONSERVATION_CHANGE_CODE_RANK_CHANGE, "label": "Rank Change"},
+    {"code": CONSERVATION_CHANGE_CODE_CATEGORY_CHANGE, "label": "Category Change"},
+    {"code": CONSERVATION_CHANGE_CODE_CRITERIA_CHANGE, "label": "Criteria Change"},
+    {"code": CONSERVATION_CHANGE_CODE_DELIST, "label": "DeList"},
+    {"code": CONSERVATION_CHANGE_CODE_OTHER, "label": "Other"},
+]
