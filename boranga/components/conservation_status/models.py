@@ -920,11 +920,10 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def can_view_recommended(self):
-        recommended_view_status = ["ready_for_agenda", "approved", "closed"]
-        if self.processing_status in recommended_view_status:
-            return True
-        else:
-            return False
+        # TODO: If we stick with the decision to never show the recommended fields
+        # then remove the from the cosebase entirely.
+        return False
+        return self.processing_status in ["ready_for_agenda", "approved", "closed"]
 
     def can_edit_recommended(self, user):
         recommended_edit_status = ["ready_for_agenda"]
