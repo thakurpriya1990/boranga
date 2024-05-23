@@ -188,31 +188,6 @@
             </div>
             -->
 
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Observation Date:</label
-                >
-                <div class="col-sm-9">
-                    <input
-                        v-model="
-                            occurrence_report_obj.location.observation_date
-                        "
-                        :disabled="isReadOnly"
-                        type="datetime-local"
-                        class="form-control"
-                        name="start_date"
-                    />
-                </div>
-            </div>
-            <!-- ------------Observer Detail section -->
-
-            <ObserverDatatable
-                ref="observer_datatable"
-                :occurrence_report_obj="occurrence_report_obj"
-                :is_external="is_external"
-                :is-read-only="isReadOnly"
-            ></ObserverDatatable>
-
             <!-- -------------------------------- -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
@@ -271,22 +246,7 @@
                     <label for="newOccurrenceNo">No</label>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Boundary(m) :</label
-                >
-                <div class="col-sm-6">
-                    <input
-                        id="boundary"
-                        v-model="occurrence_report_obj.location.boundary"
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                    />
-                </div>
-            </div>
+            
             <div class="row mb-3">
                 <label class="col-sm-3 control-label">Mapped Boundary</label>
                 <div class="col-sm-1">
@@ -310,22 +270,7 @@
                     <label for="mapBoundaryNo">No</label>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Buffer Radius(m) :</label
-                >
-                <div class="col-sm-6">
-                    <input
-                        id="buffer_radius"
-                        v-model="occurrence_report_obj.location.buffer_radius"
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                    />
-                </div>
-            </div>
+            
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Datum:</label>
                 <div class="col-sm-9">
@@ -394,7 +339,40 @@
                     </select>
                 </div>
             </div>
-            <div class="row mb-3">
+
+            <div v-if="canAssess" class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Boundary(m) :</label
+                >
+                <div class="col-sm-6">
+                    <input
+                        id="boundary"
+                        v-model="occurrence_report_obj.location.boundary"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control ocr_number"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+            </div>
+            <div v-if="canAssess" class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Buffer Radius(m) :</label
+                >
+                <div class="col-sm-6">
+                    <input
+                        id="buffer_radius"
+                        v-model="occurrence_report_obj.location.buffer_radius"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control ocr_number"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+            </div>
+            <div v-if="canAssess" class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Location Accuracy/Certainty:</label
                 >
@@ -441,7 +419,7 @@
 import { v4 as uuid } from 'uuid';
 // import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import ObserverDatatable from './observer_datatable.vue';
+//import ObserverDatatable from './observer_datatable.vue';
 import MapComponent from '../component_map.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 // require("select2/dist/css/select2.min.css");
@@ -452,7 +430,7 @@ export default {
     name: 'OCRLocation',
     components: {
         FormSection,
-        ObserverDatatable,
+        //ObserverDatatable,
         MapComponent,
         VueSelect,
     },
@@ -544,6 +522,9 @@ export default {
         },
         assessorCommentVisibility: function () {
             return this.occurrence_report_obj.assessor_mode.assessor_box_view;
+        },
+        canAssess: function () {
+            return this.occurrence_report_obj.assessor_mode.assessor_can_assess;
         },
         has_comment_value: function () {
             let has_value = false;

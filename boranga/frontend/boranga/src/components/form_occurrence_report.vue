@@ -3,7 +3,8 @@
         <div class="" :id="occurrenceReportBody">
             <OCRProfile
                 ref="ocr_profile" 
-                id="ocrProfile"                 
+                id="ocrProfile"
+                :is_external="is_external"                 
                 :occurrence_report_obj="occurrence_report_obj">
             </OCRProfile>
         </div>

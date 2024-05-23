@@ -538,7 +538,7 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
 
 
 class LocationSerializer(serializers.ModelSerializer):
-    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    #observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     # geojson_point = serializers.SerializerMethodField()
     # geojson_polygon = serializers.SerializerMethodField()
 
@@ -547,7 +547,7 @@ class LocationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            "observation_date",
+            #"observation_date",
             "location_description",
             "boundary_description",
             "new_occurrence",
@@ -558,6 +558,9 @@ class LocationSerializer(serializers.ModelSerializer):
             "epsg_code",
             "coordination_source_id",
             "location_accuracy_id",
+            "region",
+            "district",
+            "locality",
             # 'geojson_point',
             # 'geojson_polygon',
         )
@@ -839,6 +842,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     lodgement_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
+    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = OccurrenceReport
@@ -882,6 +886,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "label",
             "model_name",
             "occurrence",
+            "observation_date",
+            "site",
         )
 
     def get_readonly(self, obj):
@@ -1132,6 +1138,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "referrals",
             "finalised",
             "is_new_contributor",
+            "observation_date",
+            "site",
         )
 
     def get_readonly(self, obj):
@@ -1528,6 +1536,8 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             "reference",
             "deficiency_data",
             "assessor_data",
+            "site",
+            "observation_date",
         )
         read_only_fields = ("id",)
 

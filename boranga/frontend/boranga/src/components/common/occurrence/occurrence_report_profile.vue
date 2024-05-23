@@ -69,6 +69,49 @@
                 </div>
             </div>
 
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Site:</label
+                >
+                <div class="col-sm-9">
+                    <textarea
+                        id="site"
+                        v-model="
+                            occurrence_report_obj.site
+                        "
+                        :disabled="isReadOnly"
+                        class="form-control"
+                        rows="1"
+                        placeholder=""
+                    />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Observation Date:</label
+                >
+                <div class="col-sm-9">
+                    <input
+                        v-model="
+                            occurrence_report_obj.observation_date
+                        "
+                        :disabled="isReadOnly"
+                        type="datetime-local"
+                        class="form-control"
+                        name="start_date"
+                    />
+                </div>
+            </div>
+            <!-- ------------Observer Detail section -->
+
+            <ObserverDatatable
+                ref="observer_datatable"
+                :occurrence_report_obj="occurrence_report_obj"
+                :is_external="is_external"
+                :is-read-only="isReadOnly"
+            ></ObserverDatatable>
+
         </FormSection>
     </div>
 </template>
@@ -77,6 +120,7 @@
 import { v4 as uuid } from 'uuid';
 import Vue, { isReadonly } from 'vue' ;
 import FormSection from '@/components/forms/section_toggle.vue';
+import ObserverDatatable from './observer_datatable.vue';
 import {
   api_endpoints,
   helpers
@@ -91,6 +135,10 @@ export default {
             occurrence_report_obj:{
                 type: Object,
                 required:true
+            },
+            is_external: {
+                type: Boolean,
+                default: false,
             },
         },
         data:function () {
@@ -117,6 +165,7 @@ export default {
         },
         components: {
             FormSection,
+            ObserverDatatable,
         },
         watch:{
         },
