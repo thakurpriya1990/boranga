@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import timedelta
 
 import reversion
 from django.conf import settings
@@ -274,6 +275,10 @@ class ConservationChangeCode(models.Model):
 
     def __str__(self):
         return str(self.code)
+
+    @classmethod
+    def get_delisted_change_code(cls):
+        return cls.objects.get(code=settings.CONSERVATION_CHANGE_CODE_DELIST)
 
 
 class IUCNVersion(models.Model):
@@ -559,8 +564,6 @@ class ConservationStatus(RevisionedMixin):
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
     assigned_approver = models.IntegerField(null=True)  # EmailUserRO
     approved_by = models.IntegerField(null=True)  # EmailUserRO
-    # internal user who edits the approved conservation status(only specific fields)
-    # modified_by = models.IntegerField(null=True) #EmailUserRO
     processing_status = models.CharField(
         "Processing Status",
         max_length=30,
@@ -577,15 +580,11 @@ class ConservationStatus(RevisionedMixin):
     proposed_decline_status = models.BooleanField(default=False)
     deficiency_data = models.TextField(null=True, blank=True)  # deficiency comment
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
-    # to store the proposed start and end date of proposal
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
+
+    # Date first listed
     listing_date = models.DateField(null=True, blank=True)
-    delisting_date = models.DateField(null=True, blank=True)
-    cs_start_date = models.DateField(
-        null=True, blank=True
-    )  # TODO is effective_start_date different from this date
-    cs_end_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -1313,12 +1312,29 @@ class ConservationStatus(RevisionedMixin):
             ).first()
 
         if previous_approved_version:
+            # Check if the previous conservation status has a priority list
+            if previous_approved_version.wa_priority_list:
+                self.wa_priority_list = previous_approved_version.wa_priority_list
+
+                # Check if the previous conservation status has a priority category
+                if previous_approved_version.wa_priority_category:
+                    self.wa_priority_category = (
+                        previous_approved_version.wa_priority_category
+                    )
+
             previous_approved_version.customer_status = (
                 ConservationStatus.PROCESSING_STATUS_CLOSED
             )
             previous_approved_version.processing_status = (
                 ConservationStatus.PROCESSING_STATUS_CLOSED
             )
+            previous_approved_version.change_code = (
+                ConservationChangeCode.get_delisted_change_code()
+            )
+            if self.effective_from:
+                previous_approved_version.effective_to = (
+                    self.effective_from.date() - timedelta(days=1)
+                )
             previous_approved_version.save()
 
             # Create a log entry for the conservation status
