@@ -569,7 +569,11 @@ export default {
             return this.occurrence_report_obj.assessor_mode.assessor_box_view;
         },
         canAssess: function () {
-            return this.occurrence_report_obj.assessor_mode.assessor_can_assess;
+            if (!this.is_external) {
+                return this.occurrence_report_obj.assessor_mode.assessor_can_assess;
+            } else {
+                return false;
+            }
         },
         has_comment_value: function () {
             let has_value = false;

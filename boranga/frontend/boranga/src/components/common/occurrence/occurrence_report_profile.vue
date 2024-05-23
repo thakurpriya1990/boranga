@@ -100,6 +100,7 @@
                         type="datetime-local"
                         class="form-control"
                         name="start_date"
+                        @change="formatObservationDate()"
                     />
                 </div>
             </div>
@@ -312,6 +313,11 @@ export default {
             eventListeners: function () {
                 let vm = this;
             },
+            formatObservationDate: function () {
+            if (this.occurrence_report_obj.observation_date === "") {
+                this.occurrence_report_obj.observation_date = null;
+            }
+        }
         },
         created: async function() {
             let vm = this;

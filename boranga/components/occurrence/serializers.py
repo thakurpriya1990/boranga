@@ -1458,16 +1458,16 @@ class SaveLocationSerializer(serializers.ModelSerializer):
     datum_id = serializers.IntegerField(required=False, allow_null=True)
     coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
     location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
-    observation_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
-    )
+    #observation_date = serializers.DateTimeField(
+    #    format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    #)
 
     class Meta:
         model = Location
         fields = (
             "id",
             "occurrence_report_id",
-            "observation_date",
+            #"observation_date",
             "location_description",
             "boundary_description",
             "new_occurrence",
@@ -1527,6 +1527,7 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         required=False, allow_null=True, write_only=True
     )
     # conservation_criteria = ConservationCriteriaSerializer(read_only = True)
+    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True)
 
     class Meta:
         model = OccurrenceReport
