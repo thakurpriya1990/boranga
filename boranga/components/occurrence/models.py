@@ -1850,6 +1850,35 @@ class OCRHabitatCondition(models.Model):
         return str(self.occurrence_report)
 
 
+class OCRVegetationStructure(models.Model):
+    """
+    Vegetation Structure data for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+
+    occurrence_report = models.OneToOneField(
+        OccurrenceReport,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="vegetation_structure",
+    )
+    
+    free_text_field_one = models.TextField(null=True, blank=True)
+    free_text_field_two = models.TextField(null=True, blank=True)
+    free_text_field_three = models.TextField(null=True, blank=True)
+    free_text_field_four = models.TextField(null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence_report)
+
+
 class Intensity(models.Model):
     """
     # Admin List
@@ -3280,6 +3309,35 @@ class OCCHabitatCondition(models.Model):
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCVegetationStructure(models.Model):
+    """
+    Vegetation Structure data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="vegetation_structure",
+    )
+    
+    free_text_field_one = models.TextField(null=True, blank=True)
+    free_text_field_two = models.TextField(null=True, blank=True)
+    free_text_field_three = models.TextField(null=True, blank=True)
+    free_text_field_four = models.TextField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
