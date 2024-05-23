@@ -144,6 +144,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     region = serializers.SerializerMethodField()
     district = serializers.SerializerMethodField()
     assessor_process = serializers.SerializerMethodField(read_only=True)
+    approver_process = serializers.SerializerMethodField(read_only=True)
     assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
     effective_from_date = serializers.SerializerMethodField()
@@ -175,6 +176,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "can_user_edit",
             "can_user_view",
             "assessor_process",
+            "approver_process",
             "assessor_edit",
             "internal_application",
             "internal_user_edit",
@@ -205,6 +207,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "can_user_edit",
             "can_user_view",
             "assessor_process",
+            "approver_process",
             "assessor_edit",
             "internal_application",
             "internal_user_edit",
@@ -300,6 +303,14 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             obj.can_officer_process
             and request.user.id
             in obj.get_assessor_group().get_system_group_member_ids()
+        )
+
+    def get_approver_process(self, obj):
+        request = self.context["request"]
+        return (
+            obj.can_approver_process
+            and request.user.id
+            in obj.get_approver_group().get_system_group_member_ids()
         )
 
     def get_assessor_edit(self, obj):
@@ -676,6 +687,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     is_new_contributor = serializers.SerializerMethodField(read_only=True)
     internal_application = serializers.BooleanField(read_only=True)
     current_conservation_status = CurrentConservationStatusSerializer(read_only=True)
+    approver_process = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -704,6 +716,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "applicant_type",
             "assigned_officer",
             "assigned_approver",
+            "approver_process",
             "can_user_edit",
             "can_user_view",
             "current_assessor",
@@ -804,6 +817,14 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
+
+    def get_approver_process(self, obj):
+        request = self.context["request"]
+        return (
+            obj.can_approver_process
+            and request.user.id
+            in obj.get_approver_group().get_system_group_member_ids()
+        )
 
 
 class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
