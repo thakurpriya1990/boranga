@@ -100,7 +100,7 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSFloraApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}</option>
                         </select>
                     </div>
                 </div>
@@ -460,15 +460,14 @@ export default {
                 { value: 'draft', name: 'Draft' },
                 { value: 'with_assessor', name: 'With Assessor' },
                 { value: 'ready_for_agenda', name: 'Ready For Agenda' },
-                // {value: 'with_approver', name: 'With Approver'},
+                { value: 'closed', name: 'DeListed'},
                 { value: 'with_referral', name: 'With Referral' },
                 { value: 'approved', name: 'Approved' },
                 { value: 'declined', name: 'Declined' },
                 { value: 'discarded', name: 'Discarded' },
-                { value: 'closed', name: 'Closed' },
             ],
 
-            proposal_status: [],
+            processing_statuses: [],
         }
     },
     components: {
@@ -1365,11 +1364,9 @@ export default {
                 vm.wa_priority_lists = vm.filterListsSpecies.wa_priority_lists;
                 vm.wa_priority_categories = vm.filterListsSpecies.wa_priority_categories;
                 vm.filterDistrict();
-                vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
+                vm.processing_statuses = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
-                //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             }, (error) => {
                 console.log(error);
             })
