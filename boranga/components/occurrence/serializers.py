@@ -1295,6 +1295,20 @@ class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
             "completely_degraded",
         )
 
+class SaveOCRVegetationStructureSerializer(serializers.ModelSerializer):
+    # write_only removed from below as the serializer will not return that field in serializer.data
+    occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCRVegetationStructure
+        fields = (
+            "id",
+            "occurrence_report_id",
+            "free_text_field_one",
+            "free_text_field_two",
+            "free_text_field_three",
+            "free_text_field_four",
+        )
 
 class SaveOCRFireHistorySerializer(serializers.ModelSerializer):
     # occurrence_report_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
@@ -2034,6 +2048,21 @@ class OCCHabitatConditionSerializer(serializers.ModelSerializer):
         )
 
 class OCCVegetationStructureSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCVegetationStructure
+        fields = (
+            "id",
+            "occurrence_id",
+            "free_text_field_one",
+            "free_text_field_two",
+            "free_text_field_three",
+            "free_text_field_four",
+        )
+
+class SaveOCCVegetationStructureSerializer(serializers.ModelSerializer):
+    # write_only removed from below as the serializer will not return that field in serializer.data
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = OCCVegetationStructure

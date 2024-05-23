@@ -194,6 +194,12 @@
                     <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_4" placeholder="" v-model="occurrence_obj.vegetation_structure.free_text_field_four"/>
                 </div>
             </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <button v-if="!updatingVegetationStructure" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateVegetationStructure()">Update</button>
+                    <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                </div>
+            </div>
             <RelatedReports 
                 :isReadOnly="isReadOnly"
                 :occurrence_obj=occurrence_obj
@@ -261,7 +267,7 @@
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
-                    <button v-if="!updatingFireHistoryDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateAssociatedSpeciesDetails()">Update</button>
+                    <button v-if="!updatingAssociatedSpeciesDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateAssociatedSpeciesDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
@@ -326,6 +332,7 @@ export default {
                 habitat_cond_sum: 0,
                 updatingHabitatCompositionDetails: false,
                 updatingHabitatConditionDetails: false,
+                updatingVegetationStructure: false,
                 updatingFireHistoryDetails: false,
                 updatingAssociatedSpeciesDetails: false,
             }
@@ -462,6 +469,36 @@ export default {
                         vm.updatingHabitatConditionDetails = false;
                     });
                 }
+            },
+            updateVegetationStructure: function() {
+                let vm = this;
+                vm.updatingVegetationStructure = true;
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence,(vm.occurrence_obj.id+'/update_vegetation_structure')),JSON.stringify(vm.occurrence_obj.vegetation_structure),{
+                    emulateJSON:true
+                }).then((response) => {
+                    vm.updatingVegetationStructure = false;
+                    vm.occurrence_obj.vegetation_structure = response.body;
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Vegetation Structure details have been saved',
+                        icon: 'success',
+                        confirmButtonColor:'#226fbb',
+
+                    }).then((result) => {
+                        if (vm.occurrence_obj.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
+                    });
+                }, (error) => {
+                    var text= helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text: 'Vegetation Structure details cannot be saved because of the following error: '+text,
+                        icon: 'error',
+                        confirmButtonColor:'#226fbb',
+                    });
+                    vm.updatingVegetationStructure = false;
+                });
             },
             updateFireHistoryDetails: function() {
                 let vm = this;
