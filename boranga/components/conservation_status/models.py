@@ -591,7 +591,7 @@ class ConservationStatus(RevisionedMixin):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.conservation_status_number)  # TODO: is the most appropriate?
+        return str(self.conservation_status_number)
 
     def save(self, *args, **kwargs):
         if self.conservation_status_number == "":
@@ -605,9 +605,7 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def reference(self):
-        return f"{self.conservation_status_number}-{self.conservation_status_number}"
-
-    # TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
+        return f"{self.conservation_status_number}"
 
     @property
     def group_type(self):
@@ -656,12 +654,6 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def applicant_field(self):
-        # if self.org_applicant:
-        #     return 'org_applicant'
-        # elif self.proxy_applicant:
-        #     return 'proxy_applicant'
-        # else:
-        #     return 'submitter'
         return "submitter"
 
     def log_user_action(self, action, request):
@@ -673,21 +665,15 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def can_officer_process(self):
-        """
-        :return: True if the application is in one of the processable status for Assessor role.
-        """
         officer_view_state = [
-            "draft",
-            "approved",
-            "declined",
-            "temp",
-            "discarded",
-            "closed",
+            ConservationStatus.PROCESSING_STATUS_DRAFT,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_TEMP,
+            ConservationStatus.PROCESSING_STATUS_DISCARDED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
         ]
-        if self.processing_status in officer_view_state:
-            return False
-        else:
-            return True
+        return self.processing_status in officer_view_state
 
     @property
     def can_approver_process(self):
@@ -699,49 +685,27 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def can_officer_edit(self):
-        """
-        :return: True if the application is in one of the internal editable status for internal edit(few fields).
-        """
-        # officer_view_state = ['draft','approved','declined','temp','discarded', 'closed']
-        officer_edit_state = ["approved"]
-        if self.processing_status in officer_edit_state:
-            return True
-        else:
-            return False
+        officer_edit_state = [ConservationStatus.PROCESSING_STATUS_APPROVED]
+        return self.processing_status in officer_edit_state
 
     @property
     def can_user_edit(self):
-        """
-        :return: True if the application is in one of the editable status.
-        """
         return self.customer_status in self.CUSTOMER_EDITABLE_STATE
 
     @property
     def can_user_view(self):
-        """
-        :return: True if the application is in one of the approved status.
-        """
         return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
 
     @property
     def is_discardable(self):
-        """
-        An application can be discarded by a customer if:
-        1 - It is a draft
-        2- or if the application has been pushed back to the user
-        """
-        return (
-            self.customer_status == "draft"
-            or self.processing_status == "awaiting_applicant_response"
-        )
+        return self.customer_status == ConservationStatus.CUSTOMER_STATUS_DRAFT
 
     @property
     def is_deletable(self):
-        """
-        An application can be deleted only if it is a draft and it hasn't been lodged yet
-        :return:
-        """
-        return self.customer_status == "draft" and not self.conservation_status_number
+        return (
+            self.customer_status == ConservationStatus.CUSTOMER_STATUS_DRAFT
+            and not self.conservation_status_number
+        )
 
     @property
     def latest_referrals(self):
@@ -749,21 +713,15 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def is_flora_application(self):
-        if self.application_type.name == GroupType.GROUP_TYPE_FLORA:
-            return True
-        return False
+        return self.application_type.name == GroupType.GROUP_TYPE_FLORA
 
     @property
     def is_fauna_application(self):
-        if self.application_type.name == GroupType.GROUP_TYPE_FAUNA:
-            return True
-        return False
+        return self.application_type.name == GroupType.GROUP_TYPE_FAUNA
 
     @property
     def is_community_application(self):
-        if self.application_type.name == GroupType.GROUP_TYPE_COMMUNITY:
-            return True
-        return False
+        return self.application_type.name == GroupType.GROUP_TYPE_COMMUNITY
 
     @property
     def allowed_assessors(self):
@@ -930,10 +888,12 @@ class ConservationStatus(RevisionedMixin):
         # TODO: If we stick with the decision to never show the recommended fields
         # then remove the from the cosebase entirely.
         return False
-        return self.processing_status in ["ready_for_agenda", "approved", "closed"]
+        # return self.processing_status in ["ready_for_agenda", "approved", "closed"]
 
     def can_edit_recommended(self, user):
-        recommended_edit_status = ["ready_for_agenda"]
+        recommended_edit_status = [
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
+        ]
         if self.processing_status in recommended_edit_status:
             if self.assigned_officer:
                 if self.assigned_officer == user.id:
@@ -1039,73 +999,58 @@ class ConservationStatus(RevisionedMixin):
 
                 # TODO: Create a log entry for the user
 
+    @transaction.atomic
     def send_referral(self, request, referral_email, referral_text):
-        with transaction.atomic():
-            referral_email = referral_email.lower()
-            if (
-                self.processing_status
-                == ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
-                or self.processing_status
-                == ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
-            ):
-                self.processing_status = (
-                    ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
-                )
-                self.save()
-                referral = None
-                # Check if the user is in ledger
-                try:
-                    user = EmailUser.objects.get(email__icontains=referral_email)
-                except EmailUser.DoesNotExist:
-                    # Validate if it is a deparment user
-                    department_user = get_department_user(referral_email)
-                    if not department_user:
-                        raise ValidationError(
-                            "The user you want to send the referral to is not a member of the department"
-                        )
-                    # Check if the user is in ledger or create
+        referral_email = referral_email.lower()
+        if self.processing_status not in [
+            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+        ]:
+            raise exceptions.ConservationStatusReferralCannotBeSent()
 
-                    user, created = EmailUser.objects.get_or_create(
-                        email=department_user["email"].lower()
-                    )
-                    if created:
-                        user.first_name = department_user["given_name"]
-                        user.last_name = department_user["surname"]
-                        user.save()
-                try:
-                    ConservationStatusReferral.objects.get(
-                        referral=user.id, conservation_status=self
-                    )
-                    raise ValidationError(
-                        "A referral has already been sent to this user"
-                    )
-                except ConservationStatusReferral.DoesNotExist:
-                    # Create Referral
-                    referral = ConservationStatusReferral.objects.create(
-                        conservation_status=self,
-                        referral=user.id,
-                        sent_by=request.user.id,
-                        text=referral_text,
-                        assigned_officer=request.user.id,  # TODO should'nt use assigned officer as per das
-                    )
-                # Create a log entry for the proposal
-                self.log_user_action(
-                    ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
-                        referral.id,
-                        self.conservation_status_number,
-                        f"{user.get_full_name()}({user.email})",
-                    ),
-                    request,
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+        self.save()
+        referral = None
+        # Check if the user is in ledger
+        try:
+            user = EmailUser.objects.get(email__icontains=referral_email)
+        except EmailUser.DoesNotExist:
+            # Validate if it is a deparment user
+            department_user = get_department_user(referral_email)
+            if not department_user:
+                raise ValidationError(
+                    "The user you want to send the referral to is not a member of the department"
                 )
-                # Create a log entry for the user
-                if self.applicant:
-                    pass
-                    # self.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(
-                    # referral.id, self.lodgement_number, '{}({})'.format(user.get_full_name(), user.email)), request)
-                # send email
-                send_conservation_status_referral_email_notification(referral, request)
-            else:
-                raise exceptions.ConservationStatusReferralCannotBeSent()
+            # TODO Check if the user is in ledger or create (must be done via api in segregated system)
+
+        try:
+            ConservationStatusReferral.objects.get(
+                referral=user.id, conservation_status=self
+            )
+            raise ValidationError("A referral has already been sent to this user")
+        except ConservationStatusReferral.DoesNotExist:
+            referral = ConservationStatusReferral.objects.create(
+                conservation_status=self,
+                referral=user.id,
+                sent_by=request.user.id,
+                text=referral_text,
+                assigned_officer=request.user.id,  # TODO should'nt use assigned officer as per das
+            )
+
+        # Create a log entry for the proposal
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
+                referral.id,
+                self.conservation_status_number,
+                f"{user.get_full_name()}({user.email})",
+            ),
+            request,
+        )
+
+        # TODO Create a log entry for the user
+
+        # send email
+        send_conservation_status_referral_email_notification(referral, request)
 
     @property
     def amendment_requests(self):
@@ -1122,7 +1067,10 @@ class ConservationStatus(RevisionedMixin):
         ]:
             raise ValidationError("The provided status cannot be found.")
 
-        if self.processing_status == "with_referral" or self.can_user_edit:
+        if (
+            self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+            or self.can_user_edit
+        ):
             raise ValidationError("You cannot change the current status at this time")
 
         if self.processing_status == status:
@@ -1152,7 +1100,10 @@ class ConservationStatus(RevisionedMixin):
         with transaction.atomic():
             if not self.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
-            if self.processing_status != "with_assessor":
+            if (
+                self.processing_status
+                != ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
+            ):
                 raise ValidationError(
                     "You cannot propose to decline if it is not with assessor"
                 )
@@ -1187,294 +1138,230 @@ class ConservationStatus(RevisionedMixin):
 
             send_approver_decline_email_notification(reason, request, self)
 
+    @transaction.atomic
     def final_decline(self, request, details):
-        with transaction.atomic():
-            if not self.can_assess(request.user):
-                raise exceptions.ProposalNotAuthorized()
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
 
-            if self.processing_status not in ("with_assessor", "ready_for_agenda"):
-                raise ValidationError(
-                    "You cannot decline the proposal if it is not with an assessor"
-                )
-
-            conservation_status_decline, success = (
-                ConservationStatusDeclinedDetails.objects.update_or_create(
-                    conservation_status=self,
-                    defaults={
-                        "officer": request.user.id,
-                        "reason": details.get("reason"),
-                        "cc_email": details.get("cc_email", None),
-                    },
-                )
-            )
-            self.proposed_decline_status = True
-            self.processing_status = "declined"
-            self.customer_status = "declined"
-            self.save()
-
-            # Log proposal action
-            self.log_user_action(
-                ConservationStatusUserAction.ACTION_DECLINE.format(
-                    self.conservation_status_number
-                ),
-                request,
+        if self.processing_status not in ("with_assessor", "ready_for_agenda"):
+            raise ValidationError(
+                "You cannot decline the proposal if it is not with an assessor"
             )
 
-            # TODO create a log entry for the user
-
-            send_conservation_status_decline_email_notification(
-                self, request, conservation_status_decline
+        conservation_status_decline, created = (
+            ConservationStatusDeclinedDetails.objects.update_or_create(
+                conservation_status=self,
+                defaults={
+                    "officer": request.user.id,
+                    "reason": details.get("reason"),
+                    "cc_email": details.get("cc_email", None),
+                },
             )
+        )
+        self.proposed_decline_status = True
 
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_DECLINED
+        self.customer_status = ConservationStatus.CUSTOMER_STATUS_DECLINED
+
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_DECLINE.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+        send_conservation_status_decline_email_notification(
+            self, request, conservation_status_decline
+        )
+
+    @transaction.atomic
     def proposed_approval(self, request, details):
-        with transaction.atomic():
-            if not self.can_assess(request.user):
-                raise exceptions.ProposalNotAuthorized()
-            if self.processing_status != "with_assessor":
-                raise ValidationError(
-                    "You cannot propose for approval if it is not with assessor"
-                )
-            # self.proposed_issuance_approval = {
-            #     'effective_from_date' : details.get('effective_from_date').strftime('%d/%m/%Y'),
-            #     'effective_to_date' : details.get('effective_to_date').strftime('%d/%m/%Y'),
-            #     'details': details.get('details'),
-            #     'cc_email':details.get('cc_email')
-            # }
-            ConservationStatusIssuanceApprovalDetails.objects.update_or_create(
-                conservation_status=self,
-                defaults={
-                    "officer": request.user.id,
-                    "effective_from_date": details.get("effective_from_date"),
-                    "effective_to_date": details.get("effective_to_date"),
-                    "details": details.get("details"),
-                    "cc_email": details.get("cc_email", None),
-                },
-            )
-            self.proposed_decline_status = False
-            approver_comment = ""
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
 
-            self.move_to_status(
-                request,
-                ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-                approver_comment,
-            )
-            self.assigned_officer = None
-            self.save()
-
-            # Log proposal action
-            self.log_user_action(
-                ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(
-                    self.conservation_status_number
-                ),
-                request,
+        if self.processing_status != ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR:
+            raise ValidationError(
+                "You cannot propose for approval if it is not with assessor"
             )
 
-            # TODO create a log entry for the user
+        ConservationStatusIssuanceApprovalDetails.objects.update_or_create(
+            conservation_status=self,
+            defaults={
+                "officer": request.user.id,
+                "effective_from_date": details.get("effective_from_date"),
+                "effective_to_date": details.get("effective_to_date"),
+                "details": details.get("details"),
+                "cc_email": details.get("cc_email", None),
+            },
+        )
+        self.proposed_decline_status = False
+        approver_comment = ""
 
-            send_approver_approve_email_notification(request, self)
+        self.move_to_status(
+            request,
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            approver_comment,
+        )
+        self.assigned_officer = None
+        self.save()
 
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+        send_approver_approve_email_notification(request, self)
+
+    @transaction.atomic
     def final_approval(self, request, details):
-        from boranga.helpers import is_departmentUser
+        self.proposed_decline_status = False
 
-        with transaction.atomic():
-            self.proposed_decline_status = False
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
 
-            if not self.can_assess(request.user):
-                raise exceptions.ProposalNotAuthorized()
+        if self.processing_status not in [
+            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+        ]:
+            raise ValidationError(
+                "This conservation status can not be approved if it is not with an assessor or ready for agenda"
+            )
 
-            if self.processing_status not in ("with_assessor", "ready_for_agenda"):
+        # For conservation statuses that require ministerial approval
+        # check if the meeting is scheduled or completed
+        if self.approval_level == ConservationStatus.APPROVAL_LEVEL_MINISTER:
+            from boranga.components.meetings.models import Meeting
+
+            added_to_meeting_status = [
+                Meeting.PROCESSING_STATUS_SCHEDULED,
+                Meeting.PROCESSING_STATUS_COMPLETED,
+            ]
+            if not self.agendaitem_set.filter(
+                meeting__processing_status__in=added_to_meeting_status
+            ).exists():
                 raise ValidationError(
-                    "You cannot issue the approval if it is not with an assessor"
+                    "This conservation status can not be approved as there are no meetings "
+                    "for the minister approval that are scheduled or completed"
                 )
 
-            # not approve if the cs not set ina ny meeting for list with minister
-            if self.conservation_list.approval_level == "minister":
-                # TODO may I need to check the the meeting status as schedules/completed before approval
-                added_to_meeting_status = ["scheduled", "completed"]
-                cs_meeting_count = self.agendaitem_set.filter(
-                    meeting__processing_status__in=added_to_meeting_status
-                ).count()
-                if cs_meeting_count == 0:
-                    raise ValidationError(
-                        "You cannot issue the approval as meeting not scheduled for the minister approval"
-                    )
+        # Add the approval document first to to get the reference id in below model
+        proposal_approval_document = request.data["proposal_approval_document"]
+        d = None
+        if proposal_approval_document != "null":
+            try:
+                document = self.documents.get(name=str(proposal_approval_document))
+            except ConservationStatusDocument.DoesNotExist:
+                document = self.documents.get_or_create(
+                    input_name="conservation_status_approval_doc",
+                    name=str(proposal_approval_document),
+                )[0]
 
-            # Add the approval document first to to get the reference id in below model
-            proposal_approval_document = request.data["proposal_approval_document"]
-            if proposal_approval_document != "null":
-                try:
-                    # document = self.documents.get(input_name=str(proposal_approval_document))
-                    document = self.documents.get(
-                        name=str(proposal_approval_document)
-                    )  # Priya, commented above as input_name=approval shouldn't be shown in documents tab
-                except ConservationStatusDocument.DoesNotExist:
-                    # can also use name = proposal_approval_document.name rather than str(proposal_approval_document)
-                    document = self.documents.get_or_create(
-                        input_name="conservation_status_approval_doc",
-                        name=str(proposal_approval_document),
-                    )[
-                        0
-                    ]  # Priya, commented above as input_name=approval shouldn't be shown in documents tab
+            document.name = str(proposal_approval_document)
+            document._file = proposal_approval_document
+            document.save()
 
-                document.name = str(proposal_approval_document)
-                document._file = proposal_approval_document
+            d = ConservationStatusDocument.objects.get(id=document.id)
 
-                document.save()
-                d = ConservationStatusDocument.objects.get(id=document.id)
-            else:
-                d = None
-            # assign document id to the IssuanceApprovalDetails
-            ConservationStatusIssuanceApprovalDetails.objects.update_or_create(
-                conservation_status=self,
-                defaults={
-                    "officer": request.user.id,
-                    "effective_from_date": details.get("effective_from_date"),
-                    "effective_to_date": details.get("effective_to_date"),
-                    "details": details.get("details"),
-                    "cc_email": details.get("cc_email", None),
-                    "conservation_status_approval_document": d,
-                },
+        # assign document id to the IssuanceApprovalDetails
+        ConservationStatusIssuanceApprovalDetails.objects.update_or_create(
+            conservation_status=self,
+            defaults={
+                "officer": request.user.id,
+                "effective_from_date": details.get("effective_from_date"),
+                "effective_to_date": details.get("effective_to_date"),
+                "details": details.get("details"),
+                "cc_email": details.get("cc_email", None),
+                "conservation_status_approval_document": d,
+            },
+        )
+
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_APPROVED
+        self.customer_status = ConservationStatus.CUSTOMER_STATUS_APPROVED
+
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_APPROVE_PROPOSAL_.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+        # Delist / Close the previous approved version
+        previous_approved_version = ConservationStatus.objects.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
+        )
+
+        if self.species:
+            previous_approved_version = previous_approved_version.filter(
+                species=self.species
+            ).first()
+        elif self.community:
+            previous_approved_version = previous_approved_version.filter(
+                community=self.community
+            ).first()
+
+        if previous_approved_version:
+            previous_approved_version.customer_status = (
+                ConservationStatus.PROCESSING_STATUS_CLOSED
             )
-            if is_departmentUser(request):
-                # needed because external users come through this workflow following 'awaiting_payment; status
-                self.approved_by = request.user.id
+            previous_approved_version.processing_status = (
+                ConservationStatus.PROCESSING_STATUS_CLOSED
+            )
+            previous_approved_version.save()
 
-            self.processing_status = "approved"
-            self.customer_status = "approved"
-            # Log proposal action
+            # Create a log entry for the conservation status
             self.log_user_action(
-                ConservationStatusUserAction.ACTION_APPROVE_PROPOSAL_.format(
-                    self.conservation_status_number
+                ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
+                    previous_approved_version.conservation_status_number
                 ),
                 request,
             )
 
-            # TODO create a log entry for the user
+        # send Proposal approval email with attachment
+        send_conservation_status_approval_email_notification(self, request)
 
-            if self.processing_status == self.PROCESSING_STATUS_APPROVED:
-                # TODO if it is an ammendment proposal then check appropriately
-                if self.proposal_type == "renewal":
-                    pass
+        self.save()
+        self.documents.all().update(can_delete=False)
 
-                elif self.proposal_type == "amendment":
-                    pass
-                    # if self.previous_application:
-                    #     previous_approval = self.previous_application.approval
-                    #     approval,created = Approval.objects.update_or_create(
-                    #         current_proposal = checking_proposal,
-                    #         defaults = {
-                    #             'issue_date' : timezone.now(),
-                    #             'expiry_date' : datetime.datetime.strptime(
-                    # self.proposed_issuance_approval.get('expiry_date'), '%d/%m/%Y').date(),
-                    #             'start_date' : datetime.datetime.strptime(
-                    # self.proposed_issuance_approval.get('start_date'), '%d/%m/%Y').date(),
-                    #             'submitter': self.submitter,
-                    #             #'org_applicant' : self.applicant if isinstance(
-                    # self.applicant, Organisation) else None,
-                    #             #'proxy_applicant' : self.applicant if isinstance(
-                    # self.applicant, EmailUser) else None,
-                    #             'org_applicant' : self.org_applicant,
-                    #             'proxy_applicant' : self.proxy_applicant,
-                    #             'lodgement_number': previous_approval.lodgement_number
-                    #         }
-                    #     )
-                    #     if created:
-                    #         previous_approval.replaced_by = approval
-                    #         previous_approval.save()
-                else:
-                    # approval,created = Approval.objects.update_or_create(
-                    #     current_proposal = checking_proposal,
-                    #     defaults = {
-                    #         'issue_date' : timezone.now(),
-                    #         'expiry_date' : datetime.datetime.strptime(
-                    # self.proposed_issuance_approval.get('expiry_date'), '%d/%m/%Y').date(),
-                    #         'start_date' : datetime.datetime.strptime(
-                    # self.proposed_issuance_approval.get('start_date'), '%d/%m/%Y').date(),
-                    #         'submitter': self.submitter,
-                    #         #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
-                    #         #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
-                    #         'org_applicant' : self.org_applicant,
-                    #         'proxy_applicant' : self.proxy_applicant,
-                    #         #'extracted_fields' = JSONField(blank=True, null=True)
-                    #     }
-                    # )
-
-                    # Delist/Close the previous approved version for that species/community
-                    try:
-                        if self.species:
-                            previous_approved_wa_version = (
-                                ConservationStatus.objects.get(
-                                    species=self.species,
-                                    processing_status="approved",
-                                )
-                            )
-                            if previous_approved_wa_version:
-                                previous_approved_wa_version.customer_status = "closed"
-                                previous_approved_wa_version.processing_status = (
-                                    "closed"
-                                )
-                                previous_approved_wa_version.save()
-                                # add the log_user_action
-                                self.log_user_action(
-                                    ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
-                                        previous_approved_wa_version.conservation_status_number
-                                    ),
-                                    request,
-                                )
-                        elif self.community:
-                            previous_approved_wa_version = (
-                                ConservationStatus.objects.get(
-                                    community=self.community,
-                                    processing_status="approved",
-                                )
-                            )
-                            if previous_approved_wa_version:
-                                previous_approved_wa_version.customer_status = "closed"
-                                previous_approved_wa_version.processing_status = (
-                                    "closed"
-                                )
-                                previous_approved_wa_version.save()
-                                # add the log_user_action
-                                self.log_user_action(
-                                    ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
-                                        previous_approved_wa_version.conservation_status_number
-                                    ),
-                                    request,
-                                )
-
-                    except ConservationStatus.DoesNotExist:
-                        pass
-
-                # send Proposal approval email with attachment
-                send_conservation_status_approval_email_notification(self, request)
-                # self.save(version_comment='Final Approval: {}'.format(self.approval.lodgement_number))
-                self.save()
-                self.documents.all().update(can_delete=False)
-
+    @transaction.atomic
     def proposed_ready_for_agenda(self, request):
-        with transaction.atomic():
-            if not self.can_assess(request.user):
-                raise exceptions.ProposalNotAuthorized()
-            if self.processing_status != "with_assessor":
-                raise ValidationError(
-                    "You cannot propose for ready for agenda if it is not with assessor"
-                )
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
 
-            self.processing_status = "ready_for_agenda"
-            self.customer_status = "ready_for_agenda"
-            self.save()
-
-            # Log proposal action
-            self.log_user_action(
-                ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(
-                    self.conservation_status_number
-                ),
-                request,
+        if self.processing_status != ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR:
+            raise ValidationError(
+                "You cannot propose for ready for agenda if it is not with assessor"
             )
 
-            # TODO create a log entry for the user
+        (self.processing_status,) = (
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
+        )
+        self.customer_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
+        self.save()
 
-            send_assessor_ready_for_agenda_email_notification(request, self)
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+        send_assessor_ready_for_agenda_email_notification(request, self)
 
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
@@ -1686,32 +1573,27 @@ class ConservationStatusDocument(Document):
         else:
             super().save(*args, **kwargs)
 
+    @transaction.atomic
     def add_documents(self, request, *args, **kwargs):
-        with transaction.atomic():
-            # save the files
-            data = json.loads(request.data.get("data"))
-            # if not data.get('update'):
-            #     documents_qs = self.filter(input_name='species_doc', visible=True)
-            #     documents_qs.delete()
-            for idx in range(data["num_files"]):
-                _file = request.data.get("file-" + str(idx))
-                self._file = _file
-                self.name = _file.name
-                self.input_name = data["input_name"]
-                self.can_delete = True
-                self.save(no_revision=True)
-            # end save documents
-            self.save(*args, **kwargs)
+        # save the files
+        data = json.loads(request.data.get("data"))
 
-        return
+        for idx in range(data["num_files"]):
+            _file = request.data.get("file-" + str(idx))
+            self._file = _file
+            self.name = _file.name
+            self.input_name = data["input_name"]
+            self.can_delete = True
+            self.save(no_revision=True)
+
+        # end save documents
+        self.save(*args, **kwargs)
 
 
 class ConservationStatusDeclinedDetails(models.Model):
-    # proposal = models.OneToOneField(Proposal, related_name='declined_details')
     conservation_status = models.OneToOneField(
         ConservationStatus, on_delete=models.CASCADE
     )
-    # officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     officer = models.IntegerField()  # EmailUserRO
     reason = models.TextField(blank=True)
     cc_email = models.TextField(null=True)
@@ -1724,7 +1606,6 @@ class ConservationStatusIssuanceApprovalDetails(models.Model):
     conservation_status = models.OneToOneField(
         ConservationStatus, on_delete=models.CASCADE
     )
-    # officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     officer = models.IntegerField()  # EmailUserRO
     effective_from_date = models.DateField(null=True, blank=True)
     effective_to_date = models.DateField(null=True, blank=True)
@@ -1758,8 +1639,6 @@ class ConservationStatusReferralDocument(Document):
 
     def delete(self):
         if self.can_delete:
-            # TODO Don't have ConservationDocument yet
-            # return super(ProposalDocument, self).delete()
             return self.can_delete
         logger.info(
             "Cannot delete existing document object after Application has been submitted "
@@ -1954,14 +1833,7 @@ class ConservationStatusReferral(models.Model):
                     "The user you want to send the referral to is not a member of the department"
                 )
 
-            # Check if the user is in ledger or create
-            user, created = EmailUser.objects.get_or_create(
-                email=department_user["email"].lower()
-            )
-            if created:
-                user.first_name = department_user["given_name"]
-                user.last_name = department_user["surname"]
-                user.save()
+            # TODO Check if the user is in ledger or create (must be done via api in segregated system)
 
         qs = ConservationStatusReferral.objects.filter(
             sent_by=user.id, conservation_status=self.conservation_status
