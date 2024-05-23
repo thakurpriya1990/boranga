@@ -558,8 +558,8 @@ class LocationSerializer(serializers.ModelSerializer):
             "epsg_code",
             "coordination_source_id",
             "location_accuracy_id",
-            "region",
-            "district",
+            "region_id",
+            "district_id",
             "locality",
             # 'geojson_point',
             # 'geojson_polygon',
@@ -1448,6 +1448,12 @@ class SaveOCRIdentificationSerializer(serializers.ModelSerializer):
 
 
 class SaveLocationSerializer(serializers.ModelSerializer):
+    region_id = serializers.IntegerField(
+        required=False, allow_null=True
+    )
+    district_id = serializers.IntegerField(
+        required=False, allow_null=True
+    )
     occurrence_report_id = serializers.IntegerField(required=True, allow_null=False)
     datum_id = serializers.IntegerField(required=False, allow_null=True)
     coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
@@ -1472,6 +1478,9 @@ class SaveLocationSerializer(serializers.ModelSerializer):
             "epsg_code",
             "coordination_source_id",
             "location_accuracy_id",
+            "region_id",
+            "district_id",
+            "locality",
             # 'geojson_polygon',
         )
 

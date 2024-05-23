@@ -188,6 +188,46 @@
             </div>
             -->
 
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Region:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)"
+                        v-model="occurrence_report_obj.location.region_id">
+                        <option v-for="option in region_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">District:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" 
+                        v-model="occurrence_report_obj.location.district_id">
+                        <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Locality:</label
+                >
+                <div class="col-sm-9">
+                    <textarea
+                        id="locality"
+                        v-model="
+                            occurrence_report_obj.location.locality
+                        "
+                        :disabled="isReadOnly"
+                        class="form-control"
+                        rows="1"
+                        placeholder=""
+                    />
+                </div>
+            </div>
+
             <!-- -------------------------------- -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
@@ -416,6 +456,7 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import { v4 as uuid } from 'uuid';
 // import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
@@ -487,6 +528,10 @@ export default {
             //community_display: '',
             //taxon_previous_name: '',
             //---Comment box attributes
+
+            region_list: [],
+            district_list: [],
+            filtered_district_list: [],
 
             deficiency_readonly:
                 !this.is_external &&
@@ -630,6 +675,17 @@ export default {
             .catch((error) => {
                 console.error('Error fetching location values list:', error);
             });
+
+        const response = await Vue.http.get('/api/region_district_filter_dict/');
+        vm.filterRegionDistrict = response.body;
+        vm.region_list = vm.filterRegionDistrict.region_list;
+        vm.district_list = vm.filterRegionDistrict.district_list;
+        vm.region_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        this.filterDistrict();
     },
     mounted: function () {
         let vm = this;
@@ -640,6 +696,25 @@ export default {
         });
     },
     methods: {
+        filterDistrict: function (event) {
+            this.$nextTick(() => {
+                if (event) {
+                    this.occurrence_report_obj.location.district_id = null; //-----to remove the previous selection
+                }
+                this.filtered_district_list = [];
+                this.filtered_district_list = [{
+                    id: null,
+                    name: "",
+                    region_id: null,
+                }];
+                //---filter districts as per region selected
+                for (let choice of this.district_list) {
+                    if (choice.region_id === this.occurrence_report_obj.location.region_id) {
+                        this.filtered_district_list.push(choice);
+                    }
+                }
+            });
+        },
         /*initialiseScientificNameLookup: function () {
             let vm = this;
             $(vm.$refs[vm.scientific_name_lookup])

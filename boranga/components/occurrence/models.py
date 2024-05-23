@@ -3075,7 +3075,6 @@ class OccurrenceDocument(Document):
         self.save(*args, **kwargs)
 
 
-# TODO keep for now, remove if not needed (depends on what requirements are for OCR/OCC location)
 class OCCObserverDetail(models.Model):
     """
     Observer data  for occurrence
