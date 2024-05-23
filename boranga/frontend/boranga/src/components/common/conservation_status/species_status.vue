@@ -75,7 +75,7 @@
                 <div class="row mb-3">
                     <label for="approval_level" class="col-sm-4 col-form-label">Applicable Workflow:</label>
                     <div class="col-sm-8">
-                        <select id="approval_level" v-model="conservation_status_obj.approval_level" class="form-select"
+                        <select id="approval_level" v-model="conservation_status_obj.approval_level" class="form-select" :disabled="approval_level_disabled"
                             @change="approvalLevelChanged">
                             <option :value="null">Select Appropriate Workflow</option>
                             <option :value="'intermediate'">Intermediate</option>
@@ -511,6 +511,9 @@ export default {
                 return this.conservation_status_obj.approval_level == "intermediate";
             }
             return true;
+        },
+        approval_level_disabled: function () {
+            return !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
         },
         effective_from_date_disabled: function () {
             if (!['With Assessor'], ['With Approver'].includes(this.conservation_status_obj.processing_status)) {
