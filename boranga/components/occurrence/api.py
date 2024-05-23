@@ -1221,17 +1221,17 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
             occurrence_report=ocr_instance
         )
         # species_id saved seperately as its not field of Location but OCR
-        species = request.data.get("species_id")
-        ocr_instance.species_id = species
+        #species = request.data.get("species_id")
+        #ocr_instance.species_id = species
         # ocr_instance.save()
         # community_id saved seperately as its not field of Location but OCR
-        community = request.data.get("community_id")
-        ocr_instance.community_id = community
+        #community = request.data.get("community_id")
+        #ocr_instance.community_id = community
 
-        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
-            self.unlocked_back_to_assessor()
-        else:
-            ocr_instance.save(version_user=request.user)
+        #if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+        #    self.unlocked_back_to_assessor()
+        #else:
+        #    ocr_instance.save(version_user=request.user)
 
         # ocr geometry data to save seperately
         geometry_data = request.data.get("ocr_geometry")
@@ -1253,6 +1253,9 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
         
         return Response(serializer.data)
 
