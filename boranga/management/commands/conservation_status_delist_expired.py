@@ -1,6 +1,5 @@
 import logging
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -22,9 +21,7 @@ class Command(BaseCommand):
             effective_to__lt=timezone.now(),
             processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
         )
-        delisted_change_code = ConservationChangeCode.objects.get(
-            code=settings.CONSERVATION_CHANGE_CODE_DELIST
-        )
+        delisted_change_code = ConservationChangeCode.get_delisted_change_code()
 
         logger.info(
             "Found {} conservation statuses where effective_to__lt=timezone.now() and processing_status={}".format(
