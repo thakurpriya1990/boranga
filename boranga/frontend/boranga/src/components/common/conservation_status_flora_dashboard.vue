@@ -909,7 +909,7 @@ export default {
                                 data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                             }
                             else {
-                                if (full.assessor_process) {
+                                if (full.assessor_process || full.approver_process) {
                                     links += `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
                                     links += `<a href='#' data-history-conservation-status-species='${full.id}'
                                         data-history-species='${full.species_number}'
