@@ -14,6 +14,7 @@ from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
     LandForm,
     OCRLocation,
+    OCCLocation,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -75,6 +76,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
 
+    location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
     vegetation_structure = serializers.SerializerMethodField()
@@ -98,6 +100,13 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         return obj.can_user_edit(request.user)
+
+    def get_location(self, obj):
+        try:
+            qs = OCCLocation.objects.get(occurrence=obj)
+            return OCCLocationSerializer(qs).data
+        except OCCLocation.DoesNotExist:
+            return OCCLocationSerializer().data
 
     def get_habitat_composition(self, obj):
         try:
@@ -2486,4 +2495,56 @@ class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
             "collector_number",
             "barcode_number",
             "identification_comment",
+        )
+
+class OCCLocationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCLocation
+        fields = (
+            "id",
+            "occurrence_id",
+            "location_description",
+            "boundary_description",
+            "boundary",
+            "mapped_boundary",
+            "buffer_radius",
+            "datum_id",
+            "epsg_code",
+            "coordination_source_id",
+            "location_accuracy_id",
+            "region_id",
+            "district_id",
+            "locality",
+        )
+
+class SaveOCCLocationSerializer(serializers.ModelSerializer):
+    region_id = serializers.IntegerField(
+        required=False, allow_null=True
+    )
+    district_id = serializers.IntegerField(
+        required=False, allow_null=True
+    )
+    occurrence_id = serializers.IntegerField(required=True, allow_null=False)
+    datum_id = serializers.IntegerField(required=False, allow_null=True)
+    coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
+    location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCLocation
+        fields = (
+            "id",
+            "occurrence_id",
+            "location_description",
+            "boundary_description",
+            "boundary",
+            "mapped_boundary",
+            "buffer_radius",
+            "datum_id",
+            "epsg_code",
+            "coordination_source_id",
+            "location_accuracy_id",
+            "region_id",
+            "district_id",
+            "locality",
         )

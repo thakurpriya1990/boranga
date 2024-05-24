@@ -44,6 +44,7 @@ from boranga.components.occurrence.models import (
     IdentificationCertainty,
     Intensity,
     LandForm,
+    OCCLocation,
     OCRLocation,
     LocationAccuracy,
     ObservationMethod,
@@ -119,6 +120,7 @@ from boranga.components.occurrence.serializers import (
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
+    SaveOCCLocationSerializer,
     SaveOCRLocationSerializer,
     SaveOCCAnimalObservationSerializer,
     SaveOCCAssociatedSpeciesSerializer,
@@ -3274,10 +3276,10 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         new_instance.save(version_user=request.user)
         data = {"occurrence_id": new_instance.id}
 
-        # create Location for new instance TODO
-        # serializer = SaveOCCLocationSerializer(data=data)
-        # serializer.is_valid(raise_exception=True)
-        # serializer.save()
+        # create Location for new instance
+        serializer = SaveOCCLocationSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
         # create HabitatComposition for new instance
         serializer = SaveOCCHabitatCompositionSerializer(data=data)
@@ -3640,26 +3642,21 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
             if serializer.is_valid():
                 serializer.save()
 
-        #TODO: adjust and enable when OCC location ready
-        #if request_data.get("location"):
-        #    location_instance, created = OCCLocation.objects.get_or_create(
-        #        occurrence=instance
-        #    )
-        #    serializer = SaveOCCLocationSerializer(
-        #        location_instance, data=request_data.get("location")
-        #    )
-        #    serializer.is_valid(raise_exception=True)
-        #    if serializer.is_valid():
-        #        serializer.save()
+        if request_data.get("location"):
+            location_instance, created = OCCLocation.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCLocationSerializer(
+                location_instance, data=request_data.get("location")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
 
-        # occ geometry data to save seperately TODO: determine what is need here
+        # occ geometry data to save seperately TODO: determine what is needed here
         #geometry_data = request_data.get("occ_geometry", None)
         #if geometry_data:
         #    save_geometry(request, instance, geometry_data)
-
-        serializer = SaveOccurrenceReportSerializer(
-            instance, data=request_data, partial=True
-        )
 
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -3713,6 +3710,36 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
 
         serialized_obj = OccurrenceSerializer(instance, context={"request": request})
         return Response(serialized_obj.data)
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_location_details(self, request, *args, **kwargs):
+        
+        self.is_authorised_to_update()
+        occ_instance = self.get_object()
+
+        location_instance, created = OCCLocation.objects.get_or_create(
+            occurrence=occ_instance
+        )
+
+        # occ geometry data to save seperately TODO
+        #geometry_data = request.data.get("occ_geometry")
+        #if geometry_data:
+        #    save_geometry(request, occ_instance, geometry_data)
+
+        # the request.data is only the habitat composition data thats been sent from front end
+        location_data = request.data.get("location")
+        serializer = SaveOCCLocationSerializer(
+            location_instance, data=location_data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
 
     @list_route(
         methods=[
