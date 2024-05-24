@@ -554,8 +554,8 @@ class ConservationStatus(RevisionedMixin):
     )
     recurrence_schedule = models.IntegerField(null=True, blank=True)
     proposed_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
-    effective_from = models.DateTimeField(null=True, blank=True)
-    effective_to = models.DateTimeField(null=True, blank=True)
+    effective_from = models.DateField(null=True, blank=True)
+    effective_to = models.DateField(null=True, blank=True)
     submitter = models.IntegerField(null=True)  # EmailUserRO
     lodgement_date = models.DateTimeField(
         blank=True, null=True
@@ -1271,13 +1271,14 @@ class ConservationStatus(RevisionedMixin):
 
             d = ConservationStatusDocument.objects.get(id=document.id)
 
-        # assign document id to the IssuanceApprovalDetails
+        effective_from = details.get("effective_from_date")
+        effective_to = details.get("effective_to_date")
         ConservationStatusIssuanceApprovalDetails.objects.update_or_create(
             conservation_status=self,
             defaults={
                 "officer": request.user.id,
-                "effective_from_date": details.get("effective_from_date"),
-                "effective_to_date": details.get("effective_to_date"),
+                "effective_from_date": effective_from,
+                "effective_to_date": effective_to,
                 "details": details.get("details"),
                 "cc_email": details.get("cc_email", None),
                 "conservation_status_approval_document": d,
@@ -1286,6 +1287,12 @@ class ConservationStatus(RevisionedMixin):
 
         self.processing_status = ConservationStatus.PROCESSING_STATUS_APPROVED
         self.customer_status = ConservationStatus.CUSTOMER_STATUS_APPROVED
+
+        if effective_from:
+            self.effective_from = effective_from
+
+        if effective_to:
+            self.effective_to = effective_to
 
         # Log proposal action
         self.log_user_action(
@@ -1333,7 +1340,7 @@ class ConservationStatus(RevisionedMixin):
             )
             if self.effective_from:
                 previous_approved_version.effective_to = (
-                    self.effective_from.date() - timedelta(days=1)
+                    self.effective_from - timedelta(days=1)
                 )
             previous_approved_version.save()
 
