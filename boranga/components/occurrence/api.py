@@ -3715,7 +3715,7 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
             if serializer.is_valid():
                 serializer.save()
 
-        # occ geometry data to save seperately TODO: determine what is needed here
+        # occ geometry data to save seperately
         geometry_data = request_data.get("occ_geometry", None)
         if geometry_data:
             save_occ_geometry(request, instance, geometry_data)
@@ -3788,7 +3788,7 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
             occurrence=occ_instance
         )
 
-        # occ geometry data to save seperately TODO
+        # occ geometry data to save seperately
         geometry_data = request.data.get("occ_geometry")
         if geometry_data:
             save_occ_geometry(request, occ_instance, geometry_data)

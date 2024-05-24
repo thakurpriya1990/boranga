@@ -470,10 +470,10 @@ export default {
             payload.community_id = vm.occurrence_obj.community_id;
 
             // When in Entering Conditions status ApplicationForm might not be there
-            // adding ocr_geometry from the map_component to payload
-            //if (vm.$refs.component_map) {
-            //    payload.occ_geometry = vm.$refs.component_map.getJSONFeatures();
-            //}
+            // adding occ_geometry from the map_component to payload
+            if (vm.$refs.component_map) {
+                payload.occ_geometry = vm.$refs.component_map.getJSONFeatures();
+            }
 
             // const res = await fetch(vm.proposal_form_url, {
             //     body: JSON.stringify(payload),

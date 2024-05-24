@@ -278,6 +278,12 @@ export default {
                 return false;
             }
             vm.savingOccurrence = true;
+
+            // add map geometry to the occurrence
+            if (vm.$refs.occurrence.$refs.occ_location.$refs.component_map) {
+                vm.occurrence.occ_geometry = vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures();
+            }
+
             let payload = new Object();
             Object.assign(payload, vm.occurrence);
             await vm.$http.post(vm.occurrence_form_url, payload).then(res => {

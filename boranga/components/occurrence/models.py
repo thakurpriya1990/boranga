@@ -3237,6 +3237,24 @@ class OccurrenceGeometry(models.Model):
 
         super().save(*args, **kwargs)
 
+    @property
+    def area_sqm(self):
+        if not hasattr(self, "area") or not self.area:
+            return None
+        return self.area.sq_m
+
+    @property
+    def area_sqhm(self):
+        if not hasattr(self, "area") or not self.area:
+            return None
+        return self.area.sq_m / 10000
+
+    @property
+    def original_geometry_srid(self):
+        if self.original_geometry_ewkb:
+            return GEOSGeometry(self.original_geometry_ewkb).srid
+        return None
+
 
 class OCCObserverDetail(models.Model):
     """
