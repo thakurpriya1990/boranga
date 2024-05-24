@@ -174,9 +174,9 @@ export default {
         },
         title: function () {
             if (this.state == 'proposed_approval') {
-                return 'Propose to Approve Conservation Status';
+                return `Propose to Approve Conservation Status CS${this.conservation_status_id}`;
             }
-            return 'Approve Conservation Status';
+            return `Approve Conservation Status CS${this.conservation_status_id}`;
         },
         can_preview: function () {
             return (this.processing_status == 'With Approver' || 'With Assessor (Requirements)') && this.approval.effective_from_date && this.approval.effective_to_date ? true : false;
