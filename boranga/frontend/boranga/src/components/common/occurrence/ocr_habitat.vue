@@ -226,15 +226,8 @@
                     <label for="related_species" class="control-label">Related Species</label>
                 </div>
                 <div class="col-sm-9">
-                    <RichText
-                        id="related_species"
-                        :proposalData="occurrence_report_obj.associated_species.related_species"
-                        ref="related_species"
-                        label="Rich text in here"
-                        :readonly="isReadOnly"
-                        :can_view_richtext_src=true
-                        :key="occurrence_report_obj.id"
-                        @textChanged="relatedSpeciesTextChanged"
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="related_species" placeholder=""
+                        v-model="occurrence_report_obj.associated_species.related_species"
                     />
                 </div>
             </div>
