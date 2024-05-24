@@ -56,6 +56,7 @@ from boranga.components.occurrence.models import (
     OCCIdentification,
     OCCObservationDetail,
     OCCPlantCount,
+    OCCVegetationStructure,
     Occurrence,
     OccurrenceDocument,
     OccurrenceReport,
@@ -77,6 +78,7 @@ from boranga.components.occurrence.models import (
     OCRObservationDetail,
     OCRObserverDetail,
     OCRPlantCount,
+    OCRVegetationStructure,
     PermitType,
     PlantCondition,
     PlantCountAccuracy,
@@ -127,6 +129,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCCIdentificationSerializer,
     SaveOCCObservationDetailSerializer,
     SaveOCCPlantCountSerializer,
+    SaveOCCVegetationStructureSerializer,
     SaveOccurrenceDocumentSerializer,
     SaveOccurrenceReportDocumentSerializer,
     SaveOccurrenceReportSerializer,
@@ -140,6 +143,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCRIdentificationSerializer,
     SaveOCRObservationDetailSerializer,
     SaveOCRPlantCountSerializer,
+    SaveOCRVegetationStructureSerializer,
 )
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
@@ -1316,6 +1320,31 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
         ],
         detail=True,
     )
+    def update_vegetation_structure(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()        
+        ocr_instance = self.get_object()
+        vegetation_instance, created = OCRVegetationStructure.objects.get_or_create(
+            occurrence_report=ocr_instance
+        )
+        # the request.data is only the habitat condition data thats been sent from front end
+        serializer = SaveOCRVegetationStructureSerializer(
+            vegetation_instance, data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        if ocr_instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
+        return Response(serializer.data)
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
     def update_fire_history_details(self, request, *args, **kwargs):
 
         self.is_authorised_to_update()
@@ -1550,6 +1579,17 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
             )
             serializer = SaveOCRHabitatConditionSerializer(
                 hab_cond_instance, data=proposal_data.get("habitat_condition")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        if proposal_data.get("vegetation_structure"):
+            veg_struct_instance, created = OCRVegetationStructure.objects.get_or_create(
+                occurrence_report=instance
+            )
+            serializer = SaveOCRVegetationStructureSerializer(
+                veg_struct_instance, data=proposal_data.get("vegetation_structure")
             )
             serializer.is_valid(raise_exception=True)
             if serializer.is_valid():
@@ -3520,6 +3560,17 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
             if serializer.is_valid():
                 serializer.save()
 
+        if request_data.get("vegetation_structure"):
+            veg_struct_instance, created = OCCVegetationStructure.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCVegetationStructureSerializer(
+                veg_struct_instance, data=request_data.get("vegetation_structure")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
         if request_data.get("fire_history"):
             fire_instance, created = OCCFireHistory.objects.get_or_create(
                 occurrence=instance
@@ -3681,6 +3732,28 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(serializer.data)
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_vegetation_structure(self, request, *args, **kwargs):
+
+        self.is_authorised_to_update()        
+        occ_instance = self.get_object()
+        vegetation_instance, created = OCCVegetationStructure.objects.get_or_create(
+            occurrence=occ_instance
+        )
+        # the request.data is only the habitat condition data thats been sent from front end
+        serializer = SaveOCCVegetationStructureSerializer(
+            vegetation_instance, data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
         return Response(serializer.data)
 
     @list_route(

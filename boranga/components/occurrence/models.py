@@ -1862,6 +1862,35 @@ class OCRHabitatCondition(models.Model):
         return str(self.occurrence_report)
 
 
+class OCRVegetationStructure(models.Model):
+    """
+    Vegetation Structure data for occurrence report
+
+    Used for:
+    - Occurrence Report
+    Is:
+    - Table
+    """
+
+    occurrence_report = models.OneToOneField(
+        OccurrenceReport,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="vegetation_structure",
+    )
+    
+    free_text_field_one = models.TextField(null=True, blank=True)
+    free_text_field_two = models.TextField(null=True, blank=True)
+    free_text_field_three = models.TextField(null=True, blank=True)
+    free_text_field_four = models.TextField(null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence_report)
+
+
 class Intensity(models.Model):
     """
     # Admin List
@@ -2875,17 +2904,30 @@ class Occurrence(RevisionedMixin):
             habitat_condition.occurrence = occurrence
             habitat_condition.save()
 
+        vegetation_structure = clone_model(
+            OCRVegetationStructure,
+            OCCVegetationStructure,
+            occurrence_report.vegetation_structure,
+        )
+        if vegetation_structure:
+            vegetation_structure.occurrence = occurrence
+            vegetation_structure.save()
+
         fire_history = clone_model(
             OCRFireHistory, OCCFireHistory, occurrence_report.fire_history
-        )
-        clone_model(
-            OCRAssociatedSpecies,
-            OCCAssociatedSpecies,
-            occurrence_report.associated_species,
         )
         if fire_history:
             fire_history.occurrence = occurrence
             fire_history.save()
+            
+        associated_species = clone_model(
+            OCRAssociatedSpecies,
+            OCCAssociatedSpecies,
+            occurrence_report.associated_species,
+        )
+        if associated_species:
+            associated_species.occurrence = occurrence
+            associated_species.save()
 
         observation_detail = clone_model(
             OCRObservationDetail,
@@ -3291,6 +3333,35 @@ class OCCHabitatCondition(models.Model):
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)
+
+
+class OCCVegetationStructure(models.Model):
+    """
+    Vegetation Structure data for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="vegetation_structure",
+    )
+    
+    free_text_field_one = models.TextField(null=True, blank=True)
+    free_text_field_two = models.TextField(null=True, blank=True)
+    free_text_field_three = models.TextField(null=True, blank=True)
+    free_text_field_four = models.TextField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
