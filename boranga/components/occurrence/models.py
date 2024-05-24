@@ -2888,6 +2888,16 @@ class Occurrence(RevisionedMixin):
         occurrence.save(no_revision=True)
 
         # Clone all the associated models
+
+        location = clone_model(
+            OCRLocation,
+            OCCLocation,
+            occurrence_report.location,
+        )
+        if location:
+            location.occurrence = occurrence
+            location.save()
+
         habitat_composition = clone_model(
             OCRHabitatComposition,
             OCCHabitatComposition,
