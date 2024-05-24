@@ -46,6 +46,8 @@ from boranga.components.species_and_communities.models import (
     Species,
     ThreatAgent,
     ThreatCategory,
+    District,
+    Region,
 )
 from boranga.helpers import clone_model, email_in_dept_domains
 from boranga.ledger_api_utils import retrieve_email_user
@@ -230,6 +232,7 @@ class OccurrenceReport(RevisionedMixin):
 
     occurrence_report_number = models.CharField(max_length=9, blank=True, default="")
 
+    observation_date = models.DateTimeField(null=True, blank=True)
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     effective_from = models.DateTimeField(null=True, blank=True)
     effective_to = models.DateTimeField(null=True, blank=True)
@@ -266,6 +269,7 @@ class OccurrenceReport(RevisionedMixin):
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
+    site = models.TextField(null=True,blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -1462,7 +1466,7 @@ class LocationAccuracy(models.Model):
     def __str__(self):
         return str(self.name)
 
-
+#TODO eventually rename this to apply to OCR specifically when we make the OCC specific equivalent
 class Location(models.Model):
     """
     Location data  for occurrence report
@@ -1476,7 +1480,6 @@ class Location(models.Model):
     occurrence_report = models.OneToOneField(
         OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="location"
     )
-    observation_date = models.DateTimeField(null=True, blank=True)
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
     new_occurrence = models.BooleanField(null=True, blank=True)
@@ -1493,6 +1496,15 @@ class Location(models.Model):
     )
     geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
     geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
+
+    region = models.ForeignKey(
+        Region, default=None, on_delete=models.CASCADE, null=True, blank=True
+    )
+    district = models.ForeignKey(
+        District, default=None, on_delete=models.CASCADE, null=True, blank=True
+    )
+    #TODO either keep as free text or have a foreign model similar to district and region
+    locality = models.TextField(default=None, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -3092,7 +3104,6 @@ class OccurrenceDocument(Document):
         self.save(*args, **kwargs)
 
 
-# TODO keep for now, remove if not needed (depends on what requirements are for OCR/OCC location)
 class OCCObserverDetail(models.Model):
     """
     Observer data  for occurrence
