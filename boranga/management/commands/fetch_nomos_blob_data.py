@@ -193,9 +193,6 @@ class Command(BaseCommand):
         print(msg) # will redirect to cron_tasks.log file, by the parent script
 
         if len(errors)>0:
-            # turn on the variable EMAIL_DELIVERY as in for management script email
-            settings.EMAIL_DELIVERY='on'
+            # send email notification
             send_nomos_script_failed(errors)
-            # turn it back off
-            settings.EMAIL_DELIVERY='off'
 
