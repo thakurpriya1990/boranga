@@ -541,6 +541,9 @@ export default {
             if (this.is_external) {
                 return !this.conservation_status_obj.can_user_edit;
             } else {
+                if(this.conservation_status_obj.processing_status == "Ready For Agenda"){
+                    return true;
+                }
                 if (this.conservation_status_obj.assessor_mode.assessor_can_assess || this.conservation_status_obj.internal_user_edit) {
                     return false;
                 }
