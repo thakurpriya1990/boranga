@@ -1320,11 +1320,14 @@ class ConservationStatus(RevisionedMixin):
 
         if previous_approved_version:
             # Check if the previous conservation status has a priority list
-            if previous_approved_version.wa_priority_list:
+            if previous_approved_version.wa_priority_list and not self.wa_priority_list:
                 self.wa_priority_list = previous_approved_version.wa_priority_list
 
                 # Check if the previous conservation status has a priority category
-                if previous_approved_version.wa_priority_category:
+                if (
+                    previous_approved_version.wa_priority_category
+                    and not self.wa_priority_category
+                ):
                     self.wa_priority_category = (
                         previous_approved_version.wa_priority_category
                     )
