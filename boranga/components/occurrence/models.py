@@ -2904,17 +2904,30 @@ class Occurrence(RevisionedMixin):
             habitat_condition.occurrence = occurrence
             habitat_condition.save()
 
+        vegetation_structure = clone_model(
+            OCRVegetationStructure,
+            OCCVegetationStructure,
+            occurrence_report.vegetation_structure,
+        )
+        if vegetation_structure:
+            vegetation_structure.occurrence = occurrence
+            vegetation_structure.save()
+
         fire_history = clone_model(
             OCRFireHistory, OCCFireHistory, occurrence_report.fire_history
-        )
-        clone_model(
-            OCRAssociatedSpecies,
-            OCCAssociatedSpecies,
-            occurrence_report.associated_species,
         )
         if fire_history:
             fire_history.occurrence = occurrence
             fire_history.save()
+            
+        associated_species = clone_model(
+            OCRAssociatedSpecies,
+            OCCAssociatedSpecies,
+            occurrence_report.associated_species,
+        )
+        if associated_species:
+            associated_species.occurrence = occurrence
+            associated_species.save()
 
         observation_detail = clone_model(
             OCRObservationDetail,
