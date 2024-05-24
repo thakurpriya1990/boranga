@@ -369,3 +369,80 @@ CONSERVATION_CHANGE_CODES = [
     {"code": CONSERVATION_CHANGE_CODE_DELIST, "label": "DeList"},
     {"code": CONSERVATION_CHANGE_CODE_OTHER, "label": "Other"},
 ]
+
+# ---------- Conservation Lists / Categories ----------
+
+WA_LEGISLATIVE_LIST_WCA = {"code": "WCA", "label": "Wildlife Conservation Act 1950"}
+WA_LEGISLATIVE_LIST_BCA = {
+    "code": "BCA",
+    "label": "Biodiversity Conservation Act 2016 + BCA",
+}
+
+WA_LEGISLATIVE_LISTS = [WA_LEGISLATIVE_LIST_WCA, WA_LEGISLATIVE_LIST_BCA]
+
+WA_LEGISLATIVE_CATEGORY_CR = {"code": "CR", "label": "Critically Endangered"}
+WA_LEGISLATIVE_CATEGORY_EN = {"code": "EN", "label": "Endangered"}
+WA_LEGISLATIVE_CATEGORY_VU = {"code": "VU", "label": "Vulnerable"}
+WA_LEGISLATIVE_CATEGORY_EX = {"code": "EX", "label": "Extinct"}
+WA_LEGISLATIVE_CATEGORY_EW = {"code": "EW", "label": "Extinct in the Wild"}
+WA_LEGISLATIVE_CATEGORY_CO = {"code": "CO", "label": "Collapsed"}
+WA_LEGISLATIVE_CATEGORY_RD = {"code": "RD", "label": "Rediscovered"}
+WA_LEGISLATIVE_CATEGORY_SP_SI = {
+    "code": "SP_SI",
+    "label": "Specially Protected - special conservation interest",
+}
+WA_LEGISLATIVE_CATEGORY_SP_MS = {
+    "code": "SP_MS",
+    "label": "Specially Protected - migratory species",
+}
+WA_LEGISLATIVE_CATEGORY_SP_C = {
+    "code": "SP_C",
+    "label": "Specially Protected - cetaceans",
+}
+WA_LEGISLATIVE_CATEGORY_SP_IA = {
+    "code": "SP_IA",
+    "label": "Specially Protected - international agreement",
+}
+
+WA_LEGISLATIVE_CATEGORIES = [
+    WA_LEGISLATIVE_CATEGORY_CR,
+    WA_LEGISLATIVE_CATEGORY_EN,
+    WA_LEGISLATIVE_CATEGORY_VU,
+    WA_LEGISLATIVE_CATEGORY_EX,
+    WA_LEGISLATIVE_CATEGORY_EW,
+    WA_LEGISLATIVE_CATEGORY_CO,
+    WA_LEGISLATIVE_CATEGORY_RD,
+    WA_LEGISLATIVE_CATEGORY_SP_SI,
+    WA_LEGISLATIVE_CATEGORY_SP_MS,
+    WA_LEGISLATIVE_CATEGORY_SP_C,
+    WA_LEGISLATIVE_CATEGORY_SP_IA,
+]
+
+WA_PRIORITY_LIST_FLORA = {"code": "FLORA", "label": "Flora"}
+WA_PRIORITY_LIST_FAUNA = {"code": "FAUNA", "label": "Fauna"}
+WA_PRIORITY_LIST_COMMUNITIES = {"code": "COMMUNITIES", "label": "Communities"}
+
+WA_PRIORITY_LISTS = [
+    WA_PRIORITY_LIST_FLORA,
+    WA_PRIORITY_LIST_FAUNA,
+    WA_PRIORITY_LIST_COMMUNITIES,
+]
+
+WA_PRIORITY_CATEGORY_P1 = {"code": "P1", "label": "Priority 1"}
+WA_PRIORITY_CATEGORY_P2 = {"code": "P2", "label": "Priority 2"}
+WA_PRIORITY_CATEGORY_P3 = {"code": "P3", "label": "Priority 3"}
+WA_PRIORITY_CATEGORY_P4 = {"code": "P4", "label": "Priority 4"}
+
+WA_PRIORITY_CATEGORIES = [
+    WA_PRIORITY_CATEGORY_P1,
+    WA_PRIORITY_CATEGORY_P2,
+    WA_PRIORITY_CATEGORY_P3,
+    WA_PRIORITY_CATEGORY_P4,
+]
+
+COMMONWEALTH_CONSERVATION_LIST_EPBC = {
+    "code": "EPBC",
+    "label": "Environment Protection and Biodiversity Conservation Act 1999",
+}
+
+COMMONWEALTH_CONSERVATION_LISTS = [COMMONWEALTH_CONSERVATION_LIST_EPBC]
