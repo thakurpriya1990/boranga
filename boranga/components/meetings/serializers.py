@@ -191,8 +191,8 @@ class MeetingSerializer(serializers.ModelSerializer):
     def get_readonly(self, obj):
         request = self.context["request"]
 
-        if obj.can_user_edit and request.user.is_superuser:
-            return True
+        if obj.can_user_edit or request.user.is_superuser:
+            return False
 
         return obj.can_user_view
 
