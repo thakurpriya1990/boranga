@@ -860,7 +860,10 @@ export default {
                     vm.conservation_status_obj = response.body;
                     vm.original_conservation_status_obj = helpers.copyObject(response.body);
                     vm.updateAssignedOfficerSelect();
-
+                    vm.$nextTick(() => {
+                        vm.initialisedSelects =false;
+                        vm.initialiseSelects();
+                    });
                 }, (error) => {
                     vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
                     vm.updateAssignedOfficerSelect();
