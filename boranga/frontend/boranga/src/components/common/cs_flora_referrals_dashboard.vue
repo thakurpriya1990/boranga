@@ -214,7 +214,6 @@ export default {
             scientific_name_list: [],
             common_name_list: [],
             family_list: [],
-            genus_list: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
@@ -708,9 +707,6 @@ export default {
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
-                vm.genus_list = vm.filterListsSpecies.genus_list;
-
-
                 vm.filterDistrict();
                 vm.proposal_status = vm.filterListsSpecies.processing_status_list;
             },(error) => {

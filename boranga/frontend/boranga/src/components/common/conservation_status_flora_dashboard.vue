@@ -437,7 +437,6 @@ export default {
             scientific_name_list: [],
             common_name_list: [],
             family_list: [],
-            genus_list: [],
             wa_legislative_lists: [],
             wa_legislative_categories: [],
             wa_priority_lists: [],
@@ -1358,7 +1357,6 @@ export default {
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
-                vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.wa_legislative_lists = vm.filterListsSpecies.wa_legislative_lists;
                 vm.wa_legislative_categories = vm.filterListsSpecies.wa_legislative_categories;
                 vm.wa_priority_lists = vm.filterListsSpecies.wa_priority_lists;

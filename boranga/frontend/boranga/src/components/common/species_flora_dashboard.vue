@@ -248,7 +248,6 @@ export default {
             common_name_list: [],
             family_list: [],
             phylogenetic_group_list: [],
-            genus_list: [],
             conservation_list_dict: [],
             filterRegionDistrict: {},
             region_list: [],
@@ -901,7 +900,6 @@ export default {
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.filterDistrict();
                 vm.species_status = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());

@@ -34,11 +34,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Family:</label>
-                        <select class="form-select" v-model="filterFaunaFamily">
-                            <option value="all">All</option>
-                            <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="family_lookup">Family:</label>
                         <select
                             id="family_lookup"
@@ -49,11 +44,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Genera:</label>
-                        <select class="form-select" v-model="filterFaunaGenus">
-                            <option value="all">All</option>
-                            <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="genera_lookup">Genera:</label>
                         <select
                             id="genera_lookup"
@@ -274,7 +264,6 @@ export default {
             common_name_list: [],
             scientific_name_list: [],
             family_list: [],
-            genus_list: [],
             phylogenetic_group_list: [],
             conservation_list_dict: [],
             filterRegionDistrict: {},
@@ -923,7 +912,6 @@ export default {
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
-                vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
                 vm.filterDistrict();
                 vm.species_status = vm.internal_status.slice().sort((a, b) => {

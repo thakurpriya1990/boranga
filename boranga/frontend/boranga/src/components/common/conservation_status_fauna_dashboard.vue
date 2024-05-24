@@ -299,7 +299,6 @@ export default {
             scientific_name_list: [],
             common_name_list: [],
             family_list: [],
-            genus_list: [],
             phylogenetic_group_list: [],
             filterRegionDistrict: {},
             region_list: [],
@@ -1023,7 +1022,6 @@ export default {
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
-                vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
                 vm.filterDistrict();
                 vm.proposal_status = vm.internal_status.slice().sort((a, b) => {

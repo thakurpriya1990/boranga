@@ -64,7 +64,6 @@ from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.species_and_communities.models import (
     ClassificationSystem,
     CommunityTaxonomy,
-    Genus,
     GroupType,
     Species,
     Taxonomy,
@@ -1889,29 +1888,6 @@ class ConservationStatusReferralViewSet(
                             "name": group.class_desc,
                         }
                     )
-        genus_list = []
-        if group_type:
-            taxonomy_qs = (
-                qs.filter(conservation_status__species__group_type__name=group_type)
-                .values_list("conservation_status__species__taxonomy", flat=True)
-                .distinct()
-            )
-            genus_qs = (
-                Taxonomy.objects.filter(id__in=taxonomy_qs)
-                .values_list("genus", flat=True)
-                .distinct()
-            )
-            generas = Genus.objects.filter(
-                id__in=genus_qs
-            )  # TODO will need to filter according to  group  selection
-            if generas:
-                for genus in generas:
-                    genus_list.append(
-                        {
-                            "id": genus.id,
-                            "name": genus.name,
-                        }
-                    )
 
         processing_status_list = []
         processing_statuses = (
@@ -1934,7 +1910,6 @@ class ConservationStatusReferralViewSet(
             "common_name_list": common_name_list,
             "family_list": family_list,
             "phylogenetic_group_list": phylogenetic_group_list,
-            "genus_list": genus_list,
             "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
             "wa_priority_categories": WAPriorityCategory.get_categories_dict(
                 group_type
