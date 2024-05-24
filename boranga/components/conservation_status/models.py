@@ -665,6 +665,7 @@ class ConservationStatus(RevisionedMixin):
     @property
     def can_officer_process(self):
         officer_view_state = [
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_DRAFT,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
@@ -1249,8 +1250,9 @@ class ConservationStatus(RevisionedMixin):
                 meeting__processing_status__in=added_to_meeting_status
             ).exists():
                 raise ValidationError(
-                    "This conservation status can not be approved as there are no meetings "
-                    "for the minister approval that are scheduled or completed"
+                    f"Conservation status {self} can not be approved as there are no meetings "
+                    f"for ministerial approval that are currently scheduled or completed that "
+                    f"include {self} in the agenda."
                 )
 
         # Add the approval document first to to get the reference id in below model
@@ -1371,9 +1373,7 @@ class ConservationStatus(RevisionedMixin):
                 "You cannot propose for ready for agenda if it is not with assessor"
             )
 
-        (self.processing_status,) = (
-            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
-        )
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
         self.customer_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
         self.save()
 
