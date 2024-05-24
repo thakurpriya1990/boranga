@@ -1584,6 +1584,17 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
             if serializer.is_valid():
                 serializer.save()
 
+        if proposal_data.get("vegetation_structure"):
+            veg_struct_instance, created = OCRVegetationStructure.objects.get_or_create(
+                occurrence_report=instance
+            )
+            serializer = SaveOCRVegetationStructureSerializer(
+                veg_struct_instance, data=proposal_data.get("vegetation_structure")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
         if proposal_data.get("fire_history"):
             fire_instance, created = OCRFireHistory.objects.get_or_create(
                 occurrence_report=instance
@@ -3544,6 +3555,17 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
             )
             serializer = SaveOCCHabitatConditionSerializer(
                 hab_cond_instance, data=request_data.get("habitat_condition")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        if request_data.get("vegetation_structure"):
+            veg_struct_instance, created = OCCVegetationStructure.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCVegetationStructureSerializer(
+                veg_struct_instance, data=request_data.get("vegetation_structure")
             )
             serializer.is_valid(raise_exception=True)
             if serializer.is_valid():

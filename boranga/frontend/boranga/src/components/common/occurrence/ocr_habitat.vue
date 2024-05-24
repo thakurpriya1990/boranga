@@ -297,7 +297,7 @@ export default {
                 habitat_cond_sum: 0,
                 updatingHabitatCompositionDetails: false,
                 updatingHabitatConditionDetails: false,
-                updateVegetationStructure: false,
+                updatingVegetationStructure: false,
                 updatingFireHistoryDetails: false,
                 updatingAssociatedSpeciesDetails: false,
             }

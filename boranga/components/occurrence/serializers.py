@@ -899,6 +899,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "location",
             "habitat_composition",
             "habitat_condition",
+            "vegetation_structure",
             "fire_history",
             "associated_species",
             "observation_detail",
@@ -957,7 +958,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_vegetation_structure(self, obj):
         try:
-            qs = OCRVegetationStructure.objects.get(occurrence=obj)
+            qs = OCRVegetationStructure.objects.get(occurrence_report=obj)
             return OCRVegetationStructureSerializer(qs).data
         except OCRVegetationStructure.DoesNotExist:
             return OCRVegetationStructureSerializer().data
@@ -1147,6 +1148,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "location",
             "habitat_composition",
             "habitat_condition",
+            "vegetation_structure",
             "fire_history",
             "associated_species",
             "observation_detail",
