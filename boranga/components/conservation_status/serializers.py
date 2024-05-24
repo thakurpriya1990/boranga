@@ -714,6 +714,8 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "readonly",
             "lodgement_date",
             "listing_date",
+            "effective_from",
+            "effective_to",
             "review_date",
             "submitter",
             "applicant_type",
