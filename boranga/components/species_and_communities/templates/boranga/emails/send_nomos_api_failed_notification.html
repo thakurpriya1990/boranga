@@ -4,8 +4,8 @@
  
         <p>The following are the errors for NOMOS management Script failed:</p>
         <br>
-        {{ errors }} <br>
+        {% for e in errors %}
+                {{ e }} <br>
+        {% endfor %}
         <br>
-        <p>Please investigate and resend invoices.</p>
-
 {%  endblock %}
