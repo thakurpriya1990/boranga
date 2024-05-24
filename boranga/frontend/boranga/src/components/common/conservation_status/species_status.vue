@@ -83,33 +83,35 @@
                         </select>
                     </div>
                 </div>
-                <div class="row mb-3 border-top pt-3">
+                <div v-if="conservation_status_obj.effective_from || conservation_status_obj.effective_to"
+                    class="row mb-3 border-top pt-3">
                     <template v-if="conservation_status_obj.effective_from">
                         <label for="effective_from" class="col-sm-3 col-form-label">Effective From:</label>
                         <div class="col-sm-3">
                             <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="effective_from"
-                                v-model="conservation_status_obj.effective_from" :disabled="true"
-                                :required="!effective_from_date_disabled" />
+                                v-model="conservation_status_obj.effective_from" :disabled="true" />
                         </div>
                     </template>
-                    <template v-if="conservation_status_obj.effective_from">
+                    <template v-if="conservation_status_obj.effective_to">
                         <label for="effective_to" class="col-sm-3 col-form-label">Effective to:</label>
                         <div class="col-sm-3">
                             <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control" id="effective_to"
-                                v-model="conservation_status_obj.effective_to" />
+                                v-model="conservation_status_obj.effective_to" :disabled="true" />
                         </div>
                     </template>
                 </div>
-                <div class="row mb-3">
+                <div v-if="show_listing_and_review_date" class="row mb-3" :class="conservation_status_obj.effective_from || conservation_status_obj.effective_to ? '' : 'border-top pt-3'">
                     <label for="listing_date" class="col-sm-3 col-form-label">Date First Listed:</label>
                     <div class="col-sm-3">
                         <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="listing_date"
-                            v-model="conservation_status_obj.listing_date" />
+                            v-model="conservation_status_obj.listing_date"
+                            :disabled="show_listing_and_review_date_disabled" />
                     </div>
                     <label for="review_date" class="col-sm-3 col-form-label">Review Date:</label>
                     <div class="col-sm-3">
                         <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="review_date"
-                            v-model="conservation_status_obj.review_date" />
+                            v-model="conservation_status_obj.review_date"
+                            :disabled="show_listing_and_review_date_disabled" />
                     </div>
                 </div>
             </template>
@@ -485,16 +487,17 @@ export default {
     },
     computed: {
         show_administrative_information: function () {
-            return !this.is_external && this.conservation_status_obj.species_id;
+            return !this.is_external &&
+                this.conservation_status_obj.species_id &&
+                this.conservation_status_obj.processing_status != "Draft";
         },
         show_proposed_conservation_status: function () {
             return this.conservation_status_obj.species_id;
         },
-        show_effective_from_date: function () {
-            if (this.conservation_status_obj.processing_status == "With Assessor") {
-                return this.conservation_status_obj.approval_level == "intermediate";
-            }
-            return true;
+        show_listing_and_review_date: function () {
+            return this.conservation_status_obj.listing_date ||
+                this.conservation_status_obj.review_date ||
+                this.conservation_status_obj.processing_status == "With Assessor";
         },
         approval_level_disabled: function () {
             return !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
