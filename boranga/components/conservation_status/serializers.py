@@ -658,6 +658,7 @@ class CurrentConservationStatusSerializer(serializers.ModelSerializer):
         model = ConservationStatus
         fields = [
             "id",
+            "conservation_status_number",
             "wa_legislative_list_id",
             "wa_legislative_category_id",
             "wa_priority_list_id",
