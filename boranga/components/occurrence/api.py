@@ -3531,6 +3531,68 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         res_json = json.dumps(related_type)
         return HttpResponse(res_json, content_type="application/json")
 
+    # used for Location Tab of Occurrence external form
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        url_path="location-list-of-values",
+    )
+    def location_list_of_values(self, request, *args, **kwargs):
+        """used for Occurrence external form"""
+        qs = self.get_queryset()
+        datum_list = []
+
+        id = request.GET.get("id", None)
+        try:
+            qs = qs.get(id=id)
+        except Occurrence.DoesNotExist:
+            logger.error(f"Occurrence with id {id} not found")
+        else:
+            pass
+            #ocr_geometries = qs.ocr_geometry.all().exclude(**{"geometry": None})
+            #epsg_codes = [
+            #    str(g.srid)
+            #    for g in ocr_geometries.values_list("geometry", flat=True).distinct()
+            #]
+            ## Add the srids of the original geometries to epsg_codes
+            #original_geometry_srids = [
+            #    str(g.original_geometry_srid) for g in ocr_geometries
+            #]
+            #epsg_codes += [g for g in original_geometry_srids if g.isnumeric()]
+            #epsg_codes = list(set(epsg_codes))
+            #datum_list = search_datums("", codes=epsg_codes)
+            datum_list = []
+
+        coordination_source_list = []
+        values = CoordinationSource.objects.all()
+        if values:
+            for val in values:
+                coordination_source_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        location_accuracy_list = []
+        values = LocationAccuracy.objects.all()
+        if values:
+            for val in values:
+                location_accuracy_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        res_json = {
+            "datum_list": datum_list,
+            "coordination_source_list": coordination_source_list,
+            "location_accuracy_list": location_accuracy_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
