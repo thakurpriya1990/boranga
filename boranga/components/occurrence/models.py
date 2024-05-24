@@ -3163,6 +3163,70 @@ class OCCLocation(models.Model):
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?
 
+#TODO do we need a separate model for OCC and OCR here?
+class OccurrenceGeometryManager(models.Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        polygon_ids = qs.extra(
+            where=["geometrytype(geometry) LIKE 'POLYGON'"]
+        ).values_list("id", flat=True)
+        return qs.annotate(
+            area=models.Case(
+                models.When(
+                    models.Q(geometry__isnull=False) & models.Q(id__in=polygon_ids),
+                    then=Area(
+                        Cast("geometry", gis_models.PolygonField(geography=True))
+                    ),
+                ),
+                default=None,
+            )
+        )
+
+class OccurrenceGeometry(models.Model):
+    objects = OccurrenceGeometryManager()
+
+    EXTENT = (112.5, -35.5, 129.0, -13.5)
+
+    occurrence = models.ForeignKey(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="occ_geometry",
+    )
+    # Extents of WA
+    geometry = gis_models.GeometryField(extent=EXTENT, blank=True, null=True)
+    original_geometry_ewkb = models.BinaryField(
+        blank=True, null=True, editable=True
+    )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
+    intersects = models.BooleanField(default=False)
+    copied_from = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, blank=True, null=True
+    )
+    drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
+    locked = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        if (
+            self.occurrence.group_type.name == GroupType.GROUP_TYPE_FAUNA
+            and type(self.geometry).__name__ in ["Polygon", "MultiPolygon"]
+        ):
+            raise ValidationError("Fauna occurrences cannot have polygons")
+
+        if not self.geometry.within(
+            GEOSGeometry(Polygon.from_bbox(self.EXTENT), srid=4326)
+        ):
+            raise ValidationError(
+                "A geometry is not within the extent of Western Australia"
+            )
+
+        super().save(*args, **kwargs)
+
 
 class OCCObserverDetail(models.Model):
     """

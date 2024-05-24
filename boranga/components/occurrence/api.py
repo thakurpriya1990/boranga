@@ -150,7 +150,8 @@ from boranga.components.occurrence.serializers import (
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
     process_shapefile_document,
-    save_geometry,
+    save_ocr_geometry,
+    save_occ_geometry,
     validate_map_files,
 )
 from boranga.components.species_and_communities.models import (
@@ -1242,7 +1243,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
         # ocr geometry data to save seperately
         geometry_data = request.data.get("ocr_geometry")
         if geometry_data:
-            save_geometry(request, ocr_instance, geometry_data)
+            save_ocr_geometry(request, ocr_instance, geometry_data)
 
         # print(request.data.get('geojson_polygon'))
         # polygon = request.data.get('geojson_polygon')
@@ -1680,7 +1681,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
         # ocr geometry data to save seperately
         geometry_data = proposal_data.get("ocr_geometry", None)
         if geometry_data:
-            save_geometry(request, instance, geometry_data)
+            save_ocr_geometry(request, instance, geometry_data)
 
         serializer = SaveOccurrenceReportSerializer(
             instance, data=proposal_data, partial=True
@@ -3551,19 +3552,18 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
             logger.error(f"Occurrence with id {id} not found")
         else:
             pass
-            #ocr_geometries = qs.ocr_geometry.all().exclude(**{"geometry": None})
-            #epsg_codes = [
-            #    str(g.srid)
-            #    for g in ocr_geometries.values_list("geometry", flat=True).distinct()
-            #]
-            ## Add the srids of the original geometries to epsg_codes
-            #original_geometry_srids = [
-            #    str(g.original_geometry_srid) for g in ocr_geometries
-            #]
-            #epsg_codes += [g for g in original_geometry_srids if g.isnumeric()]
-            #epsg_codes = list(set(epsg_codes))
-            #datum_list = search_datums("", codes=epsg_codes)
-            datum_list = []
+            occ_geometries = qs.occ_geometry.all().exclude(**{"geometry": None})
+            epsg_codes = [
+                str(g.srid)
+                for g in occ_geometries.values_list("geometry", flat=True).distinct()
+            ]
+            # Add the srids of the original geometries to epsg_codes
+            original_geometry_srids = [
+                str(g.original_geometry_srid) for g in occ_geometries
+            ]
+            epsg_codes += [g for g in original_geometry_srids if g.isnumeric()]
+            epsg_codes = list(set(epsg_codes))
+            datum_list = search_datums("", codes=epsg_codes)
 
         coordination_source_list = []
         values = CoordinationSource.objects.all()
@@ -3716,9 +3716,9 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
                 serializer.save()
 
         # occ geometry data to save seperately TODO: determine what is needed here
-        #geometry_data = request_data.get("occ_geometry", None)
-        #if geometry_data:
-        #    save_geometry(request, instance, geometry_data)
+        geometry_data = request_data.get("occ_geometry", None)
+        if geometry_data:
+            save_occ_geometry(request, instance, geometry_data)
 
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -3789,9 +3789,9 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         )
 
         # occ geometry data to save seperately TODO
-        #geometry_data = request.data.get("occ_geometry")
-        #if geometry_data:
-        #    save_geometry(request, occ_instance, geometry_data)
+        geometry_data = request.data.get("occ_geometry")
+        if geometry_data:
+            save_occ_geometry(request, occ_instance, geometry_data)
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")

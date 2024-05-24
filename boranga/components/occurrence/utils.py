@@ -23,16 +23,18 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportGeometry,
     OccurrenceReportUserAction,
+    OccurrenceGeometry,
 )
 from boranga.components.occurrence.serializers import (
     OccurrenceReportGeometrySaveSerializer,
+    OccurrenceGeometrySaveSerializer,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger(__name__)
 
 
-def save_geometry(request, instance, geometry_data):
+def save_ocr_geometry(request, instance, geometry_data):
     if not geometry_data:
         logger.warn("No Occurrence Report geometry to save")
         return
@@ -135,6 +137,108 @@ def save_geometry(request, instance, geometry_data):
             f"Deleted OccurrenceReport geometries: {deleted_geometries} for {instance}"
         )
 
+def save_occ_geometry(request, instance, geometry_data):
+    if not geometry_data:
+        logger.warn("No Occurrence geometry to save")
+        return
+
+    geometry = json.loads(geometry_data)
+    if (
+        0 == len(geometry["features"])
+        and 0
+        == OccurrenceGeometry.objects.filter(occurrence=instance).count()
+    ):
+        # No feature to save and no feature to delete
+        logger.warn("Occurrence geometry has no features to save or delete")
+        return
+
+    action = request.data.get("action", None)
+
+    geometry_ids = []
+    for feature in geometry.get("features"):
+        supported_geometry_types = ["MultiPolygon", "Polygon", "MultiPoint", "Point"]
+        geometry_type = feature.get("geometry").get("type")
+        # Check if feature is of a supported type, continue if not
+        if geometry_type not in supported_geometry_types:
+            logger.warn(
+                f"Occurrence: {instance} contains a feature that is not a "
+                f"{' or '.join(supported_geometry_types)}: {feature}"
+            )
+            continue
+
+        logger.info(
+            f"Processing Occurrence {instance} geometry feature type: {geometry_type}"
+        )
+
+        geom_4326 = feature_json_to_geosgeometry(feature)
+
+        original_geometry = feature.get("properties", {}).get("original_geometry")
+        srid_original = original_geometry.get("properties", {}).get("srid", 4326)
+        if not srid_original:
+            raise ValidationError(
+                f"Geometry must have an SRID set: {original_geometry.get('coordinates', [])}"
+            )
+
+        if not original_geometry.get("type", None):
+            original_geometry["type"] = geometry_type
+        feature_json = {"type": "Feature", "geometry": original_geometry}
+        geom_original = feature_json_to_geosgeometry(feature_json, srid_original)
+
+        geoms = [(geom_4326, geom_original)]
+
+        for geom in geoms:
+            geometry_data = {
+                "occurrence_id": instance.id,
+                "geometry": geom[0],
+                "original_geometry_ewkb": geom[1].ewkb,
+                # TODO: Add intersects condition
+                # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
+            }
+            if feature.get("id"):
+                logger.info(
+                    f"Updating existing Occurrence geometry: {feature.get('id')} for Report: {instance}"
+                )
+                try:
+                    geometry = OccurrenceGeometry.objects.get(
+                        id=feature.get("id")
+                    )
+                except OccurrenceGeometry.DoesNotExist:
+                    logger.warn(
+                        f"Occurrence geometry does not exist: {feature.get('id')}"
+                    )
+                    continue
+                geometry_data["drawn_by"] = geometry.drawn_by
+                geometry_data["locked"] = (
+                    action in ["submit"]
+                    and geometry.drawn_by == request.user.id
+                    or geometry.locked
+                )
+                serializer = OccurrenceGeometrySaveSerializer(
+                    geometry, data=geometry_data
+                )
+            else:
+                logger.info(f"Creating new geometry for Occurrence: {instance}")
+                geometry_data["drawn_by"] = request.user.id
+                geometry_data["locked"] = action in ["submit"]
+                serializer = OccurrenceGeometrySaveSerializer(data=geometry_data)
+
+            serializer.is_valid(raise_exception=True)
+            ocr_geometry_instance = serializer.save()
+            logger.info(f"Saved Occurrence geometry: {ocr_geometry_instance}")
+            geometry_ids.append(ocr_geometry_instance.id)
+
+    # Remove any ocr geometries from the db that are no longer in the ocr_geometry that was submitted
+    # Prevent deletion of polygons that are locked after status change (e.g. after submit)
+    # or have been drawn by another user
+    deleted_geometries = (
+        OccurrenceGeometry.objects.filter(occurrence=instance)
+        .exclude(Q(id__in=geometry_ids) | Q(locked=True) | ~Q(drawn_by=request.user.id))
+        .delete()
+    )
+    if deleted_geometries[0] > 0:
+        logger.info(
+            f"Deleted Occurrence geometries: {deleted_geometries} for {instance}"
+        )
 
 @transaction.atomic
 def ocr_proposal_submit(ocr_proposal, request):

@@ -534,7 +534,7 @@ export default {
             loading(true);
             fetch(
                 helpers.add_endpoint_join(
-                    api_endpoints.occurrence,
+                    api_endpoints.occurrence_report,
                     `/epsg-code-datums/?search=${search}`
                 )
             )

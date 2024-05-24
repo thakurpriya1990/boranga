@@ -28,6 +28,7 @@ from boranga.components.occurrence.models import (
     OCCVegetationStructure,
     Occurrence,
     OccurrenceDocument,
+    OccurrenceGeometry,
     OccurrenceLogEntry,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
@@ -2518,6 +2519,101 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "locality",
         )
 
+class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
+    occurrence_id = serializers.IntegerField(write_only=True, required=False)
+    geometry_source = serializers.SerializerMethodField()
+    copied_from = serializers.SerializerMethodField(read_only=True)
+    srid = serializers.SerializerMethodField(read_only=True)
+    original_geometry = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = OccurrenceGeometry
+        geo_field = "geometry"
+        fields = (
+            "id",
+            "occurrence_id",
+            "geometry",
+            "original_geometry",
+            "srid",
+            "area_sqm",
+            "area_sqhm",
+            "intersects",
+            "geometry_source",
+            "locked",
+            "copied_from",
+        )
+        read_only_fields = ("id",)
+
+    def get_srid(self, obj):
+        if obj.geometry:
+            return obj.geometry.srid
+        else:
+            return None
+
+    def get_geometry_source(self, obj):
+        return get_geometry_source(obj)
+
+    def get_copied_from(self, obj):
+        if obj.copied_from:
+            return ListOCCMinimalSerializer(
+                obj.copied_from.occurrence, context=self.context
+            ).data
+
+        return None
+
+    def get_original_geometry(self, obj):
+        if obj.original_geometry_ewkb:
+            return wkb_to_geojson(obj.original_geometry_ewkb)
+        else:
+            return None
+
+class ListOCCMinimalSerializer(serializers.ModelSerializer):
+    occ_geometry = OccurrenceGeometrySerializer(many=True, read_only=True)
+    label = serializers.SerializerMethodField(read_only=True)
+    processing_status_display = serializers.CharField(
+        read_only=True, source="get_processing_status_display"
+    )
+    lodgement_date_display = serializers.DateTimeField(
+        read_only=True, format="%d/%m/%Y", source="lodgement_date"
+    )
+    details_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Occurrence
+        fields = (
+            "id",
+            "label",
+            "occurrence_number",
+            "processing_status",
+            "processing_status_display",
+            "occ_geometry",
+            "lodgement_date",
+            "lodgement_date_display",
+            "details_url",
+        )
+
+    def get_label(self, obj):
+        return "Occurrence"
+
+    def get_details_url(self, obj):
+        request = self.context["request"]
+
+        if request.user.is_authenticated:
+            if is_internal(request):
+                return reverse(
+                    "internal-occurrence-detail",
+                    kwargs={"occurrence_pk": obj.id},
+                )
+            else:
+                return reverse(
+                    "external-occurrence-detail",
+                    kwargs={"occurrence_pk": obj.id},
+                )
+
+        return None
+
+
+
 class SaveOCCLocationSerializer(serializers.ModelSerializer):
     region_id = serializers.IntegerField(
         required=False, allow_null=True
@@ -2548,3 +2644,20 @@ class SaveOCCLocationSerializer(serializers.ModelSerializer):
             "district_id",
             "locality",
         )
+
+class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
+    occurrence_id = serializers.IntegerField(write_only=True, required=False)
+
+    class Meta:
+        model = OccurrenceGeometry
+        geo_field = "geometry"
+        fields = (
+            "id",
+            "occurrence_id",
+            "geometry",
+            "original_geometry_ewkb",
+            "intersects",
+            "drawn_by",
+            "locked",
+        )
+        read_only_fields = ("id",)
