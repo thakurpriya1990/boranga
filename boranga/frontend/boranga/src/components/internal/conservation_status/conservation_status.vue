@@ -269,7 +269,8 @@
                                     name="new_conservation_status" enctype="multipart/form-data">
                                     <ProposalConservationStatus ref="conservation_status"
                                         :conservation_status_obj="conservation_status_obj"
-                                        :canEditStatus="canEditStatus" id="ConservationStatusStart" :is_internal="true">
+                                        :canEditStatus="canEditStatus" id="ConservationStatusStart" :is_internal="true"
+                                        @approvalLevelChanged="save_wo()">
                                         <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
                                     </ProposalConservationStatus>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
@@ -494,7 +495,9 @@ export default {
                 && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
         },
         canAssess: function () {
-            return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
+            return this.conservation_status_obj &&
+                this.conservation_status_obj.assessor_mode.assessor_can_assess ||
+                this.conservation_status_obj.approver_process;
         },
         hasAssessorMode: function () {
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view

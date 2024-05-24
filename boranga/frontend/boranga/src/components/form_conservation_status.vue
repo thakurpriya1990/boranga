@@ -62,7 +62,8 @@
                     :is_external="is_external"
                     :canEditStatus="canEditStatus"
                     :conservation_status_obj="conservation_status_obj"
-                    :referral="referral">
+                    :referral="referral"
+                    @approvalLevelChanged="$emit('approvalLevelChanged');">
                 </SpeciesStatus>
               </div>
               <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
@@ -117,6 +118,7 @@
               default: true
             },
         },
+        emits: ['approvalLevelChanged'],
         data:function () {
             let vm = this;
             return{
@@ -152,14 +154,12 @@
             eventListener: function(){
               let vm=this;
             },
-
         },
         mounted: function() {
             let vm = this;
             vm.form = document.forms.new_conservation_status;
             vm.eventListener();
         }
-
     }
 </script>
 

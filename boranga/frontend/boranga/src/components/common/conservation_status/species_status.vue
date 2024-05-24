@@ -453,6 +453,7 @@ export default {
             default: true
         },
     },
+    emits: ['approvalLevelChanged'],
     data: function () {
         let vm = this;
         return {
@@ -574,6 +575,7 @@ export default {
     methods: {
         approvalLevelChanged: function () {
             this.conservation_status_obj.effective_from = null;
+            this.$emit('approvalLevelChanged');
         },
         initialiseScientificNameLookup: function () {
             let vm = this;
