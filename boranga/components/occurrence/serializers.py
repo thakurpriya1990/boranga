@@ -13,7 +13,7 @@ from boranga.components.main.spatial_utils import wkb_to_geojson
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
     LandForm,
-    Location,
+    OCRLocation,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -559,13 +559,13 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
         )
 
 
-class LocationSerializer(serializers.ModelSerializer):
+class OCRLocationSerializer(serializers.ModelSerializer):
     #observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     # geojson_point = serializers.SerializerMethodField()
     # geojson_polygon = serializers.SerializerMethodField()
 
     class Meta:
-        model = Location
+        model = OCRLocation
         fields = (
             "id",
             "occurrence_report_id",
@@ -937,10 +937,10 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_location(self, obj):
         try:
-            qs = Location.objects.get(occurrence_report=obj)
-            return LocationSerializer(qs).data
-        except Location.DoesNotExist:
-            return LocationSerializer().data
+            qs = OCRLocation.objects.get(occurrence_report=obj)
+            return OCRLocationSerializer(qs).data
+        except OCRLocation.DoesNotExist:
+            return OCRLocationSerializer().data
 
     def get_habitat_composition(self, obj):
         try:
@@ -1493,7 +1493,7 @@ class SaveOCRIdentificationSerializer(serializers.ModelSerializer):
         )
 
 
-class SaveLocationSerializer(serializers.ModelSerializer):
+class SaveOCRLocationSerializer(serializers.ModelSerializer):
     region_id = serializers.IntegerField(
         required=False, allow_null=True
     )
@@ -1509,7 +1509,7 @@ class SaveLocationSerializer(serializers.ModelSerializer):
     #)
 
     class Meta:
-        model = Location
+        model = OCRLocation
         fields = (
             "id",
             "occurrence_report_id",

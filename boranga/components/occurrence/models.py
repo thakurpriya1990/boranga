@@ -1411,7 +1411,8 @@ class Datum(models.Model):
     # Admin List
 
     Used by:
-    - Location
+    - OCRLocation
+    - OCCLocation
 
     """
 
@@ -1430,7 +1431,8 @@ class CoordinationSource(models.Model):
     # Admin List
 
     Used by:
-    - Location
+    - OCRLocation
+    - OCCLocation
 
     """
 
@@ -1451,7 +1453,8 @@ class LocationAccuracy(models.Model):
     # Admin List
 
     Used by:
-    - Location
+    - OCRLocation
+    - OCCLocation
 
     """
 
@@ -1466,8 +1469,8 @@ class LocationAccuracy(models.Model):
     def __str__(self):
         return str(self.name)
 
-#TODO eventually rename this to apply to OCR specifically when we make the OCC specific equivalent
-class Location(models.Model):
+
+class OCRLocation(models.Model):
     """
     Location data  for occurrence report
 
@@ -1503,7 +1506,6 @@ class Location(models.Model):
     district = models.ForeignKey(
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
-    #TODO either keep as free text or have a foreign model similar to district and region
     locality = models.TextField(default=None, null=True, blank=True)
 
     class Meta:
@@ -3115,6 +3117,51 @@ class OccurrenceDocument(Document):
             self.save(no_revision=True)
         # end save documents
         self.save(*args, **kwargs)
+
+
+class OCCLocation(models.Model):
+    """
+    Location data  for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence, on_delete=models.CASCADE, null=True, related_name="location"
+    )
+    location_description = models.TextField(null=True, blank=True)
+    boundary_description = models.TextField(null=True, blank=True)
+
+    boundary = models.IntegerField(null=True, blank=True, default=0)
+    mapped_boundary = models.BooleanField(null=True, blank=True)
+    buffer_radius = models.IntegerField(null=True, blank=True, default=0)
+    datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
+    epsg_code = models.IntegerField(null=False, blank=False, default=4326)
+    coordination_source = models.ForeignKey(
+        CoordinationSource, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    location_accuracy = models.ForeignKey(
+        LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
+    geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
+
+    region = models.ForeignKey(
+        Region, default=None, on_delete=models.CASCADE, null=True, blank=True
+    )
+    district = models.ForeignKey(
+        District, default=None, on_delete=models.CASCADE, null=True, blank=True
+    )
+    locality = models.TextField(default=None, null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)  # TODO: is the most appropriate?
 
 
 class OCCObserverDetail(models.Model):

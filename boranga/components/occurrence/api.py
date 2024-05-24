@@ -44,7 +44,7 @@ from boranga.components.occurrence.models import (
     IdentificationCertainty,
     Intensity,
     LandForm,
-    Location,
+    OCRLocation,
     LocationAccuracy,
     ObservationMethod,
     OCCAnimalObservation,
@@ -119,7 +119,7 @@ from boranga.components.occurrence.serializers import (
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
-    SaveLocationSerializer,
+    SaveOCRLocationSerializer,
     SaveOCCAnimalObservationSerializer,
     SaveOCCAssociatedSpeciesSerializer,
     SaveOCCConservationThreatSerializer,
@@ -692,7 +692,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
         data = {"occurrence_report_id": new_instance.id}
 
         # create Location for new instance
-        serializer = SaveLocationSerializer(data=data)
+        serializer = SaveOCRLocationSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -1221,7 +1221,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
         self.is_authorised_to_update()
         ocr_instance = self.get_object()
 
-        location_instance, created = Location.objects.get_or_create(
+        location_instance, created = OCRLocation.objects.get_or_create(
             occurrence_report=ocr_instance
         )
         # species_id saved seperately as its not field of Location but OCR
@@ -1252,7 +1252,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")
-        serializer = SaveLocationSerializer(
+        serializer = SaveOCRLocationSerializer(
             location_instance, data=location_data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
@@ -1665,10 +1665,10 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin)
                 serializer.save()
 
         if proposal_data.get("location"):
-            location_instance, created = Location.objects.get_or_create(
+            location_instance, created = OCRLocation.objects.get_or_create(
                 occurrence_report=instance
             )
-            serializer = SaveLocationSerializer(
+            serializer = SaveOCRLocationSerializer(
                 location_instance, data=proposal_data.get("location")
             )
             serializer.is_valid(raise_exception=True)
@@ -3275,7 +3275,7 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         data = {"occurrence_id": new_instance.id}
 
         # create Location for new instance TODO
-        # serializer = SaveLocationSerializer(data=data)
+        # serializer = SaveOCCLocationSerializer(data=data)
         # serializer.is_valid(raise_exception=True)
         # serializer.save()
 
@@ -3642,10 +3642,10 @@ class OccurrenceViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
 
         #TODO: adjust and enable when OCC location ready
         #if request_data.get("location"):
-        #    location_instance, created = Location.objects.get_or_create(
+        #    location_instance, created = OCCLocation.objects.get_or_create(
         #        occurrence=instance
         #    )
-        #    serializer = SaveLocationSerializer(
+        #    serializer = SaveOCCLocationSerializer(
         #        location_instance, data=request_data.get("location")
         #    )
         #    serializer.is_valid(raise_exception=True)
