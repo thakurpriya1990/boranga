@@ -346,6 +346,9 @@ def validate_map_files(request, instance, foreign_key_field=None):
         if gdf.empty:
             raise ValidationError(f"Geometry is empty in {shp_file_obj.name}")
 
+        # spatial reference identifier of the original uploaded geometry
+        original_srid = SpatialReference(gdf.geometry.crs.srs).srid
+
         # If no prj file assume WGS-84 datum
         if not gdf.crs:
             gdf_transform = gdf.set_crs("epsg:4326", inplace=True)
@@ -361,12 +364,13 @@ def validate_map_files(request, instance, foreign_key_field=None):
 
         # Check for intersection with DBCA geometries
         gdf_transform["valid"] = False
-        for geom in geometries:
-            srid = SpatialReference(
-                geometries.crs.srs
-            ).srid  # spatial reference identifier
+        for idx, row in gdf_transform.iterrows():
+            srid = 4326  # We transformed to 4326 above
 
-            geometry = GEOSGeometry(geom.wkt, srid=srid)
+            geometry = GEOSGeometry(row.geometry.wkt, srid=srid)
+            original_geometry = GEOSGeometry(
+                gdf.loc[idx, "geometry"].wkt, srid=original_srid
+            )
 
             # Add the file name as identifier to the geojson for use in the frontend
             if "source_" not in gdf_transform:
@@ -384,10 +388,8 @@ def validate_map_files(request, instance, foreign_key_field=None):
             geometry_model.objects.create(
                 **{
                     foreign_key_field: instance,
-                    "polygon": (
-                        geometry if geom_type in ["Polygon", "MultiPolygon"] else None
-                    ),
-                    "point": geometry if geom_type in ["Point", "MultiPoint"] else None,
+                    "geometry": geometry,
+                    "original_geometry_ewkb": original_geometry.ewkb,
                     "intersects": True,
                     "drawn_by": request.user.id,
                 }

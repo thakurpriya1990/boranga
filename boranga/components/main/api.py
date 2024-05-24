@@ -118,9 +118,9 @@ def proj4_string_from_epsg_code(code):
     return "+".join(prj_split)
 
 
-def get_cached_epsg_codes(auth_name="EPSG", pj_type="GEODETIC_CRS"):
+def get_cached_epsg_codes(auth_name="EPSG", pj_type="CRS"):
     # TODO: This is a temporary solution to get the geodetic datums for australia
-    cool_codes = ["4203", "4202", "7842", "7844", "4283", "4326"]
+    cool_codes = ["4203", "4202", "7842", "7844", "4283", "4326", "3857"]
 
     cache_key = settings.CACHE_KEY_EPSG_CODES.format(
         **{"auth_name": auth_name, "pj_type": pj_type, "codes": "-".join(cool_codes)}
