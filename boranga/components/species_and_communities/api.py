@@ -11,12 +11,10 @@ from django.db import transaction
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
-from django.shortcuts import redirect
-from django.urls import reverse
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import status, views, viewsets
+from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -48,6 +46,7 @@ from boranga.components.species_and_communities.models import (
     CommunityConservationAttributes,
     CommunityDistribution,
     CommunityDocument,
+    CommunityPublishingStatus,
     CommunityTaxonomy,
     CommunityUserAction,
     ConservationThreat,
@@ -68,6 +67,7 @@ from boranga.components.species_and_communities.models import (
     SpeciesConservationAttributes,
     SpeciesDistribution,
     SpeciesDocument,
+    SpeciesPublishingStatus,
     SpeciesUserAction,
     Taxonomy,
     TaxonVernacular,
@@ -91,12 +91,14 @@ from boranga.components.species_and_communities.serializers import (
     SaveCommunityConservationAttributesSerializer,
     SaveCommunityDistributionSerializer,
     SaveCommunityDocumentSerializer,
+    SaveCommunityPublishingStatusSerializer,
     SaveCommunitySerializer,
     SaveCommunityTaxonomySerializer,
     SaveConservationThreatSerializer,
     SaveSpeciesConservationAttributesSerializer,
     SaveSpeciesDistributionSerializer,
     SaveSpeciesDocumentSerializer,
+    SaveSpeciesPublishingStatusSerializer,
     SaveSpeciesSerializer,
     SpeciesDistributionSerializer,
     SpeciesDocumentSerializer,
@@ -111,7 +113,7 @@ from boranga.components.species_and_communities.utils import (
     rename_species_original_submit,
     species_form_submit,
 )
-from boranga.helpers import is_internal
+from boranga.helpers import is_customer, is_internal
 
 logger = logging.getLogger(__name__)
 
@@ -628,7 +630,7 @@ class GetDocumentCategoriesDict(views.APIView):
 
 
 # Not used now on SpeciesProfile
-class TaxonomyViewSet(viewsets.ModelViewSet):
+class TaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Taxonomy.objects.none()
     serializer_class = TaxonomySerializer
 
@@ -724,7 +726,7 @@ class GetSpeciesProfileDict(views.APIView):
 
 
 # Not used now on CommunityProfile
-class CommunityTaxonomyViewSet(viewsets.ModelViewSet):
+class CommunityTaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CommunityTaxonomy.objects.none()
     serializer_class = CommunityTaxonomySerializer
 
@@ -853,7 +855,9 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if not is_internal(self.request):
-            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE)
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(
+                species_publishing_status__species_public=True
+            )
         return qs
 
     @list_route(
@@ -1079,7 +1083,9 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if not is_internal(self.request):
-            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE)
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(
+                community_publishing_status__community_public=True
+            )
         return qs
 
     @list_route(
@@ -1210,12 +1216,85 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response(status=400, data="Format not valid")
 
 
+class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Community.objects.none()
+    serializer_class = CommunitySerializer
+
+    def get_queryset(self):
+        if is_internal(self.request):  # user.is_authenticated():
+            qs = Community.objects.all()
+            return qs
+        elif is_customer(self.request):
+            qs = Community.objects.filter(
+                processing_status=Species.PROCESSING_STATUS_ACTIVE
+            ).filter(community_publishing_status__community_public=True)
+            return qs
+        return Community.objects.none()
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def threats(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.community_publishing_status.threats_public:
+            raise serializers.ValidationError(
+                "Threats are not publicly visible for this record"
+            )
+        qs = instance.community_threats.all()
+        qs = qs.order_by("-date_observed")
+
+        filter_backend = ConservationThreatFilterBackend()
+        qs = filter_backend.filter_queryset(self.request, qs, self)
+
+        serializer = ConservationThreatSerializer(
+            qs, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+
 class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Species.objects.all()
+    queryset = Species.objects.none()
     serializer_class = SpeciesSerializer
 
+    def get_queryset(self):
+        if is_internal(self.request):  # user.is_authenticated():
+            qs = Species.objects.all()
+            return qs
+        elif is_customer(self.request):
+            qs = Species.objects.filter(
+                processing_status=Species.PROCESSING_STATUS_ACTIVE
+            ).filter(species_publishing_status__species_public=True)
+            return qs
+        return Species.objects.none()
 
-class SpeciesViewSet(viewsets.ModelViewSet):
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def threats(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.species_publishing_status.threats_public:
+            raise serializers.ValidationError(
+                "Threats are not publicly visible for this record"
+            )
+        qs = instance.species_threats.all()
+        qs = qs.order_by("-date_observed")
+
+        filter_backend = ConservationThreatFilterBackend()
+        qs = filter_backend.filter_queryset(self.request, qs, self)
+
+        serializer = ConservationThreatSerializer(
+            qs, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+
+class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Species.objects.none()
     serializer_class = InternalSpeciesSerializer
     lookup_field = "id"
@@ -1226,8 +1305,8 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             return qs
         return Species.objects.none()
 
-    def get_serializer_class(self):
-        return SpeciesSerializer
+    # def get_serializer_class(self):
+    #    return SpeciesSerializer
 
     @detail_route(
         methods=[
@@ -1346,6 +1425,12 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
 
+        publishing_status_instance, created = (
+            SpeciesPublishingStatus.objects.get_or_create(species=instance)
+        )
+        publishing_status_instance.species_public = False
+        publishing_status_instance.save()
+
         serializer = SaveSpeciesSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
@@ -1356,7 +1441,37 @@ class SpeciesViewSet(viewsets.ModelViewSet):
                 request,
             )
 
-        return redirect(reverse("internal"))
+        serializer = InternalSpeciesSerializer(instance, context={"request": request})
+
+        return Response(serializer.data)
+
+    @detail_route(methods=["post"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @transaction.atomic
+    def update_publishing_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        request_data = request.data
+        publishing_status_instance, created = (
+            SpeciesPublishingStatus.objects.get_or_create(species=instance)
+        )
+        serializer = SaveSpeciesPublishingStatusSerializer(
+            publishing_status_instance,
+            data=request_data,
+        )
+        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            if (
+                instance.processing_status != "active"
+                and serializer.validated_data["species_public"]
+            ):
+                raise serializers.ValidationError(
+                    "non-active species record cannot be made public"
+                )
+            serializer.save()
+
+        instance.save(version_user=request.user)
+
+        return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -1384,6 +1499,19 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             serializer = SaveSpeciesConservationAttributesSerializer(
                 conservation_attributes_instance,
                 data=request_data.get("conservation_attributes"),
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        # TODO - move this to dedicated save and replace with setting to private
+        if request_data.get("publishing_status"):
+            publishing_status_instance, created = (
+                SpeciesPublishingStatus.objects.get_or_create(species=instance)
+            )
+            serializer = SaveSpeciesPublishingStatusSerializer(
+                publishing_status_instance,
+                data=request_data.get("publishing_status"),
             )
             serializer.is_valid(raise_exception=True)
             if serializer.is_valid():
@@ -1642,6 +1770,11 @@ class SpeciesViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
+            # create SpeciesPublishingStatus for new instance
+            serializer = SaveSpeciesPublishingStatusSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
             headers = self.get_success_headers(serializer.data)
 
             return Response(
@@ -1784,7 +1917,7 @@ class SpeciesViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CommunityViewSet(viewsets.ModelViewSet):
+class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Community.objects.none()
     serializer_class = InternalCommunitySerializer
     lookup_field = "id"
@@ -1795,8 +1928,8 @@ class CommunityViewSet(viewsets.ModelViewSet):
             return qs
         return Community.objects.none()
 
-    def get_serializer_class(self):
-        return CommunitySerializer
+    # def get_serializer_class(self):
+    #    return CommunitySerializer
 
     @detail_route(
         methods=[
@@ -1931,6 +2064,12 @@ class CommunityViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
 
+        publishing_status_instance, created = (
+            CommunityPublishingStatus.objects.get_or_create(community=instance)
+        )
+        publishing_status_instance.community_public = False
+        publishing_status_instance.save()
+
         serializer = SaveCommunitySerializer(instance, data=request_data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
@@ -1943,7 +2082,37 @@ class CommunityViewSet(viewsets.ModelViewSet):
                 request,
             )
 
-        return redirect(reverse("internal"))
+        serializer = InternalCommunitySerializer(instance, context={"request": request})
+
+        return Response(serializer.data)
+
+    @detail_route(methods=["post"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @transaction.atomic
+    def update_publishing_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        request_data = request.data
+        publishing_status_instance, created = (
+            CommunityPublishingStatus.objects.get_or_create(community=instance)
+        )
+        serializer = SaveCommunityPublishingStatusSerializer(
+            publishing_status_instance,
+            data=request_data,
+        )
+        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            if (
+                instance.processing_status != "active"
+                and serializer.validated_data["community_public"]
+            ):
+                raise serializers.ValidationError(
+                    "non-active community record cannot be made public"
+                )
+            serializer.save()
+
+        instance.save(version_user=request.user)
+
+        return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -1977,6 +2146,11 @@ class CommunityViewSet(viewsets.ModelViewSet):
 
             # create CommunityConservationAttributes for new instance
             serializer = SaveCommunityConservationAttributesSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            # create CommunityPublishingStatus for new instance
+            serializer = SaveCommunityPublishingStatusSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
@@ -2121,7 +2295,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class SpeciesDocumentViewSet(viewsets.ModelViewSet):
+class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = SpeciesDocument.objects.none()
     serializer_class = SpeciesDocumentSerializer
 
@@ -2203,7 +2377,7 @@ class SpeciesDocumentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CommunityDocumentViewSet(viewsets.ModelViewSet):
+class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = CommunityDocument.objects.none()
     serializer_class = CommunityDocumentSerializer
 
@@ -2312,6 +2486,13 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
         ):
             queryset = queryset.filter(potential_impact=filter_threat_potential_impact)
 
+        filter_threat_status = request.GET.get("filter_threat_status")
+        if filter_threat_status and not filter_threat_status.lower() == "all":
+            if filter_threat_status == "active":
+                queryset = queryset.filter(visible=True)
+            elif filter_threat_status == "removed":
+                queryset = queryset.filter(visible=False)
+
         def get_date(filter_date):
             date = request.GET.get(filter_date)
             if date:
@@ -2340,7 +2521,7 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class ConservationThreatViewSet(viewsets.ModelViewSet):
+class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ConservationThreat.objects.none()
     serializer_class = ConservationThreatSerializer
     filter_backends = (ConservationThreatFilterBackend,)
@@ -2349,7 +2530,42 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
         if is_internal(self.request):  # user.is_authenticated():
             qs = ConservationThreat.objects.all().order_by("id")
             return qs
+        elif is_customer(self.request):
+            qs = ConservationThreat.objects.filter(
+                (
+                    Q(species__species_publishing_status__species_public=True)
+                    & Q(species__species_publishing_status__threats_public=True)
+                )
+                | (
+                    Q(community__community_publishing_status__community_public=True)
+                    & Q(community__community_publishing_status__threats_public=True)
+                )
+            ).order_by("id")
+            return qs
         return ConservationThreat.objects.none()
+
+    def update_publishing_status(self):
+
+        # if the parent species or community of this threat is public
+        # AND the threat section has been made public
+        # revert back to private on any change
+        instance = self.get_object()
+        if instance.species:
+            publishing_status_instance, created = (
+                SpeciesPublishingStatus.objects.get_or_create(species=instance.species)
+            )
+            if publishing_status_instance.threats_public:
+                publishing_status_instance.species_public = False
+                publishing_status_instance.save()
+        elif instance.community:
+            publishing_status_instance, created = (
+                CommunityPublishingStatus.objects.get_or_create(
+                    community=instance.community
+                )
+            )
+            if publishing_status_instance.threats_public:
+                publishing_status_instance.community_public = False
+                publishing_status_instance.save()
 
     # used for Threat Form dropdown lists
     @list_route(
@@ -2428,6 +2644,8 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def discard(self, request, *args, **kwargs):
+        if not is_internal(self.request):  # TODO group checks
+            raise serializers.ValidationError("user not authorised to discard threat")
         instance = self.get_object()
         instance.visible = False
         instance.save(version_user=request.user)
@@ -2445,6 +2663,9 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
                 ),
                 request,
             )
+
+        self.update_publishing_status()
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -2455,6 +2676,8 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def reinstate(self, request, *args, **kwargs):
+        if not is_internal(self.request):  # TODO group checks
+            raise serializers.ValidationError("user not authorised to reinstate threat")
         instance = self.get_object()
         instance.visible = True
         instance.save(version_user=request.user)
@@ -2472,11 +2695,16 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
                 ),
                 request,
             )
+
+        self.update_publishing_status()
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
+        if not is_internal(self.request):  # TODO group checks
+            raise serializers.ValidationError("user not authorised to update threat")
         instance = self.get_object()
         serializer = SaveConservationThreatSerializer(
             instance, data=json.loads(request.data.get("data"))
@@ -2498,11 +2726,16 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
                 ),
                 request,
             )
+
+        self.update_publishing_status()
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
+        if not is_internal(self.request):  # TODO group checks
+            raise serializers.ValidationError("user not authorised to create threat")
         serializer = SaveConservationThreatSerializer(
             data=json.loads(request.data.get("data"))
         )
@@ -2516,6 +2749,12 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
                 ),
                 request,
             )
+            publishing_status_instance, created = (
+                SpeciesPublishingStatus.objects.get_or_create(species=instance.species)
+            )
+            if publishing_status_instance.threats_public:
+                publishing_status_instance.species_public = False
+                publishing_status_instance.save()
         elif instance.community:
             instance.community.log_user_action(
                 CommunityUserAction.ACTION_ADD_THREAT.format(
@@ -2523,5 +2762,14 @@ class ConservationThreatViewSet(viewsets.ModelViewSet):
                 ),
                 request,
             )
+            publishing_status_instance, created = (
+                CommunityPublishingStatus.objects.get_or_create(
+                    community=instance.community
+                )
+            )
+            if publishing_status_instance.threats_public:
+                publishing_status_instance.community_public = False
+                publishing_status_instance.save()
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)

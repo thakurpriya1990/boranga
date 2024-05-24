@@ -161,6 +161,7 @@ class GroupType(models.Model):
         max_length=64,
         choices=GROUP_TYPES,
         default=GROUP_TYPES[1],
+        verbose_name="GroupType Name"
     )
 
     class Meta:
@@ -277,16 +278,6 @@ class Taxonomy(models.Model):
         blank=True,
         related_name="taxons",
     )
-    family_nid = models.IntegerField(null=True, blank=True)
-    family_fk = models.ForeignKey(
-        "self",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="taxon_family",
-    )
-    genus = models.ForeignKey(Genus, on_delete=models.SET_NULL, null=True, blank=True)
-    # phylogenetic_group is only used for Fauna
     name_currency = models.CharField(
         max_length=16, null=True, blank=True
     )  # is it the current name? yes or no
@@ -303,6 +294,8 @@ class Taxonomy(models.Model):
     class Meta:
         app_label = "boranga"
         ordering = ["scientific_name"]
+        verbose_name = "Taxonomy"
+        verbose_name_plural = "Taxonomies"
 
     def __str__(self):
         return str(self.scientific_name)  # TODO: is the most appropriate?
@@ -412,7 +405,6 @@ class ClassificationSystem(models.Model):
     """
 
     classification_system_id = models.IntegerField(null=True, blank=True)
-    class_type = models.CharField(max_length=100, null=True, blank=True)
     class_desc = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
@@ -426,7 +418,6 @@ class ClassificationSystem(models.Model):
 class InformalGroup(models.Model):
     """
     Classification informal group of taxon which is also derived from taxon
-    informal_group_id is the phylo group for taxon
     """
 
     # may need to add the classisfication system id
@@ -437,7 +428,6 @@ class InformalGroup(models.Model):
         null=True,
         related_name="informal_groups",
     )
-    informal_group_id = models.IntegerField(null=True, blank=True)
     taxon_name_id = models.IntegerField(null=True, blank=True)
     taxonomy = models.ForeignKey(
         Taxonomy, on_delete=models.CASCADE, null=True, related_name="informal_groups"
@@ -447,7 +437,7 @@ class InformalGroup(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.informal_group_id)  # TODO: is the most appropriate?
+        return str(self.classification_system_fk.class_desc)  # TODO: is the most appropriate?
 
 
 class Species(RevisionedMixin):
@@ -529,6 +519,8 @@ class Species(RevisionedMixin):
 
     class Meta:
         app_label = "boranga"
+        verbose_name = "Species"
+        verbose_name_plural = "Species"
 
     def __str__(self):
         return f"{self.species_number}"
@@ -1205,6 +1197,7 @@ class Community(RevisionedMixin):
             return False
         else:
             return self.is_approver(user)
+            return self.is_approver(user)
 
     @property
     def reference(self):
@@ -1815,7 +1808,7 @@ class ConservationThreat(RevisionedMixin):
         null=True,
         blank=True,
     )
-    comment = models.CharField(max_length=512, default="None")
+    comment = models.CharField(max_length=512, blank=True, null=True)
     date_observed = models.DateField(blank=True, null=True)
     visible = models.BooleanField(
         default=True
@@ -1844,6 +1837,69 @@ class ConservationThreat(RevisionedMixin):
         elif self.community:
             return self.community.community_number
 
+class SpeciesPublishingStatus(models.Model):
+    """
+    The public publishing status of a species instance and its sections.
+
+    Has a:
+    - species
+    Used for:
+    - Species
+    Is:
+    - Table
+    """
+
+    species = models.OneToOneField(
+        Species,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="species_publishing_status",
+    )
+
+    species_public = models.BooleanField(default=False)
+
+    distribution_public = models.BooleanField(default=False)
+    conservation_status_public = models.BooleanField(default=False)
+    conservation_attributes_public = models.BooleanField(default=False)
+    threats_public = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.species) 
+
+class CommunityPublishingStatus(models.Model):
+    """
+    The public publishing status of a community instance and its sections.
+    
+    Has a:
+    - community
+    Used for:
+    - Community
+    Is:
+    - Table
+    """
+
+    community = models.OneToOneField(
+        Community,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="community_publishing_status",
+    )
+
+    community_public = models.BooleanField(default=False)
+
+    distribution_public = models.BooleanField(default=False)
+    conservation_status_public = models.BooleanField(default=False)
+    conservation_attributes_public = models.BooleanField(default=False)
+    threats_public = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.community) 
 
 class FloraRecruitmentType(models.Model):
     """
@@ -2065,7 +2121,8 @@ reversion.register(SpeciesDocument)
 # Species History
 reversion.register(
     Species,
-    follow=["taxonomy", "species_distribution", "species_conservation_attributes"],
+    follow=["taxonomy", "species_distribution", 
+            "species_conservation_attributes", "species_publishing_status"],
 )
 reversion.register(Taxonomy, follow=["taxon_previous_queryset", "vernaculars"])
 # reversion.register(CrossReference, follow=["old_taxonomy"])
@@ -2073,6 +2130,7 @@ reversion.register(TaxonPreviousName)
 reversion.register(SpeciesDistribution)
 reversion.register(SpeciesConservationAttributes)
 reversion.register(TaxonVernacular)
+reversion.register(SpeciesPublishingStatus)
 
 # Community Document
 reversion.register(CommunityDocument)
@@ -2080,11 +2138,13 @@ reversion.register(CommunityDocument)
 # Community History
 reversion.register(
     Community,
-    follow=["taxonomy", "community_distribution", "community_conservation_attributes"],
+    follow=["taxonomy", "community_distribution", 
+            "community_conservation_attributes", "community_publishing_status"],
 )
 reversion.register(CommunityTaxonomy)
 reversion.register(CommunityDistribution)
 reversion.register(CommunityConservationAttributes)
+reversion.register(CommunityPublishingStatus)
 
 # Conservation Threat
 reversion.register(ConservationThreat)

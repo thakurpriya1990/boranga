@@ -359,7 +359,15 @@ export default {
             this.$nextTick(() => {
                 vm.addEventListeners();
             });
-        },
+    },
+    watch: {
+        isModalOpen() {
+            let vm = this;
+            if (this.isModalOpen) {
+                vm.$refs.history_datatable.vmDataTable.ajax.reload();
+            }
+        }
+    },
 };
 </script>
 

@@ -35,6 +35,16 @@
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
+                            <label for="">Status:</label>
+                            <select class="form-select" v-model="filterThreatStatus">
+                                <option value="all">All</option>
+                                <option v-for="option in threat_status_filter_list" :value="option.id">{{option.name}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
                             <label for="">Date Observed From:</label>
                             <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_from_date" v-model="filterObservedFromDate">
                         </div>
@@ -48,7 +58,7 @@
                 </div>
             </CollapsibleFilters>
             <form class="form-horizontal" action="index.html" method="post">
-                <div v-if="!species_community.readonly" class="col-sm-12">
+                <div v-if="!species_community.readonly && is_internal" class="col-sm-12">
                     <div class="text-end">
                         <button type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
                             <i class="fa-solid fa-circle-plus"></i>
@@ -62,13 +72,18 @@
                 </div>
             </form>
         </FormSection>
-        <FormSection :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
+        <FormSection v-if="is_internal" :formCollapse="false" label="Occurrence Threats" :Index="occThreatBody">
             <CommunityOCCThreats
             :community_obj="species_community"
             />
         </FormSection>
 
-        <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="threat_url"></ThreatDetail>
+        <ThreatDetail ref="threat_detail" 
+        @refreshFromResponse="refreshFromResponse" 
+        :url="threat_url"
+        :change_warning="changeWarning"
+        >      
+        </ThreatDetail>  
         <div v-if="conservationThreatHistoryId">
             <ConservationThreatHistory
                 ref="conservation_threat_history"
@@ -101,9 +116,23 @@ export default {
                 type: Object,
                 required:true
             },
+            is_readonly:{
+              type: Boolean,
+              default: false
+            },
+            is_internal:{
+              type: Boolean,
+              default: false
+            },
         },
         data:function () {
             let vm = this;
+            let url = '';
+            if (vm.is_internal) {
+                url = helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/threats')
+            } else {
+                url = helpers.add_endpoint_json("/api/external_community/",vm.species_community.id+'/threats')
+            }
             return{
                 uuid:0,
                 conservationThreatHistoryId: null,
@@ -115,12 +144,18 @@ export default {
                 filterThreatCategory: 'all',
                 filterThreatCurrentImpact: 'all',
                 filterThreatPotentialImpact: 'all',
+                filterThreatStatus: 'all',
                 filterObservedFromDate: '',
                 filterObservedToDate: '',
 
                 threat_category_filter_list: [],
                 threat_current_impact_filter_list: [],
                 threat_potential_impact_filter_list: [],
+
+                threat_status_filter_list: [
+                    {id:"active",name:"Active"},
+                    {id:"removed",name:"Removed"},
+                ],
 
                 threats_headers:['Number','Category', 'Date Observed', 'Threat Agent', 'Comments',
                                 'Current Impact', 'Potential Impact','Threat Source','Action'],
@@ -137,12 +172,13 @@ export default {
                         { responsivePriority: 2, targets: -1 },
                     ],
                     ajax:{
-                        "url": helpers.add_endpoint_json(api_endpoints.community,vm.species_community.id+'/threats'),
+                        "url": url,
                         "dataSrc": '',
                         "data": function ( d ) {
                                 d.filter_threat_category = vm.filterThreatCategory
                                 d.filter_threat_current_impact = vm.filterThreatCurrentImpact
                                 d.filter_threat_potential_impact = vm.filterThreatPotentialImpact
+                                d.filter_threat_status = vm.filterThreatStatus
                                 d.filter_observed_from_date = vm.filterObservedFromDate
                                 d.filter_observed_to_date = vm.filterObservedToDate
                             },
@@ -282,15 +318,19 @@ export default {
                             data: "id",
                             mRender:function (data,type,full){
                                 let links = '';
-                                if(full.visible){
+                                if (vm.is_internal) {
+                                    if(full.visible){
+                                        links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
+                                        links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                        links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                                    }
+                                    else{
+                                        links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+                                        links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                                    }                            
+                                } else {
                                     links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
-                                    links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
-                                }
-                                else{
-                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
-                                    links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                                 }
                                 return links;
                             }
@@ -320,6 +360,15 @@ export default {
             CollapsibleFilters,
         },
         computed: {
+            changeWarning: function() {
+                if (this.species_community.publishing_status.community_public &&
+                    this.species_community.publishing_status.threats_public
+                )
+                    return "Adding or updating a threat will set the Community record to Private."
+                else {
+                    return null
+                }
+            },
             isReadOnly: function(){
                 // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
                 if(this.is_readonly){
@@ -330,6 +379,7 @@ export default {
                 if(this.filterThreatCategory === 'all' &&
                 this.filterThreatCurrentImpact === 'all' &&
                 this.filterThreatPotentialImpact === 'all' &&
+                this.filterThreatStatus === 'all' &&
                 this.filterObservedFromDate === '' &&
                 this.filterObservedToDate === ''
                 ){
@@ -355,6 +405,10 @@ export default {
                 vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             },
             filterThreatPotentialImpact: function(){
+                let vm = this;
+                vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            },
+            filterThreatStatus: function(){
                 let vm = this;
                 vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             },
@@ -435,11 +489,21 @@ export default {
                     this.$refs.conservation_threat_history.isModalOpen = true;
                 });
             },
+            refreshSpeciesCommunity: function() {
+                let vm = this;
+                vm.$parent.refreshSpeciesCommunity();
+            },
             discardThreat:function (id) {
                 let vm = this;
+                let public_message = ""
+                if (vm.species_community.publishing_status.community_public &&
+                    vm.species_community.publishing_status.threats_public
+                ) {
+                    public_message = " Doing so will make the Species Record Private"
+                }
                 swal.fire({
                     title: "Remove Threat",
-                    text: "Are you sure you want to remove this Threat?",
+                    text: "Are you sure you want to remove this Threat?" + public_message,
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: 'Remove Threat',
@@ -455,6 +519,7 @@ export default {
                                 confirmButtonColor:'#226fbb',
                             });
                             vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                            vm.refreshSpeciesCommunity();
                         }, (error) => {
                             console.log(error);
                         });
@@ -465,9 +530,15 @@ export default {
             },
             reinstateThreat:function (id) {
                 let vm = this;
+                let public_message = ""
+                if (vm.species_community.publishing_status.community_public &&
+                    vm.species_community.publishing_status.threats_public
+                ) {
+                    public_message = " Doing so will make the Species Record Private"
+                }
                 swal.fire({
                     title: "Reinstate Threat",
-                    text: "Are you sure you want to Reinstate this Threat?",
+                    text: "Are you sure you want to Reinstate this Threat?" + public_message,
                     icon: "question",
                     showCancelButton: true,
                     confirmButtonText: 'Reinstate Threat',
@@ -483,6 +554,7 @@ export default {
                                 confirmButtonColor:'#226fbb',
                             });
                             vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                            vm.refreshSpeciesCommunity();
                         }, (error) => {
                             console.log(error);
                         });
@@ -493,6 +565,7 @@ export default {
             },
             updatedThreats(){
                 this.$refs.threats_datatable.vmDataTable.ajax.reload();
+                this.refreshSpeciesCommunity();
             },
             addEventListeners:function (){
                 let vm=this;

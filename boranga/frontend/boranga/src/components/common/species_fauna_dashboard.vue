@@ -534,6 +534,9 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     if (full.processing_status){
+                        if (full.processing_status === "Active" && full.publishing_status) {
+                            return full.processing_status +" - "+ full.publishing_status.public_status;
+                        }
                         return full.processing_status;
                     }
                     // Should not reach here
@@ -596,6 +599,8 @@ export default {
                             links +=  `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                             links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
+                    } else {
+                        links += `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                     }
                     return links;
                 }
@@ -633,7 +638,7 @@ export default {
                     vm.column_genera,
                     vm.column_region,
                     vm.column_district,
-                    vm.column_status,
+                    //vm.column_status,
                     vm.column_action,
                 ]
                 search = false

@@ -46,6 +46,8 @@ from boranga.components.species_and_communities.models import (
     Species,
     ThreatAgent,
     ThreatCategory,
+    District,
+    Region,
 )
 from boranga.helpers import clone_model, email_in_dept_domains
 from boranga.ledger_api_utils import retrieve_email_user
@@ -135,6 +137,7 @@ class OccurrenceReport(RevisionedMixin):
     PROCESSING_STATUS_AWAITING_RESPONSES = "awaiting_responses"
     PROCESSING_STATUS_APPROVED = "approved"
     PROCESSING_STATUS_DECLINED = "declined"
+    PROCESSING_STATUS_UNLOCKED = "unlocked"
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_CLOSED = "closed"
     PROCESSING_STATUS_PARTIALLY_APPROVED = "partially_approved"
@@ -149,6 +152,7 @@ class OccurrenceReport(RevisionedMixin):
         (PROCESSING_STATUS_AWAITING_RESPONSES, "Awaiting Responses"),
         (PROCESSING_STATUS_APPROVED, "Approved"),
         (PROCESSING_STATUS_DECLINED, "Declined"),
+        (PROCESSING_STATUS_UNLOCKED, "Unlocked"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_CLOSED, "DeListed"),
         (PROCESSING_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
@@ -228,6 +232,7 @@ class OccurrenceReport(RevisionedMixin):
 
     occurrence_report_number = models.CharField(max_length=9, blank=True, default="")
 
+    observation_date = models.DateTimeField(null=True, blank=True)
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     effective_from = models.DateTimeField(null=True, blank=True)
     effective_to = models.DateTimeField(null=True, blank=True)
@@ -264,6 +269,7 @@ class OccurrenceReport(RevisionedMixin):
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
+    site = models.TextField(null=True,blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -389,28 +395,37 @@ class OccurrenceReport(RevisionedMixin):
     @property
     def allowed_assessors(self):
         group = None
-        # TODO: Take application_type into account
         if self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
         ]:
             group = self.get_approver_group()
+            users = list(map(
+                    lambda id: retrieve_email_user(id),
+                    group.get_system_group_member_ids(),
+                )) if group else []
+            return users
         elif self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
+            users = []
             group = self.get_assessor_group()
+            users = users + list(map(
+                lambda id: retrieve_email_user(id),
+                group.get_system_group_member_ids(),
+            )) if group else []
 
-        users = (
-            list(
-                map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )
-            )
-            if group
-            else []
-        )
-        return users
+            group = self.get_approver_group()
+            users = users + list(map(
+                lambda id: retrieve_email_user(id),
+                group.get_system_group_member_ids(),
+            )) if group else []
+
+            return list(set(users))
+        else:
+            return []
+        
 
     def has_assessor_mode(self, user):
         status_with_assessor = [
@@ -423,8 +438,10 @@ class OccurrenceReport(RevisionedMixin):
             if self.assigned_officer:
                 if self.assigned_officer == user.id:
                     return (
-                        user.id
-                        in self.get_assessor_group().get_system_group_member_ids()
+                        (user.id
+                        in self.get_assessor_group().get_system_group_member_ids()) or
+                        (user.id
+                        in self.get_approver_group().get_system_group_member_ids())
                     )
                 else:
                     return False
@@ -449,6 +466,26 @@ class OccurrenceReport(RevisionedMixin):
             else:
                 return False
 
+    def has_unlocked_mode(self, user):
+        status_with_assessor = [
+            "unlocked",
+        ]
+        if self.processing_status not in status_with_assessor:
+            return False
+        else:
+            if self.assigned_officer:
+                if self.assigned_officer == user.id:
+                    return (
+                        (user.id
+                        in self.get_assessor_group().get_system_group_member_ids()) or
+                        (user.id
+                        in self.get_approver_group().get_system_group_member_ids())
+                    )
+                else:
+                    return False
+            else:
+                return False
+
     def get_assessor_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
 
@@ -459,7 +496,8 @@ class OccurrenceReport(RevisionedMixin):
     def assessor_recipients(self):
         logger.info("assessor_recipients")
         recipients = []
-        group_ids = self.get_assessor_group().get_system_group_member_ids()
+        group_ids = list(set((self.get_assessor_group().get_system_group_member_ids()
+                    + self.get_assessor_group().get_system_group_member_ids())))
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
@@ -481,18 +519,29 @@ class OccurrenceReport(RevisionedMixin):
 
     # Check if the user is member of assessor group for the OCR Proposal
     def is_approver(self, user):
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
+        return user.id in self.get_approver_group().get_system_group_member_ids()
 
     def can_assess(self, user):
         if self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
-            return user.id in self.get_assessor_group().get_system_group_member_ids()
+            return (user.id in self.get_assessor_group().get_system_group_member_ids() or
+                    user.id in self.get_approver_group().get_system_group_member_ids())
         elif self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
             return user.id in self.get_approver_group().get_system_group_member_ids()
         else:
             return False
+
+    def can_change_lock(self, user):
+        if self.processing_status in [
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+            OccurrenceReport.PROCESSING_STATUS_APPROVED,
+        ]:
+            #TODO: current requirment task allows assessors to unlock, is this too permissive?
+            return (user.id in self.get_assessor_group().get_system_group_member_ids() or
+                    user.id in self.get_approver_group().get_system_group_member_ids())
 
     @transaction.atomic
     def assign_officer(self, request, officer):
@@ -615,6 +664,7 @@ class OccurrenceReport(RevisionedMixin):
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_DECLINED
         self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DECLINED
+        self.occurrence = None
         self.save(version_user=request.user)
 
         # Log proposal action
@@ -729,8 +779,9 @@ class OccurrenceReport(RevisionedMixin):
     def back_to_assessor(self, request, validated_data):
         if (
             not self.can_assess(request.user)
-            or self.processing_status
-            != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
+            or not self.processing_status in
+            [OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+             OccurrenceReport.PROCESSING_STATUS_UNLOCKED]
         ):
             raise exceptions.OccurrenceReportNotAuthorized()
 
@@ -749,6 +800,16 @@ class OccurrenceReport(RevisionedMixin):
         )
 
         send_approver_back_to_assessor_email_notification(request, self, reason)
+
+    def lock(self, request):
+        if self.can_change_lock(request.user) and self.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED 
+            self.save(version_user=request.user)
+
+    def unlock(self, request):
+        if self.can_change_lock(request.user) and self.processing_status == OccurrenceReport.PROCESSING_STATUS_APPROVED:
+            self.processing_status = OccurrenceReport.PROCESSING_STATUS_UNLOCKED
+            self.save(version_user=request.user)
 
     @property
     def latest_referrals(self):
@@ -1405,7 +1466,7 @@ class LocationAccuracy(models.Model):
     def __str__(self):
         return str(self.name)
 
-
+#TODO eventually rename this to apply to OCR specifically when we make the OCC specific equivalent
 class Location(models.Model):
     """
     Location data  for occurrence report
@@ -1419,7 +1480,6 @@ class Location(models.Model):
     occurrence_report = models.OneToOneField(
         OccurrenceReport, on_delete=models.CASCADE, null=True, related_name="location"
     )
-    observation_date = models.DateTimeField(null=True, blank=True)
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
     new_occurrence = models.BooleanField(null=True, blank=True)
@@ -1436,6 +1496,15 @@ class Location(models.Model):
     )
     geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
     geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
+
+    region = models.ForeignKey(
+        Region, default=None, on_delete=models.CASCADE, null=True, blank=True
+    )
+    district = models.ForeignKey(
+        District, default=None, on_delete=models.CASCADE, null=True, blank=True
+    )
+    #TODO either keep as free text or have a foreign model similar to district and region
+    locality = models.TextField(default=None, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -1548,6 +1617,7 @@ class OCRObserverDetail(models.Model):
     contact = models.CharField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
     main_observer = models.BooleanField(null=True, blank=True)
+    visible = models.BooleanField(default=True)
 
     class Meta:
         app_label = "boranga"
@@ -2506,7 +2576,7 @@ class OCRConservationThreat(RevisionedMixin):
         null=True,
         blank=True,
     )
-    comment = models.CharField(max_length=512, default="None")
+    comment = models.CharField(max_length=512, blank=True, null=True)
     date_observed = models.DateField(blank=True, null=True)
     visible = models.BooleanField(
         default=True
@@ -2629,12 +2699,14 @@ class Occurrence(RevisionedMixin):
     PROCESSING_STATUS_SPLIT = "split"
     PROCESSING_STATUS_COMBINE = "combine"
     PROCESSING_STATUS_HISTORICAL = "historical"
+    PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_LOCKED, "Locked"),
         (PROCESSING_STATUS_SPLIT, "Split"),
         (PROCESSING_STATUS_COMBINE, "Combine"),
         (PROCESSING_STATUS_HISTORICAL, "Historical"),
+        (PROCESSING_STATUS_DISCARDED, "Discarded"),
     )
     processing_status = models.CharField(
         "Processing Status",
@@ -2671,6 +2743,37 @@ class Occurrence(RevisionedMixin):
     @property
     def number_of_reports(self):
         return self.occurrence_report_count
+    
+    def lock(self,request):
+        if (request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
+            self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
+            self.processing_status = Occurrence.PROCESSING_STATUS_LOCKED
+            self.save(version_user=request.user)
+
+    def unlock(self,request):
+        if (request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
+            self.processing_status == Occurrence.PROCESSING_STATUS_LOCKED):
+            self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
+            self.save(version_user=request.user)
+
+    def close(self,request):
+        if (request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
+            self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
+            self.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
+            self.save(version_user=request.user)
+
+    #if this function is called and the OCC has no associated OCRs, discard it
+    def check_ocr_count_for_discard(self,request):
+        discardable = [
+            Occurrence.PROCESSING_STATUS_ACTIVE,
+            Occurrence.PROCESSING_STATUS_LOCKED,
+        ]
+        if self.processing_status in discardable and \
+        request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
+        OccurrenceReport.objects.filter(occurrence=self).count() < 1:
+            self.processing_status = Occurrence.PROCESSING_STATUS_DISCARDED
+            self.save(version_user=request.user)
+            
 
     def can_user_edit(self, user):
         user_editable_state = [
@@ -2681,10 +2784,10 @@ class Occurrence(RevisionedMixin):
         else:
             return (
                 user.id
-                in self.get_occurrence_editor_group().get_system_group_member_ids()
+                in self.get_occurrence_approver_group().get_system_group_member_ids()
             )
 
-    def get_occurrence_editor_group(self):
+    def get_occurrence_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
 
     def log_user_action(self, action, request):
@@ -2972,7 +3075,6 @@ class OccurrenceDocument(Document):
         self.save(*args, **kwargs)
 
 
-# TODO keep for now, remove if not needed (depends on what requirements are for OCR/OCC location)
 class OCCObserverDetail(models.Model):
     """
     Observer data  for occurrence
@@ -3057,7 +3159,7 @@ class OCCConservationThreat(RevisionedMixin):
         null=True,
         blank=True,
     )
-    comment = models.CharField(max_length=512, default="None")
+    comment = models.CharField(max_length=512, blank=True, null=True)
     date_observed = models.DateField(blank=True, null=True)
     visible = models.BooleanField(
         default=True

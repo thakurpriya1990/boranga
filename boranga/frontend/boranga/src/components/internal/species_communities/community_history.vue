@@ -275,6 +275,13 @@ export default {
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
+                    if (full.data.communitypublishingstatus !== undefined && 
+                        full.data.community.fields.processing_status === "active"
+                    ) 
+                    {
+                        let public_status = full.data.communitypublishingstatus.fields.community_public ? "public" : "private";
+                        return full.data.community.fields.processing_status + " - " + public_status;
+                    }
                     return full.data.community.fields.processing_status;
                 },
                 name: 'processing_status',
@@ -397,10 +404,18 @@ export default {
         }
     },
     mounted: function(){
+        let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+        });
+    },
+    watch: {
+        isModalOpen() {
             let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
-            });
-        },
+            if (this.isModalOpen) {
+                vm.$refs.history_datatable.vmDataTable.ajax.reload();
+            }
+        }
+    },
 };
 </script>

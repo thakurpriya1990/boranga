@@ -538,7 +538,7 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
 
 
 class LocationSerializer(serializers.ModelSerializer):
-    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    # observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     # geojson_point = serializers.SerializerMethodField()
     # geojson_polygon = serializers.SerializerMethodField()
 
@@ -547,7 +547,7 @@ class LocationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            "observation_date",
+            # "observation_date",
             "location_description",
             "boundary_description",
             "new_occurrence",
@@ -558,6 +558,9 @@ class LocationSerializer(serializers.ModelSerializer):
             "epsg_code",
             "coordination_source_id",
             "location_accuracy_id",
+            "region_id",
+            "district_id",
+            "locality",
             # 'geojson_point',
             # 'geojson_polygon',
         )
@@ -811,6 +814,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     lodgement_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
+    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = OccurrenceReport
@@ -853,6 +857,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "label",
             "model_name",
             "occurrence",
+            "observation_date",
+            "site",
         )
 
     def get_readonly(self, obj):
@@ -1097,6 +1103,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "referrals",
             "finalised",
             "is_new_contributor",
+            "observation_date",
+            "site",
         )
 
     def get_readonly(self, obj):
@@ -1119,11 +1127,15 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     def get_can_user_assess(self, obj):
         request = self.context["request"]
         return (
-            is_occurrence_assessor(request.user)
+            (
+                is_occurrence_assessor(request.user)
+                or is_occurrence_approver(request.user)
+            )
             and obj.processing_status
             in [
                 OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
                 OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+                OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
             ]
             and obj.assigned_officer == request.user.id
         )
@@ -1136,8 +1148,21 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             and obj.assigned_approver == request.user.id
         )
 
+    def get_can_user_change_lock(self, obj):
+        request = self.context["request"]
+        return (
+            is_occurrence_assessor(request.user) or is_occurrence_approver(request.user)
+        ) and obj.processing_status in [
+            OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+        ]
+
     def get_can_user_action(self, obj):
-        return self.get_can_user_assess(obj) or self.get_can_user_approve(obj)
+        return (
+            self.get_can_user_assess(obj)
+            or self.get_can_user_approve(obj)
+            or self.get_can_user_change_lock(obj)
+        )
 
     def get_current_assessor(self, obj):
         user = self.context["request"].user
@@ -1155,6 +1180,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         return {
             "assessor_mode": True,
             "has_assessor_mode": obj.has_assessor_mode(user),
+            "has_unlocked_mode": obj.has_unlocked_mode(user),
             "assessor_can_assess": obj.can_assess(user),
             "assessor_level": "assessor",
         }
@@ -1392,20 +1418,22 @@ class SaveOCRIdentificationSerializer(serializers.ModelSerializer):
 
 
 class SaveLocationSerializer(serializers.ModelSerializer):
+    region_id = serializers.IntegerField(required=False, allow_null=True)
+    district_id = serializers.IntegerField(required=False, allow_null=True)
     occurrence_report_id = serializers.IntegerField(required=True, allow_null=False)
     datum_id = serializers.IntegerField(required=False, allow_null=True)
     coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
     location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
-    observation_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
-    )
+    # observation_date = serializers.DateTimeField(
+    #    format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    # )
 
     class Meta:
         model = Location
         fields = (
             "id",
             "occurrence_report_id",
-            "observation_date",
+            # "observation_date",
             "location_description",
             "boundary_description",
             "new_occurrence",
@@ -1416,6 +1444,9 @@ class SaveLocationSerializer(serializers.ModelSerializer):
             "epsg_code",
             "coordination_source_id",
             "location_accuracy_id",
+            "region_id",
+            "district_id",
+            "locality",
             # 'geojson_polygon',
         )
 
@@ -1432,6 +1463,7 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             "contact",
             "organisation",
             "main_observer",
+            "visible",
         )
 
 
@@ -1460,6 +1492,9 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     community_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
+    observation_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
 
     class Meta:
         model = OccurrenceReport
@@ -1478,6 +1513,8 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             "reference",
             "deficiency_data",
             "assessor_data",
+            "site",
+            "observation_date",
         )
         read_only_fields = ("id",)
 

@@ -1,0 +1,11 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+ 
+        <p>The following are the errors for NOMOS management Script failed:</p>
+        <br>
+        {{ errors }} <br>
+        <br>
+        <p>Please investigate and resend invoices.</p>
+
+{%  endblock %}

@@ -67,6 +67,11 @@ class UserCreateCommunitySendNotificationEmail(TemplateEmailBase):
     html_template = "boranga/emails/send_user_create_notification.html"
     txt_template = "boranga/emails/send_user_create_notification.txt"
 
+class NomosScriptFailedEmail(TemplateEmailBase):
+    subject = "Failed: NOMOS API Management Script"
+    html_template = "boranga/emails/send_nomos_api_failed_notification.html"
+    txt_template = "boranga/emails/send_nomos_api_failed_notification.txt"
+
 
 def send_species_create_email_notification(request, species_proposal):
     email = CreateSpeciesSendNotificationEmail()
@@ -289,6 +294,14 @@ def send_user_community_create_email_notification(request, community_proposal):
     # _log_user_email(msg, community_proposal.submitter, community_proposal.submitter, sender=sender)
     return msg
 
+def send_nomos_script_failed(errors):
+    """ Internal failed notification email for NOMOS script """
+    email = NomosScriptFailedEmail()
+
+    context = {
+        'errors': errors,
+    }
+    email.send(settings.NOTIFICATION_EMAIL, context=context)
 
 def _log_species_email(
     email_message, species_proposal, sender=None, file_bytes=None, filename=None

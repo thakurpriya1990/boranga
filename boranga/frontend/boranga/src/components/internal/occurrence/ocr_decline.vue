@@ -100,7 +100,7 @@ export default {
                         .then((response) => {
                             swal.fire({
                                 title: 'Occurrence Report Successfully Declined',
-                                text: `Occurrence Report ${vm.occurrence_report_number} has been succuessfully declined. The applicant has been notified via email.`,
+                                text: `Occurrence Report ${vm.occurrence_report_number} has been successfully declined. The applicant has been notified via email.`,
                                 icon: 'success',
                                 confirmButtonColor: '#226fbb',
                             });

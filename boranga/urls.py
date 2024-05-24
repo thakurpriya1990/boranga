@@ -16,6 +16,7 @@ from boranga.components.history import api as history_api
 from boranga.components.main import api as main_api
 from boranga.components.meetings import api as meeting_api
 from boranga.components.occurrence import api as occurrence_api
+from boranga.components.spatial import api as spatial_api
 from boranga.components.species_and_communities import api as species_communities_api
 from boranga.components.users import api as users_api
 from boranga.management.default_data_manager import DefaultDataManager
@@ -49,6 +50,12 @@ router.register(
     r"external_species",
     species_communities_api.ExternalSpeciesViewSet,
     "external_species",
+)
+
+router.register(
+    r"external_community",
+    species_communities_api.ExternalCommunityViewSet,
+    "external_community",
 )
 router.register(r"species", species_communities_api.SpeciesViewSet, "species")
 router.register(r"community", species_communities_api.CommunityViewSet, "community")
@@ -149,6 +156,8 @@ router.register(r"occ_threat", occurrence_api.OCCConservationThreatViewSet)
 
 router.register(r"users", users_api.UserViewSet)
 router.register(r"global_settings", main_api.GlobalSettingsViewSet)
+
+router.register(r"tile_layer", spatial_api.TileLayerViewSet, "tile_layer")
 
 api_patterns = [
     url(r"^api/profile$", users_api.GetProfile.as_view(), name="get-profile"),

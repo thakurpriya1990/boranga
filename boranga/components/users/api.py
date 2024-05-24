@@ -6,7 +6,7 @@ from django.db.models import CharField, Value
 from django.db.models.functions import Concat
 from django_countries import countries
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from rest_framework import filters, generics, views, viewsets
+from rest_framework import filters, generics, mixins, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -63,13 +63,14 @@ class GetProfile(views.APIView):
 
 
 class UserListFilterView(generics.ListAPIView):
-    queryset = EmailUser.objects.all()
+    queryset = EmailUser.objects.none()
     serializer_class = UserFilterSerializer
     filter_backends = (filters.SearchFilter,)
+    permission_classes = [IsAssessor | IsApprover]
     search_fields = ("email", "first_name", "last_name")
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = EmailUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAssessor | IsApprover]

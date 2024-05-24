@@ -728,7 +728,7 @@ export default {
                     return type == 'export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__family_fk__scientific_name",
+                name: "species__taxonomy__family_name",
             }
         },
         column_genera: function () {
@@ -742,7 +742,7 @@ export default {
                     return type == 'export' ? value : result;
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__genus__name",
+                name: "species__taxonomy__genera_name",
             }
         },
         column_wa_priority_list: function () {

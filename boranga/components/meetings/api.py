@@ -10,7 +10,7 @@ from django.urls import reverse
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import views, viewsets
+from rest_framework import views, viewsets, mixins
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -208,7 +208,7 @@ class MeetingPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response(status=400, data="Format not valid")
 
 
-class MeetingViewSet(UserActionLoggingViewset):
+class MeetingViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = Meeting.objects.none()
     serializer_class = MeetingSerializer
 
@@ -514,7 +514,7 @@ class GetMeetingDict(views.APIView):
         return HttpResponse(res_json, content_type="application/json")
 
 
-class MinutesViewSet(viewsets.ModelViewSet):
+class MinutesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = Minutes.objects.none()
     serializer_class = MinutesSerializer
 
@@ -592,7 +592,8 @@ class MinutesViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CommitteeViewSet(viewsets.ModelViewSet):
+#TODO: review - what is this used for and how should it work? Right now selecting a committee does not appear to have any persistent effect
+class CommitteeViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = Committee.objects.none()
     serializer_class = None
 
@@ -619,7 +620,7 @@ class CommitteeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class AgendaItemViewSet(viewsets.ModelViewSet):
+class AgendaItemViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = AgendaItem.objects.none()
     serializer_class = AgendaItemSerializer
 
