@@ -34,10 +34,14 @@ def features_json_to_geosgeometry(features, srid=4326):
 def feature_json_to_geosgeometry(feature, srid=4326):
     if isinstance(srid, str) and srid.isnumeric():
         srid = int(srid)
-    geo_json = mapping(geojson.loads(json.dumps(feature)))
+    if "geometry" in feature:
+        geo_json = feature
+    else:
+        # Convert feature to geojson
+        geo_json = mapping(geojson.loads(json.dumps(feature)))
     geom_shape = shape(geo_json.get("geometry"))
 
-    return GEOSGeometry(geom_shape.wkt, srid=4326)
+    return GEOSGeometry(geom_shape.wkt, srid=srid)
 
 
 def transform_json_geometry(json_geom, from_srid, to_srid):
@@ -202,9 +206,9 @@ def centroid(geoms, *args, **kwargs):
 
     polygons = []
     for geom in geoms:
-        if geom.geom_type == 'MultiPolygon':
+        if geom.geom_type == "MultiPolygon":
             polygons += list(geom)
-        elif geom.geom_type == 'Polygon':
+        elif geom.geom_type == "Polygon":
             polygons.append(geom)
         else:
             raise serializers.ValidationError(
