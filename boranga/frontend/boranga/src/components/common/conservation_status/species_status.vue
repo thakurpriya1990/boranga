@@ -100,7 +100,8 @@
                         </div>
                     </template>
                 </div>
-                <div v-if="show_listing_and_review_date" class="row mb-3" :class="conservation_status_obj.effective_from || conservation_status_obj.effective_to ? '' : 'border-top pt-3'">
+                <div v-if="show_listing_and_review_date" class="row mb-3"
+                    :class="conservation_status_obj.effective_from || conservation_status_obj.effective_to ? '' : 'border-top pt-3'">
                     <label for="listing_date" class="col-sm-3 col-form-label">Date First Listed:</label>
                     <div class="col-sm-3">
                         <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="listing_date"
@@ -224,6 +225,16 @@
                 <div class="row border-top pt-3">
                     <h5 class="text-muted mb-4">Current Conservation
                         Status</h5>
+                </div>
+                <div class="row mb-3">
+                    <label for="conservation_status_number" class="col-sm-4 col-form-label">Conservation Status
+                        Number:</label>
+                    <div class="col-sm-8">
+                        <a :href="`/internal/conservation_status/${conservation_status_obj.current_conservation_status.id}`"
+                            target="_blank" class="btn btn-primary" >{{
+                                conservation_status_obj.current_conservation_status.conservation_status_number }}<i
+                                class="bi bi-box-arrow-up-right ps-2"></i></a>
+                    </div>
                 </div>
                 <div v-if="conservation_status_obj.current_conservation_status.wa_legislative_list_id" class="row mb-3">
                     <label for="current_wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative
