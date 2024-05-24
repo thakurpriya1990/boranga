@@ -672,7 +672,7 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_DISCARDED,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
         ]
-        return self.processing_status in officer_view_state
+        return self.processing_status not in officer_view_state
 
     @property
     def can_approver_process(self):
