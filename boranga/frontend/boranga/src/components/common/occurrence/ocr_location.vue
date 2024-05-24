@@ -4,7 +4,7 @@
         <FormSection
             :form-collapse="false"
             label="Location"
-            Index="occurrence_report"
+            Index="occurrence_report_location"
             :is-show-comment="isShowComment"
             :has_comment_value="has_comment_value"
             :display-comment-section="!is_external"
@@ -113,6 +113,7 @@
                 ></MapComponent>
             </div>
 
+            <!--
             <div v-show="!isCommunity">
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 control-label"
@@ -185,31 +186,47 @@
                     </div>
                 </div>
             </div>
+            -->
 
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Region:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)"
+                        v-model="occurrence_report_obj.location.region_id">
+                        <option v-for="option in region_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">District:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" class="form-select" 
+                        v-model="occurrence_report_obj.location.district_id">
+                        <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Observation Date:</label
+                    >Locality:</label
                 >
                 <div class="col-sm-9">
-                    <input
+                    <textarea
+                        id="locality"
                         v-model="
-                            occurrence_report_obj.location.observation_date
+                            occurrence_report_obj.location.locality
                         "
                         :disabled="isReadOnly"
-                        type="datetime-local"
                         class="form-control"
-                        name="start_date"
+                        rows="1"
+                        placeholder=""
                     />
                 </div>
             </div>
-            <!-- ------------Observer Detail section -->
-
-            <ObserverDatatable
-                ref="observer_datatable"
-                :occurrence_report_obj="occurrence_report_obj"
-                :is_external="is_external"
-                :is-read-only="isReadOnly"
-            ></ObserverDatatable>
 
             <!-- -------------------------------- -->
             <div class="row mb-3">
@@ -269,22 +286,7 @@
                     <label for="newOccurrenceNo">No</label>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Boundary(m) :</label
-                >
-                <div class="col-sm-6">
-                    <input
-                        id="boundary"
-                        v-model="occurrence_report_obj.location.boundary"
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                    />
-                </div>
-            </div>
+            
             <div class="row mb-3">
                 <label class="col-sm-3 control-label">Mapped Boundary</label>
                 <div class="col-sm-1">
@@ -308,22 +310,7 @@
                     <label for="mapBoundaryNo">No</label>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Buffer Radius(m) :</label
-                >
-                <div class="col-sm-6">
-                    <input
-                        id="buffer_radius"
-                        v-model="occurrence_report_obj.location.buffer_radius"
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                    />
-                </div>
-            </div>
+            
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Datum:</label>
                 <div class="col-sm-9">
@@ -392,7 +379,40 @@
                     </select>
                 </div>
             </div>
-            <div class="row mb-3">
+
+            <div v-if="canAssess" class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Boundary(m) :</label
+                >
+                <div class="col-sm-6">
+                    <input
+                        id="boundary"
+                        v-model="occurrence_report_obj.location.boundary"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control ocr_number"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+            </div>
+            <div v-if="canAssess" class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Buffer Radius(m) :</label
+                >
+                <div class="col-sm-6">
+                    <input
+                        id="buffer_radius"
+                        v-model="occurrence_report_obj.location.buffer_radius"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control ocr_number"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+            </div>
+            <div v-if="canAssess" class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Location Accuracy/Certainty:</label
                 >
@@ -436,10 +456,11 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import { v4 as uuid } from 'uuid';
 // import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import ObserverDatatable from './observer_datatable.vue';
+//import ObserverDatatable from './observer_datatable.vue';
 import MapComponent from '../component_map.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 // require("select2/dist/css/select2.min.css");
@@ -450,7 +471,7 @@ export default {
     name: 'OCRLocation',
     components: {
         FormSection,
-        ObserverDatatable,
+        //ObserverDatatable,
         MapComponent,
         VueSelect,
     },
@@ -484,12 +505,12 @@ export default {
         let vm = this;
         return {
             uuid: null,
-            scientific_name_lookup:
+            /*scientific_name_lookup:
                 'scientific_name_lookup' + vm.occurrence_report_obj.id,
             select_scientific_name:
                 'select_scientific_name' + vm.occurrence_report_obj.id,
             community_name_lookup: 'community_name_lookup' + vm._uid,
-            select_community_name: 'select_community_name' + vm._uid,
+            select_community_name: 'select_community_name' + vm._uid,*/
             isShowComment: false,
             //---to show fields related to Fauna
             isFauna:
@@ -503,10 +524,14 @@ export default {
             species_list: [],
             referral_comments_boxes: [],
             // to display the species selected
-            species_display: '',
-            community_display: '',
-            taxon_previous_name: '',
+            //species_display: '',
+            //community_display: '',
+            //taxon_previous_name: '',
             //---Comment box attributes
+
+            region_list: [],
+            district_list: [],
+            filtered_district_list: [],
 
             deficiency_readonly:
                 !this.is_external &&
@@ -542,6 +567,13 @@ export default {
         },
         assessorCommentVisibility: function () {
             return this.occurrence_report_obj.assessor_mode.assessor_box_view;
+        },
+        canAssess: function () {
+            if (!this.is_external) {
+                return this.occurrence_report_obj.assessor_mode.assessor_can_assess;
+            } else {
+                return false;
+            }
         },
         has_comment_value: function () {
             let has_value = false;
@@ -588,7 +620,7 @@ export default {
         this.uuid = uuid();
         //------fetch list of values according to action
         let action = this.$route.query.action;
-        let dict_url =
+        /*let dict_url =
             action == 'view'
                 ? api_endpoints.cs_profile_dict +
                   '?group_type=' +
@@ -610,7 +642,7 @@ export default {
             (error) => {
                 console.log(error);
             }
-        );
+        );*/
 
         //------fetch list of values
         fetch(
@@ -647,17 +679,47 @@ export default {
             .catch((error) => {
                 console.error('Error fetching location values list:', error);
             });
+
+        const response = await Vue.http.get('/api/region_district_filter_dict/');
+        vm.filterRegionDistrict = response.body;
+        vm.region_list = vm.filterRegionDistrict.region_list;
+        vm.district_list = vm.filterRegionDistrict.district_list;
+        vm.region_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        this.filterDistrict();
     },
     mounted: function () {
         let vm = this;
         this.$nextTick(() => {
             vm.eventListeners();
-            vm.initialiseScientificNameLookup();
-            vm.initialiseCommunityNameLookup();
+            //vm.initialiseScientificNameLookup();
+            //vm.initialiseCommunityNameLookup();
         });
     },
     methods: {
-        initialiseScientificNameLookup: function () {
+        filterDistrict: function (event) {
+            this.$nextTick(() => {
+                if (event) {
+                    this.occurrence_report_obj.location.district_id = null; //-----to remove the previous selection
+                }
+                this.filtered_district_list = [];
+                this.filtered_district_list = [{
+                    id: null,
+                    name: "",
+                    region_id: null,
+                }];
+                //---filter districts as per region selected
+                for (let choice of this.district_list) {
+                    if (choice.region_id === this.occurrence_report_obj.location.region_id) {
+                        this.filtered_district_list.push(choice);
+                    }
+                }
+            });
+        },
+        /*initialiseScientificNameLookup: function () {
             let vm = this;
             $(vm.$refs[vm.scientific_name_lookup])
                 .select2({
@@ -792,7 +854,7 @@ export default {
                     this.community_display = choice.name;
                 }
             }
-        },
+        },*/
         generateReferralCommentBoxes: function () {
             var box_visibility =
                 this.occurrence_report_obj.assessor_mode.assessor_box_view;
@@ -871,6 +933,10 @@ export default {
                             text: 'Location details have been saved',
                             icon: 'success',
                             confirmButtonColor: '#226fbb',
+                        }).then((result) => {
+                            if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                vm.$router.go();
+                            }
                         });
                         vm.$refs.component_map.forceToRefreshMap();
                     },

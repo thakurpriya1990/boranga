@@ -57,7 +57,8 @@ def species_form_submit(species_instance, request):
     if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
         species_instance.processing_status = Species.PROCESSING_STATUS_ACTIVE
         species_instance.species_documents.all().update(can_delete=False)
-        species_instance.save()
+        #all functions that call this save after - otherwise we can parametise this if need be
+        species_instance.save(no_revision=True)
     else:
         raise ValidationError(
             "An error occurred while submitting proposal (Submit email notifications failed)"
@@ -97,7 +98,7 @@ def community_form_submit(community_instance, request):
     if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
         community_instance.processing_status = Community.PROCESSING_STATUS_ACTIVE
         community_instance.community_documents.all().update(can_delete=False)
-        community_instance.save()
+        community_instance.save(no_revision=True)
     else:
         raise ValidationError(
             "An error occurred while submitting proposal (Submit email notifications failed)"
@@ -142,7 +143,7 @@ def combine_species_original_submit(species_instance, request):
 def rename_species_original_submit(species_instance, request):
     if species_instance.processing_status == "active":
         species_instance.processing_status = "historical"
-        species_instance.save()
+        species_instance.save(version_user=request.user)
         #  send the rename species email notification
         send_species_rename_email_notification(request, species_instance)
 
@@ -155,7 +156,7 @@ def rename_species_original_submit(species_instance, request):
                 if species_cons_status:
                     species_cons_status.customer_status = "closed"
                     species_cons_status.processing_status = "closed"
-                    species_cons_status.save()
+                    species_cons_status.save(version_user=request.user)
                     # add the log_user_action
                     species_cons_status.log_user_action(
                         ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(

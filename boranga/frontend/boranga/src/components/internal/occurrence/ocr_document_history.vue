@@ -369,11 +369,19 @@ export default {
         }
     },
     mounted: function(){
+        let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+        });
+    },
+    watch: {
+        isModalOpen() {
             let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
-            });
-        },
+            if (this.isModalOpen) {
+                vm.$refs.history_datatable.vmDataTable.ajax.reload();
+            }
+        }
+    },
 };
 </script>
 

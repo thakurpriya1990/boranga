@@ -1,8 +1,22 @@
 <template lang="html">
     <div>
+        <div class="" :id="occurrenceBody">
+            <CommunityOccurrence
+                v-if="isCommunity"  
+                ref="community_occurrence" 
+                id="communityOccurrence"               
+                :occurrence_obj="occurrence_obj">
+            </CommunityOccurrence>
+            <SpeciesOccurrence
+                v-else  
+                ref="species_occurrence" 
+                id="speciesOccurrence"                 
+                :occurrence_obj="occurrence_obj">
+            </SpeciesOccurrence>
+        </div>
         <div class="col-md-12">
             <ul id="pills-tab" class="nav nav-pills" role="tablist">
-                <li class="nav-item">
+                <!--<li class="nav-item">
                     <a 
                         class="nav-link active" 
                         id="pills-occurrence-tab" 
@@ -14,16 +28,16 @@
                         @click="tabClicked()">
                     Occurrence
                     </a>
-                </li>
+                </li>-->
                 <li class="nav-item">
                     <a
                         id="pills-location-tab"
-                        class="nav-link"
+                        class="nav-link active"
                         data-bs-toggle="pill"
                         :href="'#' + locationBody"
                         role="tab"
                         :aria-controls="locationBody"
-                        aria-selected="false"
+                        aria-selected="true"
                         @click="tabClicked()"
                     >
                         Location
@@ -81,7 +95,7 @@
                         Threats
                     </a>
                 </li>
-                <li class="nav-item">
+                <!--<li class="nav-item">
                     <a
                         id="pills-reports-tab"
                         class="nav-link"
@@ -106,7 +120,7 @@
                     >
                         Sites
                     </a>
-                </li>
+                </li>-->
                 <li class="nav-item">
                 <a 
                     class="nav-link" 
@@ -122,22 +136,6 @@
               </li>
             </ul>
             <div id="pills-tabContent" class="tab-content">
-                <div class="tab-pane fade show active" :id="occurrenceBody" role="tabpanel" aria-labelledby="pills-occurrence-tab">
-                <CommunityOccurrence
-                    v-if="isCommunity"  
-                    ref="community_occurrence" 
-                    id="communityOccurrence" 
-                    :key="reloadcount"
-                    :occurrence_obj="occurrence_obj">
-                </CommunityOccurrence>
-                <SpeciesOccurrence
-                    v-else  
-                    ref="species_occurrence" 
-                    id="speciesOccurrence" 
-                    :key="reloadcount"
-                    :occurrence_obj="occurrence_obj">
-                </SpeciesOccurrence>
-                </div>
                 <div
                     :id="locationBody"
                     class="tab-pane fade show active"

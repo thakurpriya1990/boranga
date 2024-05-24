@@ -1,0 +1,11 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+ 
+        The following are the errors for NOMOS management Script failed: 
+
+        {{ errors }}
+
+        Please investigate and resend invoices.
+
+{%  endblock %}

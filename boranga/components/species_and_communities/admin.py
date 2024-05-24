@@ -91,6 +91,7 @@ class InformalGroupInline(admin.TabularInline):
 @admin.register(Taxonomy)
 class TaxonomyAdmin(admin.ModelAdmin):
     list_display = ("id", "taxon_name_id", "scientific_name", "kingdom_name", "grouptype__name")
+    list_filter = ["kingdom_fk__kingdom_name", "kingdom_fk__grouptype__name"]
     inlines = [TaxonVernacularInline, TaxonPreviousNameInline, InformalGroupInline]
     search_fields = ("taxon_name_id", "scientific_name")
     actions = None

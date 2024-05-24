@@ -12,7 +12,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import serializers, views, viewsets
+from rest_framework import serializers, views, viewsets, mixins
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -431,7 +431,7 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class SpeciesConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
+class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (SpeciesConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     queryset = ConservationStatus.objects.none()
@@ -902,7 +902,7 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class CommunityConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
+class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (CommunityConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     # renderer_classes = (CommunityConservationStatusRenderer,)
@@ -1262,7 +1262,7 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
+class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (ConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     queryset = ConservationStatus.objects.none()
@@ -1301,7 +1301,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
 
-class ConservationStatusViewSet(viewsets.ModelViewSet):
+class ConservationStatusViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = ConservationStatus.objects.none()
     serializer_class = ConservationStatusSerializer
     lookup_field = "id"
@@ -1752,7 +1752,7 @@ class ConservationStatusViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
+class ConservationStatusReferralViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     # queryset = Referral.objects.all()
     queryset = ConservationStatusReferral.objects.none()
     serializer_class = ConservationStatusReferralSerializer
@@ -2135,7 +2135,7 @@ class ConservationStatusReferralViewSet(viewsets.ModelViewSet):
         return redirect(reverse("internal"))
 
 
-class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
+class ConservationStatusAmendmentRequestViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = ConservationStatusAmendmentRequest.objects.none()
     serializer_class = ConservationStatusAmendmentRequestSerializer
 
@@ -2174,7 +2174,7 @@ class ConservationStatusAmendmentRequestViewSet(viewsets.ModelViewSet):
         )
 
 
-class ConservationStatusDocumentViewSet(viewsets.ModelViewSet):
+class ConservationStatusDocumentViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     queryset = ConservationStatusDocument.objects.none()
     serializer_class = ConservationStatusDocumentSerializer
 

@@ -41,7 +41,7 @@
                         <template v-if="with_approver">
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_approve"
                                 class="form-select mb-2" v-model="occurrence_report.assigned_approver">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id" :selected="member.id==occurrence_report.assigned_approver">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
@@ -51,10 +51,10 @@
                         <template v-else>
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess"
                                 class="form-select mb-2" v-model="occurrence_report.assigned_officer">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id" :selected="member.id==occurrence_report.current_assessor.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="(with_assessor || with_referral) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
+                            <a v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
                                 @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
                                 me</a>
                         </template>
@@ -157,7 +157,7 @@
                             <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="amendmentRequest()">Request
                                 Amendment</button>
-                            <button v-if="with_approver" style="width:80%;" class="btn btn-primary mb-4"
+                            <button v-if="with_approver || unlocked" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="backToAssessor()">Back to Assessor</button>
 
                             <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-2"
@@ -170,10 +170,15 @@
                             <button v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="decline()">Decline</button>
 
-                            <button style="width:80%;" class="btn btn-primary mb-2"
+                            <button v-if="with_assessor || with_approver" style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="splitSpecies()">Split</button><br />
-                            <button style="width:80%;" class="btn btn-primary mb-2"
-                                @click.prevent="discardSpeciesProposal()">Discard</button>
+                            <button v-if="canDiscard" style="width:80%;" class="btn btn-primary mb-2" 
+                                @click.prevent="discardOCRProposal()">Discard</button>
+
+                            <button v-if="approved" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="unlock()">Unlock</button>
+                            <button v-if="unlocked" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="lock()">Lock</button>
                         </div>
                     </div>
                 </div>
@@ -217,7 +222,7 @@
                                             :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
-                                <div v-else-if="$route.query.action == 'edit' && occurrence_report.assessor_mode.has_assessor_mode" class="container">
+                                <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)" class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
@@ -241,7 +246,7 @@
             @refreshFromResponse="refreshFromResponse">
         </BackToAssessor>
         <ProposeAppprove ref="propose_approve" :occurrence_report_id="occurrence_report.id"
-            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :occurrence_report_number="occurrence_report.occurrence_report_number" :occurrence="occurrence_report.occurrence"
             :group_type_id="occurrence_report.group_type_id" @refreshFromResponse="refreshFromResponse">
         </ProposeAppprove>
         <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id"
@@ -393,6 +398,12 @@ export default {
         with_approver: function () {
             return this.occurrence_report && this.occurrence_report.processing_status === 'With Approver'
         },
+        approved: function () {
+            return this.occurrence_report && this.occurrence_report.processing_status === 'Approved'
+        },
+        unlocked: function () {
+            return this.occurrence_report && this.occurrence_report.processing_status === 'Unlocked'
+        },
         canSeeSubmission: function () {
             // TODO define condition
             return true
@@ -407,7 +418,8 @@ export default {
             return this.occurrence_report && this.occurrence_report.can_user_action;
         },
         canDiscard: function () {
-            return this.occurrence_report && this.occurrence_report.processing_status === "Draft" ? true : false;
+            //return this.occurrence_report && this.occurrence_report.processing_status === "Draft" ? true : false;
+            return false; //TODO do we need this here?
         },
         comms_url: function () {
             return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/comms_log')
@@ -427,18 +439,18 @@ export default {
         }
     },
     methods: {
-        discardSpeciesProposal: function () {
+        discardOCRProposal: function () {
             let vm = this;
             swal.fire({
-                title: "Discard Application",
-                text: "Are you sure you want to discard this proposal?",
+                title: "Discard Report",
+                text: "Are you sure you want to discard this report?",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Application',
                 confirmButtonColor: '#d9534f'
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_species_proposal(vm.occurrence_report.id))
+                    vm.$http.delete(api_endpoints.discard_ocr_proposal(vm.occurrence_report.id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -449,6 +461,62 @@ export default {
                             vm.$router.push({
                                 name: 'internal-species-communities-dash'
                             });
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+
+            });
+        },
+        unlock: function () {
+            let vm = this;
+            swal.fire({
+                title: "Unlock Report",
+                text: "Are you sure you want to unlock this approved report?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: 'Unlock Report',
+                confirmButtonColor: '#d9534f'
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    vm.$http.post(`/api/occurrence_report/${vm.occurrence_report.id}/unlock_occurrence_report.json`)
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Unlocked',
+                                text: 'The approved occurrence report has been unlocked for editing',
+                                icon: 'success',
+                                confirmButtonColor: '#226fbb',
+                            });
+                            vm.occurrence_report = response.body;
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+
+            });
+        },
+        lock: function () {
+            let vm = this;
+            swal.fire({
+                title: "Lock Report",
+                text: "Are you sure you want to lock this approved report?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: 'Lock Report',
+                confirmButtonColor: '#d9534f'
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    vm.$http.post(`/api/occurrence_report/${vm.occurrence_report.id}/lock_occurrence_report.json`)
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Locked',
+                                text: 'The approved occurrence report has been locked from editing',
+                                icon: 'success',
+                                confirmButtonColor: '#226fbb',
+                            });
+                            vm.occurrence_report = response.body;
                         }, (error) => {
                             console.log(error);
                         });
@@ -499,6 +567,7 @@ export default {
                 });
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = true;
+                vm.occurrence_report = res.body
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({

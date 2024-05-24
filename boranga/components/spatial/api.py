@@ -8,7 +8,7 @@ from boranga.components.spatial.serializers import TileLayerSerializer
 from boranga.helpers import is_customer, is_internal
 
 
-class TileLayerViewSet(viewsets.ModelViewSet):
+class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
     """
     A simple ModelViewSet for listing or retrieving tile layers.
     """

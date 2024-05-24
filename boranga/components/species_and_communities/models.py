@@ -161,6 +161,7 @@ class GroupType(models.Model):
         max_length=64,
         choices=GROUP_TYPES,
         default=GROUP_TYPES[1],
+        verbose_name="GroupType Name"
     )
 
     class Meta:
