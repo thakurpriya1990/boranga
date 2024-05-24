@@ -25,7 +25,8 @@
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
-                                        <template v-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
+                                        <template
+                                            v-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
                                             <select ref="assigned_officer" :disabled="!canAction" class="form-control"
                                                 v-model="conservation_status_obj.assigned_approver">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
@@ -207,7 +208,8 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template v-else-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
+                                    <template
+                                        v-else-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <strong>Action</strong><br />
@@ -449,8 +451,8 @@ export default {
         },
         isFinalised: function () {
             return this.conservation_status_obj.processing_status == 'Declined' ||
-            this.conservation_status_obj.processing_status == 'Approved' ||
-            this.conservation_status_obj.processing_status == 'DeListed';
+                this.conservation_status_obj.processing_status == 'Approved' ||
+                this.conservation_status_obj.processing_status == 'DeListed';
         },
         canLimitedAction: function () {
             return this.conservation_status_obj
@@ -468,7 +470,7 @@ export default {
                 return this.conservation_status_obj
                     && !this.isFinalised
                     && (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver                    )
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
             else if (['With Assessor'].includes(this.conservation_status_obj.processing_status)) {
@@ -569,15 +571,18 @@ export default {
             });
         },
         proposedApproval: function () {
-            this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
+            if (this.conservation_status_obj.conservationstatusissuanceapprovaldetails &&
+                Object.keys(this.conservation_status_obj.conservationstatusissuanceapprovaldetails).length > 0) {
+                this.$refs.proposed_approval.approval = helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails);
+            }
             this.$refs.proposed_approval.isModalOpen = true;
         },
         validateConservationStatus: function () {
             let required_fields = [];
-            if(this.conservation_status_obj.processing_status =='With Assessor'){
+            if (this.conservation_status_obj.processing_status == 'With Assessor') {
                 required_fields = [
-                    {'id':'change_code_id', 'display':'Change Type'},
-                    {'id':'approval_level', 'display':'Appplicable Workflow'}
+                    { 'id': 'change_code_id', 'display': 'Change Type' },
+                    { 'id': 'approval_level', 'display': 'Appplicable Workflow' }
                 ];
             }
             // TODO Add any other required validation for other statuses
@@ -603,7 +608,10 @@ export default {
             if (!this.validateConservationStatus()) {
                 return;
             }
-            this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
+            if (this.conservation_status_obj.conservationstatusissuanceapprovaldetails &&
+                Object.keys(this.conservation_status_obj.conservationstatusissuanceapprovaldetails).length > 0) {
+                this.$refs.proposed_approval.approval = helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails);
+            }
             this.$refs.proposed_approval.state = 'final_approval';
             this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument;
             this.$refs.proposed_approval.isModalOpen = true;
@@ -861,7 +869,7 @@ export default {
                     vm.original_conservation_status_obj = helpers.copyObject(response.body);
                     vm.updateAssignedOfficerSelect();
                     vm.$nextTick(() => {
-                        vm.initialisedSelects =false;
+                        vm.initialisedSelects = false;
                         vm.initialiseSelects();
                     });
                 }, (error) => {
