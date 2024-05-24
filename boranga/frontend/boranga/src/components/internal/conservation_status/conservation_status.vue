@@ -25,7 +25,7 @@
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
-                                        <template v-if="conservation_status_obj.processing_status == 'With Approver'">
+                                        <template v-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
                                             <select ref="assigned_officer" :disabled="!canAction" class="form-control"
                                                 v-model="conservation_status_obj.assigned_approver">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
@@ -207,7 +207,7 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template v-else-if="conservation_status_obj.processing_status == 'With Approver'">
+                                    <template v-else-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <strong>Action</strong><br />
@@ -448,7 +448,9 @@ export default {
             return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit : 'false';
         },
         isFinalised: function () {
-            return this.conservation_status_obj.processing_status == 'Declined' || this.conservation_status_obj.processing_status == 'Approved';
+            return this.conservation_status_obj.processing_status == 'Declined' ||
+            this.conservation_status_obj.processing_status == 'Approved' ||
+            this.conservation_status_obj.processing_status == 'DeListed';
         },
         canLimitedAction: function () {
             return this.conservation_status_obj
@@ -462,16 +464,14 @@ export default {
                 && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
         },
         canAction: function () {
-            if (this.conservation_status_obj.processing_status == 'With Approver') {
+            if (this.conservation_status_obj.processing_status == 'Ready For Agenda') {
                 return this.conservation_status_obj
                     && !this.isFinalised
                     && (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
-                        || this.conservation_status_obj.assigned_approver == null
-                    )
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver                    )
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
-            else if (['With Assessor', 'Ready For Agenda'].includes(this.conservation_status_obj.processing_status)) {
+            else if (['With Assessor'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj
                     && !this.isFinalised
                     && (
@@ -555,6 +555,9 @@ export default {
         },
         proposedReadyForAgenda: function () {
             let vm = this;
+            if (!this.validateConservationStatus()) {
+                return;
+            }
             vm.proposeReadyForAgenda = true;
             vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/proposed_ready_for_agenda')).then((response) => {
                 vm.proposeReadyForAgenda = false;
@@ -569,7 +572,37 @@ export default {
             this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
             this.$refs.proposed_approval.isModalOpen = true;
         },
+        validateConservationStatus: function () {
+            let required_fields = [];
+            if(this.conservation_status_obj.processing_status =='With Assessor'){
+                required_fields = [
+                    {'id':'change_code_id', 'display':'Change Type'},
+                    {'id':'approval_level', 'display':'Appplicable Workflow'}
+                ];
+            }
+            // TODO Add any other required validation for other statuses
+            let missing_fields = [];
+            for (let field of required_fields) {
+                console.log('Checking field:', field.id)
+                if (this.conservation_status_obj[field.id] == null || this.conservation_status_obj[field.id] == '') {
+                    missing_fields.push(field.display);
+                }
+            }
+            if (missing_fields.length == 0) {
+                return true;
+            }
+            swal.fire({
+                title: 'Validation Error',
+                text: `The following fields are required: ${missing_fields.join(', ')}`,
+                icon: 'error',
+                confirmButtonColor: '#226fbb'
+            });
+            return false;
+        },
         issueProposal: function () {
+            if (!this.validateConservationStatus()) {
+                return;
+            }
             this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
             this.$refs.proposed_approval.state = 'final_approval';
             this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument;
@@ -811,7 +844,7 @@ export default {
         },
         updateAssignedOfficerSelect: function () {
             let vm = this;
-            if (vm.conservation_status_obj.processing_status == 'With Approver') {
+            if (['With Approver', 'Ready For Agenda'].includes(vm.conservation_status_obj.processing_status)) {
                 $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_approver);
                 $(vm.$refs.assigned_officer).trigger('change');
             }
