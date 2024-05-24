@@ -105,13 +105,13 @@
                     <div class="col-sm-3">
                         <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="listing_date"
                             v-model="conservation_status_obj.listing_date"
-                            :disabled="show_listing_and_review_date_disabled" />
+                            :disabled="listing_and_review_date_disabled" />
                     </div>
                     <label for="review_date" class="col-sm-3 col-form-label">Review Date:</label>
                     <div class="col-sm-3">
                         <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="review_date"
                             v-model="conservation_status_obj.review_date"
-                            :disabled="show_listing_and_review_date_disabled" />
+                            :disabled="listing_and_review_date_disabled" />
                     </div>
                 </div>
             </template>
@@ -498,6 +498,9 @@ export default {
             return this.conservation_status_obj.listing_date ||
                 this.conservation_status_obj.review_date ||
                 this.conservation_status_obj.processing_status == "With Assessor";
+        },
+        listing_and_review_date_disabled: function () {
+            return this.conservation_status_obj.processing_status != "With Assessor"
         },
         approval_level_disabled: function () {
             return !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
